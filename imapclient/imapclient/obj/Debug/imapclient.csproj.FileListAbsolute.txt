@@ -1,0 +1,5 @@
+C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\bin\Debug\imapclient.dll
+C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\bin\Debug\imapclient.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\obj\Debug\imapclient.dll
+C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\obj\Debug\imapclient.pdb
+C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\obj\Debug\imapclient.csprojResolveAssemblyReference.cache

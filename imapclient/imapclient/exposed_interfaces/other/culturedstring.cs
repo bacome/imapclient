@@ -1,0 +1,130 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Text;
+using work.bacome.imapclient.support;
+using work.bacome.trace;
+
+namespace work.bacome.imapclient
+{
+    public class cCulturedString
+    {
+        public readonly ReadOnlyCollection<cPart> Parts; // may be null, shouldn't be empty
+
+        public cCulturedString(IList<byte> pBytes)
+        {
+            if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
+
+            if (pBytes.Count == 0)
+            {
+                Parts = null;
+                return;
+            }
+
+            cBytesCursor lCursor = new cBytesCursor(pBytes);
+
+            List<cPart> lParts = new List<cPart>();
+            cByteList lBytes = new cByteList();
+            bool lPendingSpace = false;
+
+            while (!lCursor.Position.AtEnd)
+            {
+                var lBookmark = lCursor.Position;
+
+                if (lCursor.ProcessEncodedWord(out var lString, out var lLanguageTag) && (lCursor.Position.AtEnd || lCursor.SkipByte(cASCII.SPACE)))
+                {
+                    if (lBytes.Count > 0)
+                    {
+                        lParts.Add(new cPart(cTools.UTF8BytesToString(lBytes), null));
+                        lBytes = new cByteList();
+                    }
+
+                    lParts.Add(new cPart(lString, lLanguageTag));
+
+                    lPendingSpace = true;
+                }
+                else
+                {
+                    lCursor.Position = lBookmark;
+
+                    if (lPendingSpace)
+                    {
+                        lBytes.Add(cASCII.SPACE);
+                        lPendingSpace = false;
+                    }
+
+                    if (!lCursor.GetByte(out var lByte)) break;
+
+                    lBytes.Add(lByte);
+                }
+            }
+
+            if (lBytes.Count > 0) lParts.Add(new cPart(cTools.UTF8BytesToString(lBytes), null));
+            Parts = new ReadOnlyCollection<cPart>(lParts);
+        }
+
+        public override string ToString()
+        {
+            if (Parts == null) return string.Empty;
+
+            var lBuilder = new StringBuilder();
+            foreach (var lPart in Parts) lBuilder.Append(lPart.String);
+            return lBuilder.ToString();
+        }
+
+        public class cPart
+        {
+            public readonly string String;
+            public readonly string LanguageTag; // may be null, uppercased
+
+            public cPart(string pString, string pLanguageTag)
+            {
+                String = pString ?? throw new ArgumentNullException(nameof(pString));
+                if (pLanguageTag == null) LanguageTag = null;
+                else LanguageTag = pLanguageTag.ToUpperInvariant();
+            }
+
+            public override string ToString() => $"{nameof(cPart)}({String},{LanguageTag})";
+        }
+
+        public static implicit operator string(cCulturedString pString) => pString?.ToString();
+
+        public static class cTests
+        {
+            [Conditional("DEBUG")]
+            public static void Tests(cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewGeneric($"{nameof(cCulturedString)}.{nameof(cTests)}.{nameof(Tests)}");
+
+                cCulturedString lCString;
+                string lString;
+
+                lCString = new cCulturedString(new cBytes("=?iso-8859-1?q?this=20is=20some=20text?="));
+                lString = lCString;
+                if (lString != "this is some text") throw new cTestsException($"{nameof(cCulturedString)}.1");
+
+                if (new cCulturedString(new cBytes("=?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>")) != "Keith Moore <moore@cs.utk.edu>") throw new cTestsException($"{nameof(cCulturedString)}.2");
+
+                lString = new cCulturedString(new cBytes("=?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>"));
+                if (lString != "Keld Jørn Simonsen <keld@dkuug.dk>") throw new cTestsException($"{nameof(cCulturedString)}.3");
+
+                lString = new cCulturedString(new cBytes("=?ISO-8859-1?Q?Andr=E9?= Pirard <PIRARD@vm1.ulg.ac.be>"));
+                if (lString != "André Pirard <PIRARD@vm1.ulg.ac.be>") throw new cTestsException($"{nameof(cCulturedString)}.4");
+
+                lString = new cCulturedString(new cBytes("=?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?= =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?="));
+                if (lString != "If you can read this you understand the example.") throw new cTestsException($"{nameof(cCulturedString)}.5");
+
+                if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= b")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.6");
+                if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-1?Q?b?=")) != "ab") throw new cTestsException($"{nameof(cCulturedString)}.7");
+                if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a_b?=")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.8");
+                if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-2?Q?_b?=")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.9");
+
+                lCString = new cCulturedString(new cBytes("=?US-ASCII*EN?Q?Keith_Moore?= <moore@cs.utk.edu>"));
+
+                if (lCString != "Keith Moore <moore@cs.utk.edu>") throw new cTestsException($"{nameof(cCulturedString)}.10");
+                if (lCString.Parts[0].LanguageTag != "EN") throw new cTestsException($"{nameof(cCulturedString)}.11");
+            }
+        }
+    }
+}

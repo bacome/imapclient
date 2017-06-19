@@ -1,0 +1,1312 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using work.bacome.imapclient.support;
+using work.bacome.trace;
+
+namespace work.bacome.imapclient
+{
+    public partial class cIMAPClient
+    {
+        private partial class cSession
+        {
+            private class cResponseDataFetch
+            {
+                private const string kReferences = "REFERENCES";
+
+                private static readonly cBytes kFlagsSpace = new cBytes("FLAGS ");
+                private static readonly cBytes kEnvelopeSpace = new cBytes("ENVELOPE ");
+                private static readonly cBytes kInternalDateSpace = new cBytes("INTERNALDATE ");
+                private static readonly cBytes kRFC822Space = new cBytes("RFC822 ");
+                private static readonly cBytes kRFC822HeaderSpace = new cBytes("RFC822.HEADER ");
+                private static readonly cBytes kRFC822TextSpace = new cBytes("RFC822.TEXT ");
+                private static readonly cBytes kRFC822SizeSpace = new cBytes("RFC822.SIZE ");
+                private static readonly cBytes kBodySpace = new cBytes("BODY ");
+                private static readonly cBytes kBodyStructureSpace = new cBytes("BODYSTRUCTURE ");
+                private static readonly cBytes kBodyLBracket = new cBytes("BODY[");
+                private static readonly cBytes kUIDSpace = new cBytes("UID ");
+                private static readonly cBytes kBinaryLBracket = new cBytes("BINARY[");
+                private static readonly cBytes kBinarySizeLBracket = new cBytes("BINARY.SIZE[");
+
+                public readonly uint MSN;
+                public readonly cMessageFlags Flags;
+                public readonly cEnvelope Envelope;
+                public readonly DateTime? Received;
+                public readonly cBytes RFC822; // un-parsed
+                public readonly cBytes RFC822Header; // un-parsed
+                public readonly cBytes RFC822Text; // un-parsed
+                public readonly uint? Size;
+                public readonly cBodyStructure Body;
+                public readonly cBodyStructure BodyEx;
+                public readonly ReadOnlyCollection<cBody> Bodies;
+                public readonly uint? UID;
+                public readonly cStrings References;
+                public readonly cBinarySizes BinarySizes;
+
+                private cResponseDataFetch(uint pMSN, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyStructure pBody, cBodyStructure pBodyEx, IList<cBody> pBodies, uint? pUID, cStrings pReferences, cBinarySizes pBinarySizes)
+                {
+                    MSN = pMSN;
+                    Flags = pFlags;
+                    Envelope = pEnvelope;
+                    Received = pReceived;
+                    RFC822 = pRFC822 == null ? null : new cBytes(pRFC822);
+                    RFC822Header = pRFC822Header == null ? null : new cBytes(pRFC822Header);
+                    RFC822Text = pRFC822Text == null ? null : new cBytes(pRFC822Text);
+                    Size = pSize;
+                    Body = pBody;
+                    BodyEx = pBodyEx;
+                    Bodies = new ReadOnlyCollection<cBody>(pBodies);
+                    UID = pUID;
+                    References = pReferences;
+                    BinarySizes = pBinarySizes;
+                }
+
+                public override string ToString()
+                {
+                    cListBuilder lBuilder = new cListBuilder(nameof(cResponseDataFetch));
+
+                    lBuilder.Append(MSN);
+                    lBuilder.Append(Flags);
+                    lBuilder.Append(Envelope);
+                    lBuilder.Append(Received);
+                    lBuilder.Append(RFC822);
+                    lBuilder.Append(RFC822Header);
+                    lBuilder.Append(RFC822Text);
+                    lBuilder.Append(Size);
+                    lBuilder.Append(Body);
+                    lBuilder.Append(BodyEx);
+
+                    cListBuilder lBodies = new cListBuilder(nameof(Bodies));
+                    foreach (var lBody in Bodies) lBodies.Append(lBody);
+                    lBuilder.Append(lBodies);
+
+                    lBuilder.Append(UID);
+                    lBuilder.Append(References);
+                    lBuilder.Append(BinarySizes);
+
+                    return lBuilder.ToString();
+                }
+
+                public static bool Process(cBytesCursor pCursor, uint pMSN, cCapability pCapability, out cResponseDataFetch rResponseData, cTrace.cContext pParentContext)
+                {
+                    //  NOTE: this routine does not return the cursor to its original position if it fails
+
+                    var lContext = pParentContext.NewMethod(nameof(cResponseDataFetch), nameof(Process), pMSN);
+
+                    if (!pCursor.SkipByte(cASCII.LPAREN)) { rResponseData = null; pCursor.ParsedAs = null; return false; }
+
+                    cMessageFlags lFlags = null;
+                    cEnvelope lEnvelope = null;
+                    DateTime? lReceived = null;
+                    IList<byte> lRFC822 = null;
+                    IList<byte> lRFC822Header = null;
+                    IList<byte> lRFC822Text = null;
+                    uint? lSize = null;
+                    cBodyStructure lBody = null;
+                    cBodyStructure lBodyEx = null;
+                    List<cBody> lBodies = new List<cBody>();
+                    uint? lUID = null;
+                    cStrings lReferences = null;
+                    cBinarySizesBuilder lBinarySizesBuilder = new cBinarySizesBuilder();
+
+                    while (true)
+                    {
+                        bool lOK;
+
+                        if (pCursor.SkipBytes(kFlagsSpace))
+                        {
+                            lOK = pCursor.GetFlags(out var lRawFlags);
+                            lFlags = new cMessageFlags(lRawFlags);
+                        }
+                        else if (pCursor.SkipBytes(kEnvelopeSpace)) lOK = ZProcessEnvelope(pCursor, out lEnvelope);
+                        else if (pCursor.SkipBytes(kInternalDateSpace))
+                        {
+                            lOK = pCursor.GetDateTime(out var lDateTime);
+                            if (lOK) lReceived = lDateTime;
+                        }
+                        else if (pCursor.SkipBytes(kRFC822Space)) lOK = pCursor.GetNString(out lRFC822);
+                        else if (pCursor.SkipBytes(kRFC822HeaderSpace)) lOK = pCursor.GetNString(out lRFC822Header);
+                        else if (pCursor.SkipBytes(kRFC822TextSpace)) lOK = pCursor.GetNString(out lRFC822Text);
+                        else if (pCursor.SkipBytes(kRFC822SizeSpace))
+                        {
+                            lOK = pCursor.GetNumber(out _, out var lNumber);
+                            if (lOK) lSize = lNumber;
+                        }
+                        else if (pCursor.SkipBytes(kBodySpace)) lOK = ZProcessBodyStructure(pCursor, true, null, false, out lBody);
+                        else if (pCursor.SkipBytes(kBodyStructureSpace)) lOK = ZProcessBodyStructure(pCursor, true, null, true, out lBodyEx);
+                        else if (pCursor.SkipBytes(kBodyLBracket))
+                        {
+                            lOK = ZProcessBody(pCursor, false, out var lABody);
+
+                            if (lOK)
+                            {
+                                lBodies.Add(lABody);
+
+                                // check to see of we should look for the references header
+                                //  (review this TODO: the thing is, we could also look at the BODY[] ... (and I guess we should if we are doing the others)
+                                //    => either do BODY[] also or just do BODY[HEADER.FIELDS(references)])
+
+                                var lSection = lABody.Section;
+
+                                if (lSection.Part == null &&
+                                    lABody.Origin == null &&
+                                    (lSection.TextPart == cSection.eTextPart.header ||
+                                     (lSection.TextPart == cSection.eTextPart.headerfields && lSection.HeaderFields.Contains(kReferences)) ||
+                                     (lSection.TextPart == cSection.eTextPart.headerfieldsnot && !lSection.HeaderFields.Contains(kReferences))
+                                    )
+                                   )
+                                {
+                                    lReferences = ZProcessReferences(lABody.Bytes);
+                                }
+                            }
+                        }
+                        else if (pCursor.SkipBytes(kUIDSpace))
+                        {
+                            lOK = pCursor.GetNZNumber(out _, out var lNumber);
+                            if (lOK) lUID = lNumber;
+                        }
+                        else if (pCapability.Binary && pCursor.SkipBytes(kBinaryLBracket))
+                        {
+                            lOK = ZProcessBody(pCursor, true, out var lABody);
+                            if (lOK) lBodies.Add(lABody);
+                        }
+                        else if (pCapability.Binary && pCursor.SkipBytes(kBinarySizeLBracket))
+                        {
+                            lOK = ZProcessBinarySize(pCursor, out var lPart, out var lBytes);
+                            if (lOK) lBinarySizesBuilder.Set(lPart, lBytes);
+                        }
+                        else break;
+
+                        if (!lOK)
+                        {
+                            lContext.TraceWarning("likely malformed fetch response");
+                            rResponseData = null;
+                            pCursor.ParsedAs = null;
+                            return false;
+                        }
+
+                        if (!pCursor.SkipByte(cASCII.SPACE)) break;
+                    }
+
+                    if (!pCursor.SkipByte(cASCII.RPAREN) || !pCursor.Position.AtEnd) { rResponseData = null; pCursor.ParsedAs = null; return false; }
+
+                    rResponseData = new cResponseDataFetch(pMSN, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyEx, lBodies, lUID, lReferences, lBinarySizesBuilder.AsBinarySizes());
+                    pCursor.ParsedAs = rResponseData;
+                    return true;
+                }
+
+                private static bool ZProcessEnvelope(cBytesCursor pCursor, out cEnvelope rEnvelope)
+                {
+                    //  NOTE: this routine does not return the cursor to its original position if it fails
+
+                    if (!pCursor.SkipByte(cASCII.LPAREN)) { rEnvelope = null; return false; }
+
+                    if (!pCursor.GetNString(out IList<byte> lDateBytes) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !pCursor.GetNString(out IList<byte> lSubjectBytes) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !ZProcessAddresses(pCursor, out var lFrom) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !ZProcessAddresses(pCursor, out var lSender) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !ZProcessAddresses(pCursor, out var lReplyTo) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !ZProcessAddresses(pCursor, out var lTo) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !ZProcessAddresses(pCursor, out var lCC) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !ZProcessAddresses(pCursor, out var lBCC) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !pCursor.GetNString(out IList<byte> lInReplyToBytes) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !pCursor.GetNString(out IList<byte> lMessageIdBytes)
+                       ) { rEnvelope = null; return false; }
+
+                    if (!pCursor.SkipByte(cASCII.RPAREN)) { rEnvelope = null; return false; }
+
+                    DateTime? lSent;
+
+                    if (lDateBytes == null || lDateBytes.Count == 0) lSent = null;
+                    {
+                        // rfc 5256 says quite a lot about how this date should be parsed: please note that I haven't done what it says at this stage (TODO?)
+                        var lCursor = new cBytesCursor(lDateBytes);
+                        if (lCursor.GetRFC822DateTime(out var lTempDate) && lCursor.Position.AtEnd) lSent = lTempDate;
+                        else lSent = null;
+                    }
+
+                    cCulturedString lSubject;
+                    string lBaseSubject;
+
+                    if (lSubjectBytes == null || lSubjectBytes.Count == 0)
+                    {
+                        lSubject = null;
+                        lBaseSubject = null;
+                    }
+                    else
+                    {
+                        lSubject = new cCulturedString(lSubjectBytes);
+                        lBaseSubject = cBaseSubject.Calculate(lSubject);
+                    }
+
+                    string lInReplyTo;
+                    if (lInReplyToBytes == null || lInReplyToBytes.Count == 0) lInReplyTo = null;
+                    else lInReplyTo = ZInReplyTo(lInReplyToBytes);
+
+                    string lMessageId;
+                    if (lMessageIdBytes == null || lMessageIdBytes.Count == 0) lMessageId = null;
+                    else lMessageId = cTools.UTF8BytesToString(lMessageIdBytes);
+
+                    rEnvelope = new cEnvelope(lSent, lSubject, lBaseSubject, lFrom, lSender, lReplyTo, lTo, lCC, lBCC, lInReplyTo, lMessageId);
+                    return true;
+                }
+
+                private static string ZInReplyTo(IList<byte> pInReplyToBytes)
+                {
+                    // parsing this is required for implementing threading TODO
+                    //  it has to be parsed according to the rfc822 spec (but see additions to this in 5322 - in particular the addition of a naked "." to a phrase)
+                    //   also see rfc822s assertion that it is assumed that one WSP between adjacent words ...
+                    //  NOTE that the parsing should find the FIRST thing that looks like a messageid and just set the value to that one messageid (see threading rfc5256 for an explanation)
+                    //
+                    return null;
+                }
+
+                private static bool ZProcessAddresses(cBytesCursor pCursor, out cAddresses rAddresses)
+                {
+                    //  NOTE: this routine does not return the cursor to its original position if it fails
+
+                    if (pCursor.SkipBytes(cBytesCursor.Nil)) { rAddresses = null; return true; }
+
+                    List<cAddress> lAddresses = new List<cAddress>();
+
+                    if (!pCursor.SkipByte(cASCII.LPAREN)) { rAddresses = null; return false; }
+
+                    cCulturedString lGroupDisplayName = null;
+                    List<cAddress.cEmail> lGroupAddresses = null;
+
+                    bool lFirst = true;
+
+                    string lSortString = null; // rfc5256
+                    string lDisplaySortString = null; // rfc5957
+
+                    while (true)
+                    {
+                        // extract an address
+                        if (!pCursor.SkipByte(cASCII.LPAREN)) break;
+
+                        if (!pCursor.GetNString(out IList<byte> lNameBytes) ||
+                            !pCursor.SkipByte(cASCII.SPACE) ||
+                            !pCursor.GetNString(out IList<byte> _) || // route information, not used
+                            !pCursor.SkipByte(cASCII.SPACE) ||
+                            !pCursor.GetNString(out IList<byte> lMailboxBytes) ||
+                            !pCursor.SkipByte(cASCII.SPACE) ||
+                            !pCursor.GetNString(out IList<byte> lHostBytes) ||
+                            !pCursor.SkipByte(cASCII.RPAREN))
+                        {
+                            rAddresses = null;
+                            return false;
+                        }
+
+                        if (lHostBytes == null)
+                        {
+                            // group start or finish
+
+                            if (lMailboxBytes == null)
+                            {
+                                // group finish
+
+                                if (lGroupAddresses == null) { rAddresses = null; return false; } // end of group without a start of group
+                                lAddresses.Add(new cAddress.cGroup(lGroupDisplayName, lGroupAddresses));
+                                lGroupDisplayName = null;
+                                lGroupAddresses = null;
+                            }
+                            else
+                            {
+                                // group start
+
+                                if (lGroupAddresses != null) { rAddresses = null; return false; } // start of group while in a group
+                                lGroupDisplayName = new cCulturedString(lMailboxBytes);
+                                lGroupAddresses = new List<cAddress.cEmail>();
+
+                                if (lFirst)
+                                {
+                                    lSortString = lGroupDisplayName;
+
+                                    if (lNameBytes != null)
+                                    {
+                                        lDisplaySortString = new cCulturedString(lNameBytes);
+                                        if (lDisplaySortString.Length != 0) lFirst = false;
+                                    }
+
+                                    if (lFirst)
+                                    {
+                                        lDisplaySortString = lGroupDisplayName;
+                                        lFirst = false;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // not sure how mailbox names are meant to support i18n? rfc 6530 implies UTF8 but I can't find how that affects the value reported by IMAP in mailbox
+                            //  at this stage if UTF8 were to appear in the mailbox then we would just accept it
+
+                            cCulturedString lDisplayName;
+                            if (lNameBytes == null) lDisplayName = null;
+                            else lDisplayName = new cCulturedString(lNameBytes);
+
+                            string lMailbox = cTools.UTF8BytesToString(lMailboxBytes);
+                            string lAddress = lMailbox + "@" + cTools.ASCIIBytesToString(lHostBytes);
+                            string lDisplayAddress = lMailbox + "@" + cTools.PunycodeBytesToString(lHostBytes);
+
+                            var lEmailAddress = new cAddress.cEmail(lDisplayName, lAddress, lDisplayAddress);
+
+                            if (lGroupAddresses != null) lGroupAddresses.Add(lEmailAddress);
+                            else lAddresses.Add(lEmailAddress);
+
+                            if (lFirst)
+                            {
+                                lSortString = lMailbox;
+
+                                if (lDisplayName != null)
+                                {
+                                    lDisplaySortString = lDisplayName;
+                                    if (lDisplaySortString.Length != 0) lFirst = false;
+                                }
+
+                                if (lFirst)
+                                {
+                                    lDisplaySortString = lAddress;
+                                    lFirst = false;
+                                }
+                            }
+                        }
+                    }
+
+                    if (lGroupAddresses != null) { rAddresses = null; return false; } // missed the end of group
+
+                    if (!pCursor.SkipByte(cASCII.RPAREN)) { rAddresses = null; return false; }
+
+                    rAddresses = new cAddresses(lSortString, lDisplaySortString, lAddresses);
+
+                    return true;
+                }
+
+                private static bool ZProcessBodyStructure(cBytesCursor pCursor, bool pMessage, string pPart, bool pExtended, out cBodyStructure rBodyStructure)
+                {
+                    if (!pCursor.SkipByte(cASCII.LPAREN)) { rBodyStructure = null; return false; }
+
+                    string lMultiPartPrefix;
+                    string lSinglePart;
+
+                    if (pMessage)
+                    {
+                        if (pPart == null)
+                        {
+                            lMultiPartPrefix = "";
+                            lSinglePart = "1";
+                        }
+                        else
+                        {
+                            lMultiPartPrefix = pPart + ".";
+                            lSinglePart = pPart + ".1";
+                        }
+                    }
+                    else
+                    {
+                        lMultiPartPrefix = pPart + ".";
+                        lSinglePart = pPart;
+                    }
+
+                    string lSubType;
+                    cBodyStructure lBodyStructure;
+
+                    if (ZProcessBodyStructure(pCursor, false, lMultiPartPrefix + "1", pExtended, out lBodyStructure))
+                    {
+                        List<cBodyStructure> lParts = new List<cBodyStructure>();
+
+                        lParts.Add(lBodyStructure);
+                        int lPart = 2;
+
+                        while (true)
+                        {
+                            if (!ZProcessBodyStructure(pCursor, false, lMultiPartPrefix + lPart++, pExtended, out lBodyStructure)) break;
+                            lParts.Add(lBodyStructure);
+                        }
+
+                        if (!pCursor.SkipByte(cASCII.SPACE) || !pCursor.GetString(out lSubType)) { rBodyStructure = null; return false; }
+
+                        cBodyStructure.cExtensionData.cMulti lMultiPartExtensionData;
+
+                        if (pExtended && pCursor.SkipByte(cASCII.SPACE))
+                        { 
+                            if (!ZProcessBodyStructureParameters(pCursor, out var lExtendedParameters)) { rBodyStructure = null; return false; }
+                            if (!ZProcessBodyStructureExtensionData(pCursor, out var lDisposition, out var lLanguages, out var lLocation, out var lExtensionValues)) { rBodyStructure = null; return false; }
+                            lMultiPartExtensionData = new cBodyStructure.cExtensionData.cMulti(lExtendedParameters, lDisposition, lLanguages, lLocation, lExtensionValues);
+                        }
+                        else lMultiPartExtensionData = null;
+
+                        if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyStructure = null; return false; }
+
+                        rBodyStructure = new cBodyStructure.cMulti(lParts, lSubType, pPart, lMultiPartExtensionData);
+                        return true;
+                    }
+
+                    if (!pCursor.GetString(out string lType) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !pCursor.GetString(out lSubType) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !ZProcessBodyStructureParameters(pCursor, out var lParameters) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !pCursor.GetNString(out string lContentId) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !pCursor.GetNString(out IList<byte> lDescriptionBytes) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !pCursor.GetString(out string lEncoding) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !pCursor.GetNumber(out _, out uint lSizeInBytes)) { rBodyStructure = null; return false; }
+
+                    cBodyStructure.cExtensionData.cSingle lExtensionData;
+
+                    cCulturedString lDescription;
+                    if (lDescriptionBytes == null) lDescription = null;
+                    else lDescription = new cCulturedString(lDescriptionBytes);
+
+                    if (lType.Equals(cBodyStructure.TypeText, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (!pCursor.SkipByte(cASCII.SPACE) || !pCursor.GetNumber(out _, out var lSizeInLines)) { rBodyStructure = null; return false; }
+
+                        if (pExtended && !ZProcessBodyStructureSingleExtensionData(pCursor, out lExtensionData)) { rBodyStructure = null; return false; }
+                        else lExtensionData = null;
+
+                        if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyStructure = null; return false; }
+
+                        rBodyStructure = new cBodyStructure.cSingle.cText(lSubType, lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lSizeInLines, lExtensionData);
+                        return true;
+                    }
+
+                    if (lType.Equals(cBodyStructure.TypeMessage, StringComparison.InvariantCultureIgnoreCase) && lSubType.Equals(cBodyStructure.SubTypeRFC822, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (!pCursor.SkipByte(cASCII.SPACE) || 
+                            !ZProcessEnvelope(pCursor, out var lEnvelope) ||
+                            !pCursor.SkipByte(cASCII.SPACE) ||
+                            !ZProcessBodyStructure(pCursor, true, lSinglePart, pExtended, out lBodyStructure) ||
+                            !pCursor.SkipByte(cASCII.SPACE) ||
+                            !pCursor.GetNumber(out _, out var lSizeInLines)) { rBodyStructure = null; return false; }
+
+                        cBodyStructure lBody;
+                        cBodyStructure lBodyEx;
+
+                        if (pExtended)
+                        {
+                            lBody = null;
+                            lBodyEx = lBodyStructure;
+                            if (!ZProcessBodyStructureSingleExtensionData(pCursor, out lExtensionData)) { rBodyStructure = null; return false; }
+                        }
+                        else
+                        {
+                            lBody = lBodyStructure;
+                            lBodyEx = null;
+                            lExtensionData = null;
+                        }
+
+                        if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyStructure = null; return false; }
+
+                        rBodyStructure = new cBodyStructure.cSingle.cMessage(lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lEnvelope, lBody, lBodyEx, lSizeInLines, lExtensionData);
+                        return true;
+                    }
+
+                    if (pExtended && !ZProcessBodyStructureSingleExtensionData(pCursor, out lExtensionData)) { rBodyStructure = null; return false; }
+                    else lExtensionData = null;
+
+                    if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyStructure = null; return false; }
+
+                    rBodyStructure = new cBodyStructure.cSingle(lType, lSubType, lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lExtensionData);
+                    return true;
+                }
+
+                private static bool ZProcessBodyStructureParameters(cBytesCursor pCursor, out cBodyStructure.cParameters rParameters)
+                {
+                    if (pCursor.SkipBytes(cBytesCursor.Nil)) { rParameters = null; return true; }
+
+                    if (!pCursor.SkipByte(cASCII.LPAREN)) { rParameters = null; return false; }
+
+                    cParametersBuilder lBuilder = new cParametersBuilder();
+
+                    while (true)
+                    {
+                        if (!pCursor.GetString(out IList<byte> lParameter) || !pCursor.SkipByte(cASCII.SPACE) || !pCursor.GetString(out IList<byte> lValue)) { rParameters = null; return false; }
+                        if (!lBuilder.TryAdd(lParameter, lValue)) { rParameters = null; return false; }
+                        if (!pCursor.SkipByte(cASCII.SPACE)) break;
+                    }
+
+                    if (!pCursor.SkipByte(cASCII.RPAREN)) { rParameters = null; return false; }
+
+                    rParameters = lBuilder.ToParameters();
+                    return true;
+                }
+
+                private static bool ZProcessBodyStructureSingleExtensionData(cBytesCursor pCursor, out cBodyStructure.cExtensionData.cSingle rExtensionData)
+                {
+                    if (!pCursor.SkipByte(cASCII.SPACE)) { rExtensionData = null; return true; }
+                    if (!pCursor.GetNString(out string lMD5)) { rExtensionData = null; return false; }
+                    if (!ZProcessBodyStructureExtensionData(pCursor, out var lDisposition, out var lLanguages, out var lLocation, out var lExtensionValues)) { rExtensionData = null; return false; }
+                    rExtensionData = new cBodyStructure.cExtensionData.cSingle(lMD5, lDisposition, lLanguages, lLocation, lExtensionValues);
+                    return true;
+                }
+
+                private static bool ZProcessBodyStructureExtensionData(cBytesCursor pCursor, out cBodyStructure.cDisposition rDisposition, out cStrings rLanguages, out string rLocation, out cBodyStructure.cExtensionValue.cValues rExtensionValues)
+                {
+                    if (!pCursor.SkipByte(cASCII.SPACE)) { rDisposition = null; rLanguages = null; rLocation = null; rExtensionValues = null; return true; }
+                    if (!ZProcessBodyStructureDisposition(pCursor, out rDisposition)) { rDisposition = null; rLanguages = null; rLocation = null; rExtensionValues = null; return false; }
+                    if (!pCursor.SkipByte(cASCII.SPACE)) { rLanguages = null; rLocation = null; rExtensionValues = null; return true; }
+                    if (!ZProcessBodyStructureLanguages(pCursor, out rLanguages)) { rDisposition = null; rLanguages = null; rLocation = null; rExtensionValues = null; return false; }
+                    if (!pCursor.SkipByte(cASCII.SPACE)) { rLocation = null; rExtensionValues = null; return true; }
+                    if (!pCursor.GetNString(out rLocation)) { rDisposition = null; rLanguages = null; rLocation = null; rExtensionValues = null; return false; }
+                    if (!pCursor.SkipByte(cASCII.SPACE)) { rExtensionValues = null; return true; }
+                    if (!ZProcessBodyStructureExtensionValues(pCursor, out rExtensionValues)) { rDisposition = null; rLanguages = null; rLocation = null; rExtensionValues = null; return false; }
+                    return true;
+                }
+
+                private static bool ZProcessBodyStructureExtensionValues(cBytesCursor pCursor, out cBodyStructure.cExtensionValue.cValues rExtensionValues)
+                {
+                    List<cBodyStructure.cExtensionValue> lValues = new List<cBodyStructure.cExtensionValue>();
+
+                    while (true)
+                    {
+                        if (pCursor.GetNString(out string lString)) lValues.Add(new cBodyStructure.cExtensionValue.cString(lString));
+                        else if (pCursor.GetNumber(out _, out var lNumber)) lValues.Add(new cBodyStructure.cExtensionValue.cNumber(lNumber));
+                        else if (pCursor.SkipByte(cASCII.LPAREN) && ZProcessBodyStructureExtensionValues(pCursor, out var lVals) && pCursor.SkipByte(cASCII.RPAREN)) lValues.Add(lVals);
+                        else { rExtensionValues = null; return false; }
+                        if (!pCursor.SkipByte(cASCII.SPACE)) break;
+                    }
+
+                    rExtensionValues = new cBodyStructure.cExtensionValue.cValues(lValues);
+                    return true;
+                }
+
+                private static bool ZProcessBodyStructureDisposition(cBytesCursor pCursor, out cBodyStructure.cDisposition rDisposition)
+                {
+                    if (pCursor.SkipBytes(cBytesCursor.Nil)) { rDisposition = null; return true; }
+
+                    if (!pCursor.SkipByte(cASCII.LPAREN) ||
+                        !pCursor.GetString(out string lType) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !ZProcessBodyStructureParameters(pCursor, out var lParameters) ||
+                        !pCursor.SkipByte(cASCII.RPAREN)) { rDisposition = null; return false; }
+
+                    rDisposition = new cBodyStructure.cDisposition(lType, lParameters);
+                    return true;
+                }
+
+                private static bool ZProcessBodyStructureLanguages(cBytesCursor pCursor, out cStrings rLanguages)
+                {
+                    List<string> lLanguages = new List<string>();
+
+                    if (pCursor.SkipByte(cASCII.LPAREN))
+                    {
+                        while (true)
+                        {
+                            if (!pCursor.GetString(out string lLanguage)) { rLanguages = null; return false; }
+                            lLanguages.Add(lLanguage);
+                            if (!pCursor.SkipByte(cASCII.SPACE)) break;
+                        }
+
+                        if (pCursor.SkipByte(cASCII.RPAREN))
+                        {
+                            rLanguages = new cStrings(lLanguages);
+                            return true;
+                        }
+                    }
+                    else if (pCursor.GetNString(out string lLanguage))
+                    {
+                        if (lLanguage == null) rLanguages = null;
+                        else
+                        {
+                            lLanguages.Add(lLanguage);
+                            rLanguages = new cStrings(lLanguages);
+                        }
+
+                        return true;
+                    }
+
+                    rLanguages = null;
+                    return false;
+                }
+
+                private static bool ZProcessBody(cBytesCursor pCursor, bool pBinary, out cBody rBody)
+                {
+                    if (!ZProcessSection(pCursor, pBinary, out var lSection)) { rBody = null; return false; }
+
+                    uint? lOrigin;
+
+                    if (pCursor.SkipByte(cASCII.LESSTHAN))
+                    {
+                        if (!pCursor.GetNumber(out _, out var lNumber) || !pCursor.SkipByte(cASCII.GREATERTHAN)) { rBody = null; return false; }
+                        lOrigin = lNumber;
+                    }
+                    else lOrigin = null;
+
+                    if (!pCursor.SkipByte(cASCII.SPACE) || !pCursor.GetNString(out IList<byte> lBytes)) { rBody = null; return false; }
+
+                    rBody = new cBody(pBinary, lSection, lOrigin, lBytes);
+                    return true;
+                }
+
+                private static readonly cBytes kHeaderRBracket = new cBytes("HEADER]");
+                private static readonly cBytes kHeaderFieldsSpace = new cBytes("HEADER.FIELDS ");
+                private static readonly cBytes kHeaderFieldsNotSpace = new cBytes("HEADER.FIELDS.NOT ");
+                private static readonly cBytes kTextRBracket = new cBytes("TEXT]");
+                private static readonly cBytes kMimeRBracket = new cBytes("MIME]");
+
+                private static bool ZProcessSection(cBytesCursor pCursor, bool pBinary, out cSection rSection)
+                {
+                    cByteList lPartBytes = new cByteList();
+                    bool lDot = false;
+
+                    while (true)
+                    {
+                        if (!pCursor.GetNZNumber(out var lPartSegment, out _)) break;
+
+                        if (lDot) lPartBytes.Add(cASCII.DOT);
+                        lPartBytes.AddRange(lPartSegment);
+
+                        if (pCursor.SkipByte(cASCII.DOT)) lDot = true;
+                        else
+                        {
+                            lDot = false;
+                            break;
+                        }
+                    }
+
+                    string lPart;
+                    if (lPartBytes.Count == 0) lPart = null;
+                    else lPart = cTools.ASCIIBytesToString(lPartBytes);
+
+                    if (pBinary)
+                    {
+                        if (lDot || !pCursor.SkipByte(cASCII.RBRACKET))
+                        {
+                            rSection = null;
+                            return false;
+                        }
+
+                        rSection = new cSection(lPart);
+                        return true;
+                    }
+
+                    if (lPart == null || lDot)
+                    {
+                        if (pCursor.SkipBytes(kHeaderRBracket))
+                        {
+                            rSection = new cSection(lPart, cSection.eTextPart.header);
+                            return true;
+                        }
+
+                        if (pCursor.SkipBytes(kTextRBracket))
+                        {
+                            rSection = new cSection(lPart, cSection.eTextPart.text);
+                            return true;
+                        }
+
+                        if (pCursor.SkipBytes(kHeaderFieldsSpace))
+                        {
+                            if (!ZProcessHeaderFields(pCursor, out var lHeaderFields) || !pCursor.SkipByte(cASCII.RBRACKET)) { rSection = null; return false; }
+                            rSection = new cSection(lPart, lHeaderFields);
+                            return true;
+                        }
+
+
+                        if (pCursor.SkipBytes(kHeaderFieldsNotSpace))
+                        {
+                            if (!ZProcessHeaderFields(pCursor, out var lHeaderFields) || !pCursor.SkipByte(cASCII.RBRACKET)) { rSection = null; return false; }
+                            rSection = new cSection(lPart, lHeaderFields, true);
+                            return true;
+                        }
+                    }
+
+                    if (!lDot)
+                    {
+                        if (pCursor.SkipByte(cASCII.RBRACKET))
+                        {
+                            rSection = new cSection(lPart);
+                            return true;
+                        }
+
+                        rSection = null;
+                        return false;
+                    }
+
+                    if (!pCursor.SkipBytes(kMimeRBracket))
+                    {
+                        rSection = null;
+                        return false;
+                    }
+
+                    rSection = new cSection(lPart, cSection.eTextPart.mime);
+                    return true;
+                }
+
+                private static bool ZProcessHeaderFields(cBytesCursor pCursor, out List<string> rHeaderFields)
+                {
+                    if (!pCursor.SkipByte(cASCII.LPAREN)) { rHeaderFields = null; return false; }
+
+                    List<string> lHeaderFields = new List<string>();
+
+                    while (true)
+                    {
+                        if (!pCursor.GetAString(out string lHeaderField)) { rHeaderFields = null; return false; }
+                        lHeaderFields.Add(lHeaderField);
+                        if (!pCursor.SkipByte(cASCII.SPACE)) break;
+                    }
+
+                    if (!pCursor.SkipByte(cASCII.RPAREN)) { rHeaderFields = null; return false; }
+
+                    rHeaderFields = lHeaderFields;
+                    return true;
+                }
+
+                private static cStrings ZProcessReferences(cBytes pBytes)
+                {
+                    // parsing this is required for implementing threading (rfc5256) TODO
+                    //  NOTE that this could be called with data for lots of headers, so you have to look for the references header
+                    //
+                    return null;
+                }
+
+                private static bool ZProcessBinarySize(cBytesCursor pCursor, out string rPart, out uint rSize)
+                {
+                    if (!ZProcessSection(pCursor, true, out var lSection) ||
+                        !pCursor.SkipByte(cASCII.SPACE) ||
+                        !pCursor.GetNumber(out _, out rSize)) { rPart = null; rSize = 0; return false; }
+
+                    rPart = lSection.Part;
+                    return true;
+                }
+
+                private class cParametersBuilder
+                {
+                    private readonly Dictionary<string, cBodyStructure.cParameterValue> mDictionary = new Dictionary<string, cBodyStructure.cParameterValue>(StringComparer.InvariantCultureIgnoreCase);
+
+                    public cParametersBuilder() { }
+
+                    public bool TryAdd(IList<byte> pParameter, IList<byte> pValue)
+                    {
+                        string lParameter;
+                        cBodyStructure.cParameterValue lValue;
+
+                        if (pParameter.Count > 0 && pParameter[pParameter.Count - 1] == cASCII.ASTERISK)
+                        {
+                            byte[] lParameterWork = new byte[pParameter.Count - 1];
+                            for (int i = 0; i < pParameter.Count - 1; i++) lParameterWork[i] = pParameter[i];
+                            lParameter = cTools.UTF8BytesToString(lParameterWork);
+
+                            // find the second "'" from the end (because amazingly, the grammar for charsetname allows the ' character to be used)
+
+                            int lMaxCharsetLength = pValue.Count - 1;
+                            int lQuoteCount = 0;
+
+                            while (lMaxCharsetLength > -1)
+                            {
+                                if (pValue[lMaxCharsetLength] == cASCII.QUOTE)
+                                {
+                                    lQuoteCount++;
+                                    if (lQuoteCount == 2) break;
+                                }
+
+                                lMaxCharsetLength--;
+                            }
+
+                            lValue = null;
+
+                            if (lMaxCharsetLength > -1)
+                            {
+                                cBytesCursor lCursor = new cBytesCursor(pValue);
+
+                                lCursor.GetToken(cCharset.CharsetName, null, null, out var lCharsetBytes, 1, lMaxCharsetLength);
+
+                                if (lCursor.SkipByte(cASCII.QUOTE))
+                                {
+                                    lCursor.GetLanguageTag(out var lLanguageTag);
+
+                                    if (lCursor.SkipByte(cASCII.QUOTE))
+                                    {
+                                        lCursor.GetToken(cCharset.All, cASCII.PERCENT, null, out cByteList lValueBytes);
+                                        if (lCursor.Position.AtEnd && cTools.TryCharsetBytesToString(cTools.UTF8BytesToString(lCharsetBytes), lValueBytes, out var lValueWork)) lValue = new cBodyStructure.cParameterValue(lValueWork, lLanguageTag);
+                                    }
+                                }
+                            }
+
+                            if (lValue == null) lValue = new cBodyStructure.cParameterValue(cTools.UTF8BytesToString(pValue), null);
+                        }
+                        else
+                        {
+                            lParameter = cTools.UTF8BytesToString(pParameter);
+                            lValue = new cBodyStructure.cParameterValue(cTools.UTF8BytesToString(pValue));
+                        }
+
+                        if (mDictionary.ContainsKey(lParameter)) return false;
+
+                        mDictionary.Add(lParameter, lValue);
+                        return true;
+                    }
+
+                    public cBodyStructure.cParameters ToParameters() => new cBodyStructure.cParameters(mDictionary);
+                }
+
+                private class cBaseSubject
+                {
+                    // from rfc5256 section 2.1
+
+                    private string mSubject;
+                    private int mFront;
+                    private int mRear;
+
+                    private cBaseSubject(string pChars)
+                    {
+                        mSubject = pChars;
+                        mFront = 0;
+                        mRear = mSubject.Length - 1;
+                    }
+
+                    private bool ZSkipCharAtFront(char pChar)
+                    {
+                        if (mFront > mRear) return false;
+                        if (ZCompare(mSubject[mFront], pChar)) { mFront++; return true; }
+                        return false;
+                    }
+
+                    private bool ZSkipCharsAtFront(string pChars)
+                    {
+                        if (mFront > mRear) return false;
+
+                        var lBookmark = mFront;
+
+                        int lChar = 0;
+
+                        while (true)
+                        {
+                            if (!ZCompare(mSubject[mFront], pChars[lChar]))
+                            {
+                                mFront = lBookmark;
+                                return false;
+                            }
+
+                            mFront++;
+                            lChar++;
+
+                            if (lChar == pChars.Length) return true;
+
+                            if (mFront > mRear)
+                            {
+                                mFront = lBookmark;
+                                return false;
+                            }
+                        }
+                    }
+
+                    private bool ZGetCharAtFront(out char rChar)
+                    {
+                        if (mFront > mRear) { rChar = '\0'; return false; }
+                        rChar = mSubject[mFront++];
+                        return true;
+                    }
+
+                    private bool ZSkipCharAtRear(char pChar)
+                    {
+                        if (mFront > mRear) return false;
+                        if (ZCompare(mSubject[mRear], pChar)) { mRear--; return true; }
+                        return false;
+                    }
+
+                    private bool ZSkipCharsAtRear(string pChars)
+                    {
+                        if (mFront > mRear) return false;
+
+                        var lBookmark = mRear;
+
+                        int lChar = pChars.Length - 1;
+
+                        while (true)
+                        {
+                            if (!ZCompare(mSubject[mRear], pChars[lChar]))
+                            {
+                                mRear = lBookmark;
+                                return false;
+                            }
+
+                            mRear--;
+                            lChar--;
+
+                            if (lChar == -1) return true;
+
+                            if (mFront > mRear)
+                            {
+                                mRear = lBookmark;
+                                return false;
+                            }
+                        }
+                    }
+
+                    private bool ZSkipWSP()
+                    {
+                        bool lResult = false;
+
+                        while (true)
+                        {
+                            if (!ZSkipCharAtFront(' ') && !ZSkipCharAtFront('\t')) return lResult;
+                            lResult = true;
+                        }
+                    }
+
+                    private bool ZSkipBlobReFwd()
+                    {
+                        int lBookmark = mFront;
+
+                        while (true)
+                        {
+                            if (!ZSkipBlob()) break;
+                        }
+
+                        if (!ZSkipCharsAtFront("re") &&
+                            !ZSkipCharsAtFront("fwd") &&
+                            !ZSkipCharsAtFront("fw"))
+                        {
+                            mFront = lBookmark;
+                            return false;
+                        }
+
+                        ZSkipWSP();
+                        ZSkipBlob();
+
+                        if (!ZSkipCharAtFront(':'))
+                        {
+                            mFront = lBookmark;
+                            return false;
+                        }
+
+                        return true;
+                    }
+
+                    private bool ZSkipBlob()
+                    {
+                        int lBookmark = mFront;
+
+                        if (!ZSkipCharAtFront('[')) return false;
+
+                        while (true)
+                        {
+                            if (!ZGetCharAtFront(out var lChar) || lChar == '[') { mFront = lBookmark; return false; }
+                            if (lChar == ']') break;
+                        }
+
+                        ZSkipWSP();
+
+                        return true;
+                    }
+
+                    private bool ZCompare(char pChar1, char pChar2)
+                    {
+                        char lChar1;
+                        if (pChar1 < 'a') lChar1 = pChar1;
+                        else if (pChar1 > 'z') lChar1 = pChar1;
+                        else lChar1 =(char)(pChar1 - 'a' + 'A');
+
+                        char lChar2;
+                        if (pChar2 < 'a') lChar2 = pChar2;
+                        else if (pChar2 > 'z') lChar2 = pChar2;
+                        else lChar2 = (char)(pChar2 - 'a' + 'A');
+
+                        return lChar1 == lChar2;
+                    }
+
+                    public static string Calculate(string pSubject)
+                    {
+                        cBaseSubject lBaseSubject = new cBaseSubject(pSubject);
+                        int lBookmark;
+
+                        while (true)
+                        {
+                            // 2.1.2
+                            while (true)
+                            {
+                                if (!lBaseSubject.ZSkipCharsAtRear("(fwd)") &&
+                                    !lBaseSubject.ZSkipCharAtRear(' ') &&
+                                    !lBaseSubject.ZSkipCharAtRear('\t')) break;
+                            }
+
+                            while (true) // 2.1.5
+                            {
+                                // 2.1.3
+                                if (lBaseSubject.ZSkipWSP()) continue;
+                                if (lBaseSubject.ZSkipBlobReFwd()) continue;
+
+                                // 2.1.4
+
+                                lBookmark = lBaseSubject.mFront;
+
+                                if (lBaseSubject.ZSkipBlob())
+                                {
+                                    if (lBaseSubject.mFront > lBaseSubject.mRear)
+                                    {
+                                        lBaseSubject.mFront = lBookmark;
+                                        break;
+                                    }
+
+                                    continue;
+                                }
+
+                                break;
+                            }
+
+                            // 2.1.6
+
+                            lBookmark = lBaseSubject.mFront;
+
+                            if (!lBaseSubject.ZSkipCharsAtFront("[fwd:")) break;
+
+                            if (!lBaseSubject.ZSkipCharAtRear(']'))
+                            {
+                                lBaseSubject.mFront = lBookmark;
+                                break;
+                            }
+                        }
+
+                        if (lBaseSubject.mFront > lBaseSubject.mRear) return null;
+
+                        return lBaseSubject.mSubject.Substring(lBaseSubject.mFront, lBaseSubject.mRear - lBaseSubject.mFront + 1);
+                    }
+                }
+
+                public static class cTests
+                {
+                    [Conditional("DEBUG")]
+                    public static void Tests(cTrace.cContext pParentContext)
+                    {
+                        var lContext = pParentContext.NewGeneric($"{nameof(cResponseDataFetch)}.{nameof(cTests)}.{nameof(Tests)}");
+
+                        cBytesCursor lCursor;
+                        cCapabilities lCapabilities = new cCapabilities();
+                        lCapabilities.Set("binary");
+                        cCapability lCapability = new cCapability(lCapabilities, new cCapabilities(), 0);
+                        cResponseDataFetch lData;
+                        cAddress.cEmail lEmailAddress;
+                        cBodyStructure.cSingle.cText lBSST;
+
+                        if (!cBytesCursor.TryConstruct(
+                                @"(FLAGS (\Seen) INTERNALDATE ""17-Jul-1996 02:44:25 -0700"" " +
+                                @"RFC822.SIZE 4286 ENVELOPE (""Wed, 17 Jul 1996 02:23:25 -0700 (PDT)"" " +
+                                @"""IMAP4rev1 WG mtg summary and minutes"" " +
+                                @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
+                                @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
+                                @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
+                                @"((NIL NIL ""imap"" ""cac.washington.edu"")) " +
+                                @"((NIL NIL ""minutes"" ""CNRI.Reston.VA.US"")" +
+                                @"(""John Klensin"" NIL ""KLENSIN"" ""MIT.EDU"")) NIL NIL " +
+                                @"""<B27397-0100000@cac.washington.edu>"") " +
+                                @"BODY (""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 3028 92))", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.0");
+
+                        if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1");
+
+                        if (lData.Flags.KnownFlags != fMessageFlags.seen) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
+                        if (lData.Received != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
+                        if (lData.Envelope.Sent != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
+                        if (lData.Envelope.Subject != "IMAP4rev1 WG mtg summary and minutes") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.5");
+                        if (lData.Envelope.From.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.6.1");
+                        lEmailAddress = lData.Envelope.From[0] as cAddress.cEmail;
+                        if (lEmailAddress.DisplayName != "Terry Gray" || lEmailAddress.Address != "gray@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.6.2");
+                        if (lData.Envelope.Sender.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.7");
+                        if (lData.Envelope.ReplyTo.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.7");
+                        if (lData.Envelope.To.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.1");
+                        lEmailAddress = lData.Envelope.To[0] as cAddress.cEmail;
+                        if (lEmailAddress.DisplayName != null || lEmailAddress.Address != "imap@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.2");
+
+                        if (lData.Envelope.CC.Count != 2) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.1");
+                        lEmailAddress = lData.Envelope.CC[0] as cAddress.cEmail;
+                        if (lEmailAddress.DisplayName != null || lEmailAddress.Address != "minutes@CNRI.Reston.VA.US") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.2");
+                        lEmailAddress = lData.Envelope.CC[1] as cAddress.cEmail;
+                        if (lEmailAddress.DisplayName != "John Klensin" || lEmailAddress.Address != "KLENSIN@MIT.EDU") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.3");
+
+                        if (lData.Envelope.BCC != null || lData.Envelope.InReplyTo != null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.10");
+
+                        if (lData.Envelope.MessageId != "<B27397-0100000@cac.washington.edu>") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
+
+                        lBSST = lData.Body as cBodyStructure.cSingle.cText;
+                        if (lBSST.SubType != "PLAIN" || lBSST.Parameters.Count != 1 || lBSST.Parameters["charset"].Value != "US-ASCII" || lBSST.SizeInBytes != 3028 || lBSST.SizeInLines != 92) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.1");
+                        if (lBSST.ContentId != null || lBSST.Description != null || lBSST.DecodingRequired != eDecodingRequired.none) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.2");
+
+                        if (lData.RFC822 != null || lData.RFC822Header != null || lData.RFC822Text != null || lData.Size != 4286 || lData.BodyEx != null || lData.Bodies.Count != 0 || lData.UID != null || lData.BinarySizes.Count != 0) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.13");
+
+
+                        cBody lBody;
+
+                        lCursor = cBytesCursor.cTests.MakeCursor(
+                            "(BODY[HEADER] ",
+                            "{Date: Wed, 17 Jul 1996 02:23:25 -0700 (PDT)\r\n" +
+                                "From: Terry Gray <gray@cac.washington.edu>\r\n" +
+                                "Subject: IMAP4rev1 WG mtg summary and minutes\r\n" +
+                                "To: imap@cac.washington.edu\r\n" +
+                                "cc: minutes@CNRI.Reston.VA.US, John Klensin <KLENSIN@MIT.EDU>\r\n" +
+                                "Message-Id: <B27397-0100000@cac.washington.edu>\r\n" +
+                                "MIME-Version: 1.0\r\n" +
+                                "Content-Type: TEXT/PLAIN; CHARSET=US-ASCII\r\n" +
+                                "\r\n",
+                            ")");
+
+                        if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.0");
+
+                        if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.1");
+                        lBody = lData.Bodies[0];
+                        if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != cSection.eTextPart.header || lBody.Section.HeaderFields != null || lBody.Origin != null || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.2");
+
+
+                        lCursor = cBytesCursor.cTests.MakeCursor(
+                            "(BODY[HEADER]<0> ",
+                            "{Date: Wed, 17 Jul 1996 02:23:25 -0700 (PDT)\r\n" +
+                                "From: Terry Gray <gray@cac.washington.edu>\r\n" +
+                                "Subject: IMAP4rev1 WG mtg summary and minutes\r\n" +
+                                "To: imap@cac.washington.edu\r\n" +
+                                "cc: minutes@CNRI.Reston.VA.US, John Klensin <KLENSIN@MIT.EDU>\r\n" +
+                                "Message-Id: <B27397-0100000@cac.washington.edu>\r\n" +
+                                "MIME-Version: 1.0\r\n" +
+                                "Content-Type: TEXT/PLAIN; CHARSET=US-ASCII\r\n" +
+                                "\r\n",
+                            ")");
+
+                        if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.0");
+
+                        if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.1");
+                        lBody = lData.Bodies[0];
+                        if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != cSection.eTextPart.header || lBody.Section.HeaderFields != null || lBody.Origin != 0 || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.2");
+
+
+                        //  "         1         2         3         4         5         6         7"
+                        //  "1234567890123456789012345678901234567890123456789012345678901234567890"
+
+
+
+                        // test groups
+                        //  groups with no members
+                        //  TODO
+
+
+                        // test bodystructure
+
+                        cBodyStructure lBS;
+                        cBodyStructure.cMulti lBSM;
+
+                        if (!cBytesCursor.TryConstruct(
+                                @"((""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 1152 23)" + 
+                                @"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""NAME"" ""cc.diff"") ""<960723163407.20117h@cac.washington.edu>"" ""Compiler diff"" ""BASE64"" 4554 73) ""MIXED"")", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.0");
+
+                        if (!ZProcessBodyStructure(lCursor, true, null, false, out lBS) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.1");
+
+                        lBSM = lBS as cBodyStructure.cMulti;
+                        if (lBSM.Parts.Count != 2 || lBSM.SubType != "MIXED") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.2");
+
+                        lBSST = lBSM.Parts[0] as cBodyStructure.cSingle.cText;
+                        if (lBSST.DecodingRequired != eDecodingRequired.none || lBSST.SizeInBytes != 1152 || lBSST.SizeInLines != 23 || lBSST.Part != "1") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
+
+                        lBSST = lBSM.Parts[1] as cBodyStructure.cSingle.cText;
+                        if (lBSST.DecodingRequired != eDecodingRequired.base64 || lBSST.SizeInBytes != 4554 || lBSST.SizeInLines != 73 || lBSST.Part != "2") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
+                        if (lBSST.Parameters["name"].Value != "cc.diff" || lBSST.ContentId != "<960723163407.20117h@cac.washington.edu>" || lBSST.Description != "Compiler diff") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.4");
+
+
+
+                        // part numbering
+                        //  extension data for multipart: parameters, disposition, language, location
+                        //  embedded message structures: envelope, body, size in lines
+                        //  extension data for single part: md5, disposition, language, location
+                        //  and extensions
+                        // ALL TODO
+
+
+                        // binary
+                        //  TODO
+
+
+                        // parameters
+
+                        if (!cBytesCursor.TryConstruct(@"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""fred*"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"" ""angus"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"") NIL NIL ""7BIT"" 3028 92)", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.0");
+                        if (!ZProcessBodyStructure(lCursor, true, null, false, out lBS) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.1");
+                        lBSST = lBS as cBodyStructure.cSingle.cText;
+                        if (lBSST.Parameters["fred"].Value != "This is ***fun***" || lBSST.Parameters["fred"].LanguageTag != "EN-US" || !lBSST.Parameters["fred"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
+                        if (lBSST.Parameters["angus"].Value != "us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A" || lBSST.Parameters["angus"].LanguageTag != null || lBSST.Parameters["angus"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
+
+                        // TODO : more tests: in particular, missing language tag, missing charset and invalid cases
+
+
+
+                        // section
+                        ZTestSection(lContext, "HEADER]", false, null, cSection.eTextPart.header, null);
+                        ZTestSection(lContext, "TEXT]", false, null, cSection.eTextPart.text, null);
+                        ZTestSection(lContext, "HEADER.FIELDS (a xxy b)]", false, null, cSection.eTextPart.headerfields, "A", "B", "XXY");
+                        ZTestSection(lContext, @"HEADER.FIELDS (a xxy ""b"")]", false, null, cSection.eTextPart.headerfields, "A", "B", "XXY");
+                        ZTestSection(lContext, "HEADER.FIELDS.NOT (a xxy b)]", false, null, cSection.eTextPart.headerfieldsnot, "A", "B", "XXY");
+                        ZTestSection(lContext, "1.2.3]", false, "1.2.3", cSection.eTextPart.all, null);
+                        ZTestSection(lContext, "1.2.3.HEADER]", false, "1.2.3", cSection.eTextPart.header, null);
+                        ZTestSection(lContext, "1.2.3.TEXT]", false, "1.2.3", cSection.eTextPart.text, null);
+                        ZTestSection(lContext, "1.2.3.HEADER.FIELDS (a xxy b)]", false, "1.2.3", cSection.eTextPart.headerfields, "A", "B", "XXY");
+                        ZTestSection(lContext, "1.2.3.HEADER.FIELDS.NOT (a xxy b)]", false, "1.2.3", cSection.eTextPart.headerfieldsnot, "A", "B", "XXY");
+                        ZTestSection(lContext, "1.2.3.MIME]", false, "1.2.3", cSection.eTextPart.mime, null);
+                        ZTestSection(lContext, "1.2.3]", true, "1.2.3", cSection.eTextPart.all, null);
+
+                        ZTestSection(lContext, "HEADER.FIELDS]", false);
+                        ZTestSection(lContext, "HEADER.FIELDS.NOT]", false);
+                        ZTestSection(lContext, "MIME]", false);
+                        ZTestSection(lContext, "1.2.0]", false);
+
+                        ZTestSection(lContext, "HEADER]", true);
+                        ZTestSection(lContext, "TEXT]", true);
+                        ZTestSection(lContext, "HEADER.FIELDS (a xxy b)]", true);
+                        ZTestSection(lContext, @"HEADER.FIELDS (a xxy ""b"")]", true);
+                        ZTestSection(lContext, "HEADER.FIELDS.NOT (a xxy b)]", true);
+                        ZTestSection(lContext, "1.2.0]", true);
+
+
+                        ZTestBaseSubject(lContext, "fred (fwd)  \t   (fwd)", "fred", "1");
+                        ZTestBaseSubject(lContext, "[fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
+                        ZTestBaseSubject(lContext, "re: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
+                        ZTestBaseSubject(lContext, "fw: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
+                        ZTestBaseSubject(lContext, "fwd: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
+                        ZTestBaseSubject(lContext, "[dunno] fwd: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
+                        ZTestBaseSubject(lContext, "[dunno]    fwd  [fred why is this here?]   :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "fred", "1");
+                        ZTestBaseSubject(lContext, "[dunno]    fwd  [fred why is this here?]   :  \t   [fwd :    fred   (fwd)  \t   (fwd)]", "[fwd :    fred   (fwd)  \t   (fwd)]", "1");
+                        ZTestBaseSubject(lContext, "[dunno]    fwd  [fred why is this here?]   :  \t   [fwd:    [fred]   (fwd)  \t   (fwd)]", "[fred]", "1");
+                        ZTestBaseSubject(lContext, "[dunno] [ more ]   [of]     [fr€d]   fwd  [fred why is this here?]     :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "fred", "1");
+                        ZTestBaseSubject(lContext, "[dunno] [ more ]   [of]     [fr€d]   fwd  [fred why is this here?] [x]    :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "fwd  [fred why is this here?] [x]    :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "1");
+                    }
+
+                    [Conditional("DEBUG")]
+                    public static void ZTestSection(cTrace.cContext pParentContext, string pText, bool pBinary, string pExpectedPart, cSection.eTextPart pExpectedTextPart, params string[] pExpectedHeaderFields)
+                    {
+                        var lContext = pParentContext.NewMethodV(nameof(cTests), nameof(ZTestSection), 1, pText, pBinary);
+                        if (!cBytesCursor.TryConstruct(pText, out var lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.1.{pText}.{pBinary}.1");
+                        if (!ZProcessSection(lCursor, pBinary, out var lSection) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.{pText}.2");
+                        if (lSection.Part != pExpectedPart || lSection.TextPart != pExpectedTextPart) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.{pText}.3");
+                        if (pExpectedHeaderFields == null && lSection.HeaderFields == null) return;
+                        if (pExpectedHeaderFields == null || lSection.HeaderFields == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.{pText}.4");
+                        if (pExpectedHeaderFields.Length != lSection.HeaderFields.Count) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.{pText}.5");
+                        for (int i = 0; i < pExpectedHeaderFields.Length; i++) if (lSection.HeaderFields[i] != pExpectedHeaderFields[i]) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.{pText}.6");
+                    }
+
+                    [Conditional("DEBUG")]
+                    public static void ZTestSection(cTrace.cContext pParentContext, string pText, bool pBinary)
+                    {
+                        var lContext = pParentContext.NewMethodV(nameof(cTests), nameof(ZTestSection), 2, pText, pBinary);
+                        if (!cBytesCursor.TryConstruct(pText, out var lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.2.{pText}.{pBinary}.1");
+                        if (ZProcessSection(lCursor, pBinary, out var lSection)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.2.{pText}.{pBinary}.2");
+                    }
+
+                    [Conditional("DEBUG")]
+                    public static void ZTestBaseSubject(cTrace.cContext pParentContext, string pSubject, string pBaseSubject, string pTest)
+                    {
+                        var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestBaseSubject), pSubject, pBaseSubject);
+                        string lBaseSubject = cBaseSubject.Calculate(pSubject);
+                        if (lBaseSubject != pBaseSubject) throw new cTestsException($"{pSubject} -> {lBaseSubject} not {pBaseSubject}", lContext);
+                    }
+                }
+            }
+        }
+    }
+}

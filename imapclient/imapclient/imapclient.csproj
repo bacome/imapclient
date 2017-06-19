@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{99043948-67B0-4136-B81F-B5F52D4259A3}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>imapclient</RootNamespace>
+    <AssemblyName>imapclient</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="client\base.cs" />
+    <Compile Include="client\connect.cs" />
+    <Compile Include="client\disconnect.cs" />
+    <Compile Include="client\fetchpropertiesbyhandle.cs" />
+    <Compile Include="client\fetchpropertiesbyuid.cs" />
+    <Compile Include="client\list.cs" />
+    <Compile Include="client\poll.cs" />
+    <Compile Include="client\search.cs" />
+    <Compile Include="client\select.cs" />
+    <Compile Include="client\status.cs" />
+    <Compile Include="exposed_interfaces\collections\addresses.cs" />
+    <Compile Include="exposed_interfaces\collections\handlelist.cs" />
+    <Compile Include="exposed_interfaces\collections\idreadonlydictionary.cs" />
+    <Compile Include="exposed_interfaces\collections\strings.cs" />
+    <Compile Include="exposed_interfaces\connection\accountid.cs" />
+    <Compile Include="exposed_interfaces\connection\capability.cs" />
+    <Compile Include="exposed_interfaces\connection\credentials.cs" />
+    <Compile Include="exposed_interfaces\connection\login.cs" />
+    <Compile Include="exposed_interfaces\connection\server.cs" />
+    <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
+    <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
+    <Compile Include="exposed_interfaces\enums\list.cs" />
+    <Compile Include="exposed_interfaces\enums\status.cs" />
+    <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
+    <Compile Include="exposed_interfaces\mailbox\mailboxflags.cs" />
+    <Compile Include="exposed_interfaces\mailbox\mailboxid.cs" />
+    <Compile Include="exposed_interfaces\mailbox\mailboxlistitem.cs" />
+    <Compile Include="exposed_interfaces\mailbox\mailboxname.cs" />
+    <Compile Include="exposed_interfaces\mailbox\mailboxproperties.cs" />
+    <Compile Include="exposed_interfaces\mailbox\mailboxpropertychangedeventargs.cs" />
+    <Compile Include="exposed_interfaces\mailbox\mailboxstatus.cs" />
+    <Compile Include="exposed_interfaces\mailbox\messagedeliveryeventargs.cs" />
+    <Compile Include="exposed_interfaces\message\address.cs" />
+    <Compile Include="exposed_interfaces\message\binarysizes.cs" />
+    <Compile Include="exposed_interfaces\message\bodystructure.cs" />
+    <Compile Include="exposed_interfaces\message\envelope.cs" />
+    <Compile Include="exposed_interfaces\message\filter.cs" />
+    <Compile Include="exposed_interfaces\message\message.cs" />
+    <Compile Include="exposed_interfaces\message\messageexpungedeventargs.cs" />
+    <Compile Include="exposed_interfaces\message\messageflags.cs" />
+    <Compile Include="exposed_interfaces\message\messagehandle.cs" />
+    <Compile Include="exposed_interfaces\message\messageproperties.cs" />
+    <Compile Include="exposed_interfaces\message\messagepropertiesseteventargs.cs" />
+    <Compile Include="exposed_interfaces\message\section.cs" />
+    <Compile Include="exposed_interfaces\message\sort.cs" />
+    <Compile Include="exposed_interfaces\message\uid.cs" />
+    <Compile Include="exposed_interfaces\namespace\namespace.cs" />
+    <Compile Include="exposed_interfaces\namespace\namespaceid.cs" />
+    <Compile Include="exposed_interfaces\namespace\namespacename.cs" />
+    <Compile Include="exposed_interfaces\namespace\namespaces.cs" />
+    <Compile Include="exposed_interfaces\other\commandresult.cs" />
+    <Compile Include="exposed_interfaces\other\culturedstring.cs" />
+    <Compile Include="exposed_interfaces\other\exceptions.cs" />
+    <Compile Include="exposed_interfaces\other\fetchconfiguration.cs" />
+    <Compile Include="exposed_interfaces\other\id.cs" />
+    <Compile Include="exposed_interfaces\other\idleconfiguration.cs" />
+    <Compile Include="exposed_interfaces\other\responsetext.cs" />
+    <Compile Include="exposed_interfaces\other\url.cs" />
+    <Compile Include="exposed_interfaces\sasl\anonymous.cs" />
+    <Compile Include="exposed_interfaces\sasl\base.cs" />
+    <Compile Include="exposed_interfaces\sasl\plain.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\cursor\base.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\cursor\tests.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\imap\getflags.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\imap\getsequenceset.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\imap\processcapability.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\imap\processextendedvalue.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\other\getlanguagetag.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\other\geturi.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\other\geturl.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\other\processencodedword.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\rfc822\base.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\rfc822\getrfc822datetime.cs" />
+    <Compile Include="exposed_interfaces\support\collections\bytes.cs" />
+    <Compile Include="exposed_interfaces\support\collections\bytesline.cs" />
+    <Compile Include="exposed_interfaces\support\collections\byteslist.cs" />
+    <Compile Include="exposed_interfaces\support\collections\sequencesets.cs" />
+    <Compile Include="exposed_interfaces\support\collections\uintlist.cs" />
+    <Compile Include="exposed_interfaces\support\encoding\base64.cs" />
+    <Compile Include="exposed_interfaces\support\encoding\modifiedutf7.cs" />
+    <Compile Include="exposed_interfaces\support\enums\idfieldnames.cs" />
+    <Compile Include="exposed_interfaces\support\parsing\charactersets.cs" />
+    <Compile Include="exposed_interfaces\support\parsing\uriparts.cs" />
+    <Compile Include="exposed_interfaces\support\parsing\urlparts.cs" />
+    <Compile Include="exposed_interfaces\support\tools\binarysizesbuilder.cs" />
+    <Compile Include="exposed_interfaces\support\tools\capabilities.cs" />
+    <Compile Include="exposed_interfaces\support\tools\flags.cs" />
+    <Compile Include="exposed_interfaces\support\tools\listbuilder.cs" />
+    <Compile Include="exposed_interfaces\support\tools\tools.cs" />
+    <Compile Include="exposed_interfaces\support\types\commandpart.cs" />
+    <Compile Include="exposed_interfaces\support\types\extendedvalue.cs" />
+    <Compile Include="exposed_interfaces\support\types\sequenceset.cs" />
+    <Compile Include="exposed_interfaces\support\types\uri.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="session\command_hooks\commandhook.cs" />
+    <Compile Include="session\command_hooks\commandhookbasesearch.cs" />
+    <Compile Include="session\command_hooks\commandhookinitial.cs" />
+    <Compile Include="session\command_hooks\commandhooklist.cs" />
+    <Compile Include="session\command_hooks\commandhooklsub.cs" />
+    <Compile Include="session\command_hooks\commandhooksearchextended.cs" />
+    <Compile Include="session\command_pipeline\commandpipeline.cs" />
+    <Compile Include="session\command_pipeline\commandpipeline.support_classes.cs" />
+    <Compile Include="session\connection\connection.cs" />
+    <Compile Include="session\connection\responsebuilder.cs" />
+    <Compile Include="session\connection\streamreader.cs" />
+    <Compile Include="session\imap_commands\authenticate.cs" />
+    <Compile Include="session\imap_commands\capability.cs" />
+    <Compile Include="session\imap_commands\check.cs" />
+    <Compile Include="session\imap_commands\close.cs" />
+    <Compile Include="session\imap_commands\enable.cs" />
+    <Compile Include="session\imap_commands\fetch.cs" />
+    <Compile Include="session\imap_commands\id.cs" />
+    <Compile Include="session\imap_commands\list.cs" />
+    <Compile Include="session\imap_commands\listextended.cs" />
+    <Compile Include="session\imap_commands\login.cs" />
+    <Compile Include="session\imap_commands\logout.cs" />
+    <Compile Include="session\imap_commands\lsub.cs" />
+    <Compile Include="session\imap_commands\namespace.cs" />
+    <Compile Include="session\imap_commands\noop.cs" />
+    <Compile Include="session\imap_commands\rlist.cs" />
+    <Compile Include="session\imap_commands\rlsub.cs" />
+    <Compile Include="session\imap_commands\search.cs" />
+    <Compile Include="session\imap_commands\searchextended.cs" />
+    <Compile Include="session\imap_commands\sort.cs" />
+    <Compile Include="session\imap_commands\sortextended.cs" />
+    <Compile Include="session\imap_commands\status.cs" />
+    <Compile Include="session\imap_commands\uidfetch.cs" />
+    <Compile Include="session\parsing\responsedataesearch.cs" />
+    <Compile Include="session\parsing\responsedatafetch.cs" />
+    <Compile Include="session\parsing\responsedatalist.cs" />
+    <Compile Include="session\parsing\responsedatalsub.cs" />
+    <Compile Include="session\parsing\responsedatastatus.cs" />
+    <Compile Include="session\selected_mailbox\selectedmailbox.cs" />
+    <Compile Include="session\selected_mailbox\selectedmailboxcache.cs" />
+    <Compile Include="session\session\base.cs" />
+    <Compile Include="session\session\connect.cs" />
+    <Compile Include="session\session\fetchpropertiesbyhandle.cs" />
+    <Compile Include="session\session\fetchpropertiesbyuid.cs" />
+    <Compile Include="session\session\poll.cs" />
+    <Compile Include="session\session\select.cs" />
+    <Compile Include="session\support\command.cs" />
+    <Compile Include="session\support\commandtag.cs" />
+    <Compile Include="session\support\mailboxnamepatterns.cs" />
+    <Compile Include="session\support\messagecache.cs" />
+    <Compile Include="session\support\messagecacheitem.cs" />
+    <Compile Include="session\support\messagepart.cs" />
+    <Compile Include="session\support\processors.cs" />
+    <Compile Include="session\support\responsetextprocessor.cs" />
+    <Compile Include="support\asynccounter.cs" />
+    <Compile Include="support\body.cs" />
+    <Compile Include="support\eventsynchroniser.cs" />
+    <Compile Include="support\listpattern.cs" />
+    <Compile Include="support\mailboxlist.cs" />
+    <Compile Include="support\mailboxnamepattern.cs" />
+    <Compile Include="support\namespacelist.cs" />
+    <Compile Include="support\uidlist.cs" />
+    <Compile Include="tests\tests.cs" />
+    <Compile Include="tools\countdowntimer.cs" />
+    <Compile Include="tools\exclusiveaccess.cs" />
+    <Compile Include="tools\methodcontrol.cs" />
+    <Compile Include="tools\releaser.cs" />
+    <Compile Include="tools\terminator.cs" />
+    <Compile Include="tools\trace.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
