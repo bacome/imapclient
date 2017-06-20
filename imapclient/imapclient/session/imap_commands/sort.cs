@@ -101,7 +101,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSortCommandHook), nameof(CommandCompleted), pResult, pException);
 
-                    if (pResult.Result == cCommandResult.eResult.ok && mMSNs != null)
+                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok && mMSNs != null)
                     {
                         cHandleList lHandles = new cHandleList();
                         foreach (var lMSN in mMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));

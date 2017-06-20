@@ -27,7 +27,6 @@ namespace work.bacome.imapclient
             {
                 // quickly get to the test I'm working on
                 cTrace.cContext lContext = mTrace.NewRoot("cIMAPClient.cTests.CurrentTest");
-                ZTestSearch1(lContext);
                 ZTestIdleRestart(lContext);
             }
 
@@ -1874,6 +1873,24 @@ namespace work.bacome.imapclient
                 lServer.AddSendData("* 167 FETCH (FLAGS ())\r\n");
                 lServer.AddSendTagged("OK FETCH completed\r\n");
 
+
+                lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
+                lServer.AddSendData("* 17 EXISTS\r\n");
+                lServer.AddSendData("* 2 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+                lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
+                lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH RETURN () UID 4392:*\r\n");
+                lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+
                 lServer.AddExpectTagged("LOGOUT\r\n");
                 lServer.AddSendData("* BYE logging out\r\n");
                 lServer.AddSendTagged("OK logged out\r\n");
@@ -1915,6 +1932,42 @@ namespace work.bacome.imapclient
 
                     // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
                     lClient.FetchProperties(lClient.Inbox.MailboxId, new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.flags);
+
+
+                    cMailbox lMailbox;
+                    cFilter lFilter;
+                    bool lFailed;
+
+
+                    lFilter = cFilter.UID > new cUID(3857529044, 4391);
+
+                    // check that the connected account being a different one causes an exception
+                    lMailbox = new cMailbox(lClient, new cMailboxId(new cAccountId(lClient.ConnectedAccountId.Host, eAccountType.anonymous), new cMailboxName("blurdybloop", null)));
+
+                    lFailed = false;
+                    try { lMessages = lMailbox.Search(lFilter); }
+                    catch (cAccountNotConnectedException) { lFailed = true; }
+                    if (!lFailed) throw new cTestsException("ZTestIdleRestart1.3");
+
+                    // test that there is a throw if the mailbox isn't selected
+                    lMailbox = new cMailbox(lClient, new cMailboxId(lClient.ConnectedAccountId, new cMailboxName("blurdybloop", null)));
+
+                    lFailed = false;
+                    try { lMessages = lMailbox.Search(lFilter); }
+                    catch (cMailboxNotSelectedException) { lFailed = true; }
+                    if (!lFailed) throw new cTestsException("ZTestIdleRestart1.4");
+
+                    lMailbox.Select(false);
+
+                    lFailed = false;
+                    try { lMessages = lMailbox.Search(lFilter); }
+                    catch (cUIDValidityChangedException) { lFailed = true; }
+                    if (!lFailed) throw new cTestsException("ZTestIdleRestart1.5");
+
+                    lFilter = cFilter.UID > new cUID(3857529045, 4391);
+
+                    lMessages = lMailbox.Search(lFilter);
+
 
 
 

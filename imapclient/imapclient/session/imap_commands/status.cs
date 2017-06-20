@@ -176,7 +176,7 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cStatusSearchUnseenCommandHook), nameof(CommandCompleted), pResult, pException);
-                    if (pResult.Result == cCommandResult.eResult.ok && mMSNs != null) Unseen = mSelectedMailbox.SetUnseen(mMSNs, lContext);
+                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok && mMSNs != null) Unseen = mSelectedMailbox.SetUnseen(mMSNs, lContext);
                 }
             }
 
@@ -189,7 +189,7 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cStatusExtendedSearchUnseenCommandHook), nameof(CommandCompleted), pResult, pException);
-                    if (pResult.Result == cCommandResult.eResult.ok && mSequenceSets != null) Unseen = mSelectedMailbox.SetUnseen(cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Messages), lContext);
+                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok && mSequenceSets != null) Unseen = mSelectedMailbox.SetUnseen(cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Messages), lContext);
                 }
             }
         }
