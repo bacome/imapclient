@@ -128,19 +128,16 @@ namespace work.bacome.imapclient
                     return eProcessAttributeResult.error;
                 }
 
-                public static class cTests
+                [Conditional("DEBUG")]
+                public static void _Tests(cTrace.cContext pParentContext)
                 {
-                    [Conditional("DEBUG")]
-                    public static void Tests(cTrace.cContext pParentContext)
-                    {
-                        var lContext = pParentContext.NewGeneric($"{nameof(cMailboxStatus)}.{nameof(cTests)}.{nameof(Tests)}");
+                    var lContext = pParentContext.NewMethod(nameof(cResponseDataStatus),nameof(_Tests));
 
-                        cBytesCursor.TryConstruct("blurdybloop (MESSAGES 231 UIDNEXT 44292)", out var lCursor);
+                    cBytesCursor.TryConstruct("blurdybloop (MESSAGES 231 UIDNEXT 44292)", out var lCursor);
 
-                        if (!cResponseDataStatus.Process(lCursor, out var lStatus, lContext)) throw new cTestsException("status response 1");
-                        if (lStatus.EncodedMailboxName != "blurdybloop") throw new cTestsException("status response 1.1");
-                        if (!(lStatus.Status.Messages == 231 && lStatus.Status.UIDValidity == null && lStatus.Status.Unseen == null)) throw new cTestsException("status response 1.2");
-                    }
+                    if (!cResponseDataStatus.Process(lCursor, out var lStatus, lContext)) throw new cTestsException("status response 1");
+                    if (lStatus.EncodedMailboxName != "blurdybloop") throw new cTestsException("status response 1.1");
+                    if (!(lStatus.Status.Messages == 231 && lStatus.Status.UIDValidity == null && lStatus.Status.Unseen == null)) throw new cTestsException("status response 1.2");
                 }
             }
         }

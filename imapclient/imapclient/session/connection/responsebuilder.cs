@@ -130,192 +130,189 @@ namespace work.bacome.imapclient
                         return false; // still need more bytes
                     }
 
-                    public static class cTests
+                    [Conditional("DEBUG")]
+                    public static void _Tests(cTrace.cContext pParentContext)
                     {
-                        [Conditional("DEBUG")]
-                        public static void Tests(cTrace.cContext pParentContext)
-                        {
-                            var lContext = pParentContext.NewGeneric($"{nameof(cResponseBuilder)}.{nameof(cTests)}.{nameof(Tests)}");
+                        var lContext = pParentContext.NewMethod(nameof(cResponseBuilder), nameof(_Tests));
 
-                            cResponseBuilder lBuilder;
-                            byte[] lBytes;
-                            int lBufferPosition;
-                            cBytesLines lLines;
-                            cBytesLine lLine;
+                        cResponseBuilder lBuilder;
+                        byte[] lBytes;
+                        int lBufferPosition;
+                        cBytesLines lLines;
+                        cBytesLine lLine;
 
-                            lBuilder = new cResponseBuilder();
-                            lBytes = ZMakeBuffer("fred\r\n");
-                            lBufferPosition = 0;
+                        lBuilder = new cResponseBuilder();
+                        lBytes = ZMakeBuffer("fred\r\n");
+                        lBufferPosition = 0;
 
-                            lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
+                        lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
 
-                            if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
-                            if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
-                            if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
-                            if (!cASCII.Compare(lLines[0], new cBytes("fred"), false)) throw new cTestsException("the line should have been fred", lContext);
-                            if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
+                        if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
+                        if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
+                        if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
+                        if (!cASCII.Compare(lLines[0], new cBytes("fred"), false)) throw new cTestsException("the line should have been fred", lContext);
+                        if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
 
 
-                            lBuilder = new cResponseBuilder();
-                            lBytes = ZMakeBuffer("fred{5}\r\nanguschar");
-                            lBufferPosition = 0;
+                        lBuilder = new cResponseBuilder();
+                        lBytes = ZMakeBuffer("fred{5}\r\nanguschar");
+                        lBufferPosition = 0;
 
-                            lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
+                        lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
 
-                            if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
-                            if (lLines != null) throw new cTestsException("no response should have been generated", lContext);
+                        if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
+                        if (lLines != null) throw new cTestsException("no response should have been generated", lContext);
 
-                            lBytes = ZMakeBuffer("lie\r\nfred\r\n");
-                            lBufferPosition = 0;
+                        lBytes = ZMakeBuffer("lie\r\nfred\r\n");
+                        lBufferPosition = 0;
 
-                            lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
+                        lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
 
-                            if (lBufferPosition == lBytes.Length) throw new cTestsException("the buffer should not have been fully read", lContext);
-                            if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
-                            if (lLines.Count != 3) throw new cTestsException("there should have been three lines", lContext);
+                        if (lBufferPosition == lBytes.Length) throw new cTestsException("the buffer should not have been fully read", lContext);
+                        if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
+                        if (lLines.Count != 3) throw new cTestsException("there should have been three lines", lContext);
 
-                            lLine = lLines[0];
-                            if (!cASCII.Compare(lLine, new cBytes("fred"), false) || lLine.Literal) throw new cTestsException("the line should have been fred", lContext);
+                        lLine = lLines[0];
+                        if (!cASCII.Compare(lLine, new cBytes("fred"), false) || lLine.Literal) throw new cTestsException("the line should have been fred", lContext);
 
-                            lLine = lLines[1];
-                            if (!cASCII.Compare(lLine, new cBytes("angus"), false) || !lLine.Literal) throw new cTestsException("the line should have been literal angus", lContext);
+                        lLine = lLines[1];
+                        if (!cASCII.Compare(lLine, new cBytes("angus"), false) || !lLine.Literal) throw new cTestsException("the line should have been literal angus", lContext);
 
-                            lLine = lLines[2];
-                            if (!cASCII.Compare(lLine, new cBytes("charlie"), false) || lLine.Literal) throw new cTestsException("the line should have been charlie", lContext);
+                        lLine = lLines[2];
+                        if (!cASCII.Compare(lLine, new cBytes("charlie"), false) || lLine.Literal) throw new cTestsException("the line should have been charlie", lContext);
 
-                            lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
+                        lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
 
-                            if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
-                            if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
-                            if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
-                            if (!cASCII.Compare(lLines[0], new cBytes("fred"), false)) throw new cTestsException("the line should have been fred", lContext);
-                            if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
-
-
-                            lBuilder = new cResponseBuilder();
-                            lBytes = ZMakeBuffer("f\ra\n\r\n");
-                            lBufferPosition = 0;
-
-                            lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
-
-                            if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
-                            if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
-                            if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
-                            if (!cASCII.Compare(lLines[0], new cBytes("f\ra\n"), false)) throw new cTestsException("the line should have been fran", lContext);
-                            if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
+                        if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
+                        if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
+                        if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
+                        if (!cASCII.Compare(lLines[0], new cBytes("fred"), false)) throw new cTestsException("the line should have been fred", lContext);
+                        if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
 
 
-                            lBuilder = new cResponseBuilder();
-                            lBytes = ZMakeBuffer("{}\r\n");
-                            lBufferPosition = 0;
+                        lBuilder = new cResponseBuilder();
+                        lBytes = ZMakeBuffer("f\ra\n\r\n");
+                        lBufferPosition = 0;
 
-                            lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
+                        lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
 
-                            if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
-                            if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
-                            if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
-                            if (!cASCII.Compare(lLines[0], new cBytes("{}"), false)) throw new cTestsException("the line should have been {}", lContext);
-                            if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
+                        if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
+                        if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
+                        if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
+                        if (!cASCII.Compare(lLines[0], new cBytes("f\ra\n"), false)) throw new cTestsException("the line should have been fran", lContext);
+                        if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
+
+
+                        lBuilder = new cResponseBuilder();
+                        lBytes = ZMakeBuffer("{}\r\n");
+                        lBufferPosition = 0;
+
+                        lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
+
+                        if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
+                        if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
+                        if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
+                        if (!cASCII.Compare(lLines[0], new cBytes("{}"), false)) throw new cTestsException("the line should have been {}", lContext);
+                        if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
 
 
 
-                            lBuilder = new cResponseBuilder();
-                            lBytes = ZMakeBuffer("fred{}\r\n");
-                            lBufferPosition = 0;
+                        lBuilder = new cResponseBuilder();
+                        lBytes = ZMakeBuffer("fred{}\r\n");
+                        lBufferPosition = 0;
 
-                            lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
+                        lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
 
-                            if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
-                            if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
-                            if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
-                            if (!cASCII.Compare(lLines[0], new cBytes("fred{}"), false)) throw new cTestsException("the line should have been fred{}", lContext);
-                            if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
-
-
-                            lBuilder = new cResponseBuilder();
-                            lBytes = ZMakeBuffer("fred{a}\r\n");
-                            lBufferPosition = 0;
-
-                            lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
-
-                            if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
-                            if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
-                            if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
-                            if (!cASCII.Compare(lLines[0], new cBytes("fred{a}"), false)) throw new cTestsException("the line should have been fred{a}", lContext);
-                            if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
+                        if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
+                        if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
+                        if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
+                        if (!cASCII.Compare(lLines[0], new cBytes("fred{}"), false)) throw new cTestsException("the line should have been fred{}", lContext);
+                        if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
 
 
-                            lBuilder = new cResponseBuilder();
-                            lBytes = ZMakeBuffer("fred123}\r\n");
-                            lBufferPosition = 0;
+                        lBuilder = new cResponseBuilder();
+                        lBytes = ZMakeBuffer("fred{a}\r\n");
+                        lBufferPosition = 0;
 
-                            lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
+                        lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
 
-                            if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
-                            if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
-                            if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
-                            if (!cASCII.Compare(lLines[0], new cBytes("fred123}"), false)) throw new cTestsException("the line should have been fred123}", lContext);
-                            if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
+                        if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
+                        if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
+                        if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
+                        if (!cASCII.Compare(lLines[0], new cBytes("fred{a}"), false)) throw new cTestsException("the line should have been fred{a}", lContext);
+                        if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
 
 
+                        lBuilder = new cResponseBuilder();
+                        lBytes = ZMakeBuffer("fred123}\r\n");
+                        lBufferPosition = 0;
 
-                            lBuilder = new cResponseBuilder();
-                            lBytes = ZMakeBuffer("fred{12345678901}\r\n");
-                            lBufferPosition = 0;
+                        lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
 
-                            bool lException = false;
-
-                            try { lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext); }
-                            catch { lException = true; }
-                            if (!lException) throw new cTestsException("expected failure", lContext);
+                        if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
+                        if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
+                        if (lLines.Count != 1) throw new cTestsException("there should have been one line", lContext);
+                        if (!cASCII.Compare(lLines[0], new cBytes("fred123}"), false)) throw new cTestsException("the line should have been fred123}", lContext);
+                        if (lLines[0].Literal) throw new cTestsException("the line should not have been a literal", lContext);
 
 
 
-                            lBuilder = new cResponseBuilder();
-                            lBytes = ZMakeBuffer("fred{0}\r\n{00}\r\n\r\n");
-                            lBufferPosition = 0;
+                        lBuilder = new cResponseBuilder();
+                        lBytes = ZMakeBuffer("fred{12345678901}\r\n");
+                        lBufferPosition = 0;
 
-                            lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
+                        bool lException = false;
 
-                            if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
-                            if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
-                            if (lLines.Count != 3) throw new cTestsException("there should have been three lines", lContext);
-
-                            lLine = lLines[0];
-                            if (!cASCII.Compare(lLine, new cBytes("fred"), false) || lLine.Literal) throw new cTestsException("the line should have been fred", lContext);
-
-                            lLine = lLines[1];
-                            if (lLine.Count != 0 || !lLine.Literal) throw new cTestsException("the line should have been empty literal", lContext);
-
-                            lLine = lLines[2];
-                            if (lLine.Count != 0 || !lLine.Literal) throw new cTestsException("the line should have been empty literal", lContext);
+                        try { lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext); }
+                        catch { lException = true; }
+                        if (!lException) throw new cTestsException("expected failure", lContext);
 
 
 
-                            // test literal8
+                        lBuilder = new cResponseBuilder();
+                        lBytes = ZMakeBuffer("fred{0}\r\n{00}\r\n\r\n");
+                        lBufferPosition = 0;
 
-                            lBuilder = new cResponseBuilder();
-                            lBuilder.Binary = true;
-                            lBytes = ZMakeBuffer("fred~{0}\r\n~{00}\r\n\r\n");
-                            lBufferPosition = 0;
+                        lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
 
-                            lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
+                        if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
+                        if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
+                        if (lLines.Count != 3) throw new cTestsException("there should have been three lines", lContext);
 
-                            if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
-                            if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
-                            if (lLines.Count != 3) throw new cTestsException("there should have been three lines", lContext);
+                        lLine = lLines[0];
+                        if (!cASCII.Compare(lLine, new cBytes("fred"), false) || lLine.Literal) throw new cTestsException("the line should have been fred", lContext);
 
-                            lLine = lLines[0];
-                            if (!cASCII.Compare(lLine, new cBytes("fred"), false) || lLine.Literal) throw new cTestsException("the line should have been fred", lContext);
+                        lLine = lLines[1];
+                        if (lLine.Count != 0 || !lLine.Literal) throw new cTestsException("the line should have been empty literal", lContext);
 
-                            lLine = lLines[1];
-                            if (lLine.Count != 0 || !lLine.Literal) throw new cTestsException("the line should have been empty literal", lContext);
+                        lLine = lLines[2];
+                        if (lLine.Count != 0 || !lLine.Literal) throw new cTestsException("the line should have been empty literal", lContext);
 
-                            lLine = lLines[2];
-                            if (lLine.Count != 0 || !lLine.Literal) throw new cTestsException("the line should have been empty literal", lContext);
-                        }
 
-                        public static byte[] ZMakeBuffer(string pString)
+
+                        // test literal8
+
+                        lBuilder = new cResponseBuilder();
+                        lBuilder.Binary = true;
+                        lBytes = ZMakeBuffer("fred~{0}\r\n~{00}\r\n\r\n");
+                        lBufferPosition = 0;
+
+                        lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
+
+                        if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
+                        if (lLines == null) throw new cTestsException("a response should have been generated", lContext);
+                        if (lLines.Count != 3) throw new cTestsException("there should have been three lines", lContext);
+
+                        lLine = lLines[0];
+                        if (!cASCII.Compare(lLine, new cBytes("fred"), false) || lLine.Literal) throw new cTestsException("the line should have been fred", lContext);
+
+                        lLine = lLines[1];
+                        if (lLine.Count != 0 || !lLine.Literal) throw new cTestsException("the line should have been empty literal", lContext);
+
+                        lLine = lLines[2];
+                        if (lLine.Count != 0 || !lLine.Literal) throw new cTestsException("the line should have been empty literal", lContext);
+
+                        byte[] ZMakeBuffer(string pString)
                         {
                             byte[] lResult = new byte[pString.Length];
                             for (int i = 0, j = 0; i < pString.Length; i++, j++) lResult[j] = (byte)pString[i];

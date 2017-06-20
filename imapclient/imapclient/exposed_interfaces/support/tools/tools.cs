@@ -174,28 +174,5 @@ namespace work.bacome.imapclient.support
                 return false;
             }
         }
-
-        public static class cTests
-        {
-            [Conditional("DEBUG")]
-            public static void Tests(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewGeneric($"{nameof(cTools)}.{nameof(cTests)}.{nameof(Tests)}");
-
-                for (int i = 0; i < 1000; i++)
-                {
-                    var lBytes = IntToBytesReverse(i);
-
-                    int lOutput = 0;
-
-                    for (int j = 0, f = 1; j < lBytes.Count; j++, f *= 10)
-                    {
-                        lOutput = lOutput + (lBytes[j] - cASCII.ZERO) * f;
-                    }
-
-                    if (lOutput != i) throw new cTestsException($"IntToBytesReverse({i}->{lBytes})");
-                }
-            }
-        }
     }
 }

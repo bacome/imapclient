@@ -755,132 +755,129 @@ namespace work.bacome.imapclient.support
             return cTools.UTF8BytesToString(pMailboxName);
         }
 
-        public static class cTests
+        [Conditional("DEBUG")]
+        public static void _Tests(cTrace.cContext pParentContext)
         {
-            [Conditional("DEBUG")]
-            public static void Tests(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewGeneric($"{nameof(cURLParts)}.{nameof(cTests)}.{nameof(Tests)}");
+            var lContext = pParentContext.NewMethod(nameof(cURLParts), nameof(_Tests));
 
-                cURLParts lParts;
+            cURLParts lParts;
                     
-                // from rfc 2221
+            // from rfc 2221
 
-                if (!ZTryParse("IMAP://MIKE@SERVER2/", out lParts, lContext) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.1");
-                if (!ZTryParse("IMAP://user;AUTH=GSSAPI@SERVER2/", out lParts, lContext) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.2");
-                if (!ZTryParse("IMAP://user;AUTH=*@SERVER2/", out lParts, lContext) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.3");
+            if (!ZTryParse("IMAP://MIKE@SERVER2/", out lParts) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.1");
+            if (!ZTryParse("IMAP://user;AUTH=GSSAPI@SERVER2/", out lParts) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.2");
+            if (!ZTryParse("IMAP://user;AUTH=*@SERVER2/", out lParts) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.3");
 
-                // from rfc 2193
+            // from rfc 2193
 
-                if (!ZTryParse("IMAP://user;AUTH=*@SERVER2/SHARED/FOO", out lParts, lContext) || !lParts.IsMailboxReferral || lParts.MailboxName != "SHARED/FOO") throw new cTestsException("2193.1");
-                if (ZTryParse("IMAP://user;AUTH=*@SERVER2/REMOTE IMAP://user;AUTH=*@SERVER3/REMOTE", out lParts, lContext)) throw new cTestsException("2193.2");
+            if (!ZTryParse("IMAP://user;AUTH=*@SERVER2/SHARED/FOO", out lParts) || !lParts.IsMailboxReferral || lParts.MailboxName != "SHARED/FOO") throw new cTestsException("2193.1");
+            if (ZTryParse("IMAP://user;AUTH=*@SERVER2/REMOTE IMAP://user;AUTH=*@SERVER3/REMOTE", out lParts)) throw new cTestsException("2193.2");
 
-                // from rfc 5092
+            // from rfc 5092
 
-                if (!ZTryParse("imap://minbari.example.org/gray-council;UIDVALIDITY=385759045/;UID=20/;PARTIAL=0.1024", out lParts, lContext)) throw new cTestsException("5092.1.1");
+            if (!ZTryParse("imap://minbari.example.org/gray-council;UIDVALIDITY=385759045/;UID=20/;PARTIAL=0.1024", out lParts)) throw new cTestsException("5092.1.1");
 
-                if (lParts.IsHomeServerReferral) throw new cTestsException("5092.1.2");
-                if (lParts.IsMailboxReferral) throw new cTestsException("5092.1.3");
+            if (lParts.IsHomeServerReferral) throw new cTestsException("5092.1.2");
+            if (lParts.IsMailboxReferral) throw new cTestsException("5092.1.3");
 
-                if (!lParts.ZHasParts(fParts.scheme | fParts.host | fParts.mailboxname | fParts.uidvalidity | fParts.uid | fParts.partial | fParts.partiallength) ||
-                    !lParts.MustUseAnonymous ||
-                    lParts.Host != "minbari.example.org" ||
-                    lParts.MailboxName != "gray-council" ||
-                    lParts.UIDValidity.Value != 385759045 ||
-                    lParts.UID != 20 ||
-                    lParts.PartialOffset != 0 ||
-                    lParts.PartialLength != 1024
-                    )
-                    throw new cTestsException("5092.1.4");
+            if (!lParts.ZHasParts(fParts.scheme | fParts.host | fParts.mailboxname | fParts.uidvalidity | fParts.uid | fParts.partial | fParts.partiallength) ||
+                !lParts.MustUseAnonymous ||
+                lParts.Host != "minbari.example.org" ||
+                lParts.MailboxName != "gray-council" ||
+                lParts.UIDValidity.Value != 385759045 ||
+                lParts.UID != 20 ||
+                lParts.PartialOffset != 0 ||
+                lParts.PartialLength != 1024
+                )
+                throw new cTestsException("5092.1.4");
 
-                if (!ZTryParse("imap://psicorp.example.org/~peter/%E6%97%A5%E6%9C%AC%E8%AA%9E/%E5%8F%B0%E5%8C%97", out lParts, lContext)) throw new cTestsException("5092.2");
+            if (!ZTryParse("imap://psicorp.example.org/~peter/%E6%97%A5%E6%9C%AC%E8%AA%9E/%E5%8F%B0%E5%8C%97", out lParts)) throw new cTestsException("5092.2");
 
-                if (lParts.IsHomeServerReferral) throw new cTestsException("5092.2.1");
-                if (!lParts.IsMailboxReferral) throw new cTestsException("5092.2.2");
+            if (lParts.IsHomeServerReferral) throw new cTestsException("5092.2.1");
+            if (!lParts.IsMailboxReferral) throw new cTestsException("5092.2.2");
 
-                if (!lParts.ZHasParts(fParts.scheme | fParts.host | fParts.mailboxname) ||
-                    !lParts.MustUseAnonymous ||
-                    lParts.Host != "psicorp.example.org" ||
-                    lParts.MailboxName != "~peter/日本語/台北"
-                    )
-                    throw new cTestsException("5092.2.3");
+            if (!lParts.ZHasParts(fParts.scheme | fParts.host | fParts.mailboxname) ||
+                !lParts.MustUseAnonymous ||
+                lParts.Host != "psicorp.example.org" ||
+                lParts.MailboxName != "~peter/日本語/台北"
+                )
+                throw new cTestsException("5092.2.3");
 
 
-                if (!ZTryParse("imap://;AUTH=GSSAPI@minbari.example.org/gray-council/;uid=20/;section=1.2", out lParts, lContext)) throw new cTestsException("5092.3");
+            if (!ZTryParse("imap://;AUTH=GSSAPI@minbari.example.org/gray-council/;uid=20/;section=1.2", out lParts)) throw new cTestsException("5092.3");
 
-                if (lParts.IsHomeServerReferral) throw new cTestsException("5092.3.1");
-                if (lParts.IsMailboxReferral) throw new cTestsException("5092.3.2");
+            if (lParts.IsHomeServerReferral) throw new cTestsException("5092.3.1");
+            if (lParts.IsMailboxReferral) throw new cTestsException("5092.3.2");
 
-                if (!lParts.ZHasParts(fParts.scheme | fParts.mechanismname | fParts.host | fParts.mailboxname | fParts.uid | fParts.section) ||
-                    lParts.MustUseAnonymous ||
-                    lParts.MechanismName != "GSSAPI" ||
-                    lParts.Host != "minbari.example.org" ||
-                    lParts.MailboxName != "gray-council" ||
-                    lParts.UID != 20 ||
-                    lParts.Section != "1.2"
-                    )
-                    throw new cTestsException("5092.3.3");
+            if (!lParts.ZHasParts(fParts.scheme | fParts.mechanismname | fParts.host | fParts.mailboxname | fParts.uid | fParts.section) ||
+                lParts.MustUseAnonymous ||
+                lParts.MechanismName != "GSSAPI" ||
+                lParts.Host != "minbari.example.org" ||
+                lParts.MailboxName != "gray-council" ||
+                lParts.UID != 20 ||
+                lParts.Section != "1.2"
+                )
+                throw new cTestsException("5092.3.3");
 
-                if (!ZTryParse("imap://;AUTH=*@minbari.example.org/gray%20council?SUBJECT%20shadows", out lParts, lContext)) throw new cTestsException("5092.5");
+            if (!ZTryParse("imap://;AUTH=*@minbari.example.org/gray%20council?SUBJECT%20shadows", out lParts)) throw new cTestsException("5092.5");
 
-                if (lParts.IsHomeServerReferral) throw new cTestsException("5092.5.1");
-                if (lParts.IsMailboxReferral) throw new cTestsException("5092.5.2");
+            if (lParts.IsHomeServerReferral) throw new cTestsException("5092.5.1");
+            if (lParts.IsMailboxReferral) throw new cTestsException("5092.5.2");
 
-                if (!lParts.ZHasParts(fParts.scheme | fParts.mechanismname | fParts.host | fParts.mailboxname | fParts.search) ||
-                    lParts.MustUseAnonymous ||
-                    lParts.MechanismName != null ||
-                    lParts.Host != "minbari.example.org" ||
-                    lParts.MailboxName != "gray council" ||
-                    lParts.Search != "SUBJECT shadows"
-                    )
-                    throw new cTestsException("5092.5.3");
+            if (!lParts.ZHasParts(fParts.scheme | fParts.mechanismname | fParts.host | fParts.mailboxname | fParts.search) ||
+                lParts.MustUseAnonymous ||
+                lParts.MechanismName != null ||
+                lParts.Host != "minbari.example.org" ||
+                lParts.MailboxName != "gray council" ||
+                lParts.Search != "SUBJECT shadows"
+                )
+                throw new cTestsException("5092.5.3");
 
-                if (!ZTryParse("imap://john;AUTH=*@minbari.example.org/babylon5/personel?charset%20UTF-8%20SUBJECT%20%7B14+%7D%0D%0A%D0%98%D0%B2%D0%B0%D0%BD%D0%BE%D0%B2%D0%B0", out lParts, lContext)) throw new cTestsException("5092.6");
+            if (!ZTryParse("imap://john;AUTH=*@minbari.example.org/babylon5/personel?charset%20UTF-8%20SUBJECT%20%7B14+%7D%0D%0A%D0%98%D0%B2%D0%B0%D0%BD%D0%BE%D0%B2%D0%B0", out lParts)) throw new cTestsException("5092.6");
 
-                if (lParts.IsHomeServerReferral) throw new cTestsException("5092.6.1");
-                if (lParts.IsMailboxReferral) throw new cTestsException("5092.6.2");
+            if (lParts.IsHomeServerReferral) throw new cTestsException("5092.6.1");
+            if (lParts.IsMailboxReferral) throw new cTestsException("5092.6.2");
 
-                if (!lParts.ZHasParts(fParts.scheme | fParts.userid | fParts.mechanismname | fParts.host | fParts.mailboxname | fParts.search) ||
-                    lParts.MustUseAnonymous ||
-                    lParts.UserId != "john" ||
-                    lParts.MechanismName != null ||
-                    lParts.Host != "minbari.example.org" ||
-                    lParts.MailboxName != "babylon5/personel" ||
-                    lParts.Search != "charset UTF-8 SUBJECT {14+}\r\nИванова"
-                    )
-                    throw new cTestsException("5092.6.3");
+            if (!lParts.ZHasParts(fParts.scheme | fParts.userid | fParts.mechanismname | fParts.host | fParts.mailboxname | fParts.search) ||
+                lParts.MustUseAnonymous ||
+                lParts.UserId != "john" ||
+                lParts.MechanismName != null ||
+                lParts.Host != "minbari.example.org" ||
+                lParts.MailboxName != "babylon5/personel" ||
+                lParts.Search != "charset UTF-8 SUBJECT {14+}\r\nИванова"
+                )
+                throw new cTestsException("5092.6.3");
 
-                // URLAUTH - rfc 4467
+            // URLAUTH - rfc 4467
 
-                if (!ZTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2", out lParts, lContext)) throw new cTestsException("4467.1");
-                if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || lParts.IsAuthorisable || lParts.IsAuthorised) throw new cTestsException("4467.1.1");
+            if (!ZTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2", out lParts)) throw new cTestsException("4467.1");
+            if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || lParts.IsAuthorisable || lParts.IsAuthorised) throw new cTestsException("4467.1.1");
 
-                if (!ZTryParse("imap://example.com/Shared/;uid=20/;section=1.2;urlauth=submit+fred", out lParts, lContext)) throw new cTestsException("4467.2");
-                if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || lParts.IsAuthorisable || lParts.IsAuthorised) throw new cTestsException("4467.2.1");
+            if (!ZTryParse("imap://example.com/Shared/;uid=20/;section=1.2;urlauth=submit+fred", out lParts)) throw new cTestsException("4467.2");
+            if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || lParts.IsAuthorisable || lParts.IsAuthorised) throw new cTestsException("4467.2.1");
 
-                if (!ZTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2;urlauth=submit+fred", out lParts, lContext)) throw new cTestsException("4467.3");
-                if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || !lParts.IsAuthorisable || lParts.IsAuthorised) throw new cTestsException("4467.3.1");
+            if (!ZTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2;urlauth=submit+fred", out lParts)) throw new cTestsException("4467.3");
+            if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || !lParts.IsAuthorisable || lParts.IsAuthorised) throw new cTestsException("4467.3.1");
 
-                if (!ZTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2;urlauth=submit+fred:internal:91354a473744909de610943775f92038", out lParts, lContext)) throw new cTestsException("4467.4");
-                if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || lParts.IsAuthorisable || !lParts.IsAuthorised) throw new cTestsException("4467.4.1");
+            if (!ZTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2;urlauth=submit+fred:internal:91354a473744909de610943775f92038", out lParts)) throw new cTestsException("4467.4");
+            if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || lParts.IsAuthorisable || !lParts.IsAuthorised) throw new cTestsException("4467.4.1");
 
-                // expiry
-                //  TODO
+            // expiry
+            //  TODO
 
-                // network-path
-                //  TODO
+            // network-path
+            //  TODO
 
-                // absolute-path
-                //  TODO
+            // absolute-path
+            //  TODO
 
-                // edge cases for the URL
-                //  TODO
-            }
+            // edge cases for the URL
+            //  TODO
 
-            public static bool ZTryParse(string pURL, out cURLParts rParts, cTrace.cContext pParentContext)
+            bool ZTryParse(string pURL, out cURLParts rParts)
             {
                 if (!cBytesCursor.TryConstruct(pURL, out var lCursor)) { rParts = null; return false; }
-                if (!Process(lCursor, out rParts, pParentContext)) return false;
+                if (!Process(lCursor, out rParts, lContext)) return false;
                 if (!lCursor.Position.AtEnd) return false;
                 return true;
             }

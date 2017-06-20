@@ -90,41 +90,38 @@ namespace work.bacome.imapclient
 
         public static implicit operator string(cCulturedString pString) => pString?.ToString();
 
-        public static class cTests
+        [Conditional("DEBUG")]
+        public static void _Tests(cTrace.cContext pParentContext)
         {
-            [Conditional("DEBUG")]
-            public static void Tests(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewGeneric($"{nameof(cCulturedString)}.{nameof(cTests)}.{nameof(Tests)}");
+            var lContext = pParentContext.NewMethod(nameof(cCulturedString), nameof(_Tests));
 
-                cCulturedString lCString;
-                string lString;
+            cCulturedString lCString;
+            string lString;
 
-                lCString = new cCulturedString(new cBytes("=?iso-8859-1?q?this=20is=20some=20text?="));
-                lString = lCString;
-                if (lString != "this is some text") throw new cTestsException($"{nameof(cCulturedString)}.1");
+            lCString = new cCulturedString(new cBytes("=?iso-8859-1?q?this=20is=20some=20text?="));
+            lString = lCString;
+            if (lString != "this is some text") throw new cTestsException($"{nameof(cCulturedString)}.1");
 
-                if (new cCulturedString(new cBytes("=?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>")) != "Keith Moore <moore@cs.utk.edu>") throw new cTestsException($"{nameof(cCulturedString)}.2");
+            if (new cCulturedString(new cBytes("=?US-ASCII?Q?Keith_Moore?= <moore@cs.utk.edu>")) != "Keith Moore <moore@cs.utk.edu>") throw new cTestsException($"{nameof(cCulturedString)}.2");
 
-                lString = new cCulturedString(new cBytes("=?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>"));
-                if (lString != "Keld Jørn Simonsen <keld@dkuug.dk>") throw new cTestsException($"{nameof(cCulturedString)}.3");
+            lString = new cCulturedString(new cBytes("=?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@dkuug.dk>"));
+            if (lString != "Keld Jørn Simonsen <keld@dkuug.dk>") throw new cTestsException($"{nameof(cCulturedString)}.3");
 
-                lString = new cCulturedString(new cBytes("=?ISO-8859-1?Q?Andr=E9?= Pirard <PIRARD@vm1.ulg.ac.be>"));
-                if (lString != "André Pirard <PIRARD@vm1.ulg.ac.be>") throw new cTestsException($"{nameof(cCulturedString)}.4");
+            lString = new cCulturedString(new cBytes("=?ISO-8859-1?Q?Andr=E9?= Pirard <PIRARD@vm1.ulg.ac.be>"));
+            if (lString != "André Pirard <PIRARD@vm1.ulg.ac.be>") throw new cTestsException($"{nameof(cCulturedString)}.4");
 
-                lString = new cCulturedString(new cBytes("=?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?= =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?="));
-                if (lString != "If you can read this you understand the example.") throw new cTestsException($"{nameof(cCulturedString)}.5");
+            lString = new cCulturedString(new cBytes("=?ISO-8859-1?B?SWYgeW91IGNhbiByZWFkIHRoaXMgeW8=?= =?ISO-8859-2?B?dSB1bmRlcnN0YW5kIHRoZSBleGFtcGxlLg==?="));
+            if (lString != "If you can read this you understand the example.") throw new cTestsException($"{nameof(cCulturedString)}.5");
 
-                if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= b")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.6");
-                if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-1?Q?b?=")) != "ab") throw new cTestsException($"{nameof(cCulturedString)}.7");
-                if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a_b?=")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.8");
-                if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-2?Q?_b?=")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.9");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= b")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.6");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-1?Q?b?=")) != "ab") throw new cTestsException($"{nameof(cCulturedString)}.7");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a_b?=")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.8");
+            if (new cCulturedString(new cBytes("=?ISO-8859-1?Q?a?= =?ISO-8859-2?Q?_b?=")) != "a b") throw new cTestsException($"{nameof(cCulturedString)}.9");
 
-                lCString = new cCulturedString(new cBytes("=?US-ASCII*EN?Q?Keith_Moore?= <moore@cs.utk.edu>"));
+            lCString = new cCulturedString(new cBytes("=?US-ASCII*EN?Q?Keith_Moore?= <moore@cs.utk.edu>"));
 
-                if (lCString != "Keith Moore <moore@cs.utk.edu>") throw new cTestsException($"{nameof(cCulturedString)}.10");
-                if (lCString.Parts[0].LanguageTag != "EN") throw new cTestsException($"{nameof(cCulturedString)}.11");
-            }
+            if (lCString != "Keith Moore <moore@cs.utk.edu>") throw new cTestsException($"{nameof(cCulturedString)}.10");
+            if (lCString.Parts[0].LanguageTag != "EN") throw new cTestsException($"{nameof(cCulturedString)}.11");
         }
     }
 }

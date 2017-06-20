@@ -59,53 +59,50 @@ namespace work.bacome.imapclient.support
             return true;
         }
 
-        public static partial class cTests
+        [Conditional("DEBUG")]
+        private static void _Tests_Capability(cTrace.cContext pParentContext)
         {
-            [Conditional("DEBUG")]
-            private static void ZCapabilityTests(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZCapabilityTests));
+            var lContext = pParentContext.NewMethod(nameof(cBytesCursor), nameof(_Tests_Capability));
 
-                cBytesCursor lCursor;
-                cCapability lCapability;
-                cCapabilities lCapabilities;
-                cCapabilities lAuthenticationMechanisms;
+            cBytesCursor lCursor;
+            cCapability lCapability;
+            cCapabilities lCapabilities;
+            cCapabilities lAuthenticationMechanisms;
 
-                lCursor = MakeCursor("auth=angus auth=fred charlie bob");
-                if (lCursor.ProcessCapability(out _, out _, lContext)) throw new cTestsException("should have failed", lContext);
-                if (!lCursor.Position.AtEnd) throw new cTestsException("should have read entire response", lContext);
+            lCursor = new cBytesCursor(new cBytes("auth=angus auth=fred charlie bob"));
+            if (lCursor.ProcessCapability(out _, out _, lContext)) throw new cTestsException("should have failed", lContext);
+            if (!lCursor.Position.AtEnd) throw new cTestsException("should have read entire response", lContext);
 
-                lCursor = cBytesCursor.cTests.MakeCursor("auth=angus auth=fred imap4rev1 charlie bob");
-                if (!lCursor.ProcessCapability(out lCapabilities, out lAuthenticationMechanisms, lContext)) throw new cTestsException("should have succeeded", lContext);
-                if (!lCursor.Position.AtEnd) throw new cTestsException("should have read entire response", lContext);
-                if (lAuthenticationMechanisms.Count != 2 || !lAuthenticationMechanisms.Has("aNgUs") || !lAuthenticationMechanisms.Has("fred")) throw new cTestsException("authenticatemechanismnames not as expected", lContext);
-                if (lCapabilities.Count != 3) throw new cTestsException("capabilities not as expected", lContext);
+            lCursor = new cBytesCursor(new cBytes("auth=angus auth=fred imap4rev1 charlie bob"));
+            if (!lCursor.ProcessCapability(out lCapabilities, out lAuthenticationMechanisms, lContext)) throw new cTestsException("should have succeeded", lContext);
+            if (!lCursor.Position.AtEnd) throw new cTestsException("should have read entire response", lContext);
+            if (lAuthenticationMechanisms.Count != 2 || !lAuthenticationMechanisms.Has("aNgUs") || !lAuthenticationMechanisms.Has("fred")) throw new cTestsException("authenticatemechanismnames not as expected", lContext);
+            if (lCapabilities.Count != 3) throw new cTestsException("capabilities not as expected", lContext);
 
-                lCursor = cBytesCursor.cTests.MakeCursor("auth=angus idle auth=fred literal- imap4rev1 charlie utf8=accept bob");
-                if (!lCursor.ProcessCapability(out lCapabilities, out lAuthenticationMechanisms, lContext)) throw new cTestsException("should have succeeded", lContext);
-                if (!lCursor.Position.AtEnd) throw new cTestsException("should have read entire response", lContext);
-                if (lAuthenticationMechanisms.Count != 2 || !lAuthenticationMechanisms.Has("anGus") || !lAuthenticationMechanisms.Has("freD")) throw new cTestsException("authenticatemechanismnames not as expected", lContext);
-                if (lCapabilities.Count != 6) throw new cTestsException("capabilities not as expected", lContext);
+            lCursor = new cBytesCursor(new cBytes("auth=angus idle auth=fred literal- imap4rev1 charlie utf8=accept bob"));
+            if (!lCursor.ProcessCapability(out lCapabilities, out lAuthenticationMechanisms, lContext)) throw new cTestsException("should have succeeded", lContext);
+            if (!lCursor.Position.AtEnd) throw new cTestsException("should have read entire response", lContext);
+            if (lAuthenticationMechanisms.Count != 2 || !lAuthenticationMechanisms.Has("anGus") || !lAuthenticationMechanisms.Has("freD")) throw new cTestsException("authenticatemechanismnames not as expected", lContext);
+            if (lCapabilities.Count != 6) throw new cTestsException("capabilities not as expected", lContext);
 
-                lCapability = new cCapability(lCapabilities, lAuthenticationMechanisms, 0);
-                if (lCapability.LoginDisabled || !lCapability.Idle || lCapability.LiteralPlus || !lCapability.LiteralMinus || lCapability.Enable || !lCapability.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
-                if (!lCapability.SupportsAuthenticationMechanism("ANGUS") || !lCapability.SupportsAuthenticationMechanism("FRED") || lCapability.SupportsAuthenticationMechanism("fr€d")) throw new cTestsException("properties not as expected", lContext);
+            lCapability = new cCapability(lCapabilities, lAuthenticationMechanisms, 0);
+            if (lCapability.LoginDisabled || !lCapability.Idle || lCapability.LiteralPlus || !lCapability.LiteralMinus || lCapability.Enable || !lCapability.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
+            if (!lCapability.SupportsAuthenticationMechanism("ANGUS") || !lCapability.SupportsAuthenticationMechanism("FRED") || lCapability.SupportsAuthenticationMechanism("fr€d")) throw new cTestsException("properties not as expected", lContext);
 
-                lCapability = new cCapability(lCapabilities, lAuthenticationMechanisms, fCapabilities.Idle | fCapabilities.LiteralMinus);
-                if (lCapability.LoginDisabled || lCapability.Idle || lCapability.LiteralPlus || lCapability.LiteralMinus || lCapability.Enable || !lCapability.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
+            lCapability = new cCapability(lCapabilities, lAuthenticationMechanisms, fCapabilities.Idle | fCapabilities.LiteralMinus);
+            if (lCapability.LoginDisabled || lCapability.Idle || lCapability.LiteralPlus || lCapability.LiteralMinus || lCapability.Enable || !lCapability.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
 
-                lCursor = cBytesCursor.cTests.MakeCursor("auth=angus idle auth=(fred literal- imap4rev1 charlie utf8=accept bob");
-                if (lCursor.ProcessCapability(out _, out _, lContext)) throw new cTestsException("should have failed", lContext);
-                if (lCursor.Position.AtEnd) throw new cTestsException("should not have read entire response", lContext);
+            lCursor = new cBytesCursor(new cBytes("auth=angus idle auth=(fred literal- imap4rev1 charlie utf8=accept bob"));
+            if (lCursor.ProcessCapability(out _, out _, lContext)) throw new cTestsException("should have failed", lContext);
+            if (lCursor.Position.AtEnd) throw new cTestsException("should not have read entire response", lContext);
 
-                lCursor = cBytesCursor.cTests.MakeCursor("auth=angus idle auth=fred )literal- imap4rev1 charlie utf8=accept bob");
-                if (lCursor.ProcessCapability(out _, out _, lContext)) throw new cTestsException("should have failed", lContext);
-                if (lCursor.Position.AtEnd) throw new cTestsException("should not have read entire response", lContext);
+            lCursor = new cBytesCursor(new cBytes("auth=angus idle auth=fred )literal- imap4rev1 charlie utf8=accept bob"));
+            if (lCursor.ProcessCapability(out _, out _, lContext)) throw new cTestsException("should have failed", lContext);
+            if (lCursor.Position.AtEnd) throw new cTestsException("should not have read entire response", lContext);
 
-                lCursor = cBytesCursor.cTests.MakeCursor("auth=angus idle auth=fred literal- imap4rev1 charlie utf8=accept bob) and there is more");
-                if (!lCursor.ProcessCapability(out _, out _, lContext)) throw new cTestsException("should have succeeded", lContext);
-                if (lCursor.GetRestAsString() != ") and there is more") throw new cTestsException("should have stopped at the )", lContext);
-            }
+            lCursor = new cBytesCursor(new cBytes("auth=angus idle auth=fred literal- imap4rev1 charlie utf8=accept bob) and there is more"));
+            if (!lCursor.ProcessCapability(out _, out _, lContext)) throw new cTestsException("should have succeeded", lContext);
+            if (lCursor.GetRestAsString() != ") and there is more") throw new cTestsException("should have stopped at the )", lContext);
         }
     }
 }

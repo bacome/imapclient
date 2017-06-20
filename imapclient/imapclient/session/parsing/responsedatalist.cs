@@ -69,7 +69,7 @@ namespace work.bacome.imapclient
 
                 private static fMailboxFlags ZGetMailboxFlags(cCapability pCapability, cFlags pFlags, cExtendedItems pListExtendedItems)
                 {
-                    fMailboxFlags lResult = 0;
+                    fMailboxFlags lResult = fMailboxFlags.rfc3501;
 
                     if (pFlags.Has(@"\Noinferiors")) lResult |= fMailboxFlags.noinferiors | fMailboxFlags.hasnochildren;
 

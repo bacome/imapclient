@@ -63,44 +63,41 @@ namespace work.bacome.imapclient
             return lCredentials;
         }
 
-        public static class cTests
+        [Conditional("DEBUG")]
+        public static void _Tests(cTrace.cContext pParentContext)
         {
-            [Conditional("DEBUG")]
-            public static void Tests(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewGeneric($"{nameof(cCredentials)}.{nameof(cTests)}.{nameof(Tests)}");
+            var lContext = pParentContext.NewMethod(nameof(cCredentials), nameof(_Tests));
 
-                bool lFailed;
-                cCredentials lCredentials;
+            bool lFailed;
+            cCredentials lCredentials;
 
-                lCredentials = Anonymous("fred");
-                if (lCredentials.Login == null || lCredentials.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
+            lCredentials = Anonymous("fred");
+            if (lCredentials.Login == null || lCredentials.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
 
-                lFailed = false;
-                try { lCredentials = Anonymous(""); }
-                catch (ArgumentOutOfRangeException) { lFailed = true; }
-                if (!lFailed) throw new cTestsException("unexpected anon result");
+            lFailed = false;
+            try { lCredentials = Anonymous(""); }
+            catch (ArgumentOutOfRangeException) { lFailed = true; }
+            if (!lFailed) throw new cTestsException("unexpected anon result");
 
-                lCredentials = Anonymous("fred@fred.com");
-                if (lCredentials.Login == null || lCredentials.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
+            lCredentials = Anonymous("fred@fred.com");
+            if (lCredentials.Login == null || lCredentials.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
 
-                lCredentials = Anonymous("fred@fred@fred.com");
-                if (lCredentials.Login == null || lCredentials.SASLs.Count != 0) throw new cTestsException("unexpected anon result");
+            lCredentials = Anonymous("fred@fred@fred.com");
+            if (lCredentials.Login == null || lCredentials.SASLs.Count != 0) throw new cTestsException("unexpected anon result");
 
-                lCredentials = Anonymous("fred€fred.com");
-                if (lCredentials.Login != null || lCredentials.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
+            lCredentials = Anonymous("fred€fred.com");
+            if (lCredentials.Login != null || lCredentials.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
 
-                lCredentials = Anonymous("fred€@fred.com");
-                if (lCredentials.Login != null || lCredentials.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
+            lCredentials = Anonymous("fred€@fred.com");
+            if (lCredentials.Login != null || lCredentials.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
 
-                lCredentials = Anonymous("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
-                if (lCredentials.Login == null || lCredentials.SASLs.Count != 0) throw new cTestsException("unexpected anon result");
+            lCredentials = Anonymous("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
+            if (lCredentials.Login == null || lCredentials.SASLs.Count != 0) throw new cTestsException("unexpected anon result");
 
-                lFailed = false;
-                try { lCredentials = Anonymous("fred€@fred@fred.com"); }
-                catch (ArgumentOutOfRangeException) { lFailed = true; }
-                if (!lFailed) throw new cTestsException("unexpected anon result");
-            }
+            lFailed = false;
+            try { lCredentials = Anonymous("fred€@fred@fred.com"); }
+            catch (ArgumentOutOfRangeException) { lFailed = true; }
+            if (!lFailed) throw new cTestsException("unexpected anon result");
         }
     }
 }

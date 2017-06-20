@@ -53,14 +53,11 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.observed;
                 }
 
-                public static class cTests
+                [Conditional("DEBUG")]
+                public static void _Tests(cTrace.cContext pParentContext)
                 {
-                    [Conditional("DEBUG")]
-                    public static void Tests(cTrace.cContext pParentContext)
-                    {
-                        var lContext = pParentContext.NewGeneric($"{nameof(cCommandHookLSub)}.{nameof(cTests)}.{nameof(Tests)}");
-                        // TODO!
-                    }
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookLSub), nameof(_Tests));
+                    // TODO!
                 }
             }
         }

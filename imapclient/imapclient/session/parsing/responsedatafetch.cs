@@ -282,7 +282,7 @@ namespace work.bacome.imapclient
                     if (!pCursor.SkipByte(cASCII.LPAREN)) { rAddresses = null; return false; }
 
                     cCulturedString lGroupDisplayName = null;
-                    List<cAddress.cEmail> lGroupAddresses = null;
+                    List<cEmailAddress> lGroupAddresses = null;
 
                     bool lFirst = true;
 
@@ -316,7 +316,7 @@ namespace work.bacome.imapclient
                                 // group finish
 
                                 if (lGroupAddresses == null) { rAddresses = null; return false; } // end of group without a start of group
-                                lAddresses.Add(new cAddress.cGroup(lGroupDisplayName, lGroupAddresses));
+                                lAddresses.Add(new cGroupAddress(lGroupDisplayName, lGroupAddresses));
                                 lGroupDisplayName = null;
                                 lGroupAddresses = null;
                             }
@@ -326,7 +326,7 @@ namespace work.bacome.imapclient
 
                                 if (lGroupAddresses != null) { rAddresses = null; return false; } // start of group while in a group
                                 lGroupDisplayName = new cCulturedString(lMailboxBytes);
-                                lGroupAddresses = new List<cAddress.cEmail>();
+                                lGroupAddresses = new List<cEmailAddress>();
 
                                 if (lFirst)
                                 {
@@ -359,7 +359,7 @@ namespace work.bacome.imapclient
                             string lAddress = lMailbox + "@" + cTools.ASCIIBytesToString(lHostBytes);
                             string lDisplayAddress = lMailbox + "@" + cTools.PunycodeBytesToString(lHostBytes);
 
-                            var lEmailAddress = new cAddress.cEmail(lDisplayName, lAddress, lDisplayAddress);
+                            var lEmailAddress = new cEmailAddress(lDisplayName, lAddress, lDisplayAddress);
 
                             if (lGroupAddresses != null) lGroupAddresses.Add(lEmailAddress);
                             else lAddresses.Add(lEmailAddress);
@@ -1078,211 +1078,207 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public static class cTests
+                [Conditional("DEBUG")]
+                public static void _Tests(cTrace.cContext pParentContext)
                 {
-                    [Conditional("DEBUG")]
-                    public static void Tests(cTrace.cContext pParentContext)
+                    var lContext = pParentContext.NewMethod(nameof(cResponseDataFetch), nameof(_Tests));
+
+                    cBytesCursor lCursor;
+                    cCapabilities lCapabilities = new cCapabilities();
+                    lCapabilities.Set("binary");
+                    cCapability lCapability = new cCapability(lCapabilities, new cCapabilities(), 0);
+                    cResponseDataFetch lData;
+                    cEmailAddress lEmailAddress;
+                    cBodyStructure.cSingle.cText lBSST;
+
+                    if (!cBytesCursor.TryConstruct(
+                            @"(FLAGS (\Seen) INTERNALDATE ""17-Jul-1996 02:44:25 -0700"" " +
+                            @"RFC822.SIZE 4286 ENVELOPE (""Wed, 17 Jul 1996 02:23:25 -0700 (PDT)"" " +
+                            @"""IMAP4rev1 WG mtg summary and minutes"" " +
+                            @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
+                            @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
+                            @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
+                            @"((NIL NIL ""imap"" ""cac.washington.edu"")) " +
+                            @"((NIL NIL ""minutes"" ""CNRI.Reston.VA.US"")" +
+                            @"(""John Klensin"" NIL ""KLENSIN"" ""MIT.EDU"")) NIL NIL " +
+                            @"""<B27397-0100000@cac.washington.edu>"") " +
+                            @"BODY (""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 3028 92))", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.0");
+
+                    if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1");
+
+                    if (lData.Flags.KnownFlags != fMessageFlags.seen) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
+                    if (lData.Received != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
+                    if (lData.Envelope.Sent != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
+                    if (lData.Envelope.Subject != "IMAP4rev1 WG mtg summary and minutes") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.5");
+                    if (lData.Envelope.From.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.6.1");
+                    lEmailAddress = lData.Envelope.From[0] as cEmailAddress;
+                    if (lEmailAddress.DisplayName != "Terry Gray" || lEmailAddress.Address != "gray@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.6.2");
+                    if (lData.Envelope.Sender.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.7");
+                    if (lData.Envelope.ReplyTo.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.7");
+                    if (lData.Envelope.To.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.1");
+                    lEmailAddress = lData.Envelope.To[0] as cEmailAddress;
+                    if (lEmailAddress.DisplayName != null || lEmailAddress.Address != "imap@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.2");
+
+                    if (lData.Envelope.CC.Count != 2) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.1");
+                    lEmailAddress = lData.Envelope.CC[0] as cEmailAddress;
+                    if (lEmailAddress.DisplayName != null || lEmailAddress.Address != "minutes@CNRI.Reston.VA.US") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.2");
+                    lEmailAddress = lData.Envelope.CC[1] as cEmailAddress;
+                    if (lEmailAddress.DisplayName != "John Klensin" || lEmailAddress.Address != "KLENSIN@MIT.EDU") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.3");
+
+                    if (lData.Envelope.BCC != null || lData.Envelope.InReplyTo != null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.10");
+
+                    if (lData.Envelope.MessageId != "<B27397-0100000@cac.washington.edu>") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
+
+                    lBSST = lData.Body as cBodyStructure.cSingle.cText;
+                    if (lBSST.SubType != "PLAIN" || lBSST.Parameters.Count != 1 || lBSST.Parameters["charset"].Value != "US-ASCII" || lBSST.SizeInBytes != 3028 || lBSST.SizeInLines != 92) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.1");
+                    if (lBSST.ContentId != null || lBSST.Description != null || lBSST.DecodingRequired != eDecodingRequired.none) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.2");
+
+                    if (lData.RFC822 != null || lData.RFC822Header != null || lData.RFC822Text != null || lData.Size != 4286 || lData.BodyEx != null || lData.Bodies.Count != 0 || lData.UID != null || lData.BinarySizes.Count != 0) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.13");
+
+
+                    cBody lBody;
+
+                    lCursor = MakeCursor(
+                        "(BODY[HEADER] ",
+                        "{Date: Wed, 17 Jul 1996 02:23:25 -0700 (PDT)\r\n" +
+                            "From: Terry Gray <gray@cac.washington.edu>\r\n" +
+                            "Subject: IMAP4rev1 WG mtg summary and minutes\r\n" +
+                            "To: imap@cac.washington.edu\r\n" +
+                            "cc: minutes@CNRI.Reston.VA.US, John Klensin <KLENSIN@MIT.EDU>\r\n" +
+                            "Message-Id: <B27397-0100000@cac.washington.edu>\r\n" +
+                            "MIME-Version: 1.0\r\n" +
+                            "Content-Type: TEXT/PLAIN; CHARSET=US-ASCII\r\n" +
+                            "\r\n",
+                        ")");
+
+                    if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.0");
+
+                    if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.1");
+                    lBody = lData.Bodies[0];
+                    if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != cSection.eTextPart.header || lBody.Section.HeaderFields != null || lBody.Origin != null || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.2");
+
+
+                    lCursor = MakeCursor(
+                        "(BODY[HEADER]<0> ",
+                        "{Date: Wed, 17 Jul 1996 02:23:25 -0700 (PDT)\r\n" +
+                            "From: Terry Gray <gray@cac.washington.edu>\r\n" +
+                            "Subject: IMAP4rev1 WG mtg summary and minutes\r\n" +
+                            "To: imap@cac.washington.edu\r\n" +
+                            "cc: minutes@CNRI.Reston.VA.US, John Klensin <KLENSIN@MIT.EDU>\r\n" +
+                            "Message-Id: <B27397-0100000@cac.washington.edu>\r\n" +
+                            "MIME-Version: 1.0\r\n" +
+                            "Content-Type: TEXT/PLAIN; CHARSET=US-ASCII\r\n" +
+                            "\r\n",
+                        ")");
+
+                    if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.0");
+
+                    if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.1");
+                    lBody = lData.Bodies[0];
+                    if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != cSection.eTextPart.header || lBody.Section.HeaderFields != null || lBody.Origin != 0 || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.2");
+
+
+                    //  "         1         2         3         4         5         6         7"
+                    //  "1234567890123456789012345678901234567890123456789012345678901234567890"
+
+
+
+                    // test groups
+                    //  groups with no members
+                    //  TODO
+
+
+                    // test bodystructure
+
+                    cBodyStructure lBS;
+                    cBodyStructure.cMulti lBSM;
+
+                    if (!cBytesCursor.TryConstruct(
+                            @"((""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 1152 23)" + 
+                            @"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""NAME"" ""cc.diff"") ""<960723163407.20117h@cac.washington.edu>"" ""Compiler diff"" ""BASE64"" 4554 73) ""MIXED"")", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.0");
+
+                    if (!ZProcessBodyStructure(lCursor, true, null, false, out lBS) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.1");
+
+                    lBSM = lBS as cBodyStructure.cMulti;
+                    if (lBSM.Parts.Count != 2 || lBSM.SubType != "MIXED") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.2");
+
+                    lBSST = lBSM.Parts[0] as cBodyStructure.cSingle.cText;
+                    if (lBSST.DecodingRequired != eDecodingRequired.none || lBSST.SizeInBytes != 1152 || lBSST.SizeInLines != 23 || lBSST.Part != "1") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
+
+                    lBSST = lBSM.Parts[1] as cBodyStructure.cSingle.cText;
+                    if (lBSST.DecodingRequired != eDecodingRequired.base64 || lBSST.SizeInBytes != 4554 || lBSST.SizeInLines != 73 || lBSST.Part != "2") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
+                    if (lBSST.Parameters["name"].Value != "cc.diff" || lBSST.ContentId != "<960723163407.20117h@cac.washington.edu>" || lBSST.Description != "Compiler diff") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.4");
+
+
+
+                    // part numbering
+                    //  extension data for multipart: parameters, disposition, language, location
+                    //  embedded message structures: envelope, body, size in lines
+                    //  extension data for single part: md5, disposition, language, location
+                    //  and extensions
+                    // ALL TODO
+
+
+                    // binary
+                    //  TODO
+
+
+                    // parameters
+
+                    if (!cBytesCursor.TryConstruct(@"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""fred*"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"" ""angus"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"") NIL NIL ""7BIT"" 3028 92)", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.0");
+                    if (!ZProcessBodyStructure(lCursor, true, null, false, out lBS) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.1");
+                    lBSST = lBS as cBodyStructure.cSingle.cText;
+                    if (lBSST.Parameters["fred"].Value != "This is ***fun***" || lBSST.Parameters["fred"].LanguageTag != "EN-US" || !lBSST.Parameters["fred"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
+                    if (lBSST.Parameters["angus"].Value != "us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A" || lBSST.Parameters["angus"].LanguageTag != null || lBSST.Parameters["angus"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
+
+                    // TODO : more tests: in particular, missing language tag, missing charset and invalid cases
+
+
+
+                    // section
+                    ZTestSection("HEADER]", false, null, cSection.eTextPart.header, null);
+                    ZTestSection("TEXT]", false, null, cSection.eTextPart.text, null);
+                    ZTestSection("HEADER.FIELDS (a xxy b)]", false, null, cSection.eTextPart.headerfields, "A", "B", "XXY");
+                    ZTestSection(@"HEADER.FIELDS (a xxy ""b"")]", false, null, cSection.eTextPart.headerfields, "A", "B", "XXY");
+                    ZTestSection("HEADER.FIELDS.NOT (a xxy b)]", false, null, cSection.eTextPart.headerfieldsnot, "A", "B", "XXY");
+                    ZTestSection("1.2.3]", false, "1.2.3", cSection.eTextPart.all, null);
+                    ZTestSection("1.2.3.HEADER]", false, "1.2.3", cSection.eTextPart.header, null);
+                    ZTestSection("1.2.3.TEXT]", false, "1.2.3", cSection.eTextPart.text, null);
+                    ZTestSection("1.2.3.HEADER.FIELDS (a xxy b)]", false, "1.2.3", cSection.eTextPart.headerfields, "A", "B", "XXY");
+                    ZTestSection("1.2.3.HEADER.FIELDS.NOT (a xxy b)]", false, "1.2.3", cSection.eTextPart.headerfieldsnot, "A", "B", "XXY");
+                    ZTestSection("1.2.3.MIME]", false, "1.2.3", cSection.eTextPart.mime, null);
+                    ZTestSection("1.2.3]", true, "1.2.3", cSection.eTextPart.all, null);
+
+                    ZTestSectionFail("HEADER.FIELDS]", false);
+                    ZTestSectionFail("HEADER.FIELDS.NOT]", false);
+                    ZTestSectionFail("MIME]", false);
+                    ZTestSectionFail("1.2.0]", false);
+
+                    ZTestSectionFail("HEADER]", true);
+                    ZTestSectionFail("TEXT]", true);
+                    ZTestSectionFail("HEADER.FIELDS (a xxy b)]", true);
+                    ZTestSectionFail(@"HEADER.FIELDS (a xxy ""b"")]", true);
+                    ZTestSectionFail("HEADER.FIELDS.NOT (a xxy b)]", true);
+                    ZTestSectionFail("1.2.0]", true);
+
+
+                    ZTestBaseSubject("fred (fwd)  \t   (fwd)", "fred", "1");
+                    ZTestBaseSubject("[fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
+                    ZTestBaseSubject("re: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
+                    ZTestBaseSubject("fw: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
+                    ZTestBaseSubject("fwd: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
+                    ZTestBaseSubject("[dunno] fwd: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
+                    ZTestBaseSubject("[dunno]    fwd  [fred why is this here?]   :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "fred", "1");
+                    ZTestBaseSubject("[dunno]    fwd  [fred why is this here?]   :  \t   [fwd :    fred   (fwd)  \t   (fwd)]", "[fwd :    fred   (fwd)  \t   (fwd)]", "1");
+                    ZTestBaseSubject("[dunno]    fwd  [fred why is this here?]   :  \t   [fwd:    [fred]   (fwd)  \t   (fwd)]", "[fred]", "1");
+                    ZTestBaseSubject("[dunno] [ more ]   [of]     [fr€d]   fwd  [fred why is this here?]     :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "fred", "1");
+                    ZTestBaseSubject("[dunno] [ more ]   [of]     [fr€d]   fwd  [fred why is this here?] [x]    :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "fwd  [fred why is this here?] [x]    :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "1");
+
+
+                    void ZTestSection(string pText, bool pBinary, string pExpectedPart, cSection.eTextPart pExpectedTextPart, params string[] pExpectedHeaderFields)
                     {
-                        var lContext = pParentContext.NewGeneric($"{nameof(cResponseDataFetch)}.{nameof(cTests)}.{nameof(Tests)}");
-
-                        cBytesCursor lCursor;
-                        cCapabilities lCapabilities = new cCapabilities();
-                        lCapabilities.Set("binary");
-                        cCapability lCapability = new cCapability(lCapabilities, new cCapabilities(), 0);
-                        cResponseDataFetch lData;
-                        cAddress.cEmail lEmailAddress;
-                        cBodyStructure.cSingle.cText lBSST;
-
-                        if (!cBytesCursor.TryConstruct(
-                                @"(FLAGS (\Seen) INTERNALDATE ""17-Jul-1996 02:44:25 -0700"" " +
-                                @"RFC822.SIZE 4286 ENVELOPE (""Wed, 17 Jul 1996 02:23:25 -0700 (PDT)"" " +
-                                @"""IMAP4rev1 WG mtg summary and minutes"" " +
-                                @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
-                                @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
-                                @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
-                                @"((NIL NIL ""imap"" ""cac.washington.edu"")) " +
-                                @"((NIL NIL ""minutes"" ""CNRI.Reston.VA.US"")" +
-                                @"(""John Klensin"" NIL ""KLENSIN"" ""MIT.EDU"")) NIL NIL " +
-                                @"""<B27397-0100000@cac.washington.edu>"") " +
-                                @"BODY (""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 3028 92))", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.0");
-
-                        if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1");
-
-                        if (lData.Flags.KnownFlags != fMessageFlags.seen) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
-                        if (lData.Received != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
-                        if (lData.Envelope.Sent != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
-                        if (lData.Envelope.Subject != "IMAP4rev1 WG mtg summary and minutes") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.5");
-                        if (lData.Envelope.From.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.6.1");
-                        lEmailAddress = lData.Envelope.From[0] as cAddress.cEmail;
-                        if (lEmailAddress.DisplayName != "Terry Gray" || lEmailAddress.Address != "gray@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.6.2");
-                        if (lData.Envelope.Sender.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.7");
-                        if (lData.Envelope.ReplyTo.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.7");
-                        if (lData.Envelope.To.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.1");
-                        lEmailAddress = lData.Envelope.To[0] as cAddress.cEmail;
-                        if (lEmailAddress.DisplayName != null || lEmailAddress.Address != "imap@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.2");
-
-                        if (lData.Envelope.CC.Count != 2) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.1");
-                        lEmailAddress = lData.Envelope.CC[0] as cAddress.cEmail;
-                        if (lEmailAddress.DisplayName != null || lEmailAddress.Address != "minutes@CNRI.Reston.VA.US") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.2");
-                        lEmailAddress = lData.Envelope.CC[1] as cAddress.cEmail;
-                        if (lEmailAddress.DisplayName != "John Klensin" || lEmailAddress.Address != "KLENSIN@MIT.EDU") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.3");
-
-                        if (lData.Envelope.BCC != null || lData.Envelope.InReplyTo != null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.10");
-
-                        if (lData.Envelope.MessageId != "<B27397-0100000@cac.washington.edu>") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
-
-                        lBSST = lData.Body as cBodyStructure.cSingle.cText;
-                        if (lBSST.SubType != "PLAIN" || lBSST.Parameters.Count != 1 || lBSST.Parameters["charset"].Value != "US-ASCII" || lBSST.SizeInBytes != 3028 || lBSST.SizeInLines != 92) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.1");
-                        if (lBSST.ContentId != null || lBSST.Description != null || lBSST.DecodingRequired != eDecodingRequired.none) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.2");
-
-                        if (lData.RFC822 != null || lData.RFC822Header != null || lData.RFC822Text != null || lData.Size != 4286 || lData.BodyEx != null || lData.Bodies.Count != 0 || lData.UID != null || lData.BinarySizes.Count != 0) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.13");
-
-
-                        cBody lBody;
-
-                        lCursor = cBytesCursor.cTests.MakeCursor(
-                            "(BODY[HEADER] ",
-                            "{Date: Wed, 17 Jul 1996 02:23:25 -0700 (PDT)\r\n" +
-                                "From: Terry Gray <gray@cac.washington.edu>\r\n" +
-                                "Subject: IMAP4rev1 WG mtg summary and minutes\r\n" +
-                                "To: imap@cac.washington.edu\r\n" +
-                                "cc: minutes@CNRI.Reston.VA.US, John Klensin <KLENSIN@MIT.EDU>\r\n" +
-                                "Message-Id: <B27397-0100000@cac.washington.edu>\r\n" +
-                                "MIME-Version: 1.0\r\n" +
-                                "Content-Type: TEXT/PLAIN; CHARSET=US-ASCII\r\n" +
-                                "\r\n",
-                            ")");
-
-                        if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.0");
-
-                        if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.1");
-                        lBody = lData.Bodies[0];
-                        if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != cSection.eTextPart.header || lBody.Section.HeaderFields != null || lBody.Origin != null || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.2");
-
-
-                        lCursor = cBytesCursor.cTests.MakeCursor(
-                            "(BODY[HEADER]<0> ",
-                            "{Date: Wed, 17 Jul 1996 02:23:25 -0700 (PDT)\r\n" +
-                                "From: Terry Gray <gray@cac.washington.edu>\r\n" +
-                                "Subject: IMAP4rev1 WG mtg summary and minutes\r\n" +
-                                "To: imap@cac.washington.edu\r\n" +
-                                "cc: minutes@CNRI.Reston.VA.US, John Klensin <KLENSIN@MIT.EDU>\r\n" +
-                                "Message-Id: <B27397-0100000@cac.washington.edu>\r\n" +
-                                "MIME-Version: 1.0\r\n" +
-                                "Content-Type: TEXT/PLAIN; CHARSET=US-ASCII\r\n" +
-                                "\r\n",
-                            ")");
-
-                        if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.0");
-
-                        if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.1");
-                        lBody = lData.Bodies[0];
-                        if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != cSection.eTextPart.header || lBody.Section.HeaderFields != null || lBody.Origin != 0 || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.2");
-
-
-                        //  "         1         2         3         4         5         6         7"
-                        //  "1234567890123456789012345678901234567890123456789012345678901234567890"
-
-
-
-                        // test groups
-                        //  groups with no members
-                        //  TODO
-
-
-                        // test bodystructure
-
-                        cBodyStructure lBS;
-                        cBodyStructure.cMulti lBSM;
-
-                        if (!cBytesCursor.TryConstruct(
-                                @"((""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 1152 23)" + 
-                                @"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""NAME"" ""cc.diff"") ""<960723163407.20117h@cac.washington.edu>"" ""Compiler diff"" ""BASE64"" 4554 73) ""MIXED"")", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.0");
-
-                        if (!ZProcessBodyStructure(lCursor, true, null, false, out lBS) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.1");
-
-                        lBSM = lBS as cBodyStructure.cMulti;
-                        if (lBSM.Parts.Count != 2 || lBSM.SubType != "MIXED") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.2");
-
-                        lBSST = lBSM.Parts[0] as cBodyStructure.cSingle.cText;
-                        if (lBSST.DecodingRequired != eDecodingRequired.none || lBSST.SizeInBytes != 1152 || lBSST.SizeInLines != 23 || lBSST.Part != "1") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
-
-                        lBSST = lBSM.Parts[1] as cBodyStructure.cSingle.cText;
-                        if (lBSST.DecodingRequired != eDecodingRequired.base64 || lBSST.SizeInBytes != 4554 || lBSST.SizeInLines != 73 || lBSST.Part != "2") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
-                        if (lBSST.Parameters["name"].Value != "cc.diff" || lBSST.ContentId != "<960723163407.20117h@cac.washington.edu>" || lBSST.Description != "Compiler diff") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.4");
-
-
-
-                        // part numbering
-                        //  extension data for multipart: parameters, disposition, language, location
-                        //  embedded message structures: envelope, body, size in lines
-                        //  extension data for single part: md5, disposition, language, location
-                        //  and extensions
-                        // ALL TODO
-
-
-                        // binary
-                        //  TODO
-
-
-                        // parameters
-
-                        if (!cBytesCursor.TryConstruct(@"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""fred*"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"" ""angus"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"") NIL NIL ""7BIT"" 3028 92)", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.0");
-                        if (!ZProcessBodyStructure(lCursor, true, null, false, out lBS) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.1");
-                        lBSST = lBS as cBodyStructure.cSingle.cText;
-                        if (lBSST.Parameters["fred"].Value != "This is ***fun***" || lBSST.Parameters["fred"].LanguageTag != "EN-US" || !lBSST.Parameters["fred"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
-                        if (lBSST.Parameters["angus"].Value != "us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A" || lBSST.Parameters["angus"].LanguageTag != null || lBSST.Parameters["angus"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
-
-                        // TODO : more tests: in particular, missing language tag, missing charset and invalid cases
-
-
-
-                        // section
-                        ZTestSection(lContext, "HEADER]", false, null, cSection.eTextPart.header, null);
-                        ZTestSection(lContext, "TEXT]", false, null, cSection.eTextPart.text, null);
-                        ZTestSection(lContext, "HEADER.FIELDS (a xxy b)]", false, null, cSection.eTextPart.headerfields, "A", "B", "XXY");
-                        ZTestSection(lContext, @"HEADER.FIELDS (a xxy ""b"")]", false, null, cSection.eTextPart.headerfields, "A", "B", "XXY");
-                        ZTestSection(lContext, "HEADER.FIELDS.NOT (a xxy b)]", false, null, cSection.eTextPart.headerfieldsnot, "A", "B", "XXY");
-                        ZTestSection(lContext, "1.2.3]", false, "1.2.3", cSection.eTextPart.all, null);
-                        ZTestSection(lContext, "1.2.3.HEADER]", false, "1.2.3", cSection.eTextPart.header, null);
-                        ZTestSection(lContext, "1.2.3.TEXT]", false, "1.2.3", cSection.eTextPart.text, null);
-                        ZTestSection(lContext, "1.2.3.HEADER.FIELDS (a xxy b)]", false, "1.2.3", cSection.eTextPart.headerfields, "A", "B", "XXY");
-                        ZTestSection(lContext, "1.2.3.HEADER.FIELDS.NOT (a xxy b)]", false, "1.2.3", cSection.eTextPart.headerfieldsnot, "A", "B", "XXY");
-                        ZTestSection(lContext, "1.2.3.MIME]", false, "1.2.3", cSection.eTextPart.mime, null);
-                        ZTestSection(lContext, "1.2.3]", true, "1.2.3", cSection.eTextPart.all, null);
-
-                        ZTestSection(lContext, "HEADER.FIELDS]", false);
-                        ZTestSection(lContext, "HEADER.FIELDS.NOT]", false);
-                        ZTestSection(lContext, "MIME]", false);
-                        ZTestSection(lContext, "1.2.0]", false);
-
-                        ZTestSection(lContext, "HEADER]", true);
-                        ZTestSection(lContext, "TEXT]", true);
-                        ZTestSection(lContext, "HEADER.FIELDS (a xxy b)]", true);
-                        ZTestSection(lContext, @"HEADER.FIELDS (a xxy ""b"")]", true);
-                        ZTestSection(lContext, "HEADER.FIELDS.NOT (a xxy b)]", true);
-                        ZTestSection(lContext, "1.2.0]", true);
-
-
-                        ZTestBaseSubject(lContext, "fred (fwd)  \t   (fwd)", "fred", "1");
-                        ZTestBaseSubject(lContext, "[fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
-                        ZTestBaseSubject(lContext, "re: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
-                        ZTestBaseSubject(lContext, "fw: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
-                        ZTestBaseSubject(lContext, "fwd: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
-                        ZTestBaseSubject(lContext, "[dunno] fwd: [fwd: fred (fwd)  \t   (fwd)]", "fred", "1");
-                        ZTestBaseSubject(lContext, "[dunno]    fwd  [fred why is this here?]   :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "fred", "1");
-                        ZTestBaseSubject(lContext, "[dunno]    fwd  [fred why is this here?]   :  \t   [fwd :    fred   (fwd)  \t   (fwd)]", "[fwd :    fred   (fwd)  \t   (fwd)]", "1");
-                        ZTestBaseSubject(lContext, "[dunno]    fwd  [fred why is this here?]   :  \t   [fwd:    [fred]   (fwd)  \t   (fwd)]", "[fred]", "1");
-                        ZTestBaseSubject(lContext, "[dunno] [ more ]   [of]     [fr€d]   fwd  [fred why is this here?]     :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "fred", "1");
-                        ZTestBaseSubject(lContext, "[dunno] [ more ]   [of]     [fr€d]   fwd  [fred why is this here?] [x]    :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "fwd  [fred why is this here?] [x]    :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "1");
-                    }
-
-                    [Conditional("DEBUG")]
-                    public static void ZTestSection(cTrace.cContext pParentContext, string pText, bool pBinary, string pExpectedPart, cSection.eTextPart pExpectedTextPart, params string[] pExpectedHeaderFields)
-                    {
-                        var lContext = pParentContext.NewMethodV(nameof(cTests), nameof(ZTestSection), 1, pText, pBinary);
-                        if (!cBytesCursor.TryConstruct(pText, out var lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.1.{pText}.{pBinary}.1");
-                        if (!ZProcessSection(lCursor, pBinary, out var lSection) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.{pText}.2");
+                        if (!cBytesCursor.TryConstruct(pText, out var lxCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.1.{pText}.{pBinary}.1");
+                        if (!ZProcessSection(lxCursor, pBinary, out var lSection) || !lxCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.{pText}.2");
                         if (lSection.Part != pExpectedPart || lSection.TextPart != pExpectedTextPart) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.{pText}.3");
                         if (pExpectedHeaderFields == null && lSection.HeaderFields == null) return;
                         if (pExpectedHeaderFields == null || lSection.HeaderFields == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.{pText}.4");
@@ -1290,20 +1286,29 @@ namespace work.bacome.imapclient
                         for (int i = 0; i < pExpectedHeaderFields.Length; i++) if (lSection.HeaderFields[i] != pExpectedHeaderFields[i]) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.{pText}.6");
                     }
 
-                    [Conditional("DEBUG")]
-                    public static void ZTestSection(cTrace.cContext pParentContext, string pText, bool pBinary)
+                    void ZTestSectionFail(string pText, bool pBinary)
                     {
-                        var lContext = pParentContext.NewMethodV(nameof(cTests), nameof(ZTestSection), 2, pText, pBinary);
-                        if (!cBytesCursor.TryConstruct(pText, out var lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.2.{pText}.{pBinary}.1");
-                        if (ZProcessSection(lCursor, pBinary, out var lSection)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.2.{pText}.{pBinary}.2");
+                        if (!cBytesCursor.TryConstruct(pText, out var lxCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.2.{pText}.{pBinary}.1");
+                        if (ZProcessSection(lxCursor, pBinary, out var lSection)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(ZTestSection)}.2.{pText}.{pBinary}.2");
                     }
 
-                    [Conditional("DEBUG")]
-                    public static void ZTestBaseSubject(cTrace.cContext pParentContext, string pSubject, string pBaseSubject, string pTest)
+                    void ZTestBaseSubject(string pSubject, string pBaseSubject, string pTest)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestBaseSubject), pSubject, pBaseSubject);
                         string lBaseSubject = cBaseSubject.Calculate(pSubject);
                         if (lBaseSubject != pBaseSubject) throw new cTestsException($"{pSubject} -> {lBaseSubject} not {pBaseSubject}", lContext);
+                    }
+
+                    cBytesCursor MakeCursor(params string[] pLines)
+                    {
+                        List<cBytesLine> lLines = new List<cBytesLine>();
+
+                        foreach (var lLine in pLines)
+                        {
+                            if (lLine.Length > 0 && lLine[0] == '{') lLines.Add(new cBytesLine(true, new cBytes(lLine.TrimStart('{'))));
+                            else lLines.Add(new cBytesLine(false, new cBytes(lLine)));
+                        }
+
+                        return new cBytesCursor(new cBytesLines(lLines));
                     }
                 }
             }

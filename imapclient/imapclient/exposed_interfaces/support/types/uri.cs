@@ -87,105 +87,94 @@ namespace work.bacome.imapclient.support
             return true;
         }
 
-
-
-
-
-
-
-
-
-        public static class cTests
+        [Conditional("DEBUG")]
+        public static void _Tests(cTrace.cContext pParentContext)
         {
-            [Conditional("DEBUG")]
-            public static void Tests(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewGeneric($"{nameof(cURIParts)}.{nameof(cTests)}.{nameof(Tests)}");
+            var lContext = pParentContext.NewMethod(nameof(cURI), nameof(_Tests));
 
-                cURI lURI;
+            cURI lURI;
 
 
-                // 1
+            // 1
 
-                if (!TryParse("imap://fred.com", out lURI)) throw new cTestsException("should have succeeded 1", lContext);
+            if (!TryParse("imap://fred.com", out lURI)) throw new cTestsException("should have succeeded 1", lContext);
 
-                if (!lURI.MustUseAnonymous || lURI.UserId != null || lURI.MechanismName != null || lURI.Host != "fred.com" || lURI.Port != 143)
-                    throw new cTestsException("unexpected properties in test 1");
+            if (!lURI.MustUseAnonymous || lURI.UserId != null || lURI.MechanismName != null || lURI.Host != "fred.com" || lURI.Port != 143)
+                throw new cTestsException("unexpected properties in test 1");
 
-                // 2
+            // 2
 
-                if (!TryParse("IMAP://user;AUTH=*@SERVER2/", out lURI)) throw new cTestsException("should have succeeded 2", lContext);
+            if (!TryParse("IMAP://user;AUTH=*@SERVER2/", out lURI)) throw new cTestsException("should have succeeded 2", lContext);
 
-                if (lURI.MustUseAnonymous || lURI.UserId != "user" || lURI.MechanismName != null || lURI.Host != "SERVER2" || lURI.Port != 143)
-                    throw new cTestsException("unexpected properties in test 2");
+            if (lURI.MustUseAnonymous || lURI.UserId != "user" || lURI.MechanismName != null || lURI.Host != "SERVER2" || lURI.Port != 143)
+                throw new cTestsException("unexpected properties in test 2");
 
-                // 3
+            // 3
 
-                if (!TryParse("IMAP://MIKE@SERVER2/", out lURI)) throw new cTestsException("should have succeeded 3", lContext);
+            if (!TryParse("IMAP://MIKE@SERVER2/", out lURI)) throw new cTestsException("should have succeeded 3", lContext);
 
-                if (lURI.MustUseAnonymous || lURI.UserId != "MIKE" || lURI.MechanismName != null || lURI.Host != "SERVER2" || lURI.Port != 143)
-                    throw new cTestsException("unexpected properties in test 3");
+            if (lURI.MustUseAnonymous || lURI.UserId != "MIKE" || lURI.MechanismName != null || lURI.Host != "SERVER2" || lURI.Port != 143)
+                throw new cTestsException("unexpected properties in test 3");
 
-                // 4
+            // 4
 
-                if (!TryParse("IMAP://user;AUTH=GSSAPI@SERVER2/", out lURI)) throw new cTestsException("should have succeeded 4", lContext);
+            if (!TryParse("IMAP://user;AUTH=GSSAPI@SERVER2/", out lURI)) throw new cTestsException("should have succeeded 4", lContext);
 
-                if (lURI.MustUseAnonymous || lURI.UserId != "user" || !lURI.MechanismName.Equals("gssapi", StringComparison.OrdinalIgnoreCase) || lURI.Host != "SERVER2" || lURI.Port != 143)
-                    throw new cTestsException("unexpected properties in test 4");
+            if (lURI.MustUseAnonymous || lURI.UserId != "user" || !lURI.MechanismName.Equals("gssapi", StringComparison.OrdinalIgnoreCase) || lURI.Host != "SERVER2" || lURI.Port != 143)
+                throw new cTestsException("unexpected properties in test 4");
 
-                // 5
+            // 5
 
-                if (!TryParse("HTTP://user;AUTH=GSSAPI@SERVER2/", out lURI)) throw new cTestsException("should have succeeded 5", lContext);
-                if (lURI.mURLParts != null) throw new cTestsException("should have failed 5", lContext);
-                if (lURI.Scheme != "HTTP" || lURI.UserInfo != "user;AUTH=GSSAPI" || lURI.Host != "SERVER2") throw new cTestsException("unexpected properties in test 5");
+            if (!TryParse("HTTP://user;AUTH=GSSAPI@SERVER2/", out lURI)) throw new cTestsException("should have succeeded 5", lContext);
+            if (lURI.mURLParts != null) throw new cTestsException("should have failed 5", lContext);
+            if (lURI.Scheme != "HTTP" || lURI.UserInfo != "user;AUTH=GSSAPI" || lURI.Host != "SERVER2") throw new cTestsException("unexpected properties in test 5");
 
-                // 6
+            // 6
 
-                if (!TryParse("IMAP://user@[th.is:is::a:funny:one]:993", out lURI)) throw new cTestsException("should have succeeded 6", lContext);
+            if (!TryParse("IMAP://user@[th.is:is::a:funny:one]:993", out lURI)) throw new cTestsException("should have succeeded 6", lContext);
 
-                if (lURI.MustUseAnonymous || lURI.UserId != "user" || lURI.MechanismName != null || lURI.Host != "th.is:is::a:funny:one" || lURI.Port != 993)
-                    throw new cTestsException("unexpected properties in test 6");
+            if (lURI.MustUseAnonymous || lURI.UserId != "user" || lURI.MechanismName != null || lURI.Host != "th.is:is::a:funny:one" || lURI.Port != 993)
+                throw new cTestsException("unexpected properties in test 6");
 
-                // 7
+            // 7
 
-                if (!TryParse("IMAP://user@[th.is:is::a:funny:one]:", out lURI)) throw new cTestsException("should have succeeded 7", lContext);
+            if (!TryParse("IMAP://user@[th.is:is::a:funny:one]:", out lURI)) throw new cTestsException("should have succeeded 7", lContext);
 
-                if (lURI.MustUseAnonymous || lURI.UserId != "user" || lURI.MechanismName != null || lURI.Host != "th.is:is::a:funny:one" || lURI.Port != 143)
-                    throw new cTestsException("unexpected properties in test 7");
-
-
-                // 11
-
-                if (!TryParse("IMAP:///", out lURI)) throw new cTestsException("should have succeeded 11", lContext);
-                if (lURI.mURLParts != null) throw new cTestsException("should have failed 11", lContext);
+            if (lURI.MustUseAnonymous || lURI.UserId != "user" || lURI.MechanismName != null || lURI.Host != "th.is:is::a:funny:one" || lURI.Port != 143)
+                throw new cTestsException("unexpected properties in test 7");
 
 
-                // 15
+            // 11
 
-                if (!TryParse("http://www.ics.uci.edu/pub/ietf/uri/#Related", out lURI)) throw new cTestsException("URI.15");
-                if (lURI.mURLParts != null || lURI.IsMailboxReferral) throw new cTestsException("URI.15.1");
-                if (lURI.Scheme != "http" || lURI.Host != "www.ics.uci.edu" || lURI.Path != "pub/ietf/uri/" || lURI.Fragment != "Related") throw new cTestsException("URI.15.2");
-
-                // 16
-
-                if (!TryParse("http://www.ics.uci.edu/pub/ietf/uri/historical.html#WARNING", out lURI)) throw new cTestsException("URI.16");
-                if (lURI.mURLParts != null || lURI.IsMailboxReferral) throw new cTestsException("URI.16.1");
-                if (lURI.Scheme != "http" || lURI.Host != "www.ics.uci.edu" || lURI.Path != "pub/ietf/uri/historical.html" || lURI.Fragment != "WARNING") throw new cTestsException("URI.16.2");
-
-                // 17
-
-                if (!TryParse("IMAP://;AUTH=*@SERVER2/", out lURI)) throw new cTestsException("should have succeeded 17", lContext);
-
-                if (lURI.MustUseAnonymous || lURI.UserId != null || lURI.MechanismName != null || lURI.Host != "SERVER2" || lURI.Port != 143)
-                    throw new cTestsException("unexpected properties in test 17");
+            if (!TryParse("IMAP:///", out lURI)) throw new cTestsException("should have succeeded 11", lContext);
+            if (lURI.mURLParts != null) throw new cTestsException("should have failed 11", lContext);
 
 
-                // relative URIs
-                //  TODO
+            // 15
 
-                // edge cases
-                //  TODO
-            }
+            if (!TryParse("http://www.ics.uci.edu/pub/ietf/uri/#Related", out lURI)) throw new cTestsException("URI.15");
+            if (lURI.mURLParts != null || lURI.IsMailboxReferral) throw new cTestsException("URI.15.1");
+            if (lURI.Scheme != "http" || lURI.Host != "www.ics.uci.edu" || lURI.Path != "pub/ietf/uri/" || lURI.Fragment != "Related") throw new cTestsException("URI.15.2");
+
+            // 16
+
+            if (!TryParse("http://www.ics.uci.edu/pub/ietf/uri/historical.html#WARNING", out lURI)) throw new cTestsException("URI.16");
+            if (lURI.mURLParts != null || lURI.IsMailboxReferral) throw new cTestsException("URI.16.1");
+            if (lURI.Scheme != "http" || lURI.Host != "www.ics.uci.edu" || lURI.Path != "pub/ietf/uri/historical.html" || lURI.Fragment != "WARNING") throw new cTestsException("URI.16.2");
+
+            // 17
+
+            if (!TryParse("IMAP://;AUTH=*@SERVER2/", out lURI)) throw new cTestsException("should have succeeded 17", lContext);
+
+            if (lURI.MustUseAnonymous || lURI.UserId != null || lURI.MechanismName != null || lURI.Host != "SERVER2" || lURI.Port != 143)
+                throw new cTestsException("unexpected properties in test 17");
+
+
+            // relative URIs
+            //  TODO
+
+            // edge cases
+            //  TODO
         }
     }
 }

@@ -217,7 +217,7 @@ namespace testharness
 
             try
             {
-                cIMAPClient.cTests.Tests(false);
+                cIMAPClient._Tests(false);
                 MessageBox.Show("all tests passed");
             }
             catch (Exception ex)
@@ -358,7 +358,7 @@ namespace testharness
 
             try
             {
-                cIMAPClient.cTests.Tests(true);
+                cIMAPClient._Tests(true);
                 MessageBox.Show("all tests passed");
             }
             catch (Exception ex)
@@ -481,7 +481,7 @@ namespace testharness
 
             try
             {
-                cIMAPClient.cTests.CurrentTest();
+                cIMAPClient._Tests_Current();
                 MessageBox.Show("current test passed");
             }
             catch (Exception ex)
