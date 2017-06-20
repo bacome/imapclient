@@ -94,106 +94,103 @@ namespace work.bacome.imapclient
                 return $"{nameof(cMailboxNamePattern)}({mPrefix},{mPattern},{mDelimiter})";
             }
 
-            public static class cTests
+            [Conditional("DEBUG")]
+            public static void _Tests(cTrace.cContext pParentContext)
             {
-                [Conditional("DEBUG")]
-                public static void Tests(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewGeneric($"{nameof(cMailboxNamePattern)}.{nameof(cTests)}.{nameof(Tests)}");
+                var lContext = pParentContext.NewMethod(nameof(cMailboxNamePattern), nameof(_Tests));
 
-                    cMailboxNamePattern lPattern;
+                cMailboxNamePattern lPattern;
 
-                    lPattern = new cMailboxNamePattern("", "*", null);
+                lPattern = new cMailboxNamePattern("", "*", null);
 
-                    if (!lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
-                    if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
-                    if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},3");
-                    if (!lPattern.Matches("fred/angus/tom")) throw new cTestsException($"{lPattern},4");
-                    if (!lPattern.Matches("fred/nigel")) throw new cTestsException($"{lPattern},5");
-                    if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},6");
-                    if (!lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
-                    if (!lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
+                if (!lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
+                if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
+                if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},3");
+                if (!lPattern.Matches("fred/angus/tom")) throw new cTestsException($"{lPattern},4");
+                if (!lPattern.Matches("fred/nigel")) throw new cTestsException($"{lPattern},5");
+                if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},6");
+                if (!lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
+                if (!lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
 
-                    lPattern = new cMailboxNamePattern("", "*", '/');
+                lPattern = new cMailboxNamePattern("", "*", '/');
 
-                    if (!lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
-                    if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
-                    if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},3");
-                    if (!lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},4");
-                    if (!lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
+                if (!lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
+                if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
+                if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},3");
+                if (!lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},4");
+                if (!lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
 
-                    lPattern = new cMailboxNamePattern("", "fred", '/');
+                lPattern = new cMailboxNamePattern("", "fred", '/');
 
-                    if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
-                    if (lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
-                    if (lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},3");
-                    if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},4");
-                    if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
+                if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
+                if (lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
+                if (lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},3");
+                if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},4");
+                if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
 
-                    lPattern = new cMailboxNamePattern("", "fred*", '/');
+                lPattern = new cMailboxNamePattern("", "fred*", '/');
 
-                    if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
-                    if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
-                    if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},3");
-                    if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},4");
-                    if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
+                if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
+                if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
+                if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},3");
+                if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},4");
+                if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
 
-                    lPattern = new cMailboxNamePattern("", "*fred", '/');
+                lPattern = new cMailboxNamePattern("", "*fred", '/');
 
-                    if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
-                    if (lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
-                    if (lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},3");
-                    if (!lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},4");
-                    if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
+                if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
+                if (lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
+                if (lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},3");
+                if (!lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},4");
+                if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
 
 
-                    lPattern = new cMailboxNamePattern("", "*fred*", '/');
+                lPattern = new cMailboxNamePattern("", "*fred*", '/');
 
-                    if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
-                    if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
-                    if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},3");
-                    if (!lPattern.Matches("fred/angus/tom")) throw new cTestsException($"{lPattern},4");
-                    if (!lPattern.Matches("fred/nigel")) throw new cTestsException($"{lPattern},5");
-                    if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},6");
-                    if (!lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
-                    if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
+                if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
+                if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
+                if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},3");
+                if (!lPattern.Matches("fred/angus/tom")) throw new cTestsException($"{lPattern},4");
+                if (!lPattern.Matches("fred/nigel")) throw new cTestsException($"{lPattern},5");
+                if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},6");
+                if (!lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
+                if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
 
-                    lPattern = new cMailboxNamePattern("fred/", "%", null);
+                lPattern = new cMailboxNamePattern("fred/", "%", null);
 
-                    if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
-                    if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
-                    if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},3");
-                    if (!lPattern.Matches("fred/angus/tom")) throw new cTestsException($"{lPattern},4");
-                    if (!lPattern.Matches("fred/nigel")) throw new cTestsException($"{lPattern},5");
-                    if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},6");
-                    if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
-                    if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
+                if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
+                if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
+                if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},3");
+                if (!lPattern.Matches("fred/angus/tom")) throw new cTestsException($"{lPattern},4");
+                if (!lPattern.Matches("fred/nigel")) throw new cTestsException($"{lPattern},5");
+                if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},6");
+                if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
+                if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
 
 
-                    lPattern = new cMailboxNamePattern("fred/", "%", '/');
+                lPattern = new cMailboxNamePattern("fred/", "%", '/');
 
-                    if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
-                    if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
-                    if (lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},3");
-                    if (lPattern.Matches("fred/angus/tom")) throw new cTestsException($"{lPattern},4");
-                    if (!lPattern.Matches("fred/nigel")) throw new cTestsException($"{lPattern},5");
-                    if (lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},6");
-                    if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
-                    if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
+                if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
+                if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
+                if (lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},3");
+                if (lPattern.Matches("fred/angus/tom")) throw new cTestsException($"{lPattern},4");
+                if (!lPattern.Matches("fred/nigel")) throw new cTestsException($"{lPattern},5");
+                if (lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},6");
+                if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
+                if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
 
 
 
-                    lPattern = new cMailboxNamePattern("", "*/%g%/*", '/');
+                lPattern = new cMailboxNamePattern("", "*/%g%/*", '/');
 
-                    if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
-                    if (lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
-                    if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},3");
-                    if (!lPattern.Matches("fred/angus/tom")) throw new cTestsException($"{lPattern},4");
-                    if (lPattern.Matches("fred/nigel")) throw new cTestsException($"{lPattern},5");
-                    if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},6");
-                    if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
-                    if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
-                }
+                if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
+                if (lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
+                if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},3");
+                if (!lPattern.Matches("fred/angus/tom")) throw new cTestsException($"{lPattern},4");
+                if (lPattern.Matches("fred/nigel")) throw new cTestsException($"{lPattern},5");
+                if (!lPattern.Matches("fred/nigel/angus")) throw new cTestsException($"{lPattern},6");
+                if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
+                if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
             }
         }
     }

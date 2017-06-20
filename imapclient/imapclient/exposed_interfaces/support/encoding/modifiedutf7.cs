@@ -334,166 +334,163 @@ namespace work.bacome.imapclient.support
             public bool ContainsAByte { get; private set; } = false;
         }
 
-        public static class cTests
+        [Conditional("DEBUG")]
+        public static void _Tests(cTrace.cContext pParentContext)
         {
-            [Conditional("DEBUG")]
-            public static void Tests(cTrace.cContext pParentContext)
+            var lContext = pParentContext.NewMethod(nameof(cModifiedUTF7), nameof(_Tests));
+
+            string lDecodedValue;
+            string lError;
+            cByteList lBytes;
+
+            if (!TryDecode(new cBytes("~peter/mail/&U,BTFw-/&ZeVnLIqe-"), out lDecodedValue, out lError) || lDecodedValue != "~peter/mail/台北/日本語") throw new cTestsException("UTF7.3501.1");
+            if (TryDecode(new cBytes("&Jjo!"), out _, out _)) throw new cTestsException("UTF7.3501.2");
+            if (!TryDecode(new cBytes("&Jjo-!"), out lDecodedValue, out lError) || lDecodedValue != "☺!") throw new cTestsException("UTF7.3501.3");
+            if (!TryDecode(new cBytes("&U,BTFw-&ZeVnLIqe-"), out lDecodedValue, out lError) || lDecodedValue != "台北日本語") throw new cTestsException("UTF7.3501.4");
+            if (!TryDecode(new cBytes("&U,BTF2XlZyyKng-"), out lDecodedValue, out lError) || lDecodedValue != "台北日本語") throw new cTestsException("UTF7.3501.5");
+
+            if (cTools.ASCIIBytesToString(Encode("~peter/mail/台北/日本語")) != "~peter/mail/&U,BTFw-/&ZeVnLIqe-") throw new cTestsException("UTF7.3501.1.r");
+            if (cTools.ASCIIBytesToString(Encode("☺!")) != "&Jjo-!") throw new cTestsException("UTF7.3501.3.r");
+
+
+            Random lRandom = new Random();
+
+            // generate random tuples
+
+            int lMade;
+            const int kCount = 1000;
+
+            var lTriples = new List<char[]>();
+            var lTriplesToSet0 = new List<char[]>();
+            var lTriplesToSet1 = new List<char[]>();
+            var lTriplesToSet2 = new List<char[]>();
+
+            var lPairs = new List<char[]>();
+            var lPairsToSet0 = new List<char[]>();
+            var lPairsToSet1 = new List<char[]>();
+
+            var lChars = new List<char>();
+
+            for (int i = 0; i < kCount; i++)
             {
-                var lContext = pParentContext.NewGeneric($"{nameof(cModifiedUTF7)}.{nameof(cTests)}.{nameof(Tests)}");
+                var lTriple = new char[3];
+                lTriples.Add(lTriple);
+                lTriplesToSet0.Add(lTriple);
+                lTriplesToSet1.Add(lTriple);
+                lTriplesToSet2.Add(lTriple);
 
-                string lDecodedValue;
-                string lError;
-                cByteList lBytes;
+                var lPair = new char[2];
+                lPairs.Add(lPair);
+                lPairsToSet0.Add(lPair);
+                lPairsToSet1.Add(lPair);
+            }
 
-                if (!TryDecode(new cBytes("~peter/mail/&U,BTFw-/&ZeVnLIqe-"), out lDecodedValue, out lError) || lDecodedValue != "~peter/mail/台北/日本語") throw new cTestsException("UTF7.3501.1");
-                if (TryDecode(new cBytes("&Jjo!"), out _, out _)) throw new cTestsException("UTF7.3501.2");
-                if (!TryDecode(new cBytes("&Jjo-!"), out lDecodedValue, out lError) || lDecodedValue != "☺!") throw new cTestsException("UTF7.3501.3");
-                if (!TryDecode(new cBytes("&U,BTFw-&ZeVnLIqe-"), out lDecodedValue, out lError) || lDecodedValue != "台北日本語") throw new cTestsException("UTF7.3501.4");
-                if (!TryDecode(new cBytes("&U,BTF2XlZyyKng-"), out lDecodedValue, out lError) || lDecodedValue != "台北日本語") throw new cTestsException("UTF7.3501.5");
+            lMade = 0;
 
-                if (cTools.ASCIIBytesToString(Encode("~peter/mail/台北/日本語")) != "~peter/mail/&U,BTFw-/&ZeVnLIqe-") throw new cTestsException("UTF7.3501.1.r");
-                if (cTools.ASCIIBytesToString(Encode("☺!")) != "&Jjo-!") throw new cTestsException("UTF7.3501.3.r");
+            for (char c = '\u0001'; c < 256; c++)
+            {
+                ZAddToTuple(lRandom, c, lTriplesToSet0, 0);
+                ZAddToTuple(lRandom, c, lTriplesToSet1, 1);
+                ZAddToTuple(lRandom, c, lTriplesToSet2, 2);
 
+                ZAddToTuple(lRandom, c, lPairsToSet0, 0);
+                ZAddToTuple(lRandom, c, lPairsToSet1, 1);
 
-                Random lRandom = new Random();
+                lChars.Add(c);
 
-                // generate random tuples
+                lMade++;
+            }
 
-                int lMade;
-                const int kCount = 1000;
-
-                var lTriples = new List<char[]>();
-                var lTriplesToSet0 = new List<char[]>();
-                var lTriplesToSet1 = new List<char[]>();
-                var lTriplesToSet2 = new List<char[]>();
-
-                var lPairs = new List<char[]>();
-                var lPairsToSet0 = new List<char[]>();
-                var lPairsToSet1 = new List<char[]>();
-
-                var lChars = new List<char>();
-
-                for (int i = 0; i < kCount; i++)
+            while (lMade < kCount)
+            {
+                char lChar = (char)lRandom.Next(0xFFFF);
+                System.Globalization.UnicodeCategory lCat = char.GetUnicodeCategory(lChar);
+                if (lCat == System.Globalization.UnicodeCategory.ClosePunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.ConnectorPunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.CurrencySymbol ||
+                    lCat == System.Globalization.UnicodeCategory.DashPunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.DecimalDigitNumber ||
+                    lCat == System.Globalization.UnicodeCategory.FinalQuotePunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.InitialQuotePunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.LowercaseLetter ||
+                    lCat == System.Globalization.UnicodeCategory.MathSymbol ||
+                    lCat == System.Globalization.UnicodeCategory.OpenPunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.OtherLetter ||
+                    lCat == System.Globalization.UnicodeCategory.OtherNumber ||
+                    lCat == System.Globalization.UnicodeCategory.OtherPunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.OtherSymbol ||
+                    lCat == System.Globalization.UnicodeCategory.SpaceSeparator ||
+                    lCat == System.Globalization.UnicodeCategory.TitlecaseLetter ||
+                    lCat == System.Globalization.UnicodeCategory.UppercaseLetter
+                    )
                 {
-                    var lTriple = new char[3];
-                    lTriples.Add(lTriple);
-                    lTriplesToSet0.Add(lTriple);
-                    lTriplesToSet1.Add(lTriple);
-                    lTriplesToSet2.Add(lTriple);
+                    ZAddToTuple(lRandom, lChar, lTriplesToSet0, 0);
+                    ZAddToTuple(lRandom, lChar, lTriplesToSet1, 1);
+                    ZAddToTuple(lRandom, lChar, lTriplesToSet2, 2);
 
-                    var lPair = new char[2];
-                    lPairs.Add(lPair);
-                    lPairsToSet0.Add(lPair);
-                    lPairsToSet1.Add(lPair);
-                }
+                    ZAddToTuple(lRandom, lChar, lPairsToSet0, 0);
+                    ZAddToTuple(lRandom, lChar, lPairsToSet1, 1);
 
-                lMade = 0;
-
-                for (char c = '\u0001'; c < 256; c++)
-                {
-                    ZAddToTuple(lRandom, c, lTriplesToSet0, 0);
-                    ZAddToTuple(lRandom, c, lTriplesToSet1, 1);
-                    ZAddToTuple(lRandom, c, lTriplesToSet2, 2);
-
-                    ZAddToTuple(lRandom, c, lPairsToSet0, 0);
-                    ZAddToTuple(lRandom, c, lPairsToSet1, 1);
-
-                    lChars.Add(c);
+                    lChars.Add(lChar);
 
                     lMade++;
                 }
-
-                while (lMade < kCount)
-                {
-                    char lChar = (char)lRandom.Next(0xFFFF);
-                    System.Globalization.UnicodeCategory lCat = char.GetUnicodeCategory(lChar);
-                    if (lCat == System.Globalization.UnicodeCategory.ClosePunctuation ||
-                        lCat == System.Globalization.UnicodeCategory.ConnectorPunctuation ||
-                        lCat == System.Globalization.UnicodeCategory.CurrencySymbol ||
-                        lCat == System.Globalization.UnicodeCategory.DashPunctuation ||
-                        lCat == System.Globalization.UnicodeCategory.DecimalDigitNumber ||
-                        lCat == System.Globalization.UnicodeCategory.FinalQuotePunctuation ||
-                        lCat == System.Globalization.UnicodeCategory.InitialQuotePunctuation ||
-                        lCat == System.Globalization.UnicodeCategory.LowercaseLetter ||
-                        lCat == System.Globalization.UnicodeCategory.MathSymbol ||
-                        lCat == System.Globalization.UnicodeCategory.OpenPunctuation ||
-                        lCat == System.Globalization.UnicodeCategory.OtherLetter ||
-                        lCat == System.Globalization.UnicodeCategory.OtherNumber ||
-                        lCat == System.Globalization.UnicodeCategory.OtherPunctuation ||
-                        lCat == System.Globalization.UnicodeCategory.OtherSymbol ||
-                        lCat == System.Globalization.UnicodeCategory.SpaceSeparator ||
-                        lCat == System.Globalization.UnicodeCategory.TitlecaseLetter ||
-                        lCat == System.Globalization.UnicodeCategory.UppercaseLetter
-                        )
-                    {
-                        ZAddToTuple(lRandom, lChar, lTriplesToSet0, 0);
-                        ZAddToTuple(lRandom, lChar, lTriplesToSet1, 1);
-                        ZAddToTuple(lRandom, lChar, lTriplesToSet2, 2);
-
-                        ZAddToTuple(lRandom, lChar, lPairsToSet0, 0);
-                        ZAddToTuple(lRandom, lChar, lPairsToSet1, 1);
-
-                        lChars.Add(lChar);
-
-                        lMade++;
-                    }
-                }
-
-                // generate a set of random strings of random number of triples, adding a random pair and a random single 
-
-                var lStrings = new List<string>();
-                int lType = 0;
-
-                while (lTriples.Count > 0)
-                {
-                    var lString = new StringBuilder();
-
-                    int lLength = lRandom.Next(10);
-                    if (lLength > lTriples.Count) lLength = lTriples.Count;
-
-                    for (int i = 0; i < lLength; i++)
-                    {
-                        int lTripleIndex = lRandom.Next(lTriples.Count);
-                        lString.Append(lTriples[lTripleIndex]);
-                        lTriples.RemoveAt(lTripleIndex);
-                    }
-
-                    if (lType == 0) lType++;
-                    else if (lType == 1)
-                    {
-                        int lCharIndex = lRandom.Next(lChars.Count);
-                        lString.Append(lChars[lCharIndex]);
-                        lChars.RemoveAt(lCharIndex);
-                        lType++;
-                    }
-                    else
-                    {
-                        int lPairIndex = lRandom.Next(lPairs.Count);
-                        lString.Append(lPairs[lPairIndex]);
-                        lPairs.RemoveAt(lPairIndex);
-                        lType = 0;
-                    }
-
-                    lStrings.Add(lString.ToString());
-                }
-
-                lStrings.Add("H&M");
-                lStrings.Add("ST&M");
-                lStrings.Add("HIM&M");
-                lStrings.Add("HIM&M\u20AC");
-
-                foreach (string lString in lStrings)
-                {
-                    lBytes = Encode(lString);
-                    var lEncodedString = cTools.ASCIIBytesToString(lBytes);
-                    if (!TryDecode(lBytes, out var lDecodedString, out lError)) throw new cTestsException($"failed to decode {lEncodedString}");
-                    var lResult = $"'{lString}'\t'{lEncodedString}'\t'{lDecodedString}'";
-                    lContext.TraceVerbose(lResult);
-                    if (lDecodedString != lString) throw new cTestsException($"modifiedutf7 round trip failure {lResult}", lContext);
-                }
             }
 
-            private static void ZAddToTuple(Random pRandom, char pChar, List<char[]> pTuples, int pIndex)
+            // generate a set of random strings of random number of triples, adding a random pair and a random single 
+
+            var lStrings = new List<string>();
+            int lType = 0;
+
+            while (lTriples.Count > 0)
+            {
+                var lString = new StringBuilder();
+
+                int lLength = lRandom.Next(10);
+                if (lLength > lTriples.Count) lLength = lTriples.Count;
+
+                for (int i = 0; i < lLength; i++)
+                {
+                    int lTripleIndex = lRandom.Next(lTriples.Count);
+                    lString.Append(lTriples[lTripleIndex]);
+                    lTriples.RemoveAt(lTripleIndex);
+                }
+
+                if (lType == 0) lType++;
+                else if (lType == 1)
+                {
+                    int lCharIndex = lRandom.Next(lChars.Count);
+                    lString.Append(lChars[lCharIndex]);
+                    lChars.RemoveAt(lCharIndex);
+                    lType++;
+                }
+                else
+                {
+                    int lPairIndex = lRandom.Next(lPairs.Count);
+                    lString.Append(lPairs[lPairIndex]);
+                    lPairs.RemoveAt(lPairIndex);
+                    lType = 0;
+                }
+
+                lStrings.Add(lString.ToString());
+            }
+
+            lStrings.Add("H&M");
+            lStrings.Add("ST&M");
+            lStrings.Add("HIM&M");
+            lStrings.Add("HIM&M\u20AC");
+
+            foreach (string lString in lStrings)
+            {
+                lBytes = Encode(lString);
+                var lEncodedString = cTools.ASCIIBytesToString(lBytes);
+                if (!TryDecode(lBytes, out var lDecodedString, out lError)) throw new cTestsException($"failed to decode {lEncodedString}");
+                var lResult = $"'{lString}'\t'{lEncodedString}'\t'{lDecodedString}'";
+                lContext.TraceVerbose(lResult);
+                if (lDecodedString != lString) throw new cTestsException($"modifiedutf7 round trip failure {lResult}", lContext);
+            }
+
+            void ZAddToTuple(Random pRandom, char pChar, List<char[]> pTuples, int pIndex)
             {
                 int lTupleIndex = pRandom.Next(pTuples.Count);
                 var lTuple = pTuples[lTupleIndex];

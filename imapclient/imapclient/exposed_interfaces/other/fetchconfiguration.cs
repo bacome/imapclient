@@ -132,49 +132,42 @@ namespace work.bacome.imapclient
             }
         }
 
-        public static class cTests
+        [Conditional("DEBUG")]
+        public static void _Tests(cTrace.cContext pParentContext)
         {
-            [Conditional("DEBUG")]
-            public static void Tests(cTrace.cContext pParentContext)
-            {
-                cFetchConfiguration lConfig = new cFetchConfiguration(1, 100, 1000, 10);
+            cFetchConfiguration lConfig = new cFetchConfiguration(1, 100, 1000, 10);
 
-                if (lConfig.Current != 10) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.1");
-                lConfig.AddSample(10, 1000);
-                if (lConfig.Current != 10) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.2");
-                lConfig.AddSample(5, 500);
-                if (lConfig.Current != 10) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.3");
-                lConfig.AddSample(150, 1500); // 10 times faster
-                if (lConfig.Current != 20) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.4");
-                lConfig.AddSample(235, 1000);
-                if (lConfig.Current != 40) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.5");
-                lConfig.AddSample(10, 100);
-                if (lConfig.Current != 80) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.6");
-                lConfig.AddSample(10, 100);
-                if (lConfig.Current != 100) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.7");
-                lConfig.AddSample(10, 100);
-                if (lConfig.Current != 100) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.8");
-                lConfig.AddSample(1, 1000);
-                if (lConfig.Current != 1) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.9");
-                lConfig.AddSample(10, 1000);
-                if (lConfig.Current != 2) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.10");
-                lConfig.AddSample(10, 1000);
-                if (lConfig.Current != 4) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.11");
-                lConfig.AddSample(10, 1000);
-                if (lConfig.Current != 8) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.12");
-                lConfig.AddSample(10, 1000);
-                if (lConfig.Current != 8) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.13");
-                lConfig.AddSample(10, 1000);
-                if (lConfig.Current != 10) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.14");
-                lConfig.AddSample(100, 1000);
-                if (lConfig.Current != 20) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.15");
-                lConfig.AddSample(100, 1000);
-                if (lConfig.Current != 33) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.16");
-
-
-
-
-            }
+            if (lConfig.Current != 10) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.1");
+            lConfig.AddSample(10, 1000);
+            if (lConfig.Current != 10) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.2");
+            lConfig.AddSample(5, 500);
+            if (lConfig.Current != 10) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.3");
+            lConfig.AddSample(150, 1500); // 10 times faster
+            if (lConfig.Current != 20) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.4");
+            lConfig.AddSample(235, 1000);
+            if (lConfig.Current != 40) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.5");
+            lConfig.AddSample(10, 100);
+            if (lConfig.Current != 80) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.6");
+            lConfig.AddSample(10, 100);
+            if (lConfig.Current != 100) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.7");
+            lConfig.AddSample(10, 100);
+            if (lConfig.Current != 100) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.8");
+            lConfig.AddSample(1, 1000);
+            if (lConfig.Current != 1) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.9");
+            lConfig.AddSample(10, 1000);
+            if (lConfig.Current != 2) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.10");
+            lConfig.AddSample(10, 1000);
+            if (lConfig.Current != 4) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.11");
+            lConfig.AddSample(10, 1000);
+            if (lConfig.Current != 8) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.12");
+            lConfig.AddSample(10, 1000);
+            if (lConfig.Current != 8) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.13");
+            lConfig.AddSample(10, 1000);
+            if (lConfig.Current != 10) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.14");
+            lConfig.AddSample(100, 1000);
+            if (lConfig.Current != 20) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.15");
+            lConfig.AddSample(100, 1000);
+            if (lConfig.Current != 33) throw new cTestsException($"{nameof(cFetchConfiguration)}.1.16");
         }
     }
 }

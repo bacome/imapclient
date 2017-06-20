@@ -288,14 +288,11 @@ namespace work.bacome.imapclient
                     mState = eState.disconnected;
                 }
 
-                public static class cTests
+                [Conditional("DEBUG")]
+                public static void _Tests(cTrace.cContext pParentContext)
                 {
-                    [Conditional("DEBUG")]
-                    public static void Tests(cTrace.cContext pParentContext)
-                    {
-                        var lContext = pParentContext.NewGeneric($"{nameof(cConnection)}.{nameof(cTests)}.{nameof(Tests)}");
-                        cResponseBuilder.cTests.Tests(lContext);
-                    }
+                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(_Tests));
+                    cResponseBuilder._Tests(lContext);
                 }
             }
         }

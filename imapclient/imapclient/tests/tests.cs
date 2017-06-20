@@ -12,7 +12,13 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public static class cTests
+        [Conditional("DEBUG")]
+        public static void _Tests_Current() => cTests.CurrentTest();
+
+        [Conditional("DEBUG")]
+        public static void _Tests(bool pQuick) => cTests.Tests(pQuick);
+
+        private static class cTests
         {
             private static Random mRandom = new Random();
 
@@ -32,19 +38,18 @@ namespace work.bacome.imapclient
 
                 try
                 {
-                    cTools.cTests.Tests(lContext);
-                    cBytesCursor.cTests.Tests(lContext);
-                    cModifiedUTF7.cTests.Tests(cTrace.cContext.Null);
-                    cBase64.cTests.Tests(cTrace.cContext.Null);
-                    cSession.cTests.Tests(cTrace.cContext.Null);
-                    cCredentials.cTests.Tests(cTrace.cContext.Null);
-                    cURI.cTests.Tests(lContext);
-                    cURLParts.cTests.Tests(lContext);
-                    cURIParts.cTests.Tests(lContext);
-                    cMailboxNamePattern.cTests.Tests(lContext);
-                    cCulturedString.cTests.Tests(lContext);
-                    cMailboxName.cTests.Tests(lContext);
-                    cFetchConfiguration.cTests.Tests(lContext);
+                    cBytesCursor._Tests(lContext);
+                    cModifiedUTF7._Tests(cTrace.cContext.Null);
+                    cBase64._Tests(cTrace.cContext.Null);
+                    cSession._Tests(cTrace.cContext.Null);
+                    cCredentials._Tests(cTrace.cContext.Null);
+                    cURI._Tests(lContext);
+                    cURLParts._Tests(lContext);
+                    cURIParts._Tests(lContext);
+                    cMailboxNamePattern._Tests(lContext);
+                    cCulturedString._Tests(lContext);
+                    cMailboxName._Tests(lContext);
+                    cFetchConfiguration._Tests(lContext);
 
                     ZTestByeAtStartup1(cTrace.cContext.Null); // tests BYE at startup and ALERT
                     ZTestByeAtStartup2(cTrace.cContext.Null); // tests BYE at startup and greeting
@@ -2244,23 +2249,20 @@ namespace work.bacome.imapclient
 
         private partial class cSession
         {
-            public static partial class cTests
-            {
-                [Conditional("DEBUG")]
-                public static void Tests(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewGeneric($"{nameof(cSession)}.{nameof(cTests)}.{nameof(Tests)}");
-                    cConnection.cTests.Tests(lContext);
-                    cIdDataProcessor.cTests.Tests(lContext);
-                    cNamespaceDataProcessor.cTests.Tests(lContext);
-                    cCommandHookList.cTests.Tests(lContext);
-                    cCommandHookLSub.cTests.Tests(lContext);
-                    cListExtendedCommandHook.cTests.Tests(lContext);
-                    cResponseDataFetch.cTests.Tests(lContext);
-                    cResponseDataESearch.cTests.Tests(lContext);
-                    ListExtendedCommandPartsTests(lContext);
-                    cCommand.cTests.MessageFilterCommandPartsTests(lContext);
-                }
+            [Conditional("DEBUG")]
+            public static void _Tests(cTrace.cContext pParentContext)
+            { 
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(_Tests));
+                cConnection._Tests(lContext);
+                cIdDataProcessor._Tests(lContext);
+                cNamespaceDataProcessor._Tests(lContext);
+                cCommandHookList._Tests(lContext);
+                cCommandHookLSub._Tests(lContext);
+                cListExtendedCommandHook._Tests(lContext);
+                cResponseDataFetch._Tests(lContext);
+                cResponseDataESearch._Tests(lContext);
+                _Tests_ListExtendedCommandParts(lContext);
+                cCommand._Tests(lContext);
             }
         }
     }

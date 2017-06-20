@@ -37,7 +37,7 @@ namespace usageexamples
                     // select the inbox so we can look at the messages in it
                     lInbox.Select();
 
-                    // list out some details of the messages that have arrived today in the order that the messages were received
+                    // list out some details of the messages that have arrived in the last 100 days in the order that the messages were received
                     foreach (var lMessage in lInbox.Search(cFilter.Received >= DateTime.Today.AddDays(-100), new cSort(cSortItem.Received), fMessageProperties.envelope))
                     {
                         Console.WriteLine($"{lMessage.Envelope.Sent}\t{lMessage.Envelope.From[0].DisplayName}\t{lMessage.Envelope.Subject}");

@@ -9,43 +9,37 @@ namespace work.bacome.imapclient
     {
         public readonly cCulturedString DisplayName;
         public cAddress(cCulturedString pDisplayName) { DisplayName = pDisplayName; }
+    }
 
-        public class cEmail : cAddress
+    public class cEmailAddress : cAddress
+    {
+        public readonly string Address; // raw address - not converted 
+        public readonly string DisplayAddress; // display address - host name converted from punycode (rfc 3492) [currently not implemented] // TODO
+
+        public cEmailAddress(cCulturedString pDisplayName, string pAddress, string pDisplayAddress) : base(pDisplayName)
         {
-            public readonly string Address; // raw address - not converted 
-            public readonly string DisplayAddress; // display address - host name converted from punycode (rfc 3492) [currently not implemented] // TODO
-
-            public cEmail(cCulturedString pDisplayName, string pAddress, string pDisplayAddress) : base(pDisplayName)
-            {
-                Address = pAddress;
-                DisplayAddress = pDisplayAddress;
-            }
-
-            public override string ToString() => $"{nameof(cEmail)}({DisplayName},{Address},{DisplayAddress})";
+            Address = pAddress;
+            DisplayAddress = pDisplayAddress;
         }
 
-        public class cEmails : ReadOnlyCollection<cEmail>
-        {
-            public cEmails(IList<cEmail> pEmails) : base(pEmails) { }
+        public override string ToString() => $"{nameof(cEmailAddress)}({DisplayName},{Address},{DisplayAddress})";
+    }
 
-            public override string ToString()
-            {
-                var lBuilder = new cListBuilder(nameof(cEmails));
-                foreach (var lEmail in this) lBuilder.Append(lEmail);
-                return lBuilder.ToString();
-            }
+    public class cGroupAddress : cAddress
+    {
+        public readonly ReadOnlyCollection<cEmailAddress> Addresses;
+
+        public cGroupAddress(cCulturedString pDisplayName, IList<cEmailAddress> pAddresses) : base(pDisplayName)
+        {
+            Addresses = new ReadOnlyCollection<cEmailAddress>(pAddresses);
         }
 
-        public class cGroup : cAddress
+        public override string ToString()
         {
-            public readonly cEmails Emails;
-
-            public cGroup(cCulturedString pDisplayName, IList<cEmail> pEmails) : base(pDisplayName)
-            {
-                Emails = new cEmails(pEmails);
-            }
-
-            public override string ToString() => $"{nameof(cGroup)}({DisplayName},{Emails})";
+            var lBuilder = new cListBuilder(nameof(cGroupAddress));
+            lBuilder.Append(DisplayName);
+            foreach (var lAddress in Addresses) lBuilder.Append(lAddress);
+            return lBuilder.ToString();
         }
     }
 }

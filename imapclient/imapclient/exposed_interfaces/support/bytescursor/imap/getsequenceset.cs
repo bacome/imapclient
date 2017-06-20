@@ -68,25 +68,19 @@ namespace work.bacome.imapclient.support
             return true;
         }
 
-        public static partial class cTests
+        [Conditional("DEBUG")]
+        private static void _Tests_SequenceSet(cTrace.cContext pParentContext)
         {
-            [Conditional("DEBUG")]
-            private static void ZSequenceSetTests(cTrace.cContext pParentContext)
+            var lContext = pParentContext.NewMethod(nameof(cBytesCursor), nameof(_Tests_SequenceSet));
+
+            ZTest("*", "cSequenceSet(cAsterisk())", null, new cUIntList(new uint[] { 15 }), "cSequenceSet(cNumber(15))");
+            ZTest("0", null, "0", null, null);
+            ZTest("2,4:7,9,12:*", "cSequenceSet(cNumber(2),cRange(cNumber(4),cNumber(7)),cNumber(9),cRange(cNumber(12),cAsterisk()))", null, new cUIntList(new uint[] { 2, 4, 5, 6, 7, 9, 12, 13, 14, 15 }), "cSequenceSet(cNumber(2),cRange(cNumber(4),cNumber(7)),cNumber(9),cRange(cNumber(12),cNumber(15)))");
+            ZTest("*:4,7:5", "cSequenceSet(cRange(cNumber(4),cAsterisk()),cRange(cNumber(5),cNumber(7)))", null, new cUIntList(new uint[] { 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }), "cSequenceSet(cRange(cNumber(4),cNumber(15)))");
+
+            void ZTest(string pCursor, string pExpSeqSet, string pExpRemainder, cUIntList pExpList, string pExpSeqSet2)
             {
-                var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZSequenceSetTests));
-
-                ZSequenceSetTest("*", "cSequenceSet(cAsterisk())", null, new cUIntList(new uint[] { 15 }), "cSequenceSet(cNumber(15))", lContext);
-                ZSequenceSetTest("0", null, "0", null, null, lContext);
-                ZSequenceSetTest("2,4:7,9,12:*", "cSequenceSet(cNumber(2),cRange(cNumber(4),cNumber(7)),cNumber(9),cRange(cNumber(12),cAsterisk()))", null, new cUIntList(new uint[] { 2, 4, 5, 6, 7, 9, 12, 13, 14, 15 }), "cSequenceSet(cNumber(2),cRange(cNumber(4),cNumber(7)),cNumber(9),cRange(cNumber(12),cNumber(15)))", lContext);
-                ZSequenceSetTest("*:4,7:5", "cSequenceSet(cRange(cNumber(4),cAsterisk()),cRange(cNumber(5),cNumber(7)))", null, new cUIntList(new uint[] { 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }), "cSequenceSet(cRange(cNumber(4),cNumber(15)))", lContext);
-            }
-
-            [Conditional("DEBUG")]
-            private static void ZSequenceSetTest(string pCursor, string pExpSeqSet, string pExpRemainder, cUIntList pExpList, string pExpSeqSet2, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZSequenceSetTest));
-
-                cBytesCursor.TryConstruct(pCursor, out var lCursor);
+                TryConstruct(pCursor, out var lCursor);
 
                 if (lCursor.GetSequenceSet(out var lSequenceSet))
                 {

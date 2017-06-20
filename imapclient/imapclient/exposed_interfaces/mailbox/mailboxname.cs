@@ -100,51 +100,48 @@ namespace work.bacome.imapclient
 
         public static bool operator !=(cMailboxName pA, cMailboxName pB) => !(pA == pB);
 
-        public static class cTests
+        [Conditional("DEBUG")]
+        public static void _Tests(cTrace.cContext pParentContext)
         {
-            [Conditional("DEBUG")]
-            public static void Tests(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cMailboxName), nameof(Tests));
+            var lContext = pParentContext.NewMethod(nameof(cMailboxName), nameof(_Tests));
 
-                ZTestsMailboxName("", lContext);
+            _Tests_MailboxName("", lContext);
 
-                ZTestsMailboxName("/", lContext);
-                ZTestsMailboxName("fred", lContext);
-                ZTestsMailboxName("fred/", lContext);
-                ZTestsMailboxName("/fred", lContext);
-                ZTestsMailboxName("/fred/", lContext);
-                ZTestsMailboxName("fred/fr€d", lContext);
-                ZTestsMailboxName("fred/fr€d/", lContext);
-                ZTestsMailboxName("/fred/fr€d", lContext);
-                ZTestsMailboxName("/fred/fr€d/", lContext);
-            }
+            _Tests_MailboxName("/", lContext);
+            _Tests_MailboxName("fred", lContext);
+            _Tests_MailboxName("fred/", lContext);
+            _Tests_MailboxName("/fred", lContext);
+            _Tests_MailboxName("/fred/", lContext);
+            _Tests_MailboxName("fred/fr€d", lContext);
+            _Tests_MailboxName("fred/fr€d/", lContext);
+            _Tests_MailboxName("/fred/fr€d", lContext);
+            _Tests_MailboxName("/fred/fr€d/", lContext);
+        }
 
-            [Conditional("DEBUG")]
-            private static void ZTestsMailboxName(string pMailboxName, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cMailboxName), nameof(ZTestsMailboxName), pMailboxName);
+        [Conditional("DEBUG")]
+        private static void _Tests_MailboxName(string pMailboxName, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cMailboxName), nameof(_Tests_MailboxName), pMailboxName);
 
-                cCommandPart.cFactory lFactory;
-                cCommandPart lCommandPart;
-                cBytesCursor lCursor;
-                IList<byte> lEncodedMailboxName;
-                cMailboxName lMailboxName;
+            cCommandPart.cFactory lFactory;
+            cCommandPart lCommandPart;
+            cBytesCursor lCursor;
+            IList<byte> lEncodedMailboxName;
+            cMailboxName lMailboxName;
 
-                lFactory = new cCommandPart.cFactory(false);
-                lFactory.TryAsMailbox(new cMailboxName(pMailboxName, '/'), out lCommandPart, out _);
-                lCursor = new cBytesCursor(lCommandPart.Bytes);
-                lCursor.GetAString(out lEncodedMailboxName);
-                cMailboxName.TryConstruct(lEncodedMailboxName, cASCII.SLASH, fEnableableExtensions.none, out lMailboxName);
-                if (lMailboxName.Name != pMailboxName) throw new cTestsException($"mailboxname conversion failed on '{pMailboxName}' -> {lCommandPart.Bytes} -> '{lMailboxName}'", lContext);
+            lFactory = new cCommandPart.cFactory(false);
+            lFactory.TryAsMailbox(new cMailboxName(pMailboxName, '/'), out lCommandPart, out _);
+            lCursor = new cBytesCursor(lCommandPart.Bytes);
+            lCursor.GetAString(out lEncodedMailboxName);
+            cMailboxName.TryConstruct(lEncodedMailboxName, cASCII.SLASH, fEnableableExtensions.none, out lMailboxName);
+            if (lMailboxName.Name != pMailboxName) throw new cTestsException($"mailboxname conversion failed on '{pMailboxName}' -> {lCommandPart.Bytes} -> '{lMailboxName}'", lContext);
 
-                lFactory = new cCommandPart.cFactory(true);
-                lFactory.TryAsMailbox(new cMailboxName(pMailboxName, '/'), out lCommandPart, out _);
-                lCursor = new cBytesCursor(lCommandPart.Bytes);
-                lCursor.GetAString(out lEncodedMailboxName);
-                cMailboxName.TryConstruct(lEncodedMailboxName, cASCII.SLASH, fEnableableExtensions.utf8, out lMailboxName);
-                if (lMailboxName.Name != pMailboxName) throw new cTestsException($"mailboxname conversion failed on '{pMailboxName}' -> {lCommandPart.Bytes} -> '{lMailboxName}'", lContext);
-            }
+            lFactory = new cCommandPart.cFactory(true);
+            lFactory.TryAsMailbox(new cMailboxName(pMailboxName, '/'), out lCommandPart, out _);
+            lCursor = new cBytesCursor(lCommandPart.Bytes);
+            lCursor.GetAString(out lEncodedMailboxName);
+            cMailboxName.TryConstruct(lEncodedMailboxName, cASCII.SLASH, fEnableableExtensions.utf8, out lMailboxName);
+            if (lMailboxName.Name != pMailboxName) throw new cTestsException($"mailboxname conversion failed on '{pMailboxName}' -> {lCommandPart.Bytes} -> '{lMailboxName}'", lContext);
         }
     }
 }
