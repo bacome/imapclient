@@ -22,10 +22,10 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kFetchCommandPartLessThan = new cCommandPart("<");
             private static readonly cCommandPart kFetchCommandPartGreaterThan = new cCommandPart(">");
 
-
             private async Task<cBytes> ZFetchBodyAsync(cMethodControl pMC, cMailboxId pMailboxId, iMessageHandle pHandle, bool pBinary, cSection pSection, uint pOrigin, uint pLength, cTrace.cContext pParentContext)
             {
-                // the caller must have checked that the binary option and the section option are compatible
+                // the caller must have checked that the binary option and the section option are compatible (i.e. if section has a textpart then binary is false)
+                //  the length must be greater than zero
 
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxId, pHandle, pSection, pOrigin, pLength);
 
@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
                     lCommand.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
                     lCommand.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
-                    // resolve MSN
+                    // resolve the MSN
                     uint lMSN = _SelectedMailbox.GetMSN(pHandle);
                     if (lMSN == 0) throw new cInvalidMessageHandleException(lContext); // either expunged or the cache has changed
 
@@ -51,6 +51,12 @@ namespace work.bacome.imapclient
                     if (pBinary) lCommand.Add(kFetchCommandPartSpaceBinaryPeekLBracket);
                     else lCommand.Add(kFetchCommandPartSpaceBodyPeekLBracket);
 
+
+                    // note that section is used in UID fetch also 
+                    ;?; // 
+
+                    lCommand.Add(pSection, pOrigin, pLength);
+
                     if (pSection.Part != null)
                     {
                         lCommand.Add(cCommandPart.AsAtom(pSection.Part));
@@ -59,6 +65,10 @@ namespace work.bacome.imapclient
 
                     switch (pSection.TextPart)
                     {
+                        case cSection.eTextPart.all:
+
+                            break;
+
                         case cSection.eTextPart.header:
 
                             lCommand.Add(kFetchCommandPartHeader);
@@ -67,14 +77,14 @@ namespace work.bacome.imapclient
                         case cSection.eTextPart.headerfields:
 
                             lCommand.Add(kFetchCommandPartHeaderFields);
-                            lCommand.Add(pSection.HeaderFields);
+                            lCommand.AddAsAStrings(pSection.HeaderFields);
                             lCommand.Add(cCommandPart.RParen);
                             break;
 
                         case cSection.eTextPart.headerfieldsnot:
 
                             lCommand.Add(kFetchCommandPartHeaderFieldsNot);
-                            lCommand.Add(pSection.HeaderFields);
+                            lCommand.AddAsAStrings(pSection.HeaderFields);
                             lCommand.Add(cCommandPart.RParen);
                             break;
 
@@ -93,7 +103,7 @@ namespace work.bacome.imapclient
                             throw new cInternalErrorException(lContext);
                     }
 
-                    lCommand.Add(kFetchCommandPartLessThan, new cCommandPart(pOrigin), cCommandPart.Dot, new cCommandPart(pLength), kFetchCommandPartGreaterThan);
+                    lCommand.Add(cCommandPart.RBracket, kFetchCommandPartLessThan, new cCommandPart(pOrigin), cCommandPart.Dot, new cCommandPart(pLength), kFetchCommandPartGreaterThan);
 
                     ;?; // add a commandhook to capture the result
 

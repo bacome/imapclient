@@ -261,6 +261,14 @@ namespace work.bacome.imapclient
                     EndList();
                 }
 
+                public void AddAsAStrings(cStrings pStrings)
+                {
+                    cCommandPart.cFactory lFactory = new cCommandPart.cFactory();
+                    BeginList(eListBracketing.none);
+                    foreach (var lString in pStrings) Add(lFactory.AsAString(lString));
+                    EndList();
+                }
+
                 public void Add(cFilter pFilter, bool pCharsetMandatory, fEnableableExtensions pEnabledExtensions, Encoding pEncoding)
                 {
                     UIDValidity = pFilter.UIDValidity;
