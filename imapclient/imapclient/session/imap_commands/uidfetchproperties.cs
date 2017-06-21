@@ -13,15 +13,13 @@ namespace work.bacome.imapclient
         private partial class cSession
         {
             private static readonly cCommandPart kUIDFetchCommandPartUIDFetchSpace = new cCommandPart("UID FETCH ");
-            private static readonly cCommandPart kUIDFetchCommandPartSpaceBodyPeekLBracket = new cCommandPart(" BODY.PEEK[");
-            private static readonly cCommandPart kUIDFetchCommandPartSpaceBinaryPeekLBracket = new cCommandPart(" BINARY.PEEK[");
 
-            private async Task ZUIDFetchPropertiesAsync(cMethodControl pMC, cMailboxId pMailboxId, uint pUIDValidity, cUIntList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            private async Task ZUIDFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, uint pUIDValidity, cUIntList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
             {
                 // note that this will fail if the UIDValidity has changed (this is different to the behaviour of standard fetch)
                 // note that the caller should have checked that pProperties contains some properties to fetch
 
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchPropertiesAsync), pMC, pMailboxId, pUIDValidity, pUIDs, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAsync), pMC, pMailboxId, pUIDValidity, pUIDs, pProperties);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 

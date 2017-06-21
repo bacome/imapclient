@@ -12,21 +12,21 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchPropertiesAsync(cMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            public async Task FetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fMessageProperties pProperties, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchPropertiesAsync), pMC, pMailboxId, pHandles, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchAsync), pMC, pMailboxId, pHandles, pProperties);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
                 if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
 
                 // split the handles into groups based on what properties need to be retrieved, for each group do the retrieval
-                foreach (var lGroup in ZFetchPropertiesFetchGroups(pHandles, pProperties)) await ZFetchPropertiesAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
+                foreach (var lGroup in ZFetchGroups(pHandles, pProperties)) await ZFetchAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
             }
 
-            private async Task ZFetchPropertiesAsync(cMethodControl pMC, cMailboxId pMailboxId, cFetchGroup pGroup, cTrace.cContext pParentContext)
+            private async Task ZFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cFetchGroup pGroup, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchPropertiesAsync), pMC, pMailboxId, pGroup);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAsync), pMC, pMailboxId, pGroup);
 
                 if (pGroup.Properties == 0) return; // the group where we already have everything that we need
 
@@ -82,7 +82,7 @@ namespace work.bacome.imapclient
                         {
                             // fetch
                             Stopwatch lStopwatch = Stopwatch.StartNew();
-                            await ZFetchPropertiesAsync(pMC, pMailboxId, lHandles, pGroup.Properties, lContext).ConfigureAwait(false);
+                            await ZFetchAsync(pMC, pMailboxId, lHandles, pGroup.Properties, lContext).ConfigureAwait(false);
                             lStopwatch.Stop();
 
                             // store the time taken so the next fetch is a better size
@@ -95,10 +95,10 @@ namespace work.bacome.imapclient
                 }
 
                 // uid fetch the remainder
-                await ZFetchPropertiesAsync(pMC, pMailboxId, lUIDs, pGroup.Properties, lContext).ConfigureAwait(false);
+                await ZUIDFetchAsync(pMC, pMailboxId, lUIDs, pGroup.Properties, lContext).ConfigureAwait(false);
             }
 
-            private IEnumerable<cFetchGroup> ZFetchPropertiesFetchGroups(cHandleList pHandles, fMessageProperties pProperties)
+            private IEnumerable<cFetchGroup> ZFetchGroups(cHandleList pHandles, fMessageProperties pProperties)
             {
                 Dictionary<fMessageProperties, cFetchGroup> lGroups = new Dictionary<fMessageProperties, cFetchGroup>();
 

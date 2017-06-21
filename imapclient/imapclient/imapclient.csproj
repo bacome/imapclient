@@ -43,8 +43,9 @@
     <Compile Include="client\base.cs" />
     <Compile Include="client\connect.cs" />
     <Compile Include="client\disconnect.cs" />
-    <Compile Include="client\fetchpropertiesbyhandle.cs" />
-    <Compile Include="client\fetchpropertiesbyuid.cs" />
+    <Compile Include="client\fetchproperties.cs" />
+    <Compile Include="client\fetchbody.cs" />
+    <Compile Include="client\uidfetchproperties.cs" />
     <Compile Include="client\list.cs" />
     <Compile Include="client\poll.cs" />
     <Compile Include="client\search.cs" />
@@ -150,7 +151,8 @@
     <Compile Include="session\imap_commands\check.cs" />
     <Compile Include="session\imap_commands\close.cs" />
     <Compile Include="session\imap_commands\enable.cs" />
-    <Compile Include="session\imap_commands\fetch.cs" />
+    <Compile Include="session\imap_commands\fetchbody.cs" />
+    <Compile Include="session\imap_commands\fetchproperties.cs" />
     <Compile Include="session\imap_commands\id.cs" />
     <Compile Include="session\imap_commands\list.cs" />
     <Compile Include="session\imap_commands\listextended.cs" />
@@ -166,7 +168,7 @@
     <Compile Include="session\imap_commands\sort.cs" />
     <Compile Include="session\imap_commands\sortextended.cs" />
     <Compile Include="session\imap_commands\status.cs" />
-    <Compile Include="session\imap_commands\uidfetch.cs" />
+    <Compile Include="session\imap_commands\uidfetchproperties.cs" />
     <Compile Include="session\parsing\responsedataesearch.cs" />
     <Compile Include="session\parsing\responsedatafetch.cs" />
     <Compile Include="session\parsing\responsedatalist.cs" />
@@ -176,8 +178,9 @@
     <Compile Include="session\selected_mailbox\selectedmailboxcache.cs" />
     <Compile Include="session\session\base.cs" />
     <Compile Include="session\session\connect.cs" />
-    <Compile Include="session\session\fetchpropertiesbyhandle.cs" />
-    <Compile Include="session\session\fetchpropertiesbyuid.cs" />
+    <Compile Include="session\session\fetchproperties.cs" />
+    <Compile Include="session\session\fetchbody.cs" />
+    <Compile Include="session\session\uidfetchproperties.cs" />
     <Compile Include="session\session\poll.cs" />
     <Compile Include="session\session\select.cs" />
     <Compile Include="session\support\command.cs" />
@@ -185,7 +188,6 @@
     <Compile Include="session\support\mailboxnamepatterns.cs" />
     <Compile Include="session\support\messagecache.cs" />
     <Compile Include="session\support\messagecacheitem.cs" />
-    <Compile Include="session\support\messagepart.cs" />
     <Compile Include="session\support\processors.cs" />
     <Compile Include="session\support\responsetextprocessor.cs" />
     <Compile Include="support\asynccounter.cs" />

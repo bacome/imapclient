@@ -22,6 +22,7 @@ namespace work.bacome.imapclient.support
         public static readonly cCommandPart LParen = new cCommandPart("(");
         public static readonly cCommandPart RParen = new cCommandPart(")");
         public static readonly cCommandPart RBracket = new cCommandPart("]");
+        public static readonly cCommandPart Dot = new cCommandPart(".");
 
         private static readonly cBytes UTC = new cBytes("+0000");
 

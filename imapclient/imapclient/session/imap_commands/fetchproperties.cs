@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
@@ -13,17 +11,15 @@ namespace work.bacome.imapclient
         private partial class cSession
         {
             private static readonly cCommandPart kFetchCommandPartFetchSpace = new cCommandPart("FETCH ");
-            private static readonly cCommandPart kFetchCommandPartSpaceBodyPeekLBracket = new cCommandPart(" BODY.PEEK[");
-            private static readonly cCommandPart kFetchCommandPartSpaceBinaryPeekLBracket = new cCommandPart(" BINARY.PEEK[");
 
-            private async Task ZFetchPropertiesAsync(cMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            private async Task ZFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fMessageProperties pProperties, cTrace.cContext pParentContext)
             {
                 // note that this silently fails if the handles are out of date
                 //  AND if a UID validity change were to happen during the run it wouldn't complain either
                 //
                 // note that the caller should have checked that pHandles is non-null and contains no null entries and that pProperties contains some properties to fetch
 
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchPropertiesAsync), pMC, pMailboxId, pHandles, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAsync), pMC, pMailboxId, pHandles, pProperties);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 

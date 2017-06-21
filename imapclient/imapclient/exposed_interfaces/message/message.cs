@@ -89,8 +89,8 @@ namespace work.bacome.imapclient
         public cStrings References => Handle.References;
 
         // get data
-        public void FetchProperties(fMessageProperties pProperties) => Client.FetchProperties(MailboxId, Handle, pProperties);
-        public Task FetchPropertiesAsync(fMessageProperties pProperties) => Client.FetchPropertiesAsync(MailboxId, Handle, pProperties);
+        public void Fetch(fMessageProperties pProperties) => Client.Fetch(MailboxId, Handle, pProperties);
+        public Task FetchAsync(fMessageProperties pProperties) => Client.FetchAsync(MailboxId, Handle, pProperties);
 
         // accessors for body (binary and not)
         //  into a stream

@@ -17,21 +17,6 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cUnsuccessfulCompletionException), pResponseText);
         }
 
-        /*
-        public cUnsuccessfulCompletionException(cResponseText pResponseText, fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
-        {
-            ResponseText = pResponseText;
-            TryIgnoring = pTryIgnoring;
-            pContext.TraceError("{0}: {1}: {2}", nameof(cUnsuccessfulCompletionException), pResponseText, pMessage);
-        }
-
-        public cUnsuccessfulCompletionException(cResponseText pResponseText, fCapabilities pTryIgnoring, string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner)
-        {
-            ResponseText = pResponseText;
-            TryIgnoring = pTryIgnoring;
-            pContext.TraceError("{0}: {1}: {2}\n{3}", nameof(cUnsuccessfulCompletionException), pResponseText, pMessage, pInner);
-        } */
-
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUnsuccessfulCompletionException));
@@ -55,21 +40,6 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cProtocolErrorException), pCommandResult);
         }
 
-        /*
-        public cProtocolErrorException(cCommandResult pCommandResult, fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
-        {
-            CommandResult = pCommandResult;
-            TryIgnoring = pTryIgnoring;
-            pContext.TraceError("{0}: {1}: {2}", nameof(cProtocolErrorException), pCommandResult, pMessage);
-        }
-
-        public cProtocolErrorException(cCommandResult pCommandResult, fCapabilities pTryIgnoring, string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner)
-        {
-            CommandResult = pCommandResult;
-            TryIgnoring = pTryIgnoring;
-            pContext.TraceError("{0}: {1}: {2}\n{3}", nameof(cProtocolErrorException), pCommandResult, pMessage, pInner);
-        } */
-
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cProtocolErrorException));
@@ -85,25 +55,11 @@ namespace work.bacome.imapclient
     {
         public readonly fCapabilities TryIgnoring;
 
-        /*
-        public cUnexpectedServerActionException(fCapabilities pTryIgnoring, cTrace.cContext pContext)
-        {
-            TryIgnoring = pTryIgnoring;
-            pContext.TraceError(nameof(cUnexpectedServerActionException));
-        } */
-
         public cUnexpectedServerActionException(fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
         {
             TryIgnoring = pTryIgnoring;
             pContext.TraceError("{0}: {1}", nameof(cUnexpectedServerActionException), pMessage);
         }
-
-        /*
-        public cUnexpectedServerActionException(fCapabilities pTryIgnoring, string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner)
-        {
-            TryIgnoring = pTryIgnoring;
-            pContext.TraceError("{0}: {1}\n{2}", nameof(cUnexpectedServerActionException), pMessage, pInner);
-        } */
 
         public override string ToString()
         {
@@ -135,21 +91,6 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}: {2}", nameof(cHomeServerReferralException), pURL, pResponseText);
         }
 
-        /*
-        public cHomeServerReferralException(cURL pURL, cResponseText pResponseText, string pMessage, cTrace.cContext pContext) : base(pMessage)
-        {
-            URL = pURL;
-            ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}: {2}: {3}", nameof(cHomeServerReferralException), pURL, pResponseText, pMessage);
-        }
-
-        public cHomeServerReferralException(cURL pURL, cResponseText pResponseText, string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner)
-        {
-            URL = pURL;
-            ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}: {2}: {3}\n{4}", nameof(cHomeServerReferralException), pURL, pResponseText, pMessage, pInner);
-        } */
-
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cHomeServerReferralException));
@@ -170,19 +111,6 @@ namespace work.bacome.imapclient
             ResponseText = pResponseText;
             pContext.TraceError("{0}: {1}", nameof(cByeException), pResponseText);
         }
-
-        /*
-        public cByeException(cResponseText pResponseText, string pMessage, cTrace.cContext pContext) : base(pMessage)
-        {
-            ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}: {2}", nameof(cByeException), pResponseText, pMessage);
-        }
-
-        public cByeException(cResponseText pResponseText, string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner)
-        {
-            ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}: {2}\n{3}", nameof(cByeException), pResponseText, pMessage, pInner);
-        } */
 
         public override string ToString()
         {
@@ -205,37 +133,11 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cCredentialsException), pResponseText);
         }
 
-        /*
-        public cCredentialsException(cResponseText pResponseText, string pMessage, cTrace.cContext pContext) : base(pMessage)
-        {
-            ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}: {2}", nameof(cCredentialsException), pResponseText, pMessage);
-        }
-
-        public cCredentialsException(cResponseText pResponseText, string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner)
-        {
-            ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}: {2}\n{3}", nameof(cCredentialsException), pResponseText, pMessage, pInner);
-        } */
-
         public cCredentialsException(cTrace.cContext pContext)
         {
             ResponseText = null;
             pContext.TraceError(nameof(cCredentialsException));
         }
-
-        /*
-        public cCredentialsException(string pMessage, cTrace.cContext pContext) : base(pMessage)
-        {
-            ResponseText = null;
-            pContext.TraceError("{0}: {1}", nameof(cCredentialsException), pMessage);
-        }
-
-        public cCredentialsException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner)
-        {
-            ResponseText = null;
-            pContext.TraceError("{0}: {1}\n{2}", nameof(cCredentialsException), pMessage, pInner);
-        } */
 
         public override string ToString()
         {
@@ -252,14 +154,12 @@ namespace work.bacome.imapclient
     public class cAuthenticationException : Exception
     {
         public cAuthenticationException(cTrace.cContext pContext) => pContext.TraceError(nameof(cAuthenticationException));
-        //public cAuthenticationException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cAuthenticationException), pMessage);
-        //public cAuthenticationException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cAuthenticationException), pMessage, pInner);
     }
 
     // thrown when SASL encoding or decoding fails
     public class cSASLSecurityException : Exception
     {
-        public cSASLSecurityException(cTrace.cContext pContext) => pContext.TraceError(nameof(cSASLSecurityException));
+        //public cSASLSecurityException(cTrace.cContext pContext) => pContext.TraceError(nameof(cSASLSecurityException));
         public cSASLSecurityException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cSASLSecurityException), pMessage);
         public cSASLSecurityException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cSASLSecurityException), pMessage, pInner);
     }
@@ -268,65 +168,62 @@ namespace work.bacome.imapclient
     public class cPipelineConflictException : Exception
     {
         public cPipelineConflictException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineConflictException));
-        public cPipelineConflictException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cPipelineConflictException), pMessage);
-        public cPipelineConflictException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cPipelineConflictException), pMessage, pInner);
+        //public cPipelineConflictException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cPipelineConflictException), pMessage);
+        //public cPipelineConflictException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cPipelineConflictException), pMessage, pInner);
     }
 
     // thrown when the command pipeline is stopped
     public class cPipelineStoppedException : Exception
     {
         public cPipelineStoppedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineStoppedException));
-        public cPipelineStoppedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cPipelineStoppedException), pMessage);
-        public cPipelineStoppedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cPipelineStoppedException), pMessage, pInner);
+        //public cPipelineStoppedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cPipelineStoppedException), pMessage);
+        //public cPipelineStoppedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cPipelineStoppedException), pMessage, pInner);
     }
 
     // thrown when the stream reader is stopped
     public class cStreamReaderStoppedException : Exception
     {
         public cStreamReaderStoppedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cStreamReaderStoppedException));
-        public cStreamReaderStoppedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cStreamReaderStoppedException), pMessage);
-        public cStreamReaderStoppedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamReaderStoppedException), pMessage, pInner);
+        //public cStreamReaderStoppedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cStreamReaderStoppedException), pMessage);
+        //public cStreamReaderStoppedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamReaderStoppedException), pMessage, pInner);
     }
 
     // thrown when the UIDValidity changes
     public class cUIDValidityChangedException : Exception
     {
         public cUIDValidityChangedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityChangedException));
-        public cUIDValidityChangedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cUIDValidityChangedException), pMessage);
-        public cUIDValidityChangedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cUIDValidityChangedException), pMessage, pInner);
+        //public cUIDValidityChangedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cUIDValidityChangedException), pMessage);
+        //public cUIDValidityChangedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cUIDValidityChangedException), pMessage, pInner);
     }
-
-    /*
-    // thrown when there is no session or it isn't connected
-    public class cNotConnectedException : Exception
-    {
-        public cNotConnectedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cNotConnectedException));
-        public cNotConnectedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cNotConnectedException), pMessage);
-        public cNotConnectedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cNotConnectedException), pMessage, pInner);
-    } */
 
     // thrown when the required account is not connected
     public class cAccountNotConnectedException : Exception
     {
         public cAccountNotConnectedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cAccountNotConnectedException));
-        public cAccountNotConnectedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cAccountNotConnectedException), pMessage);
-        public cAccountNotConnectedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cAccountNotConnectedException), pMessage, pInner);
+        //public cAccountNotConnectedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cAccountNotConnectedException), pMessage);
+        //public cAccountNotConnectedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cAccountNotConnectedException), pMessage, pInner);
     }
 
     // thrown when the required mailbox is not selected
     public class cMailboxNotSelectedException : Exception
     {
         public cMailboxNotSelectedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cMailboxNotSelectedException));
-        public cMailboxNotSelectedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cMailboxNotSelectedException), pMessage);
-        public cMailboxNotSelectedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cMailboxNotSelectedException), pMessage, pInner);
+        //public cMailboxNotSelectedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cMailboxNotSelectedException), pMessage);
+        //public cMailboxNotSelectedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cMailboxNotSelectedException), pMessage, pInner);
+    }
+
+    // thrown when an invalid handle is passed
+    public class cInvalidMessageHandleException : Exception
+    {
+        public cInvalidMessageHandleException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInvalidMessageHandleException));
     }
 
     // thrown when the CTE can't be handled
     public class cContentTransferDecodingException : Exception
     {
         public cContentTransferDecodingException(cTrace.cContext pContext) => pContext.TraceError(nameof(cContentTransferDecodingException));
-        public cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
-        public cContentTransferDecodingException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cContentTransferDecodingException), pMessage, pInner);
+        //public cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
+        //public cContentTransferDecodingException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cContentTransferDecodingException), pMessage, pInner);
     }
 
     public class cTestsException : Exception

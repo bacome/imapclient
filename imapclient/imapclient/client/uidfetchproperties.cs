@@ -9,10 +9,10 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public cMessage FetchProperties(cMailboxId pMailboxId, cUID pUID, fMessageProperties pProperties)
+        public cMessage UIDFetch(cMailboxId pMailboxId, cUID pUID, fMessageProperties pProperties)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchProperties));
-            var lTask = ZFetchPropertiesAsync(pMailboxId, ZFetchUIDs(pUID), pProperties, lContext);
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetch));
+            var lTask = ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUID), pProperties, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             var lResult = lTask.Result;
             if (lResult.Count == 0) return null;
@@ -20,36 +20,36 @@ namespace work.bacome.imapclient
             throw new cInternalErrorException(lContext);
         }
 
-        public List<cMessage> FetchProperties(cMailboxId pMailboxId, IList<cUID> pUIDs, fMessageProperties pProperties)
+        public List<cMessage> UIDFetch(cMailboxId pMailboxId, IList<cUID> pUIDs, fMessageProperties pProperties)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchProperties));
-            var lTask = ZFetchPropertiesAsync(pMailboxId, ZFetchUIDs(pUIDs), pProperties, lContext);
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetch));
+            var lTask = ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUIDs), pProperties, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public async Task<cMessage> FetchPropertiesAsync(cMailboxId pMailboxId, cUID pUID, fMessageProperties pProperties)
+        public async Task<cMessage> UIDFetchAsync(cMailboxId pMailboxId, cUID pUID, fMessageProperties pProperties)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchPropertiesAsync));
-            var lResult = await ZFetchPropertiesAsync(pMailboxId, ZFetchUIDs(pUID), pProperties, lContext).ConfigureAwait(false);
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetchAsync));
+            var lResult = await ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUID), pProperties, lContext).ConfigureAwait(false);
             if (lResult.Count == 0) return null;
             if (lResult.Count == 1) return lResult[0];
             throw new cInternalErrorException(lContext);
         }
 
-        public Task<List<cMessage>> FetchPropertiesAsync(cMailboxId pMailboxId, IList<cUID> pUIDs, fMessageProperties pProperties)
+        public Task<List<cMessage>> UIDFetchAsync(cMailboxId pMailboxId, IList<cUID> pUIDs, fMessageProperties pProperties)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchPropertiesAsync));
-            return ZFetchPropertiesAsync(pMailboxId, ZFetchUIDs(pUIDs), pProperties, lContext);
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetchAsync));
+            return ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUIDs), pProperties, lContext);
         }
 
-        private cUIDList ZFetchUIDs(cUID pUID)
+        private cUIDList ZUIDFetchUIDs(cUID pUID)
         {
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             return new cUIDList(pUID);
         }
 
-        private cUIDList ZFetchUIDs(IList<cUID> pUIDs)
+        private cUIDList ZUIDFetchUIDs(IList<cUID> pUIDs)
         {
             if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
 
@@ -65,9 +65,9 @@ namespace work.bacome.imapclient
             return new cUIDList(pUIDs);
         }
 
-        private async Task<List<cMessage>>ZFetchPropertiesAsync(cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>>ZUIDFetchAsync(cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchPropertiesAsync), pMailboxId, pUIDs, pProperties);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchAsync), pMailboxId, pUIDs, pProperties);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -88,7 +88,7 @@ namespace work.bacome.imapclient
             try
             {
                 var lMC = new cMethodControl(Timeout, CancellationToken);
-                lHandles = await lSession.FetchPropertiesAsync(lMC, pMailboxId, pUIDs, pProperties, lContext).ConfigureAwait(false);
+                lHandles = await lSession.UIDFetchAsync(lMC, pMailboxId, pUIDs, pProperties, lContext).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
 
