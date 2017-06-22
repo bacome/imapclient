@@ -764,18 +764,18 @@ namespace work.bacome.imapclient.support
                     
             // from rfc 2221
 
-            if (!ZTryParse("IMAP://MIKE@SERVER2/", out lParts) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.1");
-            if (!ZTryParse("IMAP://user;AUTH=GSSAPI@SERVER2/", out lParts) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.2");
-            if (!ZTryParse("IMAP://user;AUTH=*@SERVER2/", out lParts) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.3");
+            if (!LTryParse("IMAP://MIKE@SERVER2/", out lParts) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.1");
+            if (!LTryParse("IMAP://user;AUTH=GSSAPI@SERVER2/", out lParts) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.2");
+            if (!LTryParse("IMAP://user;AUTH=*@SERVER2/", out lParts) || !lParts.IsHomeServerReferral) throw new cTestsException("2221.3");
 
             // from rfc 2193
 
-            if (!ZTryParse("IMAP://user;AUTH=*@SERVER2/SHARED/FOO", out lParts) || !lParts.IsMailboxReferral || lParts.MailboxName != "SHARED/FOO") throw new cTestsException("2193.1");
-            if (ZTryParse("IMAP://user;AUTH=*@SERVER2/REMOTE IMAP://user;AUTH=*@SERVER3/REMOTE", out lParts)) throw new cTestsException("2193.2");
+            if (!LTryParse("IMAP://user;AUTH=*@SERVER2/SHARED/FOO", out lParts) || !lParts.IsMailboxReferral || lParts.MailboxName != "SHARED/FOO") throw new cTestsException("2193.1");
+            if (LTryParse("IMAP://user;AUTH=*@SERVER2/REMOTE IMAP://user;AUTH=*@SERVER3/REMOTE", out lParts)) throw new cTestsException("2193.2");
 
             // from rfc 5092
 
-            if (!ZTryParse("imap://minbari.example.org/gray-council;UIDVALIDITY=385759045/;UID=20/;PARTIAL=0.1024", out lParts)) throw new cTestsException("5092.1.1");
+            if (!LTryParse("imap://minbari.example.org/gray-council;UIDVALIDITY=385759045/;UID=20/;PARTIAL=0.1024", out lParts)) throw new cTestsException("5092.1.1");
 
             if (lParts.IsHomeServerReferral) throw new cTestsException("5092.1.2");
             if (lParts.IsMailboxReferral) throw new cTestsException("5092.1.3");
@@ -791,7 +791,7 @@ namespace work.bacome.imapclient.support
                 )
                 throw new cTestsException("5092.1.4");
 
-            if (!ZTryParse("imap://psicorp.example.org/~peter/%E6%97%A5%E6%9C%AC%E8%AA%9E/%E5%8F%B0%E5%8C%97", out lParts)) throw new cTestsException("5092.2");
+            if (!LTryParse("imap://psicorp.example.org/~peter/%E6%97%A5%E6%9C%AC%E8%AA%9E/%E5%8F%B0%E5%8C%97", out lParts)) throw new cTestsException("5092.2");
 
             if (lParts.IsHomeServerReferral) throw new cTestsException("5092.2.1");
             if (!lParts.IsMailboxReferral) throw new cTestsException("5092.2.2");
@@ -804,7 +804,7 @@ namespace work.bacome.imapclient.support
                 throw new cTestsException("5092.2.3");
 
 
-            if (!ZTryParse("imap://;AUTH=GSSAPI@minbari.example.org/gray-council/;uid=20/;section=1.2", out lParts)) throw new cTestsException("5092.3");
+            if (!LTryParse("imap://;AUTH=GSSAPI@minbari.example.org/gray-council/;uid=20/;section=1.2", out lParts)) throw new cTestsException("5092.3");
 
             if (lParts.IsHomeServerReferral) throw new cTestsException("5092.3.1");
             if (lParts.IsMailboxReferral) throw new cTestsException("5092.3.2");
@@ -819,7 +819,7 @@ namespace work.bacome.imapclient.support
                 )
                 throw new cTestsException("5092.3.3");
 
-            if (!ZTryParse("imap://;AUTH=*@minbari.example.org/gray%20council?SUBJECT%20shadows", out lParts)) throw new cTestsException("5092.5");
+            if (!LTryParse("imap://;AUTH=*@minbari.example.org/gray%20council?SUBJECT%20shadows", out lParts)) throw new cTestsException("5092.5");
 
             if (lParts.IsHomeServerReferral) throw new cTestsException("5092.5.1");
             if (lParts.IsMailboxReferral) throw new cTestsException("5092.5.2");
@@ -833,7 +833,7 @@ namespace work.bacome.imapclient.support
                 )
                 throw new cTestsException("5092.5.3");
 
-            if (!ZTryParse("imap://john;AUTH=*@minbari.example.org/babylon5/personel?charset%20UTF-8%20SUBJECT%20%7B14+%7D%0D%0A%D0%98%D0%B2%D0%B0%D0%BD%D0%BE%D0%B2%D0%B0", out lParts)) throw new cTestsException("5092.6");
+            if (!LTryParse("imap://john;AUTH=*@minbari.example.org/babylon5/personel?charset%20UTF-8%20SUBJECT%20%7B14+%7D%0D%0A%D0%98%D0%B2%D0%B0%D0%BD%D0%BE%D0%B2%D0%B0", out lParts)) throw new cTestsException("5092.6");
 
             if (lParts.IsHomeServerReferral) throw new cTestsException("5092.6.1");
             if (lParts.IsMailboxReferral) throw new cTestsException("5092.6.2");
@@ -850,16 +850,16 @@ namespace work.bacome.imapclient.support
 
             // URLAUTH - rfc 4467
 
-            if (!ZTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2", out lParts)) throw new cTestsException("4467.1");
+            if (!LTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2", out lParts)) throw new cTestsException("4467.1");
             if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || lParts.IsAuthorisable || lParts.IsAuthorised) throw new cTestsException("4467.1.1");
 
-            if (!ZTryParse("imap://example.com/Shared/;uid=20/;section=1.2;urlauth=submit+fred", out lParts)) throw new cTestsException("4467.2");
+            if (!LTryParse("imap://example.com/Shared/;uid=20/;section=1.2;urlauth=submit+fred", out lParts)) throw new cTestsException("4467.2");
             if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || lParts.IsAuthorisable || lParts.IsAuthorised) throw new cTestsException("4467.2.1");
 
-            if (!ZTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2;urlauth=submit+fred", out lParts)) throw new cTestsException("4467.3");
+            if (!LTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2;urlauth=submit+fred", out lParts)) throw new cTestsException("4467.3");
             if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || !lParts.IsAuthorisable || lParts.IsAuthorised) throw new cTestsException("4467.3.1");
 
-            if (!ZTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2;urlauth=submit+fred:internal:91354a473744909de610943775f92038", out lParts)) throw new cTestsException("4467.4");
+            if (!LTryParse("imap://joe@example.com/INBOX/;uid=20/;section=1.2;urlauth=submit+fred:internal:91354a473744909de610943775f92038", out lParts)) throw new cTestsException("4467.4");
             if (lParts.IsHomeServerReferral || lParts.IsMailboxReferral || lParts.IsAuthorisable || !lParts.IsAuthorised) throw new cTestsException("4467.4.1");
 
             // expiry
@@ -874,7 +874,7 @@ namespace work.bacome.imapclient.support
             // edge cases for the URL
             //  TODO
 
-            bool ZTryParse(string pURL, out cURLParts rParts)
+            bool LTryParse(string pURL, out cURLParts rParts)
             {
                 if (!cBytesCursor.TryConstruct(pURL, out var lCursor)) { rParts = null; return false; }
                 if (!Process(lCursor, out rParts, lContext)) return false;

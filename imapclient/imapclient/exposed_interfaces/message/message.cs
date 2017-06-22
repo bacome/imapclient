@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace work.bacome.imapclient
@@ -79,8 +80,8 @@ namespace work.bacome.imapclient
         public fMessageProperties Properties => Handle.Properties;
 
         // may return null if the property hasn't been retrieved yet
-        public cBodyStructure Body => Handle.Body;
-        public cBodyStructure BodyEx => Handle.BodyEx;
+        public cBodyPart BodyStructure => Handle.BodyStructure;
+        public cBodyPart BodyStructureEx => Handle.BodyStructureEx;
         public cEnvelope Envelope => Handle.Envelope;
         public cMessageFlags Flags => Handle.Flags;
         public DateTime? Received => Handle.Received;
@@ -92,8 +93,34 @@ namespace work.bacome.imapclient
         public void Fetch(fMessageProperties pProperties) => Client.Fetch(MailboxId, Handle, pProperties);
         public Task FetchAsync(fMessageProperties pProperties) => Client.FetchAsync(MailboxId, Handle, pProperties);
 
-        // accessors for body (binary and not)
-        //  into a stream
+        public void Fetch(cBodyPart pPart, Stream pStream)
+        {
+            cSection lSection;
+            if (pPart.Part == null) lSection = cSection.All;
+            else lSection = new cSection(pPart.Part);
+
+            eDecodingRequired lDecoding;
+            if (pPart is cSinglePart lPart) lDecoding = lPart.DecodingRequired;
+            else lDecoding = eDecodingRequired.none;
+
+            Client.Fetch(MailboxId, Handle, lSection, lDecoding, pStream);
+        }
+
+        public Task FetchAsync(cBodyPart pPart, Stream pStream)
+        {
+            cSection lSection;
+            if (pPart.Part == null) lSection = cSection.All;
+            else lSection = new cSection(pPart.Part);
+
+            eDecodingRequired lDecoding;
+            if (pPart is cSinglePart lPart) lDecoding = lPart.DecodingRequired;
+            else lDecoding = eDecodingRequired.none;
+
+            return Client.FetchAsync(MailboxId, Handle, lSection, lDecoding, pStream);
+        }
+
+        public void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream) => Client.Fetch(MailboxId, Handle, pSection, pDecoding, pStream);
+        public Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream) => Client.FetchAsync(MailboxId, Handle, pSection, pDecoding, pStream);
 
         public override string ToString() => $"{nameof(cMessage)}({MailboxId},{Handle},{Indent})";
     }

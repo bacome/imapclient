@@ -56,8 +56,8 @@ namespace work.bacome.imapclient
 
                             if (lResult.Result == cCommandResult.eResult.ok)
                             {
-                                if (lHook.Unseen == null) throw new cUnexpectedServerActionException(fCapabilities.ESearch, "unseen not calculated on a successful extended search unseen", lContext);
                                 lContext.TraceInformation("extended search unseen success");
+                                if (lHook.Unseen == null) throw new cUnexpectedServerActionException(fCapabilities.ESearch, "unseen not calculated on a successful extended search unseen", lContext);
                                 return new cMailboxStatus(lMessages, lRecent, lUIDNext, lUIDValidity, lHook.Unseen);
                             }
 
@@ -79,8 +79,8 @@ namespace work.bacome.imapclient
 
                             if (lResult.Result == cCommandResult.eResult.ok)
                             {
-                                if (lHook.Unseen == null) throw new cUnexpectedServerActionException(0, "unseen not calculated on a successful search unseen", lContext);
                                 lContext.TraceInformation("search unseen success");
+                                if (lHook.Unseen == null) throw new cUnexpectedServerActionException(0, "unseen not calculated on a successful search unseen", lContext);
                                 return new cMailboxStatus(lMessages, lRecent, lUIDNext, lUIDValidity, lHook.Unseen);
                             }
 
@@ -106,8 +106,8 @@ namespace work.bacome.imapclient
 
                         if (lResult.Result == cCommandResult.eResult.ok)
                         {
-                            if (lHook.Status == null) throw new cUnexpectedServerActionException(0, "status not received", lContext);
                             lContext.TraceInformation("status success");
+                            if (lHook.Status == null) throw new cUnexpectedServerActionException(0, "status not received", lContext);
                             return lHook.Status;
                         }
 

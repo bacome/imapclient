@@ -81,6 +81,7 @@
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.tvwMailboxes = new System.Windows.Forms.TreeView();
             this.cmdTestsCurrent = new System.Windows.Forms.Button();
+            this.dgvMessageHeaders = new System.Windows.Forms.DataGridView();
             this.pnlCredentials.SuspendLayout();
             this.pnlConnection.SuspendLayout();
             this.pnlProperties.SuspendLayout();
@@ -93,6 +94,7 @@
             this.tabControl2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvMessageHeaders)).BeginInit();
             this.SuspendLayout();
             // 
             // txtHost
@@ -603,6 +605,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.dgvMessageHeaders);
             this.tabPage4.Controls.Add(this.tvwMailboxes);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
@@ -614,6 +617,8 @@
             // 
             // tvwMailboxes
             // 
+            this.tvwMailboxes.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.tvwMailboxes.Location = new System.Drawing.Point(6, 6);
             this.tvwMailboxes.Name = "tvwMailboxes";
             this.tvwMailboxes.Size = new System.Drawing.Size(145, 424);
@@ -630,6 +635,17 @@
             this.cmdTestsCurrent.Text = "Current";
             this.cmdTestsCurrent.UseVisualStyleBackColor = true;
             this.cmdTestsCurrent.Click += new System.EventHandler(this.cmdTestsCurrent_Click);
+            // 
+            // dgvMessageHeaders
+            // 
+            this.dgvMessageHeaders.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvMessageHeaders.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvMessageHeaders.Location = new System.Drawing.Point(157, 6);
+            this.dgvMessageHeaders.Name = "dgvMessageHeaders";
+            this.dgvMessageHeaders.Size = new System.Drawing.Size(235, 424);
+            this.dgvMessageHeaders.TabIndex = 1;
             // 
             // Form1
             // 
@@ -668,6 +684,7 @@
             this.tabControl2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvMessageHeaders)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -727,6 +744,7 @@
         private System.Windows.Forms.TreeView tvwMailboxes;
         private System.Windows.Forms.Button cmdApply;
         private System.Windows.Forms.Button cmdTestsCurrent;
+        private System.Windows.Forms.DataGridView dgvMessageHeaders;
     }
 }
 

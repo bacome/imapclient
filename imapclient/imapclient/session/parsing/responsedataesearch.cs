@@ -108,25 +108,25 @@ namespace work.bacome.imapclient
 
                     cResponseDataESearch lRD;
 
-                    ZTest("", "1", out lRD, lContext);
+                    LTest("", "1", out lRD, lContext);
                     if (lRD.Tag != null || lRD.UID || lRD.SequenceSet != null) throw new cTestsException($"{nameof(cResponseDataESearch)}.1.v");
 
-                    ZTest(" (TAG \"A282\") MIN 2 COUNT 3", "4731.1", out lRD, lContext);
+                    LTest(" (TAG \"A282\") MIN 2 COUNT 3", "4731.1", out lRD, lContext);
                     if (!cASCII.Compare(lRD.Tag, new cBytes("A282"), true) || lRD.UID || lRD.SequenceSet != null) throw new cTestsException($"{nameof(cResponseDataESearch)}.4731.1.v");
 
-                    ZTest(" (TAG \"A283\") ALL 2,10:11", "4731.2", out lRD, lContext);
+                    LTest(" (TAG \"A283\") ALL 2,10:11", "4731.2", out lRD, lContext);
                     if (!cASCII.Compare(lRD.Tag, new cBytes("A283"), true) || lRD.UID || lRD.SequenceSet == null || lRD.SequenceSet.ToString() == "cNumber(2),cRange(cNumber(10),cNumber(11))") throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.2.v");
 
-                    ZTest(" (TAG \"A284\") MIN 4", "4731.3", out lRD, lContext);
+                    LTest(" (TAG \"A284\") MIN 4", "4731.3", out lRD, lContext);
                     if (!cASCII.Compare(lRD.Tag, new cBytes("A284"), true) || lRD.UID || lRD.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.3.v");
 
-                    ZTest(" (TAG \"A285\") UID MIN 7 MAX 3800", "4731.4", out lRD, lContext);
+                    LTest(" (TAG \"A285\") UID MIN 7 MAX 3800", "4731.4", out lRD, lContext);
                     if (!cASCII.Compare(lRD.Tag, new cBytes("A285"), true) || !lRD.UID || lRD.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.4.v");
 
-                    ZTest(" (TAG \"A286\") COUNT 15", "4731.5", out lRD, lContext);
+                    LTest(" (TAG \"A286\") COUNT 15", "4731.5", out lRD, lContext);
                     if (!cASCII.Compare(lRD.Tag, new cBytes("A286"), true) || lRD.UID || lRD.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.5.v");
 
-                    void ZTest(string pResponse, string pTest, out cResponseDataESearch rResponseData, cTrace.cContext pContext)
+                    void LTest(string pResponse, string pTest, out cResponseDataESearch rResponseData, cTrace.cContext pContext)
                     {
                         if (!cBytesCursor.TryConstruct(pResponse, out var lCursor)) throw new cTestsException($"{nameof(cResponseDataESearch)}.{pTest}.c1");
                         if (!Process(lCursor, out rResponseData, pContext)) throw new cTestsException($"{nameof(cResponseDataESearch)}.{pTest}.c2");

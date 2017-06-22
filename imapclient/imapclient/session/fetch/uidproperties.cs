@@ -19,7 +19,6 @@ namespace work.bacome.imapclient
 
                 if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
 
-
                 // split the list into those messages I have handles for and those I dont
                 /////////////////////////////////////////////////////////////////////////
 
@@ -40,7 +39,6 @@ namespace work.bacome.imapclient
                         else lHandles.Add(lHandle);
                     }
                 }
-
 
                 // for the messages I have handles for, fetch the missing properties
                 ////////////////////////////////////////////////////////////////////

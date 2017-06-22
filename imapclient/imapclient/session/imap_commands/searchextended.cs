@@ -35,8 +35,8 @@ namespace work.bacome.imapclient
 
                     if (lResult.Result == cCommandResult.eResult.ok)
                     {
-                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.ESearch, "results not received on a successful extended search", lContext);
                         lContext.TraceInformation("extended search success");
+                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.ESearch, "results not received on a successful extended search", lContext);
                         return lHook.Handles;
                     }
 

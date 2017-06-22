@@ -11,14 +11,14 @@ namespace work.bacome.imapclient
         envelope = 1 << 2,
         received = 1 << 3,
         size = 1 << 4,
-        body = 1 << 5,
-        bodyex = 1 << 6,
+        bodystructure = 1 << 5,
+        bodystructureex = 1 << 6,
         uid = 1 << 7,
         references = 1 << 8,
         allmask = 0b111111110,
         // macros from rfc3501
         macrofast = flags | received | size,
         macroall = flags | envelope | received | size,
-        macrofull = flags | envelope | received | size | body
+        macrofull = flags | envelope | received | size | bodystructure
     }
 }

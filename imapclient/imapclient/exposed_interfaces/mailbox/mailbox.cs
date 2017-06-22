@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace work.bacome.imapclient
@@ -95,6 +96,8 @@ namespace work.bacome.imapclient
         public Task<cMessage> UIDFetchAsync(cUID pUID, fMessageProperties pProperties) => Client.UIDFetchAsync(MailboxId, pUID, pProperties);
         public List<cMessage> UIDFetch(IList<cUID> pUIDs, fMessageProperties pProperties) => Client.UIDFetch(MailboxId, pUIDs, pProperties);
         public Task<List<cMessage>> UIDFetchAsync(IList<cUID> pUIDs, fMessageProperties pProperties) => Client.UIDFetchAsync(MailboxId, pUIDs, pProperties);
+        public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream) => Client.UIDFetch(MailboxId, pUID, pSection, pDecoding, pStream);
+        public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream) => Client.UIDFetchAsync(MailboxId, pUID, pSection, pDecoding, pStream);
 
         private List<iMessageHandle> ZHandles(IList<cMessage> pMessages)
         {

@@ -73,12 +73,12 @@ namespace work.bacome.imapclient.support
         {
             var lContext = pParentContext.NewMethod(nameof(cBytesCursor), nameof(_Tests_SequenceSet));
 
-            ZTest("*", "cSequenceSet(cAsterisk())", null, new cUIntList(new uint[] { 15 }), "cSequenceSet(cNumber(15))");
-            ZTest("0", null, "0", null, null);
-            ZTest("2,4:7,9,12:*", "cSequenceSet(cNumber(2),cRange(cNumber(4),cNumber(7)),cNumber(9),cRange(cNumber(12),cAsterisk()))", null, new cUIntList(new uint[] { 2, 4, 5, 6, 7, 9, 12, 13, 14, 15 }), "cSequenceSet(cNumber(2),cRange(cNumber(4),cNumber(7)),cNumber(9),cRange(cNumber(12),cNumber(15)))");
-            ZTest("*:4,7:5", "cSequenceSet(cRange(cNumber(4),cAsterisk()),cRange(cNumber(5),cNumber(7)))", null, new cUIntList(new uint[] { 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }), "cSequenceSet(cRange(cNumber(4),cNumber(15)))");
+            LTest("*", "cSequenceSet(cAsterisk())", null, new cUIntList(new uint[] { 15 }), "cSequenceSet(cNumber(15))");
+            LTest("0", null, "0", null, null);
+            LTest("2,4:7,9,12:*", "cSequenceSet(cNumber(2),cRange(cNumber(4),cNumber(7)),cNumber(9),cRange(cNumber(12),cAsterisk()))", null, new cUIntList(new uint[] { 2, 4, 5, 6, 7, 9, 12, 13, 14, 15 }), "cSequenceSet(cNumber(2),cRange(cNumber(4),cNumber(7)),cNumber(9),cRange(cNumber(12),cNumber(15)))");
+            LTest("*:4,7:5", "cSequenceSet(cRange(cNumber(4),cAsterisk()),cRange(cNumber(5),cNumber(7)))", null, new cUIntList(new uint[] { 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }), "cSequenceSet(cRange(cNumber(4),cNumber(15)))");
 
-            void ZTest(string pCursor, string pExpSeqSet, string pExpRemainder, cUIntList pExpList, string pExpSeqSet2)
+            void LTest(string pCursor, string pExpSeqSet, string pExpRemainder, cUIntList pExpList, string pExpSeqSet2)
             {
                 TryConstruct(pCursor, out var lCursor);
 

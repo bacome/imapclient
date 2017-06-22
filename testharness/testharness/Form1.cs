@@ -462,10 +462,23 @@ namespace testharness
 
             if (!(e.Node.Tag is cTVWNodeTag lTag) || lTag.Mailbox == null || !lTag.CanSelect) return;
 
+            // the old selected mailbox (if any) is about to be deselected
+            dgvMessageHeaders.DataSource = null;
+
             try
             {
                 await lTag.Mailbox.SelectAsync();
                 await lTag.Mailbox.StatusAsync(fStatusAttributes.unseen); // force the unseen count to be calculated
+
+                BindingSource lBS = new BindingSource();
+                var lMessages = await lTag.Mailbox.SearchAsync(cFilter.Received > DateTime.Today.AddDays(-100), new cSort(cSortItem.ReceivedDesc), fMessageProperties.received | fMessageProperties.envelope);
+
+                List<cMessageHeader> lHeaders = new List<cMessageHeader>();
+                foreach (var lMessage in lMessages) lHeaders.Add(new cMessageHeader(lMessage));
+
+                lBS.DataSource = lHeaders;
+
+                dgvMessageHeaders.DataSource = lBS;
             }
             catch (Exception ex)
             {

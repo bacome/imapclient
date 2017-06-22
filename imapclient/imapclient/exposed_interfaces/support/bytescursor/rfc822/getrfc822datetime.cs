@@ -92,12 +92,12 @@ namespace work.bacome.imapclient.support
             if (SkipByte(cASCII.PLUS))
             {
                 lDateTimeKind = DateTimeKind.Utc;
-                if (!ZGetZone(out lZone)) { Position = lBookmark; rDateTime = new DateTime(); return false; }
+                if (!LGetZone(out lZone)) { Position = lBookmark; rDateTime = new DateTime(); return false; }
             }
             else if (SkipByte(cASCII.HYPEN))
             {
                 lDateTimeKind = DateTimeKind.Utc;
-                if (!ZGetZone(out lZone)) { Position = lBookmark; rDateTime = new DateTime(); return false; }
+                if (!LGetZone(out lZone)) { Position = lBookmark; rDateTime = new DateTime(); return false; }
                 lZone = lZone.Negate();
             }
             else if (GetToken(cCharset.Alpha, null, null, out var lAlphaZone, 1))
@@ -129,7 +129,7 @@ namespace work.bacome.imapclient.support
             return true;
 
             // helper function
-            bool ZGetZone(out TimeSpan rTimeSpan)
+            bool LGetZone(out TimeSpan rTimeSpan)
             {
                 if (!GetNumber(out _, out uint lHours, 2, 2) || lHours > 99) { rTimeSpan = new TimeSpan(); return false; }
                 if (!GetNumber(out _, out uint lMinutes, 2, 2) || lMinutes > 59) { rTimeSpan = new TimeSpan(); return false; }

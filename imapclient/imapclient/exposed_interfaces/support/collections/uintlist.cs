@@ -53,18 +53,18 @@ namespace work.bacome.imapclient.support
                     if (lUInt == lTo + 1) lTo = lUInt;
                     else
                     {
-                        ZAddItem();
+                        LAddItem();
                         lFrom = lUInt;
                         lTo = lUInt;
                     }
                 }
             }
 
-            if (!lFirst) ZAddItem();
+            if (!lFirst) LAddItem();
 
             return new cSequenceSet(lItems);
 
-            void ZAddItem()
+            void LAddItem()
             {
                 if (lFrom == lTo) lItems.Add(new cSequenceSet.cItem.cNumber(lFrom));
                 else lItems.Add(new cSequenceSet.cItem.cRange(lFrom, lTo));

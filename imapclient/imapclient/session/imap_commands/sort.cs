@@ -38,8 +38,8 @@ namespace work.bacome.imapclient
 
                     if (lResult.Result == cCommandResult.eResult.ok)
                     {
-                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.Sort, "results not received on a successful sort", lContext);
                         lContext.TraceInformation("sort success");
+                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.Sort, "results not received on a successful sort", lContext);
                         return lHook.Handles;
                     }
 

@@ -228,8 +228,8 @@ namespace work.bacome.imapclient
                     lPatterns = new cMailboxNamePatterns();
                     lPatterns.Add(new cMailboxNamePattern("", "", null));
                     lRDP = new cListExtendedCommandHook(lPatterns, lC, 0);
-                    ZProcess(lRDP, "LIST () \"/\" \"\"", true, "1.1");
-                    ZProcess(lRDP, "LIST () \"/\" fred", false, "1.2");
+                    LProcess(lRDP, "LIST () \"/\" \"\"", true, "1.1");
+                    LProcess(lRDP, "LIST () \"/\" fred", false, "1.2");
                     lMailboxList = lRDP.MailboxList;
                     if (lMailboxList.Count != 1) throw new cTestsException($"{nameof(cListExtendedCommandHook)}.1.r1");
                     lMailboxListItem = lMailboxList.FirstItem();
@@ -242,21 +242,21 @@ namespace work.bacome.imapclient
                     lPatterns = new cMailboxNamePatterns();
                     lPatterns.Add(new cMailboxNamePattern("fred/", "%", '/'));
                     lRDP = new cListExtendedCommandHook(lPatterns, lC, 0);
-                    ZProcess(lRDP, "LIST (\\Marked \\NoInferiors) \"/\" \"inbox\"", false, "2.1");
-                    ZProcess(lRDP, "LIST (\\Subscribed \\NonExistent) \"/\" \"Fruit/Peach\"", false, "2.2");
-                    ZProcess(lRDP, "LIST (\\Subscribed \\NonExistent) \"/\" \"fred/Fruit/Peach\"", false, "2.3");
-                    ZProcess(lRDP, "LIST (\\Subscribed \\NonExistent) \"/\" \"fred/Peach\"", true, "2.4"); // subscribed, non-existent, => noselect - children unknown
-                    ZProcess(lRDP, "LIST (\\HasChildren) \"/\" \"fred/Fruit\"", true, "2.5"); // haschildren
-                    ZProcess(lRDP, "LIST (\\HasNoChildren) \"/\" \"fred/Tofu\"", true, "2.6"); // hasnochildren
-                    ZProcess(lRDP, "LIST (\\Marked) \"/\" \"fred/Tofu\"", true, "2.7"); // add marked to the above
-                    ZProcess(lRDP, "LIST () \"/\" \"fred/Bread\" (\"CHILDINFO\" (\"SUBSCRIBED\"))", true, "2.8"); // subscribed children
-                    ZProcess(lRDP, "LIST () \"/\" \"fred/Tea\" (\"CHILDINFO\" (\"x-feature\" \"y-feature\" \"SUBSCRIBED\" \"z-freature\"))", true, "2.9"); // subscribed children
-                    ZProcess(lRDP, "LIST () \"/\" \"fred/Coffee\" (tag1 1 tag2 0 tag3 1,2,3:7,5 tag4 (d (e) (f (g h i) j (k l)) m) \"CHiLDiNFO\" ((a b c) \"SUBSCRiBED\" (d e f)) tag6 6)", true, "2.10"); // subscribed children
-                    ZProcess(lRDP, "STATUS fred/Coffee (uidvalidity 12345678 MESSAGES 231 UIDNEXT 44292 UNseen 44)", true, "2.11"); // status
-                    ZProcess(lRDP, "STATUS fred/Tofu (uidvalidity 12345679 MESSAGES 233)", true, "2.12"); // status
-                    ZProcess(lRDP, "STATUS fred/Tofo (uidvalidity 12345679 MESSAGES 233)", false, "2.13");
-                    ZProcess(lRDP, "STATUS fred/Tofu (uidvaliditx 12345680 MESSAGES 234)", false, "2.14");
-                    ZProcess(lRDP, "STATUS fred/Tofu (uidvalidity 12345681 MESSAGES 235)", true, "2.15"); // status
+                    LProcess(lRDP, "LIST (\\Marked \\NoInferiors) \"/\" \"inbox\"", false, "2.1");
+                    LProcess(lRDP, "LIST (\\Subscribed \\NonExistent) \"/\" \"Fruit/Peach\"", false, "2.2");
+                    LProcess(lRDP, "LIST (\\Subscribed \\NonExistent) \"/\" \"fred/Fruit/Peach\"", false, "2.3");
+                    LProcess(lRDP, "LIST (\\Subscribed \\NonExistent) \"/\" \"fred/Peach\"", true, "2.4"); // subscribed, non-existent, => noselect - children unknown
+                    LProcess(lRDP, "LIST (\\HasChildren) \"/\" \"fred/Fruit\"", true, "2.5"); // haschildren
+                    LProcess(lRDP, "LIST (\\HasNoChildren) \"/\" \"fred/Tofu\"", true, "2.6"); // hasnochildren
+                    LProcess(lRDP, "LIST (\\Marked) \"/\" \"fred/Tofu\"", true, "2.7"); // add marked to the above
+                    LProcess(lRDP, "LIST () \"/\" \"fred/Bread\" (\"CHILDINFO\" (\"SUBSCRIBED\"))", true, "2.8"); // subscribed children
+                    LProcess(lRDP, "LIST () \"/\" \"fred/Tea\" (\"CHILDINFO\" (\"x-feature\" \"y-feature\" \"SUBSCRIBED\" \"z-freature\"))", true, "2.9"); // subscribed children
+                    LProcess(lRDP, "LIST () \"/\" \"fred/Coffee\" (tag1 1 tag2 0 tag3 1,2,3:7,5 tag4 (d (e) (f (g h i) j (k l)) m) \"CHiLDiNFO\" ((a b c) \"SUBSCRiBED\" (d e f)) tag6 6)", true, "2.10"); // subscribed children
+                    LProcess(lRDP, "STATUS fred/Coffee (uidvalidity 12345678 MESSAGES 231 UIDNEXT 44292 UNseen 44)", true, "2.11"); // status
+                    LProcess(lRDP, "STATUS fred/Tofu (uidvalidity 12345679 MESSAGES 233)", true, "2.12"); // status
+                    LProcess(lRDP, "STATUS fred/Tofo (uidvalidity 12345679 MESSAGES 233)", false, "2.13");
+                    LProcess(lRDP, "STATUS fred/Tofu (uidvaliditx 12345680 MESSAGES 234)", false, "2.14");
+                    LProcess(lRDP, "STATUS fred/Tofu (uidvalidity 12345681 MESSAGES 235)", true, "2.15"); // status
 
                     List<cMailboxList.cItem> lItems = new List<cMailboxList.cItem>(lRDP.MailboxList);
 
@@ -287,7 +287,7 @@ namespace work.bacome.imapclient
 
                     // test lsub
 
-                    void ZProcess(cListExtendedCommandHook pRDP, string pResponse, bool pShouldBeProcessed, string pTestNumber)
+                    void LProcess(cListExtendedCommandHook pRDP, string pResponse, bool pShouldBeProcessed, string pTestNumber)
                     {
                         if (!cBytesCursor.TryConstruct(pResponse, out var lCursor)) throw new cTestsException($"{nameof(cListExtendedCommandHook)}.{pTestNumber}.p1");
                         var lResult = pRDP.ProcessData(lCursor, lContext);
@@ -307,20 +307,20 @@ namespace work.bacome.imapclient
                 lPatterns = new cListPatterns();
                 lPatterns.Add(new cListPattern("fred%", null, new cMailboxNamePattern("fred", "%", null)));
 
-                if (ZListExtendedCommandPartsTestsString(0, lPatterns, 0, 0) != "LIST \"\" fred%") throw new cTestsException("list extended command 1", lContext);
-                if (ZListExtendedCommandPartsTestsString(fListExtendedSelect.remote, lPatterns, 0, 0) != "LIST (REMOTE) \"\" fred%") throw new cTestsException("list extended command 2", lContext);
-                if (ZListExtendedCommandPartsTestsString(fListExtendedSelect.remote | fListExtendedSelect.subscribed, lPatterns, 0, 0) != "LIST (SUBSCRIBED REMOTE) \"\" fred%") throw new cTestsException("list extended command 3", lContext);
+                if (LListExtendedCommandPartsTestsString(0, lPatterns, 0, 0) != "LIST \"\" fred%") throw new cTestsException("list extended command 1", lContext);
+                if (LListExtendedCommandPartsTestsString(fListExtendedSelect.remote, lPatterns, 0, 0) != "LIST (REMOTE) \"\" fred%") throw new cTestsException("list extended command 2", lContext);
+                if (LListExtendedCommandPartsTestsString(fListExtendedSelect.remote | fListExtendedSelect.subscribed, lPatterns, 0, 0) != "LIST (SUBSCRIBED REMOTE) \"\" fred%") throw new cTestsException("list extended command 3", lContext);
 
                 lPatterns.Add(new cListPattern("angus%", null, new cMailboxNamePattern("angus", "%", null)));
 
-                if (ZListExtendedCommandPartsTestsString(0, lPatterns, 0, 0) != "LIST \"\" (fred% angus%)") throw new cTestsException("list extended command 4", lContext);
+                if (LListExtendedCommandPartsTestsString(0, lPatterns, 0, 0) != "LIST \"\" (fred% angus%)") throw new cTestsException("list extended command 4", lContext);
 
-                if (ZListExtendedCommandPartsTestsString(0, lPatterns, fListExtendedReturn.subscribed, 0) != "LIST \"\" (fred% angus%) RETURN (SUBSCRIBED)") throw new cTestsException("list extended command 5", lContext);
-                if (ZListExtendedCommandPartsTestsString(0, lPatterns, fListExtendedReturn.subscribed | fListExtendedReturn.children, 0) != "LIST \"\" (fred% angus%) RETURN (SUBSCRIBED CHILDREN)") throw new cTestsException("list extended command 6", lContext);
-                if (ZListExtendedCommandPartsTestsString(0, lPatterns, 0, fStatusAttributes.recent) != "LIST \"\" (fred% angus%) RETURN (STATUS (RECENT))") throw new cTestsException("list extended command 7", lContext);
-                if (ZListExtendedCommandPartsTestsString(0, lPatterns, fListExtendedReturn.children, fStatusAttributes.recent) != "LIST \"\" (fred% angus%) RETURN (CHILDREN STATUS (RECENT))") throw new cTestsException("list extended command 8", lContext);
+                if (LListExtendedCommandPartsTestsString(0, lPatterns, fListExtendedReturn.subscribed, 0) != "LIST \"\" (fred% angus%) RETURN (SUBSCRIBED)") throw new cTestsException("list extended command 5", lContext);
+                if (LListExtendedCommandPartsTestsString(0, lPatterns, fListExtendedReturn.subscribed | fListExtendedReturn.children, 0) != "LIST \"\" (fred% angus%) RETURN (SUBSCRIBED CHILDREN)") throw new cTestsException("list extended command 6", lContext);
+                if (LListExtendedCommandPartsTestsString(0, lPatterns, 0, fStatusAttributes.recent) != "LIST \"\" (fred% angus%) RETURN (STATUS (RECENT))") throw new cTestsException("list extended command 7", lContext);
+                if (LListExtendedCommandPartsTestsString(0, lPatterns, fListExtendedReturn.children, fStatusAttributes.recent) != "LIST \"\" (fred% angus%) RETURN (CHILDREN STATUS (RECENT))") throw new cTestsException("list extended command 8", lContext);
 
-                string ZListExtendedCommandPartsTestsString(fListExtendedSelect pSelect, cListPatterns pPatterns, fListExtendedReturn pReturn, fStatusAttributes pStatus)
+                string LListExtendedCommandPartsTestsString(fListExtendedSelect pSelect, cListPatterns pPatterns, fListExtendedReturn pReturn, fStatusAttributes pStatus)
                 {
                     StringBuilder lBuilder = new StringBuilder();
                     var lCommand = new cCommand();
