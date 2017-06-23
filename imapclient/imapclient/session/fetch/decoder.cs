@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
 
                 protected virtual Task YWriteAsync(cMethodControl pMC, byte[] lBuffer)
                 {
-                    mStream.WriteTimeout = pMC.Timeout;
+                    if (mStream.CanTimeout) mStream.WriteTimeout = pMC.Timeout;
                     return mStream.WriteAsync(lBuffer, 0, lBuffer.Length, pMC.CancellationToken);
                 }
 

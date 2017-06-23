@@ -100,7 +100,7 @@ namespace work.bacome.imapclient
             else lSection = new cSection(pPart.Part);
 
             eDecodingRequired lDecoding;
-            if (pPart is cSinglePart lPart) lDecoding = lPart.DecodingRequired;
+            if (pPart is cSingleBodyPart lPart) lDecoding = lPart.DecodingRequired;
             else lDecoding = eDecodingRequired.none;
 
             Client.Fetch(MailboxId, Handle, lSection, lDecoding, pStream);
@@ -113,7 +113,7 @@ namespace work.bacome.imapclient
             else lSection = new cSection(pPart.Part);
 
             eDecodingRequired lDecoding;
-            if (pPart is cSinglePart lPart) lDecoding = lPart.DecodingRequired;
+            if (pPart is cSingleBodyPart lPart) lDecoding = lPart.DecodingRequired;
             else lDecoding = eDecodingRequired.none;
 
             return Client.FetchAsync(MailboxId, Handle, lSection, lDecoding, pStream);

@@ -448,7 +448,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        rBodyPart = new cMultiPart(lParts, lSubType, pPart, lMultiPartExtensionData);
+                        rBodyPart = new cMultiBodyPart(lParts, lSubType, pPart, lMultiPartExtensionData);
                         return true;
                     }
 
@@ -481,7 +481,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        rBodyPart = new cTextPart(lSubType, lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lSizeInLines, lExtensionData);
+                        rBodyPart = new cTextBodyPart(lSubType, lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lSizeInLines, lExtensionData);
                         return true;
                     }
 
@@ -512,7 +512,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        rBodyPart = new cMessagePart(lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lEnvelope, lBodyStructure, lBodyStructureEx, lSizeInLines, lExtensionData);
+                        rBodyPart = new cMessageBodyPart(lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lEnvelope, lBodyStructure, lBodyStructureEx, lSizeInLines, lExtensionData);
                         return true;
                     }
 
@@ -521,7 +521,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                    rBodyPart = new cSinglePart(lType, lSubType, lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lExtensionData);
+                    rBodyPart = new cSingleBodyPart(lType, lSubType, lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lExtensionData);
                     return true;
                 }
 
@@ -1089,7 +1089,7 @@ namespace work.bacome.imapclient
                     cCapability lCapability = new cCapability(lCapabilities, new cCapabilities(), 0);
                     cResponseDataFetch lData;
                     cEmailAddress lEmailAddress;
-                    cTextPart lTextPart;
+                    cTextBodyPart lTextPart;
 
                     if (!cBytesCursor.TryConstruct(
                             @"(FLAGS (\Seen) INTERNALDATE ""17-Jul-1996 02:44:25 -0700"" " +
@@ -1129,7 +1129,7 @@ namespace work.bacome.imapclient
 
                     if (lData.Envelope.MessageId != "<B27397-0100000@cac.washington.edu>") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
 
-                    lTextPart = lData.BodyStructure as cTextPart;
+                    lTextPart = lData.BodyStructure as cTextBodyPart;
                     if (lTextPart.SubType != "PLAIN" || lTextPart.Parameters.Count != 1 || lTextPart.Parameters["charset"].Value != "US-ASCII" || lTextPart.SizeInBytes != 3028 || lTextPart.SizeInLines != 92) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.1");
                     if (lTextPart.ContentId != null || lTextPart.Description != null || lTextPart.DecodingRequired != eDecodingRequired.none) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.2");
 
@@ -1191,7 +1191,7 @@ namespace work.bacome.imapclient
                     // test bodystructure
 
                     cBodyPart lPart;
-                    cMultiPart lMultiPart;
+                    cMultiBodyPart lMultiPart;
 
                     if (!cBytesCursor.TryConstruct(
                             @"((""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 1152 23)" + 
@@ -1199,13 +1199,13 @@ namespace work.bacome.imapclient
 
                     if (!ZProcessBodyStructure(lCursor, true, null, false, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.1");
 
-                    lMultiPart = lPart as cMultiPart;
+                    lMultiPart = lPart as cMultiBodyPart;
                     if (lMultiPart.Parts.Count != 2 || lMultiPart.SubType != "MIXED") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.2");
 
-                    lTextPart = lMultiPart.Parts[0] as cTextPart;
+                    lTextPart = lMultiPart.Parts[0] as cTextBodyPart;
                     if (lTextPart.DecodingRequired != eDecodingRequired.none || lTextPart.SizeInBytes != 1152 || lTextPart.SizeInLines != 23 || lTextPart.Part != "1") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
 
-                    lTextPart = lMultiPart.Parts[1] as cTextPart;
+                    lTextPart = lMultiPart.Parts[1] as cTextBodyPart;
                     if (lTextPart.DecodingRequired != eDecodingRequired.base64 || lTextPart.SizeInBytes != 4554 || lTextPart.SizeInLines != 73 || lTextPart.Part != "2") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
                     if (lTextPart.Parameters["name"].Value != "cc.diff" || lTextPart.ContentId != "<960723163407.20117h@cac.washington.edu>" || lTextPart.Description != "Compiler diff") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.4");
 
@@ -1227,7 +1227,7 @@ namespace work.bacome.imapclient
 
                     if (!cBytesCursor.TryConstruct(@"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""fred*"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"" ""angus"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"") NIL NIL ""7BIT"" 3028 92)", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.0");
                     if (!ZProcessBodyStructure(lCursor, true, null, false, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.1");
-                    lTextPart = lPart as cTextPart;
+                    lTextPart = lPart as cTextBodyPart;
                     if (lTextPart.Parameters["fred"].Value != "This is ***fun***" || lTextPart.Parameters["fred"].LanguageTag != "EN-US" || !lTextPart.Parameters["fred"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
                     if (lTextPart.Parameters["angus"].Value != "us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A" || lTextPart.Parameters["angus"].LanguageTag != null || lTextPart.Parameters["angus"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
 

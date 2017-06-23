@@ -4,7 +4,7 @@ using work.bacome.imapclient;
 
 namespace testharness
 {
-    public class cTVWNodeTag
+    public class cTVWMailboxesNodeTag
     {
         public enum eState { neverexpanded, expanding, expanded }
 
@@ -17,7 +17,7 @@ namespace testharness
         // if it has been expanded then it has to be refreshed to get any new entries
         public eState State = eState.neverexpanded;
 
-        public cTVWNodeTag(cNamespace pNamespace, TreeNode pPleaseWait)
+        public cTVWMailboxesNodeTag(cNamespace pNamespace, TreeNode pPleaseWait)
         {
             Namespace = pNamespace;
             Mailbox = null;
@@ -25,7 +25,7 @@ namespace testharness
             PleaseWait = pPleaseWait;
         }
 
-        public cTVWNodeTag(cMailbox pMailbox, bool pCanSelect, TreeNode pPleaseWait)
+        public cTVWMailboxesNodeTag(cMailbox pMailbox, bool pCanSelect, TreeNode pPleaseWait)
         {
             Namespace = null;
             Mailbox = pMailbox;
