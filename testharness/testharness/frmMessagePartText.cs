@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace testharness
 {
-    public partial class Form2 : Form
+    public partial class frmMessagePartText : Form
     {
-        public Form2()
+        public frmMessagePartText()
         {
             InitializeComponent();
         }

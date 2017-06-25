@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace work.bacome.imapclient
@@ -93,30 +94,66 @@ namespace work.bacome.imapclient
         public void Fetch(fMessageProperties pProperties) => Client.Fetch(MailboxId, Handle, pProperties);
         public Task FetchAsync(fMessageProperties pProperties) => Client.FetchAsync(MailboxId, Handle, pProperties);
 
+        public string Fetch(cBodyPart pPart)
+        {
+            using (var lStream = new MemoryStream())
+            {
+                if (pPart is cTextBodyPart lPart)
+                {
+                    Client.Fetch(MailboxId, Handle, lPart.Section, lPart.DecodingRequired, lStream);
+                    Encoding lEncoding = Encoding.GetEncoding(lPart.Charset);
+                    return new string(lEncoding.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+                }
+
+                Client.Fetch(MailboxId, Handle, pPart.Section, eDecodingRequired.none, lStream);
+                return new string(Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+            }
+        }
+
+        public async Task<string> FetchAsync(cBodyPart pPart)
+        {
+            using (var lStream = new MemoryStream())
+            {
+                if (pPart is cTextBodyPart lPart)
+                {
+                    await Client.FetchAsync(MailboxId, Handle, lPart.Section, lPart.DecodingRequired, lStream);
+                    Encoding lEncoding = Encoding.GetEncoding(lPart.Charset);
+                    return new string(lEncoding.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+                }
+
+                await Client.FetchAsync(MailboxId, Handle, pPart.Section, eDecodingRequired.none, lStream);
+                return new string(Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+            }
+        }
+
         public void Fetch(cBodyPart pPart, Stream pStream)
         {
-            cSection lSection;
-            if (pPart.Part == null) lSection = cSection.All;
-            else lSection = new cSection(pPart.Part);
-
-            eDecodingRequired lDecoding;
-            if (pPart is cSingleBodyPart lPart) lDecoding = lPart.DecodingRequired;
-            else lDecoding = eDecodingRequired.none;
-
-            Client.Fetch(MailboxId, Handle, lSection, lDecoding, pStream);
+            if (pPart is cSinglePartBody lPart) Client.Fetch(MailboxId, Handle, lPart.Section, lPart.DecodingRequired, pStream);
+            else Client.Fetch(MailboxId, Handle, pPart.Section, eDecodingRequired.none, pStream);
         }
 
         public Task FetchAsync(cBodyPart pPart, Stream pStream)
         {
-            cSection lSection;
-            if (pPart.Part == null) lSection = cSection.All;
-            else lSection = new cSection(pPart.Part);
+            if (pPart is cSinglePartBody lPart) return Client.FetchAsync(MailboxId, Handle, lPart.Section, lPart.DecodingRequired, pStream);
+            else return Client.FetchAsync(MailboxId, Handle, pPart.Section, eDecodingRequired.none, pStream);
+        }
 
-            eDecodingRequired lDecoding;
-            if (pPart is cSingleBodyPart lPart) lDecoding = lPart.DecodingRequired;
-            else lDecoding = eDecodingRequired.none;
+        public string Fetch(cSection pSection)
+        {
+            using (var lStream = new MemoryStream())
+            {
+                Client.Fetch(MailboxId, Handle, pSection, eDecodingRequired.none, lStream);
+                return new string(Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+            }
+        }
 
-            return Client.FetchAsync(MailboxId, Handle, lSection, lDecoding, pStream);
+        public async Task<string> FetchAsync(cSection pSection)
+        {
+            using (var lStream = new MemoryStream())
+            {
+                await Client.FetchAsync(MailboxId, Handle, pSection, eDecodingRequired.none, lStream);
+                return new string(Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+            }
         }
 
         public void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream) => Client.Fetch(MailboxId, Handle, pSection, pDecoding, pStream);

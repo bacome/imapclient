@@ -1,6 +1,6 @@
 ﻿namespace testharness
 {
-    partial class Form2
+    partial class frmMessagePartText
     {
         /// <summary>
         /// Required designer variable.
@@ -42,14 +42,14 @@
             this.rtx.TabIndex = 0;
             this.rtx.Text = "";
             // 
-            // Form2
+            // frmMessagePartText
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(292, 273);
             this.Controls.Add(this.rtx);
-            this.Name = "Form2";
-            this.Text = "Form2";
+            this.Name = "frmMessagePartText";
+            this.Text = "MessagePartText";
             this.ResumeLayout(false);
 
         }

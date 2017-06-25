@@ -35,12 +35,13 @@ namespace work.bacome.imapclient
         public readonly string Type;
         public readonly eBodyPartTypeCode TypeCode;
         public readonly string SubType;
-        public readonly string Part; // will be null for the top level part in a multipart bodystructure 
+        public readonly cSection Section;
 
-        public cBodyPart(string pType, string pSubType, string pPart)
+        public cBodyPart(string pType, string pSubType, cSection pSection)
         {
             if (pType == null) throw new ArgumentNullException(nameof(pType));
             if (pSubType == null) throw new ArgumentNullException(nameof(pSubType));
+            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
 
             Type = pType.ToUpperInvariant();
 
@@ -54,7 +55,7 @@ namespace work.bacome.imapclient
             else TypeCode = eBodyPartTypeCode.unknown;
 
             SubType = pSubType.ToUpperInvariant();
-            Part = pPart;
+            Section = pSection;
         }
 
         public abstract cBodyPartDisposition Disposition { get; }
@@ -62,7 +63,7 @@ namespace work.bacome.imapclient
         public abstract string Location { get; }
         public abstract cBodyPartExtensionValues ExtensionValues { get; }
 
-        public override string ToString() => $"{nameof(cBodyPart)}({Type},{TypeCode},{SubType},{Part})";
+        public override string ToString() => $"{nameof(cBodyPart)}({Type},{TypeCode},{SubType},{Section})";
     }
 
     public abstract class cBodyPartExtensionValue { }
@@ -150,12 +151,12 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cSinglePartExtensionData)}({base.ToString()},{MD5})";
     }
 
-    public class cMultiBodyPart : cBodyPart
+    public class cMultiPartBody : cBodyPart
     {
         public readonly cBodyParts Parts;
         public readonly cMultiPartExtensionData ExtensionData;
 
-        public cMultiBodyPart(IList<cBodyPart> pParts, string pSubType, string pPart, cMultiPartExtensionData pExtensionData) : base(kTypeMultipart, pSubType, pPart)
+        public cMultiPartBody(IList<cBodyPart> pParts, string pSubType, cSection pSection, cMultiPartExtensionData pExtensionData) : base(kTypeMultipart, pSubType, pSection)
         {
             Parts = new cBodyParts(pParts);
             ExtensionData = pExtensionData;
@@ -167,7 +168,7 @@ namespace work.bacome.imapclient
         public override string Location => ExtensionData?.Location;
         public override cBodyPartExtensionValues ExtensionValues => ExtensionData?.ExtensionValues;
 
-        public override string ToString() => $"{nameof(cMultiBodyPart)}({base.ToString()},{Parts},{ExtensionData})";
+        public override string ToString() => $"{nameof(cMultiPartBody)}({base.ToString()},{Parts},{ExtensionData})";
     }
 
     public class cBodyPartDisposition
@@ -202,30 +203,30 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cBodyPartDisposition)}({Type},{TypeCode},{Parameters})";
     }
 
-    public class cSingleBodyPart : cBodyPart
+    public class cSinglePartBody : cBodyPart
     {
         public readonly cBodyPartParameters Parameters;
         public readonly string ContentId;
         public readonly cCulturedString Description; // decoded (the source may contain encoded words)
-        public readonly string Encoding;
+        public readonly string ContentTransferEncoding;
         public readonly eDecodingRequired DecodingRequired;
         public readonly uint SizeInBytes;
         public readonly cSinglePartExtensionData ExtensionData;
 
-        public cSingleBodyPart(string pType, string pSubType, string pPart, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pEncoding, uint pSizeInBytes, cSinglePartExtensionData pExtensionData) : base(pType, pSubType, pPart)
+        public cSinglePartBody(string pType, string pSubType, cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cSinglePartExtensionData pExtensionData) : base(pType, pSubType, pSection)
         {
-            if (pEncoding == null) throw new ArgumentNullException(nameof(pEncoding));
+            if (pContentTransferEncoding == null) throw new ArgumentNullException(nameof(pContentTransferEncoding));
 
             Parameters = pParameters;
             ContentId = pContentId;
             Description = pDescription;
-            Encoding = pEncoding.ToUpperInvariant();
+            ContentTransferEncoding = pContentTransferEncoding.ToUpperInvariant();
 
-            if (Encoding == "7BIT") DecodingRequired = eDecodingRequired.none;
-            else if (Encoding == "8BIT") DecodingRequired = eDecodingRequired.none;
-            else if (Encoding == "BINARY") DecodingRequired = eDecodingRequired.none;
-            else if (Encoding == "QUOTED-PRINTABLE") DecodingRequired = eDecodingRequired.quotedprintable;
-            else if (Encoding == "BASE64") DecodingRequired = eDecodingRequired.base64;
+            if (ContentTransferEncoding == "7BIT") DecodingRequired = eDecodingRequired.none;
+            else if (ContentTransferEncoding == "8BIT") DecodingRequired = eDecodingRequired.none;
+            else if (ContentTransferEncoding == "BINARY") DecodingRequired = eDecodingRequired.none;
+            else if (ContentTransferEncoding == "QUOTED-PRINTABLE") DecodingRequired = eDecodingRequired.quotedprintable;
+            else if (ContentTransferEncoding == "BASE64") DecodingRequired = eDecodingRequired.base64;
             else DecodingRequired = eDecodingRequired.unknown; // note that rfc 2045 section 6.4 specifies that if 'unknown' then the part has to be treated as application/octet-stream
 
             SizeInBytes = pSizeInBytes;
@@ -238,17 +239,17 @@ namespace work.bacome.imapclient
         public override string Location => ExtensionData?.Location;
         public override cBodyPartExtensionValues ExtensionValues => ExtensionData?.ExtensionValues;
 
-        public override string ToString() => $"{nameof(cSingleBodyPart)}({base.ToString()},{Parameters},{ContentId},{Description},{Encoding},{DecodingRequired},{SizeInBytes},{ExtensionData})";
+        public override string ToString() => $"{nameof(cSinglePartBody)}({base.ToString()},{Parameters},{ContentId},{Description},{ContentTransferEncoding},{DecodingRequired},{SizeInBytes},{ExtensionData})";
     }
 
-    public class cMessageBodyPart : cSingleBodyPart
+    public class cMessageBodyPart : cSinglePartBody
     {
         public readonly cEnvelope Envelope;
         private readonly cBodyPart mBodyStructure;
         public readonly cBodyPart BodyStructureEx;
         public readonly uint SizeInLines;
 
-        public cMessageBodyPart(string pPart, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pEncoding, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBodyStructure, cBodyPart pBodyStructureEx, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(TypeMessage, SubTypeRFC822, pPart, pParameters, pContentId, pDescription, pEncoding, pSizeInBytes, pExtensionData)
+        public cMessageBodyPart(cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBodyStructure, cBodyPart pBodyStructureEx, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(TypeMessage, SubTypeRFC822, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
         {
             Envelope = pEnvelope;
             mBodyStructure = pBodyStructure;
@@ -261,11 +262,11 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cMessageBodyPart)}({base.ToString()},{Envelope},{BodyStructureEx ?? mBodyStructure},{SizeInLines})";
     }
 
-    public class cTextBodyPart : cSingleBodyPart
+    public class cTextBodyPart : cSinglePartBody
     {
         public readonly uint SizeInLines;
 
-        public cTextBodyPart(string pSubType, string pPart, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pEncoding, uint pSizeInBytes, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(TypeText, pSubType, pPart, pParameters, pContentId, pDescription, pEncoding, pSizeInBytes, pExtensionData)
+        public cTextBodyPart(string pSubType, cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(TypeText, pSubType, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
         {
             SizeInLines = pSizeInLines;
         }

@@ -133,8 +133,8 @@ namespace work.bacome.imapclient
                             lOK = pCursor.GetNumber(out _, out var lNumber);
                             if (lOK) lSize = lNumber;
                         }
-                        else if (pCursor.SkipBytes(kBodySpace)) lOK = ZProcessBodyStructure(pCursor, true, null, false, out lBodyStructure);
-                        else if (pCursor.SkipBytes(kBodyStructureSpace)) lOK = ZProcessBodyStructure(pCursor, true, null, true, out lBodyStructureEx);
+                        else if (pCursor.SkipBytes(kBodySpace)) lOK = ZProcessBodyStructure(pCursor, cSection.Text, false, out lBodyStructure);
+                        else if (pCursor.SkipBytes(kBodyStructureSpace)) lOK = ZProcessBodyStructure(pCursor, cSection.Text, true, out lBodyStructureEx);
                         else if (pCursor.SkipBytes(kBodyLBracket))
                         {
                             lOK = ZProcessBody(pCursor, false, out var lABody);
@@ -151,9 +151,9 @@ namespace work.bacome.imapclient
 
                                 if (lSection.Part == null &&
                                     lABody.Origin == null &&
-                                    (lSection.TextPart == cSection.eTextPart.header ||
-                                     (lSection.TextPart == cSection.eTextPart.headerfields && lSection.HeaderFields.Contains(kReferences)) ||
-                                     (lSection.TextPart == cSection.eTextPart.headerfieldsnot && !lSection.HeaderFields.Contains(kReferences))
+                                    (lSection.TextPart == eSectionPart.header ||
+                                     (lSection.TextPart == eSectionPart.headerfields && lSection.HeaderFields.Contains(kReferences)) ||
+                                     (lSection.TextPart == eSectionPart.headerfieldsnot && !lSection.HeaderFields.Contains(kReferences))
                                     )
                                    )
                                 {
@@ -392,36 +392,18 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                private static bool ZProcessBodyStructure(cBytesCursor pCursor, bool pMessage, string pPart, bool pExtended, out cBodyPart rBodyPart)
+                private static bool ZProcessBodyStructure(cBytesCursor pCursor, cSection pSection, bool pExtended, out cBodyPart rBodyPart)
                 {
                     if (!pCursor.SkipByte(cASCII.LPAREN)) { rBodyPart = null; return false; }
-
-                    string lMultiPartPrefix;
-                    string lSinglePart;
-
-                    if (pMessage)
-                    {
-                        if (pPart == null)
-                        {
-                            lMultiPartPrefix = "";
-                            lSinglePart = "1";
-                        }
-                        else
-                        {
-                            lMultiPartPrefix = pPart + ".";
-                            lSinglePart = pPart + ".1";
-                        }
-                    }
-                    else
-                    {
-                        lMultiPartPrefix = pPart + ".";
-                        lSinglePart = pPart;
-                    }
 
                     string lSubType;
                     cBodyPart lBodyPart;
 
-                    if (ZProcessBodyStructure(pCursor, false, lMultiPartPrefix + "1", pExtended, out lBodyPart))
+                    string lSubPartPrefix;
+                    if (pSection.Part == null) lSubPartPrefix = "";
+                    else lSubPartPrefix = pSection.Part + ".";
+
+                    if (ZProcessBodyStructure(pCursor, new cSection(lSubPartPrefix + "1"), pExtended, out lBodyPart))
                     {
                         List<cBodyPart> lParts = new List<cBodyPart>();
 
@@ -430,7 +412,7 @@ namespace work.bacome.imapclient
 
                         while (true)
                         {
-                            if (!ZProcessBodyStructure(pCursor, false, lMultiPartPrefix + lPart++, pExtended, out lBodyPart)) break;
+                            if (!ZProcessBodyStructure(pCursor, new cSection(lSubPartPrefix + lPart++), pExtended, out lBodyPart)) break;
                             lParts.Add(lBodyPart);
                         }
 
@@ -448,7 +430,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        rBodyPart = new cMultiBodyPart(lParts, lSubType, pPart, lMultiPartExtensionData);
+                        rBodyPart = new cMultiPartBody(lParts, lSubType, pSection, lMultiPartExtensionData);
                         return true;
                     }
 
@@ -462,7 +444,7 @@ namespace work.bacome.imapclient
                         !pCursor.SkipByte(cASCII.SPACE) ||
                         !pCursor.GetNString(out IList<byte> lDescriptionBytes) ||
                         !pCursor.SkipByte(cASCII.SPACE) ||
-                        !pCursor.GetString(out string lEncoding) ||
+                        !pCursor.GetString(out string lContentTransferEncoding) ||
                         !pCursor.SkipByte(cASCII.SPACE) ||
                         !pCursor.GetNumber(out _, out uint lSizeInBytes)) { rBodyPart = null; return false; }
 
@@ -481,7 +463,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        rBodyPart = new cTextBodyPart(lSubType, lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lSizeInLines, lExtensionData);
+                        rBodyPart = new cTextBodyPart(lSubType, pSection, lParameters, lContentId, lDescription, lContentTransferEncoding, lSizeInBytes, lSizeInLines, lExtensionData);
                         return true;
                     }
 
@@ -490,7 +472,7 @@ namespace work.bacome.imapclient
                         if (!pCursor.SkipByte(cASCII.SPACE) || 
                             !ZProcessEnvelope(pCursor, out var lEnvelope) ||
                             !pCursor.SkipByte(cASCII.SPACE) ||
-                            !ZProcessBodyStructure(pCursor, true, lSinglePart, pExtended, out lBodyPart) ||
+                            !ZProcessBodyStructure(pCursor, new cSection(pSection.Part, eSectionPart.text), pExtended, out lBodyPart) ||
                             !pCursor.SkipByte(cASCII.SPACE) ||
                             !pCursor.GetNumber(out _, out var lSizeInLines)) { rBodyPart = null; return false; }
 
@@ -512,7 +494,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                        rBodyPart = new cMessageBodyPart(lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lEnvelope, lBodyStructure, lBodyStructureEx, lSizeInLines, lExtensionData);
+                        rBodyPart = new cMessageBodyPart(pSection, lParameters, lContentId, lDescription, lContentTransferEncoding, lSizeInBytes, lEnvelope, lBodyStructure, lBodyStructureEx, lSizeInLines, lExtensionData);
                         return true;
                     }
 
@@ -521,7 +503,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
 
-                    rBodyPart = new cSingleBodyPart(lType, lSubType, lSinglePart, lParameters, lContentId, lDescription, lEncoding, lSizeInBytes, lExtensionData);
+                    rBodyPart = new cSinglePartBody(lType, lSubType, pSection, lParameters, lContentId, lDescription, lContentTransferEncoding, lSizeInBytes, lExtensionData);
                     return true;
                 }
 
@@ -699,13 +681,13 @@ namespace work.bacome.imapclient
                     {
                         if (pCursor.SkipBytes(kHeaderRBracket))
                         {
-                            rSection = new cSection(lPart, cSection.eTextPart.header);
+                            rSection = new cSection(lPart, eSectionPart.header);
                             return true;
                         }
 
                         if (pCursor.SkipBytes(kTextRBracket))
                         {
-                            rSection = new cSection(lPart, cSection.eTextPart.text);
+                            rSection = new cSection(lPart, eSectionPart.text);
                             return true;
                         }
 
@@ -743,7 +725,7 @@ namespace work.bacome.imapclient
                         return false;
                     }
 
-                    rSection = new cSection(lPart, cSection.eTextPart.mime);
+                    rSection = new cSection(lPart, eSectionPart.mime);
                     return true;
                 }
 
@@ -1155,7 +1137,7 @@ namespace work.bacome.imapclient
 
                     if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.1");
                     lBody = lData.Bodies[0];
-                    if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != cSection.eTextPart.header || lBody.Section.HeaderFields != null || lBody.Origin != null || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.2");
+                    if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != eSectionPart.header || lBody.Section.HeaderFields != null || lBody.Origin != null || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.2");
 
 
                     lCursor = MakeCursor(
@@ -1175,7 +1157,7 @@ namespace work.bacome.imapclient
 
                     if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.1");
                     lBody = lData.Bodies[0];
-                    if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != cSection.eTextPart.header || lBody.Section.HeaderFields != null || lBody.Origin != 0 || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.2");
+                    if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != eSectionPart.header || lBody.Section.HeaderFields != null || lBody.Origin != 0 || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.2");
 
 
                     //  "         1         2         3         4         5         6         7"
@@ -1191,22 +1173,22 @@ namespace work.bacome.imapclient
                     // test bodystructure
 
                     cBodyPart lPart;
-                    cMultiBodyPart lMultiPart;
+                    cMultiPartBody lMultiPart;
 
                     if (!cBytesCursor.TryConstruct(
                             @"((""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 1152 23)" + 
                             @"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""NAME"" ""cc.diff"") ""<960723163407.20117h@cac.washington.edu>"" ""Compiler diff"" ""BASE64"" 4554 73) ""MIXED"")", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.0");
 
-                    if (!ZProcessBodyStructure(lCursor, true, null, false, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.1");
+                    if (!ZProcessBodyStructure(lCursor, cSection.Text, false, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.1");
 
-                    lMultiPart = lPart as cMultiBodyPart;
+                    lMultiPart = lPart as cMultiPartBody;
                     if (lMultiPart.Parts.Count != 2 || lMultiPart.SubType != "MIXED") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.2");
 
                     lTextPart = lMultiPart.Parts[0] as cTextBodyPart;
-                    if (lTextPart.DecodingRequired != eDecodingRequired.none || lTextPart.SizeInBytes != 1152 || lTextPart.SizeInLines != 23 || lTextPart.Part != "1") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
+                    if (lTextPart.DecodingRequired != eDecodingRequired.none || lTextPart.SizeInBytes != 1152 || lTextPart.SizeInLines != 23 || lTextPart.Section != new cSection("1")) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
 
                     lTextPart = lMultiPart.Parts[1] as cTextBodyPart;
-                    if (lTextPart.DecodingRequired != eDecodingRequired.base64 || lTextPart.SizeInBytes != 4554 || lTextPart.SizeInLines != 73 || lTextPart.Part != "2") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
+                    if (lTextPart.DecodingRequired != eDecodingRequired.base64 || lTextPart.SizeInBytes != 4554 || lTextPart.SizeInLines != 73 || lTextPart.Section != new cSection("2")) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
                     if (lTextPart.Parameters["name"].Value != "cc.diff" || lTextPart.ContentId != "<960723163407.20117h@cac.washington.edu>" || lTextPart.Description != "Compiler diff") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.4");
 
 
@@ -1226,7 +1208,7 @@ namespace work.bacome.imapclient
                     // parameters
 
                     if (!cBytesCursor.TryConstruct(@"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""fred*"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"" ""angus"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"") NIL NIL ""7BIT"" 3028 92)", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.0");
-                    if (!ZProcessBodyStructure(lCursor, true, null, false, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.1");
+                    if (!ZProcessBodyStructure(lCursor, cSection.Text, false, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.1");
                     lTextPart = lPart as cTextBodyPart;
                     if (lTextPart.Parameters["fred"].Value != "This is ***fun***" || lTextPart.Parameters["fred"].LanguageTag != "EN-US" || !lTextPart.Parameters["fred"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
                     if (lTextPart.Parameters["angus"].Value != "us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A" || lTextPart.Parameters["angus"].LanguageTag != null || lTextPart.Parameters["angus"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
@@ -1236,18 +1218,18 @@ namespace work.bacome.imapclient
 
 
                     // section
-                    LTestSection("HEADER]", false, null, cSection.eTextPart.header, null);
-                    LTestSection("TEXT]", false, null, cSection.eTextPart.text, null);
-                    LTestSection("HEADER.FIELDS (a xxy b)]", false, null, cSection.eTextPart.headerfields, "A", "B", "XXY");
-                    LTestSection(@"HEADER.FIELDS (a xxy ""b"")]", false, null, cSection.eTextPart.headerfields, "A", "B", "XXY");
-                    LTestSection("HEADER.FIELDS.NOT (a xxy b)]", false, null, cSection.eTextPart.headerfieldsnot, "A", "B", "XXY");
-                    LTestSection("1.2.3]", false, "1.2.3", cSection.eTextPart.all, null);
-                    LTestSection("1.2.3.HEADER]", false, "1.2.3", cSection.eTextPart.header, null);
-                    LTestSection("1.2.3.TEXT]", false, "1.2.3", cSection.eTextPart.text, null);
-                    LTestSection("1.2.3.HEADER.FIELDS (a xxy b)]", false, "1.2.3", cSection.eTextPart.headerfields, "A", "B", "XXY");
-                    LTestSection("1.2.3.HEADER.FIELDS.NOT (a xxy b)]", false, "1.2.3", cSection.eTextPart.headerfieldsnot, "A", "B", "XXY");
-                    LTestSection("1.2.3.MIME]", false, "1.2.3", cSection.eTextPart.mime, null);
-                    LTestSection("1.2.3]", true, "1.2.3", cSection.eTextPart.all, null);
+                    LTestSection("HEADER]", false, null, eSectionPart.header, null);
+                    LTestSection("TEXT]", false, null, eSectionPart.text, null);
+                    LTestSection("HEADER.FIELDS (a xxy b)]", false, null, eSectionPart.headerfields, "A", "B", "XXY");
+                    LTestSection(@"HEADER.FIELDS (a xxy ""b"")]", false, null, eSectionPart.headerfields, "A", "B", "XXY");
+                    LTestSection("HEADER.FIELDS.NOT (a xxy b)]", false, null, eSectionPart.headerfieldsnot, "A", "B", "XXY");
+                    LTestSection("1.2.3]", false, "1.2.3", eSectionPart.all, null);
+                    LTestSection("1.2.3.HEADER]", false, "1.2.3", eSectionPart.header, null);
+                    LTestSection("1.2.3.TEXT]", false, "1.2.3", eSectionPart.text, null);
+                    LTestSection("1.2.3.HEADER.FIELDS (a xxy b)]", false, "1.2.3", eSectionPart.headerfields, "A", "B", "XXY");
+                    LTestSection("1.2.3.HEADER.FIELDS.NOT (a xxy b)]", false, "1.2.3", eSectionPart.headerfieldsnot, "A", "B", "XXY");
+                    LTestSection("1.2.3.MIME]", false, "1.2.3", eSectionPart.mime, null);
+                    LTestSection("1.2.3]", true, "1.2.3", eSectionPart.all, null);
 
                     LTestSectionFail("HEADER.FIELDS]", false);
                     LTestSectionFail("HEADER.FIELDS.NOT]", false);
@@ -1274,7 +1256,7 @@ namespace work.bacome.imapclient
                     LTestBaseSubject("[dunno] [ more ]   [of]     [fr€d]   fwd  [fred why is this here?]     :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "fred", "1");
                     LTestBaseSubject("[dunno] [ more ]   [of]     [fr€d]   fwd  [fred why is this here?] [x]    :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "fwd  [fred why is this here?] [x]    :  \t   [fwd:    fred   (fwd)  \t   (fwd)]", "1");
 
-                    void LTestSection(string pText, bool pBinary, string pExpectedPart, cSection.eTextPart pExpectedTextPart, params string[] pExpectedHeaderFields)
+                    void LTestSection(string pText, bool pBinary, string pExpectedPart, eSectionPart pExpectedTextPart, params string[] pExpectedHeaderFields)
                     {
                         if (!cBytesCursor.TryConstruct(pText, out var lxCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.1.{pText}.{pBinary}.1");
                         if (!ZProcessSection(lxCursor, pBinary, out var lSection) || !lxCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.2");

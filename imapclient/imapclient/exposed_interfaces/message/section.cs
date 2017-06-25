@@ -4,31 +4,31 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    public enum eSectionPart { all, header, headerfields, headerfieldsnot, text, mime }
+
     public class cSection
     {
-        public enum eTextPart { all, header, headerfields, headerfieldsnot, text, mime }
-
         public static readonly cSection All = new cSection(null);
-        public static readonly cSection Header = new cSection(null, eTextPart.header);
-        public static readonly cSection Text = new cSection(null, eTextPart.text);
+        public static readonly cSection Header = new cSection(null, eSectionPart.header);
+        public static readonly cSection Text = new cSection(null, eSectionPart.text);
 
         public readonly string Part; // may be null if the section refers to the top-most part
-        public readonly eTextPart TextPart;
+        public readonly eSectionPart TextPart;
         public readonly cStrings HeaderFields; // sorted, uppercased list of header fields or null
 
         public cSection(string pPart)
         {
             if (pPart != null && !ZValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             Part = pPart;
-            TextPart = eTextPart.all;
+            TextPart = eSectionPart.all;
             HeaderFields = null;
         }
 
-        public cSection(string pPart, eTextPart pTextPart)
+        public cSection(string pPart, eSectionPart pTextPart)
         {
             if (pPart != null && !ZValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             Part = pPart;
-            if (pTextPart != eTextPart.header && pTextPart != eTextPart.text && (pPart == null || pTextPart != eTextPart.mime)) throw new ArgumentOutOfRangeException(nameof(pTextPart));
+            if (pTextPart != eSectionPart.header && pTextPart != eSectionPart.text && (pPart == null || pTextPart != eSectionPart.mime)) throw new ArgumentOutOfRangeException(nameof(pTextPart));
             TextPart = pTextPart;
             HeaderFields = null;
         }
@@ -38,8 +38,8 @@ namespace work.bacome.imapclient
             if (pPart != null && !ZValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             Part = pPart;
 
-            if (pNot) TextPart = eTextPart.headerfieldsnot;
-            else TextPart = eTextPart.headerfields;
+            if (pNot) TextPart = eSectionPart.headerfieldsnot;
+            else TextPart = eSectionPart.headerfields;
 
             if (pHeaderFields == null) throw new ArgumentNullException(nameof(pHeaderFields));
             if (pHeaderFields.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHeaderFields));

@@ -553,40 +553,40 @@ namespace work.bacome.imapclient
                     if (pSection.Part != null)
                     {
                         Add(cCommandPart.AsAtom(pSection.Part));
-                        if (pSection.TextPart != cSection.eTextPart.all) Add(cCommandPart.Dot);
+                        if (pSection.TextPart != eSectionPart.all) Add(cCommandPart.Dot);
                     }
 
                     switch (pSection.TextPart)
                     {
-                        case cSection.eTextPart.all:
+                        case eSectionPart.all:
 
                             break;
 
-                        case cSection.eTextPart.header:
+                        case eSectionPart.header:
 
                             Add(kCommandPartHeader);
                             break;
 
-                        case cSection.eTextPart.headerfields:
+                        case eSectionPart.headerfields:
 
                             Add(kCommandPartHeaderFields);
                             LAdd(pSection.HeaderFields);
                             Add(cCommandPart.RParen);
                             break;
 
-                        case cSection.eTextPart.headerfieldsnot:
+                        case eSectionPart.headerfieldsnot:
 
                             Add(kCommandPartHeaderFieldsNot);
                             LAdd(pSection.HeaderFields);
                             Add(cCommandPart.RParen);
                             break;
 
-                        case cSection.eTextPart.text:
+                        case eSectionPart.text:
 
                             Add(kCommandPartText);
                             break;
 
-                        case cSection.eTextPart.mime:
+                        case eSectionPart.mime:
 
                             Add(kCommandPartMime);
                             break;

@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
                 var lCapability = _Capability;
 
                 // work out if binary can/should be used or not
-                bool lBinary = lCapability.Binary && pSection.TextPart == cSection.eTextPart.all && pDecoding != eDecodingRequired.none;
+                bool lBinary = lCapability.Binary && pSection.TextPart == eSectionPart.all && pDecoding != eDecodingRequired.none;
 
                 cDecoder lDecoder;
 
