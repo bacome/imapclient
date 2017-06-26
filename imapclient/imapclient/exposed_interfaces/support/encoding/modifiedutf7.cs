@@ -389,12 +389,12 @@ namespace work.bacome.imapclient.support
 
             for (char c = '\u0001'; c < 256; c++)
             {
-                ZAddToTuple(lRandom, c, lTriplesToSet0, 0);
-                ZAddToTuple(lRandom, c, lTriplesToSet1, 1);
-                ZAddToTuple(lRandom, c, lTriplesToSet2, 2);
+                LAddToTuple(lRandom, c, lTriplesToSet0, 0);
+                LAddToTuple(lRandom, c, lTriplesToSet1, 1);
+                LAddToTuple(lRandom, c, lTriplesToSet2, 2);
 
-                ZAddToTuple(lRandom, c, lPairsToSet0, 0);
-                ZAddToTuple(lRandom, c, lPairsToSet1, 1);
+                LAddToTuple(lRandom, c, lPairsToSet0, 0);
+                LAddToTuple(lRandom, c, lPairsToSet1, 1);
 
                 lChars.Add(c);
 
@@ -424,12 +424,12 @@ namespace work.bacome.imapclient.support
                     lCat == System.Globalization.UnicodeCategory.UppercaseLetter
                     )
                 {
-                    ZAddToTuple(lRandom, lChar, lTriplesToSet0, 0);
-                    ZAddToTuple(lRandom, lChar, lTriplesToSet1, 1);
-                    ZAddToTuple(lRandom, lChar, lTriplesToSet2, 2);
+                    LAddToTuple(lRandom, lChar, lTriplesToSet0, 0);
+                    LAddToTuple(lRandom, lChar, lTriplesToSet1, 1);
+                    LAddToTuple(lRandom, lChar, lTriplesToSet2, 2);
 
-                    ZAddToTuple(lRandom, lChar, lPairsToSet0, 0);
-                    ZAddToTuple(lRandom, lChar, lPairsToSet1, 1);
+                    LAddToTuple(lRandom, lChar, lPairsToSet0, 0);
+                    LAddToTuple(lRandom, lChar, lPairsToSet1, 1);
 
                     lChars.Add(lChar);
 
@@ -490,7 +490,7 @@ namespace work.bacome.imapclient.support
                 if (lDecodedString != lString) throw new cTestsException($"modifiedutf7 round trip failure {lResult}", lContext);
             }
 
-            void ZAddToTuple(Random pRandom, char pChar, List<char[]> pTuples, int pIndex)
+            void LAddToTuple(Random pRandom, char pChar, List<char[]> pTuples, int pIndex)
             {
                 int lTupleIndex = pRandom.Next(pTuples.Count);
                 var lTuple = pTuples[lTupleIndex];

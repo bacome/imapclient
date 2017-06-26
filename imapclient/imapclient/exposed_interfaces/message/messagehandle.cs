@@ -8,8 +8,8 @@ namespace work.bacome.imapclient
         int CacheSequence { get; }
         bool Expunged { get; }
         fMessageProperties Properties { get; }
-        cBodyStructure Body { get; }
-        cBodyStructure BodyEx { get; }
+        cBodyPart BodyStructure { get; }
+        cBodyPart BodyStructureEx { get; }
         cEnvelope Envelope { get; }
         cMessageFlags Flags { get; }
         DateTime? Received { get; }
@@ -17,6 +17,5 @@ namespace work.bacome.imapclient
         cUID UID { get; }
         cStrings References { get; }
         cBinarySizes BinarySizes { get; } // part => size
-        string HandleString { get; }
     }
 }

@@ -687,12 +687,12 @@ namespace work.bacome.imapclient
                 {
                     if (pProcessDataResult == eProcessDataResult.processed)
                     {
-                        if (pResult != eProcessDataResult.notprocessed) throw new cPipelineConflictException("data processed more than once", pContext);
+                        if (pResult != eProcessDataResult.notprocessed) throw new cPipelineConflictException(pContext);
                         pResult = eProcessDataResult.processed;
                     }
                     else if (pProcessDataResult == eProcessDataResult.observed)
                     {
-                        if (pResult == eProcessDataResult.processed) throw new cPipelineConflictException("data processed more than once", pContext);
+                        if (pResult == eProcessDataResult.processed) throw new cPipelineConflictException(pContext);
                         pResult = eProcessDataResult.observed;
                     }
                 }

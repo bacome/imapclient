@@ -11,14 +11,13 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cHandleList> FetchPropertiesAsync(cMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            public async Task<cHandleList> UIDFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchPropertiesAsync), pMC, pMailboxId, pUIDs, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchAsync), pMC, pMailboxId, pUIDs, pProperties);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
                 if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
-
 
                 // split the list into those messages I have handles for and those I dont
                 /////////////////////////////////////////////////////////////////////////
@@ -35,11 +34,11 @@ namespace work.bacome.imapclient
                     foreach (var lUID in pUIDs)
                     {
                         var lHandle = _SelectedMailbox.GetHandle(lUID);
-                        if (lHandle == null) lUIDs.Add(lUID);
+                        if (lHandle == null) lUIDs.Add(lUID); // don't have a handle
+                        else if((~lHandle.Properties & pProperties) == pProperties) lUIDs.Add(lUID); // have to get all the properties
                         else lHandles.Add(lHandle);
                     }
                 }
-
 
                 // for the messages I have handles for, fetch the missing properties
                 ////////////////////////////////////////////////////////////////////
@@ -47,15 +46,15 @@ namespace work.bacome.imapclient
                 if (lHandles.Count > 0)
                 {
                     // split the handles into groups based on what properties need to be retrieved, for each group do the retrieval
-                    foreach (var lGroup in ZFetchPropertiesFetchGroups(lHandles, pProperties)) await ZFetchPropertiesAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
+                    foreach (var lGroup in ZFetchGroups(lHandles, pProperties)) await ZFetchAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
                 }
 
-                // for the messages only identified by UID I have to get all the properties
-                ///////////////////////////////////////////////////////////////////////////
+                // for the messages only identified by UID or where I have to get all the properties
+                ////////////////////////////////////////////////////////////////////////////////////
 
                 if (lUIDs.Count > 0)
                 {
-                    await ZFetchPropertiesAsync(pMC, pMailboxId, lUIDs, pProperties, lContext).ConfigureAwait(false);
+                    await ZUIDFetchAsync(pMC, pMailboxId, lUIDs, pProperties, lContext).ConfigureAwait(false);
 
                     // resolve uids -> handles whilst blocking select exclusive access
                     //
@@ -74,9 +73,9 @@ namespace work.bacome.imapclient
                 return lHandles;
             }
 
-            public async Task ZFetchPropertiesAsync(cMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            public async Task ZUIDFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchPropertiesAsync), pMC, pMailboxId, pUIDs, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAsync), pMC, pMailboxId, pUIDs, pProperties);
 
                 // get the UIDValidity
                 uint lUIDValidity = pUIDs[0].UIDValidity;
@@ -97,7 +96,7 @@ namespace work.bacome.imapclient
 
                     // fetch
                     Stopwatch lStopwatch = Stopwatch.StartNew();
-                    await ZUIDFetchPropertiesAsync(pMC, pMailboxId, lUIDValidity, lUIDs, pProperties, lContext).ConfigureAwait(false);
+                    await ZUIDFetchAsync(pMC, pMailboxId, lUIDValidity, lUIDs, pProperties, lContext).ConfigureAwait(false);
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size

@@ -13,6 +13,6 @@ namespace work.bacome.imapclient
             Handle = pHandle;
         }
 
-        public override string ToString() => $"{nameof(cMessageExpungedEventArgs)}({MailboxId},{Handle.HandleString})";
+        public override string ToString() => $"{nameof(cMessageExpungedEventArgs)}({MailboxId},{Handle})";
     }
 }

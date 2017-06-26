@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
                 private readonly int mCacheSequence;
                 private bool mExpunged = false;
                 private fMessageProperties mProperties = 0;
-                private cBodyStructure mBody = null;
+                private cBodyPart mBodyStructure = null;
 
                 public cMessageCacheItem(iMessageCache pCache, int pCacheSequence)
                 {
@@ -24,8 +24,8 @@ namespace work.bacome.imapclient
                 public int CacheSequence => mCacheSequence;
                 public bool Expunged => mExpunged;
                 public fMessageProperties Properties => mProperties;
-                public cBodyStructure Body => mBody ?? BodyEx;
-                public cBodyStructure BodyEx { get; private set; } = null;
+                public cBodyPart BodyStructure => mBodyStructure ?? BodyStructureEx;
+                public cBodyPart BodyStructureEx { get; private set; } = null;
                 public cEnvelope Envelope { get; private set; } = null;
                 public cMessageFlags Flags { get; private set; } = null;
                 public DateTime? Received { get; private set; } = null;
@@ -33,7 +33,6 @@ namespace work.bacome.imapclient
                 public cUID UID { get; private set; } = null;
                 public cStrings References { get; private set; } = null;
                 public cBinarySizes BinarySizes { get; private set; } = null;
-                public string HandleString => $"{nameof(cMessageCacheItem)}({mCache},{mCacheSequence},{mProperties},{mExpunged})";
 
                 public void SetExpunged() => mExpunged = true;
 
@@ -41,18 +40,18 @@ namespace work.bacome.imapclient
                 {
                     rSet = 0;
 
-                    if (lFetch.Body != null && mBody == null)
+                    if (lFetch.BodyStructure != null && mBodyStructure == null)
                     {
-                        mBody = lFetch.Body;
-                        mProperties |= fMessageProperties.body;
-                        rSet |= fMessageProperties.body;
+                        mBodyStructure = lFetch.BodyStructure;
+                        mProperties |= fMessageProperties.bodystructure;
+                        rSet |= fMessageProperties.bodystructure;
                     }
 
-                    if (lFetch.BodyEx != null && BodyEx == null)
+                    if (lFetch.BodyStructureEx != null && BodyStructureEx == null)
                     {
-                        BodyEx = lFetch.BodyEx;
-                        mProperties |= fMessageProperties.body | fMessageProperties.bodyex;
-                        rSet |= fMessageProperties.body | fMessageProperties.bodyex;
+                        BodyStructureEx = lFetch.BodyStructureEx;
+                        mProperties |= fMessageProperties.bodystructure | fMessageProperties.bodystructureex;
+                        rSet |= fMessageProperties.bodystructure | fMessageProperties.bodystructureex;
                     }
 
                     if (lFetch.Envelope != null && Envelope == null)
@@ -101,7 +100,7 @@ namespace work.bacome.imapclient
                     else if (lFetch.BinarySizes != null) BinarySizes = BinarySizes + lFetch.BinarySizes;
                 }
 
-                public override string ToString() => $"{nameof(cMessageCacheItem)}({mCache},{mCacheSequence},{mProperties},{mExpunged},{BodyEx ?? mBody},{Envelope},{Flags},{Received},{Size},{UID},{References},{BinarySizes})";
+                public override string ToString() => $"{nameof(cMessageCacheItem)}({mCache},{mCacheSequence})";
             }
         }
     }

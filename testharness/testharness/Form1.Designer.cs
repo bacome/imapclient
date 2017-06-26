@@ -76,11 +76,24 @@
             this.pnlIgnoreCapabilities = new System.Windows.Forms.Panel();
             this.label12 = new System.Windows.Forms.Label();
             this.chkIgnoreNamespace = new System.Windows.Forms.CheckBox();
+            this.tpgInfo = new System.Windows.Forms.TabPage();
+            this.rtxInfo = new System.Windows.Forms.RichTextBox();
             this.tabControl2 = new System.Windows.Forms.TabControl();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tvwMailboxes = new System.Windows.Forms.TreeView();
+            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.dgvMessageHeaders = new System.Windows.Forms.DataGridView();
+            this.splitContainer3 = new System.Windows.Forms.SplitContainer();
+            this.tvwBodyStructure = new System.Windows.Forms.TreeView();
+            this.cmdInspectRaw = new System.Windows.Forms.Button();
+            this.cmdInspect = new System.Windows.Forms.Button();
+            this.rtxPartDetail = new System.Windows.Forms.RichTextBox();
             this.cmdTestsCurrent = new System.Windows.Forms.Button();
+            this.chkIgnoreBinary = new System.Windows.Forms.CheckBox();
+            this.txtDaysToGet = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.pnlCredentials.SuspendLayout();
             this.pnlConnection.SuspendLayout();
             this.pnlProperties.SuspendLayout();
@@ -90,9 +103,23 @@
             this.tabPage1.SuspendLayout();
             this.tpgSettings.SuspendLayout();
             this.pnlIgnoreCapabilities.SuspendLayout();
+            this.tpgInfo.SuspendLayout();
             this.tabControl2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
+            this.splitContainer2.Panel1.SuspendLayout();
+            this.splitContainer2.Panel2.SuspendLayout();
+            this.splitContainer2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvMessageHeaders)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
+            this.splitContainer3.Panel1.SuspendLayout();
+            this.splitContainer3.Panel2.SuspendLayout();
+            this.splitContainer3.SuspendLayout();
             this.SuspendLayout();
             // 
             // txtHost
@@ -284,7 +311,7 @@
             this.rtxResponseText.Location = new System.Drawing.Point(6, 6);
             this.rtxResponseText.Name = "rtxResponseText";
             this.rtxResponseText.ReadOnly = true;
-            this.rtxResponseText.Size = new System.Drawing.Size(386, 424);
+            this.rtxResponseText.Size = new System.Drawing.Size(575, 562);
             this.rtxResponseText.TabIndex = 21;
             this.rtxResponseText.Text = "";
             // 
@@ -295,7 +322,7 @@
             this.rtxState.Location = new System.Drawing.Point(363, 30);
             this.rtxState.Name = "rtxState";
             this.rtxState.ReadOnly = true;
-            this.rtxState.Size = new System.Drawing.Size(407, 99);
+            this.rtxState.Size = new System.Drawing.Size(596, 99);
             this.rtxState.TabIndex = 20;
             this.rtxState.Text = "";
             // 
@@ -349,7 +376,8 @@
             // 
             // cmdCancel
             // 
-            this.cmdCancel.Location = new System.Drawing.Point(118, 338);
+            this.cmdCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdCancel.Location = new System.Drawing.Point(118, 479);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(106, 24);
             this.cmdCancel.TabIndex = 19;
@@ -446,7 +474,7 @@
             this.txtStartDelay.Name = "txtStartDelay";
             this.txtStartDelay.Size = new System.Drawing.Size(40, 20);
             this.txtStartDelay.TabIndex = 11;
-            this.txtStartDelay.Text = "60000";
+            this.txtStartDelay.Text = "1000";
             this.txtStartDelay.Validating += new System.ComponentModel.CancelEventHandler(this.TextBoxIsMilliseconds);
             this.txtStartDelay.Validated += new System.EventHandler(this.ControlValidated);
             // 
@@ -501,12 +529,15 @@
             // 
             // tabControl1
             // 
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tpgSettings);
+            this.tabControl1.Controls.Add(this.tpgInfo);
             this.tabControl1.Location = new System.Drawing.Point(12, 207);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(336, 394);
+            this.tabControl1.Size = new System.Drawing.Size(336, 532);
             this.tabControl1.TabIndex = 29;
             // 
             // tabPage1
@@ -519,7 +550,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(328, 368);
+            this.tabPage1.Size = new System.Drawing.Size(328, 506);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "General";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -533,14 +564,15 @@
             this.tpgSettings.Location = new System.Drawing.Point(4, 22);
             this.tpgSettings.Name = "tpgSettings";
             this.tpgSettings.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgSettings.Size = new System.Drawing.Size(328, 368);
+            this.tpgSettings.Size = new System.Drawing.Size(328, 506);
             this.tpgSettings.TabIndex = 1;
             this.tpgSettings.Text = "Settings";
             this.tpgSettings.UseVisualStyleBackColor = true;
             // 
             // cmdApply
             // 
-            this.cmdApply.Location = new System.Drawing.Point(6, 339);
+            this.cmdApply.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdApply.Location = new System.Drawing.Point(6, 477);
             this.cmdApply.Name = "cmdApply";
             this.cmdApply.Size = new System.Drawing.Size(124, 22);
             this.cmdApply.TabIndex = 28;
@@ -551,6 +583,7 @@
             // pnlIgnoreCapabilities
             // 
             this.pnlIgnoreCapabilities.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlIgnoreCapabilities.Controls.Add(this.chkIgnoreBinary);
             this.pnlIgnoreCapabilities.Controls.Add(this.label12);
             this.pnlIgnoreCapabilities.Controls.Add(this.chkIgnoreNamespace);
             this.pnlIgnoreCapabilities.Location = new System.Drawing.Point(6, 118);
@@ -577,6 +610,28 @@
             this.chkIgnoreNamespace.Text = "Namespace";
             this.chkIgnoreNamespace.UseVisualStyleBackColor = true;
             // 
+            // tpgInfo
+            // 
+            this.tpgInfo.Controls.Add(this.rtxInfo);
+            this.tpgInfo.Location = new System.Drawing.Point(4, 22);
+            this.tpgInfo.Name = "tpgInfo";
+            this.tpgInfo.Padding = new System.Windows.Forms.Padding(3);
+            this.tpgInfo.Size = new System.Drawing.Size(328, 506);
+            this.tpgInfo.TabIndex = 2;
+            this.tpgInfo.Text = "Info";
+            this.tpgInfo.UseVisualStyleBackColor = true;
+            // 
+            // rtxInfo
+            // 
+            this.rtxInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.rtxInfo.Location = new System.Drawing.Point(6, 6);
+            this.rtxInfo.Name = "rtxInfo";
+            this.rtxInfo.Size = new System.Drawing.Size(319, 497);
+            this.rtxInfo.TabIndex = 0;
+            this.rtxInfo.Text = "";
+            // 
             // tabControl2
             // 
             this.tabControl2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -587,7 +642,7 @@
             this.tabControl2.Location = new System.Drawing.Point(364, 139);
             this.tabControl2.Name = "tabControl2";
             this.tabControl2.SelectedIndex = 0;
-            this.tabControl2.Size = new System.Drawing.Size(406, 462);
+            this.tabControl2.Size = new System.Drawing.Size(595, 600);
             this.tabControl2.TabIndex = 30;
             // 
             // tabPage3
@@ -596,30 +651,151 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(398, 436);
+            this.tabPage3.Size = new System.Drawing.Size(587, 574);
             this.tabPage3.TabIndex = 0;
             this.tabPage3.Text = "Response Text";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
             // tabPage4
             // 
-            this.tabPage4.Controls.Add(this.tvwMailboxes);
+            this.tabPage4.Controls.Add(this.splitContainer1);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(398, 436);
+            this.tabPage4.Size = new System.Drawing.Size(587, 574);
             this.tabPage4.TabIndex = 1;
             this.tabPage4.Text = "Mailboxes";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // splitContainer1
+            // 
+            this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainer1.Location = new System.Drawing.Point(6, 6);
+            this.splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.label6);
+            this.splitContainer1.Panel1.Controls.Add(this.tvwMailboxes);
+            this.splitContainer1.Panel1.Controls.Add(this.txtDaysToGet);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
+            this.splitContainer1.Size = new System.Drawing.Size(578, 561);
+            this.splitContainer1.SplitterDistance = 192;
+            this.splitContainer1.TabIndex = 32;
+            // 
             // tvwMailboxes
             // 
-            this.tvwMailboxes.Location = new System.Drawing.Point(6, 6);
+            this.tvwMailboxes.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tvwMailboxes.Location = new System.Drawing.Point(3, 33);
             this.tvwMailboxes.Name = "tvwMailboxes";
-            this.tvwMailboxes.Size = new System.Drawing.Size(145, 424);
+            this.tvwMailboxes.Size = new System.Drawing.Size(186, 525);
             this.tvwMailboxes.TabIndex = 0;
             this.tvwMailboxes.AfterExpand += new System.Windows.Forms.TreeViewEventHandler(this.tvwMailboxes_AfterExpand);
-            this.tvwMailboxes.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvwMailboxes_NodeMouseClick);
+            this.tvwMailboxes.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvwMailboxes_AfterSelect);
+            // 
+            // splitContainer2
+            // 
+            this.splitContainer2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainer2.Location = new System.Drawing.Point(3, 7);
+            this.splitContainer2.Name = "splitContainer2";
+            this.splitContainer2.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer2.Panel1
+            // 
+            this.splitContainer2.Panel1.Controls.Add(this.dgvMessageHeaders);
+            // 
+            // splitContainer2.Panel2
+            // 
+            this.splitContainer2.Panel2.Controls.Add(this.splitContainer3);
+            this.splitContainer2.Size = new System.Drawing.Size(376, 551);
+            this.splitContainer2.SplitterDistance = 194;
+            this.splitContainer2.TabIndex = 0;
+            // 
+            // dgvMessageHeaders
+            // 
+            this.dgvMessageHeaders.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvMessageHeaders.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvMessageHeaders.Location = new System.Drawing.Point(3, 3);
+            this.dgvMessageHeaders.Name = "dgvMessageHeaders";
+            this.dgvMessageHeaders.Size = new System.Drawing.Size(370, 188);
+            this.dgvMessageHeaders.TabIndex = 1;
+            this.dgvMessageHeaders.CurrentCellChanged += new System.EventHandler(this.dgvMessageHeaders_CurrentCellChanged);
+            // 
+            // splitContainer3
+            // 
+            this.splitContainer3.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainer3.Location = new System.Drawing.Point(3, 5);
+            this.splitContainer3.Name = "splitContainer3";
+            // 
+            // splitContainer3.Panel1
+            // 
+            this.splitContainer3.Panel1.Controls.Add(this.tvwBodyStructure);
+            // 
+            // splitContainer3.Panel2
+            // 
+            this.splitContainer3.Panel2.Controls.Add(this.cmdInspectRaw);
+            this.splitContainer3.Panel2.Controls.Add(this.cmdInspect);
+            this.splitContainer3.Panel2.Controls.Add(this.rtxPartDetail);
+            this.splitContainer3.Size = new System.Drawing.Size(370, 345);
+            this.splitContainer3.SplitterDistance = 123;
+            this.splitContainer3.TabIndex = 3;
+            // 
+            // tvwBodyStructure
+            // 
+            this.tvwBodyStructure.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tvwBodyStructure.Location = new System.Drawing.Point(3, 3);
+            this.tvwBodyStructure.Name = "tvwBodyStructure";
+            this.tvwBodyStructure.Size = new System.Drawing.Size(117, 339);
+            this.tvwBodyStructure.TabIndex = 2;
+            this.tvwBodyStructure.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvwBodyStructure_AfterSelect);
+            // 
+            // cmdInspectRaw
+            // 
+            this.cmdInspectRaw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdInspectRaw.Location = new System.Drawing.Point(46, 319);
+            this.cmdInspectRaw.Name = "cmdInspectRaw";
+            this.cmdInspectRaw.Size = new System.Drawing.Size(94, 23);
+            this.cmdInspectRaw.TabIndex = 2;
+            this.cmdInspectRaw.Text = "Inspect Raw";
+            this.cmdInspectRaw.UseVisualStyleBackColor = true;
+            this.cmdInspectRaw.Click += new System.EventHandler(this.cmdInspectRaw_Click);
+            // 
+            // cmdInspect
+            // 
+            this.cmdInspect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdInspect.Location = new System.Drawing.Point(146, 319);
+            this.cmdInspect.Name = "cmdInspect";
+            this.cmdInspect.Size = new System.Drawing.Size(94, 23);
+            this.cmdInspect.TabIndex = 1;
+            this.cmdInspect.Text = "Inspect";
+            this.cmdInspect.UseVisualStyleBackColor = true;
+            this.cmdInspect.Click += new System.EventHandler(this.cmdInspect_Click);
+            // 
+            // rtxPartDetail
+            // 
+            this.rtxPartDetail.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.rtxPartDetail.Location = new System.Drawing.Point(3, 7);
+            this.rtxPartDetail.Name = "rtxPartDetail";
+            this.rtxPartDetail.Size = new System.Drawing.Size(237, 306);
+            this.rtxPartDetail.TabIndex = 0;
+            this.rtxPartDetail.Text = "";
             // 
             // cmdTestsCurrent
             // 
@@ -631,12 +807,42 @@
             this.cmdTestsCurrent.UseVisualStyleBackColor = true;
             this.cmdTestsCurrent.Click += new System.EventHandler(this.cmdTestsCurrent_Click);
             // 
+            // chkIgnoreBinary
+            // 
+            this.chkIgnoreBinary.AutoSize = true;
+            this.chkIgnoreBinary.Location = new System.Drawing.Point(14, 59);
+            this.chkIgnoreBinary.Name = "chkIgnoreBinary";
+            this.chkIgnoreBinary.Size = new System.Drawing.Size(55, 17);
+            this.chkIgnoreBinary.TabIndex = 15;
+            this.chkIgnoreBinary.Text = "Binary";
+            this.chkIgnoreBinary.UseVisualStyleBackColor = true;
+            // 
+            // txtDaysToGet
+            // 
+            this.txtDaysToGet.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtDaysToGet.Location = new System.Drawing.Point(149, 7);
+            this.txtDaysToGet.Name = "txtDaysToGet";
+            this.txtDaysToGet.Size = new System.Drawing.Size(40, 20);
+            this.txtDaysToGet.TabIndex = 29;
+            this.txtDaysToGet.Text = "100";
+            this.txtDaysToGet.Validating += new System.ComponentModel.CancelEventHandler(this.txtDaysToGet_Validating);
+            this.txtDaysToGet.Validated += new System.EventHandler(this.ControlValidated);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(3, 10);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(123, 13);
+            this.label6.TabIndex = 30;
+            this.label6.Text = "Days of messages to get";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(785, 612);
+            this.ClientSize = new System.Drawing.Size(974, 750);
             this.Controls.Add(this.cmdTestsCurrent);
             this.Controls.Add(this.tabControl2);
             this.Controls.Add(this.tabControl1);
@@ -665,9 +871,24 @@
             this.tpgSettings.ResumeLayout(false);
             this.pnlIgnoreCapabilities.ResumeLayout(false);
             this.pnlIgnoreCapabilities.PerformLayout();
+            this.tpgInfo.ResumeLayout(false);
             this.tabControl2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.PerformLayout();
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
+            this.splitContainer2.Panel1.ResumeLayout(false);
+            this.splitContainer2.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
+            this.splitContainer2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvMessageHeaders)).EndInit();
+            this.splitContainer3.Panel1.ResumeLayout(false);
+            this.splitContainer3.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
+            this.splitContainer3.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -727,6 +948,19 @@
         private System.Windows.Forms.TreeView tvwMailboxes;
         private System.Windows.Forms.Button cmdApply;
         private System.Windows.Forms.Button cmdTestsCurrent;
+        private System.Windows.Forms.DataGridView dgvMessageHeaders;
+        private System.Windows.Forms.TreeView tvwBodyStructure;
+        private System.Windows.Forms.TabPage tpgInfo;
+        private System.Windows.Forms.RichTextBox rtxInfo;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.SplitContainer splitContainer2;
+        private System.Windows.Forms.SplitContainer splitContainer3;
+        private System.Windows.Forms.Button cmdInspect;
+        private System.Windows.Forms.RichTextBox rtxPartDetail;
+        private System.Windows.Forms.Button cmdInspectRaw;
+        private System.Windows.Forms.CheckBox chkIgnoreBinary;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox txtDaysToGet;
     }
 }
 

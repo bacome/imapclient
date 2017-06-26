@@ -142,7 +142,7 @@ namespace work.bacome.imapclient
                         cBytesLine lLine;
 
                         lBuilder = new cResponseBuilder();
-                        lBytes = ZMakeBuffer("fred\r\n");
+                        lBytes = LMakeBuffer("fred\r\n");
                         lBufferPosition = 0;
 
                         lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
@@ -155,7 +155,7 @@ namespace work.bacome.imapclient
 
 
                         lBuilder = new cResponseBuilder();
-                        lBytes = ZMakeBuffer("fred{5}\r\nanguschar");
+                        lBytes = LMakeBuffer("fred{5}\r\nanguschar");
                         lBufferPosition = 0;
 
                         lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
@@ -163,7 +163,7 @@ namespace work.bacome.imapclient
                         if (lBufferPosition != lBytes.Length) throw new cTestsException("the buffer should have been fully read", lContext);
                         if (lLines != null) throw new cTestsException("no response should have been generated", lContext);
 
-                        lBytes = ZMakeBuffer("lie\r\nfred\r\n");
+                        lBytes = LMakeBuffer("lie\r\nfred\r\n");
                         lBufferPosition = 0;
 
                         lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
@@ -191,7 +191,7 @@ namespace work.bacome.imapclient
 
 
                         lBuilder = new cResponseBuilder();
-                        lBytes = ZMakeBuffer("f\ra\n\r\n");
+                        lBytes = LMakeBuffer("f\ra\n\r\n");
                         lBufferPosition = 0;
 
                         lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
@@ -204,7 +204,7 @@ namespace work.bacome.imapclient
 
 
                         lBuilder = new cResponseBuilder();
-                        lBytes = ZMakeBuffer("{}\r\n");
+                        lBytes = LMakeBuffer("{}\r\n");
                         lBufferPosition = 0;
 
                         lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
@@ -218,7 +218,7 @@ namespace work.bacome.imapclient
 
 
                         lBuilder = new cResponseBuilder();
-                        lBytes = ZMakeBuffer("fred{}\r\n");
+                        lBytes = LMakeBuffer("fred{}\r\n");
                         lBufferPosition = 0;
 
                         lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
@@ -231,7 +231,7 @@ namespace work.bacome.imapclient
 
 
                         lBuilder = new cResponseBuilder();
-                        lBytes = ZMakeBuffer("fred{a}\r\n");
+                        lBytes = LMakeBuffer("fred{a}\r\n");
                         lBufferPosition = 0;
 
                         lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
@@ -244,7 +244,7 @@ namespace work.bacome.imapclient
 
 
                         lBuilder = new cResponseBuilder();
-                        lBytes = ZMakeBuffer("fred123}\r\n");
+                        lBytes = LMakeBuffer("fred123}\r\n");
                         lBufferPosition = 0;
 
                         lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
@@ -258,7 +258,7 @@ namespace work.bacome.imapclient
 
 
                         lBuilder = new cResponseBuilder();
-                        lBytes = ZMakeBuffer("fred{12345678901}\r\n");
+                        lBytes = LMakeBuffer("fred{12345678901}\r\n");
                         lBufferPosition = 0;
 
                         bool lException = false;
@@ -270,7 +270,7 @@ namespace work.bacome.imapclient
 
 
                         lBuilder = new cResponseBuilder();
-                        lBytes = ZMakeBuffer("fred{0}\r\n{00}\r\n\r\n");
+                        lBytes = LMakeBuffer("fred{0}\r\n{00}\r\n\r\n");
                         lBufferPosition = 0;
 
                         lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
@@ -294,7 +294,7 @@ namespace work.bacome.imapclient
 
                         lBuilder = new cResponseBuilder();
                         lBuilder.Binary = true;
-                        lBytes = ZMakeBuffer("fred~{0}\r\n~{00}\r\n\r\n");
+                        lBytes = LMakeBuffer("fred~{0}\r\n~{00}\r\n\r\n");
                         lBufferPosition = 0;
 
                         lLines = lBuilder.BuildFromBuffer(lBytes, ref lBufferPosition, lContext);
@@ -312,7 +312,7 @@ namespace work.bacome.imapclient
                         lLine = lLines[2];
                         if (lLine.Count != 0 || !lLine.Literal) throw new cTestsException("the line should have been empty literal", lContext);
 
-                        byte[] ZMakeBuffer(string pString)
+                        byte[] LMakeBuffer(string pString)
                         {
                             byte[] lResult = new byte[pString.Length];
                             for (int i = 0, j = 0; i < pString.Length; i++, j++) lResult[j] = (byte)pString[i];

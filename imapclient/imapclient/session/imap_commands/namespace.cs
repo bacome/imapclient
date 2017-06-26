@@ -162,17 +162,17 @@ namespace work.bacome.imapclient
 
                     cNamespaces lNamespaces;
 
-                    lNamespaces = ZTest("NAMESPACE ((\"\" \"/\")) NIL NIL", 0);
+                    lNamespaces = LTest("NAMESPACE ((\"\" \"/\")) NIL NIL", 0);
                     if (lNamespaces.Personal[0].Prefix.Length != 0 || lNamespaces.Personal[0].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.1 failed");
 
-                    lNamespaces = ZTest("NAMESPACE NIL NIL ((\"\" \".\"))", 0);
+                    lNamespaces = LTest("NAMESPACE NIL NIL ((\"\" \".\"))", 0);
                     if (lNamespaces.Shared[0].Prefix.Length != 0 || lNamespaces.Shared[0].NamespaceId.NamespaceName.Delimiter.Value != '.') throw new cTestsException("rfc 2342 5.2 failed");
 
-                    lNamespaces = ZTest("NAMESPACE ((\"\" \"/\")) NIL ((\"Public Folders/\" \"/\"))", 0);
+                    lNamespaces = LTest("NAMESPACE ((\"\" \"/\")) NIL ((\"Public Folders/\" \"/\"))", 0);
                     if (lNamespaces.Personal[0].Prefix.Length != 0 || lNamespaces.Personal[0].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.3.1 failed");
                     if (lNamespaces.Shared[0].Prefix != "Public Folders/" || lNamespaces.Shared[0].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.3.2 failed");
 
-                    lNamespaces = ZTest("NAMESPACE ((\"\" \"/\")) ((\"~\" \"/\")) ((\"#shared/\" \"/\")(\"#public/\" \"/\")(\"#ftp/\" \"/\")(\"#news.\" \".\"))", 0);
+                    lNamespaces = LTest("NAMESPACE ((\"\" \"/\")) ((\"~\" \"/\")) ((\"#shared/\" \"/\")(\"#public/\" \"/\")(\"#ftp/\" \"/\")(\"#news.\" \".\"))", 0);
                     if (lNamespaces.Personal[0].Prefix.Length != 0 || lNamespaces.Personal[0].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.4.1 failed");
                     if (lNamespaces.OtherUsers[0].Prefix != "~" || lNamespaces.OtherUsers[0].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.4.2 failed");
                     if (lNamespaces.Shared[0].Prefix != "#shared/" || lNamespaces.Shared[0].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.4.3 failed");
@@ -180,24 +180,24 @@ namespace work.bacome.imapclient
                     if (lNamespaces.Shared[2].Prefix != "#ftp/" || lNamespaces.Shared[2].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.4.5 failed");
                     if (lNamespaces.Shared[3].Prefix != "#news." || lNamespaces.Shared[3].NamespaceId.NamespaceName.Delimiter.Value != '.') throw new cTestsException("rfc 2342 5.4.6 failed");
 
-                    lNamespaces = ZTest("NAMESPACE ((\"INBOX.\" \".\")) NIL NIL", 0);
+                    lNamespaces = LTest("NAMESPACE ((\"INBOX.\" \".\")) NIL NIL", 0);
                     if (lNamespaces.Personal[0].Prefix != "INBOX." || lNamespaces.Personal[0].NamespaceId.NamespaceName.Delimiter.Value != '.') throw new cTestsException("rfc 2342 5.5.1 failed");
 
-                    lNamespaces = ZTest("NAMESPACE ((\"\" \"/\")(\"#mh/\" \"/\" \"X-PARAM\" (\"FLAG1\" \"FLAG2\"))) nil nil", 0);
+                    lNamespaces = LTest("NAMESPACE ((\"\" \"/\")(\"#mh/\" \"/\" \"X-PARAM\" (\"FLAG1\" \"FLAG2\"))) nil nil", 0);
                     if (lNamespaces.Personal[0].Prefix.Length != 0 || lNamespaces.Personal[0].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.6.1 failed");
                     if (lNamespaces.Personal[1].Prefix != "#mh/" || lNamespaces.Personal[1].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.6.2 failed");
 
-                    lNamespaces = ZTest("NAMESPACE ((\"\" \"/\")) ((\"Other Users/\" \"/\")) NIL", 0);
+                    lNamespaces = LTest("NAMESPACE ((\"\" \"/\")) ((\"Other Users/\" \"/\")) NIL", 0);
                     if (lNamespaces.Personal[0].Prefix.Length != 0 || lNamespaces.Personal[0].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.7.1 failed");
                     if (lNamespaces.OtherUsers[0].Prefix != "Other Users/" || lNamespaces.OtherUsers[0].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.7.2 failed");
 
-                    lNamespaces = ZTest("NAMESPACE ((\"\" \"/\")) ((\"~\" \"/\")) NIL", 0);
+                    lNamespaces = LTest("NAMESPACE ((\"\" \"/\")) ((\"~\" \"/\")) NIL", 0);
                     if (lNamespaces.Personal[0].Prefix.Length != 0 || lNamespaces.Personal[0].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.8.1 failed");
                     if (lNamespaces.OtherUsers[0].Prefix != "~" || lNamespaces.OtherUsers[0].NamespaceId.NamespaceName.Delimiter.Value != '/') throw new cTestsException("rfc 2342 5.8.2 failed");
 
                     // utf8
                     //lNamespaces = ZTest(new cBytes(Array.AsReadOnly(new byte[] { cASCII.n, cASCII.a, cASCII.m, cASCII.e, cASCII.s, cASCII.p, cASCII.a, cASCII.c, cASCII.e, cASCII.SPACE, cASCII.n, cASCII.i, cASCII.l, cASCII.SPACE, cASCII.n, cASCII.i, cASCII.l, cASCII.SPACE, cASCII.LPAREN, cASCII.LPAREN, cASCII.DQUOTE, cASCII.f, cASCII.r, 226, 130, 172, cASCII.d, cASCII.DQUOTE, cASCII.SPACE, cASCII.n, cASCII.i, cASCII.l, cASCII.RPAREN, cASCII.RPAREN })), true, lContext);
-                    lNamespaces = ZTestUTF8("namespace nil nil ((\"fr€d\" nil))", fEnableableExtensions.utf8);
+                    lNamespaces = LTestUTF8("namespace nil nil ((\"fr€d\" nil))", fEnableableExtensions.utf8);
                     if (lNamespaces.Personal != null) throw new cTestsException("UTF8 1 failed");
                     if (lNamespaces.OtherUsers != null) throw new cTestsException("UTF8 2 failed");
                     if (lNamespaces.Shared[0].Prefix != "fr€d" || lNamespaces.Shared[0].NamespaceId.NamespaceName.Delimiter != null) throw new cTestsException("UTF8 3 failed");
@@ -206,15 +206,15 @@ namespace work.bacome.imapclient
 
                     //string lTest = cIMAPClient.cTools.BytesToString(cModifiedUTF7.Encode("fr€d", lContext));
 
-                    lNamespaces = ZTest("namespace nil nil ((\"fr&IKw-d\" nil))", 0);
+                    lNamespaces = LTest("namespace nil nil ((\"fr&IKw-d\" nil))", 0);
                     if (lNamespaces.Personal != null) throw new cTestsException("UTF7 1 failed");
                     if (lNamespaces.OtherUsers != null) throw new cTestsException("UTF7 2 failed");
                     if (lNamespaces.Shared[0].Prefix != "fr€d" || lNamespaces.Shared[0].NamespaceId.NamespaceName.Delimiter != null) throw new cTestsException("UTF7 3 failed");
 
                     // check that () is rejected
-                    ZTestFail("NAMESPACE ((\"\" \"/\")) ((\"~\" \"/\")) ()", 0);
+                    LTestFail("NAMESPACE ((\"\" \"/\")) ((\"~\" \"/\")) ()", 0);
 
-                   cNamespaces ZTest(string pExample, fEnableableExtensions pEnabledExtensions)
+                   cNamespaces LTest(string pExample, fEnableableExtensions pEnabledExtensions)
                     {
                         cNamespaces lResult = null;
                         if (!cBytesCursor.TryConstruct(pExample, out var lCursor)) throw new cTestsException();
@@ -225,14 +225,14 @@ namespace work.bacome.imapclient
                         return lResult;
                     }
 
-                    void ZTestFail(string pExample, fEnableableExtensions pEnabledExtensions)
+                    void LTestFail(string pExample, fEnableableExtensions pEnabledExtensions)
                     {
                         if (!cBytesCursor.TryConstruct(pExample, out var lCursor)) throw new cTestsException();
                         cNamespaceDataProcessor lNRDP = new cNamespaceDataProcessor(pEnabledExtensions, (pPersonal, pOtherUsers, pShared, pContext) => { });
                         if (lNRDP.ProcessData(lCursor, lContext) == eProcessDataResult.processed) throw new cTestsException($"namespace: processed '{pExample}'");
                     }
 
-                    cNamespaces ZTestUTF8(string pExample, fEnableableExtensions pEnabledExtensions)
+                    cNamespaces LTestUTF8(string pExample, fEnableableExtensions pEnabledExtensions)
                     {
                         cNamespaces lResult = null;
                         List<cBytesLine> lLines = new List<cBytesLine>();

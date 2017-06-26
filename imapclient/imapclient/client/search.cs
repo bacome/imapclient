@@ -134,7 +134,7 @@ namespace work.bacome.imapclient
                         {
                             if (lCapability.ESort) lHandles = await lSession.SortExtendedAsync(lMC, pMailboxId, pFilter, lSort, lContext).ConfigureAwait(false);
                             else lHandles = await lSession.SortAsync(lMC, pMailboxId, pFilter, lSort, lContext).ConfigureAwait(false);
-                            if (lProperties != 0 && lHandles.Count > 0) await lSession.FetchPropertiesAsync(lMC, pMailboxId, lHandles, lProperties, lContext).ConfigureAwait(false);
+                            if (lProperties != 0 && lHandles.Count > 0) await lSession.FetchAsync(lMC, pMailboxId, lHandles, lProperties, lContext).ConfigureAwait(false);
                             return ZSearchFlatMessageList(pMailboxId, lHandles, lContext);
                         }
 
@@ -145,7 +145,7 @@ namespace work.bacome.imapclient
 
                 if (lCapability.ESearch) lHandles = await lSession.SearchExtendedAsync(lMC, pMailboxId, pFilter, lContext).ConfigureAwait(false);
                 else lHandles = await lSession.SearchAsync(lMC, pMailboxId, pFilter, lContext).ConfigureAwait(false);
-                if (lProperties != 0 && lHandles.Count > 0) await lSession.FetchPropertiesAsync(lMC, pMailboxId, lHandles, lProperties, lContext).ConfigureAwait(false);
+                if (lProperties != 0 && lHandles.Count > 0) await lSession.FetchAsync(lMC, pMailboxId, lHandles, lProperties, lContext).ConfigureAwait(false);
                 if (lSort == null) return ZSearchFlatMessageList(pMailboxId, lHandles, lContext);
             }
             finally { mAsyncCounter.Decrement(lContext); }

@@ -69,7 +69,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSearchExtended), nameof(CommandCompleted), pResult, pException);
 
-                    if (pResult.Result == cCommandResult.eResult.ok && mSequenceSets != null)
+                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok && mSequenceSets != null)
                     {
                         var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Messages);
                         if (!mSort) lMSNs = lMSNs.ToSortedUniqueList();

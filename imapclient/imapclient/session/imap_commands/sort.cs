@@ -38,8 +38,8 @@ namespace work.bacome.imapclient
 
                     if (lResult.Result == cCommandResult.eResult.ok)
                     {
-                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.Sort, "results not received on a successful sort", lContext);
                         lContext.TraceInformation("sort success");
+                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.Sort, "results not received on a successful sort", lContext);
                         return lHook.Handles;
                     }
 
@@ -101,7 +101,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSortCommandHook), nameof(CommandCompleted), pResult, pException);
 
-                    if (pResult.Result == cCommandResult.eResult.ok && mMSNs != null)
+                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok && mMSNs != null)
                     {
                         cHandleList lHandles = new cHandleList();
                         foreach (var lMSN in mMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));

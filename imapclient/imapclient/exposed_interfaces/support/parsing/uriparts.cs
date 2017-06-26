@@ -298,7 +298,7 @@ namespace work.bacome.imapclient.support
 
             // 5
 
-            if (!ZTryParse("HTTP://user;AUTH=GSSAPI@SERVER2/", out lParts)) throw new cTestsException("should have succeeded 5", lContext);
+            if (!LTryParse("HTTP://user;AUTH=GSSAPI@SERVER2/", out lParts)) throw new cTestsException("should have succeeded 5", lContext);
             if (lParts.Scheme != "HTTP" || lParts.UserInfo != "user;AUTH=GSSAPI" || lParts.Host != "SERVER2" || !lParts.ZHasParts(fParts.scheme | fParts.userinfo | fParts.host | fParts.pathroot))
                 throw new cTestsException("unexpected properties in test 5");
 
@@ -306,7 +306,7 @@ namespace work.bacome.imapclient.support
             //  € to type it hold alt and type 0128
             // 
 
-            if (!ZTryParse("IMAP://fr%E2%82%aCd@fred.com:123456789123456", out lParts)) throw new cTestsException("should have succeeded 8", lContext);
+            if (!LTryParse("IMAP://fr%E2%82%aCd@fred.com:123456789123456", out lParts)) throw new cTestsException("should have succeeded 8", lContext);
             if (!lParts.ZHasParts(fParts.scheme | fParts.userinfo | fParts.host | fParts.port) || lParts.UserInfo != "fr€d" || lParts.Port != "123456789123456") throw new cTestsException("unexpected state 8", lContext);
 
 
@@ -366,14 +366,14 @@ namespace work.bacome.imapclient.support
 
             // 15
 
-            if (!ZTryParse("http://www.ics.uci.edu/pub/ietf/uri/#Related", out lParts)) throw new cTestsException("URI.15");
+            if (!LTryParse("http://www.ics.uci.edu/pub/ietf/uri/#Related", out lParts)) throw new cTestsException("URI.15");
 
             if (!lParts.ZHasParts(fParts.scheme | fParts.host | fParts.pathroot | fParts.path | fParts.fragment)) throw new cTestsException("URI.15.1");
             if (lParts.Scheme != "http" || lParts.Host != "www.ics.uci.edu" || lParts.Path != "pub/ietf/uri/" || lParts.Fragment != "Related") throw new cTestsException("URI.15.2");
 
             // 16
 
-            if (!ZTryParse("http://www.ics.uci.edu/pub/ietf/uri/historical.html#WARNING", out lParts)) throw new cTestsException("URI.16");
+            if (!LTryParse("http://www.ics.uci.edu/pub/ietf/uri/historical.html#WARNING", out lParts)) throw new cTestsException("URI.16");
             if (!lParts.ZHasParts(fParts.scheme | fParts.host | fParts.pathroot | fParts.path | fParts.fragment)) throw new cTestsException("URI.16.1");
             if (lParts.Scheme != "http" || lParts.Host != "www.ics.uci.edu" || lParts.Path != "pub/ietf/uri/historical.html" || lParts.Fragment != "WARNING") throw new cTestsException("URI.16.2");
 
@@ -386,7 +386,7 @@ namespace work.bacome.imapclient.support
 
 
 
-            bool ZTryParse(string pURL, out cURIParts rParts)
+            bool LTryParse(string pURL, out cURIParts rParts)
             {
                 if (!cBytesCursor.TryConstruct(pURL, out var lxCursor)) { rParts = null; return false; }
                 if (!Process(lxCursor, out rParts, pParentContext)) return false;

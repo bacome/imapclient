@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace work.bacome.imapclient
@@ -89,6 +90,48 @@ namespace work.bacome.imapclient
         public Task<List<cMailboxListItem>> ListAsync(fListTypes pTypes = fListTypes.clientdefault, fListFlags pListFlags = fListFlags.clientdefault, fStatusAttributes pStatusAttributes = fStatusAttributes.clientdefault) => Client.ListAsync(MailboxId, pTypes, pListFlags, pStatusAttributes);
         public List<cMessage> Search(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Search(MailboxId, pFilter, pSort, pProperties);
         public Task<List<cMessage>> SearchAsync(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.SearchAsync(MailboxId, pFilter, pSort, pProperties);
+
+        public List<cMessage> Fetch(IList<iMessageHandle> pHandles, fMessageProperties pProperties)
+        {
+            Client.Fetch(MailboxId, pHandles, pProperties);
+            return ZMessages(pHandles);
+        }
+
+        public async Task<List<cMessage>> FetchAsync(IList<iMessageHandle> pHandles, fMessageProperties pProperties)
+        {
+            await Client.FetchAsync(MailboxId, pHandles, pProperties).ConfigureAwait(false);
+            return ZMessages(pHandles);
+        }
+
+        private List<cMessage> ZMessages(IList<iMessageHandle> pHandles)
+        {
+            List<cMessage> lMessages = new List<cMessage>();
+            foreach (var lHandle in pHandles) lMessages.Add(new cMessage(Client, MailboxId, lHandle));
+            return lMessages;
+        }
+
+        public void Fetch(IList<cMessage> pMessages, fMessageProperties pProperties) => Client.Fetch(MailboxId, ZHandles(pMessages), pProperties);
+        public Task FetchAsync(IList<cMessage> pMessages, fMessageProperties pProperties) => Client.FetchAsync(MailboxId, ZHandles(pMessages), pProperties);
+
+        private List<iMessageHandle> ZHandles(IList<cMessage> pMessages)
+        {
+            List<iMessageHandle> lHandles = new List<iMessageHandle>();
+
+            foreach (var lMessage in pMessages)
+            {
+                if (!ReferenceEquals(lMessage.Client, Client) || lMessage.MailboxId != MailboxId) throw new ArgumentOutOfRangeException(nameof(pMessages));
+                lHandles.Add(lMessage.Handle);
+            }
+
+            return lHandles;
+        }
+
+        public cMessage UIDFetch(cUID pUID, fMessageProperties pProperties) => Client.UIDFetch(MailboxId, pUID, pProperties);
+        public Task<cMessage> UIDFetchAsync(cUID pUID, fMessageProperties pProperties) => Client.UIDFetchAsync(MailboxId, pUID, pProperties);
+        public List<cMessage> UIDFetch(IList<cUID> pUIDs, fMessageProperties pProperties) => Client.UIDFetch(MailboxId, pUIDs, pProperties);
+        public Task<List<cMessage>> UIDFetchAsync(IList<cUID> pUIDs, fMessageProperties pProperties) => Client.UIDFetchAsync(MailboxId, pUIDs, pProperties);
+        public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream) => Client.UIDFetch(MailboxId, pUID, pSection, pDecoding, pStream);
+        public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream) => Client.UIDFetchAsync(MailboxId, pUID, pSection, pDecoding, pStream);
 
         // cached data
         public iMailboxProperties Properties => Client.GetMailboxProperties(MailboxId); // only works if the mailbox is selected (and in the future notified)

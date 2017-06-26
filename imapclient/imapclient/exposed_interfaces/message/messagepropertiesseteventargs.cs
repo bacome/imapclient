@@ -20,6 +20,6 @@ namespace work.bacome.imapclient
             Handle = pHandle;
         }
 
-        public override string ToString() => $"{nameof(cMessagePropertiesSetEventArgs)}({MailboxId},{Handle.HandleString},{Set})";
+        public override string ToString() => $"{nameof(cMessagePropertiesSetEventArgs)}({MailboxId},{Handle},{Set})";
     }
 }

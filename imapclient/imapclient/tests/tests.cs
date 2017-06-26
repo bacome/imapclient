@@ -27,8 +27,7 @@ namespace work.bacome.imapclient
             {
                 // quickly get to the test I'm working on
                 cTrace.cContext lContext = mTrace.NewRoot("cIMAPClient.cTests.CurrentTest");
-                ZTestSearch1(lContext);
-                ZTestIdleRestart(lContext);
+                ZTestUIDFetch1(lContext);
             }
 
             [Conditional("DEBUG")]
@@ -83,6 +82,7 @@ namespace work.bacome.imapclient
 
                     ZTestSearch1(lContext);
                     ZTestIdleRestart(lContext);
+                    ZTestUIDFetch1(lContext);
                 }
                 catch (Exception e) when (lContext.TraceException(e)) { }
             }
@@ -1874,6 +1874,24 @@ namespace work.bacome.imapclient
                 lServer.AddSendData("* 167 FETCH (FLAGS ())\r\n");
                 lServer.AddSendTagged("OK FETCH completed\r\n");
 
+
+                lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
+                lServer.AddSendData("* 17 EXISTS\r\n");
+                lServer.AddSendData("* 2 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+                lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
+                lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+                lServer.AddExpectTagged("SEARCH RETURN () UID 4392:*\r\n");
+                lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
+                lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+
                 lServer.AddExpectTagged("LOGOUT\r\n");
                 lServer.AddSendData("* BYE logging out\r\n");
                 lServer.AddSendTagged("OK logged out\r\n");
@@ -1904,17 +1922,53 @@ namespace work.bacome.imapclient
 
                     if (lClient.Inbox.Properties.Messages != 171) throw new cTestsException("ZTestIdleRestart1.2");
 
-                    lMessages[1].FetchProperties(fMessageProperties.uid); // this should retrieve nothing (as the message has been deleted), but idle should stop
+                    lMessages[1].Fetch(fMessageProperties.uid); // this should retrieve nothing (as the message has been deleted), but idle should stop
                     Thread.Sleep(3000); // idle should restart in this wait
 
                     // only message 1 and 3 should be fetched by this, as message 2 was 168 which should now be gone
                     //  1 should be UID fetched, 3 should be a normal fetch
-                    lClient.FetchProperties(lClient.Inbox.MailboxId, new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.received);
+                    lClient.Fetch(lClient.Inbox.MailboxId, new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.received);
 
                     Thread.Sleep(3000); // idle should restart in this wait
 
                     // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
-                    lClient.FetchProperties(lClient.Inbox.MailboxId, new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.flags);
+                    lClient.Fetch(lClient.Inbox.MailboxId, new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.flags);
+
+
+                    cMailbox lMailbox;
+                    cFilter lFilter;
+                    bool lFailed;
+
+
+                    lFilter = cFilter.UID > new cUID(3857529044, 4391);
+
+                    // check that the connected account being a different one causes an exception
+                    lMailbox = new cMailbox(lClient, new cMailboxId(new cAccountId(lClient.ConnectedAccountId.Host, eAccountType.anonymous), new cMailboxName("blurdybloop", null)));
+
+                    lFailed = false;
+                    try { lMessages = lMailbox.Search(lFilter); }
+                    catch (cAccountNotConnectedException) { lFailed = true; }
+                    if (!lFailed) throw new cTestsException("ZTestIdleRestart1.3");
+
+                    // test that there is a throw if the mailbox isn't selected
+                    lMailbox = new cMailbox(lClient, new cMailboxId(lClient.ConnectedAccountId, new cMailboxName("blurdybloop", null)));
+
+                    lFailed = false;
+                    try { lMessages = lMailbox.Search(lFilter); }
+                    catch (cMailboxNotSelectedException) { lFailed = true; }
+                    if (!lFailed) throw new cTestsException("ZTestIdleRestart1.4");
+
+                    lMailbox.Select(false);
+
+                    lFailed = false;
+                    try { lMessages = lMailbox.Search(lFilter); }
+                    catch (cUIDValidityChangedException) { lFailed = true; }
+                    if (!lFailed) throw new cTestsException("ZTestIdleRestart1.5");
+
+                    lFilter = cFilter.UID > new cUID(3857529045, 4391);
+
+                    lMessages = lMailbox.Search(lFilter);
+
 
 
 
@@ -1932,6 +1986,154 @@ namespace work.bacome.imapclient
 
 
 
+
+
+            private static void ZTestUIDFetch1(cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestUIDFetch1));
+
+
+
+                cServer lServer = new cServer();
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                // open inbox
+                lServer.AddExpectTagged("SELECT INBOX\r\n");
+                lServer.AddSendData("* 172 EXISTS\r\n");
+                lServer.AddSendData("* 1 RECENT\r\n");
+                lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
+                lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+                lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+                lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+                lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
+                lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
+
+                // poll
+                lServer.AddExpectTagged("CHECK\r\n");
+                lServer.AddSendTagged("OK CHECK completed\r\n");
+                lServer.AddExpectTagged("NOOP\r\n");
+                lServer.AddSendData("* 2 FETCH (FLAGS ())\r\n");
+                lServer.AddSendData("* 3 FETCH (UID 103)\r\n");
+                lServer.AddSendData("* 4 FETCH (FLAGS () UID 105)\r\n");
+                lServer.AddSendTagged("OK NOOP completed\r\n");
+
+                /*
+                 
+                    the mailbox looks like this in the client;
+                    MSN     UID     UID known   flags known     internal date known
+                    1       101     
+                    2       102                 y
+                    3       103     y
+                    4       105     y           y
+
+                    (104 has been expunged)
+
+                 */
+
+                // fetch
+                lServer.AddExpectTagged("UID FETCH 105 INTERNALDATE\r\n");
+                lServer.AddSendData("* 4 FETCH (UID 105 INTERNALDATE \"08-JUN-2017 01:05:00 -1200\")\r\n");
+                lServer.AddSendTagged("OK FETCH completed\r\n");
+                lServer.AddExpectTagged("UID FETCH 101:102 (FLAGS INTERNALDATE)\r\n");
+                lServer.AddSendData("* 1 FETCH (UID 101 FLAGS () INTERNALDATE \"08-JUN-2017 01:01:00 -1200\")\r\n");
+                lServer.AddSendData("* 2 FETCH (UID 102 FLAGS () INTERNALDATE \"08-JUN-2017 01:02:00 -1200\")\r\n");
+                lServer.AddSendTagged("OK UID FETCH completed\r\n");
+                lServer.AddExpectTagged("UID FETCH 103:104 (FLAGS INTERNALDATE)\r\n");
+                lServer.AddSendData("* 3 FETCH (UID 103 FLAGS () INTERNALDATE \"08-JUN-2017 01:03:00 -1200\")\r\n");
+                lServer.AddSendTagged("OK UID FETCH completed\r\n");
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+                cIMAPClient lClient = new cIMAPClient(nameof(ZTestUIDFetch1));
+                lClient.SetServer("localhost");
+                lClient.SetNoCredentials();
+                lClient.IdleConfiguration = null;
+
+                Task lTask = null;
+
+                try
+                {
+                    lTask = lServer.RunAsync(lContext);
+
+                    lClient.Connect();
+
+                    // open inbox
+                    lClient.Inbox.Select(true);
+
+                    // give the server a chance to send some fetches to set up the test case
+                    lClient.Poll();
+
+                    // pretend that we know 5 UIDs; 104 has been expunged
+                    cUID[] lUIDs = new cUID[] { new cUID(3857529045, 105), new cUID(3857529045, 104), new cUID(3857529045, 103), new cUID(3857529045, 102), new cUID(3857529045, 101) };
+
+                    // fetch flags
+                    var lMessages = lClient.Inbox.UIDFetch(lUIDs, fMessageProperties.flags | fMessageProperties.received);
+                    if (lMessages.Count != 4) throw new cTestsException($"{nameof(ZTestUIDFetch1)}.1");
+
+
+                    lClient.Disconnect();
+
+                    if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
+                    if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                }
+                finally
+                {
+                    ZFinally(lServer, lClient, lTask);
+                }
+            }
+
+
+
+
+
+            private static void ZTestBlank(cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestBlank)); // CHANGE THE NAME HERE
+
+                cServer lServer = new cServer();
+                lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1] this is the text\r\n");
+                lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+                lServer.AddSendData("* LIST () nil \"\"\r\n");
+                lServer.AddSendTagged("OK LIST command completed\r\n");
+
+                // add stuff here
+
+                lServer.AddExpectTagged("LOGOUT\r\n");
+                lServer.AddSendData("* BYE logging out\r\n");
+                lServer.AddSendTagged("OK logged out\r\n");
+                lServer.AddExpectClose();
+
+                cIMAPClient lClient = new cIMAPClient(nameof(ZTestBlank)); // CHANGE THE NAME HERE
+                lClient.SetServer("localhost");
+                lClient.SetNoCredentials();
+                lClient.IdleConfiguration = null;
+
+                Task lTask = null;
+
+                try
+                {
+                    lTask = lServer.RunAsync(lContext);
+
+                    lClient.Connect();
+
+                    // add stuff here
+
+                    lClient.Disconnect();
+
+                    if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
+                    if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+                }
+                finally
+                {
+                    ZFinally(lServer, lClient, lTask);
+                }
+            }
 
             private static void ZFinally(cServer pServer, cIMAPClient pClient, Task pTask)
             {
