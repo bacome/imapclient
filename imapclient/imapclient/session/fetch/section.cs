@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size
-                    mFetchPropertiesConfiguration.AddSample(lBody.Bytes.Count, lStopwatch.ElapsedMilliseconds);
+                    mFetchToStreamConfiguration.AddSample(lBody.Bytes.Count, lStopwatch.ElapsedMilliseconds);
 
                     uint lBodyOrigin = lBody.Origin ?? 0;
 

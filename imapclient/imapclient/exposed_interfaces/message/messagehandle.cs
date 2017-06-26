@@ -17,6 +17,5 @@ namespace work.bacome.imapclient
         cUID UID { get; }
         cStrings References { get; }
         cBinarySizes BinarySizes { get; } // part => size
-        string HandleString { get; }
     }
 }

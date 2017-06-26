@@ -286,8 +286,6 @@ namespace work.bacome.imapclient
                             if (pOther == null) return 1;
                             return CacheSequence.CompareTo(pOther.CacheSequence);
                         }
-                        
-                        public override string ToString() => $"{nameof(cItem)}({Unseen},{base.ToString()})";
                     }
                 }
             }

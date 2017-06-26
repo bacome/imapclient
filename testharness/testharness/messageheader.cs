@@ -24,7 +24,9 @@ namespace testharness
             {
                 var lFrom = Message.Envelope?.From;
                 if (lFrom == null) return null;
-                return lFrom[0].DisplayName;
+                if (lFrom[0].DisplayName != null) return lFrom[0].DisplayName;
+                if (lFrom[0] is cEmailAddress lEmailAddress) return lEmailAddress.DisplayAddress;
+                return null;
             }
         }
 

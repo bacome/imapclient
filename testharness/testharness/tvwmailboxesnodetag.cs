@@ -8,7 +8,6 @@ namespace testharness
     {
         public enum eState { neverexpanded, expanding, expanded }
 
-        // if the node represents a namespace or a mailbox
         public readonly cNamespace Namespace;
         public readonly cMailbox Mailbox;
         public readonly bool CanSelect;
@@ -19,7 +18,7 @@ namespace testharness
 
         public cTVWMailboxesNodeTag(cNamespace pNamespace, TreeNode pPleaseWait)
         {
-            Namespace = pNamespace;
+            Namespace = pNamespace ?? throw new ArgumentNullException(nameof(pNamespace));
             Mailbox = null;
             CanSelect = false;
             PleaseWait = pPleaseWait;
@@ -28,7 +27,7 @@ namespace testharness
         public cTVWMailboxesNodeTag(cMailbox pMailbox, bool pCanSelect, TreeNode pPleaseWait)
         {
             Namespace = null;
-            Mailbox = pMailbox;
+            Mailbox = pMailbox ?? throw new ArgumentNullException(nameof(pMailbox));
             CanSelect = pCanSelect;
             PleaseWait = pPleaseWait;
         }

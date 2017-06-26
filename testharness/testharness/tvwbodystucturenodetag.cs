@@ -6,13 +6,29 @@ namespace testharness
 {
     public class cTVWBodyStructureNodeTag
     {
+        public readonly cMessage Message;
         public readonly cBodyPart BodyPart;
-        public readonly bool Header; 
+        public readonly cSection Section;
 
-        public cTVWBodyStructureNodeTag(cBodyPart pBodyPart, bool pHeader)
+        public cTVWBodyStructureNodeTag(cMessage pMessage)
         {
-            BodyPart = pBodyPart;
-            Header = pHeader;
+            Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
+            BodyPart = null;
+            Section = null;
+        }
+
+        public cTVWBodyStructureNodeTag(cMessage pMessage, cBodyPart pBodyPart)
+        {
+            Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
+            BodyPart = pBodyPart ?? throw new ArgumentNullException(nameof(pBodyPart));
+            Section = null;
+        }
+
+        public cTVWBodyStructureNodeTag(cMessage pMessage, cSection pSection)
+        {
+            Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
+            BodyPart = null;
+            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
         }
     }
 }

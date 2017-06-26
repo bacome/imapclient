@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
-using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -19,8 +17,7 @@ namespace testharness
         private cTrace.cContext mRootContext = Program.Trace.NewRoot(nameof(Form1), true);
         private cIMAPClient mIMAPClient = null;
         private CancellationTokenSource mCancellationTokenSource = null;
-        private BindingSource mMessageHeadersBindingSource = null;
-        private List<cMessageHeader> mMessageHeaders = null;
+        private int? mDaysToGet = null;
         private object mCurrentMessageHeaderDataBoundItem = null;
         private TreeNode mCurrentBodyStructureNode = null;
 
@@ -137,7 +134,7 @@ namespace testharness
             // clear the displays
             tvwMailboxes.Nodes.Clear();
             dgvMessageHeaders.DataSource = null;
-            ZDGVMessageHeadersClearChildren(lContext);
+            ZDGVMessageHeadersCoordinateChildrenAsync(lContext);
 
             // set the server
             mIMAPClient.SetServer(txtHost.Text.Trim(), int.Parse(txtPort.Text), chkSSL.Checked);
@@ -170,14 +167,20 @@ namespace testharness
 
         private void ZRefreshMessageHeader(iMessageHandle pHandle)
         {
-            if (mMessageHeaders == null) return;
+            var lBindingSource = dgvMessageHeaders.DataSource as BindingSource;
 
-            for (int i = 0; i < mMessageHeaders.Count; i++)
-                if (ReferenceEquals(mMessageHeaders[i].Message.Handle, pHandle))
+            if (lBindingSource == null) return;
+
+            for (int i = 0; i < lBindingSource.List.Count; i++)
+            {
+                var lMessageHeader = lBindingSource.List[i] as cMessageHeader;
+
+                if (lMessageHeader != null && lMessageHeader.Message.Handle == pHandle)
                 {
-                    mMessageHeadersBindingSource.ResetItem(i);
+                    lBindingSource.ResetItem(i);
                     break;
                 }
+            }
         }
 
         private async void mIMAPClient_MailboxMessageDelivery(object sender, cMailboxMessageDeliveryEventArgs e)
@@ -251,8 +254,8 @@ namespace testharness
 
             fCapabilities lIgnoreCapabilities = 0;
             if (chkIgnoreNamespace.Checked) lIgnoreCapabilities |= fCapabilities.Namespace;
-
-            if (lIgnoreCapabilities != 0) mIMAPClient.IgnoreCapabilities = lIgnoreCapabilities;
+            if (chkIgnoreBinary.Checked) lIgnoreCapabilities |= fCapabilities.Binary;
+            mIMAPClient.IgnoreCapabilities = lIgnoreCapabilities;
         }
 
         private void ZSetCancellationToken()
@@ -334,9 +337,7 @@ namespace testharness
 
         private void txtPort_Validating(object sender, CancelEventArgs e)
         {
-            int i;
-
-            if (!int.TryParse(txtPort.Text, out i) || i < 1 || i > 9999)
+            if (!int.TryParse(txtPort.Text, out var i) || i < 1 || i > 9999)
             {
                 e.Cancel = true;
                 erp.SetError((Control)sender, "port should be a number 1 .. 9999");
@@ -354,9 +355,7 @@ namespace testharness
 
         private void TextBoxIsMilliseconds(object sender, CancelEventArgs e)
         {
-            int i;
-
-            if (!int.TryParse(((TextBox)sender).Text, out i) || i < 100 || i > 99999)
+            if (!int.TryParse(((TextBox)sender).Text, out var i) || i < 100 || i > 99999)
             {
                 e.Cancel = true;
                 erp.SetError((Control)sender, "time should be a number 100 .. 99999");
@@ -542,145 +541,139 @@ namespace testharness
             }
         }
 
-        private void ZDGVMessageHeadersClearChildren(cTrace.cContext pParentContext)
-        {
-            mCurrentMessageHeaderDataBoundItem = null;
-            tvwBodyStructure.Nodes.Clear();
-            mCurrentBodyStructureNode = null;
-            rtxPartDetail.Clear();
-            cmdInspect.Enabled = false;
-            cmdInspectRaw.Enabled = false;
-        }
-
         private async Task ZDGVMessageHeadersCoordinateChildrenAsync(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(Form1), nameof(ZDGVMessageHeadersCoordinateChildrenAsync));
 
-            if (dgvMessageHeaders.CurrentCell == null)
+            var lDataBoundItem = dgvMessageHeaders.CurrentCell?.OwningRow.DataBoundItem;
+
+            if (!ReferenceEquals(lDataBoundItem, mCurrentMessageHeaderDataBoundItem))
             {
-                ZDGVMessageHeadersClearChildren(lContext);
-                return;
-            }
-
-            ;?;
- || !(dgvMessageHeaders.CurrentCell.OwningRow.DataBoundItem is cMessageHeader lMessageHeader)
-
-            if (!ReferenceEquals(dgvMessageHeaders.CurrentCell.OwningRow.DataBoundItem, mCurrentMessageHeader))
-            { 
-                mCurrentMessageHeader = lMessageHeader;
+                mCurrentMessageHeaderDataBoundItem = lDataBoundItem;
 
                 tvwBodyStructure.Enabled = true;
                 tvwBodyStructure.BeginUpdate();
+                tvwBodyStructure.Nodes.Clear();
+                tvwBodyStructure.EndUpdate();
 
-                try
+                var lMessageHeader = lDataBoundItem as cMessageHeader;
+
+                if (lMessageHeader != null)
                 {
-                    // clear before the await to prevent a second pass through here from doing anything
-                    tvwBodyStructure.Nodes.Clear();
-
-                    rtxInfo.AppendText("await+\n");
-                    rtxInfo.ScrollToCaret();
-
-                    // make sure that we have the size and the bodystructure info
-                    await mCurrentMessageHeader.Message.FetchAsync(fMessageProperties.size | fMessageProperties.bodystructureex);
-
-                    rtxInfo.AppendText("await-\n");
-                    rtxInfo.ScrollToCaret();
-
-                    if (mCurrentMessageHeader.Message.BodyStructureEx != null)
+                    try
+                    { 
+                        // make sure that we have the size and the bodystructure info
+                        await lMessageHeader.Message.FetchAsync(fMessageProperties.size | fMessageProperties.bodystructureex);
+                    }
+                    catch (Exception ex)
                     {
+                        rtxInfo.AppendText($"an error occurred: {ex}\n");
+                        rtxInfo.ScrollToCaret();
+                    }
+
+                    if (lMessageHeader.Message.BodyStructureEx != null)
+                    {
+                        tvwBodyStructure.BeginUpdate();
+                        tvwBodyStructure.Nodes.Clear();
                         var lRoot = tvwBodyStructure.Nodes.Add("root");
-                        ZTVWBodyStructureAddPart(lRoot, mCurrentMessageHeader.Message.BodyStructureEx);
+                        lRoot.Tag = new cTVWBodyStructureNodeTag(lMessageHeader.Message);
+                        ZTVWBodyStructureAddSection(lRoot, lMessageHeader.Message, "header", cSection.Header);
+                        ZTVWBodyStructureAddPart(lRoot, lMessageHeader.Message, lMessageHeader.Message.BodyStructureEx);
+                        tvwBodyStructure.EndUpdate();
                     }
                 }
-                catch (Exception ex)
-                {
-                    lContext.TraceException(ex);
-                    MessageBox.Show($"an error occurred: {ex}");
-                }
-                finally
-                {
-                    tvwBodyStructure.EndUpdate();
-                }
             }
-
-            // now coordinate the rtx to the selected node
 
             if (!ReferenceEquals(tvwBodyStructure.SelectedNode, mCurrentBodyStructureNode))
             {
                 mCurrentBodyStructureNode = tvwBodyStructure.SelectedNode;
 
-            ;?;
-            mCurrentBodyStructureNode = null;
-
-
-
-            if (tvwBodyStructure.SelectedNode == null)
-            {
+                rtxPartDetail.Enabled = true;
                 rtxPartDetail.Clear();
+
+                var lTag = tvwBodyStructure.SelectedNode?.Tag as cTVWBodyStructureNodeTag;
+
                 cmdInspect.Enabled = false;
                 cmdInspectRaw.Enabled = false;
-                return;
-            }
 
-            if (tvwBodyStructure.SelectedNode.Tag == null)
-            {
-                // root node
-
-
-
-
-                ;?;
-            }
-
-            var lBodyPart = tvwBodyStructure.SelectedNode.Tag as cBodyPart;
-
-            if (!ReferenceEquals(lBodyPart, mCurrentBodyPart))
-            {
-                mCurrentBodyPart = lBodyPart;
-
-                rtxPartDetail.Clear();
-
-                if (lBodyPart == null)
+                if (lTag?.BodyPart != null)
                 {
-                    cmdInspect.Enabled = false;
-                    cmdInspectRaw.Enabled = false;
-                }
-                else
-                {
-                    rtxPartDetail.Enabled = true;
+                    if (lTag.BodyPart.Disposition != null)
+                    {
+                        rtxPartDetail.AppendText($"Disposition: {lTag.BodyPart.Disposition.Type} {lTag.BodyPart.Disposition.FileName} {lTag.BodyPart.Disposition.Size} {lTag.BodyPart.Disposition.CreationDate}\n");
 
-                    if (lBodyPart.Disposition != null) rtxPartDetail.AppendText($"Disposition: {lBodyPart.Disposition.Type} {lBodyPart.Disposition.FileName} {lBodyPart.Disposition.Size} {lBodyPart.Disposition.CreationDate}\n");
-                    if (lBodyPart.Languages != null) rtxPartDetail.AppendText($"Languages: {lBodyPart.Languages}\n");
-                    if (lBodyPart.Location != null) rtxPartDetail.AppendText($"Location: {lBodyPart.Location}\n");
+                        // if it is an attachment enable a download button TODO
+                    }
 
-                    if (mCurrentBodyPart.Section == cSection.All) rtxPartDetail.AppendText($"Message Size: {mCurrentMessage.Size}\n");
+                    if (lTag.BodyPart.Languages != null) rtxPartDetail.AppendText($"Languages: {lTag.BodyPart.Languages}\n");
+                    if (lTag.BodyPart.Location != null) rtxPartDetail.AppendText($"Location: {lTag.BodyPart.Location}\n");
 
-                    if (lBodyPart is cSinglePartBody lSingleBodyPart)
+                    if (lTag.BodyPart is cSinglePartBody lSingleBodyPart)
                     {
                         rtxPartDetail.AppendText($"Content Id: {lSingleBodyPart.ContentId}\n");
                         rtxPartDetail.AppendText($"Description: {lSingleBodyPart.Description}\n");
                         rtxPartDetail.AppendText($"ContentTransferEncoding: {lSingleBodyPart.ContentTransferEncoding}\n");
                         rtxPartDetail.AppendText($"Size: {lSingleBodyPart.SizeInBytes}\n");
 
-                        if (lBodyPart is cTextBodyPart lTextBodyPart)
+                        if (lTag.BodyPart is cTextBodyPart lTextBodyPart)
                         {
                             rtxPartDetail.AppendText($"Charset: {lTextBodyPart.Charset}\n");
+                            cmdInspectRaw.Enabled = true; // to see it not decoded
                         }
-                        else if (lBodyPart is cMessageBodyPart lMessageBodyPart)
-                        {
-                            var lFrom = lMessageBodyPart.Envelope?.From;
-                            if (lFrom != null) rtxPartDetail.AppendText($"From: {lFrom[0].DisplayName}\n");
-                            rtxPartDetail.AppendText($"Subject: {lMessageBodyPart.Envelope.Subject}\n");
-                        }
-                    }
+                        else if (lTag.BodyPart is cMessageBodyPart lMessageBodyPart) ZDisplayEnvelope(lMessageBodyPart.Envelope);
 
-                    cmdInspect.Enabled = true;
-                    cmdInspectRaw.Enabled = false;
+                        cmdInspect.Enabled = true;
+                    }
                 }
-            } */
+                else if (lTag?.Section != null) rtxPartDetail.AppendText(await lTag.Message.FetchAsync(lTag.Section));
+                else if (lTag?.Message != null)
+                {
+                    rtxPartDetail.AppendText($"Message Size: {lTag.Message.Size}\n");
+                    ZDisplayEnvelope(lTag.Message.Envelope);
+                    cmdInspect.Enabled = true;
+                }
+            }
         }
 
-        private void ZTVWBodyStructureAddPart(TreeNode pParent, cBodyPart pBodyPart)
+        private void ZDisplayEnvelope(cEnvelope pEnvelope)
+        {
+            if (pEnvelope == null) return;
+            rtxPartDetail.AppendText($"Message Id: {pEnvelope.MessageId}\n");
+            rtxPartDetail.AppendText($"Sent: {pEnvelope.Sent}\n");
+            ZDisplayAddresses("From: ", pEnvelope.From);
+            ZDisplayAddresses("Sender: ", pEnvelope.Sender);
+            ZDisplayAddresses("ReplyTo: ", pEnvelope.ReplyTo);
+            ZDisplayAddresses("To: ", pEnvelope.To);
+            ZDisplayAddresses("CC: ", pEnvelope.CC);
+            ZDisplayAddresses("BCC: ", pEnvelope.BCC);
+            rtxPartDetail.AppendText($"Subject: {pEnvelope.Subject}\n");
+            rtxPartDetail.AppendText($"Base Subject: {pEnvelope.BaseSubject}\n");
+            rtxPartDetail.AppendText($"InReplyTo: {pEnvelope.InReplyTo}\n");
+        }
+
+        private void ZDisplayAddresses(string pAddressType, cAddresses pAddresses)
+        {
+            if (pAddresses == null) return;
+
+            rtxPartDetail.AppendText(pAddressType);
+
+            foreach (var lAddress in pAddresses)
+            {
+                if (lAddress.DisplayName != null) rtxPartDetail.AppendText(lAddress.DisplayName);
+                if (lAddress is cEmailAddress lEmailAddress) rtxPartDetail.AppendText($"<{lEmailAddress.DisplayAddress}>");
+                rtxPartDetail.AppendText(", ");
+            }
+
+            rtxPartDetail.AppendText("\n");
+        }
+
+        private void ZTVWBodyStructureAddSection(TreeNode pParent, cMessage pMessage, string pText, cSection pSection)
+        {
+            var lNode = pParent.Nodes.Add(pText);
+            lNode.Tag = new cTVWBodyStructureNodeTag(pMessage, pSection);
+        }
+
+        private void ZTVWBodyStructureAddPart(TreeNode pParent, cMessage pMessage, cBodyPart pBodyPart)
         {
             string lPart;
             if (pBodyPart.Section.Part == null) lPart = pBodyPart.Section.TextPart.ToString();
@@ -688,10 +681,22 @@ namespace testharness
             else lPart = pBodyPart.Section.Part + "." + pBodyPart.Section.TextPart.ToString();
 
             var lNode = pParent.Nodes.Add(lPart + ": " + pBodyPart.Type + "/" + pBodyPart.SubType);
-            lNode.Tag = pBodyPart;
+            lNode.Tag = new cTVWBodyStructureNodeTag(pMessage, pBodyPart);
 
-            if (pBodyPart is cMessageBodyPart lMessage) ZTVWBodyStructureAddPart(lNode, lMessage.BodyStructureEx);
-            else if (pBodyPart is cMultiPartBody lMultiPartPart) foreach (var lBodyPart in lMultiPartPart.Parts) ZTVWBodyStructureAddPart(lNode, lBodyPart);
+            if (pBodyPart is cMessageBodyPart lMessage)
+            {
+                ZTVWBodyStructureAddSection(lNode, pMessage, "header", new cSection(pBodyPart.Section.Part, eSectionPart.header));
+                ZTVWBodyStructureAddPart(lNode, pMessage, lMessage.BodyStructureEx);
+            }
+            else if (pBodyPart is cMultiPartBody lMultiPartPart)
+            {
+                if (pBodyPart.Section.Part != null) ZTVWBodyStructureAddSection(lNode, pMessage, "mime", new cSection(pBodyPart.Section.Part, eSectionPart.mime));
+                foreach (var lBodyPart in lMultiPartPart.Parts) ZTVWBodyStructureAddPart(lNode, pMessage, lBodyPart);
+            }
+            else
+            {
+                ZTVWBodyStructureAddSection(lNode, pMessage, "mime", new cSection(pBodyPart.Section.Part, eSectionPart.mime));
+            }
         }
 
         private async void tvwBodyStructure_AfterSelect(object sender, TreeViewEventArgs e)
@@ -706,17 +711,25 @@ namespace testharness
 
             if (!(e.Node.Tag is cTVWMailboxesNodeTag lTag) || lTag.Mailbox == null || !lTag.CanSelect || lTag.Mailbox.Selected) return;
 
-            // should single thread these, after getting access to run should check that the clicked node is still the currently selected one
-            //  if not then just exit
-            //   TODO
-
             try
             {
                 await lTag.Mailbox.SelectAsync();
                 await lTag.Mailbox.StatusAsync(fStatusAttributes.unseen); // force the unseen count to be calculated
-                var lMessages = await lTag.Mailbox.SearchAsync(cFilter.Received > DateTime.Today.AddDays(-100), new cSort(cSortItem.ReceivedDesc), fMessageProperties.flags | fMessageProperties.received | fMessageProperties.envelope);
-                mMessageHeaders = new List<cMessageHeader>();
-                foreach (var lMessage in lMessages) mMessageHeaders.Add(new cMessageHeader(lMessage));
+
+                if (mDaysToGet == null)
+                {
+                    dgvMessageHeaders.Enabled = false;
+                    dgvMessageHeaders.DataSource = null;
+                }
+                else
+                {
+                    var lMessages = await lTag.Mailbox.SearchAsync(cFilter.Received > DateTime.Today.AddDays(-mDaysToGet.Value), new cSort(cSortItem.ReceivedDesc), fMessageProperties.flags | fMessageProperties.received | fMessageProperties.envelope);
+
+                    BindingSource lBindingSource = new BindingSource();
+                    foreach (var lMessage in lMessages) lBindingSource.Add(new cMessageHeader(lMessage));
+                    dgvMessageHeaders.Enabled = true;
+                    dgvMessageHeaders.DataSource = lBindingSource;
+                }
             }
             catch (Exception ex)
             {
@@ -724,38 +737,35 @@ namespace testharness
                 MessageBox.Show($"a problem occurred: {ex}");
                 return;
             }
-
-            mMessageHeadersBindingSource = new BindingSource();
-            mMessageHeadersBindingSource.DataSource = mMessageHeaders;
-
-            dgvMessageHeaders.Enabled = true;
-            dgvMessageHeaders.DataSource = mMessageHeadersBindingSource;
         }
 
         private async void cmdInspect_Click(object sender, EventArgs e)
         {
-            /*
             var lContext = mRootContext.NewMethod(nameof(Form1), nameof(cmdInspect_Click));
 
-            if (mCurrentMessage == null || mCurrentBodyPart == null) return;
+            var lTag = tvwBodyStructure.SelectedNode?.Tag as cTVWBodyStructureNodeTag;
 
+            if (lTag == null) return;
 
+            string lText;
 
-            if (mCurrentBodyPart is cSinglePartBody lSingleBodyPart)
+            if (lTag.BodyPart != null)
             {
+                if (!(lTag?.BodyPart is cSinglePartBody lPart)) return;
+
+
                 // handle special cases (e.g. jpeg etc ...)
 
-                if (lSingleBodyPart.SizeInBytes > 10000)
+
+                if (lPart.SizeInBytes > 10000)
                 {
                     MessageBox.Show("The text is too long to show");
                     return;
                 }
 
-                string lText;
-
                 try
                 {
-                    lText = await mCurrentMessage.FetchAsync(mCurrentBodyPart);
+                    lText = await lTag.Message.FetchAsync(lPart);
                 }
                 catch (Exception ex)
                 {
@@ -763,14 +773,31 @@ namespace testharness
                     MessageBox.Show($"a problem occurred: {ex}");
                     return;
                 }
+            }
+            else 
+            {
+                // this is the message root
+                if (lTag.Message.Size > 10000)
+                {
+                    MessageBox.Show("The text is too long to show");
+                    return;
+                }
 
-                frmMessagePartText lForm = new frmMessagePartText();
-                lForm.rtx.AppendText(lText);
-                lForm.Show();
-                return;
+                try
+                {
+                    lText = await lTag.Message.FetchAsync(cSection.All);
+                }
+                catch (Exception ex)
+                {
+                    lContext.TraceException(ex);
+                    MessageBox.Show($"a problem occurred: {ex}");
+                    return;
+                }
             }
 
-            MessageBox.Show("This message should never show"); */
+            frmMessagePartText lForm = new frmMessagePartText();
+            lForm.rtx.AppendText(lText);
+            lForm.Show();
         }
 
         private async void dgvMessageHeaders_CurrentCellChanged(object sender, EventArgs e)
@@ -779,10 +806,52 @@ namespace testharness
             await ZDGVMessageHeadersCoordinateChildrenAsync(lContext);
         }
 
-        private void cmdInspectRaw_Click(object sender, EventArgs e)
+        private async void cmdInspectRaw_Click(object sender, EventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(Form1), nameof(cmdInspect_Click));
-            MessageBox.Show("This message should never show");
+
+            var lTag = tvwBodyStructure.SelectedNode?.Tag as cTVWBodyStructureNodeTag;
+
+            var lPart = lTag?.BodyPart as cSinglePartBody;
+
+            if (lPart == null) return;
+
+            if (lPart.SizeInBytes > 10000)
+            {
+                MessageBox.Show("The text is too long to show");
+                return;
+            }
+
+            string lText;
+
+            try
+            {
+                lText = await lTag.Message.FetchAsync(lPart.Section);
+            }
+            catch (Exception ex)
+            {
+                lContext.TraceException(ex);
+                MessageBox.Show($"a problem occurred: {ex}");
+                return;
+            }
+
+            frmMessagePartText lForm = new frmMessagePartText();
+            lForm.rtx.AppendText(lText);
+            lForm.Show();
+        }
+
+        private void txtDaysToGet_Validating(object sender, CancelEventArgs e)
+        {
+            if (int.TryParse(((TextBox)sender).Text, out var lDaysToGet) || lDaysToGet < 1 || lDaysToGet > 100)
+            {
+                mDaysToGet = lDaysToGet;
+            }
+            else
+            {
+                mDaysToGet = null;
+                e.Cancel = true;
+                erp.SetError((Control)sender, "days of messages should be a number 1 .. 100");
+            }
         }
     }
 }

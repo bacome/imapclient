@@ -87,10 +87,13 @@
             this.dgvMessageHeaders = new System.Windows.Forms.DataGridView();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.tvwBodyStructure = new System.Windows.Forms.TreeView();
+            this.cmdInspectRaw = new System.Windows.Forms.Button();
             this.cmdInspect = new System.Windows.Forms.Button();
             this.rtxPartDetail = new System.Windows.Forms.RichTextBox();
             this.cmdTestsCurrent = new System.Windows.Forms.Button();
-            this.cmdInspectRaw = new System.Windows.Forms.Button();
+            this.chkIgnoreBinary = new System.Windows.Forms.CheckBox();
+            this.txtDaysToGet = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.pnlCredentials.SuspendLayout();
             this.pnlConnection.SuspendLayout();
             this.pnlProperties.SuspendLayout();
@@ -580,6 +583,7 @@
             // pnlIgnoreCapabilities
             // 
             this.pnlIgnoreCapabilities.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlIgnoreCapabilities.Controls.Add(this.chkIgnoreBinary);
             this.pnlIgnoreCapabilities.Controls.Add(this.label12);
             this.pnlIgnoreCapabilities.Controls.Add(this.chkIgnoreNamespace);
             this.pnlIgnoreCapabilities.Location = new System.Drawing.Point(6, 118);
@@ -673,7 +677,9 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.label6);
             this.splitContainer1.Panel1.Controls.Add(this.tvwMailboxes);
+            this.splitContainer1.Panel1.Controls.Add(this.txtDaysToGet);
             // 
             // splitContainer1.Panel2
             // 
@@ -687,9 +693,9 @@
             this.tvwMailboxes.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tvwMailboxes.Location = new System.Drawing.Point(3, 3);
+            this.tvwMailboxes.Location = new System.Drawing.Point(3, 33);
             this.tvwMailboxes.Name = "tvwMailboxes";
-            this.tvwMailboxes.Size = new System.Drawing.Size(186, 555);
+            this.tvwMailboxes.Size = new System.Drawing.Size(186, 525);
             this.tvwMailboxes.TabIndex = 0;
             this.tvwMailboxes.AfterExpand += new System.Windows.Forms.TreeViewEventHandler(this.tvwMailboxes_AfterExpand);
             this.tvwMailboxes.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvwMailboxes_AfterSelect);
@@ -758,6 +764,17 @@
             this.tvwBodyStructure.TabIndex = 2;
             this.tvwBodyStructure.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvwBodyStructure_AfterSelect);
             // 
+            // cmdInspectRaw
+            // 
+            this.cmdInspectRaw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdInspectRaw.Location = new System.Drawing.Point(46, 319);
+            this.cmdInspectRaw.Name = "cmdInspectRaw";
+            this.cmdInspectRaw.Size = new System.Drawing.Size(94, 23);
+            this.cmdInspectRaw.TabIndex = 2;
+            this.cmdInspectRaw.Text = "Inspect Raw";
+            this.cmdInspectRaw.UseVisualStyleBackColor = true;
+            this.cmdInspectRaw.Click += new System.EventHandler(this.cmdInspectRaw_Click);
+            // 
             // cmdInspect
             // 
             this.cmdInspect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -790,16 +807,35 @@
             this.cmdTestsCurrent.UseVisualStyleBackColor = true;
             this.cmdTestsCurrent.Click += new System.EventHandler(this.cmdTestsCurrent_Click);
             // 
-            // cmdInspectRaw
+            // chkIgnoreBinary
             // 
-            this.cmdInspectRaw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdInspectRaw.Location = new System.Drawing.Point(46, 319);
-            this.cmdInspectRaw.Name = "cmdInspectRaw";
-            this.cmdInspectRaw.Size = new System.Drawing.Size(94, 23);
-            this.cmdInspectRaw.TabIndex = 2;
-            this.cmdInspectRaw.Text = "Inspect Raw";
-            this.cmdInspectRaw.UseVisualStyleBackColor = true;
-            this.cmdInspectRaw.Click += new System.EventHandler(this.cmdInspectRaw_Click);
+            this.chkIgnoreBinary.AutoSize = true;
+            this.chkIgnoreBinary.Location = new System.Drawing.Point(14, 59);
+            this.chkIgnoreBinary.Name = "chkIgnoreBinary";
+            this.chkIgnoreBinary.Size = new System.Drawing.Size(55, 17);
+            this.chkIgnoreBinary.TabIndex = 15;
+            this.chkIgnoreBinary.Text = "Binary";
+            this.chkIgnoreBinary.UseVisualStyleBackColor = true;
+            // 
+            // txtDaysToGet
+            // 
+            this.txtDaysToGet.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtDaysToGet.Location = new System.Drawing.Point(149, 7);
+            this.txtDaysToGet.Name = "txtDaysToGet";
+            this.txtDaysToGet.Size = new System.Drawing.Size(40, 20);
+            this.txtDaysToGet.TabIndex = 29;
+            this.txtDaysToGet.Text = "100";
+            this.txtDaysToGet.Validating += new System.ComponentModel.CancelEventHandler(this.txtDaysToGet_Validating);
+            this.txtDaysToGet.Validated += new System.EventHandler(this.ControlValidated);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(3, 10);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(123, 13);
+            this.label6.TabIndex = 30;
+            this.label6.Text = "Days of messages to get";
             // 
             // Form1
             // 
@@ -840,6 +876,7 @@
             this.tabPage3.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
@@ -921,6 +958,9 @@
         private System.Windows.Forms.Button cmdInspect;
         private System.Windows.Forms.RichTextBox rtxPartDetail;
         private System.Windows.Forms.Button cmdInspectRaw;
+        private System.Windows.Forms.CheckBox chkIgnoreBinary;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox txtDaysToGet;
     }
 }
 

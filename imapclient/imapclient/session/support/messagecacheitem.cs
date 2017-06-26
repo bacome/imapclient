@@ -33,7 +33,6 @@ namespace work.bacome.imapclient
                 public cUID UID { get; private set; } = null;
                 public cStrings References { get; private set; } = null;
                 public cBinarySizes BinarySizes { get; private set; } = null;
-                public string HandleString => $"{nameof(cMessageCacheItem)}({mCache},{mCacheSequence},{mProperties},{mExpunged})";
 
                 public void SetExpunged() => mExpunged = true;
 
@@ -101,7 +100,7 @@ namespace work.bacome.imapclient
                     else if (lFetch.BinarySizes != null) BinarySizes = BinarySizes + lFetch.BinarySizes;
                 }
 
-                public override string ToString() => $"{nameof(cMessageCacheItem)}({mCache},{mCacheSequence},{mProperties},{mExpunged},{BodyStructureEx ?? mBodyStructure},{Envelope},{Flags},{Received},{Size},{UID},{References},{BinarySizes})";
+                public override string ToString() => $"{nameof(cMessageCacheItem)}({mCache},{mCacheSequence})";
             }
         }
     }
