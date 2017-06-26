@@ -421,7 +421,8 @@ namespace work.bacome.imapclient
                         cMultiPartExtensionData lMultiPartExtensionData;
 
                         if (pExtended && pCursor.SkipByte(cASCII.SPACE))
-                        { 
+                        {
+                            ;?; // optional
                             if (!ZProcessBodyStructureParameters(pCursor, out var lExtendedParameters)) { rBodyPart = null; return false; }
                             if (!ZProcessBodyStructureExtensionData(pCursor, out var lDisposition, out var lLanguages, out var lLocation, out var lExtensionValues)) { rBodyPart = null; return false; }
                             lMultiPartExtensionData = new cMultiPartExtensionData(lExtendedParameters, lDisposition, lLanguages, lLocation, lExtensionValues);
@@ -530,6 +531,7 @@ namespace work.bacome.imapclient
 
                 private static bool ZProcessBodyStructureSinglePartExtensionData(cBytesCursor pCursor, out cSinglePartExtensionData rExtensionData)
                 {
+                    ;?; // no: extension data is all optional 
                     if (!pCursor.SkipByte(cASCII.SPACE)) { rExtensionData = null; return true; }
                     if (!pCursor.GetNString(out string lMD5)) { rExtensionData = null; return false; }
                     if (!ZProcessBodyStructureExtensionData(pCursor, out var lDisposition, out var lLanguages, out var lLocation, out var lExtensionValues)) { rExtensionData = null; return false; }
@@ -539,6 +541,7 @@ namespace work.bacome.imapclient
 
                 private static bool ZProcessBodyStructureExtensionData(cBytesCursor pCursor, out cBodyPartDisposition rDisposition, out cStrings rLanguages, out string rLocation, out cBodyPartExtensionValues rExtensionValues)
                 {
+                    ;?; // no: extension data is all optional 
                     if (!pCursor.SkipByte(cASCII.SPACE)) { rDisposition = null; rLanguages = null; rLocation = null; rExtensionValues = null; return true; }
                     if (!ZProcessBodyStructureDisposition(pCursor, out rDisposition)) { rDisposition = null; rLanguages = null; rLocation = null; rExtensionValues = null; return false; }
                     if (!pCursor.SkipByte(cASCII.SPACE)) { rLanguages = null; rLocation = null; rExtensionValues = null; return true; }
@@ -1214,6 +1217,17 @@ namespace work.bacome.imapclient
                     if (lTextPart.Parameters["angus"].Value != "us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A" || lTextPart.Parameters["angus"].LanguageTag != null || lTextPart.Parameters["angus"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
 
                     // TODO : more tests: in particular, missing language tag, missing charset and invalid cases
+
+
+
+
+
+                    if (!cBytesCursor.TryConstruct(@"(((""TEXT"" ""PLAIN"" (""CHARSET"" ""UTF-8"") NIL NIL ""7BIT"" 2 1 NIL NIL NIL)(""TEXT"" ""HTML"" (""CHARSET"" ""UTF-8"") NIL NIL ""7BIT"" 2 1 NIL NIL NIL) ""ALTERNATIVE"" (""BOUNDARY"" ""94eb2c14e866ddee50054fb3cf4b"") NIL NIL)(""IMAGE"" ""JPEG"" (""NAME"" ""IMG_20170517_194711.jpg"") NIL NIL ""BASE64"" 6619412 NIL (""ATTACHMENT"" (""FILENAME"" ""IMG_20170517_194711.jpg"")) NIL) ""MIXED"" (""BOUNDARY"" ""94eb2c14e866ddee56054fb3cf4d"") NIL NIL))", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.6.0");
+                    if (!ZProcessBodyStructure(lCursor, cSection.Text, false, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.6.1");
+                    int x = 1;
+
+
+
 
 
 

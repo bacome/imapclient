@@ -68,7 +68,7 @@ namespace testharness
                 rtxState.Text = "disconnected";
                 ZEnable(rdoCredAnon.Checked, txtTrace);
                 ZEnable(rdoCredBasic.Checked, txtUserId, txtPassword);
-                ZEnable(false, cmdDisconnect, cmdDisconnectAsync, cmdCancel, dgvMessageHeaders, tvwBodyStructure, rtxPartDetail, cmdInspect, cmdInspectRaw);
+                ZEnable(false, cmdDisconnect, cmdDisconnectAsync, cmdCancel, dgvMessageHeaders, tvwBodyStructure, rtxPartDetail, cmdInspect, cmdInspectRaw, cmdDownload);
             }
             else
             {
@@ -134,7 +134,7 @@ namespace testharness
             // clear the displays
             tvwMailboxes.Nodes.Clear();
             dgvMessageHeaders.DataSource = null;
-            ZDGVMessageHeadersCoordinateChildrenAsync(lContext);
+            ZDGVMessageHeadersCoordinateChildrenAsync(lContext); // if the datasource is null this runs synchronously
 
             // set the server
             mIMAPClient.SetServer(txtHost.Text.Trim(), int.Parse(txtPort.Text), chkSSL.Checked);
@@ -595,14 +595,14 @@ namespace testharness
 
                 cmdInspect.Enabled = false;
                 cmdInspectRaw.Enabled = false;
+                cmdDownload.Enabled = false;
 
                 if (lTag?.BodyPart != null)
                 {
                     if (lTag.BodyPart.Disposition != null)
                     {
                         rtxPartDetail.AppendText($"Disposition: {lTag.BodyPart.Disposition.Type} {lTag.BodyPart.Disposition.FileName} {lTag.BodyPart.Disposition.Size} {lTag.BodyPart.Disposition.CreationDate}\n");
-
-                        // if it is an attachment enable a download button TODO
+                        if (lTag.BodyPart.Disposition.TypeCode == eDispositionTypeCode.attachment) cmdDownload.Enabled = true;
                     }
 
                     if (lTag.BodyPart.Languages != null) rtxPartDetail.AppendText($"Languages: {lTag.BodyPart.Languages}\n");
@@ -851,6 +851,27 @@ namespace testharness
                 mDaysToGet = null;
                 e.Cancel = true;
                 erp.SetError((Control)sender, "days of messages should be a number 1 .. 100");
+            }
+        }
+
+        private void cmdDownload_Click(object sender, EventArgs e)
+        {
+            var lContext = mRootContext.NewMethod(nameof(Form1), nameof(cmdDownload_Click));
+
+            var lTag = tvwBodyStructure.SelectedNode?.Tag as cTVWBodyStructureNodeTag;
+
+            var lPart = lTag?.BodyPart as cSinglePartBody;
+
+            if (lPart == null) return;
+
+            var lSaveFileDialog = new SaveFileDialog();
+
+            if (lPart.Disposition?.FileName != null) lSaveFileDialog.FileName = lPart.Disposition?.FileName;
+
+            if (lSaveFileDialog.ShowDialog() == DialogResult.OK) 
+            {
+                frmDownloading.Download(lTag.Message, lTag.BodyPart, lSaveFileDialog.FileName, mCancellationTokenSource);
+                ZSetCancellationToken();
             }
         }
     }
