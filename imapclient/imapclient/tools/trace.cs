@@ -61,15 +61,25 @@ namespace work.bacome.trace
         {
             public readonly static cContext Null = new cNull();
 
-            public abstract cContext NewGeneric(string pMessage, params object[] pArgs);
-            public abstract cContext NewObject(string pClass, params object[] pArgs);
-            public abstract cContext NewObjectV(string pClass, int pVersion, params object[] pArgs);
-            public abstract cContext NewSetProp(string pClass, string pProperty, object pValue);
-            public abstract cContext NewMethod(string pClass, string pMethod, params object[] pArgs);
-            public abstract cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs);
-            public abstract cContext NewRootGeneric(string pInstanceName, bool pContextTraceDelay = false);
-            public abstract cContext NewRootMethod(string pClass, string pMethod, bool pContextTraceDelay = false);
+            public abstract cContext NewRoot(string pInstanceName, bool pContextTraceDelay = false);
 
+            public abstract cContext NewGeneric(bool pContextTraceDelay, string pMessage, params object[] pArgs);
+            public abstract cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs);
+            public abstract cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue);
+            public abstract cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs);
+            public abstract cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod);
+
+            public virtual cContext NewGeneric(string pMessage, params object[] pArgs) => NewGeneric(false, pMessage, pArgs);
+            public virtual cContext NewObject(string pClass, params object[] pArgs) => NewObjectV(false, pClass, 1, pArgs);
+            public virtual cContext NewObject(bool pContextTraceDelay, string pClass, params object[] pArgs) => NewObjectV(pContextTraceDelay, pClass, 1, pArgs);
+            public virtual cContext NewObjectV(string pClass, int pVersion, params object[] pArgs) => NewObjectV(false, pClass, pVersion, pArgs);
+            public virtual cContext NewSetProp(string pClass, string pProperty, object pValue) => NewSetProp(false, pClass, pProperty, pValue);
+            public virtual cContext NewMethod(string pClass, string pMethod, params object[] pArgs) => NewMethodV(false, pClass, pMethod, 1, pArgs);
+            public virtual cContext NewMethod(bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) => NewMethodV(pContextTraceDelay, pClass, pMethod, 1, pArgs);
+            public virtual cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs) => NewMethodV(false, pClass, pMethod, pVersion, pArgs);
+            public virtual cContext NewRootMethod(string pClass, string pMethod) => NewRootMethod(false, pClass, pMethod);
+
+            public abstract bool ContextTraceDelay { get; }
             protected abstract void TraceContext();
 
             [Conditional("TRACE")]
@@ -102,15 +112,25 @@ namespace work.bacome.trace
             {
                 public cNull() { }
 
+                public override cContext NewRoot(string pInstanceName, bool pContextTraceDelay) => this;
+
+                public override cContext NewGeneric(bool pContextTraceDelay, string pMessage, params object[] pArgs) => this;
+                public override cContext NewObject(bool pContextTraceDelay, string pClass, params object[] pArgs) => this;
+                public override cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue) => this;
+                public override cContext NewMethod(bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) => this;
+                public override cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod) => this;
+
                 public override cContext NewGeneric(string pMessage, params object[] pArgs) => this;
                 public override cContext NewObject(string pClass, params object[] pArgs) => this;
+                public override cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs) => this;
                 public override cContext NewObjectV(string pClass, int pVersion, params object[] pArgs) => this;
                 public override cContext NewSetProp(string pClass, string pProperty, object pValue) => this;
                 public override cContext NewMethod(string pClass, string pMethod, params object[] pArgs) => this;
+                public override cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs) => this;
                 public override cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs) => this;
-                public override cContext NewRootGeneric(string pInstanceName, bool pContextTraceDelay = false) => this;
-                public override cContext NewRootMethod(string pClass, string pMethod, bool pContextTraceDelay = false) => this;
+                public override cContext NewRootMethod(string pClass, string pMethod) => this;
 
+                public override bool ContextTraceDelay => true;
                 protected override void TraceContext() { }
                 public override void TraceEvent(TraceEventType pTraceEventType, string pMessage, params object[] pArgs) { }
                 public override bool EmitsVerbose => false;
@@ -157,65 +177,55 @@ namespace work.bacome.trace
                     if (!mContextTraceDelay) TraceContext();
                 }
 
-                public override cContext NewGeneric(string pMessage, params object[] pArgs)
-                {
-                    if (mTraceSource == null) return this;
-                    var lResult = new cSubGeneric(this, this, 1, pMessage, pArgs);
-                    if (!mContextTraceDelay) lResult.TraceContext();
-                    return lResult;
-                }
-
-                public override cContext NewObject(string pClass, params object[] pArgs)
-                {
-                    if (mTraceSource == null) return this;
-                    var lResult = new cSubObject(this, this, 1, pClass, pArgs);
-                    if (!mContextTraceDelay) lResult.TraceContext();
-                    return lResult;
-                }
-
-                public override cContext NewObjectV(string pClass, int pVersion, params object[] pArgs)
-                {
-                    if (mTraceSource == null) return this;
-                    var lResult = new cSubObjectV(this, this, 1, pClass, pVersion, pArgs);
-                    if (!mContextTraceDelay) lResult.TraceContext();
-                    return lResult;
-                }
-
-                public override cContext NewSetProp(string pClass, string pProperty, object pValue)
-                {
-                    if (mTraceSource == null) return this;
-                    var lResult = new cSubSetProp(this, this, 1, pClass, pProperty, pValue);
-                    if (!mContextTraceDelay) lResult.TraceContext();
-                    return lResult;
-                }
-
-                public override cContext NewMethod(string pClass, string pMethod, params object[] pArgs)
-                {
-                    if (mTraceSource == null) return this;
-                    var lResult = new cSubMethod(this, this, 1, pClass, pMethod, pArgs);
-                    if (!mContextTraceDelay) lResult.TraceContext();
-                    return lResult;
-                }
-
-                public override cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs)
-                {
-                    if (mTraceSource == null) return this;
-                    var lResult = new cSubMethodV(this, this, 1, pClass, pMethod, pVersion, pArgs);
-                    if (!mContextTraceDelay) lResult.TraceContext();
-                    return lResult;
-                }
-
-                public override cContext NewRootGeneric(string pInstanceName, bool pContextTraceDelay = false)
+                public override cContext NewRoot(string pInstanceName, bool pContextTraceDelay)
                 {
                     if (mTraceSource == null) return this;
                     return new cRoot(mTraceSource, $"{mInstanceName}.{pInstanceName}", pContextTraceDelay);
                 }
 
-                public override cContext NewRootMethod(string pClass, string pMethod, bool pContextTraceDelay = false)
+                public override cContext NewGeneric(bool pContextTraceDelay, string pMessage, params object[] pArgs)
                 {
                     if (mTraceSource == null) return this;
-                    return new cRoot(mTraceSource, $"{mInstanceName}.{pClass}.{pMethod}", pContextTraceDelay);
+                    bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
+                    var lResult = new cSubGeneric(this, this, 1, lContextTraceDelay, pMessage, pArgs);
+                    if (!lContextTraceDelay) lResult.TraceContext();
+                    return lResult;
                 }
+
+                public override cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs)
+                {
+                    if (mTraceSource == null) return this;
+                    bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
+                    var lResult = new cSubObjectV(this, this, 1, lContextTraceDelay, pClass, pVersion, pArgs);
+                    if (!lContextTraceDelay) lResult.TraceContext();
+                    return lResult;
+                }
+
+                public override cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue)
+                {
+                    if (mTraceSource == null) return this;
+                    bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
+                    var lResult = new cSubSetProp(this, this, 1, lContextTraceDelay, pClass, pProperty, pValue);
+                    if (!lContextTraceDelay) lResult.TraceContext();
+                    return lResult;
+                }
+
+                public override cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs)
+                {
+                    if (mTraceSource == null) return this;
+                    bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
+                    var lResult = new cSubMethodV(this, this, 1, lContextTraceDelay, pClass, pMethod, pVersion, pArgs);
+                    if (!lContextTraceDelay) lResult.TraceContext();
+                    return lResult;
+                }
+
+                public override cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod)
+                {
+                    if (mTraceSource == null) return this;
+                    return new cRoot(mTraceSource, $"{mInstanceName}.{pClass}.{pMethod}", mContextTraceDelay || pContextTraceDelay);
+                }
+
+                public override bool ContextTraceDelay => mContextTraceDelay;
 
                 protected override void TraceContext()
                 {
@@ -250,62 +260,57 @@ namespace work.bacome.trace
                 {
                     private cRoot mRoot;
                     private cContext mParent;
-                    int mLevel;
+                    private int mLevel;
+                    private bool mContextTraceDelay;
 
                     private object mLock = new object();
                     private volatile bool mLogged = false;
 
-                    public cSub(cRoot pRoot, cContext pParent, int pParentLevel)
+                    public cSub(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay)
                     {
                         mRoot = pRoot;
                         mParent = pParent;
                         mLevel = pParentLevel + 1;
+                        mContextTraceDelay = pParent.ContextTraceDelay || pContextTraceDelay;
                     }
 
-                    public override cContext NewGeneric(string pMessage, params object[] pArgs)
+                    public override cContext NewRoot(string pInstanceName, bool pContextTraceDelay) => new cRoot(mRoot.mTraceSource, $"{mRoot.mInstanceName}.{pInstanceName}", pContextTraceDelay);
+
+                    public override cContext NewGeneric(bool pContextTraceDelay, string pMessage, params object[] pArgs)
                     {
-                        var lResult = new cSubGeneric(mRoot, this, mLevel, pMessage, pArgs);
-                        if (!mRoot.mContextTraceDelay) lResult.TraceContext();
+                        bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
+                        var lResult = new cSubGeneric(mRoot, this, mLevel, lContextTraceDelay, pMessage, pArgs);
+                        if (!lContextTraceDelay) lResult.TraceContext();
                         return lResult;
                     }
 
-                    public override cContext NewObject(string pClass, params object[] pArgs)
+                    public override cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs)
                     {
-                        var lResult = new cSubObject(mRoot, this, mLevel, pClass, pArgs);
-                        if (!mRoot.mContextTraceDelay) lResult.TraceContext();
+                        bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
+                        var lResult = new cSubObjectV(mRoot, this, mLevel, lContextTraceDelay, pClass, pVersion, pArgs);
+                        if (!lContextTraceDelay) lResult.TraceContext();
                         return lResult;
                     }
 
-                    public override cContext NewObjectV(string pClass, int pVersion, params object[] pArgs)
+                    public override cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue)
                     {
-                        var lResult = new cSubObjectV(mRoot, this, mLevel, pClass, pVersion, pArgs);
-                        if (!mRoot.mContextTraceDelay) lResult.TraceContext();
+                        bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
+                        var lResult = new cSubSetProp(mRoot, this, mLevel, lContextTraceDelay, pClass, pProperty, pValue);
+                        if (!lContextTraceDelay) lResult.TraceContext();
                         return lResult;
                     }
 
-                    public override cContext NewSetProp(string pClass, string pProperty, object pValue)
+                    public override cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs)
                     {
-                        var lResult = new cSubSetProp(mRoot, this, mLevel, pClass, pProperty, pValue);
-                        if (!mRoot.mContextTraceDelay) lResult.TraceContext();
+                        bool lContextTraceDelay = mContextTraceDelay || pContextTraceDelay;
+                        var lResult = new cSubMethodV(mRoot, this, mLevel, lContextTraceDelay, pClass, pMethod, pVersion, pArgs);
+                        if (!lContextTraceDelay) lResult.TraceContext();
                         return lResult;
                     }
 
-                    public override cContext NewMethod(string pClass, string pMethod, params object[] pArgs)
-                    {
-                        var lResult = new cSubMethod(mRoot, this, mLevel, pClass, pMethod, pArgs);
-                        if (!mRoot.mContextTraceDelay) lResult.TraceContext();
-                        return lResult;
-                    }
+                    public override cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod) => new cRoot(mRoot.mTraceSource, $"{mRoot.mInstanceName}.{pClass}.{pMethod}", mContextTraceDelay || pContextTraceDelay);
 
-                    public override cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs)
-                    {
-                        var lResult = new cSubMethodV(mRoot, this, mLevel, pClass, pMethod, pVersion, pArgs);
-                        if (!mRoot.mContextTraceDelay) lResult.TraceContext();
-                        return lResult;
-                    }
-
-                    public override cContext NewRootGeneric(string pInstanceName, bool pContextTraceDelay = false) => new cRoot(mRoot.mTraceSource, $"{mRoot.mInstanceName}.{pInstanceName}", pContextTraceDelay);
-                    public override cContext NewRootMethod(string pClass, string pMethod, bool pContextTraceDelay = false) => new cRoot(mRoot.mTraceSource, $"{mRoot.mInstanceName}.{pClass}.{pMethod}", pContextTraceDelay);
+                    public override bool ContextTraceDelay => mContextTraceDelay;
 
                     protected override void TraceContext()
                     {
@@ -337,7 +342,7 @@ namespace work.bacome.trace
                     private string mMessage;
                     private object[] mArgs;
 
-                    public cSubGeneric(cRoot pRoot, cContext pParent, int pParentLevel, string pMessage, params object[] pArgs) : base(pRoot, pParent, pParentLevel)
+                    public cSubGeneric(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pMessage, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay)
                     {
                         mMessage = pMessage;
                         mArgs = pArgs;
@@ -350,7 +355,7 @@ namespace work.bacome.trace
                 {
                     protected object[] mArgs;
 
-                    public cSubArgs(cRoot pRoot, cContext pParent, int pParentLevel, object[] pArgs) : base(pRoot, pParent, pParentLevel)
+                    public cSubArgs(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay)
                     {
                         mArgs = pArgs;
                     }
@@ -384,7 +389,7 @@ namespace work.bacome.trace
                 {
                     protected string mClass;
 
-                    public cSubObject(cRoot pRoot, cContext pParent, int pParentLevel, string pClass, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pArgs)
+                    public cSubObject(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay, pArgs)
                     {
                         mClass = pClass;
                     }
@@ -398,7 +403,7 @@ namespace work.bacome.trace
                 {
                     private int mVersion;
 
-                    public cSubObjectV(cRoot pRoot, cContext pParent, int pParentLevel, string pClass, int pVersion, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pClass, pArgs)
+                    public cSubObjectV(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay, pClass, pArgs)
                     {
                         mVersion = pVersion;
                     }
@@ -412,7 +417,7 @@ namespace work.bacome.trace
                     private string mProperty;
                     private object mValue;
 
-                    public cSubSetProp(cRoot pRoot, cContext pParent, int pParentLevel, string pClass, string pProperty, object pValue) : base(pRoot, pParent, pParentLevel)
+                    public cSubSetProp(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, string pProperty, object pValue) : base(pRoot, pParent, pParentLevel, pContextTraceDelay)
                     {
                         mClass = pClass;
                         mProperty = pProperty;
@@ -427,7 +432,7 @@ namespace work.bacome.trace
                     protected string mClass;
                     protected string mMethod;
 
-                    public cSubMethod(cRoot pRoot, cContext pParent, int pParentLevel, string pClass, string pMethod, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pArgs)
+                    public cSubMethod(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay, pArgs)
                     {
                         mClass = pClass;
                         mMethod = pMethod;
@@ -442,7 +447,7 @@ namespace work.bacome.trace
                 {
                     private int mVersion;
 
-                    public cSubMethodV(cRoot pRoot, cContext pParent, int pParentLevel, string pClass, string pMethod, int pVersion, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pClass, pMethod, pArgs)
+                    public cSubMethodV(cRoot pRoot, cContext pParent, int pParentLevel, bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs) : base(pRoot, pParent, pParentLevel, pContextTraceDelay, pClass, pMethod, pArgs)
                     {
                         mVersion = pVersion;
                     }

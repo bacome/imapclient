@@ -49,7 +49,8 @@ namespace work.bacome.imapclient
 
                                         continue;
                                     }
-                                    else mBytes.Add(cASCII.CR);
+
+                                    mBytes.Add(cASCII.CR);
                                 }
 
                                 if (lByte == cASCII.CR) mBufferedCR = true;
@@ -71,14 +72,14 @@ namespace work.bacome.imapclient
 
                         if (!pLiteral && mBytes.Count == 0)
                         {
-                            lContext.TraceVerbose("received line an empty line");
+                            if (!lContext.ContextTraceDelay) lContext.TraceVerbose("received line an empty line");
                             return;
                         }
 
                         var lLine = new cBytesLine(pLiteral, mBytes);
                         mBytes = new cByteList();
 
-                        lContext.TraceVerbose("received {0}", lLine);
+                        if (!lContext.ContextTraceDelay) lContext.TraceVerbose("received {0}", lLine);
 
                         mLines.Add(lLine);
                     }
@@ -122,10 +123,10 @@ namespace work.bacome.imapclient
 
                         if (mBytesToGo == 0)
                         {
-                            lContext.TraceVerbose("adding empty literal line");
+                            if (!lContext.ContextTraceDelay) lContext.TraceVerbose("adding empty literal line");
                             mLines.Add(new cBytesLine(true, new byte[0]));
                         }
-                        else lContext.TraceVerbose("expecting literal of length {0}", mBytesToGo);
+                        else if(!lContext.ContextTraceDelay) lContext.TraceVerbose("expecting literal of length {0}", mBytesToGo);
 
                         return false; // still need more bytes
                     }

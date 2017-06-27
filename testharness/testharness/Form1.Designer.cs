@@ -90,11 +90,12 @@
             this.dgvMessageHeaders = new System.Windows.Forms.DataGridView();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.tvwBodyStructure = new System.Windows.Forms.TreeView();
+            this.cmdDownload = new System.Windows.Forms.Button();
             this.cmdInspectRaw = new System.Windows.Forms.Button();
             this.cmdInspect = new System.Windows.Forms.Button();
             this.rtxPartDetail = new System.Windows.Forms.RichTextBox();
             this.cmdTestsCurrent = new System.Windows.Forms.Button();
-            this.cmdDownload = new System.Windows.Forms.Button();
+            this.cmdDownloadRaw = new System.Windows.Forms.Button();
             this.pnlCredentials.SuspendLayout();
             this.pnlConnection.SuspendLayout();
             this.pnlProperties.SuspendLayout();
@@ -662,7 +663,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(587, 574);
+            this.tabPage3.Size = new System.Drawing.Size(718, 574);
             this.tabPage3.TabIndex = 0;
             this.tabPage3.Text = "Response Text";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -777,6 +778,7 @@
             // 
             // splitContainer3.Panel2
             // 
+            this.splitContainer3.Panel2.Controls.Add(this.cmdDownloadRaw);
             this.splitContainer3.Panel2.Controls.Add(this.cmdDownload);
             this.splitContainer3.Panel2.Controls.Add(this.cmdInspectRaw);
             this.splitContainer3.Panel2.Controls.Add(this.cmdInspect);
@@ -795,6 +797,17 @@
             this.tvwBodyStructure.Size = new System.Drawing.Size(155, 339);
             this.tvwBodyStructure.TabIndex = 2;
             this.tvwBodyStructure.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvwBodyStructure_AfterSelect);
+            // 
+            // cmdDownload
+            // 
+            this.cmdDownload.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdDownload.Location = new System.Drawing.Point(223, 290);
+            this.cmdDownload.Name = "cmdDownload";
+            this.cmdDownload.Size = new System.Drawing.Size(94, 23);
+            this.cmdDownload.TabIndex = 3;
+            this.cmdDownload.Text = "Download";
+            this.cmdDownload.UseVisualStyleBackColor = true;
+            this.cmdDownload.Click += new System.EventHandler(this.cmdDownload_Click);
             // 
             // cmdInspectRaw
             // 
@@ -825,7 +838,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtxPartDetail.Location = new System.Drawing.Point(3, 7);
             this.rtxPartDetail.Name = "rtxPartDetail";
-            this.rtxPartDetail.Size = new System.Drawing.Size(314, 306);
+            this.rtxPartDetail.Size = new System.Drawing.Size(314, 258);
             this.rtxPartDetail.TabIndex = 0;
             this.rtxPartDetail.Text = "";
             // 
@@ -839,16 +852,16 @@
             this.cmdTestsCurrent.UseVisualStyleBackColor = true;
             this.cmdTestsCurrent.Click += new System.EventHandler(this.cmdTestsCurrent_Click);
             // 
-            // cmdDownload
+            // cmdDownloadRaw
             // 
-            this.cmdDownload.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdDownload.Location = new System.Drawing.Point(23, 319);
-            this.cmdDownload.Name = "cmdDownload";
-            this.cmdDownload.Size = new System.Drawing.Size(94, 23);
-            this.cmdDownload.TabIndex = 3;
-            this.cmdDownload.Text = "Download";
-            this.cmdDownload.UseVisualStyleBackColor = true;
-            this.cmdDownload.Click += new System.EventHandler(this.cmdDownload_Click);
+            this.cmdDownloadRaw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdDownloadRaw.Location = new System.Drawing.Point(123, 290);
+            this.cmdDownloadRaw.Name = "cmdDownloadRaw";
+            this.cmdDownloadRaw.Size = new System.Drawing.Size(94, 23);
+            this.cmdDownloadRaw.TabIndex = 4;
+            this.cmdDownloadRaw.Text = "Download Raw";
+            this.cmdDownloadRaw.UseVisualStyleBackColor = true;
+            this.cmdDownloadRaw.Click += new System.EventHandler(this.cmdDownloadRaw_Click);
             // 
             // Form1
             // 
@@ -975,6 +988,7 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox txtDaysToGet;
         private System.Windows.Forms.Button cmdDownload;
+        private System.Windows.Forms.Button cmdDownloadRaw;
     }
 }
 

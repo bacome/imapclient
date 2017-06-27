@@ -52,6 +52,8 @@ namespace work.bacome.imapclient.support
             return lBytes;
         }
 
+        public static bool IsValidByte(byte lByte) => ZTryDecodeBase64Byte(lByte, out _);
+
         public static bool TryDecode(IList<byte> pBytes, out cByteList rBytes, out string rError)
         {
             if (pBytes.Count == 0)
@@ -92,6 +94,13 @@ namespace work.bacome.imapclient.support
 
             if (!lBuffer.TryFlush(out rError)) { rBytes = null; return false; }
 
+            return true;
+        }
+
+        private static bool ZTryDecodeBase64Byte(byte pByte, out int rDecodedByte)
+        {
+            rDecodedByte = kDecode[pByte];
+            if (rDecodedByte == -1) return false;
             return true;
         }
 
@@ -204,13 +213,6 @@ namespace work.bacome.imapclient.support
                 mBytes.Add((byte)(((l62 & 15) << 4) | (l63 >> 2)));
 
                 rError = null;
-                return true;
-            }
-
-            private static bool ZTryDecodeBase64Byte(byte pByte, out int rDecodedByte)
-            {
-                rDecodedByte = kDecode[pByte];
-                if (rDecodedByte == -1) return false;
                 return true;
             }
         }

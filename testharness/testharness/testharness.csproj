@@ -69,6 +69,7 @@
     <Compile Include="messageheader.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="tests.cs" />
     <Compile Include="tvwbodystucturenodetag.cs" />
     <Compile Include="tvwmailboxesnodetag.cs" />
     <EmbeddedResource Include="Form1.resx">

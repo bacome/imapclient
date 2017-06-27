@@ -11,34 +11,26 @@ namespace testharness
         private CancellationTokenSource mCancellationTokenSource;
         private string mFileName;
         private cMessage mMessage;
-        private cBodyPart mBodyPart;
+        private cSection mSection;
+        private eDecodingRequired mDecodingRequired;
 
         public frmDownloading()
         {
             InitializeComponent();
         }
 
-        private void frmDownloading_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        public static void Download(cMessage pMessage, cBodyPart pBodyPart, string pFileName, CancellationTokenSource pCancellationTokenSource)
+        public static void Download(cMessage pMessage, cSection pSection, eDecodingRequired pDecodingRequired, string pFileName, CancellationTokenSource pCancellationTokenSource)
         {
             using (var lDownloading = new frmDownloading())
             {
                 lDownloading.lblFileName.Text = "Downloading " + pFileName;
                 lDownloading.mMessage = pMessage;
-                lDownloading.mBodyPart = pBodyPart;
+                lDownloading.mSection = pSection;
+                lDownloading.mDecodingRequired = pDecodingRequired;
                 lDownloading.mFileName = pFileName;
                 lDownloading.mCancellationTokenSource = pCancellationTokenSource;
                 lDownloading.ShowDialog();
             }
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            mCancellationTokenSource.Cancel();
         }
 
         private async void frmDownloading_Shown(object sender, EventArgs e)
@@ -47,7 +39,7 @@ namespace testharness
             {
                 using (var lFileStream = new FileStream(mFileName, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-                    await mMessage.FetchAsync(mBodyPart, lFileStream);
+                    await mMessage.FetchAsync(mSection, mDecodingRequired, lFileStream);
                 }
             }
             catch (Exception ex)
@@ -59,6 +51,11 @@ namespace testharness
             {
                 Hide();
             }
+        }
+
+        private void cmdCancel_Click(object sender, EventArgs e)
+        {
+            mCancellationTokenSource.Cancel();
         }
     }
 }

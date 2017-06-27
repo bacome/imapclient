@@ -218,7 +218,8 @@ namespace work.bacome.imapclient
 
                 private bool ZGetResponseText(cBytesCursor pCursor, eResponseTextType pResponseTextType, cBytes pResponseTextCodeBracketSpace, eResponseTextCode pResponseTextCode, out cResponseText rResponseText, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(ZGetResponseText), pResponseTextCodeBracketSpace, pResponseTextCode);
+                    // SUPERVERBOSE
+                    var lContext = pParentContext.NewMethod(true, nameof(cResponseTextProcessor), nameof(ZGetResponseText), pResponseTextCodeBracketSpace, pResponseTextCode);
                     if (!pCursor.SkipBytes(pResponseTextCodeBracketSpace)) { rResponseText = null; return false; }
                     rResponseText = new cResponseText(pResponseTextCode, pCursor.GetRestAsString());
                     lContext.TraceWarning("response text received: {0}", rResponseText);
