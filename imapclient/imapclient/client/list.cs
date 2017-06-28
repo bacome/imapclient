@@ -177,7 +177,7 @@ namespace work.bacome.imapclient
 
             try
             {
-                var lMC = new cMethodControl(Timeout, CancellationToken);
+                var lMC = new cMethodControl(mTimeout, CancellationToken);
 
                 // ;?; // note this is where we do the stuff to honour the flags
                 // including choosing list/rlist/lsub etc

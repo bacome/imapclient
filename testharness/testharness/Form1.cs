@@ -190,7 +190,7 @@ namespace testharness
             try
             {
                 // keep the unseen count up to date
-                await mIMAPClient.FetchAsync(e.MailboxId, e.Handles, fMessageProperties.flags);
+                await mIMAPClient.FetchAsync(e.MailboxId, e.Handles, fMessageProperties.flags, null);
 
                 // could now add these to the grid - TODO
             }
@@ -897,11 +897,7 @@ namespace testharness
 
             if (lPart.Disposition?.FileName != null) lSaveFileDialog.FileName = lPart.Disposition?.FileName;
 
-            if (lSaveFileDialog.ShowDialog() == DialogResult.OK) 
-            {
-                frmDownloading.Download(lTag.Message, lPart.Section, lPart.DecodingRequired, lSaveFileDialog.FileName, mCancellationTokenSource);
-                ZSetCancellationToken();
-            }
+            if (lSaveFileDialog.ShowDialog() == DialogResult.OK) frmDownloading.Download(lTag.Message, lPart.Section, lPart.DecodingRequired, lSaveFileDialog.FileName, (int)lPart.SizeInBytes);
         }
 
         private void cmdDownloadRaw_Click(object sender, EventArgs e)
@@ -918,11 +914,7 @@ namespace testharness
 
             lSaveFileDialog.DefaultExt = "txt";
 
-            if (lSaveFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                frmDownloading.Download(lTag.Message, lPart.Section, eDecodingRequired.none, lSaveFileDialog.FileName, mCancellationTokenSource);
-                ZSetCancellationToken();
-            }
+            if (lSaveFileDialog.ShowDialog() == DialogResult.OK) frmDownloading.Download(lTag.Message, lPart.Section, eDecodingRequired.none, lSaveFileDialog.FileName, (int)lPart.SizeInBytes);
         }
     }
 }

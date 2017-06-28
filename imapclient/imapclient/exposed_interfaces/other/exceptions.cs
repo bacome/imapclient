@@ -211,7 +211,6 @@ namespace work.bacome.imapclient
     // thrown when the CTE can't be handled
     public class cContentTransferDecodingException : Exception
     {
-        public cContentTransferDecodingException(string pMessage) : base(pMessage) { }
         public cContentTransferDecodingException(cTrace.cContext pContext) => pContext.TraceError(nameof(cContentTransferDecodingException));
         public cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
     }

@@ -139,6 +139,15 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
+            public void IncrementProgress(Action<int> pIncrementProgress, int pValue, cTrace.cContext pParentContext)
+            {
+                if (pIncrementProgress == null) return;
+                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(IncrementProgress), pValue);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
+                ZFireAndForget(new cIncrementProgressEventArgs(pIncrementProgress, pValue), lContext);
+                // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
+            }
+
             private async Task ZFireAndWaitAsync(EventArgs pEventArgs, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(ZFireAndWaitAsync));
@@ -244,6 +253,11 @@ namespace work.bacome.imapclient
                                 mClient.MessagePropertiesSet?.Invoke(mClient, lEventArgs);
                                 break;
 
+                            case cIncrementProgressEventArgs lEventArgs:
+
+                                lEventArgs.IncrementProgress(lEventArgs.Value);
+                                break;
+
                             default:
 
                                 lContext.TraceError("unknown event type", lEvent.EventArgs);
@@ -347,6 +361,20 @@ namespace work.bacome.imapclient
                     EventArgs = pEventArgs;
                     Releaser = pReleaser;
                 }
+            }
+
+            private class cIncrementProgressEventArgs : EventArgs
+            {
+                public readonly Action<int> IncrementProgress;
+                public readonly int Value;
+
+                public cIncrementProgressEventArgs(Action<int> pIncrementProgress, int pValue)
+                {
+                    IncrementProgress = pIncrementProgress ?? throw new ArgumentNullException(nameof(pIncrementProgress));
+                    Value = pValue;
+                }
+
+                public override string ToString() => $"{nameof(cIncrementProgressEventArgs)}({Value})";
             }
         }
     }

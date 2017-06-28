@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         public cMessage UIDFetch(cMailboxId pMailboxId, cUID pUID, fMessageProperties pProperties)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetch));
-            var lTask = ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUID), pProperties, lContext);
+            var lTask = ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUID), pProperties, null, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             var lResult = lTask.Result;
             if (lResult.Count == 0) return null;
@@ -20,10 +20,10 @@ namespace work.bacome.imapclient
             throw new cInternalErrorException(lContext);
         }
 
-        public List<cMessage> UIDFetch(cMailboxId pMailboxId, IList<cUID> pUIDs, fMessageProperties pProperties)
+        public List<cMessage> UIDFetch(cMailboxId pMailboxId, IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetch));
-            var lTask = ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUIDs), pProperties, lContext);
+            var lTask = ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUIDs), pProperties, pFC, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
@@ -31,16 +31,16 @@ namespace work.bacome.imapclient
         public async Task<cMessage> UIDFetchAsync(cMailboxId pMailboxId, cUID pUID, fMessageProperties pProperties)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetchAsync));
-            var lResult = await ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUID), pProperties, lContext).ConfigureAwait(false);
+            var lResult = await ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUID), pProperties, null, lContext).ConfigureAwait(false);
             if (lResult.Count == 0) return null;
             if (lResult.Count == 1) return lResult[0];
             throw new cInternalErrorException(lContext);
         }
 
-        public Task<List<cMessage>> UIDFetchAsync(cMailboxId pMailboxId, IList<cUID> pUIDs, fMessageProperties pProperties)
+        public Task<List<cMessage>> UIDFetchAsync(cMailboxId pMailboxId, IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetchAsync));
-            return ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUIDs), pProperties, lContext);
+            return ZUIDFetchAsync(pMailboxId, ZUIDFetchUIDs(pUIDs), pProperties, pFC, lContext);
         }
 
         private cUIDList ZUIDFetchUIDs(cUID pUID)
@@ -65,9 +65,9 @@ namespace work.bacome.imapclient
             return new cUIDList(pUIDs);
         }
 
-        private async Task<List<cMessage>>ZUIDFetchAsync(cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>>ZUIDFetchAsync(cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cFetchControl pFC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchAsync), pMailboxId, pUIDs, pProperties);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchAsync), pMailboxId, pUIDs, pProperties, pFC);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -87,7 +87,9 @@ namespace work.bacome.imapclient
 
             try
             {
-                var lMC = new cMethodControl(Timeout, CancellationToken);
+                cFetchPropertiesMethodControl lMC;
+                if (pFC == null) lMC = new cFetchPropertiesMethodControl(mTimeout, CancellationToken, null);
+                else lMC = new cFetchPropertiesMethodControl(pFC.Timeout, pFC.CancellationToken, pFC.IncrementProgress);
                 lHandles = await lSession.UIDFetchAsync(lMC, pMailboxId, pUIDs, pProperties, lContext).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }

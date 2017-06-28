@@ -25,23 +25,23 @@ namespace work.bacome.imapclient
 
         private enum eSearchThreadAlgorithm { orderedsubject, references, refs }
 
-        public List<cMessage> Search(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fMessageProperties pProperties)
+        public List<cMessage> Search(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cFetchControl pFC = null)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Search));
-            var lTask = ZSearchAsync(pMailboxId, pFilter, pSort, pProperties, lContext);
+            var lTask = ZSearchAsync(pMailboxId, pFilter, pSort, pProperties, pFC, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<List<cMessage>> SearchAsync(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fMessageProperties pProperties)
+        public Task<List<cMessage>> SearchAsync(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cFetchControl pFC = null)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SearchAsync));
-            return ZSearchAsync(pMailboxId, pFilter, pSort, pProperties, lContext);
+            return ZSearchAsync(pMailboxId, pFilter, pSort, pProperties, pFC, lContext);
         }
 
-        private async Task<List<cMessage>> ZSearchAsync(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>> ZSearchAsync(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cFetchControl pFC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSearchAsync), pMailboxId, pFilter, pSort, pProperties);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSearchAsync), pMailboxId, pFilter, pSort, pProperties, pFC);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -65,7 +65,9 @@ namespace work.bacome.imapclient
 
             try
             {
-                var lMC = new cMethodControl(Timeout, CancellationToken);
+                cFetchPropertiesMethodControl lMC;
+                if (pFC == null) lMC = new cFetchPropertiesMethodControl(mTimeout, CancellationToken, null);
+                else lMC = new cFetchPropertiesMethodControl(pFC.Timeout, pFC.CancellationToken, pFC.IncrementProgress);
 
                 if (lSort != null)
                 {
@@ -160,7 +162,7 @@ namespace work.bacome.imapclient
             return ZSearchFlatMessageList(pMailboxId, lHandles, lContext);
         }
 
-        private async Task<List<cMessage>> ZSearchThreadAsync(cMethodControl pMC, cSession pSession, cMailboxId pMailboxId, eSearchThreadAlgorithm pAlgorithm, cFilter pFilter, fMessageProperties pProperties, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>> ZSearchThreadAsync(cFetchPropertiesMethodControl pMC, cSession pSession, cMailboxId pMailboxId, eSearchThreadAlgorithm pAlgorithm, cFilter pFilter, fMessageProperties pProperties, cTrace.cContext pParentContext)
         {
             // this routine uses the thread command and then gets the properties of the returned messages (if required)
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSearchThreadAsync), pMC, pMailboxId, pFilter, pProperties, pAlgorithm);

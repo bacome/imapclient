@@ -21,8 +21,8 @@ namespace work.bacome.imapclient
             private readonly cResponseTextProcessor mResponseTextProcessor;
             private readonly cCapabilityDataProcessor mCapabilityDataProcessor;
             private readonly cCommandPipeline mPipeline;
-            private cFetchConfiguration mFetchPropertiesConfiguration;
-            private cFetchConfiguration mFetchToStreamConfiguration;
+            private cFetchSizer mFetchPropertiesSizer;
+            private cFetchSizer mFetchBodyReadSizer;
             private Encoding mEncoding; // can be null
 
             // properties
@@ -44,9 +44,9 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, cIdleConfiguration pIdleConfiguration, cFetchConfiguration pFetchPropertiesConfiguration, cFetchConfiguration pFetchToStreamConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchPropertiesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchPropertiesConfiguration, pFetchToStreamConfiguration);
+                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchPropertiesConfiguration, pFetchBodyReadConfiguration);
 
                 mEventSynchroniser = pEventSynchroniser;
 
@@ -59,8 +59,8 @@ namespace work.bacome.imapclient
                 mCapabilityDataProcessor = new cCapabilityDataProcessor(ZSetCapabilities);
                 mPipeline.Install(mCapabilityDataProcessor);
 
-                mFetchPropertiesConfiguration = pFetchPropertiesConfiguration;
-                mFetchToStreamConfiguration = pFetchToStreamConfiguration;
+                mFetchPropertiesSizer = new cFetchSizer(pFetchPropertiesConfiguration);
+                mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
                 mEncoding = pEncoding;
             }
 
@@ -77,16 +77,18 @@ namespace work.bacome.imapclient
                 mPipeline.SetIdleConfiguration(pConfiguration, pParentContext);
             }
 
-            public void SetFetchPropertiesConfiguration(cFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
+            public void SetFetchPropertiesConfiguration(cFetchSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetFetchPropertiesConfiguration), pConfiguration);
-                mFetchPropertiesConfiguration = pConfiguration;
+                if (pConfiguration == null) throw new ArgumentNullException(nameof(pConfiguration));
+                mFetchPropertiesSizer = new cFetchSizer(pConfiguration);
             }
 
-            public void SetFetchToStreamConfiguration(cFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
+            public void SetFetchBodyReadConfiguration(cFetchSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetFetchToStreamConfiguration), pConfiguration);
-                mFetchToStreamConfiguration = pConfiguration;
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetFetchBodyReadConfiguration), pConfiguration);
+                if (pConfiguration == null) throw new ArgumentNullException(nameof(pConfiguration));
+                mFetchBodyReadSizer = new cFetchSizer(pConfiguration);
             }
 
             public void SetEncoding(Encoding pEncoding, cTrace.cContext pParentContext)

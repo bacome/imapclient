@@ -43,6 +43,7 @@
     <Compile Include="client\base.cs" />
     <Compile Include="client\connect.cs" />
     <Compile Include="client\disconnect.cs" />
+    <Compile Include="client\fetchcontrol.cs" />
     <Compile Include="client\fetchproperties.cs" />
     <Compile Include="client\fetchbody.cs" />
     <Compile Include="client\uidfetchbody.cs" />
@@ -190,6 +191,7 @@
     <Compile Include="session\session\select.cs" />
     <Compile Include="session\support\command.cs" />
     <Compile Include="session\support\commandtag.cs" />
+    <Compile Include="session\support\fetchsizer.cs" />
     <Compile Include="session\support\mailboxnamepatterns.cs" />
     <Compile Include="session\support\messagecache.cs" />
     <Compile Include="session\support\messagecacheitem.cs" />

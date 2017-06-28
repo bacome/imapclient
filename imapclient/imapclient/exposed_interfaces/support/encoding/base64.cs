@@ -52,7 +52,7 @@ namespace work.bacome.imapclient.support
             return lBytes;
         }
 
-        public static bool IsValidByte(byte lByte) => ZTryDecodeBase64Byte(lByte, out _);
+        public static bool IsInAlphabet(byte lByte) => ZTryDecodeBase64Byte(lByte, out _) || lByte == cASCII.EQUALS;
 
         public static bool TryDecode(IList<byte> pBytes, out cByteList rBytes, out string rError)
         {

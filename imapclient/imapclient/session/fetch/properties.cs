@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            public async Task FetchAsync(cFetchPropertiesMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fMessageProperties pProperties, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchAsync), pMC, pMailboxId, pHandles, pProperties);
 
@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
                 foreach (var lGroup in ZFetchGroups(pHandles, pProperties)) await ZFetchAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
             }
 
-            private async Task ZFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cFetchGroup pGroup, cTrace.cContext pParentContext)
+            private async Task ZFetchAsync(cFetchPropertiesMethodControl pMC, cMailboxId pMailboxId, cFetchGroup pGroup, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAsync), pMC, pMailboxId, pGroup);
 
@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
                     while (lIndex < pGroup.Handles.Count && lMSNHandleCount != 0)
                     {
                         // the number of messages to fetch this time
-                        int lFetchCount = mFetchPropertiesConfiguration.Current;
+                        int lFetchCount = mFetchPropertiesSizer.Current;
 
                         // the number of UID handles we need to fetch to top up the number of handles to the limit
                         //
@@ -86,7 +86,8 @@ namespace work.bacome.imapclient
                             lStopwatch.Stop();
 
                             // store the time taken so the next fetch is a better size
-                            mFetchPropertiesConfiguration.AddSample(lHandles.Count, lStopwatch.ElapsedMilliseconds);
+                            mFetchPropertiesSizer.AddSample(lHandles.Count, lStopwatch.ElapsedMilliseconds, lContext);
+                            pMC.IncrementProgress(lHandles.Count);
                         }
                     }
 

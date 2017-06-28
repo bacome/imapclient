@@ -21,7 +21,7 @@ namespace work.bacome.async
         public cTerminator(CancellationToken pCancellationToken)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pCancellationToken);
-            mTask = Task.Delay(System.Threading.Timeout.Infinite, mLinkedCancellationTokenSource.Token);
+            mTask = Task.Delay(Timeout.Infinite, mLinkedCancellationTokenSource.Token);
         }
 
         public Task GetAwaitTerminationTask()

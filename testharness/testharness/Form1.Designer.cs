@@ -313,7 +313,7 @@
             this.rtxResponseText.Location = new System.Drawing.Point(6, 6);
             this.rtxResponseText.Name = "rtxResponseText";
             this.rtxResponseText.ReadOnly = true;
-            this.rtxResponseText.Size = new System.Drawing.Size(575, 562);
+            this.rtxResponseText.Size = new System.Drawing.Size(706, 562);
             this.rtxResponseText.TabIndex = 21;
             this.rtxResponseText.Text = "";
             // 

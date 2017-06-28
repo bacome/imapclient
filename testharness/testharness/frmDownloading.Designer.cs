@@ -28,46 +28,48 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.lblFileName = new System.Windows.Forms.Label();
             this.cmdCancel = new System.Windows.Forms.Button();
+            this.prg = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
-            // 
-            // lblFileName
-            // 
-            this.lblFileName.AutoSize = true;
-            this.lblFileName.Location = new System.Drawing.Point(12, 9);
-            this.lblFileName.Name = "lblFileName";
-            this.lblFileName.Size = new System.Drawing.Size(144, 13);
-            this.lblFileName.TabIndex = 0;
-            this.lblFileName.Text = "The file name should be here";
             // 
             // cmdCancel
             // 
-            this.cmdCancel.Location = new System.Drawing.Point(12, 32);
+            this.cmdCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdCancel.Location = new System.Drawing.Point(213, 34);
             this.cmdCancel.Name = "cmdCancel";
-            this.cmdCancel.Size = new System.Drawing.Size(110, 23);
+            this.cmdCancel.Size = new System.Drawing.Size(77, 23);
             this.cmdCancel.TabIndex = 1;
             this.cmdCancel.Text = "Cancel";
             this.cmdCancel.UseVisualStyleBackColor = true;
             this.cmdCancel.Click += new System.EventHandler(this.cmdCancel_Click);
             // 
+            // prg
+            // 
+            this.prg.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.prg.Location = new System.Drawing.Point(3, 3);
+            this.prg.Name = "prg";
+            this.prg.Size = new System.Drawing.Size(287, 25);
+            this.prg.TabIndex = 2;
+            // 
             // frmDownloading
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(292, 66);
+            this.ClientSize = new System.Drawing.Size(292, 62);
+            this.Controls.Add(this.prg);
             this.Controls.Add(this.cmdCancel);
-            this.Controls.Add(this.lblFileName);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "frmDownloading";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "frmDownloading";
             this.Shown += new System.EventHandler(this.frmDownloading_Shown);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
         private System.Windows.Forms.Button cmdCancel;
-        public System.Windows.Forms.Label lblFileName;
+        private System.Windows.Forms.ProgressBar prg;
     }
 }

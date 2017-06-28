@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.trace;
@@ -12,27 +12,27 @@ namespace work.bacome.imapclient
         public void Fetch(cMailboxId pMailboxId, iMessageHandle pHandle, fMessageProperties pProperties)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZFetchAsync(pMailboxId, ZFetchHandles(pHandle), pProperties, lContext);
+            var lTask = ZFetchAsync(pMailboxId, ZFetchHandles(pHandle), pProperties, null, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
         }
 
-        public void Fetch(cMailboxId pMailboxId, IList<iMessageHandle> pHandles, fMessageProperties pProperties)
+        public void Fetch(cMailboxId pMailboxId, IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZFetchAsync(pMailboxId, ZFetchHandles(pHandles), pProperties, lContext);
+            var lTask = ZFetchAsync(pMailboxId, ZFetchHandles(pHandles), pProperties, pFC, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
         }
 
         public Task FetchAsync(cMailboxId pMailboxId, iMessageHandle pHandle, fMessageProperties pProperties)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
-            return ZFetchAsync(pMailboxId, ZFetchHandles(pHandle), pProperties, lContext);
+            return ZFetchAsync(pMailboxId, ZFetchHandles(pHandle), pProperties, null, lContext);
         }
 
-        public Task FetchAsync(cMailboxId pMailboxId, IList<iMessageHandle> pHandles, fMessageProperties pProperties)
+        public Task FetchAsync(cMailboxId pMailboxId, IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
-            return ZFetchAsync(pMailboxId, ZFetchHandles(pHandles), pProperties, lContext);
+            return ZFetchAsync(pMailboxId, ZFetchHandles(pHandles), pProperties, pFC, lContext);
         }
 
         private cHandleList ZFetchHandles(iMessageHandle pHandle)
@@ -57,9 +57,9 @@ namespace work.bacome.imapclient
             return new cHandleList(pHandles);
         }
 
-        private async Task ZFetchAsync(cMailboxId pMailboxId, cHandleList pHandles, fMessageProperties pProperties, cTrace.cContext pParentContext)
+        private async Task ZFetchAsync(cMailboxId pMailboxId, cHandleList pHandles, fMessageProperties pProperties, cFetchControl pFC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAsync), pMailboxId, pHandles, pProperties);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAsync), pMailboxId, pHandles, pProperties, pFC);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -77,10 +77,24 @@ namespace work.bacome.imapclient
 
             try
             {
-                var lMC = new cMethodControl(Timeout, CancellationToken);
+                cFetchPropertiesMethodControl lMC;
+                if (pFC == null) lMC = new cFetchPropertiesMethodControl(mTimeout, CancellationToken, null);
+                else lMC = new cFetchPropertiesMethodControl(pFC.Timeout, pFC.CancellationToken, pFC.IncrementProgress);
                 await lSession.FetchAsync(lMC, pMailboxId, pHandles, pProperties, lContext).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
+        }
+
+        private class cFetchPropertiesMethodControl : cMethodControl
+        {
+            private readonly Action<int> mIncrementProgress;
+
+            public cFetchPropertiesMethodControl(int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrementProgress) : base(pTimeout, pCancellationToken)
+            {
+                mIncrementProgress = pIncrementProgress;
+            }
+
+            public void IncrementProgress(int pValue) => mIncrementProgress?.Invoke(pValue);
         }
     }
 }

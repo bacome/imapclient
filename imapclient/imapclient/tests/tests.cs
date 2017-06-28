@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
             cMailboxNamePattern._Tests(lContext);
             cCulturedString._Tests(lContext);
             cMailboxName._Tests(lContext);
-            cFetchConfiguration._Tests(lContext);
+            cFetchSizer._Tests(lContext);
         }
 
         private partial class cSession
