@@ -68,7 +68,7 @@ namespace testharness
                 rtxState.Text = "disconnected";
                 ZEnable(rdoCredAnon.Checked, txtTrace);
                 ZEnable(rdoCredBasic.Checked, txtUserId, txtPassword);
-                ZEnable(false, cmdDisconnect, cmdDisconnectAsync, cmdCancel, dgvMessageHeaders, tvwBodyStructure, rtxPartDetail, cmdInspect, cmdInspectRaw);
+                ZEnable(false, cmdDisconnect, cmdDisconnectAsync, cmdCancel, dgvMessageHeaders, tvwBodyStructure, rtxPartDetail, cmdInspect, cmdInspectRaw, cmdDownload, cmdDownloadRaw);
             }
             else
             {
@@ -134,7 +134,7 @@ namespace testharness
             // clear the displays
             tvwMailboxes.Nodes.Clear();
             dgvMessageHeaders.DataSource = null;
-            ZDGVMessageHeadersCoordinateChildrenAsync(lContext);
+            ZDGVMessageHeadersCoordinateChildrenAsync(lContext); // if the datasource is null this runs synchronously
 
             // set the server
             mIMAPClient.SetServer(txtHost.Text.Trim(), int.Parse(txtPort.Text), chkSSL.Checked);
@@ -190,7 +190,7 @@ namespace testharness
             try
             {
                 // keep the unseen count up to date
-                await mIMAPClient.FetchAsync(e.MailboxId, e.Handles, fMessageProperties.flags);
+                await mIMAPClient.FetchAsync(e.MailboxId, e.Handles, fMessageProperties.flags, null);
 
                 // could now add these to the grid - TODO
             }
@@ -290,7 +290,7 @@ namespace testharness
 
             try
             {
-                cIMAPClient._Tests(false);
+                cTests.Tests(false, lContext);
                 MessageBox.Show("all tests passed");
             }
             catch (Exception ex)
@@ -427,7 +427,7 @@ namespace testharness
 
             try
             {
-                cIMAPClient._Tests(true);
+                cTests.Tests(true, lContext);
                 MessageBox.Show("all tests passed");
             }
             catch (Exception ex)
@@ -531,7 +531,7 @@ namespace testharness
 
             try
             {
-                cIMAPClient._Tests_Current();
+                cTests.CurrentTest(lContext);
                 MessageBox.Show("current test passed");
             }
             catch (Exception ex)
@@ -541,9 +541,14 @@ namespace testharness
             }
         }
 
+        private int mDGVMessageHeadersCoordinateChildrenAsync = 0;
+
         private async Task ZDGVMessageHeadersCoordinateChildrenAsync(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(Form1), nameof(ZDGVMessageHeadersCoordinateChildrenAsync));
+
+            // defend against re-entry during the awaits
+            var lDGVMessageHeadersCoordinateChildrenAsync = ++mDGVMessageHeadersCoordinateChildrenAsync;
 
             var lDataBoundItem = dgvMessageHeaders.CurrentCell?.OwningRow.DataBoundItem;
 
@@ -571,10 +576,12 @@ namespace testharness
                         rtxInfo.ScrollToCaret();
                     }
 
+                    // check if we've been re-entered during the await
+                    if (lDGVMessageHeadersCoordinateChildrenAsync != mDGVMessageHeadersCoordinateChildrenAsync) return;
+
                     if (lMessageHeader.Message.BodyStructureEx != null)
                     {
                         tvwBodyStructure.BeginUpdate();
-                        tvwBodyStructure.Nodes.Clear();
                         var lRoot = tvwBodyStructure.Nodes.Add("root");
                         lRoot.Tag = new cTVWBodyStructureNodeTag(lMessageHeader.Message);
                         ZTVWBodyStructureAddSection(lRoot, lMessageHeader.Message, "header", cSection.Header);
@@ -595,6 +602,8 @@ namespace testharness
 
                 cmdInspect.Enabled = false;
                 cmdInspectRaw.Enabled = false;
+                cmdDownload.Enabled = false;
+                cmdDownloadRaw.Enabled = false;
 
                 if (lTag?.BodyPart != null)
                 {
@@ -602,7 +611,11 @@ namespace testharness
                     {
                         rtxPartDetail.AppendText($"Disposition: {lTag.BodyPart.Disposition.Type} {lTag.BodyPart.Disposition.FileName} {lTag.BodyPart.Disposition.Size} {lTag.BodyPart.Disposition.CreationDate}\n");
 
-                        // if it is an attachment enable a download button TODO
+                        if (lTag.BodyPart.Disposition.TypeCode == eDispositionTypeCode.attachment)
+                        {
+                            cmdDownload.Enabled = true;
+                            cmdDownloadRaw.Enabled = true;
+                        }
                     }
 
                     if (lTag.BodyPart.Languages != null) rtxPartDetail.AppendText($"Languages: {lTag.BodyPart.Languages}\n");
@@ -625,7 +638,15 @@ namespace testharness
                         cmdInspect.Enabled = true;
                     }
                 }
-                else if (lTag?.Section != null) rtxPartDetail.AppendText(await lTag.Message.FetchAsync(lTag.Section));
+                else if (lTag?.Section != null)
+                {
+                    var lSectionText = await lTag.Message.FetchAsync(lTag.Section);
+
+                    // check if we've been re-entered during the await
+                    if (lDGVMessageHeadersCoordinateChildrenAsync != mDGVMessageHeadersCoordinateChildrenAsync) return;
+
+                    rtxPartDetail.AppendText(lSectionText);
+                }
                 else if (lTag?.Message != null)
                 {
                     rtxPartDetail.AppendText($"Message Size: {lTag.Message.Size}\n");
@@ -705,16 +726,23 @@ namespace testharness
             await ZDGVMessageHeadersCoordinateChildrenAsync(lContext);
         }
 
+        private int mtvwMailboxes_AfterSelect = 0;
+
         private async void tvwMailboxes_AfterSelect(object sender, TreeViewEventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(Form1), nameof(tvwMailboxes_AfterSelect));
+
+            // defend against re-entry during the awaits
+            var ltvwMailboxes_AfterSelect = ++mtvwMailboxes_AfterSelect;
 
             if (!(e.Node.Tag is cTVWMailboxesNodeTag lTag) || lTag.Mailbox == null || !lTag.CanSelect || lTag.Mailbox.Selected) return;
 
             try
             {
                 await lTag.Mailbox.SelectAsync();
+                if (ltvwMailboxes_AfterSelect != mtvwMailboxes_AfterSelect) return;
                 await lTag.Mailbox.StatusAsync(fStatusAttributes.unseen); // force the unseen count to be calculated
+                if (ltvwMailboxes_AfterSelect != mtvwMailboxes_AfterSelect) return;
 
                 if (mDaysToGet == null)
                 {
@@ -724,6 +752,7 @@ namespace testharness
                 else
                 {
                     var lMessages = await lTag.Mailbox.SearchAsync(cFilter.Received > DateTime.Today.AddDays(-mDaysToGet.Value), new cSort(cSortItem.ReceivedDesc), fMessageProperties.flags | fMessageProperties.received | fMessageProperties.envelope);
+                    if (ltvwMailboxes_AfterSelect != mtvwMailboxes_AfterSelect) return;
 
                     BindingSource lBindingSource = new BindingSource();
                     foreach (var lMessage in lMessages) lBindingSource.Add(new cMessageHeader(lMessage));
@@ -852,6 +881,40 @@ namespace testharness
                 e.Cancel = true;
                 erp.SetError((Control)sender, "days of messages should be a number 1 .. 100");
             }
+        }
+
+        private void cmdDownload_Click(object sender, EventArgs e)
+        {
+            var lContext = mRootContext.NewMethod(nameof(Form1), nameof(cmdDownload_Click));
+
+            var lTag = tvwBodyStructure.SelectedNode?.Tag as cTVWBodyStructureNodeTag;
+
+            var lPart = lTag?.BodyPart as cSinglePartBody;
+
+            if (lPart == null) return;
+
+            var lSaveFileDialog = new SaveFileDialog();
+
+            if (lPart.Disposition?.FileName != null) lSaveFileDialog.FileName = lPart.Disposition?.FileName;
+
+            if (lSaveFileDialog.ShowDialog() == DialogResult.OK) frmDownloading.Download(lTag.Message, lPart.Section, lPart.DecodingRequired, lSaveFileDialog.FileName, (int)lPart.SizeInBytes);
+        }
+
+        private void cmdDownloadRaw_Click(object sender, EventArgs e)
+        {
+            var lContext = mRootContext.NewMethod(nameof(Form1), nameof(cmdDownloadRaw_Click));
+
+            var lTag = tvwBodyStructure.SelectedNode?.Tag as cTVWBodyStructureNodeTag;
+
+            var lPart = lTag?.BodyPart as cSinglePartBody;
+
+            if (lPart == null) return;
+
+            var lSaveFileDialog = new SaveFileDialog();
+
+            lSaveFileDialog.DefaultExt = "txt";
+
+            if (lSaveFileDialog.ShowDialog() == DialogResult.OK) frmDownloading.Download(lTag.Message, lPart.Section, eDecodingRequired.none, lSaveFileDialog.FileName, (int)lPart.SizeInBytes);
         }
     }
 }

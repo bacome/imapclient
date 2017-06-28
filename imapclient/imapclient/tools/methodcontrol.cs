@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Threading;
 using System.Diagnostics;
+using System.Threading;
 
 namespace work.bacome.async
 {
@@ -12,8 +12,9 @@ namespace work.bacome.async
 
         public cMethodControl(int pTimeout, CancellationToken pCancellationToken)
         {
+            if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             mTimeout = pTimeout;
-            if (mTimeout == System.Threading.Timeout.Infinite) mStopwatch = null;
+            if (mTimeout == -1) mStopwatch = null;
             else mStopwatch = Stopwatch.StartNew();
             mCancellationToken = pCancellationToken;
         }

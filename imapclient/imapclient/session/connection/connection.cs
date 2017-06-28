@@ -185,7 +185,8 @@ namespace work.bacome.imapclient
 
                 public async Task<cBytesLines> ZBuildResponseAsync(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ZBuildResponseAsync));
+                    // SUPERVERBOSE
+                    var lContext = pParentContext.NewMethod(true, nameof(cConnection), nameof(ZBuildResponseAsync));
 
                     while (true)
                     {

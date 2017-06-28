@@ -32,7 +32,6 @@ namespace work.bacome.imapclient
                         mBackgroundTask = ZBackgroundTaskAsync(lContext);
                     }
 
-                    // I want to convert this to ValueTask but where is it?
                     public async Task<byte[]> GetBufferAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cStreamReader), nameof(GetBufferAsync));
@@ -56,18 +55,19 @@ namespace work.bacome.imapclient
                                     else new cStreamReaderStoppedException("streamreader is stopped", mBackgroundTaskException, lContext);
                                 }
 
-                                lContext.TraceVerbose("read {0} bytes", lBuffer.Length);
+                                if (!lContext.ContextTraceDelay) lContext.TraceVerbose("read {0} bytes", lBuffer.Length);
                                 return lBuffer;
                             }
 
-                            lContext.TraceVerbose("waiting");
+                            if (!lContext.ContextTraceDelay) lContext.TraceVerbose("waiting");
                             await mSemaphore.WaitAsync(pCancellationToken).ConfigureAwait(false);
                         }
                     }
 
                     private async Task ZBackgroundTaskAsync(cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewRootMethod(nameof(cStreamReader), nameof(ZBackgroundTaskAsync));
+                        // SUPERVERBOSE
+                        var lContext = pParentContext.NewRootMethod(true, nameof(cStreamReader), nameof(ZBackgroundTaskAsync));
 
                         const int kBufferSize = 1000;
                         byte[] lBuffer = new byte[kBufferSize];
@@ -89,7 +89,7 @@ namespace work.bacome.imapclient
                                     return;
                                 }
 
-                                lContext.TraceVerbose("read {0} bytes", lByteCount);
+                                if (!lContext.ContextTraceDelay) lContext.TraceVerbose("read {0} bytes", lByteCount);
 
                                 byte[] lBytes = new byte[lByteCount];
                                 Array.Copy(lBuffer, lBytes, lByteCount);
@@ -108,12 +108,12 @@ namespace work.bacome.imapclient
                     }
 
                     private void ZRelease(cTrace.cContext pParentContext)
-                    {
+                    {                        
                         var lContext = pParentContext.NewMethod(nameof(cStreamReader), nameof(ZRelease));
 
                         if (mSemaphore.CurrentCount == 0)
                         {
-                            lContext.TraceVerbose("releasing semaphore");                           
+                            if (!lContext.ContextTraceDelay) lContext.TraceVerbose("releasing semaphore");                           
                             mSemaphore.Release();
                         }
                     }

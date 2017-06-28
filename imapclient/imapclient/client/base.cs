@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     public sealed partial class cIMAPClient : IDisposable // sealed so the disposable implementation is simpler
     {
         // code checks
-        //  check all awaits use configureawait(false)  quick and dirty: search for: await (?!.*\.ConfigureAwait\(false\).*\r?$) (this misses awaits with awaited parameters)
+        //  check all awaits use configureawait(false)  quick and dirty: search for: await (?!.*\.ConfigureAwait\(false\).*\r?$) (this misses awaits with awaited parameters)   or this await [^(]*?\([^)]*\)[^.]
         //  ensure all changes to the 'state' property are done after the object is in the new state (so the event is fired with the object in a consistent state)
         //  check all 'Z' routines are private
         //  check that all async routines actually need to be: they don't if they can return the result of a called async routine
@@ -69,12 +69,14 @@ namespace work.bacome.imapclient
         private cSession mSession = null;
 
         // property backing storage
+        private int mTimeout = -1;
         private fCapabilities mIgnoreCapabilities = 0;
         private cServer mServer = null;
         private cCredentials mCredentials = null;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
-        private cFetchConfiguration mFetchPropertiesConfiguration = new cFetchConfiguration(1, 1000, 1000, 1);
-        private cFetchConfiguration mFetchToStreamConfiguration = new cFetchConfiguration(1000, 1000000, 1000, 1000);
+        private cFetchSizeConfiguration mFetchPropertiesConfiguration = new cFetchSizeConfiguration(1, 1000, 10000, 1);
+        private cFetchSizeConfiguration mFetchBodyReadConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
+        private cFetchSizeConfiguration mFetchBodyWriteConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
         private cId mClientId = new cId(new cIdReadOnlyDictionary(cIdDictionary.CreateDefaultClientIdDictionary()));
 
@@ -96,8 +98,17 @@ namespace work.bacome.imapclient
             set => mEventSynchroniser.SynchronizationContext = value;
         }
 
-        // default timeout and cancellation token for methods
-        public int Timeout { get; set; } = System.Threading.Timeout.Infinite;
+        public int Timeout
+        {
+            get => mTimeout;
+
+            set
+            {
+                if (value < -1) throw new ArgumentOutOfRangeException();
+                mTimeout = value;
+            }
+        }
+
         public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
 
         // state of the connection
@@ -180,7 +191,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        public cFetchConfiguration FetchPropertiesConfiguration
+        public cFetchSizeConfiguration FetchPropertiesConfiguration
         {
             get => mFetchPropertiesConfiguration;
 
@@ -188,21 +199,33 @@ namespace work.bacome.imapclient
             {
                 var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchPropertiesConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mFetchPropertiesConfiguration = value;
+                mFetchPropertiesConfiguration = value ?? throw new ArgumentNullException();
                 mSession?.SetFetchPropertiesConfiguration(value, lContext);
             }
         }
 
-        public cFetchConfiguration FetchToStreamConfiguration
+        public cFetchSizeConfiguration FetchBodyReadConfiguration
         {
-            get => mFetchToStreamConfiguration;
+            get => mFetchBodyReadConfiguration;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchToStreamConfiguration), value);
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchBodyReadConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mFetchToStreamConfiguration = value;
-                mSession?.SetFetchToStreamConfiguration(value, lContext);
+                mFetchBodyReadConfiguration = value ?? throw new ArgumentNullException();
+                mSession?.SetFetchBodyReadConfiguration(value, lContext);
+            }
+        }
+
+        public cFetchSizeConfiguration FetchBodyWriteConfiguration
+        {
+            get => mFetchBodyWriteConfiguration;
+
+            set
+            {
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchBodyWriteConfiguration), value);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                mFetchBodyWriteConfiguration = value ?? throw new ArgumentNullException();
             }
         }
 

@@ -91,15 +91,15 @@ namespace work.bacome.imapclient
         public List<cMessage> Search(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Search(MailboxId, pFilter, pSort, pProperties);
         public Task<List<cMessage>> SearchAsync(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.SearchAsync(MailboxId, pFilter, pSort, pProperties);
 
-        public List<cMessage> Fetch(IList<iMessageHandle> pHandles, fMessageProperties pProperties)
+        public List<cMessage> Fetch(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC = null)
         {
-            Client.Fetch(MailboxId, pHandles, pProperties);
+            Client.Fetch(MailboxId, pHandles, pProperties, pFC);
             return ZMessages(pHandles);
         }
 
-        public async Task<List<cMessage>> FetchAsync(IList<iMessageHandle> pHandles, fMessageProperties pProperties)
+        public async Task<List<cMessage>> FetchAsync(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC = null)
         {
-            await Client.FetchAsync(MailboxId, pHandles, pProperties).ConfigureAwait(false);
+            await Client.FetchAsync(MailboxId, pHandles, pProperties, pFC).ConfigureAwait(false);
             return ZMessages(pHandles);
         }
 
@@ -110,8 +110,8 @@ namespace work.bacome.imapclient
             return lMessages;
         }
 
-        public void Fetch(IList<cMessage> pMessages, fMessageProperties pProperties) => Client.Fetch(MailboxId, ZHandles(pMessages), pProperties);
-        public Task FetchAsync(IList<cMessage> pMessages, fMessageProperties pProperties) => Client.FetchAsync(MailboxId, ZHandles(pMessages), pProperties);
+        public void Fetch(IList<cMessage> pMessages, fMessageProperties pProperties, cFetchControl pFC = null) => Client.Fetch(MailboxId, ZHandles(pMessages), pProperties, pFC);
+        public Task FetchAsync(IList<cMessage> pMessages, fMessageProperties pProperties, cFetchControl pFC = null) => Client.FetchAsync(MailboxId, ZHandles(pMessages), pProperties, pFC);
 
         private List<iMessageHandle> ZHandles(IList<cMessage> pMessages)
         {
@@ -128,10 +128,10 @@ namespace work.bacome.imapclient
 
         public cMessage UIDFetch(cUID pUID, fMessageProperties pProperties) => Client.UIDFetch(MailboxId, pUID, pProperties);
         public Task<cMessage> UIDFetchAsync(cUID pUID, fMessageProperties pProperties) => Client.UIDFetchAsync(MailboxId, pUID, pProperties);
-        public List<cMessage> UIDFetch(IList<cUID> pUIDs, fMessageProperties pProperties) => Client.UIDFetch(MailboxId, pUIDs, pProperties);
-        public Task<List<cMessage>> UIDFetchAsync(IList<cUID> pUIDs, fMessageProperties pProperties) => Client.UIDFetchAsync(MailboxId, pUIDs, pProperties);
-        public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream) => Client.UIDFetch(MailboxId, pUID, pSection, pDecoding, pStream);
-        public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream) => Client.UIDFetchAsync(MailboxId, pUID, pSection, pDecoding, pStream);
+        public List<cMessage> UIDFetch(IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC = null) => Client.UIDFetch(MailboxId, pUIDs, pProperties, pFC);
+        public Task<List<cMessage>> UIDFetchAsync(IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC = null) => Client.UIDFetchAsync(MailboxId, pUIDs, pProperties, pFC);
+        public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC = null) => Client.UIDFetch(MailboxId, pUID, pSection, pDecoding, pStream, pFC);
+        public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC = null) => Client.UIDFetchAsync(MailboxId, pUID, pSection, pDecoding, pStream, pFC);
 
         // cached data
         public iMailboxProperties Properties => Client.GetMailboxProperties(MailboxId); // only works if the mailbox is selected (and in the future notified)

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -11,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cHandleList> UIDFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            public async Task<cHandleList> UIDFetchAsync(cFetchPropertiesMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchAsync), pMC, pMailboxId, pUIDs, pProperties);
 
@@ -73,7 +72,7 @@ namespace work.bacome.imapclient
                 return lHandles;
             }
 
-            public async Task ZUIDFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            public async Task ZUIDFetchAsync(cFetchPropertiesMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAsync), pMC, pMailboxId, pUIDs, pProperties);
 
@@ -88,7 +87,7 @@ namespace work.bacome.imapclient
                 while (lIndex < pUIDs.Count)
                 {
                     // the number of messages to fetch this time
-                    int lFetchCount = mFetchPropertiesConfiguration.Current;
+                    int lFetchCount = mFetchPropertiesSizer.Current;
 
                     // get the UIDs to fetch this time
                     cUIntList lUIDs = new cUIntList();
@@ -100,7 +99,8 @@ namespace work.bacome.imapclient
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size
-                    mFetchPropertiesConfiguration.AddSample(lUIDs.Count, lStopwatch.ElapsedMilliseconds);
+                    mFetchPropertiesSizer.AddSample(lUIDs.Count, lStopwatch.ElapsedMilliseconds, lContext);
+                    pMC.IncrementProgress(lUIDs.Count);
                 }
             }
         }

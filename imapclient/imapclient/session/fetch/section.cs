@@ -11,10 +11,10 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public Task FetchAsync(cMethodControl pMC, cMailboxId pMailboxId, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext) => ZFetchSectionAsync(pMC, pMailboxId, pHandle.UID, pHandle, pSection, pDecoding, pStream, pParentContext);
-            public Task UIDFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext) => ZFetchSectionAsync(pMC, pMailboxId, pUID, null, pSection, pDecoding, pStream, pParentContext);
+            public Task FetchAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext) => ZFetchSectionAsync(pMC, pMailboxId, pHandle.UID, pHandle, pSection, pDecoding, pStream, pParentContext);
+            public Task UIDFetchAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext) => ZFetchSectionAsync(pMC, pMailboxId, pUID, null, pSection, pDecoding, pStream, pParentContext);
 
-            private async Task ZFetchSectionAsync(cMethodControl pMC, cMailboxId pMailboxId, cUID pUID, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
+            private async Task ZFetchSectionAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, cUID pUID, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchSectionAsync), pMC, pMailboxId, pUID, pHandle, pSection, pDecoding);
 
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
 
                 while (true)
                 {
-                    int lLength = mFetchToStreamConfiguration.Current;
+                    int lLength = mFetchBodyReadSizer.Current;
 
                     Stopwatch lStopwatch = Stopwatch.StartNew();
 
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size
-                    mFetchToStreamConfiguration.AddSample(lBody.Bytes.Count, lStopwatch.ElapsedMilliseconds);
+                    mFetchBodyReadSizer.AddSample(lBody.Bytes.Count, lStopwatch.ElapsedMilliseconds, lContext);
 
                     uint lBodyOrigin = lBody.Origin ?? 0;
 
@@ -58,7 +58,10 @@ namespace work.bacome.imapclient
                     int lOffset = (int)(lOrigin - lBodyOrigin);
 
                     // write the bytes
-                    await lDecoder.WriteAsync(pMC, lBody.Bytes, lOffset).ConfigureAwait(false);
+                    await lDecoder.WriteAsync(pMC, lBody.Bytes, lOffset, lContext).ConfigureAwait(false);
+
+                    // update progress
+                    pMC.IncrementProgress(lBody.Bytes.Count - lOffset, lContext);
 
                     // if the body we got was the whole body, we are done
                     if (lBody.Origin == null) break;
@@ -70,8 +73,7 @@ namespace work.bacome.imapclient
                     lOrigin = lBodyOrigin + (uint)lBody.Bytes.Count;
                 }
 
-                // if there are bytes left to decode then there is a problem because I think we have got all the bytes available
-                if (lDecoder.HasUndecodedBytes()) throw new cContentTransferDecodingException("stream truncated", lContext);
+                await lDecoder.FlushAsync(pMC, lContext).ConfigureAwait(false);
             }
         }
     }

@@ -37,14 +37,14 @@ namespace work.bacome.imapclient
                 mSession.Dispose();
             }
 
-            mSession = new cSession(mEventSynchroniser, mIgnoreCapabilities, mIdleConfiguration, mFetchPropertiesConfiguration, mFetchToStreamConfiguration, mEncoding, lContext);
+            mSession = new cSession(mEventSynchroniser, mIgnoreCapabilities, mIdleConfiguration, mFetchPropertiesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
             mAsyncCounter.Increment(lContext);
 
             try
             {
-                var lMC = new cMethodControl(Timeout, CancellationToken);
+                var lMC = new cMethodControl(mTimeout, CancellationToken);
 
                 await lSession.ConnectAsync(lMC, lServer, lContext).ConfigureAwait(false);
 

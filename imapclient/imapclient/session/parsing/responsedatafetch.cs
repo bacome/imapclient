@@ -421,7 +421,7 @@ namespace work.bacome.imapclient
                         cMultiPartExtensionData lMultiPartExtensionData;
 
                         if (pExtended && pCursor.SkipByte(cASCII.SPACE))
-                        { 
+                        {
                             if (!ZProcessBodyStructureParameters(pCursor, out var lExtendedParameters)) { rBodyPart = null; return false; }
                             if (!ZProcessBodyStructureExtensionData(pCursor, out var lDisposition, out var lLanguages, out var lLocation, out var lExtensionValues)) { rBodyPart = null; return false; }
                             lMultiPartExtensionData = new cMultiPartExtensionData(lExtendedParameters, lDisposition, lLanguages, lLocation, lExtensionValues);
@@ -458,7 +458,10 @@ namespace work.bacome.imapclient
                     {
                         if (!pCursor.SkipByte(cASCII.SPACE) || !pCursor.GetNumber(out _, out var lSizeInLines)) { rBodyPart = null; return false; }
 
-                        if (pExtended && !ZProcessBodyStructureSinglePartExtensionData(pCursor, out lExtensionData)) { rBodyPart = null; return false; }
+                        if (pExtended)
+                        {
+                            if (!ZProcessBodyStructureSinglePartExtensionData(pCursor, out lExtensionData)) { rBodyPart = null; return false; }
+                        }
                         else lExtensionData = null;
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
@@ -498,7 +501,10 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    if (pExtended && !ZProcessBodyStructureSinglePartExtensionData(pCursor, out lExtensionData)) { rBodyPart = null; return false; }
+                    if (pExtended)
+                    {
+                        if (!ZProcessBodyStructureSinglePartExtensionData(pCursor, out lExtensionData)) { rBodyPart = null; return false; }
+                    }
                     else lExtensionData = null;
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rBodyPart = null; return false; }
@@ -1214,6 +1220,17 @@ namespace work.bacome.imapclient
                     if (lTextPart.Parameters["angus"].Value != "us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A" || lTextPart.Parameters["angus"].LanguageTag != null || lTextPart.Parameters["angus"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
 
                     // TODO : more tests: in particular, missing language tag, missing charset and invalid cases
+
+
+
+
+
+                    if (!cBytesCursor.TryConstruct(@"(((""TEXT"" ""PLAIN"" (""CHARSET"" ""UTF-8"") NIL NIL ""7BIT"" 2 1 NIL NIL NIL)(""TEXT"" ""HTML"" (""CHARSET"" ""UTF-8"") NIL NIL ""7BIT"" 2 1 NIL NIL NIL) ""ALTERNATIVE"" (""BOUNDARY"" ""94eb2c14e866ddee50054fb3cf4b"") NIL NIL)(""IMAGE"" ""JPEG"" (""NAME"" ""IMG_20170517_194711.jpg"") NIL NIL ""BASE64"" 6619412 NIL (""ATTACHMENT"" (""FILENAME"" ""IMG_20170517_194711.jpg"")) NIL) ""MIXED"" (""BOUNDARY"" ""94eb2c14e866ddee56054fb3cf4d"") NIL NIL)", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.6.0");
+                    if (!ZProcessBodyStructure(lCursor, cSection.Text, true, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.6.1");
+                    if (!(lPart is cMultiPartBody lMultiPartBody)) throw new cTestsException($"{nameof(cResponseDataFetch)}.6.2");
+                    if (lMultiPartBody.Parts[1].Disposition?.FileName != "IMG_20170517_194711.jpg") throw new cTestsException($"{nameof(cResponseDataFetch)}.6.3");
+
+
 
 
 

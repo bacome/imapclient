@@ -54,6 +54,12 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmDownloading.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmDownloading.Designer.cs">
+      <DependentUpon>frmDownloading.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmMessagePartText.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -63,10 +69,14 @@
     <Compile Include="messageheader.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="tests.cs" />
     <Compile Include="tvwbodystucturenodetag.cs" />
     <Compile Include="tvwmailboxesnodetag.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmDownloading.resx">
+      <DependentUpon>frmDownloading.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmMessagePartText.resx">
       <DependentUpon>frmMessagePartText.cs</DependentUpon>

@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
 
             try
             {
-                var lMC = new cMethodControl(Timeout, CancellationToken);
+                var lMC = new cMethodControl(mTimeout, CancellationToken);
                 await lSession.SelectAsync(lMC, pMailboxId, pForUpdate, lContext).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
