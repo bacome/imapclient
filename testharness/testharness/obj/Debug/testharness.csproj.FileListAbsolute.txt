@@ -11,3 +11,5 @@ C:\Users\barry\Documents\GitHub\imapclient\testharness\testharness\obj\Debug\tes
 C:\Users\barry\Documents\GitHub\imapclient\testharness\testharness\obj\Debug\testharness.Form1.resources
 C:\Users\barry\Documents\GitHub\imapclient\testharness\testharness\obj\Debug\testharness.frmMessagePartText.resources
 C:\Users\barry\Documents\GitHub\imapclient\testharness\testharness\obj\Debug\testharness.frmDownloading.resources
+C:\Users\barry\Documents\GitHub\imapclient\testharness\testharness\obj\Debug\testharness.frmMessageStructure.resources
+C:\Users\barry\Documents\GitHub\imapclient\testharness\testharness\obj\Debug\testharness.frmMessageView.resources

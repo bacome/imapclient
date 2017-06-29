@@ -86,10 +86,10 @@ namespace work.bacome.imapclient
         // get data
         public cMailboxStatus Status(fStatusAttributes pAttributes = fStatusAttributes.clientdefault) => Client.Status(MailboxId, pAttributes);
         public Task<cMailboxStatus> StatusAsync(fStatusAttributes pAttributes = fStatusAttributes.clientdefault) => Client.StatusAsync(MailboxId, pAttributes);
-        public List<cMailboxListItem> List(fListTypes pTypes = fListTypes.clientdefault, fListFlags pListFlags = fListFlags.clientdefault, fStatusAttributes pStatusAttributes = fStatusAttributes.clientdefault) => Client.List(MailboxId, pTypes, pListFlags, pStatusAttributes);
-        public Task<List<cMailboxListItem>> ListAsync(fListTypes pTypes = fListTypes.clientdefault, fListFlags pListFlags = fListFlags.clientdefault, fStatusAttributes pStatusAttributes = fStatusAttributes.clientdefault) => Client.ListAsync(MailboxId, pTypes, pListFlags, pStatusAttributes);
-        public List<cMessage> Search(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Search(MailboxId, pFilter, pSort, pProperties);
-        public Task<List<cMessage>> SearchAsync(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.SearchAsync(MailboxId, pFilter, pSort, pProperties);
+        public List<cMailboxListItem> Mailboxes(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault, fStatusAttributes pStatusAttributes = fStatusAttributes.clientdefault) => Client.Mailboxes(MailboxId, pTypes, pFlagSets, pStatusAttributes);
+        public Task<List<cMailboxListItem>> MailboxesAsync(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault, fStatusAttributes pStatusAttributes = fStatusAttributes.clientdefault) => Client.MailboxesAsync(MailboxId, pTypes, pFlagSets, pStatusAttributes);
+        public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Messages(MailboxId, pFilter, pSort, pProperties);
+        public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.MessagesAsync(MailboxId, pFilter, pSort, pProperties);
 
         public List<cMessage> Fetch(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC = null)
         {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -78,20 +79,360 @@ namespace work.bacome.imapclient
             if (pArgs.MailboxId == MailboxId && ReferenceEquals(pArgs.Handle, Handle)) mPropertiesSet?.Invoke(this, pArgs);
         }
 
-        public fMessageProperties Properties => Handle.Properties;
+        public cBodyPart BodyStructure
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructure);
+                return Handle.BodyStructure;
+            }
+        }
 
-        // may return null if the property hasn't been retrieved yet
-        public cBodyPart BodyStructure => Handle.BodyStructure;
-        public cBodyPart BodyStructureEx => Handle.BodyStructureEx;
-        public cEnvelope Envelope => Handle.Envelope;
-        public cMessageFlags Flags => Handle.Flags;
-        public DateTime? Received => Handle.Received;
-        public uint? Size => Handle.Size;
-        public cUID UID => Handle.UID;
-        public cStrings References => Handle.References;
+        public async Task<cBodyPart> GetBodyStructureAsync()
+        {
+            if ((Handle.Properties | fMessageProperties.bodystructure) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructure).ConfigureAwait(false);
+            return Handle.BodyStructure;
+        }
+
+        public cBodyPart BodyStructureEx
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructureex);
+                return Handle.BodyStructureEx;
+            }
+        }
+
+        public async Task<cBodyPart> GetBodyStructureExAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructureex).ConfigureAwait(false);
+            return Handle.BodyStructureEx;
+        }
+
+        public DateTime? Sent
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
+                return Handle.Envelope?.Sent; // note that if the message has been deleted the envelope still might not be there
+            }
+        }
+
+        public async Task<DateTime?> GetSentAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
+            return Handle.Envelope?.Sent; // note that if the message has been deleted the envelope still might not be there
+        }
+
+        public cCulturedString Subject
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
+                return Handle.Envelope?.Subject; // note that if the message has been deleted the envelope still might not be there
+            }
+        }
+
+        public async Task<cCulturedString> GetSubjectAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
+            return Handle.Envelope?.Subject; // note that if the message has been deleted the envelope still might not be there
+        }
+
+        public cAddresses From
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
+                return Handle.Envelope?.From; // note that if the message has been deleted the envelope still might not be there
+            }
+        }
+
+        public async Task<cAddresses> GetFromAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
+            return Handle.Envelope?.From; // note that if the message has been deleted the envelope still might not be there
+        }
+
+        public cAddresses Sender
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
+                return Handle.Envelope?.Sender; // note that if the message has been deleted the envelope still might not be there
+            }
+        }
+
+        public async Task<cAddresses> GetSenderAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
+            return Handle.Envelope?.Sender; // note that if the message has been deleted the envelope still might not be there
+        }
+
+        public cAddresses ReplyTo
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
+                return Handle.Envelope?.ReplyTo; // note that if the message has been deleted the envelope still might not be there
+            }
+        }
+
+        public async Task<cAddresses> GetReplyToAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
+            return Handle.Envelope?.ReplyTo; // note that if the message has been deleted the envelope still might not be there
+        }
+
+        public cAddresses To
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
+                return Handle.Envelope?.To; // note that if the message has been deleted the envelope still might not be there
+            }
+        }
+
+        public async Task<cAddresses> GetToAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
+            return Handle.Envelope?.To; // note that if the message has been deleted the envelope still might not be there
+        }
+
+        public cAddresses CC
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
+                return Handle.Envelope?.CC; // note that if the message has been deleted the envelope still might not be there
+            }
+        }
+
+        public async Task<cAddresses> GetCCAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
+            return Handle.Envelope?.CC; // note that if the message has been deleted the envelope still might not be there
+        }
+
+        public cAddresses BCC
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
+                return Handle.Envelope?.BCC; // note that if the message has been deleted the envelope still might not be there
+            }
+        }
+
+        public async Task<cAddresses> GetBCCAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
+            return Handle.Envelope?.BCC; // note that if the message has been deleted the envelope still might not be there
+        }
+
+        public string InReplyTo
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
+                return Handle.Envelope?.InReplyTo; // note that if the message has been deleted the envelope still might not be there
+            }
+        }
+
+        public async Task<string> GetInReplyToAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
+            return Handle.Envelope?.InReplyTo; // note that if the message has been deleted the envelope still might not be there
+        }
+
+        public string MessageId
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
+                return Handle.Envelope?.MessageId; // note that if the message has been deleted the envelope still might not be there
+            }
+        }
+
+        public async Task<string> GetMessageIdAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
+            return Handle.Envelope?.MessageId; // note that if the message has been deleted the envelope still might not be there
+        }
+
+        public fMessageFlags? Flags
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
+                return Handle.Flags?.KnownFlags; // note that if the message has been deleted the flags still might not be there
+            }
+        }
+
+        public async Task<fMessageFlags?> GetFlagsAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.flags) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.flags).ConfigureAwait(false);
+            return Handle.Flags?.KnownFlags; // note that if the message has been deleted the flags still might not be there
+        }
+
+        public cStrings AllFlags
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
+                return Handle.Flags?.AllFlags; // note that if the message has been deleted the flags still might not be there
+            }
+        }
+
+        public async Task<cStrings> GetAllFlagsAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.flags) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.flags).ConfigureAwait(false);
+            return Handle.Flags?.AllFlags; // note that if the message has been deleted the flags still might not be there
+        }
+
+        public DateTime? Received
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.received) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.received);
+                return Handle.Received;
+            }
+        }
+
+        public async Task<DateTime?> GetReceivedAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.received) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.received).ConfigureAwait(false);
+            return Handle.Received;
+        }
+
+        public uint? Size
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.size) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.size);
+                return Handle.Size;
+            }
+        }
+
+        public async Task<uint?> GetSizeAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.size) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.size).ConfigureAwait(false);
+            return Handle.Size;
+        }
+
+        public cUID UID
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.uid) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.uid);
+                return Handle.UID;
+            }
+        }
+
+        public async Task<cUID> GetUIDAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.uid) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.uid).ConfigureAwait(false);
+            return Handle.UID;
+        }
+
+        public cStrings References
+        {
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.references) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.references);
+                return Handle.References;
+            }
+        }
+
+        public async Task<cStrings> GetReferencesAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.references) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.references).ConfigureAwait(false);
+            return Handle.References;
+        }
+
+        public string GetPlainText()
+        {
+            if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructureex);
+            if (Handle.BodyStructureEx == null) return null;
+            StringBuilder lBuilder = new StringBuilder();
+            foreach (var lPart in ZPlainText(Handle.BodyStructureEx)) lBuilder.Append(Fetch(lPart));
+            return lBuilder.ToString();
+        }
+
+        public async Task<string> GetPlainTextAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructureex).ConfigureAwait(false);
+            if (Handle.BodyStructureEx == null) return null;
+            StringBuilder lBuilder = new StringBuilder();
+            foreach (var lPart in ZPlainText(Handle.BodyStructureEx)) lBuilder.Append(await FetchAsync(lPart).ConfigureAwait(false));
+            return lBuilder.ToString();
+        }
+
+        private List<cBodyPart> ZPlainText(cBodyPart pPart)
+        {
+            // TODO: when we know what languages the user is interested in (on implementation of languages) choose from multipart/alternative options based on language tag
+
+            List<cBodyPart> lResult = new List<cBodyPart>();
+
+            if (pPart.Disposition?.TypeCode == eDispositionTypeCode.attachment) return lResult;
+
+            if (pPart is cTextBodyPart lTextPart)
+            {
+                if (lTextPart.SubTypeCode == eTextBodyPartSubTypeCode.plain) lResult.Add(pPart);
+            }
+            else if (pPart is cMultiPartBody lMultiPart)
+            {
+                foreach (var lPart in lMultiPart.Parts)
+                {
+                    var lParts = ZPlainText(lPart);
+                    lResult.AddRange(lParts);
+                    if (lParts.Count > 0 && lMultiPart.SubTypeCode == eMultiPartBodySubTypeCode.alternative) break;
+                }
+            }
+
+            return lResult;
+        }
+
+        public List<cAttachment> GetAttachments()
+        {
+            if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructureex);
+            if (Handle.BodyStructureEx == null) return null;
+            return ZAttachments(Handle.BodyStructureEx);
+        }
+
+        public async Task<List<cAttachment>> GetAttachmentsAsync()
+        {
+            if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructureex).ConfigureAwait(false);
+            if (Handle.BodyStructureEx == null) return null;
+            return ZAttachments(Handle.BodyStructureEx);
+        }
+
+        private List<cAttachment> ZAttachments(cBodyPart pPart)
+        {
+            // TODO: when we know what languages the user is interested in (on implementation of languages) choose from multipart/alternative options based on language tag
+
+            List<cAttachment> lResult = new List<cAttachment>();
+
+            if (pPart is cSinglePartBody lSinglePart)
+            {
+                if (lSinglePart.Disposition?.TypeCode == eDispositionTypeCode.attachment) lResult.Add(new cAttachment(Client, MailboxId, Handle, lSinglePart));
+            }
+            else if (pPart.Disposition?.TypeCode != eDispositionTypeCode.attachment && pPart is cMultiPartBody lMultiPart)
+            {
+                foreach (var lPart in lMultiPart.Parts)
+                {
+                    var lAttachments = ZAttachments(lPart);
+                    lResult.AddRange(lAttachments);
+                    if (lAttachments.Count > 0 && lMultiPart.SubTypeCode == eMultiPartBodySubTypeCode.alternative) break;
+                }
+            }
+
+            return lResult;
+        }
 
         // get data
+
         public void Fetch(fMessageProperties pProperties) => Client.Fetch(MailboxId, Handle, pProperties);
+
         public Task FetchAsync(fMessageProperties pProperties) => Client.FetchAsync(MailboxId, Handle, pProperties);
 
         public string Fetch(cBodyPart pPart)
@@ -157,8 +498,10 @@ namespace work.bacome.imapclient
         }
 
         public void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC = null) => Client.Fetch(MailboxId, Handle, pSection, pDecoding, pStream, pFC);
+
         public Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC = null) => Client.FetchAsync(MailboxId, Handle, pSection, pDecoding, pStream, pFC);
 
+        // debugging
         public override string ToString() => $"{nameof(cMessage)}({MailboxId},{Handle},{Indent})";
     }
 }

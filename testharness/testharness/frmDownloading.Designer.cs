@@ -63,6 +63,7 @@
             this.Name = "frmDownloading";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "frmDownloading";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmDownloading_FormClosing);
             this.Shown += new System.EventHandler(this.frmDownloading_Shown);
             this.ResumeLayout(false);
 

@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                     lCommand.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     // uidvalidity must be set before the handle is resolved
-                    lCommand.UIDValidity = _SelectedMailbox.UIDValidity;
+                    lCommand.AddUIDValidity(_SelectedMailbox.UIDValidity);
 
                     // resolve the MSN
                     uint lMSN = _SelectedMailbox.GetMSN(pHandle);

@@ -24,7 +24,7 @@ namespace usageexamples
                     // list out the mailboxes that the user has at the top level of their first personal namespace
                     //
                     Console.WriteLine("a list of mailboxes");
-                    foreach (var lMailbox in lClient.Namespaces.Personal[0].List()) Console.WriteLine(lMailbox.Name);
+                    foreach (var lMailbox in lClient.Namespaces.Personal[0].Mailboxes()) Console.WriteLine(lMailbox.Name);
 
                     // get a reference to the inbox
                     var lInbox = lClient.Inbox;
@@ -38,9 +38,9 @@ namespace usageexamples
                     lInbox.Select();
 
                     // list out some details of the messages that have arrived in the last 100 days in the order that the messages were received
-                    foreach (var lMessage in lInbox.Search(cFilter.Received >= DateTime.Today.AddDays(-100), new cSort(cSortItem.Received), fMessageProperties.envelope))
+                    foreach (var lMessage in lInbox.Messages(cFilter.Received >= DateTime.Today.AddDays(-100), new cSort(cSortItem.Received)))
                     {
-                        Console.WriteLine($"{lMessage.Envelope.Sent}\t{lMessage.Envelope.From[0].DisplayName}\t{lMessage.Envelope.Subject}");
+                        Console.WriteLine($"{lMessage.Sent}\t{lMessage.From[0].DisplayName}\t{lMessage.Subject}");
                     }
 
                     // done

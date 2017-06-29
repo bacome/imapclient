@@ -25,6 +25,7 @@ namespace testharness
         {
             using (var lDownloading = new frmDownloading())
             {
+                lDownloading.Text = pFileName;
                 lDownloading.mMessage = pMessage;
                 lDownloading.mSection = pSection;
                 lDownloading.mDecodingRequired = pDecodingRequired;
@@ -42,9 +43,7 @@ namespace testharness
             {
                 mCancellationTokenSource = lCancellationTokenSource;
 
-                ZUpdateTitle();
-
-                var lFC = new cFetchControl(mCancellationTokenSource.Token, ZIncrementProgress);
+                var lFC = new cFetchControl(mCancellationTokenSource.Token, prg.Increment);
 
                 try
                 {
@@ -69,18 +68,12 @@ namespace testharness
             }
         }
 
-        private void ZIncrementProgress(int pValue)
-        {
-            prg.Increment(pValue);
-            ZUpdateTitle();
-        }
-
-        private void ZUpdateTitle()
-        {
-            Text = mFileName + (prg.Value / prg.Maximum * 100).ToString();
-        }
-
         private void cmdCancel_Click(object sender, EventArgs e)
+        {
+            mCancellationTokenSource.Cancel();
+        }
+
+        private void frmDownloading_FormClosing(object sender, FormClosingEventArgs e)
         {
             mCancellationTokenSource.Cancel();
         }

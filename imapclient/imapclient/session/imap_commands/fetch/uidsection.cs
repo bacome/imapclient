@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     // set uidvalidity
-                    lCommand.UIDValidity = pUID.UIDValidity;
+                    lCommand.AddUIDValidity(pUID.UIDValidity);
 
                     // build command
 

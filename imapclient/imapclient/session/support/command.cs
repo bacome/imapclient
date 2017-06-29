@@ -237,6 +237,9 @@ namespace work.bacome.imapclient
                 private readonly List<cExclusiveAccess.cBlock> mBlocks = new List<cExclusiveAccess.cBlock>();
                 private int mExclusiveAccessSequence = -1;
 
+                // UIDValidity
+                private uint? mUIDValidity = null;
+
                 // authentication is disposable
                 private cSASLAuthentication mAuthentication = null;
 
@@ -272,7 +275,7 @@ namespace work.bacome.imapclient
 
                 public void Add(cFilter pFilter, bool pCharsetMandatory, fEnableableExtensions pEnabledExtensions, Encoding pEncoding)
                 {
-                    UIDValidity = pFilter.UIDValidity;
+                    if (pFilter?.UIDValidity != null) AddUIDValidity(pFilter.UIDValidity.Value);
 
                     bool lUTF8Enabled = (pEnabledExtensions & fEnableableExtensions.utf8) != 0;
 
@@ -621,6 +624,13 @@ namespace work.bacome.imapclient
                     mExclusiveAccessSequence = pBlock.Sequence;
                 }
 
+                public void AddUIDValidity(uint? pUIDValidity)
+                {
+                    if (pUIDValidity == null) return;
+                    if (mUIDValidity == null) mUIDValidity = pUIDValidity;
+                    else if (pUIDValidity != mUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
+                }
+
                 public void Add(cSASLAuthentication pAuthentication)
                 {
                     if (mAuthentication != null) throw new InvalidOperationException();
@@ -633,7 +643,8 @@ namespace work.bacome.imapclient
                     mHook = pHook ?? throw new ArgumentNullException(nameof(pHook));
                 }
 
-                public uint? UIDValidity { get; set; }
+                public uint? UIDValidity => mUIDValidity;
+
                 public cSASLAuthentication Authentication => mAuthentication;
 
                 public void SetEnqueued() => mDisposeOnCommandCompletion = true;
