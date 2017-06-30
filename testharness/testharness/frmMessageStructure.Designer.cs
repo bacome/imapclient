@@ -150,11 +150,11 @@
         #endregion
 
         private System.Windows.Forms.SplitContainer splitContainer3;
-        public System.Windows.Forms.TreeView tvwBodyStructure;
         private System.Windows.Forms.RichTextBox rtxPartDetail;
         private System.Windows.Forms.Button cmdDownloadRaw;
         private System.Windows.Forms.Button cmdDownload;
         private System.Windows.Forms.Button cmdInspectRaw;
         private System.Windows.Forms.Button cmdInspect;
+        private System.Windows.Forms.TreeView tvwBodyStructure;
     }
 }

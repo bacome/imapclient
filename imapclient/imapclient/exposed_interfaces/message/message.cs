@@ -79,6 +79,8 @@ namespace work.bacome.imapclient
             if (pArgs.MailboxId == MailboxId && ReferenceEquals(pArgs.Handle, Handle)) mPropertiesSet?.Invoke(this, pArgs);
         }
 
+        public bool IsExpunged => Handle.Expunged;
+
         public cBodyPart BodyStructure
         {
             get

@@ -613,24 +613,13 @@ namespace testharness
 
                 if (lMessageHeader == null)
                 {
-                    mMessageStructure.Enabled = false;
-                    mMessageStructure.tvwBodyStructure.BeginUpdate();
-                    mMessageStructure.tvwBodyStructure.Nodes.Clear();
-                    mMessageStructure.tvwBodyStructure.EndUpdate();
-
-                    mMessageView.Enabled = false;
-                    mMessageView.dgvAttachment.DataSource = null;
-                    mMessageView.rtxTextPlain.Clear();
-
                     cmdStructure.Enabled = false;
                     cmdView.Enabled = false;
                 }
                 else
                 {
-                    mMessageStructure.Enabled = true;
-                    mMessageStructure.tvwBodyStructure.BeginUpdate();
-                    mMessageStructure.tvwBodyStructure.Nodes.Clear();
-                    mMessageStructure.tvwBodyStructure.EndUpdate();
+                    cmdStructure.Enabled = true;
+                    cmdView.Enabled = true;
 
                     // pre-fetch the properties 
                     fMessageProperties lProperties = 0;
@@ -644,21 +633,25 @@ namespace testharness
                     if (lProperties != 0)
                     {
                         await lMessageHeader.Message.FetchAsync(lProperties);
-
-                        // check if we've been re-entered during the await
-                        if (lZDGVMessageHeadersCoordinateChildrenAsync != mZDGVMessageHeadersCoordinateChildrenAsync) return;
+                        if (lZDGVMessageHeadersCoordinateChildrenAsync != mZDGVMessageHeadersCoordinateChildrenAsync) return; // check if we've been re-entered during the await
                     }
+                }
 
-                    // fill in the bodystructure treeeview
-                    mMessageStructure.Enabled = true;
-                    mMessageStructure.tvwBodyStructure.BeginUpdate();
-                    mMessageStructure.tvwBodyStructure.Nodes.Clear();
-                    var lRoot = mMessageStructure.tvwBodyStructure.Nodes.Add("root");
-                    lRoot.Tag = new cTVWBodyStructureNodeTag(lMessageHeader.Message);
-                    ZTVWBodyStructureAddSection(lRoot, lMessageHeader.Message, "header", cSection.Header);
-                    if (lMessageHeader.Message.BodyStructure != null) ZTVWBodyStructureAddPart(lRoot, lMessageHeader.Message, lMessageHeader.Message.BodyStructure);
-                    mMessageStructure.tvwBodyStructure.ExpandAll();
-                    mMessageStructure.tvwBodyStructure.EndUpdate();
+                // coordinate the children
+                await mMessageStructure.DisplayMessageAsync(lMessageHeader?.Message, lContext);
+                if (lZDGVMessageHeadersCoordinateChildrenAsync != mZDGVMessageHeadersCoordinateChildrenAsync) return; // check if we've been re-entered during the await
+                await mMessageView.displaymessageasync(lMessageHeader?.Message, lContext);
+
+
+                // to move this to child
+                if (lMessageHeader == null)
+                {
+                    mMessageView.Enabled = false;
+                    mMessageView.dgvAttachment.DataSource = null;
+                    mMessageView.rtxTextPlain.Clear();
+                }
+                else
+                {
 
                     // fill in the message details
 
@@ -682,43 +675,7 @@ namespace testharness
                     if (lZDGVMessageHeadersCoordinateChildrenAsync != mZDGVMessageHeadersCoordinateChildrenAsync) return;
 
                     mMessageView.rtxTextPlain.AppendText(lText);
-
-                    // enable the buttons that bring up the message detail forms
-                    cmdStructure.Enabled = true;
-                    cmdView.Enabled = true;
                 }
-            }
-        }
-
-        private void ZTVWBodyStructureAddSection(TreeNode pParent, cMessage pMessage, string pText, cSection pSection)
-        {
-            var lNode = pParent.Nodes.Add(pText);
-            lNode.Tag = new cTVWBodyStructureNodeTag(pMessage, pSection);
-        }
-
-        private void ZTVWBodyStructureAddPart(TreeNode pParent, cMessage pMessage, cBodyPart pBodyPart)
-        {
-            string lPart;
-            if (pBodyPart.Section.Part == null) lPart = pBodyPart.Section.TextPart.ToString();
-            else if (pBodyPart.Section.TextPart == eSectionPart.all) lPart = pBodyPart.Section.Part;
-            else lPart = pBodyPart.Section.Part + "." + pBodyPart.Section.TextPart.ToString();
-
-            var lNode = pParent.Nodes.Add(lPart + ": " + pBodyPart.Type + "/" + pBodyPart.SubType);
-            lNode.Tag = new cTVWBodyStructureNodeTag(pMessage, pBodyPart);
-
-            if (pBodyPart is cMessageBodyPart lMessage)
-            {
-                ZTVWBodyStructureAddSection(lNode, pMessage, "header", new cSection(pBodyPart.Section.Part, eSectionPart.header));
-                ZTVWBodyStructureAddPart(lNode, pMessage, lMessage.BodyStructure);
-            }
-            else if (pBodyPart is cMultiPartBody lMultiPartPart)
-            {
-                if (pBodyPart.Section.Part != null) ZTVWBodyStructureAddSection(lNode, pMessage, "mime", new cSection(pBodyPart.Section.Part, eSectionPart.mime));
-                foreach (var lBodyPart in lMultiPartPart.Parts) ZTVWBodyStructureAddPart(lNode, pMessage, lBodyPart);
-            }
-            else
-            {
-                ZTVWBodyStructureAddSection(lNode, pMessage, "mime", new cSection(pBodyPart.Section.Part, eSectionPart.mime));
             }
         }
 

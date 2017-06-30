@@ -32,5 +32,10 @@ namespace testharness
                 return lResult;
             }
         }
+
+        private void dgvAttachment_CurrentCellChanged(object sender, EventArgs e)
+        {
+            cmdDownload.Enabled = (dgvAttachment.CurrentCell != null);
+        }
     }
 }

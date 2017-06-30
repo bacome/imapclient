@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using work.bacome.imapclient;
 using work.bacome.trace;
@@ -8,12 +9,84 @@ namespace testharness
     public partial class frmMessageStructure : Form
     {
         private cTrace.cContext mRootContext = Program.Trace.NewRoot(nameof(frmMessageStructure), true);
-
+        private cMessage mMessage;
         private TreeNode mCurrentBodyStructureNode = null;
 
         public frmMessageStructure()
         {
             InitializeComponent();
+        }
+
+        public async Task DisplayMessageAsync(cMessage pMessage, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(frmMessageStructure), nameof(DisplayMessageAsync));
+
+            tvwBodyStructure.BeginUpdate();
+            tvwBodyStructure.Nodes.Clear();
+
+            if (mMessage != null)
+            {
+                mMessage.Expunged -= ZExpunged;
+                mMessage = null;
+            }
+
+            if (pMessage != null)
+            {
+                mMessage = pMessage;
+                mMessage.Expunged += ZExpunged;
+
+                var lRoot = tvwBodyStructure.Nodes.Add("root");
+                lRoot.Tag = new cTVWBodyStructureNodeTag(pMessage);
+                ZTVWBodyStructureAddSection(lRoot, mMessage, "header", cSection.Header);
+                if (mMessage.BodyStructure != null) ZTVWBodyStructureAddPart(lRoot, mMessage, mMessage.BodyStructure);
+                tvwBodyStructure.ExpandAll();
+            }
+
+            tvwBodyStructure.EndUpdate();
+            await ZTVWBodyStructureCoordinateChildren(lContext);
+        }
+
+        private void ZTVWBodyStructureAddSection(TreeNode pParent, cMessage pMessage, string pText, cSection pSection)
+        {
+            var lNode = pParent.Nodes.Add(pText);
+            lNode.Tag = new cTVWBodyStructureNodeTag(pMessage, pSection);
+        }
+
+        private void ZTVWBodyStructureAddPart(TreeNode pParent, cMessage pMessage, cBodyPart pBodyPart)
+        {
+            string lPart;
+            if (pBodyPart.Section.Part == null) lPart = pBodyPart.Section.TextPart.ToString();
+            else if (pBodyPart.Section.TextPart == eSectionPart.all) lPart = pBodyPart.Section.Part;
+            else lPart = pBodyPart.Section.Part + "." + pBodyPart.Section.TextPart.ToString();
+
+            var lNode = pParent.Nodes.Add(lPart + ": " + pBodyPart.Type + "/" + pBodyPart.SubType);
+            lNode.Tag = new cTVWBodyStructureNodeTag(pMessage, pBodyPart);
+
+            if (pBodyPart is cMessageBodyPart lMessage)
+            {
+                ZTVWBodyStructureAddSection(lNode, pMessage, "header", new cSection(pBodyPart.Section.Part, eSectionPart.header));
+                ZTVWBodyStructureAddPart(lNode, pMessage, lMessage.BodyStructure);
+            }
+            else if (pBodyPart is cMultiPartBody lMultiPartPart)
+            {
+                if (pBodyPart.Section.Part != null) ZTVWBodyStructureAddSection(lNode, pMessage, "mime", new cSection(pBodyPart.Section.Part, eSectionPart.mime));
+                foreach (var lBodyPart in lMultiPartPart.Parts) ZTVWBodyStructureAddPart(lNode, pMessage, lBodyPart);
+            }
+            else
+            {
+                ZTVWBodyStructureAddSection(lNode, pMessage, "mime", new cSection(pBodyPart.Section.Part, eSectionPart.mime));
+            }
+        }
+
+        private async void ZExpunged(object sender, EventArgs e)
+        {
+            var lContext = mRootContext.NewMethod(nameof(frmMessageStructure), nameof(ZExpunged));
+
+            if (ReferenceEquals(sender, mMessage))
+            {
+                tvwBodyStructure.Enabled = false;
+                await ZTVWBodyStructureCoordinateChildren(lContext);
+            }
         }
 
         private async void cmdInspect_Click(object sender, EventArgs e)
@@ -141,14 +214,20 @@ namespace testharness
             if (lSaveFileDialog.ShowDialog() == DialogResult.OK) frmDownloading.Download(lTag.Message, lPart.Section, eDecodingRequired.none, lSaveFileDialog.FileName, (int)lPart.SizeInBytes);
         }
 
-        private int mtvwBodyStructure_AfterSelect = 0;
-
         private async void tvwBodyStructure_AfterSelect(object sender, TreeViewEventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(frmMessageStructure), nameof(tvwBodyStructure_AfterSelect));
+            await ZTVWBodyStructureCoordinateChildren(lContext);
+        }
+
+        private int mZTVWBodyStructureCoordinateChildren = 0;
+
+        private async Task ZTVWBodyStructureCoordinateChildren(cTrace.cContext pParentContext)
+        {
+            var lContext = mRootContext.NewMethod(nameof(frmMessageStructure), nameof(ZTVWBodyStructureCoordinateChildren));
 
             // defend against re-entry during the awaits
-            var ltvwBodyStructure_AfterSelect = ++mtvwBodyStructure_AfterSelect;
+            var lZTVWBodyStructureCoordinateChildren = ++mZTVWBodyStructureCoordinateChildren;
 
             if (!ReferenceEquals(tvwBodyStructure.SelectedNode, mCurrentBodyStructureNode))
             {
@@ -204,7 +283,7 @@ namespace testharness
                     var lSectionText = await lTag.Message.FetchAsync(lTag.Section);
 
                     // check if we've been re-entered during the await
-                    if (ltvwBodyStructure_AfterSelect != mtvwBodyStructure_AfterSelect) return;
+                    if (lZTVWBodyStructureCoordinateChildren != mZTVWBodyStructureCoordinateChildren) return;
 
                     rtxPartDetail.AppendText(lSectionText);
                 }
@@ -215,12 +294,20 @@ namespace testharness
                     await lTag.Message.FetchAsync(fMessageProperties.envelope);
 
                     // check if we've been re-entered during the await
-                    if (ltvwBodyStructure_AfterSelect != mtvwBodyStructure_AfterSelect) return;
+                    if (lZTVWBodyStructureCoordinateChildren != mZTVWBodyStructureCoordinateChildren) return;
 
                     ZDisplayEnvelope(lTag.Message.Handle.Envelope);
 
                     cmdInspect.Enabled = true;
                 }
+            }
+
+            if (mMessage.IsExpunged)
+            {
+                cmdInspect.Enabled = false;
+                cmdInspectRaw.Enabled = false;
+                cmdDownload.Enabled = false;
+                cmdDownloadRaw.Enabled = false;
             }
         }
 

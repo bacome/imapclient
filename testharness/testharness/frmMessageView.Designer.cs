@@ -58,6 +58,7 @@
             this.dgvAttachment.ReadOnly = true;
             this.dgvAttachment.Size = new System.Drawing.Size(662, 110);
             this.dgvAttachment.TabIndex = 0;
+            this.dgvAttachment.CurrentCellChanged += new System.EventHandler(this.dgvAttachment_CurrentCellChanged);
             // 
             // rtxTextPlain
             // 
@@ -120,8 +121,8 @@
 
         #endregion
         private System.Windows.Forms.SplitContainer splitContainer1;
-        public System.Windows.Forms.DataGridView dgvAttachment;
-        public System.Windows.Forms.RichTextBox rtxTextPlain;
         private System.Windows.Forms.Button cmdDownload;
+        private System.Windows.Forms.DataGridView dgvAttachment;
+        private System.Windows.Forms.RichTextBox rtxTextPlain;
     }
 }
