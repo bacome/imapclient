@@ -1,8 +1,0 @@
-C:\Users\barry\Documents\GitHub\imapclient\usageexamples\usageexamples\bin\Debug\usageexamples.exe.config
-C:\Users\barry\Documents\GitHub\imapclient\usageexamples\usageexamples\bin\Debug\usageexamples.exe
-C:\Users\barry\Documents\GitHub\imapclient\usageexamples\usageexamples\bin\Debug\usageexamples.pdb
-C:\Users\barry\Documents\GitHub\imapclient\usageexamples\usageexamples\bin\Debug\imapclient.dll
-C:\Users\barry\Documents\GitHub\imapclient\usageexamples\usageexamples\bin\Debug\imapclient.pdb
-C:\Users\barry\Documents\GitHub\imapclient\usageexamples\usageexamples\obj\Debug\usageexamples.csprojResolveAssemblyReference.cache
-C:\Users\barry\Documents\GitHub\imapclient\usageexamples\usageexamples\obj\Debug\usageexamples.exe
-C:\Users\barry\Documents\GitHub\imapclient\usageexamples\usageexamples\obj\Debug\usageexamples.pdb

@@ -51,7 +51,7 @@ namespace work.bacome.imapclient
 
                 if (lResult.Result == cCommandResult.eResult.ok)
                 {
-                    lContext.TraceInformation("select command success");
+                    lContext.TraceInformation("select success");
                     return;
                 }
 

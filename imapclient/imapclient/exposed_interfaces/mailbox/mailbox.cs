@@ -94,16 +94,16 @@ namespace work.bacome.imapclient
         public List<cMessage> Fetch(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC = null)
         {
             Client.Fetch(MailboxId, pHandles, pProperties, pFC);
-            return ZMessages(pHandles);
+            return Messages(pHandles);
         }
 
         public async Task<List<cMessage>> FetchAsync(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC = null)
         {
             await Client.FetchAsync(MailboxId, pHandles, pProperties, pFC).ConfigureAwait(false);
-            return ZMessages(pHandles);
+            return Messages(pHandles);
         }
 
-        private List<cMessage> ZMessages(IList<iMessageHandle> pHandles)
+        public List<cMessage> Messages(IList<iMessageHandle> pHandles)
         {
             List<cMessage> lMessages = new List<cMessage>();
             foreach (var lHandle in pHandles) lMessages.Add(new cMessage(Client, MailboxId, lHandle));

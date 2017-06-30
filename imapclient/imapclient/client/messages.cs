@@ -89,48 +89,7 @@ namespace work.bacome.imapclient
                     }
                     else if (lSort.Items != null && lSort.Items.Count > 0)
                     {
-                        bool lSortDisplay = false;
-                        fMessageProperties lSortProperties = 0;
-
-                        foreach (var lItem in lSort.Items)
-                        {
-                            switch (lItem.Type)
-                            {
-                                case cSortItem.eType.received:
-
-                                    lSortProperties |= fMessageProperties.received;
-                                    break;
-
-                                case cSortItem.eType.cc:
-                                case cSortItem.eType.from:
-                                case cSortItem.eType.subject:
-                                case cSortItem.eType.to:
-
-                                    lSortProperties |= fMessageProperties.envelope;
-                                    break;
-
-                                case cSortItem.eType.sent:
-
-                                    lSortProperties |= fMessageProperties.envelope | fMessageProperties.received;
-                                    break;
-
-                                case cSortItem.eType.size:
-
-                                    lSortProperties |= fMessageProperties.size;
-                                    break;
-
-                                case cSortItem.eType.displayfrom:
-                                case cSortItem.eType.displayto:
-
-                                    lSortProperties |= fMessageProperties.envelope;
-                                    lSortDisplay = true;
-                                    break;
-
-                                default:
-
-                                    throw new cInternalErrorException(lContext);
-                            }
-                        }
+                        var lSortProperties = lSort.Properties(out var lSortDisplay);
 
                         if (!lSortDisplay && lCapability.Sort || lSortDisplay && lCapability.SortDisplay)
                         {

@@ -1865,7 +1865,7 @@ namespace testharness
 
                 if (lClient.Inbox.Properties.Messages != 172) throw new cTestsException("ZTestIdleRestart1.1");
 
-                var lMessages = lClient.Inbox.Messages(cFilter.WithoutFlags(fMessageFlags.seen));
+                var lMessages = lClient.Inbox.Messages(cFilter.IsNotFlagged(fMessageFlags.seen));
 
                 Thread.Sleep(3000); // idle should start, message 168 should get deleted, and message 167 should get a UID during this wait
 

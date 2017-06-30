@@ -74,39 +74,48 @@
             this.label12 = new System.Windows.Forms.Label();
             this.chkIgnoreNamespace = new System.Windows.Forms.CheckBox();
             this.tabControl2 = new System.Windows.Forms.TabControl();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.tvwMailboxes = new System.Windows.Forms.TreeView();
             this.cmdView = new System.Windows.Forms.Button();
             this.cmdStructure = new System.Windows.Forms.Button();
             this.dgvMessageHeaders = new System.Windows.Forms.DataGridView();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
             this.cmdTestsCurrent = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.label6 = new System.Windows.Forms.Label();
-            this.chkFlags = new System.Windows.Forms.CheckBox();
-            this.chkEnvelope = new System.Windows.Forms.CheckBox();
-            this.chkReceived = new System.Windows.Forms.CheckBox();
-            this.chkSize = new System.Windows.Forms.CheckBox();
-            this.chkBodyStructureEx = new System.Windows.Forms.CheckBox();
-            this.chkUID = new System.Windows.Forms.CheckBox();
             this.chkFetchNobble = new System.Windows.Forms.CheckBox();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.chkMailboxUID = new System.Windows.Forms.CheckBox();
+            this.chkMailboxBodyStructure = new System.Windows.Forms.CheckBox();
+            this.chkMailboxSize = new System.Windows.Forms.CheckBox();
+            this.chkMailboxReceived = new System.Windows.Forms.CheckBox();
+            this.chkMailboxEnvelope = new System.Windows.Forms.CheckBox();
+            this.chkMailboxFlags = new System.Windows.Forms.CheckBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.panel3 = new System.Windows.Forms.Panel();
+            this.chkMessageUID = new System.Windows.Forms.CheckBox();
+            this.chkMessageBodyStructure = new System.Windows.Forms.CheckBox();
+            this.chkMessageSize = new System.Windows.Forms.CheckBox();
+            this.chkMessageReceived = new System.Windows.Forms.CheckBox();
+            this.chkMessageEnvelope = new System.Windows.Forms.CheckBox();
+            this.chkMessageFlags = new System.Windows.Forms.CheckBox();
+            this.label13 = new System.Windows.Forms.Label();
             this.pnlCredentials.SuspendLayout();
             this.pnlConnection.SuspendLayout();
             this.pnlIdle.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
             this.pnlIgnoreCapabilities.SuspendLayout();
             this.tabControl2.SuspendLayout();
-            this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvMessageHeaders)).BeginInit();
+            this.tabPage3.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
+            this.panel3.SuspendLayout();
             this.SuspendLayout();
             // 
             // txtHost
@@ -306,10 +315,10 @@
             // 
             this.rtxState.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.rtxState.Location = new System.Drawing.Point(363, 30);
+            this.rtxState.Location = new System.Drawing.Point(364, 30);
             this.rtxState.Name = "rtxState";
             this.rtxState.ReadOnly = true;
-            this.rtxState.Size = new System.Drawing.Size(332, 99);
+            this.rtxState.Size = new System.Drawing.Size(334, 99);
             this.rtxState.TabIndex = 20;
             this.rtxState.Text = "";
             // 
@@ -383,7 +392,7 @@
             // 
             // cmdTests
             // 
-            this.cmdTests.Location = new System.Drawing.Point(12, 491);
+            this.cmdTests.Location = new System.Drawing.Point(12, 586);
             this.cmdTests.Name = "cmdTests";
             this.cmdTests.Size = new System.Drawing.Size(106, 24);
             this.cmdTests.TabIndex = 14;
@@ -495,7 +504,7 @@
             // 
             // cmdTestsQuick
             // 
-            this.cmdTestsQuick.Location = new System.Drawing.Point(124, 491);
+            this.cmdTestsQuick.Location = new System.Drawing.Point(124, 586);
             this.cmdTestsQuick.Name = "cmdTestsQuick";
             this.cmdTestsQuick.Size = new System.Drawing.Size(106, 24);
             this.cmdTestsQuick.TabIndex = 28;
@@ -563,19 +572,8 @@
             this.tabControl2.Location = new System.Drawing.Point(364, 139);
             this.tabControl2.Name = "tabControl2";
             this.tabControl2.SelectedIndex = 0;
-            this.tabControl2.Size = new System.Drawing.Size(331, 370);
+            this.tabControl2.Size = new System.Drawing.Size(334, 471);
             this.tabControl2.TabIndex = 30;
-            // 
-            // tabPage3
-            // 
-            this.tabPage3.Controls.Add(this.rtxResponseText);
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(323, 344);
-            this.tabPage3.TabIndex = 0;
-            this.tabPage3.Text = "Response Text";
-            this.tabPage3.UseVisualStyleBackColor = true;
             // 
             // tabPage4
             // 
@@ -583,7 +581,7 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(323, 344);
+            this.tabPage4.Size = new System.Drawing.Size(326, 445);
             this.tabPage4.TabIndex = 1;
             this.tabPage4.Text = "Mailboxes";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -605,7 +603,7 @@
             this.splitContainer1.Panel2.Controls.Add(this.cmdView);
             this.splitContainer1.Panel2.Controls.Add(this.cmdStructure);
             this.splitContainer1.Panel2.Controls.Add(this.dgvMessageHeaders);
-            this.splitContainer1.Size = new System.Drawing.Size(314, 331);
+            this.splitContainer1.Size = new System.Drawing.Size(317, 432);
             this.splitContainer1.SplitterDistance = 92;
             this.splitContainer1.TabIndex = 32;
             // 
@@ -616,7 +614,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tvwMailboxes.Location = new System.Drawing.Point(3, 3);
             this.tvwMailboxes.Name = "tvwMailboxes";
-            this.tvwMailboxes.Size = new System.Drawing.Size(86, 325);
+            this.tvwMailboxes.Size = new System.Drawing.Size(86, 426);
             this.tvwMailboxes.TabIndex = 0;
             this.tvwMailboxes.AfterExpand += new System.Windows.Forms.TreeViewEventHandler(this.tvwMailboxes_AfterExpand);
             this.tvwMailboxes.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvwMailboxes_AfterSelect);
@@ -624,7 +622,7 @@
             // cmdView
             // 
             this.cmdView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdView.Location = new System.Drawing.Point(5, 306);
+            this.cmdView.Location = new System.Drawing.Point(8, 407);
             this.cmdView.Name = "cmdView";
             this.cmdView.Size = new System.Drawing.Size(102, 22);
             this.cmdView.TabIndex = 3;
@@ -635,7 +633,7 @@
             // cmdStructure
             // 
             this.cmdStructure.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdStructure.Location = new System.Drawing.Point(113, 306);
+            this.cmdStructure.Location = new System.Drawing.Point(116, 407);
             this.cmdStructure.Name = "cmdStructure";
             this.cmdStructure.Size = new System.Drawing.Size(102, 22);
             this.cmdStructure.TabIndex = 2;
@@ -660,13 +658,24 @@
             this.dgvMessageHeaders.Location = new System.Drawing.Point(3, 3);
             this.dgvMessageHeaders.Name = "dgvMessageHeaders";
             this.dgvMessageHeaders.ReadOnly = true;
-            this.dgvMessageHeaders.Size = new System.Drawing.Size(212, 297);
+            this.dgvMessageHeaders.Size = new System.Drawing.Size(215, 398);
             this.dgvMessageHeaders.TabIndex = 1;
             this.dgvMessageHeaders.CurrentCellChanged += new System.EventHandler(this.dgvMessageHeaders_CurrentCellChanged);
             // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.rtxResponseText);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(323, 344);
+            this.tabPage3.TabIndex = 0;
+            this.tabPage3.Text = "Response Text";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
             // cmdTestsCurrent
             // 
-            this.cmdTestsCurrent.Location = new System.Drawing.Point(242, 491);
+            this.cmdTestsCurrent.Location = new System.Drawing.Point(242, 586);
             this.cmdTestsCurrent.Name = "cmdTestsCurrent";
             this.cmdTestsCurrent.Size = new System.Drawing.Size(106, 24);
             this.cmdTestsCurrent.TabIndex = 31;
@@ -688,96 +697,6 @@
             this.panel1.Size = new System.Drawing.Size(336, 152);
             this.panel1.TabIndex = 32;
             // 
-            // panel2
-            // 
-            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Controls.Add(this.chkUID);
-            this.panel2.Controls.Add(this.chkBodyStructureEx);
-            this.panel2.Controls.Add(this.chkSize);
-            this.panel2.Controls.Add(this.chkReceived);
-            this.panel2.Controls.Add(this.chkEnvelope);
-            this.panel2.Controls.Add(this.chkFlags);
-            this.panel2.Controls.Add(this.label6);
-            this.panel2.Location = new System.Drawing.Point(12, 396);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(336, 89);
-            this.panel2.TabIndex = 33;
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(4, 9);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(211, 13);
-            this.label6.TabIndex = 0;
-            this.label6.Text = "When opening mailbox get these properties";
-            // 
-            // chkFlags
-            // 
-            this.chkFlags.AutoSize = true;
-            this.chkFlags.Checked = true;
-            this.chkFlags.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkFlags.Location = new System.Drawing.Point(21, 36);
-            this.chkFlags.Name = "chkFlags";
-            this.chkFlags.Size = new System.Drawing.Size(51, 17);
-            this.chkFlags.TabIndex = 1;
-            this.chkFlags.Text = "Flags";
-            this.chkFlags.UseVisualStyleBackColor = true;
-            // 
-            // chkEnvelope
-            // 
-            this.chkEnvelope.AutoSize = true;
-            this.chkEnvelope.Checked = true;
-            this.chkEnvelope.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkEnvelope.Location = new System.Drawing.Point(126, 36);
-            this.chkEnvelope.Name = "chkEnvelope";
-            this.chkEnvelope.Size = new System.Drawing.Size(71, 17);
-            this.chkEnvelope.TabIndex = 2;
-            this.chkEnvelope.Text = "Envelope";
-            this.chkEnvelope.UseVisualStyleBackColor = true;
-            // 
-            // chkReceived
-            // 
-            this.chkReceived.AutoSize = true;
-            this.chkReceived.Checked = true;
-            this.chkReceived.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkReceived.Location = new System.Drawing.Point(239, 36);
-            this.chkReceived.Name = "chkReceived";
-            this.chkReceived.Size = new System.Drawing.Size(72, 17);
-            this.chkReceived.TabIndex = 3;
-            this.chkReceived.Text = "Received";
-            this.chkReceived.UseVisualStyleBackColor = true;
-            // 
-            // chkSize
-            // 
-            this.chkSize.AutoSize = true;
-            this.chkSize.Location = new System.Drawing.Point(19, 59);
-            this.chkSize.Name = "chkSize";
-            this.chkSize.Size = new System.Drawing.Size(46, 17);
-            this.chkSize.TabIndex = 4;
-            this.chkSize.Text = "Size";
-            this.chkSize.UseVisualStyleBackColor = true;
-            // 
-            // chkBodyStructureEx
-            // 
-            this.chkBodyStructureEx.AutoSize = true;
-            this.chkBodyStructureEx.Location = new System.Drawing.Point(126, 59);
-            this.chkBodyStructureEx.Name = "chkBodyStructureEx";
-            this.chkBodyStructureEx.Size = new System.Drawing.Size(96, 17);
-            this.chkBodyStructureEx.TabIndex = 5;
-            this.chkBodyStructureEx.Text = "Body Structure";
-            this.chkBodyStructureEx.UseVisualStyleBackColor = true;
-            // 
-            // chkUID
-            // 
-            this.chkUID.AutoSize = true;
-            this.chkUID.Location = new System.Drawing.Point(239, 59);
-            this.chkUID.Name = "chkUID";
-            this.chkUID.Size = new System.Drawing.Size(45, 17);
-            this.chkUID.TabIndex = 6;
-            this.chkUID.Text = "UID";
-            this.chkUID.UseVisualStyleBackColor = true;
-            // 
             // chkFetchNobble
             // 
             this.chkFetchNobble.AutoSize = true;
@@ -788,12 +707,191 @@
             this.chkFetchNobble.Text = "Fetch Nobble";
             this.chkFetchNobble.UseVisualStyleBackColor = true;
             // 
+            // panel2
+            // 
+            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.chkMailboxUID);
+            this.panel2.Controls.Add(this.chkMailboxBodyStructure);
+            this.panel2.Controls.Add(this.chkMailboxSize);
+            this.panel2.Controls.Add(this.chkMailboxReceived);
+            this.panel2.Controls.Add(this.chkMailboxEnvelope);
+            this.panel2.Controls.Add(this.chkMailboxFlags);
+            this.panel2.Controls.Add(this.label6);
+            this.panel2.Location = new System.Drawing.Point(12, 396);
+            this.panel2.Name = "panel2";
+            this.panel2.Size = new System.Drawing.Size(336, 89);
+            this.panel2.TabIndex = 33;
+            // 
+            // chkMailboxUID
+            // 
+            this.chkMailboxUID.AutoSize = true;
+            this.chkMailboxUID.Location = new System.Drawing.Point(239, 59);
+            this.chkMailboxUID.Name = "chkMailboxUID";
+            this.chkMailboxUID.Size = new System.Drawing.Size(45, 17);
+            this.chkMailboxUID.TabIndex = 6;
+            this.chkMailboxUID.Text = "UID";
+            this.chkMailboxUID.UseVisualStyleBackColor = true;
+            // 
+            // chkMailboxBodyStructure
+            // 
+            this.chkMailboxBodyStructure.AutoSize = true;
+            this.chkMailboxBodyStructure.Location = new System.Drawing.Point(126, 59);
+            this.chkMailboxBodyStructure.Name = "chkMailboxBodyStructure";
+            this.chkMailboxBodyStructure.Size = new System.Drawing.Size(96, 17);
+            this.chkMailboxBodyStructure.TabIndex = 5;
+            this.chkMailboxBodyStructure.Text = "Body Structure";
+            this.chkMailboxBodyStructure.UseVisualStyleBackColor = true;
+            // 
+            // chkMailboxSize
+            // 
+            this.chkMailboxSize.AutoSize = true;
+            this.chkMailboxSize.Location = new System.Drawing.Point(19, 59);
+            this.chkMailboxSize.Name = "chkMailboxSize";
+            this.chkMailboxSize.Size = new System.Drawing.Size(46, 17);
+            this.chkMailboxSize.TabIndex = 4;
+            this.chkMailboxSize.Text = "Size";
+            this.chkMailboxSize.UseVisualStyleBackColor = true;
+            // 
+            // chkMailboxReceived
+            // 
+            this.chkMailboxReceived.AutoSize = true;
+            this.chkMailboxReceived.Checked = true;
+            this.chkMailboxReceived.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkMailboxReceived.Location = new System.Drawing.Point(239, 36);
+            this.chkMailboxReceived.Name = "chkMailboxReceived";
+            this.chkMailboxReceived.Size = new System.Drawing.Size(72, 17);
+            this.chkMailboxReceived.TabIndex = 3;
+            this.chkMailboxReceived.Text = "Received";
+            this.chkMailboxReceived.UseVisualStyleBackColor = true;
+            // 
+            // chkMailboxEnvelope
+            // 
+            this.chkMailboxEnvelope.AutoSize = true;
+            this.chkMailboxEnvelope.Checked = true;
+            this.chkMailboxEnvelope.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkMailboxEnvelope.Location = new System.Drawing.Point(126, 36);
+            this.chkMailboxEnvelope.Name = "chkMailboxEnvelope";
+            this.chkMailboxEnvelope.Size = new System.Drawing.Size(71, 17);
+            this.chkMailboxEnvelope.TabIndex = 2;
+            this.chkMailboxEnvelope.Text = "Envelope";
+            this.chkMailboxEnvelope.UseVisualStyleBackColor = true;
+            // 
+            // chkMailboxFlags
+            // 
+            this.chkMailboxFlags.AutoSize = true;
+            this.chkMailboxFlags.Checked = true;
+            this.chkMailboxFlags.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkMailboxFlags.Location = new System.Drawing.Point(21, 36);
+            this.chkMailboxFlags.Name = "chkMailboxFlags";
+            this.chkMailboxFlags.Size = new System.Drawing.Size(51, 17);
+            this.chkMailboxFlags.TabIndex = 1;
+            this.chkMailboxFlags.Text = "Flags";
+            this.chkMailboxFlags.UseVisualStyleBackColor = true;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(4, 9);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(215, 13);
+            this.label6.TabIndex = 0;
+            this.label6.Text = "When selecting mailbox get these properties";
+            // 
+            // panel3
+            // 
+            this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel3.Controls.Add(this.chkMessageUID);
+            this.panel3.Controls.Add(this.chkMessageBodyStructure);
+            this.panel3.Controls.Add(this.chkMessageSize);
+            this.panel3.Controls.Add(this.chkMessageReceived);
+            this.panel3.Controls.Add(this.chkMessageEnvelope);
+            this.panel3.Controls.Add(this.chkMessageFlags);
+            this.panel3.Controls.Add(this.label13);
+            this.panel3.Location = new System.Drawing.Point(12, 491);
+            this.panel3.Name = "panel3";
+            this.panel3.Size = new System.Drawing.Size(336, 89);
+            this.panel3.TabIndex = 34;
+            // 
+            // chkMessageUID
+            // 
+            this.chkMessageUID.AutoSize = true;
+            this.chkMessageUID.Location = new System.Drawing.Point(239, 59);
+            this.chkMessageUID.Name = "chkMessageUID";
+            this.chkMessageUID.Size = new System.Drawing.Size(45, 17);
+            this.chkMessageUID.TabIndex = 6;
+            this.chkMessageUID.Text = "UID";
+            this.chkMessageUID.UseVisualStyleBackColor = true;
+            // 
+            // chkMessageBodyStructure
+            // 
+            this.chkMessageBodyStructure.AutoSize = true;
+            this.chkMessageBodyStructure.Checked = true;
+            this.chkMessageBodyStructure.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkMessageBodyStructure.Location = new System.Drawing.Point(126, 59);
+            this.chkMessageBodyStructure.Name = "chkMessageBodyStructure";
+            this.chkMessageBodyStructure.Size = new System.Drawing.Size(96, 17);
+            this.chkMessageBodyStructure.TabIndex = 5;
+            this.chkMessageBodyStructure.Text = "Body Structure";
+            this.chkMessageBodyStructure.UseVisualStyleBackColor = true;
+            // 
+            // chkMessageSize
+            // 
+            this.chkMessageSize.AutoSize = true;
+            this.chkMessageSize.Checked = true;
+            this.chkMessageSize.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkMessageSize.Location = new System.Drawing.Point(19, 59);
+            this.chkMessageSize.Name = "chkMessageSize";
+            this.chkMessageSize.Size = new System.Drawing.Size(46, 17);
+            this.chkMessageSize.TabIndex = 4;
+            this.chkMessageSize.Text = "Size";
+            this.chkMessageSize.UseVisualStyleBackColor = true;
+            // 
+            // chkMessageReceived
+            // 
+            this.chkMessageReceived.AutoSize = true;
+            this.chkMessageReceived.Location = new System.Drawing.Point(239, 36);
+            this.chkMessageReceived.Name = "chkMessageReceived";
+            this.chkMessageReceived.Size = new System.Drawing.Size(72, 17);
+            this.chkMessageReceived.TabIndex = 3;
+            this.chkMessageReceived.Text = "Received";
+            this.chkMessageReceived.UseVisualStyleBackColor = true;
+            // 
+            // chkMessageEnvelope
+            // 
+            this.chkMessageEnvelope.AutoSize = true;
+            this.chkMessageEnvelope.Location = new System.Drawing.Point(126, 36);
+            this.chkMessageEnvelope.Name = "chkMessageEnvelope";
+            this.chkMessageEnvelope.Size = new System.Drawing.Size(71, 17);
+            this.chkMessageEnvelope.TabIndex = 2;
+            this.chkMessageEnvelope.Text = "Envelope";
+            this.chkMessageEnvelope.UseVisualStyleBackColor = true;
+            // 
+            // chkMessageFlags
+            // 
+            this.chkMessageFlags.AutoSize = true;
+            this.chkMessageFlags.Location = new System.Drawing.Point(21, 36);
+            this.chkMessageFlags.Name = "chkMessageFlags";
+            this.chkMessageFlags.Size = new System.Drawing.Size(51, 17);
+            this.chkMessageFlags.TabIndex = 1;
+            this.chkMessageFlags.Text = "Flags";
+            this.chkMessageFlags.UseVisualStyleBackColor = true;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(4, 9);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(222, 13);
+            this.label13.TabIndex = 0;
+            this.label13.Text = "When selecting message get these properties";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(710, 520);
+            this.ClientSize = new System.Drawing.Size(710, 616);
+            this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.cmdCancel);
@@ -824,17 +922,19 @@
             this.pnlIgnoreCapabilities.ResumeLayout(false);
             this.pnlIgnoreCapabilities.PerformLayout();
             this.tabControl2.ResumeLayout(false);
-            this.tabPage3.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvMessageHeaders)).EndInit();
+            this.tabPage3.ResumeLayout(false);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
+            this.panel3.ResumeLayout(false);
+            this.panel3.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -897,14 +997,22 @@
         private System.Windows.Forms.Button cmdStructure;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.CheckBox chkUID;
-        private System.Windows.Forms.CheckBox chkBodyStructureEx;
-        private System.Windows.Forms.CheckBox chkSize;
-        private System.Windows.Forms.CheckBox chkReceived;
-        private System.Windows.Forms.CheckBox chkEnvelope;
-        private System.Windows.Forms.CheckBox chkFlags;
+        private System.Windows.Forms.CheckBox chkMailboxUID;
+        private System.Windows.Forms.CheckBox chkMailboxBodyStructure;
+        private System.Windows.Forms.CheckBox chkMailboxSize;
+        private System.Windows.Forms.CheckBox chkMailboxReceived;
+        private System.Windows.Forms.CheckBox chkMailboxEnvelope;
+        private System.Windows.Forms.CheckBox chkMailboxFlags;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.CheckBox chkFetchNobble;
+        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.CheckBox chkMessageUID;
+        private System.Windows.Forms.CheckBox chkMessageBodyStructure;
+        private System.Windows.Forms.CheckBox chkMessageSize;
+        private System.Windows.Forms.CheckBox chkMessageReceived;
+        private System.Windows.Forms.CheckBox chkMessageEnvelope;
+        private System.Windows.Forms.CheckBox chkMessageFlags;
+        private System.Windows.Forms.Label label13;
     }
 }
 

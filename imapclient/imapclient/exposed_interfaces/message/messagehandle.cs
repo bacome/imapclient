@@ -8,8 +8,8 @@ namespace work.bacome.imapclient
         int CacheSequence { get; }
         bool Expunged { get; }
         fMessageProperties Properties { get; }
+        cBodyPart Body { get; }
         cBodyPart BodyStructure { get; }
-        cBodyPart BodyStructureEx { get; }
         cEnvelope Envelope { get; }
         cMessageFlags Flags { get; }
         DateTime? Received { get; }

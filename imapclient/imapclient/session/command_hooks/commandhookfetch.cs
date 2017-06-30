@@ -62,7 +62,7 @@ namespace work.bacome.imapclient
                         {
                             uint lTo = lOrigin + (uint)lBody.Bytes.Count;
 
-                            if (lTo > mOrigin)
+                            if (lTo >= mOrigin)
                             {
                                 lResult = eProcessDataResult.observed;
 

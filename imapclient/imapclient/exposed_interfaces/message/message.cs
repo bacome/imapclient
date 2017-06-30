@@ -88,27 +88,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        public async Task<cBodyPart> GetBodyStructureAsync()
-        {
-            if ((Handle.Properties | fMessageProperties.bodystructure) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructure).ConfigureAwait(false);
-            return Handle.BodyStructure;
-        }
-
-        public cBodyPart BodyStructureEx
-        {
-            get
-            {
-                if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructureex);
-                return Handle.BodyStructureEx;
-            }
-        }
-
-        public async Task<cBodyPart> GetBodyStructureExAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructureex).ConfigureAwait(false);
-            return Handle.BodyStructureEx;
-        }
-
         public DateTime? Sent
         {
             get
@@ -116,12 +95,6 @@ namespace work.bacome.imapclient
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
                 return Handle.Envelope?.Sent; // note that if the message has been deleted the envelope still might not be there
             }
-        }
-
-        public async Task<DateTime?> GetSentAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
-            return Handle.Envelope?.Sent; // note that if the message has been deleted the envelope still might not be there
         }
 
         public cCulturedString Subject
@@ -133,12 +106,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        public async Task<cCulturedString> GetSubjectAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
-            return Handle.Envelope?.Subject; // note that if the message has been deleted the envelope still might not be there
-        }
-
         public cAddresses From
         {
             get
@@ -146,12 +113,6 @@ namespace work.bacome.imapclient
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
                 return Handle.Envelope?.From; // note that if the message has been deleted the envelope still might not be there
             }
-        }
-
-        public async Task<cAddresses> GetFromAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
-            return Handle.Envelope?.From; // note that if the message has been deleted the envelope still might not be there
         }
 
         public cAddresses Sender
@@ -163,12 +124,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        public async Task<cAddresses> GetSenderAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
-            return Handle.Envelope?.Sender; // note that if the message has been deleted the envelope still might not be there
-        }
-
         public cAddresses ReplyTo
         {
             get
@@ -176,12 +131,6 @@ namespace work.bacome.imapclient
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
                 return Handle.Envelope?.ReplyTo; // note that if the message has been deleted the envelope still might not be there
             }
-        }
-
-        public async Task<cAddresses> GetReplyToAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
-            return Handle.Envelope?.ReplyTo; // note that if the message has been deleted the envelope still might not be there
         }
 
         public cAddresses To
@@ -193,12 +142,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        public async Task<cAddresses> GetToAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
-            return Handle.Envelope?.To; // note that if the message has been deleted the envelope still might not be there
-        }
-
         public cAddresses CC
         {
             get
@@ -206,12 +149,6 @@ namespace work.bacome.imapclient
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
                 return Handle.Envelope?.CC; // note that if the message has been deleted the envelope still might not be there
             }
-        }
-
-        public async Task<cAddresses> GetCCAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
-            return Handle.Envelope?.CC; // note that if the message has been deleted the envelope still might not be there
         }
 
         public cAddresses BCC
@@ -223,12 +160,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        public async Task<cAddresses> GetBCCAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
-            return Handle.Envelope?.BCC; // note that if the message has been deleted the envelope still might not be there
-        }
-
         public string InReplyTo
         {
             get
@@ -236,12 +167,6 @@ namespace work.bacome.imapclient
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
                 return Handle.Envelope?.InReplyTo; // note that if the message has been deleted the envelope still might not be there
             }
-        }
-
-        public async Task<string> GetInReplyToAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
-            return Handle.Envelope?.InReplyTo; // note that if the message has been deleted the envelope still might not be there
         }
 
         public string MessageId
@@ -253,12 +178,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        public async Task<string> GetMessageIdAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.envelope) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.envelope).ConfigureAwait(false);
-            return Handle.Envelope?.MessageId; // note that if the message has been deleted the envelope still might not be there
-        }
-
         public fMessageFlags? Flags
         {
             get
@@ -266,12 +185,6 @@ namespace work.bacome.imapclient
                 if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
                 return Handle.Flags?.KnownFlags; // note that if the message has been deleted the flags still might not be there
             }
-        }
-
-        public async Task<fMessageFlags?> GetFlagsAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.flags) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.flags).ConfigureAwait(false);
-            return Handle.Flags?.KnownFlags; // note that if the message has been deleted the flags still might not be there
         }
 
         public cStrings AllFlags
@@ -283,10 +196,32 @@ namespace work.bacome.imapclient
             }
         }
 
-        public async Task<cStrings> GetAllFlagsAsync()
+        public bool? IsFlagged(fMessageFlags pFlags)
         {
-            if ((Handle.Properties & fMessageProperties.flags) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.flags).ConfigureAwait(false);
-            return Handle.Flags?.AllFlags; // note that if the message has been deleted the flags still might not be there
+            if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
+            if (Handle.Flags == null) return null;
+            return (Handle.Flags.KnownFlags & pFlags) == pFlags;
+        }
+
+        public bool? IsNotFlagged(fMessageFlags pFlags)
+        {
+            if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
+            if (Handle.Flags == null) return null;
+            return (Handle.Flags.KnownFlags & pFlags) == 0;
+        }
+
+        public bool? IsFlagged(string pKeyword)
+        {
+            if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
+            if (Handle.Flags == null) return null;
+            return Handle.Flags.Has(pKeyword);
+        }
+
+        public bool? IsNotFlagged(string pKeyword)
+        {
+            if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
+            if (Handle.Flags == null) return null;
+            return !Handle.Flags.Has(pKeyword);
         }
 
         public DateTime? Received
@@ -298,12 +233,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        public async Task<DateTime?> GetReceivedAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.received) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.received).ConfigureAwait(false);
-            return Handle.Received;
-        }
-
         public uint? Size
         {
             get
@@ -311,12 +240,6 @@ namespace work.bacome.imapclient
                 if ((Handle.Properties & fMessageProperties.size) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.size);
                 return Handle.Size;
             }
-        }
-
-        public async Task<uint?> GetSizeAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.size) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.size).ConfigureAwait(false);
-            return Handle.Size;
         }
 
         public cUID UID
@@ -328,12 +251,6 @@ namespace work.bacome.imapclient
             }
         }
 
-        public async Task<cUID> GetUIDAsync()
-        {
-            if ((Handle.Properties & fMessageProperties.uid) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.uid).ConfigureAwait(false);
-            return Handle.UID;
-        }
-
         public cStrings References
         {
             get
@@ -343,27 +260,24 @@ namespace work.bacome.imapclient
             }
         }
 
-        public async Task<cStrings> GetReferencesAsync()
+        public string PlainText
         {
-            if ((Handle.Properties & fMessageProperties.references) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.references).ConfigureAwait(false);
-            return Handle.References;
-        }
-
-        public string GetPlainText()
-        {
-            if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructureex);
-            if (Handle.BodyStructureEx == null) return null;
-            StringBuilder lBuilder = new StringBuilder();
-            foreach (var lPart in ZPlainText(Handle.BodyStructureEx)) lBuilder.Append(Fetch(lPart));
-            return lBuilder.ToString();
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructure);
+                if (Handle.BodyStructure == null) return null;
+                StringBuilder lBuilder = new StringBuilder();
+                foreach (var lPart in ZPlainText(Handle.BodyStructure)) lBuilder.Append(Fetch(lPart));
+                return lBuilder.ToString();
+            }
         }
 
         public async Task<string> GetPlainTextAsync()
         {
-            if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructureex).ConfigureAwait(false);
-            if (Handle.BodyStructureEx == null) return null;
+            if ((Handle.Properties & fMessageProperties.bodystructure) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructure).ConfigureAwait(false);
+            if (Handle.BodyStructure == null) return null;
             StringBuilder lBuilder = new StringBuilder();
-            foreach (var lPart in ZPlainText(Handle.BodyStructureEx)) lBuilder.Append(await FetchAsync(lPart).ConfigureAwait(false));
+            foreach (var lPart in ZPlainText(Handle.BodyStructure)) lBuilder.Append(await FetchAsync(lPart).ConfigureAwait(false));
             return lBuilder.ToString();
         }
 
@@ -392,18 +306,21 @@ namespace work.bacome.imapclient
             return lResult;
         }
 
-        public List<cAttachment> GetAttachments()
+        public List<cAttachment> Attachments
         {
-            if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructureex);
-            if (Handle.BodyStructureEx == null) return null;
-            return ZAttachments(Handle.BodyStructureEx);
+            get
+            {
+                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructure);
+                if (Handle.BodyStructure == null) return null;
+                return ZAttachments(Handle.BodyStructure);
+            }
         }
 
         public async Task<List<cAttachment>> GetAttachmentsAsync()
         {
-            if ((Handle.Properties & fMessageProperties.bodystructureex) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructureex).ConfigureAwait(false);
-            if (Handle.BodyStructureEx == null) return null;
-            return ZAttachments(Handle.BodyStructureEx);
+            if ((Handle.Properties & fMessageProperties.bodystructure) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructure).ConfigureAwait(false);
+            if (Handle.BodyStructure == null) return null;
+            return ZAttachments(Handle.BodyStructure);
         }
 
         private List<cAttachment> ZAttachments(cBodyPart pPart)

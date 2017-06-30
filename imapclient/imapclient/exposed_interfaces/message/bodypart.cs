@@ -269,21 +269,21 @@ namespace work.bacome.imapclient
     public class cMessageBodyPart : cSinglePartBody
     {
         public readonly cEnvelope Envelope;
-        private readonly cBodyPart mBodyStructure;
-        public readonly cBodyPart BodyStructureEx;
+        private readonly cBodyPart mBody;
+        public readonly cBodyPart BodyStructure;
         public readonly uint SizeInLines;
 
-        public cMessageBodyPart(cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBodyStructure, cBodyPart pBodyStructureEx, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(TypeMessage, SubTypeRFC822, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
+        public cMessageBodyPart(cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBody, cBodyPart pBodyStructure, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(TypeMessage, SubTypeRFC822, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
         {
             Envelope = pEnvelope;
-            mBodyStructure = pBodyStructure;
-            BodyStructureEx = pBodyStructureEx;
+            mBody = pBody;
+            BodyStructure = pBodyStructure;
             SizeInLines = pSizeInLines;
         }
 
-        public cBodyPart BodyStructure => mBodyStructure ?? BodyStructureEx;
+        public cBodyPart Body => mBody ?? BodyStructure;
 
-        public override string ToString() => $"{nameof(cMessageBodyPart)}({base.ToString()},{Envelope},{BodyStructureEx ?? mBodyStructure},{SizeInLines})";
+        public override string ToString() => $"{nameof(cMessageBodyPart)}({base.ToString()},{Envelope},{BodyStructure ?? mBody},{SizeInLines})";
     }
 
     public class cTextBodyPart : cSinglePartBody

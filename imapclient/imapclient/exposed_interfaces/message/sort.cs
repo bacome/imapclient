@@ -134,6 +134,63 @@ namespace work.bacome.imapclient
             return pX.CacheSequence.CompareTo(pY.CacheSequence);
         }
 
+        public int Comparison(cMessage pX, cMessage pY)
+        {
+            var lProperties = Properties(out _);
+            pX.Fetch(lProperties);
+            pY.Fetch(lProperties);
+            return Comparison(pX.Handle, pY.Handle);
+        }
+
+        public fMessageProperties Properties(out bool rSortDisplay)
+        {
+            rSortDisplay = false;
+
+            fMessageProperties lProperties = 0;
+
+            foreach (var lItem in Items)
+            {
+                switch (lItem.Type)
+                {
+                    case cSortItem.eType.received:
+
+                        lProperties |= fMessageProperties.received;
+                        break;
+
+                    case cSortItem.eType.cc:
+                    case cSortItem.eType.from:
+                    case cSortItem.eType.subject:
+                    case cSortItem.eType.to:
+
+                        lProperties |= fMessageProperties.envelope;
+                        break;
+
+                    case cSortItem.eType.sent:
+
+                        lProperties |= fMessageProperties.envelope | fMessageProperties.received;
+                        break;
+
+                    case cSortItem.eType.size:
+
+                        lProperties |= fMessageProperties.size;
+                        break;
+
+                    case cSortItem.eType.displayfrom:
+                    case cSortItem.eType.displayto:
+
+                        lProperties |= fMessageProperties.envelope;
+                        rSortDisplay = true;
+                        break;
+
+                    default:
+
+                        throw new cInternalErrorException();
+                }
+            }
+
+            return lProperties;
+        }
+
         private int ZCompareTo(uint? pX, uint? pY)
         {
             if (pX == null)

@@ -40,8 +40,10 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cFetchSizer), nameof(AddSample), pN, pTime);
 
-            if (pN < 1) throw new ArgumentOutOfRangeException(nameof(pN));
+            if (pN < 0) throw new ArgumentOutOfRangeException(nameof(pN));
             if (pTime < 0) throw new ArgumentOutOfRangeException(nameof(pTime));
+
+            if (pN == 0) return;
 
             lock (mSamples)
             {

@@ -73,6 +73,7 @@
             this.tvwBodyStructure.Name = "tvwBodyStructure";
             this.tvwBodyStructure.Size = new System.Drawing.Size(165, 361);
             this.tvwBodyStructure.TabIndex = 2;
+            this.tvwBodyStructure.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvwBodyStructure_AfterSelect);
             // 
             // cmdDownloadRaw
             // 
@@ -150,10 +151,10 @@
 
         private System.Windows.Forms.SplitContainer splitContainer3;
         public System.Windows.Forms.TreeView tvwBodyStructure;
-        public System.Windows.Forms.Button cmdDownloadRaw;
-        public System.Windows.Forms.Button cmdDownload;
-        public System.Windows.Forms.Button cmdInspectRaw;
-        public System.Windows.Forms.Button cmdInspect;
-        public System.Windows.Forms.RichTextBox rtxPartDetail;
+        private System.Windows.Forms.RichTextBox rtxPartDetail;
+        private System.Windows.Forms.Button cmdDownloadRaw;
+        private System.Windows.Forms.Button cmdDownload;
+        private System.Windows.Forms.Button cmdInspectRaw;
+        private System.Windows.Forms.Button cmdInspect;
     }
 }

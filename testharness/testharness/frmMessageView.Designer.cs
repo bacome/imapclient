@@ -31,6 +31,7 @@
             this.dgvAttachment = new System.Windows.Forms.DataGridView();
             this.rtxTextPlain = new System.Windows.Forms.RichTextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.cmdDownload = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvAttachment)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -55,7 +56,7 @@
             this.dgvAttachment.Location = new System.Drawing.Point(3, 3);
             this.dgvAttachment.Name = "dgvAttachment";
             this.dgvAttachment.ReadOnly = true;
-            this.dgvAttachment.Size = new System.Drawing.Size(662, 144);
+            this.dgvAttachment.Size = new System.Drawing.Size(662, 110);
             this.dgvAttachment.TabIndex = 0;
             // 
             // rtxTextPlain
@@ -80,6 +81,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.cmdDownload);
             this.splitContainer1.Panel1.Controls.Add(this.dgvAttachment);
             // 
             // splitContainer1.Panel2
@@ -88,6 +90,16 @@
             this.splitContainer1.Size = new System.Drawing.Size(668, 339);
             this.splitContainer1.SplitterDistance = 150;
             this.splitContainer1.TabIndex = 2;
+            // 
+            // cmdDownload
+            // 
+            this.cmdDownload.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdDownload.Location = new System.Drawing.Point(10, 119);
+            this.cmdDownload.Name = "cmdDownload";
+            this.cmdDownload.Size = new System.Drawing.Size(87, 22);
+            this.cmdDownload.TabIndex = 1;
+            this.cmdDownload.Text = "Download";
+            this.cmdDownload.UseVisualStyleBackColor = true;
             // 
             // frmMessageView
             // 
@@ -110,5 +122,6 @@
         private System.Windows.Forms.SplitContainer splitContainer1;
         public System.Windows.Forms.DataGridView dgvAttachment;
         public System.Windows.Forms.RichTextBox rtxTextPlain;
+        private System.Windows.Forms.Button cmdDownload;
     }
 }

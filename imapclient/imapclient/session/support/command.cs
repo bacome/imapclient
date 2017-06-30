@@ -266,8 +266,8 @@ namespace work.bacome.imapclient
                     if ((pProperties & fMessageProperties.envelope) != 0) Add(kCommandPartEnvelope);
                     if ((pProperties & fMessageProperties.received) != 0) Add(kCommandPartInternalDate);
                     if ((pProperties & fMessageProperties.size) != 0) Add(kCommandPartrfc822size);
-                    if ((pProperties & fMessageProperties.bodystructure) != 0) Add(kCommandPartBody);
-                    if ((pProperties & fMessageProperties.bodystructureex) != 0) Add(kCommandPartBodyStructure);
+                    if ((pProperties & fMessageProperties.body) != 0) Add(kCommandPartBody);
+                    if ((pProperties & fMessageProperties.bodystructure) != 0) Add(kCommandPartBodyStructure);
                     if ((pProperties & fMessageProperties.uid) != 0) Add(kCommandPartUID);
                     if ((pProperties & fMessageProperties.references) != 0) Add(kCommandPartReferences);
                     EndList();
@@ -336,50 +336,50 @@ namespace work.bacome.imapclient
                             lParts.Add(kCommandPartUIDSpace, new cCommandPart(lUIDIn.SequenceSet));
                             return lParts;
 
-                        case cFilter.cWithFlags lWithFlags:
+                        case cFilter.cIsFlagged lIsFlagged:
 
                             lParts.BeginList(pBracketing);
 
-                            if ((lWithFlags.Flags & fMessageFlags.answered) != 0) lParts.Add(kCommandPartAnswered);
-                            if ((lWithFlags.Flags & fMessageFlags.flagged) != 0) lParts.Add(kCommandPartFlagged);
-                            if ((lWithFlags.Flags & fMessageFlags.deleted) != 0) lParts.Add(kCommandPartDeleted);
-                            if ((lWithFlags.Flags & fMessageFlags.seen) != 0) lParts.Add(kCommandPartSeen);
-                            if ((lWithFlags.Flags & fMessageFlags.draft) != 0) lParts.Add(kCommandPartDraft);
-                            if ((lWithFlags.Flags & fMessageFlags.recent) != 0) lParts.Add(kCommandPartRecent);
-                            if ((lWithFlags.Flags & fMessageFlags.mdnsent) != 0) lParts.Add(kCommandPartKeywordMDNSent);
-                            if ((lWithFlags.Flags & fMessageFlags.forwarded) != 0) lParts.Add(kCommandPartKeywordForwarded);
-                            if ((lWithFlags.Flags & fMessageFlags.submitpending) != 0) lParts.Add(kCommandPartKeywordSubmitPending);
-                            if ((lWithFlags.Flags & fMessageFlags.submitted) != 0) lParts.Add(kCommandPartKeywordSubmitted);
+                            if ((lIsFlagged.Flags & fMessageFlags.answered) != 0) lParts.Add(kCommandPartAnswered);
+                            if ((lIsFlagged.Flags & fMessageFlags.flagged) != 0) lParts.Add(kCommandPartFlagged);
+                            if ((lIsFlagged.Flags & fMessageFlags.deleted) != 0) lParts.Add(kCommandPartDeleted);
+                            if ((lIsFlagged.Flags & fMessageFlags.seen) != 0) lParts.Add(kCommandPartSeen);
+                            if ((lIsFlagged.Flags & fMessageFlags.draft) != 0) lParts.Add(kCommandPartDraft);
+                            if ((lIsFlagged.Flags & fMessageFlags.recent) != 0) lParts.Add(kCommandPartRecent);
+                            if ((lIsFlagged.Flags & fMessageFlags.mdnsent) != 0) lParts.Add(kCommandPartKeywordMDNSent);
+                            if ((lIsFlagged.Flags & fMessageFlags.forwarded) != 0) lParts.Add(kCommandPartKeywordForwarded);
+                            if ((lIsFlagged.Flags & fMessageFlags.submitpending) != 0) lParts.Add(kCommandPartKeywordSubmitPending);
+                            if ((lIsFlagged.Flags & fMessageFlags.submitted) != 0) lParts.Add(kCommandPartKeywordSubmitted);
 
                             lParts.EndList();
                             return lParts;
 
-                        case cFilter.cWithoutFlags lWithoutFlags:
+                        case cFilter.cIsNotFlagged lIsNotFlagged:
 
                             lParts.BeginList(pBracketing);
 
-                            if ((lWithoutFlags.Flags & fMessageFlags.answered) != 0) lParts.Add(kCommandPartUnanswered);
-                            if ((lWithoutFlags.Flags & fMessageFlags.flagged) != 0) lParts.Add(kCommandPartUnflagged);
-                            if ((lWithoutFlags.Flags & fMessageFlags.deleted) != 0) lParts.Add(kCommandPartUndeleted);
-                            if ((lWithoutFlags.Flags & fMessageFlags.seen) != 0) lParts.Add(kCommandPartUnseen);
-                            if ((lWithoutFlags.Flags & fMessageFlags.draft) != 0) lParts.Add(kCommandPartUndraft);
-                            if ((lWithoutFlags.Flags & fMessageFlags.recent) != 0) lParts.Add(kCommandPartOld);
-                            if ((lWithoutFlags.Flags & fMessageFlags.mdnsent) != 0) lParts.Add(kCommandPartUnkeywordMDNSent);
-                            if ((lWithoutFlags.Flags & fMessageFlags.forwarded) != 0) lParts.Add(kCommandPartUnkeywordForwarded);
-                            if ((lWithoutFlags.Flags & fMessageFlags.submitpending) != 0) lParts.Add(kCommandPartUnkeywordSubmitPending);
-                            if ((lWithoutFlags.Flags & fMessageFlags.submitted) != 0) lParts.Add(kCommandPartUnkeywordSubmitted);
+                            if ((lIsNotFlagged.Flags & fMessageFlags.answered) != 0) lParts.Add(kCommandPartUnanswered);
+                            if ((lIsNotFlagged.Flags & fMessageFlags.flagged) != 0) lParts.Add(kCommandPartUnflagged);
+                            if ((lIsNotFlagged.Flags & fMessageFlags.deleted) != 0) lParts.Add(kCommandPartUndeleted);
+                            if ((lIsNotFlagged.Flags & fMessageFlags.seen) != 0) lParts.Add(kCommandPartUnseen);
+                            if ((lIsNotFlagged.Flags & fMessageFlags.draft) != 0) lParts.Add(kCommandPartUndraft);
+                            if ((lIsNotFlagged.Flags & fMessageFlags.recent) != 0) lParts.Add(kCommandPartOld);
+                            if ((lIsNotFlagged.Flags & fMessageFlags.mdnsent) != 0) lParts.Add(kCommandPartUnkeywordMDNSent);
+                            if ((lIsNotFlagged.Flags & fMessageFlags.forwarded) != 0) lParts.Add(kCommandPartUnkeywordForwarded);
+                            if ((lIsNotFlagged.Flags & fMessageFlags.submitpending) != 0) lParts.Add(kCommandPartUnkeywordSubmitPending);
+                            if ((lIsNotFlagged.Flags & fMessageFlags.submitted) != 0) lParts.Add(kCommandPartUnkeywordSubmitted);
 
                             lParts.EndList();
                             return lParts;
 
-                        case cFilter.cWithKeyword lWithKeyword:
+                        case cFilter.cKeyword lKeyword:
 
-                            lParts.Add(kCommandPartKeywordSpace, cCommandPart.AsAtom(lWithKeyword.Keyword));
+                            lParts.Add(kCommandPartKeywordSpace, cCommandPart.AsAtom(lKeyword.Keyword));
                             return lParts;
 
-                        case cFilter.cWithoutKeyword lWithoutKeyword:
+                        case cFilter.cUnkeyword lUnkeyword:
 
-                            lParts.Add(kCommandPartUnkeywordSpace, cCommandPart.AsAtom(lWithoutKeyword.Keyword));
+                            lParts.Add(kCommandPartUnkeywordSpace, cCommandPart.AsAtom(lUnkeyword.Keyword));
                             return lParts;
 
                         case cFilter.cPartContains lPartContains:
@@ -720,23 +720,23 @@ namespace work.bacome.imapclient
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), true, 0, Encoding.UTF32) != "US-ASCII NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.10", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), true, fEnableableExtensions.utf8, Encoding.UTF32) != "UTF-8 NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.11", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.WithFlags(fMessageFlags.answered), false, 0, null) != "ANSWERED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.WithFlags(fMessageFlags.answered | fMessageFlags.flagged), false, 0, null) != "ANSWERED FLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.2", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.WithFlags(fMessageFlags.answered | fMessageFlags.flagged) | cFilter.WithFlags(fMessageFlags.draft | fMessageFlags.recent), false, 0, null) != "OR (ANSWERED FLAGGED) (DRAFT RECENT)") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.3", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.WithFlags(fMessageFlags.answered | fMessageFlags.flagged) & cFilter.WithFlags(fMessageFlags.draft | fMessageFlags.recent), false, 0, null) != "ANSWERED FLAGGED DRAFT RECENT") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.4", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.WithFlags(fMessageFlags.answered | fMessageFlags.flagged | fMessageFlags.forwarded), false, 0, null) != "ANSWERED FLAGGED KEYWORD $forwarded") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.5", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsFlagged(fMessageFlags.answered), false, 0, null) != "ANSWERED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsFlagged(fMessageFlags.answered | fMessageFlags.flagged), false, 0, null) != "ANSWERED FLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.2", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsFlagged(fMessageFlags.answered | fMessageFlags.flagged) | cFilter.IsFlagged(fMessageFlags.draft | fMessageFlags.recent), false, 0, null) != "OR (ANSWERED FLAGGED) (DRAFT RECENT)") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsFlagged(fMessageFlags.answered | fMessageFlags.flagged) & cFilter.IsFlagged(fMessageFlags.draft | fMessageFlags.recent), false, 0, null) != "ANSWERED FLAGGED DRAFT RECENT") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.4", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsFlagged(fMessageFlags.answered | fMessageFlags.flagged | fMessageFlags.forwarded), false, 0, null) != "ANSWERED FLAGGED KEYWORD $forwarded") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.5", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.WithoutFlags(fMessageFlags.answered | fMessageFlags.flagged | fMessageFlags.forwarded), false, 0, null) != "UNANSWERED UNFLAGGED UNKEYWORD $forwarded") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.6", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsNotFlagged(fMessageFlags.answered | fMessageFlags.flagged | fMessageFlags.forwarded), false, 0, null) != "UNANSWERED UNFLAGGED UNKEYWORD $forwarded") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.6", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.WithKeyword("fred"), false, 0, null) != "KEYWORD fred") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.WithKeyword("fred") | cFilter.WithKeyword("angus"), false, 0, null) != "OR KEYWORD fred KEYWORD angus") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.2", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.WithKeyword("fred") & cFilter.WithKeyword("angus"), false, 0, null) != "KEYWORD fred KEYWORD angus") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsFlagged("fred"), false, 0, null) != "KEYWORD fred") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsFlagged("fred") | cFilter.IsFlagged("angus"), false, 0, null) != "OR KEYWORD fred KEYWORD angus") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.2", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsFlagged("fred") & cFilter.IsFlagged("angus"), false, 0, null) != "KEYWORD fred KEYWORD angus") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.3", lContext);
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.BCC.Contains("@bacome.work"), false, 0, null) != "BCC @bacome.work") throw new cTestsException("ZMessageFilterCommandPartsTests BCC.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("imap client"), false, 0, null) != "SUBJECT \"imap client\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Body.Contains("imap"), false, 0, null) != "BODY imap") throw new cTestsException("ZMessageFilterCommandPartsTests Body.1", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(!cFilter.To.Contains("bacome") & cFilter.WithoutFlags(fMessageFlags.recent), false, 0, null) != "NOT TO bacome OLD") throw new cTestsException("ZMessageFilterCommandPartsTests And.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(!cFilter.To.Contains("bacome") & cFilter.IsNotFlagged(fMessageFlags.recent), false, 0, null) != "NOT TO bacome OLD") throw new cTestsException("ZMessageFilterCommandPartsTests And.1", lContext);
 
                     bool lFailed;
 
