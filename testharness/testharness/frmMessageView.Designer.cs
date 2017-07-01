@@ -32,6 +32,7 @@
             this.rtxTextPlain = new System.Windows.Forms.RichTextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.cmdDownload = new System.Windows.Forms.Button();
+            this.lblFlags = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvAttachment)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -56,7 +57,7 @@
             this.dgvAttachment.Location = new System.Drawing.Point(3, 3);
             this.dgvAttachment.Name = "dgvAttachment";
             this.dgvAttachment.ReadOnly = true;
-            this.dgvAttachment.Size = new System.Drawing.Size(662, 110);
+            this.dgvAttachment.Size = new System.Drawing.Size(662, 116);
             this.dgvAttachment.TabIndex = 0;
             this.dgvAttachment.CurrentCellChanged += new System.EventHandler(this.dgvAttachment_CurrentCellChanged);
             // 
@@ -65,9 +66,9 @@
             this.rtxTextPlain.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.rtxTextPlain.Location = new System.Drawing.Point(3, 3);
+            this.rtxTextPlain.Location = new System.Drawing.Point(3, 42);
             this.rtxTextPlain.Name = "rtxTextPlain";
-            this.rtxTextPlain.Size = new System.Drawing.Size(662, 179);
+            this.rtxTextPlain.Size = new System.Drawing.Size(662, 140);
             this.rtxTextPlain.TabIndex = 1;
             this.rtxTextPlain.Text = "";
             // 
@@ -87,6 +88,7 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.lblFlags);
             this.splitContainer1.Panel2.Controls.Add(this.rtxTextPlain);
             this.splitContainer1.Size = new System.Drawing.Size(668, 339);
             this.splitContainer1.SplitterDistance = 150;
@@ -95,12 +97,22 @@
             // cmdDownload
             // 
             this.cmdDownload.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdDownload.Location = new System.Drawing.Point(10, 119);
+            this.cmdDownload.Location = new System.Drawing.Point(3, 125);
             this.cmdDownload.Name = "cmdDownload";
             this.cmdDownload.Size = new System.Drawing.Size(87, 22);
             this.cmdDownload.TabIndex = 1;
             this.cmdDownload.Text = "Download";
             this.cmdDownload.UseVisualStyleBackColor = true;
+            this.cmdDownload.Click += new System.EventHandler(this.cmdDownload_Click);
+            // 
+            // lblFlags
+            // 
+            this.lblFlags.AutoSize = true;
+            this.lblFlags.Location = new System.Drawing.Point(3, 15);
+            this.lblFlags.Name = "lblFlags";
+            this.lblFlags.Size = new System.Drawing.Size(32, 13);
+            this.lblFlags.TabIndex = 3;
+            this.lblFlags.Text = "Flags";
             // 
             // frmMessageView
             // 
@@ -113,6 +125,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvAttachment)).EndInit();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
+            this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -124,5 +137,6 @@
         private System.Windows.Forms.Button cmdDownload;
         private System.Windows.Forms.DataGridView dgvAttachment;
         private System.Windows.Forms.RichTextBox rtxTextPlain;
+        private System.Windows.Forms.Label lblFlags;
     }
 }

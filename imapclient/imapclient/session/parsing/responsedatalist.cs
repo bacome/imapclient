@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                 {
                     //  NOTE: this routine does not return the cursor to its original position if it fails
 
-                    var lContext = pParentContext.NewMethod(nameof(cResponseDataList), nameof(Process), pCapability, pEnabledExtensions);
+                    var lContext = pParentContext.NewMethod(nameof(cResponseDataList), nameof(Process), pEnabledExtensions);
 
                     if (pCursor.GetFlags(out var lFlags) &&
                         pCursor.SkipByte(cASCII.SPACE) &&

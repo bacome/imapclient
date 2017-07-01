@@ -1,6 +1,6 @@
 ﻿namespace testharness
 {
-    partial class frmDownloading
+    partial class frmDownload
     {
         /// <summary>
         /// Required designer variable.

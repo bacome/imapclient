@@ -16,6 +16,7 @@ namespace testharness
         private int mTimer = 0;
         private cTrace.cContext mRootContext = Program.Trace.NewRoot(nameof(Form1), true);
         private cIMAPClient mIMAPClient = null;
+        private bool mSubscribedToResponseText = false;
         private CancellationTokenSource mCancellationTokenSource = null;
         private frmMessageStructure mMessageStructure = new frmMessageStructure();
         private frmMessageView mMessageView = new frmMessageView();
@@ -72,7 +73,7 @@ namespace testharness
                 rtxState.Text = "disconnected";
                 ZEnable(rdoCredAnon.Checked, txtTrace);
                 ZEnable(rdoCredBasic.Checked, txtUserId, txtPassword);
-                ZEnable(false, cmdDisconnect, cmdDisconnectAsync, cmdCancel, dgvMessageHeaders, mMessageStructure, mMessageView, cmdStructure, cmdView);
+                ZEnable(false, cmdDisconnect, cmdDisconnectAsync, cmdCancel, dgvMessageHeaders, cmdStructure, cmdView);
             }
             else
             {
@@ -134,6 +135,7 @@ namespace testharness
 
             // create the new client
             mIMAPClient = new cIMAPClient();
+            mSubscribedToResponseText = false;
 
             // clear the displays
             tvwMailboxes.Nodes.Clear();
@@ -152,7 +154,6 @@ namespace testharness
 
             // hook up events
             mIMAPClient.PropertyChanged += ZSetState;
-            mIMAPClient.ResponseText += mIMAPClient_ResponseText;
             mIMAPClient.MailboxPropertyChanged += mIMAPClient_MailboxPropertyChanged;
             mIMAPClient.MailboxMessageDelivery += mIMAPClient_MailboxMessageDelivery;
             mIMAPClient.MessageExpunged += mIMAPClient_MessageExpunged;
@@ -267,12 +268,25 @@ namespace testharness
                 mIMAPClient.FetchPropertiesConfiguration = new cFetchSizeConfiguration(1, 1, 100, 1);
                 mIMAPClient.FetchBodyReadConfiguration = new cFetchSizeConfiguration(100, 100, 100, 100);
                 mIMAPClient.FetchBodyWriteConfiguration = new cFetchSizeConfiguration(100, 100, 100, 100);
+
+                if (mSubscribedToResponseText)
+                {
+                    // the problem is that nobbling the fetch causes too many fetch operations for the text box to handle
+                    mIMAPClient.ResponseText -= mIMAPClient_ResponseText;
+                    mSubscribedToResponseText = false;
+                }
             }
             else
             {
                 mIMAPClient.FetchPropertiesConfiguration = new cFetchSizeConfiguration(1, 1000, 10000, 1);
                 mIMAPClient.FetchBodyReadConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
                 mIMAPClient.FetchBodyWriteConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
+
+                if (!mSubscribedToResponseText)
+                {
+                    mIMAPClient.ResponseText += mIMAPClient_ResponseText;
+                    mSubscribedToResponseText = true;
+                }
             }
         }
 
@@ -640,42 +654,7 @@ namespace testharness
                 // coordinate the children
                 await mMessageStructure.DisplayMessageAsync(lMessageHeader?.Message, lContext);
                 if (lZDGVMessageHeadersCoordinateChildrenAsync != mZDGVMessageHeadersCoordinateChildrenAsync) return; // check if we've been re-entered during the await
-                await mMessageView.displaymessageasync(lMessageHeader?.Message, lContext);
-
-
-                // to move this to child
-                if (lMessageHeader == null)
-                {
-                    mMessageView.Enabled = false;
-                    mMessageView.dgvAttachment.DataSource = null;
-                    mMessageView.rtxTextPlain.Clear();
-                }
-                else
-                {
-
-                    // fill in the message details
-
-                    mMessageView.Enabled = true;
-
-                    BindingSource lBindingSource = new BindingSource();
-                    foreach (var lAttachment in lMessageHeader.Message.Attachments) lBindingSource.Add(new cAttachmentHeader(lAttachment));
-
-                    mMessageView.dgvAttachment.DataSource = lBindingSource;
-
-                    mMessageView.rtxTextPlain.Clear();
-                    Program.DisplayAddresses(mMessageView.rtxTextPlain, "From: ", lMessageHeader.Message.From);
-                    Program.DisplayAddresses(mMessageView.rtxTextPlain, "To: ", lMessageHeader.Message.To);
-                    Program.DisplayAddresses(mMessageView.rtxTextPlain, "CC: ", lMessageHeader.Message.CC);
-                    mMessageView.rtxTextPlain.AppendText("Subject: " + lMessageHeader.Message.Subject + "\n");
-                    mMessageView.rtxTextPlain.AppendText("\n");
-
-                    string lText = await lMessageHeader.Message.GetPlainTextAsync();
-
-                    // check if we've been re-entered during the await
-                    if (lZDGVMessageHeadersCoordinateChildrenAsync != mZDGVMessageHeadersCoordinateChildrenAsync) return;
-
-                    mMessageView.rtxTextPlain.AppendText(lText);
-                }
+                await mMessageView.DisplayMessageAsync(lMessageHeader?.Message, lContext);
             }
         }
 

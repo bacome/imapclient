@@ -36,7 +36,7 @@ namespace testharness
                 mMessage.Expunged += ZExpunged;
 
                 var lRoot = tvwBodyStructure.Nodes.Add("root");
-                lRoot.Tag = new cTVWBodyStructureNodeTag(pMessage);
+                lRoot.Tag = new cTVWBodyStructureNodeTag(mMessage);
                 ZTVWBodyStructureAddSection(lRoot, mMessage, "header", cSection.Header);
                 if (mMessage.BodyStructure != null) ZTVWBodyStructureAddPart(lRoot, mMessage, mMessage.BodyStructure);
                 tvwBodyStructure.ExpandAll();
@@ -81,12 +81,7 @@ namespace testharness
         private async void ZExpunged(object sender, EventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(frmMessageStructure), nameof(ZExpunged));
-
-            if (ReferenceEquals(sender, mMessage))
-            {
-                tvwBodyStructure.Enabled = false;
-                await ZTVWBodyStructureCoordinateChildren(lContext);
-            }
+            if (ReferenceEquals(sender, mMessage)) await ZTVWBodyStructureCoordinateChildren(lContext);
         }
 
         private async void cmdInspect_Click(object sender, EventArgs e)
@@ -182,36 +177,18 @@ namespace testharness
 
         private void cmdDownload_Click(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmMessageStructure), nameof(cmdDownload_Click));
-
             var lTag = tvwBodyStructure.SelectedNode?.Tag as cTVWBodyStructureNodeTag;
-
             var lPart = lTag?.BodyPart as cSinglePartBody;
-
             if (lPart == null) return;
-
-            var lSaveFileDialog = new SaveFileDialog();
-
-            if (lPart.Disposition?.FileName != null) lSaveFileDialog.FileName = lPart.Disposition?.FileName;
-
-            if (lSaveFileDialog.ShowDialog() == DialogResult.OK) frmDownloading.Download(lTag.Message, lPart.Section, lPart.DecodingRequired, lSaveFileDialog.FileName, (int)lPart.SizeInBytes);
+            frmDownload.Download(lTag.Message, lPart, lPart.DecodingRequired);
         }
 
         private void cmdDownloadRaw_Click(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmMessageStructure), nameof(cmdDownloadRaw_Click));
-
             var lTag = tvwBodyStructure.SelectedNode?.Tag as cTVWBodyStructureNodeTag;
-
             var lPart = lTag?.BodyPart as cSinglePartBody;
-
             if (lPart == null) return;
-
-            var lSaveFileDialog = new SaveFileDialog();
-
-            lSaveFileDialog.DefaultExt = "txt";
-
-            if (lSaveFileDialog.ShowDialog() == DialogResult.OK) frmDownloading.Download(lTag.Message, lPart.Section, eDecodingRequired.none, lSaveFileDialog.FileName, (int)lPart.SizeInBytes);
+            frmDownload.Download(lTag.Message, lPart, eDecodingRequired.none);
         }
 
         private async void tvwBodyStructure_AfterSelect(object sender, TreeViewEventArgs e)
@@ -280,30 +257,32 @@ namespace testharness
                 }
                 else if (lTag?.Section != null)
                 {
-                    var lSectionText = await lTag.Message.FetchAsync(lTag.Section);
-
-                    // check if we've been re-entered during the await
-                    if (lZTVWBodyStructureCoordinateChildren != mZTVWBodyStructureCoordinateChildren) return;
-
-                    rtxPartDetail.AppendText(lSectionText);
+                    if (!mMessage.IsExpunged)
+                    {
+                        var lSectionText = await lTag.Message.FetchAsync(lTag.Section);
+                        if (lZTVWBodyStructureCoordinateChildren != mZTVWBodyStructureCoordinateChildren) return; // check if we've been re-entered during the await
+                        rtxPartDetail.AppendText(lSectionText);
+                    }
                 }
                 else if (lTag?.Message != null)
                 {
-                    rtxPartDetail.AppendText($"Message Size: {lTag.Message.Size}\n");
+                    if (!mMessage.IsExpunged)
+                    {
+                        rtxPartDetail.AppendText($"Message Size: {lTag.Message.Size}\n");
 
-                    await lTag.Message.FetchAsync(fMessageProperties.envelope);
+                        await lTag.Message.FetchAsync(fMessageProperties.envelope);
+                        if (lZTVWBodyStructureCoordinateChildren != mZTVWBodyStructureCoordinateChildren) return; // check if we've been re-entered during the await
 
-                    // check if we've been re-entered during the await
-                    if (lZTVWBodyStructureCoordinateChildren != mZTVWBodyStructureCoordinateChildren) return;
+                        ZDisplayEnvelope(lTag.Message.Handle.Envelope);
 
-                    ZDisplayEnvelope(lTag.Message.Handle.Envelope);
-
-                    cmdInspect.Enabled = true;
+                        cmdInspect.Enabled = true;
+                    }
                 }
             }
 
-            if (mMessage.IsExpunged)
+            if (mMessage?.IsExpunged == true)
             {
+                rtxPartDetail.AppendText("This message is expunged");
                 cmdInspect.Enabled = false;
                 cmdInspectRaw.Enabled = false;
                 cmdDownload.Enabled = false;
