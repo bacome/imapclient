@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
                 // the caller must have checked that the binary option is compatible with the section (e.g. if binary is true the section can't specify a textpart)
                 //  the length must be greater than zero
 
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAsync), pMC, pMailboxId, pHandle, pCapability, pBinary, pSection, pOrigin, pLength);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAsync), pMC, pMailboxId, pHandle, pBinary, pSection, pOrigin, pLength);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                     lCommand.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     // uidvalidity must be set before the handle is resolved
-                    lCommand.UIDValidity = _SelectedMailbox.UIDValidity;
+                    lCommand.AddUIDValidity(_SelectedMailbox.UIDValidity);
 
                     // resolve the MSN
                     uint lMSN = _SelectedMailbox.GetMSN(pHandle);

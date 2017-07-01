@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
         public static readonly cDate Sent = new cDate(eDate.sent);
         public static readonly cSize Size = new cSize();
 
-        private static readonly cAnd kFalse = new cAnd(new cFilter[] { new cWithFlags(fMessageFlags.seen), new cWithoutFlags(fMessageFlags.seen) });
+        private static readonly cAnd kFalse = new cAnd(new cFilter[] { new cIsFlagged(fMessageFlags.seen), new cIsNotFlagged(fMessageFlags.seen) });
 
         public readonly uint? UIDValidity;
 
@@ -64,67 +64,67 @@ namespace work.bacome.imapclient
             public static cFilter operator !=(cFilterUID pFilterUID, cUID pUID) => new cNot(new cUIDIn(pUID.UIDValidity, new cSequenceSet(pUID.UID)));
         }
 
-        public class cWithFlags : cFilter
+        public class cIsFlagged : cFilter
         {
             public readonly fMessageFlags Flags;
 
-            public cWithFlags(fMessageFlags pFlags) : base(null)
+            public cIsFlagged(fMessageFlags pFlags) : base(null)
             {
                 if ((pFlags & fMessageFlags.asterisk) != 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-                if ((pFlags & fMessageFlags.allfilterflags) == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
+                if ((pFlags & fMessageFlags.allsettableflags) == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
                 Flags = pFlags;
             }
 
-            public override string ToString() => $"{nameof(cWithFlags)}({Flags})";
+            public override string ToString() => $"{nameof(cIsFlagged)}({Flags})";
         }
 
-        public static cFilter WithFlags(fMessageFlags pFlags) => new cWithFlags(pFlags);
+        public static cFilter IsFlagged(fMessageFlags pFlags) => new cIsFlagged(pFlags);
 
-        public class cWithoutFlags : cFilter
+        public class cIsNotFlagged : cFilter
         {
             public readonly fMessageFlags Flags;
 
-            public cWithoutFlags(fMessageFlags pFlags) : base(null)
+            public cIsNotFlagged(fMessageFlags pFlags) : base(null)
             {
                 if ((pFlags & fMessageFlags.asterisk) != 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-                if ((pFlags & fMessageFlags.allfilterflags) == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
+                if ((pFlags & fMessageFlags.allsettableflags) == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
                 Flags = pFlags;
             }
 
-            public override string ToString() => $"{nameof(cWithoutFlags)}({Flags})";
+            public override string ToString() => $"{nameof(cIsNotFlagged)}({Flags})";
         }
 
-        public static cFilter WithoutFlags(fMessageFlags pFlags) => new cWithoutFlags(pFlags);
+        public static cFilter IsNotFlagged(fMessageFlags pFlags) => new cIsNotFlagged(pFlags);
 
-        public class cWithKeyword : cFilter
+        public class cKeyword : cFilter
         {
             public readonly string Keyword;
 
-            public cWithKeyword(string pKeyword) : base(null)
+            public cKeyword(string pKeyword) : base(null)
             {
                 if (!cCommandPart.TryAsAtom(pKeyword, out _)) throw new ArgumentOutOfRangeException(pKeyword);
                 Keyword = pKeyword;
             }
 
-            public override string ToString() => $"{nameof(cWithKeyword)}({Keyword})";
+            public override string ToString() => $"{nameof(cKeyword)}({Keyword})";
         }
 
-        public static cFilter WithKeyword(string pKeyword) => new cWithKeyword(pKeyword);
+        public static cFilter IsFlagged(string pKeyword) => new cKeyword(pKeyword);
 
-        public class cWithoutKeyword : cFilter
+        public class cUnkeyword : cFilter
         {
             public readonly string Keyword;
 
-            public cWithoutKeyword(string pKeyword) : base(null)
+            public cUnkeyword(string pKeyword) : base(null)
             {
                 if (!cCommandPart.TryAsAtom(pKeyword, out _)) throw new ArgumentOutOfRangeException(pKeyword);
                 Keyword = pKeyword;
             }
 
-            public override string ToString() => $"{nameof(cWithoutKeyword)}({Keyword})";
+            public override string ToString() => $"{nameof(cUnkeyword)}({Keyword})";
         }
 
-        public static cFilter WithoutKeyword(string pKeyword) => new cWithoutKeyword(pKeyword);
+        public static cFilter IsNotFlagged(string pKeyword) => new cUnkeyword(pKeyword);
 
         public class cPartContains : cFilter
         {

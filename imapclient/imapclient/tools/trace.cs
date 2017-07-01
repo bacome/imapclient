@@ -25,14 +25,15 @@ namespace work.bacome.trace
             if (!Emits(TraceEventType.Critical) || lTraceSource.Listeners.Count == 0) return;
             mTraceSource = lTraceSource;
 
-            if (Emits(TraceEventType.Verbose) || Emits(TraceEventType.Information))
+            if (Emits(TraceEventType.Verbose))
             {
                 mContextTraceMustBeDelayed = false;
-                mContextTraceEventType = TraceEventType.Information;
+                mContextTraceEventType = TraceEventType.Verbose;
             }
             else
             {
-                if (Emits(TraceEventType.Warning)) mContextTraceEventType = TraceEventType.Warning;
+                if (Emits(TraceEventType.Information)) mContextTraceEventType = TraceEventType.Information;
+                else if (Emits(TraceEventType.Warning)) mContextTraceEventType = TraceEventType.Warning;
                 else if (Emits(TraceEventType.Error)) mContextTraceEventType = TraceEventType.Error;
                 else mContextTraceEventType = TraceEventType.Critical;
             }

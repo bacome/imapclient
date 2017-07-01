@@ -150,7 +150,37 @@ namespace work.bacome.imapclient
                     cBytesLines lResult = mBuildResponseTask.Result;
                     mBuildResponseTask.Dispose();
                     mBuildResponseTask = null;
+                    if (lContext.EmitsVerbose) ZLogResponse(lResult, lContext);
                     return lResult;
+                }
+
+                private void ZLogResponse(cBytesLines pResponse, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ZLogResponse));
+
+                    cByteList lLogBytes = new cByteList();
+
+                    foreach (var lLine in pResponse)
+                    {
+                        if (lLine.Literal) lLogBytes.Add(cASCII.LBRACE);
+                        else lLogBytes.Add(cASCII.LBRACKET);
+
+                        foreach (var lByte in lLine)
+                        {
+                            if (lLogBytes.Count == 60)
+                            {
+                                lContext.TraceVerbose($"received: {cTools.BytesToLoggableString(lLogBytes)}...");
+                                return;
+                            }
+
+                            lLogBytes.Add(lByte);
+                        }
+
+                        if (lLine.Literal) lLogBytes.Add(cASCII.RBRACE);
+                        else lLogBytes.Add(cASCII.RBRACKET);
+                    }
+
+                    lContext.TraceVerbose($"received: {cTools.BytesToLoggableString(lLogBytes)}");
                 }
 
                 public Task WriteAsync(cMethodControl pMC, byte[] pBuffer, cTrace.cContext pParentContext)

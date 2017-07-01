@@ -13,8 +13,9 @@ namespace testharness
         }
 
         public bool Expunged => Message.Handle.Expunged;
-        public bool? Deleted => Message.Flags?.Deleted;
-        public bool? Seen => Message.Flags?.Seen;
+
+        public bool Deleted => ((Message.Flags ?? 0) & fMessageFlags.deleted) != 0;
+        public bool Seen => ((Message.Flags ?? 0) & fMessageFlags.seen) != 0;
 
         public DateTime? Received => Message.Received;
 
@@ -22,7 +23,7 @@ namespace testharness
         {
             get
             {
-                var lFrom = Message.Envelope?.From;
+                var lFrom = Message.From;
                 if (lFrom == null) return null;
                 if (lFrom[0].DisplayName != null) return lFrom[0].DisplayName;
                 if (lFrom[0] is cEmailAddress lEmailAddress) return lEmailAddress.DisplayAddress;
@@ -30,6 +31,6 @@ namespace testharness
             }
         }
 
-        public string Subject => Message.Envelope?.Subject;
+        public string Subject => Message.Subject;
     }
 }

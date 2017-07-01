@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
                     lCommand.Add(kFetchCommandPartUIDFetchSpace, new cCommandPart(pUIDs.ToSequenceSet()), cCommandPart.Space);
                     lCommand.Add(pProperties);
 
-                    lCommand.UIDValidity = pUIDValidity; // the command is sensitive to UIDValidity changes
+                    lCommand.AddUIDValidity(pUIDValidity); // the command is sensitive to UIDValidity changes
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 

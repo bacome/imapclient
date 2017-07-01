@@ -1699,37 +1699,37 @@ namespace testharness
 
 
 
-                lMessageList = lMailbox.Search(cFilter.Received >= new DateTime(2017, 6, 8));
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.1");
 
-                lMessageList = lMailbox.Search(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageProperties.received);
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageProperties.received);
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.2");
                 foreach (var lItem in lMessageList) if (lItem.Indent != -1) throw new cTestsException("ZTestSearch4.3");
 
                 lMessage = lMessageList[0];
 
-                if (!lMessage.Handle.Cache.Valid || lMessage.Handle.Expunged || lMessage.Properties != fMessageProperties.received) throw new cTestsException("ZTestSearch4.4");
-                if (lMessage.Received.Value != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch4.5");
+                if (!lMessage.Handle.Cache.Valid || lMessage.Handle.Expunged || lMessage.Handle.Properties != fMessageProperties.received) throw new cTestsException("ZTestSearch4.4");
+                if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch4.5");
 
 
 
 
-                lMessageList = lMailbox.Search(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
 
                 if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch5.1");
                 if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
                     lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch5.2");
 
 
-                lMessageList = lMailbox.Search(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
 
                 if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch6.1");
                 if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
                     lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch6.2");
 
 
-                lTask1 = lMailbox.SearchAsync(cFilter.Received >= new DateTime(2017, 6, 7));
-                lTask2 = lMailbox.SearchAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
 
                 Task.WaitAll(lTask1, lTask2);
 
@@ -1742,9 +1742,9 @@ namespace testharness
 
                 // this checks that the search commands lock one another out ...
 
-                lTask1 = lMailbox.SearchAsync(cFilter.Received >= new DateTime(2017, 6, 7));
-                lTask2 = lMailbox.SearchAsync(cFilter.Received >= new DateTime(2017, 6, 8));
-                lTask3 = lMailbox.SearchAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8));
+                lTask3 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
 
                 Task.WaitAll(lTask1, lTask2, lTask3);
 
@@ -1865,7 +1865,7 @@ namespace testharness
 
                 if (lClient.Inbox.Properties.Messages != 172) throw new cTestsException("ZTestIdleRestart1.1");
 
-                var lMessages = lClient.Inbox.Search(cFilter.WithoutFlags(fMessageFlags.seen));
+                var lMessages = lClient.Inbox.Messages(cFilter.IsNotFlagged(fMessageFlags.seen));
 
                 Thread.Sleep(3000); // idle should start, message 168 should get deleted, and message 167 should get a UID during this wait
 
@@ -1895,7 +1895,7 @@ namespace testharness
                 lMailbox = new cMailbox(lClient, new cMailboxId(new cAccountId(lClient.ConnectedAccountId.Host, eAccountType.anonymous), new cMailboxName("blurdybloop", null)));
 
                 lFailed = false;
-                try { lMessages = lMailbox.Search(lFilter); }
+                try { lMessages = lMailbox.Messages(lFilter); }
                 catch (cAccountNotConnectedException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestIdleRestart1.3");
 
@@ -1903,20 +1903,20 @@ namespace testharness
                 lMailbox = new cMailbox(lClient, new cMailboxId(lClient.ConnectedAccountId, new cMailboxName("blurdybloop", null)));
 
                 lFailed = false;
-                try { lMessages = lMailbox.Search(lFilter); }
+                try { lMessages = lMailbox.Messages(lFilter); }
                 catch (cMailboxNotSelectedException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestIdleRestart1.4");
 
                 lMailbox.Select(false);
 
                 lFailed = false;
-                try { lMessages = lMailbox.Search(lFilter); }
+                try { lMessages = lMailbox.Messages(lFilter); }
                 catch (cUIDValidityChangedException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestIdleRestart1.5");
 
                 lFilter = cFilter.UID > new cUID(3857529045, 4391);
 
-                lMessages = lMailbox.Search(lFilter);
+                lMessages = lMailbox.Messages(lFilter);
 
 
 

@@ -48,9 +48,9 @@
     <Compile Include="client\fetchbody.cs" />
     <Compile Include="client\uidfetchbody.cs" />
     <Compile Include="client\uidfetchproperties.cs" />
-    <Compile Include="client\list.cs" />
+    <Compile Include="client\mailboxes.cs" />
     <Compile Include="client\poll.cs" />
-    <Compile Include="client\search.cs" />
+    <Compile Include="client\messages.cs" />
     <Compile Include="client\select.cs" />
     <Compile Include="client\status.cs" />
     <Compile Include="exposed_interfaces\collections\addresses.cs" />
@@ -76,6 +76,7 @@
     <Compile Include="exposed_interfaces\mailbox\mailboxstatus.cs" />
     <Compile Include="exposed_interfaces\mailbox\messagedeliveryeventargs.cs" />
     <Compile Include="exposed_interfaces\message\address.cs" />
+    <Compile Include="exposed_interfaces\message\attachment.cs" />
     <Compile Include="exposed_interfaces\message\binarysizes.cs" />
     <Compile Include="exposed_interfaces\message\bodypart.cs" />
     <Compile Include="exposed_interfaces\message\envelope.cs" />

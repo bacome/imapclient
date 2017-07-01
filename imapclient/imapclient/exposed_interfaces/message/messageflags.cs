@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
         submitpending = 1 << 9, // 5550
         submitted = 1 << 10, // 5550
 
-        allfilterflags = 0b11111111110
+        allsettableflags = 0b11111111110
     }
 
     public class cMessageFlags
@@ -64,7 +64,7 @@ namespace work.bacome.imapclient
         public bool SubmitPending => (KnownFlags & fMessageFlags.submitpending) != 0;
         public bool Submitted => (KnownFlags & fMessageFlags.submitted) != 0;
 
-        public bool Has(string pFlag) => AllFlags.Contains(pFlag);
+        public bool Has(string pFlag) => AllFlags.Contains(pFlag.ToUpperInvariant());
 
         public override bool Equals(object pObject) => this == pObject as cMessageFlags;
 

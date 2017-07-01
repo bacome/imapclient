@@ -18,7 +18,20 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cHandleList));
-            foreach (var lHandle in this) lBuilder.Append(lHandle);
+
+            object lLastCache = null;
+
+            foreach (var lHandle in this)
+            {
+                if (!ReferenceEquals(lHandle.Cache, lLastCache))
+                {
+                    lLastCache = lHandle.Cache;
+                    lBuilder.Append(lHandle.Cache);
+                }
+
+                lBuilder.Append(lHandle.CacheSequence);
+            }
+
             return lBuilder.ToString();
         }
     }

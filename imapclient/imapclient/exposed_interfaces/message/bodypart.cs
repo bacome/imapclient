@@ -25,6 +25,22 @@ namespace work.bacome.imapclient
         attachment
     }
 
+    public enum eTextBodyPartSubTypeCode
+    {
+        unknown,
+        plain,
+        html
+    }
+
+    public enum eMultiPartBodySubTypeCode
+    {
+        unknown,
+        mixed,
+        digest,
+        alternative,
+        related
+    }
+
     public abstract class cBodyPart
     {
         protected const string kTypeMultipart = "MULTIPART";
@@ -45,13 +61,13 @@ namespace work.bacome.imapclient
 
             Type = pType.ToUpperInvariant();
 
-            if (Type.Equals(TypeText)) TypeCode = eBodyPartTypeCode.text;
-            else if (Type.Equals("IMAGE")) TypeCode = eBodyPartTypeCode.image;
-            else if (Type.Equals("AUDIO")) TypeCode = eBodyPartTypeCode.audio;
-            else if (Type.Equals("VIDEO")) TypeCode = eBodyPartTypeCode.video;
-            else if (Type.Equals("APPLICATION")) TypeCode = eBodyPartTypeCode.application;
-            else if (Type.Equals(kTypeMultipart)) TypeCode = eBodyPartTypeCode.multipart;
-            else if (Type.Equals(TypeMessage)) TypeCode = eBodyPartTypeCode.message;
+            if (Type == TypeText) TypeCode = eBodyPartTypeCode.text;
+            else if (Type == "IMAGE") TypeCode = eBodyPartTypeCode.image;
+            else if (Type == "AUDIO") TypeCode = eBodyPartTypeCode.audio;
+            else if (Type == "VIDEO") TypeCode = eBodyPartTypeCode.video;
+            else if (Type == "APPLICATION") TypeCode = eBodyPartTypeCode.application;
+            else if (Type == kTypeMultipart) TypeCode = eBodyPartTypeCode.multipart;
+            else if (Type == TypeMessage) TypeCode = eBodyPartTypeCode.message;
             else TypeCode = eBodyPartTypeCode.unknown;
 
             SubType = pSubType.ToUpperInvariant();
@@ -154,11 +170,19 @@ namespace work.bacome.imapclient
     public class cMultiPartBody : cBodyPart
     {
         public readonly cBodyParts Parts;
+        public readonly eMultiPartBodySubTypeCode SubTypeCode;
         public readonly cMultiPartExtensionData ExtensionData;
 
         public cMultiPartBody(IList<cBodyPart> pParts, string pSubType, cSection pSection, cMultiPartExtensionData pExtensionData) : base(kTypeMultipart, pSubType, pSection)
         {
             Parts = new cBodyParts(pParts);
+
+            if (SubType == "MIXED") SubTypeCode = eMultiPartBodySubTypeCode.mixed;
+            else if (SubType == "DIGEST") SubTypeCode = eMultiPartBodySubTypeCode.digest;
+            else if (SubType == "ALTERNATIVE") SubTypeCode = eMultiPartBodySubTypeCode.alternative;
+            else if (SubType == "RELATED") SubTypeCode = eMultiPartBodySubTypeCode.related;
+            else SubTypeCode = eMultiPartBodySubTypeCode.unknown;
+
             ExtensionData = pExtensionData;
         }
 
@@ -185,8 +209,8 @@ namespace work.bacome.imapclient
 
             Type = pType.ToUpperInvariant();
 
-            if (Type.Equals("INLINE")) TypeCode = eDispositionTypeCode.inline;
-            else if (Type.Equals("ATTACHMENT")) TypeCode = eDispositionTypeCode.attachment;
+            if (Type == "INLINE") TypeCode = eDispositionTypeCode.inline;
+            else if (Type == "ATTACHMENT") TypeCode = eDispositionTypeCode.attachment;
             else TypeCode = eDispositionTypeCode.unknown;
 
             Parameters = pParameters;
@@ -245,29 +269,34 @@ namespace work.bacome.imapclient
     public class cMessageBodyPart : cSinglePartBody
     {
         public readonly cEnvelope Envelope;
-        private readonly cBodyPart mBodyStructure;
-        public readonly cBodyPart BodyStructureEx;
+        private readonly cBodyPart mBody;
+        public readonly cBodyPart BodyStructure;
         public readonly uint SizeInLines;
 
-        public cMessageBodyPart(cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBodyStructure, cBodyPart pBodyStructureEx, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(TypeMessage, SubTypeRFC822, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
+        public cMessageBodyPart(cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBody, cBodyPart pBodyStructure, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(TypeMessage, SubTypeRFC822, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
         {
             Envelope = pEnvelope;
-            mBodyStructure = pBodyStructure;
-            BodyStructureEx = pBodyStructureEx;
+            mBody = pBody;
+            BodyStructure = pBodyStructure;
             SizeInLines = pSizeInLines;
         }
 
-        public cBodyPart BodyStructure => mBodyStructure ?? BodyStructureEx;
+        public cBodyPart Body => mBody ?? BodyStructure;
 
-        public override string ToString() => $"{nameof(cMessageBodyPart)}({base.ToString()},{Envelope},{BodyStructureEx ?? mBodyStructure},{SizeInLines})";
+        public override string ToString() => $"{nameof(cMessageBodyPart)}({base.ToString()},{Envelope},{BodyStructure ?? mBody},{SizeInLines})";
     }
 
     public class cTextBodyPart : cSinglePartBody
     {
+        public readonly eTextBodyPartSubTypeCode SubTypeCode;
         public readonly uint SizeInLines;
 
         public cTextBodyPart(string pSubType, cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(TypeText, pSubType, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
         {
+            if (SubType == "PLAIN") SubTypeCode = eTextBodyPartSubTypeCode.plain;
+            else if (SubType == "HTML") SubTypeCode = eTextBodyPartSubTypeCode.html;
+            else SubTypeCode = eTextBodyPartSubTypeCode.unknown;
+
             SizeInLines = pSizeInLines;
         }
 

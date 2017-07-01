@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
                 private readonly int mCacheSequence;
                 private bool mExpunged = false;
                 private fMessageProperties mProperties = 0;
-                private cBodyPart mBodyStructure = null;
+                private cBodyPart mBody = null;
 
                 public cMessageCacheItem(iMessageCache pCache, int pCacheSequence)
                 {
@@ -24,8 +24,8 @@ namespace work.bacome.imapclient
                 public int CacheSequence => mCacheSequence;
                 public bool Expunged => mExpunged;
                 public fMessageProperties Properties => mProperties;
-                public cBodyPart BodyStructure => mBodyStructure ?? BodyStructureEx;
-                public cBodyPart BodyStructureEx { get; private set; } = null;
+                public cBodyPart Body => mBody ?? BodyStructure;
+                public cBodyPart BodyStructure { get; private set; } = null;
                 public cEnvelope Envelope { get; private set; } = null;
                 public cMessageFlags Flags { get; private set; } = null;
                 public DateTime? Received { get; private set; } = null;
@@ -40,18 +40,18 @@ namespace work.bacome.imapclient
                 {
                     rSet = 0;
 
-                    if (lFetch.BodyStructure != null && mBodyStructure == null)
+                    if (lFetch.Body != null && mBody == null)
                     {
-                        mBodyStructure = lFetch.BodyStructure;
-                        mProperties |= fMessageProperties.bodystructure;
-                        rSet |= fMessageProperties.bodystructure;
+                        mBody = lFetch.Body;
+                        mProperties |= fMessageProperties.body;
+                        rSet |= fMessageProperties.body;
                     }
 
-                    if (lFetch.BodyStructureEx != null && BodyStructureEx == null)
+                    if (lFetch.BodyStructure != null && BodyStructure == null)
                     {
-                        BodyStructureEx = lFetch.BodyStructureEx;
-                        mProperties |= fMessageProperties.bodystructure | fMessageProperties.bodystructureex;
-                        rSet |= fMessageProperties.bodystructure | fMessageProperties.bodystructureex;
+                        BodyStructure = lFetch.BodyStructure;
+                        mProperties |= fMessageProperties.body | fMessageProperties.bodystructure;
+                        rSet |= fMessageProperties.body | fMessageProperties.bodystructure;
                     }
 
                     if (lFetch.Envelope != null && Envelope == null)

@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     [Flags]
-    public enum fListTypes
+    public enum fMailboxTypes
     {
         // this lists the types of mailboxes that can be returned
         clientdefault = 1,
@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
     }
 
     [Flags]
-    public enum fListFlags
+    public enum fMailboxFlagSets
     {
         // this lists the flag sets that the mailbox listing must have filled in accurately
         clientdefault = 1,

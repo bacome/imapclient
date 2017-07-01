@@ -48,23 +48,36 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="attachmentheader.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmDownloading.cs">
+    <Compile Include="frmDownload.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmDownloading.Designer.cs">
-      <DependentUpon>frmDownloading.cs</DependentUpon>
+    <Compile Include="frmDownload.Designer.cs">
+      <DependentUpon>frmDownload.cs</DependentUpon>
     </Compile>
     <Compile Include="frmMessagePartText.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="frmMessagePartText.Designer.cs">
       <DependentUpon>frmMessagePartText.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmMessageStructure.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMessageStructure.Designer.cs">
+      <DependentUpon>frmMessageStructure.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmMessageView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMessageView.Designer.cs">
+      <DependentUpon>frmMessageView.cs</DependentUpon>
     </Compile>
     <Compile Include="messageheader.cs" />
     <Compile Include="Program.cs" />
@@ -75,11 +88,17 @@
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmDownloading.resx">
-      <DependentUpon>frmDownloading.cs</DependentUpon>
+    <EmbeddedResource Include="frmDownload.resx">
+      <DependentUpon>frmDownload.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmMessagePartText.resx">
       <DependentUpon>frmMessagePartText.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmMessageStructure.resx">
+      <DependentUpon>frmMessageStructure.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmMessageView.resx">
+      <DependentUpon>frmMessageView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
