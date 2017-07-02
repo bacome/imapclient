@@ -6,8 +6,8 @@ namespace usageexample1
     class Program
     {
         static string mHost = "192.168.56.101"; // my test server on my internal network - you'll need to change this
-        static string mUserId = "imaptest1"; // a valid user on my test server - you'll need to change this
-        static string mPassword = "imaptest1"; // the correct password on my test server - you'll need to change this
+        static string mUserId = "imapusageexample1"; // a valid user on my test server - you'll need to change this
+        static string mPassword = "imapusageexample1"; // the correct password on my test server - you'll need to change this
 
         static void Main(string[] args)
         {
@@ -21,10 +21,17 @@ namespace usageexample1
                     lClient.SetPlainCredentials(mUserId, mPassword);
                     lClient.Connect();
 
-                    // list out the mailboxes that the user has at the top level of their first personal namespace
+                    Console.WriteLine(new string('-', 79));
+                    Console.WriteLine();
+
+                    // list the mailboxes that the user has at the top level of their first personal namespace
                     //
-                    Console.WriteLine("a list of mailboxes");
+                    Console.WriteLine("A list of mailboxes;");
                     foreach (var lMailbox in lClient.Namespaces.Personal[0].Mailboxes()) Console.WriteLine(lMailbox.Name);
+
+                    Console.WriteLine();
+                    Console.WriteLine(new string('-', 79));
+                    Console.WriteLine();
 
                     // get a reference to the inbox
                     var lInbox = lClient.Inbox;
@@ -32,19 +39,39 @@ namespace usageexample1
                     // show some information about the status of the inbox
                     //
                     var lStatus = lInbox.Status(fStatusAttributes.all);
-                    Console.WriteLine($"{lStatus.Unseen} unseen messages out of {lStatus.Messages} in the inbox");
+                    Console.WriteLine($"There are {lStatus.Unseen} unseen messages out of {lStatus.Messages} in the inbox");
+
+                    Console.WriteLine();
+                    Console.WriteLine(new string('-', 79));
+                    Console.WriteLine();
 
                     // select the inbox so we can look at the messages in it
                     lInbox.Select();
 
-                    // list out some details of the messages that have arrived in the last 100 days in the order that the messages were received
-                    foreach (var lMessage in lInbox.Messages(cFilter.Received >= DateTime.Today.AddDays(-100), new cSort(cSortItem.Received)))
-                    {
-                        Console.WriteLine($"{lMessage.Sent}\t{lMessage.From[0].DisplayName}\t{lMessage.Subject}");
-                    }
+                    // list some details of the unseen messages
 
-                    // note - the loop above is not very efficient because each message has its envelope fetched separately: use this make it more efficient ...
-                    //  foreach (var lMessage in lInbox.Messages(cFilter.Received >= DateTime.Today.AddDays(-100), new cSort(cSortItem.Received), fMessageProperties.envelope))
+                    foreach (var lMessage in lInbox.Messages(cFilter.IsNotFlagged(fMessageFlags.seen), new cSort(cSortItem.Received), fMessageProperties.envelope | fMessageProperties.bodystructure))
+                    {
+                        Console.WriteLine("Sent: " + lMessage.Sent);
+                        Console.WriteLine("From: " + lMessage.From[0].DisplayName);
+                        Console.WriteLine("Subject: " + lMessage.Subject);
+                        Console.WriteLine();
+
+                        var lAttachments = lMessage.Attachments;
+
+                        if (lAttachments.Count > 0)
+                        {
+                            Console.WriteLine(lAttachments.Count + " attachments;");
+                            foreach (var lAttachment in lAttachments) Console.WriteLine(lAttachment.FileName + "\t" + lAttachment.SizeInBytes + "b");
+                            Console.WriteLine();
+                        }
+
+                        Console.WriteLine(lMessage.PlainText);
+
+                        Console.WriteLine();
+                        Console.WriteLine(new string('-', 79));
+                        Console.WriteLine();
+                    }
 
                     // done
                     lClient.Disconnect();
@@ -55,11 +82,87 @@ namespace usageexample1
                 Console.WriteLine($"something bad happened\n{e}");
             }
 
-            WebVersion();
+            NewWebVersion();
 
             Console.WriteLine("press enter to continue");
             Console.Read();
         }
+
+        static void NewWebVersion()
+        {
+cIMAPClient lClient = new cIMAPClient();
+
+// connect
+lClient.SetServer(mHost);
+lClient.SetPlainCredentials(mUserId, mPassword);
+lClient.Connect();
+
+Console.WriteLine(new string('-', 79));
+Console.WriteLine();
+
+// list mailboxes in the first personal namespace
+
+Console.WriteLine("A list of mailboxes;");
+
+var lNamespace = lClient.Namespaces.Personal[0];
+
+foreach (var lMailbox in lNamespace.Mailboxes())
+    Console.WriteLine(lMailbox.Name);
+
+Console.WriteLine();
+Console.WriteLine(new string('-', 79));
+Console.WriteLine();
+
+// list status of inbox
+
+var lStatus = lClient.Inbox.Status(fStatusAttributes.all);
+
+Console.WriteLine(
+    "{0} unseen messages out of {1} in the inbox",
+    lStatus.Unseen,
+    lStatus.Messages);
+
+Console.WriteLine();
+Console.WriteLine(new string('-', 79));
+Console.WriteLine();
+
+// select the inbox so we can look at the messages in it
+lClient.Inbox.Select();
+
+// list unseen messages in the inbox
+
+foreach (var lMessage in lClient.Inbox.Messages())
+{
+    Console.WriteLine("Sent: " + lMessage.Sent);
+    Console.WriteLine("From: " + lMessage.From[0].DisplayName);
+    Console.WriteLine("Subject: " + lMessage.Subject);
+    Console.WriteLine();
+
+    var lAttachments = lMessage.Attachments;
+
+    if (lAttachments.Count > 0)
+    {
+        Console.WriteLine(lAttachments.Count + " attachments;");
+
+        foreach (var lAttachment in lAttachments)
+            Console.WriteLine(
+                lAttachment.FileName + "\t" +
+                lAttachment.SizeInBytes + "b");
+
+        Console.WriteLine();
+    }
+
+    Console.WriteLine(lMessage.PlainText);
+
+    Console.WriteLine();
+    Console.WriteLine(new string('-', 79));
+    Console.WriteLine();
+}
+
+// done
+lClient.Disconnect();
+        }
+
 
         static void WebVersion()
         {
