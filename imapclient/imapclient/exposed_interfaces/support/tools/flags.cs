@@ -7,6 +7,7 @@ namespace work.bacome.imapclient.support
     //  it is designed to collect flags from server responses
     //  it is NOT designed as a class for use in the API as a way for the user to list a set of flags that they want set or unset
     //
+    /*
     public class cFlags
     {
         private readonly Dictionary<string, bool> mDictionary = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);
@@ -53,5 +54,5 @@ namespace work.bacome.imapclient.support
             foreach (var lCapability in mDictionary.Keys) lBuilder.Append(lCapability);
             return lBuilder.ToString();
         }
-    }
+    } */
 }
