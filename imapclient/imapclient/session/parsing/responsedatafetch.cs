@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kBinarySizeLBracket = new cBytes("BINARY.SIZE[");
 
                 public readonly uint MSN;
-                public readonly cMessageFlags Flags;
+                public readonly cFetchedFlags Flags;
                 public readonly cEnvelope Envelope;
                 public readonly DateTime? Received;
                 public readonly cBytes RFC822; // un-parsed
@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
                 public readonly cStrings References;
                 public readonly cBinarySizes BinarySizes;
 
-                private cResponseDataFetch(uint pMSN, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cStrings pReferences, cBinarySizes pBinarySizes)
+                private cResponseDataFetch(uint pMSN, cFetchedFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cStrings pReferences, cBinarySizes pBinarySizes)
                 {
                     MSN = pMSN;
                     Flags = pFlags;
@@ -96,7 +96,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.LPAREN)) { rResponseData = null; pCursor.ParsedAs = null; return false; }
 
-                    cMessageFlags lFlags = null;
+                    cFetchedFlags lFetchedFlags = null;
                     cEnvelope lEnvelope = null;
                     DateTime? lReceived = null;
                     IList<byte> lRFC822 = null;
@@ -116,8 +116,8 @@ namespace work.bacome.imapclient
 
                         if (pCursor.SkipBytes(kFlagsSpace))
                         {
-                            lOK = pCursor.GetFlags(out var lRawFlags);
-                            lFlags = new cMessageFlags(lRawFlags);
+                            lOK = pCursor.GetFlags(out var lFlags);
+                            lFetchedFlags = new cFetchedFlags(lFlags);
                         }
                         else if (pCursor.SkipBytes(kEnvelopeSpace)) lOK = ZProcessEnvelope(pCursor, out lEnvelope);
                         else if (pCursor.SkipBytes(kInternalDateSpace))
@@ -191,7 +191,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN) || !pCursor.Position.AtEnd) { rResponseData = null; pCursor.ParsedAs = null; return false; }
 
-                    rResponseData = new cResponseDataFetch(pMSN, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lReferences, lBinarySizesBuilder.AsBinarySizes());
+                    rResponseData = new cResponseDataFetch(pMSN, lFetchedFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lReferences, lBinarySizesBuilder.AsBinarySizes());
                     pCursor.ParsedAs = rResponseData;
                     return true;
                 }
@@ -1094,7 +1094,7 @@ namespace work.bacome.imapclient
 
                     if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1");
 
-                    if (lData.Flags.KnownFlags != fMessageFlags.seen) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
+                    if (lData.Flags.Count == 1 && lData.Flags.IsSeen) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
                     if (lData.Received != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
                     if (lData.Envelope.Sent != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
                     if (lData.Envelope.Subject != "IMAP4rev1 WG mtg summary and minutes") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.5");

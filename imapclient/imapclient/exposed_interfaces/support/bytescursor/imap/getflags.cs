@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
@@ -6,6 +8,30 @@ namespace work.bacome.imapclient.support
     {
         private const string kGetFlagsSlashAsteriskString = @"\*";
         private static readonly cBytes kGetFlagsSlashAsteriskBytes = new cBytes(kGetFlagsSlashAsteriskString);
+
+        public class cFlags : IEnumerable<string>
+        {
+            private readonly Dictionary<string, bool> mDictionary = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);
+
+            public cFlags() { }
+
+            public bool Has(string pFlag) => mDictionary.ContainsKey(pFlag);
+
+            public void Set(string pFlag)
+            {
+                if (!mDictionary.ContainsKey(pFlag)) mDictionary.Add(pFlag, true);
+            }
+
+            public IEnumerator<string> GetEnumerator() => mDictionary.Keys.GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => mDictionary.Keys.GetEnumerator();
+
+            public override string ToString()
+            {
+                var lBuilder = new cListBuilder(nameof(cFlags));
+                foreach (var lFlag in mDictionary.Keys) lBuilder.Append(lFlag);
+                return lBuilder.ToString();
+            }
+        }
 
         public bool GetFlags(out cFlags rFlags)
         {

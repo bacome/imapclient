@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
         public static readonly cDate Sent = new cDate(eDate.sent);
         public static readonly cSize Size = new cSize();
 
-        private static readonly cAnd kFalse = new cAnd(new cFilter[] { new cIsFlagged(fMessageFlags.seen), new cIsNotFlagged(fMessageFlags.seen) });
+        private static readonly cAnd kFalse = new cAnd(new cFilter[] { new cHasAll(cMessageFlags.Seen), new cHasNone(cMessageFlags.Seen) });
 
         public readonly uint? UIDValidity;
 
@@ -64,67 +64,45 @@ namespace work.bacome.imapclient
             public static cFilter operator !=(cFilterUID pFilterUID, cUID pUID) => new cNot(new cUIDIn(pUID.UIDValidity, new cSequenceSet(pUID.UID)));
         }
 
-        public class cIsFlagged : cFilter
+        public class cHasAll : cFilter
         {
-            public readonly fMessageFlags Flags;
+            public readonly cFetchedFlags Flags;
 
-            public cIsFlagged(fMessageFlags pFlags) : base(null)
+            public cHasAll(iFetchableFlags pFlags) : base(null)
             {
-                if ((pFlags & fMessageFlags.asterisk) != 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-                if ((pFlags & fMessageFlags.allsettableflags) == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-                Flags = pFlags;
+                Flags = new cFetchedFlags(pFlags);
             }
 
-            public override string ToString() => $"{nameof(cIsFlagged)}({Flags})";
-        }
-
-        public static cFilter IsFlagged(fMessageFlags pFlags) => new cIsFlagged(pFlags);
-
-        public class cIsNotFlagged : cFilter
-        {
-            public readonly fMessageFlags Flags;
-
-            public cIsNotFlagged(fMessageFlags pFlags) : base(null)
+            public cHasAll(params string[] pFlags) : base(null)
             {
-                if ((pFlags & fMessageFlags.asterisk) != 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-                if ((pFlags & fMessageFlags.allsettableflags) == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-                Flags = pFlags;
+                Flags = new cFetchedFlags(new cFetchableFlags(pFlags));
             }
 
-            public override string ToString() => $"{nameof(cIsNotFlagged)}({Flags})";
+            public override string ToString() => $"{nameof(cHasAll)}({Flags})";
         }
 
-        public static cFilter IsNotFlagged(fMessageFlags pFlags) => new cIsNotFlagged(pFlags);
+        public static cFilter HasAll(iFetchableFlags pFlags) => new cHasAll(pFlags);
+        public static cFilter HasAll(params string[] pFlags) => new cHasAll(pFlags);
 
-        public class cKeyword : cFilter
+        public class cHasNone : cFilter
         {
-            public readonly string Keyword;
+            public readonly cFetchedFlags Flags;
 
-            public cKeyword(string pKeyword) : base(null)
+            public cHasNone(iFetchableFlags pFlags) : base(null)
             {
-                if (!cCommandPart.TryAsAtom(pKeyword, out _)) throw new ArgumentOutOfRangeException(pKeyword);
-                Keyword = pKeyword;
+                Flags = new cFetchedFlags(pFlags);
             }
 
-            public override string ToString() => $"{nameof(cKeyword)}({Keyword})";
-        }
-
-        public static cFilter IsFlagged(string pKeyword) => new cKeyword(pKeyword);
-
-        public class cUnkeyword : cFilter
-        {
-            public readonly string Keyword;
-
-            public cUnkeyword(string pKeyword) : base(null)
+            public cHasNone(params string[] pFlags) : base(null)
             {
-                if (!cCommandPart.TryAsAtom(pKeyword, out _)) throw new ArgumentOutOfRangeException(pKeyword);
-                Keyword = pKeyword;
+                Flags = new cFetchedFlags(new cFetchableFlags(pFlags));
             }
 
-            public override string ToString() => $"{nameof(cUnkeyword)}({Keyword})";
+            public override string ToString() => $"{nameof(cHasNone)}({Flags})";
         }
 
-        public static cFilter IsNotFlagged(string pKeyword) => new cUnkeyword(pKeyword);
+        public static cFilter HasNone(iFetchableFlags pFlags) => new cHasNone(pFlags);
+        public static cFilter HasNone(params string[] pFlags) => new cHasNone(pFlags);
 
         public class cPartContains : cFilter
         {

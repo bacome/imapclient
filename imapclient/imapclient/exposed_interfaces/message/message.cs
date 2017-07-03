@@ -180,50 +180,46 @@ namespace work.bacome.imapclient
             }
         }
 
-        public fMessageFlags? Flags
+        public cFetchedFlags Flags
         {
             get
             {
                 if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-                return Handle.Flags?.KnownFlags; // note that if the message has been deleted the flags still might not be there
+                return Handle.Flags; // note that if the message has been deleted the flags still might not be there
             }
         }
 
-        public cStrings AllFlags
-        {
-            get
-            {
-                if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-                return Handle.Flags?.AllFlags; // note that if the message has been deleted the flags still might not be there
-            }
-        }
-
-        public bool? IsFlagged(fMessageFlags pFlags)
+        public bool? HasAll(iFetchableFlags pFlags)
         {
             if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
             if (Handle.Flags == null) return null;
-            return (Handle.Flags.KnownFlags & pFlags) == pFlags;
+            return Handle.Flags.AreSet(pFlags);
         }
 
-        public bool? IsNotFlagged(fMessageFlags pFlags)
+        public bool? HasAll(params string[] pFlags)
+        {
+            if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
+            if (Handle.Flags == null) return null;
+            return Handle.Flags.AreSet(pFlags);
+        }
+
+        public bool? HasNone(fMessageFlags pFlags)
         {
             if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
             if (Handle.Flags == null) return null;
             return (Handle.Flags.KnownFlags & pFlags) == 0;
         }
 
-        public bool? IsFlagged(string pKeyword)
+        public bool? HasNone(string pKeyword)
         {
             if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
             if (Handle.Flags == null) return null;
             return Handle.Flags.Has(pKeyword);
         }
 
-        public bool? IsNotFlagged(string pKeyword)
+        public bool? IsAnswered
         {
-            if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-            if (Handle.Flags == null) return null;
-            return !Handle.Flags.Has(pKeyword);
+            ?...?;
         }
 
         public DateTime? Received
