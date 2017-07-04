@@ -194,7 +194,7 @@ namespace work.bacome.imapclient
 
                             var lOldCache = mCache;
 
-                            mCache = new cCache(MailboxId, lNumber, mEventSynchroniser, mCapability, mHasBeenSetAsSelected);
+                            mCache = new cCache(MailboxId, lNumber, mEventSynchroniser, mGetCapability, mHasBeenSetAsSelected);
                             mCache.IncreaseCount(lOldCache.Count, lContext);
                             mCache.SetUnseenCount = lOldCache.SetUnseenCount;
 
@@ -225,6 +225,8 @@ namespace work.bacome.imapclient
 
                     return false;
                 }
+
+                ;?; // to string
             }
         }
     }

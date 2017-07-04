@@ -163,7 +163,7 @@ namespace work.bacome.imapclient
 
             private void ZSetSelectedMailbox(cSelectedMailbox pSelectedMailbox, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetSelectedMailbox));
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetSelectedMailbox), pSelectedMailbox);
 
                 if (_SelectedMailbox == pSelectedMailbox) return; // should only happen when both are null
 

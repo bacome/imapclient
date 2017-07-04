@@ -17,7 +17,6 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SearchAsync), pMC, pMailboxId, pFilter);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-
                 if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
 
                 using (var lCommand = new cCommand())

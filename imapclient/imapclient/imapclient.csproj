@@ -145,6 +145,7 @@
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
     <Compile Include="session\command_hooks\commandhooksearchextended.cs" />
+    <Compile Include="session\command_hooks\commandhookselect.cs" />
     <Compile Include="session\command_pipeline\commandpipeline.cs" />
     <Compile Include="session\command_pipeline\commandpipeline.support_classes.cs" />
     <Compile Include="session\connection\connection.cs" />
@@ -156,8 +157,9 @@
     <Compile Include="session\imap_commands\check.cs" />
     <Compile Include="session\imap_commands\close.cs" />
     <Compile Include="session\imap_commands\enable.cs" />
+    <Compile Include="session\imap_commands\examine.cs" />
     <Compile Include="session\imap_commands\fetch\section.cs" />
-    <Compile Include="session\imap_commands\fetch\properties.cs" />
+    <Compile Include="session\imap_commands\fetch\attributes.cs" />
     <Compile Include="session\fetch\base.cs" />
     <Compile Include="session\imap_commands\fetch\uidsection.cs" />
     <Compile Include="session\imap_commands\id.cs" />
@@ -172,10 +174,11 @@
     <Compile Include="session\imap_commands\rlsub.cs" />
     <Compile Include="session\imap_commands\search.cs" />
     <Compile Include="session\imap_commands\searchextended.cs" />
+    <Compile Include="session\imap_commands\select.cs" />
     <Compile Include="session\imap_commands\sort.cs" />
     <Compile Include="session\imap_commands\sortextended.cs" />
     <Compile Include="session\imap_commands\status.cs" />
-    <Compile Include="session\imap_commands\fetch\uidproperties.cs" />
+    <Compile Include="session\imap_commands\fetch\uidattributes.cs" />
     <Compile Include="session\parsing\responsedataesearch.cs" />
     <Compile Include="session\parsing\responsedatafetch.cs" />
     <Compile Include="session\parsing\responsedatalist.cs" />
@@ -189,7 +192,6 @@
     <Compile Include="session\fetch\section.cs" />
     <Compile Include="session\fetch\uidattributes.cs" />
     <Compile Include="session\session\poll.cs" />
-    <Compile Include="session\session\select.cs" />
     <Compile Include="session\support\command.cs" />
     <Compile Include="session\support\commandtag.cs" />
     <Compile Include="session\support\fetchsizer.cs" />

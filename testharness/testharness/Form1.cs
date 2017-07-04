@@ -261,6 +261,7 @@ namespace testharness
             fCapabilities lIgnoreCapabilities = 0;
             if (chkIgnoreNamespace.Checked) lIgnoreCapabilities |= fCapabilities.Namespace;
             if (chkIgnoreBinary.Checked) lIgnoreCapabilities |= fCapabilities.Binary;
+            if (chkIgnoreQResync.Checked) lIgnoreCapabilities |= fCapabilities.QResync;
             mIMAPClient.IgnoreCapabilities = lIgnoreCapabilities;
 
             if (chkFetchNobble.Checked)

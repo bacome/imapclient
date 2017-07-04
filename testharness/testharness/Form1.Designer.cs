@@ -100,6 +100,7 @@
             this.chkMessageEnvelope = new System.Windows.Forms.CheckBox();
             this.chkMessageFlags = new System.Windows.Forms.CheckBox();
             this.label13 = new System.Windows.Forms.Label();
+            this.chkIgnoreQResync = new System.Windows.Forms.CheckBox();
             this.pnlCredentials.SuspendLayout();
             this.pnlConnection.SuspendLayout();
             this.pnlIdle.SuspendLayout();
@@ -318,7 +319,7 @@
             this.rtxState.Location = new System.Drawing.Point(364, 30);
             this.rtxState.Name = "rtxState";
             this.rtxState.ReadOnly = true;
-            this.rtxState.Size = new System.Drawing.Size(334, 99);
+            this.rtxState.Size = new System.Drawing.Size(602, 99);
             this.rtxState.TabIndex = 20;
             this.rtxState.Text = "";
             // 
@@ -362,7 +363,7 @@
             // 
             // cmdCancel
             // 
-            this.cmdCancel.Location = new System.Drawing.Point(242, 177);
+            this.cmdCancel.Location = new System.Drawing.Point(236, 177);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(106, 24);
             this.cmdCancel.TabIndex = 19;
@@ -392,7 +393,7 @@
             // 
             // cmdTests
             // 
-            this.cmdTests.Location = new System.Drawing.Point(12, 586);
+            this.cmdTests.Location = new System.Drawing.Point(12, 632);
             this.cmdTests.Name = "cmdTests";
             this.cmdTests.Size = new System.Drawing.Size(106, 24);
             this.cmdTests.TabIndex = 14;
@@ -410,7 +411,7 @@
             this.pnlIdle.Controls.Add(this.txtStartDelay);
             this.pnlIdle.Controls.Add(this.label8);
             this.pnlIdle.Controls.Add(this.chkAutoIdle);
-            this.pnlIdle.Location = new System.Drawing.Point(151, 9);
+            this.pnlIdle.Location = new System.Drawing.Point(153, 35);
             this.pnlIdle.Name = "pnlIdle";
             this.pnlIdle.Size = new System.Drawing.Size(178, 106);
             this.pnlIdle.TabIndex = 26;
@@ -504,7 +505,7 @@
             // 
             // cmdTestsQuick
             // 
-            this.cmdTestsQuick.Location = new System.Drawing.Point(124, 586);
+            this.cmdTestsQuick.Location = new System.Drawing.Point(124, 632);
             this.cmdTestsQuick.Name = "cmdTestsQuick";
             this.cmdTestsQuick.Size = new System.Drawing.Size(106, 24);
             this.cmdTestsQuick.TabIndex = 28;
@@ -514,9 +515,9 @@
             // 
             // cmdApply
             // 
-            this.cmdApply.Location = new System.Drawing.Point(205, 121);
+            this.cmdApply.Location = new System.Drawing.Point(223, 166);
             this.cmdApply.Name = "cmdApply";
-            this.cmdApply.Size = new System.Drawing.Size(124, 22);
+            this.cmdApply.Size = new System.Drawing.Size(106, 22);
             this.cmdApply.TabIndex = 28;
             this.cmdApply.Text = "Apply";
             this.cmdApply.UseVisualStyleBackColor = true;
@@ -525,12 +526,13 @@
             // pnlIgnoreCapabilities
             // 
             this.pnlIgnoreCapabilities.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlIgnoreCapabilities.Controls.Add(this.chkIgnoreQResync);
             this.pnlIgnoreCapabilities.Controls.Add(this.chkIgnoreBinary);
             this.pnlIgnoreCapabilities.Controls.Add(this.label12);
             this.pnlIgnoreCapabilities.Controls.Add(this.chkIgnoreNamespace);
             this.pnlIgnoreCapabilities.Location = new System.Drawing.Point(12, 35);
             this.pnlIgnoreCapabilities.Name = "pnlIgnoreCapabilities";
-            this.pnlIgnoreCapabilities.Size = new System.Drawing.Size(124, 80);
+            this.pnlIgnoreCapabilities.Size = new System.Drawing.Size(124, 108);
             this.pnlIgnoreCapabilities.TabIndex = 27;
             // 
             // chkIgnoreBinary
@@ -572,7 +574,7 @@
             this.tabControl2.Location = new System.Drawing.Point(364, 139);
             this.tabControl2.Name = "tabControl2";
             this.tabControl2.SelectedIndex = 0;
-            this.tabControl2.Size = new System.Drawing.Size(334, 471);
+            this.tabControl2.Size = new System.Drawing.Size(602, 517);
             this.tabControl2.TabIndex = 30;
             // 
             // tabPage4
@@ -581,7 +583,7 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(326, 445);
+            this.tabPage4.Size = new System.Drawing.Size(594, 491);
             this.tabPage4.TabIndex = 1;
             this.tabPage4.Text = "Mailboxes";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -603,8 +605,8 @@
             this.splitContainer1.Panel2.Controls.Add(this.cmdView);
             this.splitContainer1.Panel2.Controls.Add(this.cmdStructure);
             this.splitContainer1.Panel2.Controls.Add(this.dgvMessageHeaders);
-            this.splitContainer1.Size = new System.Drawing.Size(317, 432);
-            this.splitContainer1.SplitterDistance = 92;
+            this.splitContainer1.Size = new System.Drawing.Size(585, 478);
+            this.splitContainer1.SplitterDistance = 169;
             this.splitContainer1.TabIndex = 32;
             // 
             // tvwMailboxes
@@ -614,7 +616,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tvwMailboxes.Location = new System.Drawing.Point(3, 3);
             this.tvwMailboxes.Name = "tvwMailboxes";
-            this.tvwMailboxes.Size = new System.Drawing.Size(86, 426);
+            this.tvwMailboxes.Size = new System.Drawing.Size(163, 472);
             this.tvwMailboxes.TabIndex = 0;
             this.tvwMailboxes.AfterExpand += new System.Windows.Forms.TreeViewEventHandler(this.tvwMailboxes_AfterExpand);
             this.tvwMailboxes.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvwMailboxes_AfterSelect);
@@ -622,7 +624,7 @@
             // cmdView
             // 
             this.cmdView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdView.Location = new System.Drawing.Point(8, 407);
+            this.cmdView.Location = new System.Drawing.Point(199, 453);
             this.cmdView.Name = "cmdView";
             this.cmdView.Size = new System.Drawing.Size(102, 22);
             this.cmdView.TabIndex = 3;
@@ -633,7 +635,7 @@
             // cmdStructure
             // 
             this.cmdStructure.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdStructure.Location = new System.Drawing.Point(116, 407);
+            this.cmdStructure.Location = new System.Drawing.Point(307, 453);
             this.cmdStructure.Name = "cmdStructure";
             this.cmdStructure.Size = new System.Drawing.Size(102, 22);
             this.cmdStructure.TabIndex = 2;
@@ -658,7 +660,7 @@
             this.dgvMessageHeaders.Location = new System.Drawing.Point(3, 3);
             this.dgvMessageHeaders.Name = "dgvMessageHeaders";
             this.dgvMessageHeaders.ReadOnly = true;
-            this.dgvMessageHeaders.Size = new System.Drawing.Size(215, 398);
+            this.dgvMessageHeaders.Size = new System.Drawing.Size(406, 444);
             this.dgvMessageHeaders.TabIndex = 1;
             this.dgvMessageHeaders.CurrentCellChanged += new System.EventHandler(this.dgvMessageHeaders_CurrentCellChanged);
             // 
@@ -668,14 +670,14 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(323, 344);
+            this.tabPage3.Size = new System.Drawing.Size(326, 445);
             this.tabPage3.TabIndex = 0;
             this.tabPage3.Text = "Response Text";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
             // cmdTestsCurrent
             // 
-            this.cmdTestsCurrent.Location = new System.Drawing.Point(242, 586);
+            this.cmdTestsCurrent.Location = new System.Drawing.Point(236, 632);
             this.cmdTestsCurrent.Name = "cmdTestsCurrent";
             this.cmdTestsCurrent.Size = new System.Drawing.Size(106, 24);
             this.cmdTestsCurrent.TabIndex = 31;
@@ -694,13 +696,13 @@
             this.panel1.Controls.Add(this.pnlIdle);
             this.panel1.Location = new System.Drawing.Point(12, 238);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(336, 152);
+            this.panel1.Size = new System.Drawing.Size(336, 198);
             this.panel1.TabIndex = 32;
             // 
             // chkFetchNobble
             // 
             this.chkFetchNobble.AutoSize = true;
-            this.chkFetchNobble.Location = new System.Drawing.Point(26, 125);
+            this.chkFetchNobble.Location = new System.Drawing.Point(11, 166);
             this.chkFetchNobble.Name = "chkFetchNobble";
             this.chkFetchNobble.Size = new System.Drawing.Size(90, 17);
             this.chkFetchNobble.TabIndex = 29;
@@ -717,7 +719,7 @@
             this.panel2.Controls.Add(this.chkMailboxEnvelope);
             this.panel2.Controls.Add(this.chkMailboxFlags);
             this.panel2.Controls.Add(this.label6);
-            this.panel2.Location = new System.Drawing.Point(12, 396);
+            this.panel2.Location = new System.Drawing.Point(12, 442);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(336, 89);
             this.panel2.TabIndex = 33;
@@ -793,7 +795,7 @@
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(4, 9);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(215, 13);
+            this.label6.Size = new System.Drawing.Size(212, 13);
             this.label6.TabIndex = 0;
             this.label6.Text = "When selecting mailbox get these attributes";
             // 
@@ -807,7 +809,7 @@
             this.panel3.Controls.Add(this.chkMessageEnvelope);
             this.panel3.Controls.Add(this.chkMessageFlags);
             this.panel3.Controls.Add(this.label13);
-            this.panel3.Location = new System.Drawing.Point(12, 491);
+            this.panel3.Location = new System.Drawing.Point(12, 537);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(336, 89);
             this.panel3.TabIndex = 34;
@@ -881,16 +883,26 @@
             this.label13.AutoSize = true;
             this.label13.Location = new System.Drawing.Point(4, 9);
             this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(222, 13);
+            this.label13.Size = new System.Drawing.Size(219, 13);
             this.label13.TabIndex = 0;
             this.label13.Text = "When selecting message get these attributes";
+            // 
+            // chkIgnoreQResync
+            // 
+            this.chkIgnoreQResync.AutoSize = true;
+            this.chkIgnoreQResync.Location = new System.Drawing.Point(13, 73);
+            this.chkIgnoreQResync.Name = "chkIgnoreQResync";
+            this.chkIgnoreQResync.Size = new System.Drawing.Size(70, 17);
+            this.chkIgnoreQResync.TabIndex = 16;
+            this.chkIgnoreQResync.Text = "QResync";
+            this.chkIgnoreQResync.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(710, 616);
+            this.ClientSize = new System.Drawing.Size(978, 662);
             this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
@@ -1013,6 +1025,7 @@
         private System.Windows.Forms.CheckBox chkMessageEnvelope;
         private System.Windows.Forms.CheckBox chkMessageFlags;
         private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.CheckBox chkIgnoreQResync;
     }
 }
 
