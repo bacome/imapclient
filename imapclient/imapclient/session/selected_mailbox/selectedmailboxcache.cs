@@ -194,7 +194,7 @@ namespace work.bacome.imapclient
 
                                 if (mHasBeenSetAsSelected)
                                 {
-                                    mEventSynchroniser.MessageExpunged(mMailboxId, lExpungedItem, lContext);
+                                    mEventSynchroniser.MessagePropertyChanged(mMailboxId, lExpungedItem, nameof(cMessage.IsExpunged), lContext);
                                     if (lUnseenUpdated) mEventSynchroniser.MailboxPropertyChanged(mMailboxId, nameof(iMailboxProperties.Unseen), lContext); 
                                     mEventSynchroniser.MailboxPropertyChanged(mMailboxId, nameof(iMailboxProperties.Messages), lContext); 
                                 }
@@ -216,26 +216,11 @@ namespace work.bacome.imapclient
 
                         var lFetchedItem = mItems[(int)lFetch.MSN - 1];
 
-                        var lAttributesSet = lFetchedItem.Update(mUIDValidity, lFetch);
+                        lFetchedItem.Update(mUIDValidity, lFetch, out var lAttributesSet, out var lFlagsSet);
 
                         if ((lAttributesSet & fFetchAttributes.flags) != 0)
                         {
-                            if (lFetch.Flags.ContainsSeen)
-                            {
-                                if (lFetchedItem.Unseen == null)
-                                {
-                                    lFetchedItem.Unseen = false;
-                                    mUnseenNull--;
-                                    lUnseenUpdated = true;
-                                }
-                                else if (lFetchedItem.Unseen.Value)
-                                {
-                                    lFetchedItem.Unseen = false;
-                                    mUnseenTrue--;
-                                    lUnseenUpdated = true;
-                                }
-                            }
-                            else
+                            if ((lFetch.Flags.KnownFlags & fKnownFlags.seen) == 0)
                             {
                                 if (lFetchedItem.Unseen == null)
                                 {
@@ -251,6 +236,21 @@ namespace work.bacome.imapclient
                                     lUnseenUpdated = true;
                                 }
                             }
+                            else
+                            {
+                                if (lFetchedItem.Unseen == null)
+                                {
+                                    lFetchedItem.Unseen = false;
+                                    mUnseenNull--;
+                                    lUnseenUpdated = true;
+                                }
+                                else if (lFetchedItem.Unseen.Value)
+                                {
+                                    lFetchedItem.Unseen = false;
+                                    mUnseenTrue--;
+                                    lUnseenUpdated = true;
+                                }
+                            }
                         }
 
                         if ((lAttributesSet & fFetchAttributes.uid) != 0 && lFetchedItem.UID != null) mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
@@ -259,7 +259,24 @@ namespace work.bacome.imapclient
                         //
                         if (mHasBeenSetAsSelected)
                         {
-                            if (lAttributesSet != 0) mEventSynchroniser.MessageAttributesSet(mMailboxId, lFetchedItem, lAttributesSet, lContext);
+                            if (lFlagsSet != 0)
+                            {
+                                if ((lFlagsSet & fKnownFlags.answered) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsAnswered), lContext);
+                                if ((lFlagsSet & fKnownFlags.flagged) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsFlagged), lContext);
+                                if ((lFlagsSet & fKnownFlags.deleted) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsDeleted), lContext);
+                                if ((lFlagsSet & fKnownFlags.seen) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsSeen), lContext);
+                                if ((lFlagsSet & fKnownFlags.draft) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsDraft), lContext);
+
+                                if ((lFlagsSet & fKnownFlags.recent) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsRecent), lContext);
+
+                                if ((lFlagsSet & fKnownFlags.mdnsent) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsMDNSent), lContext);
+                                if ((lFlagsSet & fKnownFlags.forwarded) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsForwarded), lContext);
+                                if ((lFlagsSet & fKnownFlags.submitpending) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsSubmitPending), lContext);
+                                if ((lFlagsSet & fKnownFlags.submitted) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsSubmitted), lContext);
+
+                                mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.Flags), lContext);
+                            }
+
                             if (lUnseenUpdated) mEventSynchroniser.MailboxPropertyChanged(mMailboxId, nameof(iMailboxProperties.Unseen), lContext);
                         }
 

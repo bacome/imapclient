@@ -166,7 +166,7 @@ namespace work.bacome.imapclient
                         }
                         else if (pCursor.SkipBytes(kBodyStructureSpace))
                         {
-                            lAttribute = fFetchAttributes.body | fFetchAttributes.bodystructure;
+                            lAttribute = fFetchAttributes.bodystructure;
                             lOK = ZProcessBodyStructure(pCursor, cSection.Text, true, out lBodyStructure);
                         }
                         else if (pCursor.SkipBytes(kBodyLBracket))

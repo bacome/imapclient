@@ -28,16 +28,34 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(kCloseCommandPart);
 
+                    var lHook = new cCloseCommandHook(ZSetSelectedMailbox);
+                    lCommand.Add(lHook);
+
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
                     if (lResult.Result == cCommandResult.eResult.ok)
                     {
                         lContext.TraceInformation("close success");
-                        ZSetSelectedMailbox(null, lContext);
                         return;
                     }
 
                     throw new cProtocolErrorException(lResult, 0, lContext);
+                }
+            }
+
+            private class cCloseCommandHook : cCommandHook
+            {
+                private readonly Action<cSelectedMailbox, cTrace.cContext> mSetSelectedMailbox;
+
+                public cCloseCommandHook(Action<cSelectedMailbox, cTrace.cContext> pSetSelectedMailbox)
+                {
+                    mSetSelectedMailbox = pSetSelectedMailbox ?? throw new ArgumentNullException(nameof(pSetSelectedMailbox));
+                }
+
+                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCloseCommandHook), nameof(CommandCompleted), pResult);
+                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok) mSetSelectedMailbox(null, lContext);
                 }
             }
         }

@@ -56,8 +56,7 @@ namespace work.bacome.imapclient
         public event EventHandler<cResponseTextEventArgs> ResponseText;
         public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged;
         public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery;
-        public event EventHandler<cMessageExpungedEventArgs> MessageExpunged;
-        public event EventHandler<cMessageAttributesSetEventArgs> MessageAttributesSet;
+        public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged;
 
         // mechanics
         private bool mDisposed = false;

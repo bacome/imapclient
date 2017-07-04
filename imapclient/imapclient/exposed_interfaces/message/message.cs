@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     public class cMessage
     {
-        private EventHandler mExpunged;
-        private object mExpungedLock = new object();
-
-        private EventHandler<cAttributesSetEventArgs> mAttributesSet;
-        private object mAttributesSetLock = new object();
+        private PropertyChangedEventHandler mPropertyChanged;
+        private object mPropertyChangedLock = new object();
 
         public readonly cIMAPClient Client;
         public readonly cMailboxId MailboxId;
@@ -27,56 +26,30 @@ namespace work.bacome.imapclient
             Indent = pIndent;
         }
 
-        public event EventHandler Expunged
+        public event PropertyChangedEventHandler PropertyChanged
         {
             add
             {
-                lock (mExpungedLock)
+                lock (mPropertyChangedLock)
                 {
-                    if (mExpunged == null) Client.MessageExpunged += ZMessageExpunged;
-                    mExpunged += value;
+                    if (mPropertyChanged == null) Client.MessagePropertyChanged += ZMessagePropertyChanged;
+                    mPropertyChanged += value;
                 }
             }
 
             remove
             {
-                lock (mExpungedLock)
+                lock (mPropertyChangedLock)
                 {
-                    mExpunged -= value;
-                    if (mExpunged == null) Client.MessageExpunged -= ZMessageExpunged;
+                    mPropertyChanged -= value;
+                    if (mPropertyChanged == null) Client.MessagePropertyChanged -= ZMessagePropertyChanged;
                 }
             }
         }
 
-        private void ZMessageExpunged(object pSender, cMessageExpungedEventArgs pArgs)
+        private void ZMessagePropertyChanged(object pSender, cMessagePropertyChangedEventArgs pArgs)
         {
-            if (pArgs.MailboxId == MailboxId && ReferenceEquals(pArgs.Handle, Handle)) mExpunged?.Invoke(this, EventArgs.Empty);
-        }
-
-        public event EventHandler<cAttributesSetEventArgs> AttributesSet
-        {
-            add
-            {
-                lock (mAttributesSetLock)
-                {
-                    if (mAttributesSet == null) Client.MessageAttributesSet += ZMessageAttributesSet;
-                    mAttributesSet += value;
-                }
-            }
-
-            remove
-            {
-                lock (mAttributesSetLock)
-                {
-                    mAttributesSet -= value;
-                    if (mAttributesSet == null) Client.MessageAttributesSet -= ZMessageAttributesSet;
-                }
-            }
-        }
-
-        private void ZMessageAttributesSet(object pSender, cMessageAttributesSetEventArgs pArgs)
-        {
-            if (pArgs.MailboxId == MailboxId && ReferenceEquals(pArgs.Handle, Handle)) mAttributesSet?.Invoke(this, pArgs);
+            if (pArgs.MailboxId == MailboxId && ReferenceEquals(pArgs.Handle, Handle)) mPropertyChanged?.Invoke(this, pArgs);
         }
 
         public bool IsExpunged => Handle.Expunged;
@@ -211,23 +184,23 @@ namespace work.bacome.imapclient
             return Handle.Flags.Contain(pFlags);
         }
 
-        public bool IsAnswered => ZFlagsContain(cMessageFlags.Answered);
-        public bool IsFlagged => ZFlagsContain(cMessageFlags.Flagged);
-        public bool IsDeleted => ZFlagsContain(cMessageFlags.Deleted);
-        public bool IsSeen => ZFlagsContain(cMessageFlags.Seen);
-        public bool IsDraft => ZFlagsContain(cMessageFlags.Draft);
-        public bool IsRecent => ZFlagsContain(cMessageFlags.Recent);
+        public bool IsAnswered => ZFlagsContain(fKnownFlags.answered);
+        public bool IsFlagged => ZFlagsContain(fKnownFlags.flagged);
+        public bool IsDeleted => ZFlagsContain(fKnownFlags.deleted);
+        public bool IsSeen => ZFlagsContain(fKnownFlags.seen);
+        public bool IsDraft => ZFlagsContain(fKnownFlags.draft);
+        public bool IsRecent => ZFlagsContain(fKnownFlags.recent);
 
-        public bool IsMDNSent => ZFlagsContain(cMessageFlags.MDNSent);
-        public bool IsForwarded => ZFlagsContain(cMessageFlags.Forwarded);
-        public bool IsSubmitPending => ZFlagsContain(cMessageFlags.SubmitPending);
-        public bool IsSubmitted => ZFlagsContain(cMessageFlags.Submitted);
+        public bool IsMDNSent => ZFlagsContain(fKnownFlags.mdnsent);
+        public bool IsForwarded => ZFlagsContain(fKnownFlags.forwarded);
+        public bool IsSubmitPending => ZFlagsContain(fKnownFlags.submitpending);
+        public bool IsSubmitted => ZFlagsContain(fKnownFlags.submitted);
 
-        private bool ZFlagsContain(string pFlag)
+        private bool ZFlagsContain(fKnownFlags pFlag)
         {
             if ((Handle.Attributes & fFetchAttributes.flags) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.flags);
             if ((Handle.Attributes & fFetchAttributes.flags) == 0) throw new cFetchAttributeException();
-            return Handle.Flags.Contains(pFlag);
+            return (Handle.Flags.KnownFlags & pFlag) != 0;
         }
 
         public DateTime Received

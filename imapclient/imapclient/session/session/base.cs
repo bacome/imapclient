@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
             public void SetIdleConfiguration(cIdleConfiguration pConfiguration, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetIdleConfiguration), pConfiguration);
-                mPipeline.SetIdleConfiguration(pConfiguration, pParentContext);
+                mPipeline.SetIdleConfiguration(pConfiguration, lContext);
             }
 
             public void SetFetchAttributesConfiguration(cFetchSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
@@ -163,6 +163,8 @@ namespace work.bacome.imapclient
 
             private void ZSetSelectedMailbox(cSelectedMailbox pSelectedMailbox, cTrace.cContext pParentContext)
             {
+                // should only be called from a command hook
+
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetSelectedMailbox), pSelectedMailbox);
 
                 if (_SelectedMailbox == pSelectedMailbox) return; // should only happen when both are null
@@ -227,6 +229,7 @@ namespace work.bacome.imapclient
             }
 
             public cMailbox Inbox { get; set; } = null;
+
             public cMailboxId SelectedMailboxId => _SelectedMailbox?.MailboxId;
 
             public iMailboxProperties GetMailboxProperties(cMailboxId pMailboxId)

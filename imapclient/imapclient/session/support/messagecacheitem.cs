@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -36,30 +37,37 @@ namespace work.bacome.imapclient
 
                 public void SetExpunged() => mExpunged = true;
 
-                public fFetchAttributes Update(uint? pUIDValidity, cResponseDataFetch lFetch)
+                public void Update(uint? pUIDValidity, cResponseDataFetch lFetch, out fFetchAttributes rAttributesSet, out fKnownFlags rFlagsSet)
                 {
-                    var lAttributesSet = ~mAttributes & lFetch.Attributes;
+                    rAttributesSet = ~mAttributes & lFetch.Attributes;
+                    rFlagsSet = 0;
 
-                    if ((lAttributesSet & fFetchAttributes.body) != 0) mBody = lFetch.Body;
-                    if ((lAttributesSet & fFetchAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
-                    if ((lAttributesSet & fFetchAttributes.envelope) != 0) Envelope = lFetch.Envelope;
-                    if ((lAttributesSet & fFetchAttributes.received) != 0) Received = lFetch.Received;
-                    if ((lAttributesSet & fFetchAttributes.size) != 0) Size = lFetch.Size;
-                    if ((lAttributesSet & fFetchAttributes.uid) != 0 && pUIDValidity != null) UID = new cUID(pUIDValidity.Value, lFetch.UID.Value);
-                    if ((lAttributesSet & fFetchAttributes.references) != 0) References = lFetch.References;
-
-                    if (lFetch.Flags != null && lFetch.Flags != Flags)
+                    if ((rAttributesSet & fFetchAttributes.flags) != 0) Flags = lFetch.Flags;
+                    else
                     {
-                        lAttributesSet |= fFetchAttributes.flags;
-                        Flags = lFetch.Flags;
+                        if (lFetch.Flags != Flags)
+                        {
+                            rAttributesSet |= fFetchAttributes.flags;
+
+                            rFlagsSet = ?;
+
+
+                            Flags = lFetch.Flags;
+                        }
                     }
+
+                    if ((rAttributesSet & fFetchAttributes.envelope) != 0) Envelope = lFetch.Envelope;
+                    if ((rAttributesSet & fFetchAttributes.received) != 0) Received = lFetch.Received;
+                    if ((rAttributesSet & fFetchAttributes.size) != 0) Size = lFetch.Size;
+                    if ((rAttributesSet & fFetchAttributes.body) != 0) mBody = lFetch.Body;
+                    if ((rAttributesSet & fFetchAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
+                    if ((rAttributesSet & fFetchAttributes.uid) != 0 && pUIDValidity != null) UID = new cUID(pUIDValidity.Value, lFetch.UID.Value);
+                    if ((rAttributesSet & fFetchAttributes.references) != 0) References = lFetch.References;
 
                     if (BinarySizes == null) BinarySizes = lFetch.BinarySizes;
                     else if (lFetch.BinarySizes != null) BinarySizes = BinarySizes + lFetch.BinarySizes;
 
                     mAttributes |= lFetch.Attributes;
-
-                    return lAttributesSet;
                 }
 
                 public override string ToString() => $"{nameof(cMessageCacheItem)}({mCache},{mCacheSequence})";

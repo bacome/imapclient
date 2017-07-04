@@ -27,17 +27,20 @@ namespace work.bacome.imapclient
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandStarted));
+
                     if (mDeselectRequired && !mCapability.QResync)
                     {
                         mDeselectRequired = false;
-                        mSetSelectedMailbox(null, pParentContext);
+                        mSetSelectedMailbox(null, lContext);
                     }
                 }
 
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessData));
                     if (mDeselectRequired) return eProcessDataResult.notprocessed;
-                    return mPendingSelectedMailbox.ProcessData(pCursor, pParentContext);
+                    return mPendingSelectedMailbox.ProcessData(pCursor, lContext);
                 }
 
                 public override bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
@@ -56,19 +59,12 @@ namespace work.bacome.imapclient
 
                         return false;
                     }
-                    else return mPendingSelectedMailbox.ProcessTextCode(pCursor, pParentContext);
+                    else return mPendingSelectedMailbox.ProcessTextCode(pCursor, lContext);
                 }
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandCompleted), pResult);
-
-                    if (mDeselectRequired)
-                    {
-                        mDeselectRequired = false;
-                        mSetSelectedMailbox(null, pParentContext);
-                    }
-
                     if (pResult != null && pResult.Result == cCommandResult.eResult.ok) mSetSelectedMailbox(mPendingSelectedMailbox, lContext);
                 }
             }
