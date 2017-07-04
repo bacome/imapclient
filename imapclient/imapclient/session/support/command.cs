@@ -328,11 +328,11 @@ namespace work.bacome.imapclient
                             lParts.Add(kCommandPartUIDSpace, new cCommandPart(lUIDIn.SequenceSet));
                             return lParts;
 
-                        case cFilter.cHasAll lHasAll:
+                        case cFilter.cFlagsContain lFlagsContain:
 
                             lParts.BeginList(pBracketing);
 
-                            foreach (var lFlag in lHasAll.Flags)
+                            foreach (var lFlag in lFlagsContain.Flags)
                             {
                                 if (lFlag == cMessageFlags.Answered) lParts.Add(kCommandPartAnswered);
                                 else if (lFlag == cMessageFlags.Flagged) lParts.Add(kCommandPartFlagged);
@@ -341,24 +341,6 @@ namespace work.bacome.imapclient
                                 else if (lFlag == cMessageFlags.Draft) lParts.Add(kCommandPartDraft);
                                 else if (lFlag == cMessageFlags.Recent) lParts.Add(kCommandPartRecent);
                                 else lParts.Add(kCommandPartKeywordSpace, new cCommandPart(lFlag));
-                            }
-
-                            lParts.EndList();
-                            return lParts;
-
-                        case cFilter.cHasNone lHasNone:
-
-                            lParts.BeginList(pBracketing);
-
-                            foreach (var lFlag in lHasNone.Flags)
-                            {
-                                if (lFlag == cMessageFlags.Answered) lParts.Add(kCommandPartUnanswered);
-                                else if (lFlag == cMessageFlags.Flagged) lParts.Add(kCommandPartUnflagged);
-                                else if (lFlag == cMessageFlags.Deleted) lParts.Add(kCommandPartUndeleted);
-                                else if (lFlag == cMessageFlags.Seen) lParts.Add(kCommandPartUnseen);
-                                else if (lFlag == cMessageFlags.Draft) lParts.Add(kCommandPartUndraft);
-                                else if (lFlag == cMessageFlags.Recent) lParts.Add(kCommandPartOld);
-                                else lParts.Add(kCommandPartUnkeywordSpace, new cCommandPart(lFlag));
                             }
 
                             lParts.EndList();
@@ -459,8 +441,29 @@ namespace work.bacome.imapclient
 
                         case cFilter.cNot lNot:
 
-                            lParts.Add(kCommandPartNotSpace);
-                            lParts.Add(ZFilterParts(lNot.Not, eListBracketing.ifmorethanone, pFactory).Parts);
+                            if (lNot.Not is cFilter.cFlagsContain lFlagsUncontain)
+                            {
+                                lParts.BeginList(pBracketing);
+
+                                foreach (var lFlag in lFlagsUncontain.Flags)
+                                {
+                                    if (lFlag == cMessageFlags.Answered) lParts.Add(kCommandPartUnanswered);
+                                    else if (lFlag == cMessageFlags.Flagged) lParts.Add(kCommandPartUnflagged);
+                                    else if (lFlag == cMessageFlags.Deleted) lParts.Add(kCommandPartUndeleted);
+                                    else if (lFlag == cMessageFlags.Seen) lParts.Add(kCommandPartUnseen);
+                                    else if (lFlag == cMessageFlags.Draft) lParts.Add(kCommandPartUndraft);
+                                    else if (lFlag == cMessageFlags.Recent) lParts.Add(kCommandPartOld);
+                                    else lParts.Add(kCommandPartUnkeywordSpace, new cCommandPart(lFlag));
+                                }
+
+                                lParts.EndList();
+                            }
+                            else
+                            {
+                                lParts.Add(kCommandPartNotSpace);
+                                lParts.Add(ZFilterParts(lNot.Not, eListBracketing.ifmorethanone, pFactory).Parts);
+                            }
+
                             return lParts;
 
                         default:
@@ -702,38 +705,31 @@ namespace work.bacome.imapclient
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), true, 0, Encoding.UTF32) != "US-ASCII NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.10", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), true, fEnableableExtensions.utf8, Encoding.UTF32) != "UTF-8 NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.11", lContext);
 
-                    cMessageFlags lMFlags;
+
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered, false, 0, null) != "ANSWERED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged, false, 0, null) != "ANSWERED FLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.2", lContext);
+
                     cFetchableFlags lFFlags;
-
-                    lMFlags = new cMessageFlags();
-
-                    lMFlags.IsAnswered = true;
-                    if (LMessageFilterCommandPartsTestsString(cFilter.HasAll(lMFlags), false, 0, null) != "ANSWERED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.1", lContext);
-
-                    lMFlags.IsFlagged = true;
-                    if (LMessageFilterCommandPartsTestsString(cFilter.HasAll(lMFlags), false, 0, null) != "ANSWERED FLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.2", lContext);
-
                     lFFlags = new cFetchableFlags();
 
                     lFFlags.IsDraft = true;
                     lFFlags.IsRecent = true;
-                    if (LMessageFilterCommandPartsTestsString(cFilter.HasAll(lMFlags) | cFilter.HasAll(lFFlags), false, 0, null) != "OR (ANSWERED FLAGGED) (DRAFT RECENT)") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.3", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.HasAll(lMFlags) & cFilter.HasAll(lFFlags), false, 0, null) != "ANSWERED FLAGGED DRAFT RECENT") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.4", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged | cFilter.FlagsContain(lFFlags), false, 0, null) != "OR (ANSWERED FLAGGED) (DRAFT RECENT)") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged & cFilter.FlagsContain(lFFlags), false, 0, null) != "ANSWERED DRAFT FLAGGED RECENT") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.4", lContext);
 
-                    lMFlags.IsForwarded = true;
-                    if (LMessageFilterCommandPartsTestsString(cFilter.HasAll(lMFlags), false, 0, null) != "ANSWERED FLAGGED KEYWORD $forwarded") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.5", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged & cFilter.IsForwarded, false, 0, null) != "KEYWORD $FORWARDED ANSWERED FLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.5", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.HasNone(lMFlags), false, 0, null) != "UNANSWERED UNFLAGGED UNKEYWORD $forwarded") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.6", lContext);
+                    if (LMessageFilterCommandPartsTestsString(!(cFilter.IsAnswered & cFilter.IsFlagged & cFilter.IsForwarded), false, 0, null) != "UNKEYWORD $FORWARDED UNANSWERED UNFLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.6", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.HasAll("fred"), false, 0, null) != "KEYWORD fred") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.HasAll("fred") | cFilter.HasAll("angus"), false, 0, null) != "OR KEYWORD fred KEYWORD angus") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.2", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.HasAll("fred") & cFilter.HasAll("angus"), false, 0, null) != "KEYWORD fred KEYWORD angus") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred"), false, 0, null) != "KEYWORD FRED") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred") | cFilter.FlagsContain("angus"), false, 0, null) != "OR KEYWORD FRED KEYWORD ANGUS") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.2", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred") & cFilter.FlagsContain("angus"), false, 0, null) != "KEYWORD ANGUS KEYWORD FRED") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.3", lContext);
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.BCC.Contains("@bacome.work"), false, 0, null) != "BCC @bacome.work") throw new cTestsException("ZMessageFilterCommandPartsTests BCC.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("imap client"), false, 0, null) != "SUBJECT \"imap client\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Body.Contains("imap"), false, 0, null) != "BODY imap") throw new cTestsException("ZMessageFilterCommandPartsTests Body.1", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(!cFilter.To.Contains("bacome") & cFilter.HasNone(cMessageFlags.Recent), false, 0, null) != "NOT TO bacome OLD") throw new cTestsException("ZMessageFilterCommandPartsTests And.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(!cFilter.To.Contains("bacome") & !cFilter.FlagsContain(cMessageFlags.Recent), false, 0, null) != "NOT TO bacome OLD") throw new cTestsException("ZMessageFilterCommandPartsTests And.1", lContext);
 
                     bool lFailed;
 

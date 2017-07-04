@@ -1650,10 +1650,10 @@ namespace testharness
                 if (lProperties.Messages != 172 || lProperties.Recent != 1 || lProperties.UIDNext != 4392 || lProperties.UIDValidity != 3857529045 || lProperties.Unseen != null) throw new cTestsException("ZTestSearch1.3");
 
                 lFlags = lProperties.Flags;
-                if (lFlags.KnownFlags != (fMessageFlags.answered | fMessageFlags.flagged | fMessageFlags.deleted | fMessageFlags.seen | fMessageFlags.draft)) throw new cTestsException("ZTestSearch1.4");
+                if (lFlags.Count != 5 || !lFlags.ContainsAnswered || !lFlags.ContainsFlagged || !lFlags.ContainsDeleted || !lFlags.ContainsSeen || !lFlags.ContainsDraft) throw new cTestsException("ZTestSearch1.4");
 
                 lFlags = lProperties.PermanentFlags;
-                if (lFlags.KnownFlags != (fMessageFlags.deleted | fMessageFlags.seen | fMessageFlags.asterisk)) throw new cTestsException("ZTestSearch1.5");
+                if (lFlags.Count != 3 || !lFlags.ContainsDeleted || !lFlags.ContainsSeen || !lFlags.ContainsCreateNewPossible || lFlags.ContainsDraft || lFlags.ContainsFlagged) throw new cTestsException("ZTestSearch1.5");
 
                 if (!lProperties.SelectedForUpdate) throw new cTestsException("ZTestSearch1.6");
 
@@ -1684,10 +1684,10 @@ namespace testharness
                 if (lProperties.Messages != 17 || lProperties.Recent != 2 || lProperties.UIDNext != 4392 || lProperties.UIDValidity != 3857529045 || lProperties.Unseen != null) throw new cTestsException("ZTestSearch3.2");
 
                 lFlags = lProperties.Flags;
-                if (lFlags.KnownFlags != (fMessageFlags.answered | fMessageFlags.flagged | fMessageFlags.deleted | fMessageFlags.seen | fMessageFlags.draft)) throw new cTestsException("ZTestSearch3.3");
+                if (lFlags.Count != 5 || !lFlags.ContainsAnswered || !lFlags.ContainsFlagged || !lFlags.ContainsDeleted || !lFlags.ContainsSeen || !lFlags.ContainsDraft) throw new cTestsException("ZTestSearch3.3");
 
                 lFlags = lProperties.PermanentFlags;
-                if (lFlags.KnownFlags != 0) throw new cTestsException("ZTestSearch3.4");
+                if (lFlags.Count != 0) throw new cTestsException("ZTestSearch3.4");
 
                 if (lProperties.SelectedForUpdate) throw new cTestsException("ZTestSearch3.5");
 
@@ -1865,7 +1865,7 @@ namespace testharness
 
                 if (lClient.Inbox.Properties.Messages != 172) throw new cTestsException("ZTestIdleRestart1.1");
 
-                var lMessages = lClient.Inbox.Messages(cFilter.IsNotFlagged(fMessageFlags.seen));
+                var lMessages = lClient.Inbox.Messages(!cFilter.IsSeen);
 
                 Thread.Sleep(3000); // idle should start, message 168 should get deleted, and message 167 should get a UID during this wait
 

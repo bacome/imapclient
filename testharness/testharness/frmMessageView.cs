@@ -95,7 +95,7 @@ namespace testharness
 
         private void ZPropertiesSet(object sender, cPropertiesSetEventArgs e)
         {
-            if (ReferenceEquals(sender, mMessage) && (e.Set & fMessageProperties.flags) != 0) ZDisplayFlags();
+            if (ReferenceEquals(sender, mMessage) && (e.PropertiesSet & fMessageProperties.flags) != 0) ZDisplayFlags();
         }
 
         private void dgvAttachment_CurrentCellChanged(object sender, EventArgs e)

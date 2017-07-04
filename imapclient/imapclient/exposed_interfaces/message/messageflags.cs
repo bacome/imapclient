@@ -5,32 +5,10 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public interface iSettableFlags : IEnumerable<string>
-    {
-        bool HasAll(params string[] pFlags);
-        bool HasNone(params string[] pFlags);
-
-        bool IsAnswered { get; }
-        bool IsFlagged { get; }
-        bool IsDeleted { get; }
-        bool IsSeen { get; }
-        bool IsDraft { get; }
-
-        bool IsMDNSent { get; }
-        bool IsForwarded { get; }
-        bool IsSubmitPending { get; }
-        bool IsSubmitted { get; }
-    }
-
-    public interface iFetchableFlags : iSettableFlags
-    {
-        bool IsRecent { get; }
-    }
-
-    public abstract class cMessageFlagsBase : iFetchableFlags
+    public abstract class cMessageFlagsBase : IEnumerable<string>
     {
         private readonly bool mAllowRecent;
-        protected readonly Dictionary<string, bool> mDictionary = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);
+        private readonly Dictionary<string, bool> mDictionary = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);
 
         public cMessageFlagsBase(bool pAllowRecent)
         {
@@ -44,23 +22,17 @@ namespace work.bacome.imapclient
         }
 
         public void Add(params string[] pFlags) => ZAdd(pFlags);
+        public void Add(IEnumerable<string> pFlags) => ZAdd(pFlags);
 
         public void Remove(params string[] pFlags)
         {
             foreach (var lFlag in pFlags) mDictionary.Remove(lFlag);
         }
 
-        public bool HasAll(params string[] pFlags)
-        {
-            foreach (var lFlag in pFlags) if (!mDictionary.ContainsKey(lFlag)) return false;
-            return true;
-        }
+        public bool Contain(params string[] pFlags) => ZContain(pFlags);
+        public bool Contain(IEnumerable<string> pFlags) => ZContain(pFlags);
 
-        public bool HasNone(params string[] pFlags)
-        {
-            foreach (var lFlag in pFlags) if (mDictionary.ContainsKey(lFlag)) return false;
-            return true;
-        }
+        // they are 'is' here because they ae settable
 
         public bool IsAnswered
         {
@@ -117,7 +89,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        public bool IsRecent => mDictionary.ContainsKey(cMessageFlags.Recent);
+        public bool ContainsRecent => mDictionary.ContainsKey(cMessageFlags.Recent);
+
+        public bool ContainsCreateNewPossible => false;
 
         public bool IsMDNSent
         {
@@ -177,7 +151,8 @@ namespace work.bacome.imapclient
         {
             if (pFlag == null) return false;
             if (pFlag.Length == 0) return false;
-            if (!mAllowRecent && pFlag.Equals(cMessageFlags.Recent, StringComparison.InvariantCultureIgnoreCase)) return false;
+
+            if (pFlag.Equals(cMessageFlags.Recent, StringComparison.InvariantCultureIgnoreCase)) return mAllowRecent;
 
             string lFlag;
 
@@ -185,6 +160,12 @@ namespace work.bacome.imapclient
             else lFlag = pFlag;
 
             return cCommandPart.TryAsAtom(lFlag, out _);
+        }
+
+        private bool ZContain(IEnumerable<string> pFlags)
+        {
+            foreach (var lFlag in pFlags) if (!mDictionary.ContainsKey(lFlag)) return false;
+            return true;
         }
 
         public override string ToString()
@@ -201,19 +182,26 @@ namespace work.bacome.imapclient
         public cFetchableFlags(IEnumerable<string> pFlags) : base(true, pFlags) { }
         public cFetchableFlags(params string[] pFlags) : base(true, pFlags) { }
 
-        public new bool IsRecent
+        public bool IsRecent
         {
-            get => base.IsRecent;
+            get => ContainsRecent;
 
             set
             {
-                if (value) { if (!mDictionary.ContainsKey(cMessageFlags.Recent)) mDictionary.Add(cMessageFlags.Recent, true); }
-                else mDictionary.Remove(cMessageFlags.Recent);
+                if (value) Add(cMessageFlags.Recent);
+                else Remove(cMessageFlags.Recent);
             }
         }
     }
 
-    public class cMessageFlags : cMessageFlagsBase
+    public class cSettableFlags : cMessageFlagsBase
+    {
+        public cSettableFlags() : base(false) { }
+        public cSettableFlags(IEnumerable<string> pFlags) : base(false, pFlags) { }
+        public cSettableFlags(params string[] pFlags) : base(false, pFlags) { }
+    }
+
+    public class cMessageFlags : cStrings, IEnumerable<string>
     {
         public const string Answered = "\\ANSWERED";
         public const string Flagged = "\\FLAGGED";
@@ -221,19 +209,13 @@ namespace work.bacome.imapclient
         public const string Seen = "\\SEEN";
         public const string Draft = "\\DRAFT";
         public const string Recent = "\\RECENT";
+        public const string CreateNewPossible = "\\*";
         public const string MDNSent = "$MDNSENT";
         public const string Forwarded = "$FORWARDED";
         public const string SubmitPending = "$SUBMITPENDING";
         public const string Submitted = "$SUBMITTED";
 
-        public cMessageFlags() : base(false) { }
-        public cMessageFlags(IEnumerable<string> pFlags) : base(false, pFlags) { }
-        public cMessageFlags(params string[] pFlags) : base(false, pFlags) { }
-    }
-
-    public abstract class cImmutableFlags : cStrings, iSettableFlags
-    {
-        public cImmutableFlags(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { }
+        public cMessageFlags(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { }
 
         private static List<string> ZCtor(IEnumerable<string> pFlags)
         {
@@ -244,61 +226,40 @@ namespace work.bacome.imapclient
             return lFlags;
         }
 
-        public bool HasAll(params string[] pFlags)
+        public bool Contain(params string[] pFlags) => ZContain(pFlags);
+        public bool Contain(IEnumerable<string> pFlags) => ZContain(pFlags);
+
+        private bool ZContain(IEnumerable<string> pFlags)
         {
             foreach (var lFlag in pFlags) if (!Contains(lFlag)) return false;
             return true;
         }
 
-        public bool HasNone(params string[] pFlags)
-        {
-            foreach (var lFlag in pFlags) if (Contains(lFlag)) return false;
-            return true;
-        }
+        public bool ContainsAnswered => Contains(Answered);
+        public bool ContainsFlagged => Contains(Flagged);
+        public bool ContainsDeleted => Contains(Deleted);
+        public bool ContainsSeen => Contains(Seen);
+        public bool ContainsDraft => Contains(Draft);
+        public bool ContainsRecent => Contains(Recent);
 
-        public bool IsAnswered => Contains(cMessageFlags.Answered);
-        public bool IsFlagged => Contains(cMessageFlags.Flagged);
-        public bool IsDeleted => Contains(cMessageFlags.Deleted);
-        public bool IsSeen => Contains(cMessageFlags.Seen);
-        public bool IsDraft => Contains(cMessageFlags.Draft);
+        public bool ContainsCreateNewPossible => Contains(CreateNewPossible);
 
-        public bool IsMDNSent => Contains(cMessageFlags.MDNSent);
-        public bool IsForwarded => Contains(cMessageFlags.Forwarded);
-        public bool IsSubmitPending => Contains(cMessageFlags.SubmitPending);
-        public bool IsSubmitted => Contains(cMessageFlags.Submitted);
+        public bool ContainsMDNSent => Contains(MDNSent);
+        public bool ContainsForwarded => Contains(Forwarded);
+        public bool ContainsSubmitPending => Contains(SubmitPending);
+        public bool ContainsSubmitted => Contains(Submitted);
+
+        public override bool Equals(object pObject) => (cStrings)this == pObject as cMessageFlags;
+        public override int GetHashCode() => base.GetHashCode();
+        public static bool operator ==(cMessageFlags pA, cMessageFlags pB) => (cStrings)pA == pB;
+        public static bool operator !=(cMessageFlags pA, cMessageFlags pB) => (cStrings)pA != pB;
 
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cImmutableFlags));
+            var lBuilder = new cListBuilder(nameof(cMessageFlags));
             foreach (var lFlag in this) lBuilder.Append(lFlag);
             return lBuilder.ToString();
         }
-    }
-
-    public class cFetchedFlags : cImmutableFlags, iFetchableFlags
-    {
-        public cFetchedFlags(IEnumerable<string> pFlags) : base(pFlags) { }
-
-        public bool IsRecent => Contains(cMessageFlags.Recent);
-
-        public override bool Equals(object pObject) => (cStrings)this == pObject as cFetchedFlags;
-        public override int GetHashCode() => base.GetHashCode();
-        public static bool operator ==(cFetchedFlags pA, cFetchedFlags pB) => (cStrings)pA == pB;
-        public static bool operator !=(cFetchedFlags pA, cFetchedFlags pB) => (cStrings)pA != pB;
-    }
-
-    public class cPermanentFlags : cImmutableFlags
-    {
-        private const string kCreateNew = "\\*";
-
-        public cPermanentFlags(IEnumerable<string> pFlags) : base(pFlags) { }
-
-        public bool CanCreateNew => Contains(kCreateNew);
-
-        public override bool Equals(object pObject) => (cStrings)this == pObject as cPermanentFlags;
-        public override int GetHashCode() => base.GetHashCode();
-        public static bool operator ==(cPermanentFlags pA, cPermanentFlags pB) => (cStrings)pA == pB;
-        public static bool operator !=(cPermanentFlags pA, cPermanentFlags pB) => (cStrings)pA != pB;
     }
 
 

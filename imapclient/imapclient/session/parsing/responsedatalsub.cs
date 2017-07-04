@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
                     return rResponseData != null;
                 }
 
-                private static fMailboxFlags ZGetMailboxFlags(cFlags pFlags)
+                private static fMailboxFlags ZGetMailboxFlags(cBytesCursor.cFlags pFlags)
                 {
                     fMailboxFlags lResult = 0;
 

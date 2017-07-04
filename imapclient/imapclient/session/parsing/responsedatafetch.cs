@@ -30,7 +30,8 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kBinarySizeLBracket = new cBytes("BINARY.SIZE[");
 
                 public readonly uint MSN;
-                public readonly cFetchedFlags Flags;
+                public readonly fMessageProperties Properties;
+                public readonly cMessageFlags Flags;
                 public readonly cEnvelope Envelope;
                 public readonly DateTime? Received;
                 public readonly cBytes RFC822; // un-parsed
@@ -44,9 +45,10 @@ namespace work.bacome.imapclient
                 public readonly cStrings References;
                 public readonly cBinarySizes BinarySizes;
 
-                private cResponseDataFetch(uint pMSN, cFetchedFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cStrings pReferences, cBinarySizes pBinarySizes)
+                private cResponseDataFetch(uint pMSN, fMessageProperties pProperties, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cStrings pReferences, cBinarySizes pBinarySizes)
                 {
                     MSN = pMSN;
+                    Properties = pProperties;
                     Flags = pFlags;
                     Envelope = pEnvelope;
                     Received = pReceived;
@@ -67,6 +69,7 @@ namespace work.bacome.imapclient
                     cListBuilder lBuilder = new cListBuilder(nameof(cResponseDataFetch));
 
                     lBuilder.Append(MSN);
+                    lBuilder.Append(Properties);
                     lBuilder.Append(Flags);
                     lBuilder.Append(Envelope);
                     lBuilder.Append(Received);
@@ -96,7 +99,8 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.LPAREN)) { rResponseData = null; pCursor.ParsedAs = null; return false; }
 
-                    cFetchedFlags lFetchedFlags = null;
+                    fMessageProperties lProperties = 0;
+                    cMessageFlags lFlags = null;
                     cEnvelope lEnvelope = null;
                     DateTime? lReceived = null;
                     IList<byte> lRFC822 = null;
@@ -112,29 +116,59 @@ namespace work.bacome.imapclient
 
                     while (true)
                     {
+                        fMessageProperties lProperty;
                         bool lOK;
 
                         if (pCursor.SkipBytes(kFlagsSpace))
                         {
-                            lOK = pCursor.GetFlags(out var lFlags);
-                            lFetchedFlags = new cFetchedFlags(lFlags);
+                            lProperty = fMessageProperties.flags;
+                            lOK = pCursor.GetFlags(out var lRawFlags);
+                            if (lOK) lFlags = new cMessageFlags(lRawFlags);
                         }
-                        else if (pCursor.SkipBytes(kEnvelopeSpace)) lOK = ZProcessEnvelope(pCursor, out lEnvelope);
+                        else if (pCursor.SkipBytes(kEnvelopeSpace))
+                        {
+                            lProperty = fMessageProperties.envelope;
+                            lOK = ZProcessEnvelope(pCursor, out lEnvelope);
+                        }
                         else if (pCursor.SkipBytes(kInternalDateSpace))
                         {
+                            lProperty = fMessageProperties.received;
                             lOK = pCursor.GetDateTime(out var lDateTime);
                             if (lOK) lReceived = lDateTime;
                         }
-                        else if (pCursor.SkipBytes(kRFC822Space)) lOK = pCursor.GetNString(out lRFC822);
-                        else if (pCursor.SkipBytes(kRFC822HeaderSpace)) lOK = pCursor.GetNString(out lRFC822Header);
-                        else if (pCursor.SkipBytes(kRFC822TextSpace)) lOK = pCursor.GetNString(out lRFC822Text);
+                        else if (pCursor.SkipBytes(kRFC822Space))
+                        {
+                            lProperty = fMessageProperties.references;
+                            lOK = pCursor.GetNString(out lRFC822); // should look for references
+                            if (lOK) lReferences = ZProcessReferences(lRFC822);
+                        }
+                        else if (pCursor.SkipBytes(kRFC822HeaderSpace))
+                        {
+                            lProperty = fMessageProperties.references;
+                            lOK = pCursor.GetNString(out lRFC822Header); // should look for references
+                            if (lOK) lReferences = ZProcessReferences(lRFC822Header);
+                        }
+                        else if (pCursor.SkipBytes(kRFC822TextSpace))
+                        {
+                            lProperty = 0;
+                            lOK = pCursor.GetNString(out lRFC822Text);
+                        }
                         else if (pCursor.SkipBytes(kRFC822SizeSpace))
                         {
+                            lProperty = fMessageProperties.size;
                             lOK = pCursor.GetNumber(out _, out var lNumber);
                             if (lOK) lSize = lNumber;
                         }
-                        else if (pCursor.SkipBytes(kBodySpace)) lOK = ZProcessBodyStructure(pCursor, cSection.Text, false, out lBody);
-                        else if (pCursor.SkipBytes(kBodyStructureSpace)) lOK = ZProcessBodyStructure(pCursor, cSection.Text, true, out lBodyStructure);
+                        else if (pCursor.SkipBytes(kBodySpace))
+                        {
+                            lProperty = fMessageProperties.body;
+                            lOK = ZProcessBodyStructure(pCursor, cSection.Text, false, out lBody);
+                        }
+                        else if (pCursor.SkipBytes(kBodyStructureSpace))
+                        {
+                            lProperty = fMessageProperties.body | fMessageProperties.bodystructure;
+                            lOK = ZProcessBodyStructure(pCursor, cSection.Text, true, out lBodyStructure);
+                        }
                         else if (pCursor.SkipBytes(kBodyLBracket))
                         {
                             lOK = ZProcessBody(pCursor, false, out var lABody);
@@ -157,26 +191,34 @@ namespace work.bacome.imapclient
                                     )
                                    )
                                 {
+                                    lProperty = fMessageProperties.references;
                                     lReferences = ZProcessReferences(lABody.Bytes);
                                 }
+                                else lProperty = 0;
                             }
+                            else lProperty = 0;
                         }
                         else if (pCursor.SkipBytes(kUIDSpace))
                         {
+                            lProperty = fMessageProperties.uid;
                             lOK = pCursor.GetNZNumber(out _, out var lNumber);
                             if (lOK) lUID = lNumber;
                         }
                         else if (pCapability.Binary && pCursor.SkipBytes(kBinaryLBracket))
                         {
+                            lProperty = 0;
                             lOK = ZProcessBody(pCursor, true, out var lABody);
                             if (lOK) lBodies.Add(lABody);
                         }
                         else if (pCapability.Binary && pCursor.SkipBytes(kBinarySizeLBracket))
                         {
+                            lProperty = 0;
                             lOK = ZProcessBinarySize(pCursor, out var lPart, out var lBytes);
                             if (lOK) lBinarySizesBuilder.Set(lPart, lBytes);
                         }
                         else break;
+
+                        lProperties |= lProperty;
 
                         if (!lOK)
                         {
@@ -191,7 +233,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN) || !pCursor.Position.AtEnd) { rResponseData = null; pCursor.ParsedAs = null; return false; }
 
-                    rResponseData = new cResponseDataFetch(pMSN, lFetchedFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lReferences, lBinarySizesBuilder.AsBinarySizes());
+                    rResponseData = new cResponseDataFetch(pMSN, lProperties, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lReferences, lBinarySizesBuilder.AsBinarySizes());
                     pCursor.ParsedAs = rResponseData;
                     return true;
                 }
@@ -351,13 +393,13 @@ namespace work.bacome.imapclient
                             // not sure how mailbox names are meant to support i18n? rfc 6530 implies UTF8 but I can't find how that affects the value reported by IMAP in mailbox
                             //  at this stage if UTF8 were to appear in the mailbox then we would just accept it
 
-                            cCulturedString lDisplayName;
-                            if (lNameBytes == null) lDisplayName = null;
-                            else lDisplayName = new cCulturedString(lNameBytes);
-
                             string lMailbox = cTools.UTF8BytesToString(lMailboxBytes);
                             string lAddress = lMailbox + "@" + cTools.ASCIIBytesToString(lHostBytes);
                             string lDisplayAddress = lMailbox + "@" + cTools.PunycodeBytesToString(lHostBytes);
+
+                            cCulturedString lDisplayName;
+                            if (lNameBytes == null) lDisplayName = new cCulturedString("<" + lDisplayAddress + ">");
+                            else lDisplayName = new cCulturedString(lNameBytes);
 
                             var lEmailAddress = new cEmailAddress(lDisplayName, lAddress, lDisplayAddress);
 
@@ -754,10 +796,11 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                private static cStrings ZProcessReferences(cBytes pBytes)
+                private static cStrings ZProcessReferences(IList<byte> pBytes)
                 {
                     // parsing this is required for implementing threading (rfc5256) TODO
                     //  NOTE that this could be called with data for lots of headers, so you have to look for the references header
+                    //  NOTE2: that this could be called with the entire message text, so you have to stop looking for headers at the first blank line
                     //
                     return null;
                 }
@@ -1094,7 +1137,7 @@ namespace work.bacome.imapclient
 
                     if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1");
 
-                    if (lData.Flags.Count == 1 && lData.Flags.IsSeen) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
+                    if (lData.Flags.Count != 1 || !lData.Flags.ContainsSeen) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
                     if (lData.Received != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
                     if (lData.Envelope.Sent != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
                     if (lData.Envelope.Subject != "IMAP4rev1 WG mtg summary and minutes") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.5");
@@ -1105,11 +1148,11 @@ namespace work.bacome.imapclient
                     if (lData.Envelope.ReplyTo.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.7");
                     if (lData.Envelope.To.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.1");
                     lEmailAddress = lData.Envelope.To[0] as cEmailAddress;
-                    if (lEmailAddress.DisplayName != null || lEmailAddress.Address != "imap@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.2");
+                    if (lEmailAddress.DisplayName != "<imap@cac.washington.edu>" || lEmailAddress.Address != "imap@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.8.2");
 
                     if (lData.Envelope.CC.Count != 2) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.1");
                     lEmailAddress = lData.Envelope.CC[0] as cEmailAddress;
-                    if (lEmailAddress.DisplayName != null || lEmailAddress.Address != "minutes@CNRI.Reston.VA.US") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.2");
+                    if (lEmailAddress.DisplayName != "<minutes@CNRI.Reston.VA.US>" || lEmailAddress.Address != "minutes@CNRI.Reston.VA.US") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.2");
                     lEmailAddress = lData.Envelope.CC[1] as cEmailAddress;
                     if (lEmailAddress.DisplayName != "John Klensin" || lEmailAddress.Address != "KLENSIN@MIT.EDU") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.3");
 
