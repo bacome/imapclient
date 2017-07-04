@@ -2,24 +2,24 @@
 
 namespace work.bacome.imapclient
 {
-    public class cPropertiesSetEventArgs : EventArgs
+    public class cAttributesSetEventArgs : EventArgs
     {
-        public readonly fMessageProperties PropertiesSet;
-        public cPropertiesSetEventArgs(fMessageProperties pPropertiesSet) { PropertiesSet = pPropertiesSet; }
-        public override string ToString() => $"{nameof(cPropertiesSetEventArgs)}({PropertiesSet})";
+        public readonly fFetchAttributes AttributesSet;
+        public cAttributesSetEventArgs(fFetchAttributes pAttributesSet) { AttributesSet = pAttributesSet; }
+        public override string ToString() => $"{nameof(cAttributesSetEventArgs)}({AttributesSet})";
     }
 
-    public class cMessagePropertiesSetEventArgs : cPropertiesSetEventArgs
+    public class cMessageAttributesSetEventArgs : cAttributesSetEventArgs
     {
         public readonly cMailboxId MailboxId;
         public readonly iMessageHandle Handle;
 
-        public cMessagePropertiesSetEventArgs(cMailboxId pMailboxId, iMessageHandle pHandle, fMessageProperties pPropertiesSet) : base(pPropertiesSet)
+        public cMessageAttributesSetEventArgs(cMailboxId pMailboxId, iMessageHandle pHandle, fFetchAttributes pAttributesSet) : base(pAttributesSet)
         {
             MailboxId = pMailboxId;
             Handle = pHandle;
         }
 
-        public override string ToString() => $"{nameof(cMessagePropertiesSetEventArgs)}({MailboxId},{Handle},{PropertiesSet})";
+        public override string ToString() => $"{nameof(cMessageAttributesSetEventArgs)}({MailboxId},{Handle},{AttributesSet})";
     }
 }

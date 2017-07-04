@@ -48,7 +48,7 @@ namespace testharness
             if (mMessage != null)
             {
                 mMessage.Expunged -= ZExpunged;
-                mMessage.PropertiesSet -= ZPropertiesSet;
+                mMessage.AttributesSet -= ZAttributesSet;
                 mMessage = null;
             }
 
@@ -56,7 +56,7 @@ namespace testharness
             {
                 mMessage = pMessage;
                 mMessage.Expunged += ZExpunged;
-                mMessage.PropertiesSet += ZPropertiesSet;
+                mMessage.AttributesSet += ZAttributesSet;
 
                 ZDisplayFlags();
 
@@ -93,9 +93,9 @@ namespace testharness
             if (ReferenceEquals(sender, mMessage)) ZDGVAttachmentCoordinateChildren();
         }
 
-        private void ZPropertiesSet(object sender, cPropertiesSetEventArgs e)
+        private void ZAttributesSet(object sender, cAttributesSetEventArgs e)
         {
-            if (ReferenceEquals(sender, mMessage) && (e.PropertiesSet & fMessageProperties.flags) != 0) ZDisplayFlags();
+            if (ReferenceEquals(sender, mMessage) && (e.AttributesSet & fFetchAttributes.flags) != 0) ZDisplayFlags();
         }
 
         private void dgvAttachment_CurrentCellChanged(object sender, EventArgs e)

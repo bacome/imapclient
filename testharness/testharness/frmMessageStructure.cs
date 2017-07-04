@@ -270,7 +270,7 @@ namespace testharness
                     {
                         rtxPartDetail.AppendText($"Message Size: {lTag.Message.Size}\n");
 
-                        await lTag.Message.FetchAsync(fMessageProperties.envelope);
+                        await lTag.Message.FetchAsync(fFetchAttributes.envelope);
                         if (lZTVWBodyStructureCoordinateChildren != mZTVWBodyStructureCoordinateChildren) return; // check if we've been re-entered during the await
 
                         ZDisplayEnvelope(lTag.Message.Handle.Envelope);

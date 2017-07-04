@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
             private readonly cResponseTextProcessor mResponseTextProcessor;
             private readonly cCapabilityDataProcessor mCapabilityDataProcessor;
             private readonly cCommandPipeline mPipeline;
-            private cFetchSizer mFetchPropertiesSizer;
+            private cFetchSizer mFetchAttributesSizer;
             private cFetchSizer mFetchBodyReadSizer;
             private Encoding mEncoding; // can be null
 
@@ -44,9 +44,9 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchPropertiesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchPropertiesConfiguration, pFetchBodyReadConfiguration);
+                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesConfiguration, pFetchBodyReadConfiguration);
 
                 mEventSynchroniser = pEventSynchroniser;
 
@@ -59,7 +59,7 @@ namespace work.bacome.imapclient
                 mCapabilityDataProcessor = new cCapabilityDataProcessor(ZSetCapabilities);
                 mPipeline.Install(mCapabilityDataProcessor);
 
-                mFetchPropertiesSizer = new cFetchSizer(pFetchPropertiesConfiguration);
+                mFetchAttributesSizer = new cFetchSizer(pFetchAttributesConfiguration);
                 mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
                 mEncoding = pEncoding;
             }
@@ -77,11 +77,11 @@ namespace work.bacome.imapclient
                 mPipeline.SetIdleConfiguration(pConfiguration, pParentContext);
             }
 
-            public void SetFetchPropertiesConfiguration(cFetchSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
+            public void SetFetchAttributesConfiguration(cFetchSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetFetchPropertiesConfiguration), pConfiguration);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetFetchAttributesConfiguration), pConfiguration);
                 if (pConfiguration == null) throw new ArgumentNullException(nameof(pConfiguration));
-                mFetchPropertiesSizer = new cFetchSizer(pConfiguration);
+                mFetchAttributesSizer = new cFetchSizer(pConfiguration);
             }
 
             public void SetFetchBodyReadConfiguration(cFetchSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
@@ -134,10 +134,12 @@ namespace work.bacome.imapclient
                 mConnection.SetCapability(_Capability, lContext);
                 mPipeline.SetCapability(_Capability, lContext);
                 mResponseTextProcessor.MailboxReferrals = _Capability.MailboxReferrals;
-                _SelectedMailbox?.SetCapability(_Capability, lContext);
 
                 mEventSynchroniser.PropertyChanged(nameof(cIMAPClient.Capability), lContext);
             }
+
+            private delegate cCapability dGetCapability();
+            private cCapability ZGetCapability() => _Capability;
 
             public cURL HomeServerReferral => _HomeServerReferral;
 

@@ -795,7 +795,7 @@
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(215, 13);
             this.label6.TabIndex = 0;
-            this.label6.Text = "When selecting mailbox get these properties";
+            this.label6.Text = "When selecting mailbox get these attributes";
             // 
             // panel3
             // 
@@ -883,7 +883,7 @@
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(222, 13);
             this.label13.TabIndex = 0;
-            this.label13.Text = "When selecting message get these properties";
+            this.label13.Text = "When selecting message get these attributes";
             // 
             // Form1
             // 

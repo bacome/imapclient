@@ -1702,13 +1702,13 @@ namespace testharness
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.1");
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageProperties.received);
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fFetchAttributes.received);
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.2");
                 foreach (var lItem in lMessageList) if (lItem.Indent != -1) throw new cTestsException("ZTestSearch4.3");
 
                 lMessage = lMessageList[0];
 
-                if (!lMessage.Handle.Cache.Valid || lMessage.Handle.Expunged || lMessage.Handle.Properties != fMessageProperties.received) throw new cTestsException("ZTestSearch4.4");
+                if (!lMessage.Handle.Cache.Valid || lMessage.Handle.Expunged || lMessage.Handle.Attributes != fFetchAttributes.received) throw new cTestsException("ZTestSearch4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch4.5");
 
 
@@ -1871,17 +1871,17 @@ namespace testharness
 
                 if (lClient.Inbox.Properties.Messages != 171) throw new cTestsException("ZTestIdleRestart1.2");
 
-                lMessages[1].Fetch(fMessageProperties.uid); // this should retrieve nothing (as the message has been deleted), but idle should stop
+                lMessages[1].Fetch(fFetchAttributes.uid); // this should retrieve nothing (as the message has been deleted), but idle should stop
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched by this, as message 2 was 168 which should now be gone
                 //  1 should be UID fetched, 3 should be a normal fetch
-                lClient.Fetch(lClient.Inbox.MailboxId, new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.received, null);
+                lClient.Fetch(lClient.Inbox.MailboxId, new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fFetchAttributes.received, null);
 
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
-                lClient.Fetch(lClient.Inbox.MailboxId, new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.flags, null);
+                lClient.Fetch(lClient.Inbox.MailboxId, new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fFetchAttributes.flags, null);
 
 
                 cMailbox lMailbox;
@@ -2018,7 +2018,7 @@ namespace testharness
                 cUID[] lUIDs = new cUID[] { new cUID(3857529045, 105), new cUID(3857529045, 104), new cUID(3857529045, 103), new cUID(3857529045, 102), new cUID(3857529045, 101) };
 
                 // fetch flags
-                var lMessages = lClient.Inbox.UIDFetch(lUIDs, fMessageProperties.flags | fMessageProperties.received);
+                var lMessages = lClient.Inbox.UIDFetch(lUIDs, fFetchAttributes.flags | fFetchAttributes.received);
                 if (lMessages.Count != 4) throw new cTestsException($"{nameof(ZTestUIDFetch1)}.1");
 
 

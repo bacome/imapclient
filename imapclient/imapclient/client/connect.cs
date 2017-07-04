@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
                 mSession.Dispose();
             }
 
-            mSession = new cSession(mEventSynchroniser, mIgnoreCapabilities, mIdleConfiguration, mFetchPropertiesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
+            mSession = new cSession(mEventSynchroniser, mIgnoreCapabilities, mIdleConfiguration, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
             mAsyncCounter.Increment(lContext);

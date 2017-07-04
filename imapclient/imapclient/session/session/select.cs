@@ -32,8 +32,13 @@ namespace work.bacome.imapclient
                     if (pForUpdate) lCommand.Add(kSelectCommandPartSelect, lMailboxCommandPart);
                     else lCommand.Add(kSelectCommandPartExamine, lMailboxCommandPart);
 
-                    lCommand.Add(new cSelectCommandHook(new cSelectedMailbox(pMailboxId, pForUpdate, mEventSynchroniser, _Capability), ZSetSelectedMailbox));
+                    var lCapability = _Capability;
 
+                    ;?; // timing hole: if there is a capability change then the new selected mailbox won't get it
+
+                    lCommand.Add(new cSelectCommandHook(lCapability, ZSetSelectedMailbox, new cSelectedMailbox(pMailboxId, pForUpdate, mEventSynchroniser, lCapability));
+
+                    ;?;
                     try
                     {
                         // note that if either of the following two calls throw we c/would be in an inconsistent state with the server
@@ -61,17 +66,29 @@ namespace work.bacome.imapclient
 
             private class cSelectCommandHook : cCommandHook
             {
+                private readonly cCapability mCapability;
                 private readonly cSelectedMailbox mSelectedMailbox;
                 private readonly Action<cSelectedMailbox, cTrace.cContext> mSetSelectedMailbox;
 
-                public cSelectCommandHook(cSelectedMailbox pSelectedMailbox, Action<cSelectedMailbox, cTrace.cContext> pSetSelectedMailbox)
+                public cSelectCommandHook(cCapability pCapability, cSelectedMailbox pSelectedMailbox, Action<cSelectedMailbox, cTrace.cContext> pSetSelectedMailbox)
                 {
+                    mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
                     mSelectedMailbox = pSelectedMailbox ?? throw new ArgumentNullException(nameof(pSelectedMailbox));
                     mSetSelectedMailbox = pSetSelectedMailbox ?? throw new ArgumentNullException(nameof(pSetSelectedMailbox));
                 }
 
+                public override void CommandStarted(cTrace.cContext pParentContext)
+                {
+                    if (!mCapability.QResync) mSetSelectedMailbox(null, pParentContext);
+                }
+
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mSelectedMailbox.ProcessData(pCursor, pParentContext);
-                public override bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext) => mSelectedMailbox.ProcessTextCode(pCursor, pParentContext);
+
+                public override bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                {
+                    ;?; // prcess closed
+                    => mSelectedMailbox.ProcessTextCode(pCursor, pParentContext);
+                }
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {

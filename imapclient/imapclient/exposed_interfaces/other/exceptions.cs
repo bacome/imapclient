@@ -215,10 +215,10 @@ namespace work.bacome.imapclient
         public cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
     }
 
-    // thrown when the message has been expunged
-    public class cMessageExpungedException : Exception
+    // thrown when a fetch of an attribute didn't return it
+    public class cFetchAttributeException : Exception
     {
-        public cMessageExpungedException() { }
+        public cFetchAttributeException() { }
     }
 
     public class cTestsException : Exception

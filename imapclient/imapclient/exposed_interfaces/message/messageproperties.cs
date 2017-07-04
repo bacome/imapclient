@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     [Flags]
-    public enum fMessageProperties
+    public enum fFetchAttributes
     {
         none = 0,
         clientdefault = 1,

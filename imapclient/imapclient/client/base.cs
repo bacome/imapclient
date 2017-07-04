@@ -57,7 +57,7 @@ namespace work.bacome.imapclient
         public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged;
         public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery;
         public event EventHandler<cMessageExpungedEventArgs> MessageExpunged;
-        public event EventHandler<cMessagePropertiesSetEventArgs> MessagePropertiesSet;
+        public event EventHandler<cMessageAttributesSetEventArgs> MessageAttributesSet;
 
         // mechanics
         private bool mDisposed = false;
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
         private cServer mServer = null;
         private cCredentials mCredentials = null;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
-        private cFetchSizeConfiguration mFetchPropertiesConfiguration = new cFetchSizeConfiguration(1, 1000, 10000, 1);
+        private cFetchSizeConfiguration mFetchAttributesConfiguration = new cFetchSizeConfiguration(1, 1000, 10000, 1);
         private cFetchSizeConfiguration mFetchBodyReadConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
         private cFetchSizeConfiguration mFetchBodyWriteConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
@@ -191,16 +191,16 @@ namespace work.bacome.imapclient
             }
         }
 
-        public cFetchSizeConfiguration FetchPropertiesConfiguration
+        public cFetchSizeConfiguration FetchAttributesConfiguration
         {
-            get => mFetchPropertiesConfiguration;
+            get => mFetchAttributesConfiguration;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchPropertiesConfiguration), value);
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchAttributesConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mFetchPropertiesConfiguration = value ?? throw new ArgumentNullException();
-                mSession?.SetFetchPropertiesConfiguration(value, lContext);
+                mFetchAttributesConfiguration = value ?? throw new ArgumentNullException();
+                mSession?.SetFetchAttributesConfiguration(value, lContext);
             }
         }
 

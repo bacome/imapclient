@@ -130,12 +130,12 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void MessagePropertiesSet(cMailboxId pMailboxId, iMessageHandle pHandle, fMessageProperties pPropertiesSet, cTrace.cContext pParentContext)
+            public void MessageAttributesSet(cMailboxId pMailboxId, iMessageHandle pHandle, fFetchAttributes pAttributesSet, cTrace.cContext pParentContext)
             {
-                if (mClient.MessagePropertiesSet == null) return; // pre-check for efficiency only
-                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(MessagePropertiesSet), pMailboxId, pHandle);
+                if (mClient.MessageAttributesSet == null) return; // pre-check for efficiency only
+                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(MessageAttributesSet), pMailboxId, pHandle);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
-                ZFireAndForget(new cMessagePropertiesSetEventArgs(pMailboxId, pHandle, pPropertiesSet), lContext);
+                ZFireAndForget(new cMessageAttributesSetEventArgs(pMailboxId, pHandle, pAttributesSet), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
@@ -248,9 +248,9 @@ namespace work.bacome.imapclient
                                 mClient.MessageExpunged?.Invoke(mClient, lEventArgs);
                                 break;
 
-                            case cMessagePropertiesSetEventArgs lEventArgs:
+                            case cMessageAttributesSetEventArgs lEventArgs:
 
-                                mClient.MessagePropertiesSet?.Invoke(mClient, lEventArgs);
+                                mClient.MessageAttributesSet?.Invoke(mClient, lEventArgs);
                                 break;
 
                             case cIncrementProgressEventArgs lEventArgs:

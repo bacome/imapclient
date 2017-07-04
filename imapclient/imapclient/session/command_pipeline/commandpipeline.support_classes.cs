@@ -73,6 +73,7 @@ namespace work.bacome.imapclient
                         var lContext = pParentContext.NewMethod(nameof(cItem), nameof(SetStarted), mCommand.Tag);
                         if (mStarted) throw new InvalidOperationException();
                         mStarted = true;
+                        mCommand.CommandStarted(lContext);
                     }
 
                     public void SetResult(cCommandResult pResult, uint? pUIDValidity, cTrace.cContext pParentContext)

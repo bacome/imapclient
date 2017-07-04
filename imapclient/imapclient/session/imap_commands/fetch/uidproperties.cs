@@ -10,12 +10,12 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task ZUIDFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, uint pUIDValidity, cUIntList pUIDs, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            private async Task ZUIDFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, uint pUIDValidity, cUIntList pUIDs, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
             {
                 // note that this will fail if the UIDValidity has changed (this is different to the behaviour of standard fetch)
-                // note that the caller should have checked that pProperties contains some properties to fetch
+                // note that the caller should have checked that pAttributes contains some attributes to fetch
 
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAsync), pMC, pMailboxId, pUIDValidity, pUIDs, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAsync), pMC, pMailboxId, pUIDValidity, pUIDs, pAttributes);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lCommand.Add(kFetchCommandPartUIDFetchSpace, new cCommandPart(pUIDs.ToSequenceSet()), cCommandPart.Space);
-                    lCommand.Add(pProperties);
+                    lCommand.Add(pAttributes);
 
                     lCommand.AddUIDValidity(pUIDValidity); // the command is sensitive to UIDValidity changes
 

@@ -11,8 +11,8 @@ namespace work.bacome.imapclient
         private EventHandler mExpunged;
         private object mExpungedLock = new object();
 
-        private EventHandler<cPropertiesSetEventArgs> mPropertiesSet;
-        private object mPropertiesSetLock = new object();
+        private EventHandler<cAttributesSetEventArgs> mAttributesSet;
+        private object mAttributesSetLock = new object();
 
         public readonly cIMAPClient Client;
         public readonly cMailboxId MailboxId;
@@ -53,30 +53,30 @@ namespace work.bacome.imapclient
             if (pArgs.MailboxId == MailboxId && ReferenceEquals(pArgs.Handle, Handle)) mExpunged?.Invoke(this, EventArgs.Empty);
         }
 
-        public event EventHandler<cPropertiesSetEventArgs> PropertiesSet
+        public event EventHandler<cAttributesSetEventArgs> AttributesSet
         {
             add
             {
-                lock (mPropertiesSetLock)
+                lock (mAttributesSetLock)
                 {
-                    if (mPropertiesSet == null) Client.MessagePropertiesSet += ZMessagePropertiesSet;
-                    mPropertiesSet += value;
+                    if (mAttributesSet == null) Client.MessageAttributesSet += ZMessageAttributesSet;
+                    mAttributesSet += value;
                 }
             }
 
             remove
             {
-                lock (mPropertiesSetLock)
+                lock (mAttributesSetLock)
                 {
-                    mPropertiesSet -= value;
-                    if (mPropertiesSet == null) Client.MessagePropertiesSet -= ZMessagePropertiesSet;
+                    mAttributesSet -= value;
+                    if (mAttributesSet == null) Client.MessageAttributesSet -= ZMessageAttributesSet;
                 }
             }
         }
 
-        private void ZMessagePropertiesSet(object pSender, cMessagePropertiesSetEventArgs pArgs)
+        private void ZMessageAttributesSet(object pSender, cMessageAttributesSetEventArgs pArgs)
         {
-            if (pArgs.MailboxId == MailboxId && ReferenceEquals(pArgs.Handle, Handle)) mPropertiesSet?.Invoke(this, pArgs);
+            if (pArgs.MailboxId == MailboxId && ReferenceEquals(pArgs.Handle, Handle)) mAttributesSet?.Invoke(this, pArgs);
         }
 
         public bool IsExpunged => Handle.Expunged;
@@ -85,8 +85,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructure);
-                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.bodystructure);
+                if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) throw new cFetchAttributeException();
                 return Handle.BodyStructure;
             }
         }
@@ -95,8 +95,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.envelope);
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) throw new cFetchAttributeException();
                 return Handle.Envelope.Sent;
             }
         }
@@ -105,8 +105,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.envelope);
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) throw new cFetchAttributeException();
                 return Handle.Envelope.Subject;
             }
         }
@@ -115,8 +115,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.envelope);
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) throw new cFetchAttributeException();
                 return Handle.Envelope.From;
             }
         }
@@ -125,8 +125,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.envelope);
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) throw new cFetchAttributeException();
                 return Handle.Envelope.Sender;
             }
         }
@@ -135,8 +135,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.envelope);
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) throw new cFetchAttributeException();
                 return Handle.Envelope.ReplyTo;
             }
         }
@@ -145,8 +145,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.envelope);
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) throw new cFetchAttributeException();
                 return Handle.Envelope.To;
             }
         }
@@ -155,8 +155,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.envelope);
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) throw new cFetchAttributeException();
                 return Handle.Envelope.CC;
             }
         }
@@ -165,8 +165,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.envelope);
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) throw new cFetchAttributeException();
                 return Handle.Envelope.BCC;
             }
         }
@@ -175,8 +175,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.envelope);
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) throw new cFetchAttributeException();
                 return Handle.Envelope.InReplyTo;
             }
         }
@@ -185,8 +185,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.envelope);
+                if ((Handle.Attributes & fFetchAttributes.envelope) == 0) throw new cFetchAttributeException();
                 return Handle.Envelope.MessageId;
             }
         }
@@ -195,8 +195,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-                if ((Handle.Properties & fMessageProperties.flags) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.flags) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.flags);
+                if ((Handle.Attributes & fFetchAttributes.flags) == 0) throw new cFetchAttributeException();
                 return Handle.Flags;
             }
         }
@@ -206,8 +206,8 @@ namespace work.bacome.imapclient
 
         private bool ZFlagsContain(IEnumerable<string> pFlags)
         {
-            if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-            if ((Handle.Properties & fMessageProperties.flags) == 0) throw new cMessageExpungedException();
+            if ((Handle.Attributes & fFetchAttributes.flags) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.flags);
+            if ((Handle.Attributes & fFetchAttributes.flags) == 0) throw new cFetchAttributeException();
             return Handle.Flags.Contain(pFlags);
         }
 
@@ -225,8 +225,8 @@ namespace work.bacome.imapclient
 
         private bool ZFlagsContain(string pFlag)
         {
-            if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-            if ((Handle.Properties & fMessageProperties.flags) == 0) throw new cMessageExpungedException();
+            if ((Handle.Attributes & fFetchAttributes.flags) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.flags);
+            if ((Handle.Attributes & fFetchAttributes.flags) == 0) throw new cFetchAttributeException();
             return Handle.Flags.Contains(pFlag);
         }
 
@@ -234,8 +234,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.received) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.received);
-                if ((Handle.Properties & fMessageProperties.received) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.received) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.received);
+                if ((Handle.Attributes & fFetchAttributes.received) == 0) throw new cFetchAttributeException();
                 return Handle.Received.Value;
             }
         }
@@ -244,8 +244,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.size) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.size);
-                if ((Handle.Properties & fMessageProperties.size) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.size) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.size);
+                if ((Handle.Attributes & fFetchAttributes.size) == 0) throw new cFetchAttributeException();
                 return Handle.Size.Value;
             }
         }
@@ -254,8 +254,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.uid) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.uid);
-                if ((Handle.Properties & fMessageProperties.uid) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.uid) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.uid);
+                if ((Handle.Attributes & fFetchAttributes.uid) == 0) throw new cFetchAttributeException();
                 return Handle.UID;
             }
         }
@@ -264,8 +264,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.references) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.references);
-                if ((Handle.Properties & fMessageProperties.references) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.references) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.references);
+                if ((Handle.Attributes & fFetchAttributes.references) == 0) throw new cFetchAttributeException();
                 return Handle.References;
             }
         }
@@ -274,8 +274,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructure);
-                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.bodystructure);
+                if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) throw new cFetchAttributeException();
                 StringBuilder lBuilder = new StringBuilder();
                 foreach (var lPart in ZPlainText(Handle.BodyStructure)) lBuilder.Append(Fetch(lPart));
                 return lBuilder.ToString();
@@ -284,8 +284,8 @@ namespace work.bacome.imapclient
 
         public async Task<string> GetPlainTextAsync()
         {
-            if ((Handle.Properties & fMessageProperties.bodystructure) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructure).ConfigureAwait(false);
-            if ((Handle.Properties & fMessageProperties.bodystructure) == 0) throw new cMessageExpungedException();
+            if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) await Client.FetchAsync(MailboxId, Handle, fFetchAttributes.bodystructure).ConfigureAwait(false);
+            if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) throw new cFetchAttributeException();
             StringBuilder lBuilder = new StringBuilder();
             foreach (var lPart in ZPlainText(Handle.BodyStructure)) lBuilder.Append(await FetchAsync(lPart).ConfigureAwait(false));
             return lBuilder.ToString();
@@ -320,16 +320,16 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructure);
-                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) throw new cMessageExpungedException();
+                if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.bodystructure);
+                if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) throw new cFetchAttributeException();
                 return ZAttachments(Handle.BodyStructure);
             }
         }
 
         public async Task<List<cAttachment>> GetAttachmentsAsync()
         {
-            if ((Handle.Properties & fMessageProperties.bodystructure) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructure).ConfigureAwait(false);
-            if ((Handle.Properties & fMessageProperties.bodystructure) == 0) throw new cMessageExpungedException();
+            if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) await Client.FetchAsync(MailboxId, Handle, fFetchAttributes.bodystructure).ConfigureAwait(false);
+            if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) throw new cFetchAttributeException();
             return ZAttachments(Handle.BodyStructure);
         }
 
@@ -358,9 +358,9 @@ namespace work.bacome.imapclient
 
         // get data
 
-        public void Fetch(fMessageProperties pProperties) => Client.Fetch(MailboxId, Handle, pProperties);
+        public void Fetch(fFetchAttributes pAttributes) => Client.Fetch(MailboxId, Handle, pAttributes);
 
-        public Task FetchAsync(fMessageProperties pProperties) => Client.FetchAsync(MailboxId, Handle, pProperties);
+        public Task FetchAsync(fFetchAttributes pAttributes) => Client.FetchAsync(MailboxId, Handle, pAttributes);
 
         public string Fetch(cBodyPart pPart)
         {

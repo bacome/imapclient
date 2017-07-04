@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
 
                 private readonly bool mSelectedForUpdate;
                 private readonly cEventSynchroniser mEventSynchroniser;
-                private cCapability mCapability;
+                private dGetCapability mGetCapability;
                 private bool mHasBeenSetAsSelected = false;
 
                 private cMessageFlags mPermanentFlags = null;
@@ -32,20 +32,13 @@ namespace work.bacome.imapclient
                 private uint? mUnseen = null;
                 private cCache mCache;
 
-                public cSelectedMailbox(cMailboxId pMailboxId, bool pForUpdate, cEventSynchroniser pEventSynchoniser, cCapability pCapability)
+                public cSelectedMailbox(cMailboxId pMailboxId, bool pForUpdate, cEventSynchroniser pEventSynchoniser, dGetCapability pGetCapability)
                 {
                     MailboxId = pMailboxId ?? throw new ArgumentNullException(nameof(pMailboxId));
                     mSelectedForUpdate = pForUpdate;
                     mEventSynchroniser = pEventSynchoniser ?? throw new ArgumentNullException(nameof(pEventSynchoniser));
-                    mCapability = pCapability;
-                    mCache = new cCache(pMailboxId, null, pEventSynchoniser, pCapability, false);
-                }
-
-                public void SetCapability(cCapability pCapability, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(SetCapability), pCapability);
-                    mCapability = pCapability;
-                    mCache.SetCapability(pCapability, lContext);
+                    mGetCapability = pGetCapability;
+                    mCache = new cCache(pMailboxId, null, pEventSynchoniser, mGetCapability, false);
                 }
 
                 public void SetAsSelected(cTrace.cContext pParentContext)

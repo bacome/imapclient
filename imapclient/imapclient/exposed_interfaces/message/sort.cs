@@ -136,17 +136,17 @@ namespace work.bacome.imapclient
 
         public int Comparison(cMessage pX, cMessage pY)
         {
-            var lProperties = Properties(out _);
-            pX.Fetch(lProperties);
-            pY.Fetch(lProperties);
+            var lAttributes = Attributes(out _);
+            pX.Fetch(lAttributes);
+            pY.Fetch(lAttributes);
             return Comparison(pX.Handle, pY.Handle);
         }
 
-        public fMessageProperties Properties(out bool rSortDisplay)
+        public fFetchAttributes Attributes(out bool rSortDisplay)
         {
             rSortDisplay = false;
 
-            fMessageProperties lProperties = 0;
+            fFetchAttributes lAttributes = 0;
 
             foreach (var lItem in Items)
             {
@@ -154,7 +154,7 @@ namespace work.bacome.imapclient
                 {
                     case cSortItem.eType.received:
 
-                        lProperties |= fMessageProperties.received;
+                        lAttributes |= fFetchAttributes.received;
                         break;
 
                     case cSortItem.eType.cc:
@@ -162,23 +162,23 @@ namespace work.bacome.imapclient
                     case cSortItem.eType.subject:
                     case cSortItem.eType.to:
 
-                        lProperties |= fMessageProperties.envelope;
+                        lAttributes |= fFetchAttributes.envelope;
                         break;
 
                     case cSortItem.eType.sent:
 
-                        lProperties |= fMessageProperties.envelope | fMessageProperties.received;
+                        lAttributes |= fFetchAttributes.envelope | fFetchAttributes.received;
                         break;
 
                     case cSortItem.eType.size:
 
-                        lProperties |= fMessageProperties.size;
+                        lAttributes |= fFetchAttributes.size;
                         break;
 
                     case cSortItem.eType.displayfrom:
                     case cSortItem.eType.displayto:
 
-                        lProperties |= fMessageProperties.envelope;
+                        lAttributes |= fFetchAttributes.envelope;
                         rSortDisplay = true;
                         break;
 
@@ -188,7 +188,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            return lProperties;
+            return lAttributes;
         }
 
         private int ZCompareTo(uint? pX, uint? pY)

@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
                     private readonly cMailboxId mMailboxId;
                     private readonly uint? mUIDValidity;
                     private readonly cEventSynchroniser mEventSynchroniser;
-                    private cCapability mCapability;
+                    private dGetCapability mGetCapability;
                     private bool mHasBeenSetAsSelected;
                     private bool mValid = true;
                     private int mCacheSequence = 0;
@@ -28,22 +28,16 @@ namespace work.bacome.imapclient
                     private int mUnseenTrue = 0; // number of messages with unseen = true
                     private int mUnseenNull = 0; // number of message with unseen = null 
 
-                    public cCache(cMailboxId pMailboxId, uint? pUIDValidity, cEventSynchroniser pEventSynchroniser, cCapability pCapability, bool pHasBeenSetAsSelected)
+                    public cCache(cMailboxId pMailboxId, uint? pUIDValidity, cEventSynchroniser pEventSynchroniser, dGetCapability pGetCapability, bool pHasBeenSetAsSelected)
                     {
                         mMailboxId = pMailboxId;
                         mUIDValidity = pUIDValidity;
                         mEventSynchroniser = pEventSynchroniser;
-                        mCapability = pCapability;
+                        mGetCapability = pGetCapability;
                         mHasBeenSetAsSelected = pHasBeenSetAsSelected;
                     }
 
                     public uint? UIDValidity => mUIDValidity;
-
-                    public void SetCapability(cCapability pCapability, cTrace.cContext pParentContext)
-                    {
-                        var lContext = pParentContext.NewMethod(nameof(cCache), nameof(SetCapability), pCapability);
-                        mCapability = pCapability;
-                    }
 
                     public void SetAsSelected(cTrace.cContext pParentContext)
                     {
@@ -211,7 +205,7 @@ namespace work.bacome.imapclient
 
                             if (!pCursor.SkipBytes(kFetchSpace)) return eProcessDataResult.notprocessed;
 
-                            if (!cResponseDataFetch.Process(pCursor, lMSN, mCapability, out lFetch, lContext))
+                            if (!cResponseDataFetch.Process(pCursor, lMSN, mGetCapability(), out lFetch, lContext))
                             {
                                 lContext.TraceWarning("likely malformed fetch response");
                                 return eProcessDataResult.notprocessed;
@@ -222,9 +216,9 @@ namespace work.bacome.imapclient
 
                         var lFetchedItem = mItems[(int)lFetch.MSN - 1];
 
-                        var lPropertiesSet = lFetchedItem.Update(mUIDValidity, lFetch);
+                        var lAttributesSet = lFetchedItem.Update(mUIDValidity, lFetch);
 
-                        if ((lPropertiesSet & fMessageProperties.flags) != 0)
+                        if ((lAttributesSet & fFetchAttributes.flags) != 0)
                         {
                             if (lFetch.Flags.ContainsSeen)
                             {
@@ -259,13 +253,13 @@ namespace work.bacome.imapclient
                             }
                         }
 
-                        if ((lPropertiesSet & fMessageProperties.uid) != 0 && lFetchedItem.UID != null) mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
+                        if ((lAttributesSet & fFetchAttributes.uid) != 0 && lFetchedItem.UID != null) mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
 
                         // events
                         //
                         if (mHasBeenSetAsSelected)
                         {
-                            if (lPropertiesSet != 0) mEventSynchroniser.MessagePropertiesSet(mMailboxId, lFetchedItem, lPropertiesSet, lContext);
+                            if (lAttributesSet != 0) mEventSynchroniser.MessageAttributesSet(mMailboxId, lFetchedItem, lAttributesSet, lContext);
                             if (lUnseenUpdated) mEventSynchroniser.MailboxPropertyChanged(mMailboxId, nameof(iMailboxProperties.Unseen), lContext);
                         }
 

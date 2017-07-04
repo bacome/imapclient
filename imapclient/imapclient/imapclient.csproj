@@ -44,10 +44,10 @@
     <Compile Include="client\connect.cs" />
     <Compile Include="client\disconnect.cs" />
     <Compile Include="client\fetchcontrol.cs" />
-    <Compile Include="client\fetchproperties.cs" />
+    <Compile Include="client\fetchattributes.cs" />
     <Compile Include="client\fetchbody.cs" />
     <Compile Include="client\uidfetchbody.cs" />
-    <Compile Include="client\uidfetchproperties.cs" />
+    <Compile Include="client\uidfetchattributes.cs" />
     <Compile Include="client\mailboxes.cs" />
     <Compile Include="client\poll.cs" />
     <Compile Include="client\messages.cs" />
@@ -185,9 +185,9 @@
     <Compile Include="session\selected_mailbox\selectedmailboxcache.cs" />
     <Compile Include="session\session\base.cs" />
     <Compile Include="session\session\connect.cs" />
-    <Compile Include="session\fetch\properties.cs" />
+    <Compile Include="session\fetch\attributes.cs" />
     <Compile Include="session\fetch\section.cs" />
-    <Compile Include="session\fetch\uidproperties.cs" />
+    <Compile Include="session\fetch\uidattributes.cs" />
     <Compile Include="session\session\poll.cs" />
     <Compile Include="session\session\select.cs" />
     <Compile Include="session\support\command.cs" />
