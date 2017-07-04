@@ -17,6 +17,19 @@ namespace work.bacome.imapclient
         public enum eSizeCompare { smaller, larger }
 
         public static readonly cFilterUID UID = new cFilterUID();
+
+        public static readonly cFilter IsAnswered = new cFlagsContain(cMessageFlags.Answered);
+        public static readonly cFilter IsFlagged = new cFlagsContain(cMessageFlags.Flagged);
+        public static readonly cFilter IsDeleted = new cFlagsContain(cMessageFlags.Deleted);
+        public static readonly cFilter IsSeen = new cFlagsContain(cMessageFlags.Seen);
+        public static readonly cFilter IsDraft = new cFlagsContain(cMessageFlags.Draft);
+        public static readonly cFilter IsRecent = new cFlagsContain(cMessageFlags.Recent);
+
+        public static readonly cFilter IsMDNSent = new cFlagsContain(cMessageFlags.MDNSent);
+        public static readonly cFilter IsForwarded = new cFlagsContain(cMessageFlags.Forwarded);
+        public static readonly cFilter IsSubmitPending = new cFlagsContain(cMessageFlags.SubmitPending);
+        public static readonly cFilter IsSubmitted = new cFlagsContain(cMessageFlags.Submitted);
+
         public static readonly cPart BCC = new cPart(ePart.bcc);
         public static readonly cPart Body = new cPart(ePart.body);
         public static readonly cPart CC = new cPart(ePart.cc);
@@ -24,11 +37,13 @@ namespace work.bacome.imapclient
         public static readonly cPart Subject = new cPart(ePart.subject);
         public static readonly cPart Text = new cPart(ePart.text);
         public static readonly cPart To = new cPart(ePart.to);
+
         public static readonly cDate Received = new cDate(eDate.arrival);
         public static readonly cDate Sent = new cDate(eDate.sent);
+
         public static readonly cSize Size = new cSize();
 
-        private static readonly cAnd kFalse = new cAnd(new cFilter[] { new cIsFlagged(fMessageFlags.seen), new cIsNotFlagged(fMessageFlags.seen) });
+        private static readonly cAnd kFalse = new cAnd(new cFilter[] { new cFlagsContain(cMessageFlags.Seen), new cNot(new cFlagsContain(cMessageFlags.Seen)) });
 
         public readonly uint? UIDValidity;
 
@@ -64,67 +79,25 @@ namespace work.bacome.imapclient
             public static cFilter operator !=(cFilterUID pFilterUID, cUID pUID) => new cNot(new cUIDIn(pUID.UIDValidity, new cSequenceSet(pUID.UID)));
         }
 
-        public class cIsFlagged : cFilter
+        public class cFlagsContain : cFilter
         {
-            public readonly fMessageFlags Flags;
+            public readonly cMessageFlags Flags;
 
-            public cIsFlagged(fMessageFlags pFlags) : base(null)
+            public cFlagsContain(params string[] pFlags) : base(null)
             {
-                if ((pFlags & fMessageFlags.asterisk) != 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-                if ((pFlags & fMessageFlags.allsettableflags) == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-                Flags = pFlags;
+                Flags = new cMessageFlags(new cFetchableFlags(pFlags));
             }
 
-            public override string ToString() => $"{nameof(cIsFlagged)}({Flags})";
-        }
-
-        public static cFilter IsFlagged(fMessageFlags pFlags) => new cIsFlagged(pFlags);
-
-        public class cIsNotFlagged : cFilter
-        {
-            public readonly fMessageFlags Flags;
-
-            public cIsNotFlagged(fMessageFlags pFlags) : base(null)
+            public cFlagsContain(cFetchableFlags pFlags) : base(null)
             {
-                if ((pFlags & fMessageFlags.asterisk) != 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-                if ((pFlags & fMessageFlags.allsettableflags) == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-                Flags = pFlags;
+                Flags = new cMessageFlags(pFlags);
             }
 
-            public override string ToString() => $"{nameof(cIsNotFlagged)}({Flags})";
+            public override string ToString() => $"{nameof(cFlagsContain)}({Flags})";
         }
 
-        public static cFilter IsNotFlagged(fMessageFlags pFlags) => new cIsNotFlagged(pFlags);
-
-        public class cKeyword : cFilter
-        {
-            public readonly string Keyword;
-
-            public cKeyword(string pKeyword) : base(null)
-            {
-                if (!cCommandPart.TryAsAtom(pKeyword, out _)) throw new ArgumentOutOfRangeException(pKeyword);
-                Keyword = pKeyword;
-            }
-
-            public override string ToString() => $"{nameof(cKeyword)}({Keyword})";
-        }
-
-        public static cFilter IsFlagged(string pKeyword) => new cKeyword(pKeyword);
-
-        public class cUnkeyword : cFilter
-        {
-            public readonly string Keyword;
-
-            public cUnkeyword(string pKeyword) : base(null)
-            {
-                if (!cCommandPart.TryAsAtom(pKeyword, out _)) throw new ArgumentOutOfRangeException(pKeyword);
-                Keyword = pKeyword;
-            }
-
-            public override string ToString() => $"{nameof(cUnkeyword)}({Keyword})";
-        }
-
-        public static cFilter IsNotFlagged(string pKeyword) => new cUnkeyword(pKeyword);
+        public static cFilter FlagsContain(params string[] pFlags) => new cFlagsContain(pFlags);
+        public static cFilter FlagsContain(cFetchableFlags pFlags) => new cFlagsContain(pFlags);
 
         public class cPartContains : cFilter
         {
@@ -295,12 +268,20 @@ namespace work.bacome.imapclient
             if (pA == null) throw new ArgumentNullException(nameof(pA));
             if (pB == null) throw new ArgumentNullException(nameof(pB));
 
+            if (pA is cFlagsContain lFCA && pB is cFlagsContain lFCB)
+            {
+                cFetchableFlags lFlags = new cFetchableFlags();
+                lFlags.Add(lFCA.Flags);
+                lFlags.Add(lFCB.Flags);
+                return new cFlagsContain(lFlags);
+            }
+
             List<cFilter> lItems = new List<cFilter>();
 
-            if (pA is cAnd lA) lItems.AddRange(lA.Terms);
+            if (pA is cAnd lAA) lItems.AddRange(lAA.Terms);
             else lItems.Add(pA);
 
-            if (pB is cAnd lB) lItems.AddRange(lB.Terms);
+            if (pB is cAnd lAB) lItems.AddRange(lAB.Terms);
             else lItems.Add(pB);
 
             return new cAnd(lItems);

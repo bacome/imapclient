@@ -67,7 +67,7 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                private static fMailboxFlags ZGetMailboxFlags(cCapability pCapability, cFlags pFlags, cExtendedItems pListExtendedItems)
+                private static fMailboxFlags ZGetMailboxFlags(cCapability pCapability, cBytesCursor.cFlags pFlags, cExtendedItems pListExtendedItems)
                 {
                     fMailboxFlags lResult = fMailboxFlags.rfc3501;
 

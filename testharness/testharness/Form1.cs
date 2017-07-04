@@ -162,7 +162,7 @@ namespace testharness
 
         private void mIMAPClient_MessagePropertiesSet(object sender, cMessagePropertiesSetEventArgs e)
         {
-            if ((e.Set & fMessageProperties.flags) != 0) ZRefreshMessageHeader(e.Handle);
+            if ((e.PropertiesSet & fMessageProperties.flags) != 0) ZRefreshMessageHeader(e.Handle);
         }
 
         private void mIMAPClient_MessageExpunged(object sender, cMessageExpungedEventArgs e)

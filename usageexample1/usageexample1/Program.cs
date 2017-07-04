@@ -49,11 +49,12 @@ namespace usageexample1
                     lInbox.Select();
 
                     // list some details of the unseen messages
-
-                    foreach (var lMessage in lInbox.Messages(cFilter.IsNotFlagged(fMessageFlags.seen), new cSort(cSortItem.Received), fMessageProperties.envelope | fMessageProperties.bodystructure))
+                    //  (for efficiency specify the message properties to retrieve)
+                    //
+                    foreach (var lMessage in lInbox.Messages(!cFilter.IsSeen, new cSort(cSortItem.Received), fMessageProperties.envelope | fMessageProperties.bodystructure))
                     {
                         Console.WriteLine("Sent: " + lMessage.Sent);
-                        Console.WriteLine("From: " + lMessage.From[0].DisplayName);
+                        Console.WriteLine("From: " + lMessage.From.DisplaySortString);
                         Console.WriteLine("Subject: " + lMessage.Subject);
                         Console.WriteLine();
 
@@ -130,11 +131,10 @@ Console.WriteLine();
 lClient.Inbox.Select();
 
 // list unseen messages in the inbox
-
 foreach (var lMessage in lClient.Inbox.Messages())
 {
     Console.WriteLine("Sent: " + lMessage.Sent);
-    Console.WriteLine("From: " + lMessage.From[0].DisplayName);
+    Console.WriteLine("From: " + lMessage.From.DisplaySortString);
     Console.WriteLine("Subject: " + lMessage.Subject);
     Console.WriteLine();
 
@@ -160,49 +160,6 @@ foreach (var lMessage in lClient.Inbox.Messages())
 }
 
 // done
-lClient.Disconnect();
-        }
-
-
-        static void WebVersion()
-        {
-cIMAPClient lClient = new cIMAPClient();
-
-// connect
-lClient.SetServer(mHost);
-lClient.SetPlainCredentials(mUserId, mPassword);
-lClient.Connect();
-
-// list mailboxes in the first personal namespace
-            
-Console.WriteLine("a list of mailboxes");
-
-var lNamespace = lClient.Namespaces.Personal[0];
-
-foreach (var lMailbox in lNamespace.Mailboxes())
-    Console.WriteLine(lMailbox.Name);
-
-// list status of inbox
-
-var lStatus = lClient.Inbox.Status(fStatusAttributes.all);
-
-Console.WriteLine(
-    "{0} unseen messages out of {1} in the inbox",
-    lStatus.Unseen,
-    lStatus.Messages);
-
-// select the inbox so we can look at the messages in it
-lClient.Inbox.Select();
-
-// list some details messages in the inbox
-
-foreach (var lMessage in lClient.Inbox.Messages())
-    Console.WriteLine("{0}\t{1}\t{2}",
-        lMessage.Sent,
-        lMessage.From[0].DisplayName,
-        lMessage.Subject);
-
-// disconnect
 lClient.Disconnect();
         }
     }

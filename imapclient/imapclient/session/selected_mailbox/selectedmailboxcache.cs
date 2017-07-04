@@ -222,11 +222,11 @@ namespace work.bacome.imapclient
 
                         var lFetchedItem = mItems[(int)lFetch.MSN - 1];
 
-                        lFetchedItem.Update(mUIDValidity, lFetch, out var lSet);
+                        var lPropertiesSet = lFetchedItem.Update(mUIDValidity, lFetch);
 
-                        if ((lSet & fMessageProperties.flags) != 0)
+                        if ((lPropertiesSet & fMessageProperties.flags) != 0)
                         {
-                            if (lFetch.Flags.Seen)
+                            if (lFetch.Flags.ContainsSeen)
                             {
                                 if (lFetchedItem.Unseen == null)
                                 {
@@ -259,13 +259,13 @@ namespace work.bacome.imapclient
                             }
                         }
 
-                        if ((lSet & fMessageProperties.uid) != 0) mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
+                        if ((lPropertiesSet & fMessageProperties.uid) != 0 && lFetchedItem.UID != null) mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
 
                         // events
                         //
                         if (mHasBeenSetAsSelected)
                         {
-                            if (lSet != 0) mEventSynchroniser.MessagePropertiesSet(mMailboxId, lFetchedItem, lSet, lContext);
+                            if (lPropertiesSet != 0) mEventSynchroniser.MessagePropertiesSet(mMailboxId, lFetchedItem, lPropertiesSet, lContext);
                             if (lUnseenUpdated) mEventSynchroniser.MailboxPropertyChanged(mMailboxId, nameof(iMailboxProperties.Unseen), lContext);
                         }
 

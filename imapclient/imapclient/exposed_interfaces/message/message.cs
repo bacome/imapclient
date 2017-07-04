@@ -86,6 +86,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructure);
+                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) throw new cMessageExpungedException();
                 return Handle.BodyStructure;
             }
         }
@@ -95,7 +96,8 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                return Handle.Envelope?.Sent; // note that if the message has been deleted the envelope still might not be there
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                return Handle.Envelope.Sent;
             }
         }
 
@@ -104,7 +106,8 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                return Handle.Envelope?.Subject; // note that if the message has been deleted the envelope still might not be there
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                return Handle.Envelope.Subject;
             }
         }
 
@@ -113,7 +116,8 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                return Handle.Envelope?.From; // note that if the message has been deleted the envelope still might not be there
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                return Handle.Envelope.From;
             }
         }
 
@@ -122,7 +126,8 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                return Handle.Envelope?.Sender; // note that if the message has been deleted the envelope still might not be there
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                return Handle.Envelope.Sender;
             }
         }
 
@@ -131,7 +136,8 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                return Handle.Envelope?.ReplyTo; // note that if the message has been deleted the envelope still might not be there
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                return Handle.Envelope.ReplyTo;
             }
         }
 
@@ -140,7 +146,8 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                return Handle.Envelope?.To; // note that if the message has been deleted the envelope still might not be there
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                return Handle.Envelope.To;
             }
         }
 
@@ -149,7 +156,8 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                return Handle.Envelope?.CC; // note that if the message has been deleted the envelope still might not be there
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                return Handle.Envelope.CC;
             }
         }
 
@@ -158,7 +166,8 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                return Handle.Envelope?.BCC; // note that if the message has been deleted the envelope still might not be there
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                return Handle.Envelope.BCC;
             }
         }
 
@@ -167,7 +176,8 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                return Handle.Envelope?.InReplyTo; // note that if the message has been deleted the envelope still might not be there
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                return Handle.Envelope.InReplyTo;
             }
         }
 
@@ -176,71 +186,67 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.envelope) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.envelope);
-                return Handle.Envelope?.MessageId; // note that if the message has been deleted the envelope still might not be there
+                if ((Handle.Properties & fMessageProperties.envelope) == 0) throw new cMessageExpungedException();
+                return Handle.Envelope.MessageId;
             }
         }
 
-        public fMessageFlags? Flags
+        public cMessageFlags Flags
         {
             get
             {
                 if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-                return Handle.Flags?.KnownFlags; // note that if the message has been deleted the flags still might not be there
+                if ((Handle.Properties & fMessageProperties.flags) == 0) throw new cMessageExpungedException();
+                return Handle.Flags;
             }
         }
 
-        public cStrings AllFlags
-        {
-            get
-            {
-                if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-                return Handle.Flags?.AllFlags; // note that if the message has been deleted the flags still might not be there
-            }
-        }
+        public bool FlagsContain(params string[] pFlags) => ZFlagsContain(pFlags);
+        public bool FlagsContain(IEnumerable<string> pFlags) => ZFlagsContain(pFlags);
 
-        public bool? IsFlagged(fMessageFlags pFlags)
+        private bool ZFlagsContain(IEnumerable<string> pFlags)
         {
             if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-            if (Handle.Flags == null) return null;
-            return (Handle.Flags.KnownFlags & pFlags) == pFlags;
+            if ((Handle.Properties & fMessageProperties.flags) == 0) throw new cMessageExpungedException();
+            return Handle.Flags.Contain(pFlags);
         }
 
-        public bool? IsNotFlagged(fMessageFlags pFlags)
+        public bool IsAnswered => ZFlagsContain(cMessageFlags.Answered);
+        public bool IsFlagged => ZFlagsContain(cMessageFlags.Flagged);
+        public bool IsDeleted => ZFlagsContain(cMessageFlags.Deleted);
+        public bool IsSeen => ZFlagsContain(cMessageFlags.Seen);
+        public bool IsDraft => ZFlagsContain(cMessageFlags.Draft);
+        public bool IsRecent => ZFlagsContain(cMessageFlags.Recent);
+
+        public bool IsMDNSent => ZFlagsContain(cMessageFlags.MDNSent);
+        public bool IsForwarded => ZFlagsContain(cMessageFlags.Forwarded);
+        public bool IsSubmitPending => ZFlagsContain(cMessageFlags.SubmitPending);
+        public bool IsSubmitted => ZFlagsContain(cMessageFlags.Submitted);
+
+        private bool ZFlagsContain(string pFlag)
         {
             if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-            if (Handle.Flags == null) return null;
-            return (Handle.Flags.KnownFlags & pFlags) == 0;
+            if ((Handle.Properties & fMessageProperties.flags) == 0) throw new cMessageExpungedException();
+            return Handle.Flags.Contains(pFlag);
         }
 
-        public bool? IsFlagged(string pKeyword)
-        {
-            if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-            if (Handle.Flags == null) return null;
-            return Handle.Flags.Has(pKeyword);
-        }
-
-        public bool? IsNotFlagged(string pKeyword)
-        {
-            if ((Handle.Properties & fMessageProperties.flags) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.flags);
-            if (Handle.Flags == null) return null;
-            return !Handle.Flags.Has(pKeyword);
-        }
-
-        public DateTime? Received
+        public DateTime Received
         {
             get
             {
                 if ((Handle.Properties & fMessageProperties.received) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.received);
-                return Handle.Received;
+                if ((Handle.Properties & fMessageProperties.received) == 0) throw new cMessageExpungedException();
+                return Handle.Received.Value;
             }
         }
 
-        public uint? Size
+        public uint Size
         {
             get
             {
                 if ((Handle.Properties & fMessageProperties.size) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.size);
-                return Handle.Size;
+                if ((Handle.Properties & fMessageProperties.size) == 0) throw new cMessageExpungedException();
+                return Handle.Size.Value;
             }
         }
 
@@ -249,6 +255,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.uid) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.uid);
+                if ((Handle.Properties & fMessageProperties.uid) == 0) throw new cMessageExpungedException();
                 return Handle.UID;
             }
         }
@@ -258,6 +265,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.references) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.references);
+                if ((Handle.Properties & fMessageProperties.references) == 0) throw new cMessageExpungedException();
                 return Handle.References;
             }
         }
@@ -267,7 +275,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructure);
-                if (Handle.BodyStructure == null) return null;
+                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) throw new cMessageExpungedException();
                 StringBuilder lBuilder = new StringBuilder();
                 foreach (var lPart in ZPlainText(Handle.BodyStructure)) lBuilder.Append(Fetch(lPart));
                 return lBuilder.ToString();
@@ -277,7 +285,7 @@ namespace work.bacome.imapclient
         public async Task<string> GetPlainTextAsync()
         {
             if ((Handle.Properties & fMessageProperties.bodystructure) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructure).ConfigureAwait(false);
-            if (Handle.BodyStructure == null) return null;
+            if ((Handle.Properties & fMessageProperties.bodystructure) == 0) throw new cMessageExpungedException();
             StringBuilder lBuilder = new StringBuilder();
             foreach (var lPart in ZPlainText(Handle.BodyStructure)) lBuilder.Append(await FetchAsync(lPart).ConfigureAwait(false));
             return lBuilder.ToString();
@@ -313,7 +321,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Handle.Properties & fMessageProperties.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructure);
-                if (Handle.BodyStructure == null) return null;
+                if ((Handle.Properties & fMessageProperties.bodystructure) == 0) throw new cMessageExpungedException();
                 return ZAttachments(Handle.BodyStructure);
             }
         }
@@ -321,7 +329,7 @@ namespace work.bacome.imapclient
         public async Task<List<cAttachment>> GetAttachmentsAsync()
         {
             if ((Handle.Properties & fMessageProperties.bodystructure) == 0) await Client.FetchAsync(MailboxId, Handle, fMessageProperties.bodystructure).ConfigureAwait(false);
-            if (Handle.BodyStructure == null) return null;
+            if ((Handle.Properties & fMessageProperties.bodystructure) == 0) throw new cMessageExpungedException();
             return ZAttachments(Handle.BodyStructure);
         }
 

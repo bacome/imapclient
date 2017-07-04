@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
 {
     public class cCulturedString
     {
-        public readonly ReadOnlyCollection<cPart> Parts; // may be null, shouldn't be empty
+        public readonly ReadOnlyCollection<cCulturedStringPart> Parts; // may be null, shouldn't be empty
 
         public cCulturedString(IList<byte> pBytes)
         {
@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
 
             cBytesCursor lCursor = new cBytesCursor(pBytes);
 
-            List<cPart> lParts = new List<cPart>();
+            List<cCulturedStringPart> lParts = new List<cCulturedStringPart>();
             cByteList lBytes = new cByteList();
             bool lPendingSpace = false;
 
@@ -36,11 +36,11 @@ namespace work.bacome.imapclient
                 {
                     if (lBytes.Count > 0)
                     {
-                        lParts.Add(new cPart(cTools.UTF8BytesToString(lBytes), null));
+                        lParts.Add(new cCulturedStringPart(cTools.UTF8BytesToString(lBytes), null));
                         lBytes = new cByteList();
                     }
 
-                    lParts.Add(new cPart(lString, lLanguageTag));
+                    lParts.Add(new cCulturedStringPart(lString, lLanguageTag));
 
                     lPendingSpace = true;
                 }
@@ -60,8 +60,16 @@ namespace work.bacome.imapclient
                 }
             }
 
-            if (lBytes.Count > 0) lParts.Add(new cPart(cTools.UTF8BytesToString(lBytes), null));
-            Parts = new ReadOnlyCollection<cPart>(lParts);
+            if (lBytes.Count > 0) lParts.Add(new cCulturedStringPart(cTools.UTF8BytesToString(lBytes), null));
+            Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
+        }
+
+        public cCulturedString(string pString)
+        {
+            if (pString == null) throw new ArgumentNullException(nameof(pString));
+            List<cCulturedStringPart> lParts = new List<cCulturedStringPart>();
+            lParts.Add(new cCulturedStringPart(pString, null));
+            Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
         }
 
         public override string ToString()
@@ -71,21 +79,6 @@ namespace work.bacome.imapclient
             var lBuilder = new StringBuilder();
             foreach (var lPart in Parts) lBuilder.Append(lPart.String);
             return lBuilder.ToString();
-        }
-
-        public class cPart
-        {
-            public readonly string String;
-            public readonly string LanguageTag; // may be null, uppercased
-
-            public cPart(string pString, string pLanguageTag)
-            {
-                String = pString ?? throw new ArgumentNullException(nameof(pString));
-                if (pLanguageTag == null) LanguageTag = null;
-                else LanguageTag = pLanguageTag.ToUpperInvariant();
-            }
-
-            public override string ToString() => $"{nameof(cPart)}({String},{LanguageTag})";
         }
 
         public static implicit operator string(cCulturedString pString) => pString?.ToString();
@@ -123,5 +116,20 @@ namespace work.bacome.imapclient
             if (lCString != "Keith Moore <moore@cs.utk.edu>") throw new cTestsException($"{nameof(cCulturedString)}.10");
             if (lCString.Parts[0].LanguageTag != "EN") throw new cTestsException($"{nameof(cCulturedString)}.11");
         }
+    }
+
+    public class cCulturedStringPart
+    {
+        public readonly string String;
+        public readonly string LanguageTag; // may be null, uppercased
+
+        public cCulturedStringPart(string pString, string pLanguageTag)
+        {
+            String = pString ?? throw new ArgumentNullException(nameof(pString));
+            if (pLanguageTag == null) LanguageTag = null;
+            else LanguageTag = pLanguageTag.ToUpperInvariant();
+        }
+
+        public override string ToString() => $"{nameof(cCulturedStringPart)}({String},{LanguageTag})";
     }
 }

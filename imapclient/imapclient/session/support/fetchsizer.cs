@@ -69,22 +69,7 @@ namespace work.bacome.imapclient
                 }
 
                 if (lNewCurrent > _Current * 2) Current = _Current * 2;
-                else
-                {
-                    if (lNewCurrent < _Current)
-                    {
-                        if (lContext.EmitsVerbose)
-                        {
-                            lContext.TraceVerbose("***current went down***");
-                            lContext.TraceVerbose(mSamples[0].ToString());
-                            lContext.TraceVerbose(mSamples[1].ToString());
-                            lContext.TraceVerbose(mSamples[2].ToString());
-                            lContext.TraceVerbose(mSamples[3].ToString());
-                        }
-                    }
-
-                    Current = lNewCurrent;
-                }
+                else Current = lNewCurrent;
             }
         }
 
