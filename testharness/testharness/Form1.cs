@@ -156,16 +156,10 @@ namespace testharness
             mIMAPClient.PropertyChanged += ZSetState;
             mIMAPClient.MailboxPropertyChanged += mIMAPClient_MailboxPropertyChanged;
             mIMAPClient.MailboxMessageDelivery += mIMAPClient_MailboxMessageDelivery;
-            mIMAPClient.MessageExpunged += mIMAPClient_MessageExpunged;
-            mIMAPClient.MessageAttributesSet += mIMAPClient_MessageAttributesSet;
+            mIMAPClient.MessagePropertyChanged += mIMAPClient_MessagePropertyChanged;
         }
 
-        private void mIMAPClient_MessageAttributesSet(object sender, cMessageAttributesSetEventArgs e)
-        {
-            if ((e.AttributesSet & fFetchAttributes.flags) != 0) ZRefreshMessageHeader(e.Handle);
-        }
-
-        private void mIMAPClient_MessageExpunged(object sender, cMessageExpungedEventArgs e)
+        private void mIMAPClient_MessagePropertyChanged(object sender, cMessagePropertyChangedEventArgs e)
         {
             ZRefreshMessageHeader(e.Handle);
         }
@@ -704,7 +698,14 @@ namespace testharness
         private async void dgvMessageHeaders_CurrentCellChanged(object sender, EventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(Form1), nameof(dgvMessageHeaders_CurrentCellChanged));
-            await ZDGVMessageHeadersCoordinateChildrenAsync(lContext);
+
+            try { await ZDGVMessageHeadersCoordinateChildrenAsync(lContext); }
+            catch (Exception ex)
+            {
+                lContext.TraceException(ex);
+                MessageBox.Show($"a problem occurred: {ex}");
+                return;
+            }
         }
 
         private void cmdStructure_Click(object sender, EventArgs e)

@@ -43,17 +43,11 @@ namespace work.bacome.imapclient
                     rFlagsSet = 0;
 
                     if ((rAttributesSet & fFetchAttributes.flags) != 0) Flags = lFetch.Flags;
-                    else
+                    else if (lFetch.Flags != null && lFetch.Flags != Flags)
                     {
-                        if (lFetch.Flags != Flags)
-                        {
-                            rAttributesSet |= fFetchAttributes.flags;
-
-                            rFlagsSet = ?;
-
-
-                            Flags = lFetch.Flags;
-                        }
+                        rAttributesSet |= fFetchAttributes.flags;
+                        rFlagsSet = lFetch.Flags.KnownFlags ^ Flags.KnownFlags;
+                        Flags = lFetch.Flags;
                     }
 
                     if ((rAttributesSet & fFetchAttributes.envelope) != 0) Envelope = lFetch.Envelope;

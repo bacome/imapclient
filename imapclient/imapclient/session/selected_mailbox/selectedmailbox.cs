@@ -67,15 +67,6 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                /*
-                public cMailboxStatus Status
-                {
-                    get
-                    {
-                        return new cMailboxStatus((uint)mCache.Count, mRecent, mUIDNext, UIDValidity, lUnseen);
-                    }
-                }*/
-
                 public bool Selected => true;
                 public bool SelectedForUpdate => mSelectedForUpdate;
                 public bool AccessReadOnly { get; private set; } = false;
@@ -226,7 +217,7 @@ namespace work.bacome.imapclient
                     return false;
                 }
 
-                ;?; // to string
+                public override string ToString() => $"{nameof(cSelectedMailbox)}({MailboxId},{mSelectedForUpdate})";
             }
         }
     }
