@@ -17,5 +17,6 @@ namespace work.bacome.imapclient
         cUID UID { get; }
         cStrings References { get; }
         cBinarySizes BinarySizes { get; } // part => size
+        ulong? ModSeq { get; }
     }
 }

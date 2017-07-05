@@ -65,7 +65,7 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandCompleted), pResult);
-                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok) mSetSelectedMailbox(mPendingSelectedMailbox, lContext);
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mSetSelectedMailbox(mPendingSelectedMailbox, lContext);
                 }
             }
         }

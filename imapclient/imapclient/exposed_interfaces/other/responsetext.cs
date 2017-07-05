@@ -78,18 +78,18 @@ namespace work.bacome.imapclient
 
     public class cResponseTextEventArgs : EventArgs
     {
-        public readonly eResponseTextType ResponseTextType;
-        public readonly cResponseText ResponseText;
+        public readonly eResponseTextType TextType;
+        public readonly cResponseText Text;
 
-        public cResponseTextEventArgs(eResponseTextType pResponseTextType, cResponseText pResponseText)
+        public cResponseTextEventArgs(eResponseTextType pTextType, cResponseText pText)
         {
-            ResponseTextType = pResponseTextType;
-            ResponseText = pResponseText;
+            TextType = pTextType;
+            Text = pText;
         }
 
         public override string ToString()
         {
-            return $"{nameof(cResponseTextEventArgs)}({ResponseTextType},{ResponseText})";
+            return $"{nameof(cResponseTextEventArgs)}({TextType},{Text})";
         }
     }
 }

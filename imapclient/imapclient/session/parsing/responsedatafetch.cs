@@ -28,6 +28,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kUIDSpace = new cBytes("UID ");
                 private static readonly cBytes kBinaryLBracket = new cBytes("BINARY[");
                 private static readonly cBytes kBinarySizeLBracket = new cBytes("BINARY.SIZE[");
+                private static readonly cBytes kModSeqSpace = new cBytes("MODSEQ ");
 
                 public readonly uint MSN;
                 public readonly fFetchAttributes Attributes;
@@ -44,8 +45,9 @@ namespace work.bacome.imapclient
                 public readonly uint? UID;
                 public readonly cStrings References;
                 public readonly cBinarySizes BinarySizes;
+                public readonly ulong? ModSeq;
 
-                private cResponseDataFetch(uint pMSN, fFetchAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cStrings pReferences, cBinarySizes pBinarySizes)
+                private cResponseDataFetch(uint pMSN, fFetchAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cStrings pReferences, cBinarySizes pBinarySizes, ulong? pModSeq)
                 {
                     MSN = pMSN;
                     Attributes = pAttributes;
@@ -62,6 +64,7 @@ namespace work.bacome.imapclient
                     UID = pUID;
                     References = pReferences;
                     BinarySizes = pBinarySizes;
+                    ModSeq = pModSeq;
                 }
 
                 public override string ToString()
@@ -87,6 +90,7 @@ namespace work.bacome.imapclient
                     lBuilder.Append(UID);
                     lBuilder.Append(References);
                     lBuilder.Append(BinarySizes);
+                    lBuilder.Append(ModSeq);
 
                     return lBuilder.ToString();
                 }
@@ -113,6 +117,7 @@ namespace work.bacome.imapclient
                     uint? lUID = null;
                     cStrings lReferences = null;
                     cBinarySizesBuilder lBinarySizesBuilder = new cBinarySizesBuilder();
+                    ulong? lModSeq = null;
 
                     while (true)
                     {
@@ -216,6 +221,12 @@ namespace work.bacome.imapclient
                             lOK = ZProcessBinarySize(pCursor, out var lPart, out var lBytes);
                             if (lOK) lBinarySizesBuilder.Set(lPart, lBytes);
                         }
+                        else if (pCursor.SkipBytes(kModSeqSpace))
+                        {
+                            lAttribute = fFetchAttributes.modseq;
+                            lOK = pCursor.GetModSeq(out var lTemp);
+                            if (lOK) lModSeq = lTemp;
+                        }
                         else break;
 
                         lAttributes |= lAttribute;
@@ -233,7 +244,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN) || !pCursor.Position.AtEnd) { rResponseData = null; pCursor.ParsedAs = null; return false; }
 
-                    rResponseData = new cResponseDataFetch(pMSN, lAttributes, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lReferences, lBinarySizesBuilder.AsBinarySizes());
+                    rResponseData = new cResponseDataFetch(pMSN, lAttributes, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lReferences, lBinarySizesBuilder.AsBinarySizes(), lModSeq);
                     pCursor.ParsedAs = rResponseData;
                     return true;
                 }

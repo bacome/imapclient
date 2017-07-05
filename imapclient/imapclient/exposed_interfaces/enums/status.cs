@@ -13,6 +13,7 @@ namespace work.bacome.imapclient
         uidnext = 1 << 3,
         uidvalidity = 1 << 4,
         unseen = 1 << 5,
-        all = 0b111110
+        highestmodseq = 1 << 6,
+        all = 0b1111110
     }
 }

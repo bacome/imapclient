@@ -2369,7 +2369,7 @@ namespace testharness
 
                 var lExpected = mExpected[mCurrent++];
 
-                if (e.ResponseTextType == lExpected.Type && e.ResponseText.Code == lExpected.Code && e.ResponseText.Text == lExpected.Text) return;
+                if (e.TextType == lExpected.Type && e.Text.Code == lExpected.Code && e.Text.Text == lExpected.Text) return;
 
                 mUnexpected.Add(e.ToString());
             }

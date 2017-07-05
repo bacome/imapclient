@@ -17,6 +17,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kPermanentFlagsSpace = new cBytes("PERMANENTFLAGS ");
                 private static readonly cBytes kUIDNextSpace = new cBytes("UIDNEXT ");
                 private static readonly cBytes kUIDValiditySpace = new cBytes("UIDVALIDITY ");
+                private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
                 private static readonly cBytes kReadWriteRBracketSpace = new cBytes("READ-WRITE] ");
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
 
@@ -214,7 +215,7 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    return false;
+                    return mCache.ProcessTextCode(pCursor, lContext);
                 }
 
                 public override string ToString() => $"{nameof(cSelectedMailbox)}({MailboxId},{mSelectedForUpdate})";

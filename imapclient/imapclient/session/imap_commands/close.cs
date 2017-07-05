@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("close success");
                         return;
@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCloseCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok) mSetSelectedMailbox(null, lContext);
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mSetSelectedMailbox(null, lContext);
                 }
             }
         }

@@ -94,12 +94,12 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void ResponseText(eResponseTextType pResponseTextType, cResponseText pResponseText, cTrace.cContext pParentContext)
+            public void ResponseText(eResponseTextType pTextType, cResponseText pResponseText, cTrace.cContext pParentContext)
             {
                 if (mClient.ResponseText == null) return; // pre-check for efficiency only
-                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(ResponseText), pResponseTextType, pResponseText);
+                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(ResponseText), pTextType, pResponseText);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
-                ZFireAndForget(new cResponseTextEventArgs(pResponseTextType, pResponseText), lContext);
+                ZFireAndForget(new cResponseTextEventArgs(pTextType, pResponseText), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 

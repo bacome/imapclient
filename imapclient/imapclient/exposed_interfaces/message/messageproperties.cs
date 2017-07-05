@@ -15,7 +15,8 @@ namespace work.bacome.imapclient
         bodystructure = 1 << 6,
         uid = 1 << 7,
         references = 1 << 8,
-        allmask = 0b111111110,
+        modseq = 1 << 9,
+        allmask = 0b1111111110,
         // macros from rfc3501
         macrofast = flags | received | size,
         macroall = flags | envelope | received | size,

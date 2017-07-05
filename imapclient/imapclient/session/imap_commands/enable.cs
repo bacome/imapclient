@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         var lEnabledExtensions = lHook.EnabledExtensions;
                         lContext.TraceInformation("enabled extensions {0}", lEnabledExtensions);

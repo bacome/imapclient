@@ -70,7 +70,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("listextended success");
                         return lHook.MailboxList;
@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
                     if ((pStatus & fStatusAttributes.all) != 0) lTryIgnoring |= fCapabilities.ListStatus;
                     if (lTryIgnoring == 0) lTryIgnoring |= fCapabilities.ListExtended;
 
-                    if (lResult.Result == cCommandResult.eResult.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
                     throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
                 }
             }

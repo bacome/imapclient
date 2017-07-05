@@ -73,7 +73,7 @@ namespace work.bacome.imapclient
             if (pServerCapabilities.Has("Thread=References")) Capabilities |= fCapabilities.ThreadReferences;
             if (pServerCapabilities.Has("Thread=Refs")) Capabilities |= fCapabilities.ThreadRefs;
             if (pServerCapabilities.Has("CondStore")) Capabilities |= fCapabilities.CondStore;
-            if (pServerCapabilities.Has("QResync")) Capabilities |= fCapabilities.QResync;
+            if (pServerCapabilities.Has("QResync")) Capabilities |= fCapabilities.QResync | fCapabilities.CondStore;
 
             ServerCapabilities = new cStrings(pServerCapabilities.AsUpperList());
             AuthenticationMechanisms = new cStrings(pAuthenticationMechanisms.AsUpperList());

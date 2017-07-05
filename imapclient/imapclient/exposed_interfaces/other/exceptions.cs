@@ -221,6 +221,23 @@ namespace work.bacome.imapclient
         public cFetchAttributeException() { }
     }
 
+    // thrown when a required capability for the call isn't available on the server
+    public class cUnsupportedByServerException : Exception
+    {
+        public readonly fCapabilities Required;
+
+        public cUnsupportedByServerException(fCapabilities pRequired)
+        {
+            Required = pRequired;
+        }
+
+        public cUnsupportedByServerException(fCapabilities pRequired, cTrace.cContext pContext)
+        {
+            Required = pRequired;
+            pContext.TraceError("{0}: {1}", nameof(cUnsupportedByServerException), pRequired);
+        }
+    }
+
     public class cTestsException : Exception
     {
         public cTestsException() { }

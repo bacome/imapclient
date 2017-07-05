@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("capability success");
                         if (ReferenceEquals(_Capability, lCapability)) throw new cUnexpectedServerActionException(0, "capability not received", lContext);

@@ -540,7 +540,7 @@ namespace work.bacome.imapclient
 
                         if (lResult != null)
                         {
-                            if (lResult.Result != cCommandResult.eResult.ok) throw new cProtocolErrorException(lResult, fCapabilities.Idle, lContext);
+                            if (lResult.ResultType != eCommandResultType.ok) throw new cProtocolErrorException(lResult, fCapabilities.Idle, lContext);
                             if (pExpectContinuation) throw new cUnexpectedServerActionException(fCapabilities.Idle, "idle command completed before continuation received", lContext);
                             return null;
                         }
@@ -730,24 +730,24 @@ namespace work.bacome.imapclient
                         return null;
                     }
 
-                    cCommandResult.eResult lResult;
-                    eResponseTextType lResponseTextType;
+                    eCommandResultType lResultType;
+                    eResponseTextType lTextType;
 
                     if (pCursor.SkipBytes(kOKSpace))
                     {
-                        lResult = cCommandResult.eResult.ok;
-                        lResponseTextType = eResponseTextType.success;
+                        lResultType = eCommandResultType.ok;
+                        lTextType = eResponseTextType.success;
                     }
                     else if (pCursor.SkipBytes(kNoSpace))
                     {
-                        lResult = cCommandResult.eResult.no;
-                        lResponseTextType = eResponseTextType.failure;
+                        lResultType = eCommandResultType.no;
+                        lTextType = eResponseTextType.failure;
                     }
                     else if (pCursor.SkipBytes(kBadSpace))
                     {
-                        lResult = cCommandResult.eResult.bad;
-                        if (mAuthenticateState == null) lResponseTextType = eResponseTextType.error;
-                        else lResponseTextType = eResponseTextType.authenticationcancelled;
+                        lResultType = eCommandResultType.bad;
+                        if (mAuthenticateState == null) lTextType = eResponseTextType.error;
+                        else lTextType = eResponseTextType.authenticationcancelled;
                     }
                     else
                     {
@@ -756,7 +756,11 @@ namespace work.bacome.imapclient
                         return null;
                     }
 
-                    return new cCommandResult(lResult, mResponseTextProcessor.Process(pCursor, lResponseTextType, pTextCodeProcessor, lContext));
+                    var lResult = new cCommandResult(lResultType, mResponseTextProcessor.Process(pCursor, lTextType, pTextCodeProcessor, lContext));
+
+                    if (SelectedMailbox != null) SelectedMailbox.UpdateHighestModSeq(lContext);
+
+                    return lResult;
                 }
 
                 private bool ZProcessCommandCompletion(cBytesCursor pCursor, cItem pItem, cTrace.cContext pParentContext)

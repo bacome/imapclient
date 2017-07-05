@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("namespace success");
                         if (ReferenceEquals(PersonalNamespaces, lPersonalNamespaces)) throw new cUnexpectedServerActionException(fCapabilities.Namespace, "namespace not received", lContext);

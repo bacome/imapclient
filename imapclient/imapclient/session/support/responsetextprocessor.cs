@@ -58,9 +58,9 @@ namespace work.bacome.imapclient
 
                 public cSelectedMailbox SelectedMailbox { get; set; } = null;
 
-                public cResponseText Process(cBytesCursor pCursor, eResponseTextType pResponseTextType, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
+                public cResponseText Process(cBytesCursor pCursor, eResponseTextType pTextType, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(Process), pResponseTextType);
+                    var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(Process), pTextType);
 
                     cResponseText lResponseText;
 
@@ -70,34 +70,34 @@ namespace work.bacome.imapclient
                     {
                         lResponseText = new cResponseText(pCursor.GetRestAsString());
                         lContext.TraceVerbose("response text received: {0}", lResponseText);
-                        mResponseText(pResponseTextType, lResponseText, lContext);
+                        mResponseText(pTextType, lResponseText, lContext);
                         return lResponseText;
                     }
 
                     var lBookmarkAfterLBRACET = pCursor.Position;
 
-                    if (ZGetResponseText(pCursor, pResponseTextType, kAlertRBracketSpace, eResponseTextCode.alert, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kParseRBracketSpace, eResponseTextCode.parse, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kTryCreateRBracketSpace, eResponseTextCode.trycreate, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kUnavailableRBracketSpace, eResponseTextCode.unavailable, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kAuthenticationFailedRBracketSpace, eResponseTextCode.authenticationfailed, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kAuthorizationFailedRBracketSpace, eResponseTextCode.authorizationfailed, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kExpiredRBracketSpace, eResponseTextCode.expired, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kPrivacyRequiredRBracketSpace, eResponseTextCode.privacyrequired, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kContactAdminRBracketSpace, eResponseTextCode.contactadmin, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kNoPermRBracketSpace, eResponseTextCode.noperm, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kInUseRBracketSpace, eResponseTextCode.inuse, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kExpungeIssuedRBracketSpace, eResponseTextCode.expungeissued, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kCorruptionRBracketSpace, eResponseTextCode.corruption, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kServerBugRBracketSpace, eResponseTextCode.serverbug, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kClientBugRBracketSpace, eResponseTextCode.clientbug, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kCannotRBracketSpace, eResponseTextCode.cannot, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kLimitRBracketSpace, eResponseTextCode.limit, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kOverQuotaRBracketSpace, eResponseTextCode.overquota, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kAlreadyExistsRBracketSpace, eResponseTextCode.alreadyexists, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kNonExistentRBracketSpace, eResponseTextCode.nonexistent, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kUseAttrRBracketSpace, eResponseTextCode.useattr, out lResponseText, lContext)) return lResponseText;
-                    if (ZGetResponseText(pCursor, pResponseTextType, kUnknownCTERBracketSpace, eResponseTextCode.unknowncte, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kAlertRBracketSpace, eResponseTextCode.alert, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kParseRBracketSpace, eResponseTextCode.parse, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kTryCreateRBracketSpace, eResponseTextCode.trycreate, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kUnavailableRBracketSpace, eResponseTextCode.unavailable, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kAuthenticationFailedRBracketSpace, eResponseTextCode.authenticationfailed, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kAuthorizationFailedRBracketSpace, eResponseTextCode.authorizationfailed, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kExpiredRBracketSpace, eResponseTextCode.expired, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kPrivacyRequiredRBracketSpace, eResponseTextCode.privacyrequired, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kContactAdminRBracketSpace, eResponseTextCode.contactadmin, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kNoPermRBracketSpace, eResponseTextCode.noperm, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kInUseRBracketSpace, eResponseTextCode.inuse, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kExpungeIssuedRBracketSpace, eResponseTextCode.expungeissued, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kCorruptionRBracketSpace, eResponseTextCode.corruption, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kServerBugRBracketSpace, eResponseTextCode.serverbug, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kClientBugRBracketSpace, eResponseTextCode.clientbug, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kCannotRBracketSpace, eResponseTextCode.cannot, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kLimitRBracketSpace, eResponseTextCode.limit, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kOverQuotaRBracketSpace, eResponseTextCode.overquota, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kAlreadyExistsRBracketSpace, eResponseTextCode.alreadyexists, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kNonExistentRBracketSpace, eResponseTextCode.nonexistent, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kUseAttrRBracketSpace, eResponseTextCode.useattr, out lResponseText, lContext)) return lResponseText;
+                    if (ZGetResponseText(pCursor, pTextType, kUnknownCTERBracketSpace, eResponseTextCode.unknowncte, out lResponseText, lContext)) return lResponseText;
 
                     if (pCursor.SkipBytes(kBadCharset))
                     {
@@ -105,7 +105,7 @@ namespace work.bacome.imapclient
                         {
                             lResponseText = new cResponseText(eResponseTextCode.badcharset, pCursor.GetRestAsString());
                             lContext.TraceWarning("response text received: {0}", lResponseText);
-                            mResponseText(pResponseTextType, lResponseText, lContext);
+                            mResponseText(pTextType, lResponseText, lContext);
                             return lResponseText;
                         }
 
@@ -124,7 +124,7 @@ namespace work.bacome.imapclient
                                 {
                                     lResponseText = new cResponseText(eResponseTextCode.badcharset, new cStrings(lCharsets), pCursor.GetRestAsString());
                                     lContext.TraceWarning("response text received: {0}", lResponseText);
-                                    mResponseText(pResponseTextType, lResponseText, lContext);
+                                    mResponseText(pTextType, lResponseText, lContext);
                                     return lResponseText;
                                 }
 
@@ -151,7 +151,7 @@ namespace work.bacome.imapclient
                             {
                                 lResponseText = new cResponseText(eResponseTextCode.referral, new cStrings(lURIs), pCursor.GetRestAsString());
                                 lContext.TraceWarning("response text received: {0}", lResponseText);
-                                mResponseText(pResponseTextType, lResponseText, lContext);
+                                mResponseText(pTextType, lResponseText, lContext);
                                 return lResponseText;
                             }
 
@@ -168,7 +168,7 @@ namespace work.bacome.imapclient
                         {
                             lResponseText = new cResponseText(pCursor.GetRestAsString());
                             lContext.TraceVerbose("response text received: {0}", lResponseText);
-                            mResponseText(pResponseTextType, lResponseText, lContext);
+                            mResponseText(pTextType, lResponseText, lContext);
                             return lResponseText;
                         }
 
@@ -181,7 +181,7 @@ namespace work.bacome.imapclient
                         {
                             lResponseText = new cResponseText(pCursor.GetRestAsString());
                             lContext.TraceVerbose("response text received: {0}", lResponseText);
-                            mResponseText(pResponseTextType, lResponseText, lContext);
+                            mResponseText(pTextType, lResponseText, lContext);
                             return lResponseText;
                         }
 
@@ -194,7 +194,7 @@ namespace work.bacome.imapclient
                         {
                             lResponseText = new cResponseText(lUnknownCodeAtom, null, pCursor.GetRestAsString());
                             lContext.TraceVerbose("response text received: {0}", lResponseText);
-                            mResponseText(pResponseTextType, lResponseText, lContext);
+                            mResponseText(pTextType, lResponseText, lContext);
                             return lResponseText;
                         }
 
@@ -202,7 +202,7 @@ namespace work.bacome.imapclient
                         {
                             lResponseText = new cResponseText(lUnknownCodeAtom, lUnknownCodeText, pCursor.GetRestAsString());
                             lContext.TraceVerbose("response text received: {0}", lResponseText);
-                            mResponseText(pResponseTextType, lResponseText, lContext);
+                            mResponseText(pTextType, lResponseText, lContext);
                             return lResponseText;
                         }
                     }
@@ -212,18 +212,18 @@ namespace work.bacome.imapclient
 
                     lResponseText = new cResponseText(pCursor.GetRestAsString());
                     lContext.TraceVerbose("response text received: {0}", lResponseText);
-                    mResponseText(pResponseTextType, lResponseText, lContext);
+                    mResponseText(pTextType, lResponseText, lContext);
                     return lResponseText;
                 }
 
-                private bool ZGetResponseText(cBytesCursor pCursor, eResponseTextType pResponseTextType, cBytes pResponseTextCodeBracketSpace, eResponseTextCode pResponseTextCode, out cResponseText rResponseText, cTrace.cContext pParentContext)
+                private bool ZGetResponseText(cBytesCursor pCursor, eResponseTextType pTextType, cBytes pResponseTextCodeBracketSpace, eResponseTextCode pResponseTextCode, out cResponseText rResponseText, cTrace.cContext pParentContext)
                 {
                     // SUPERVERBOSE
                     var lContext = pParentContext.NewMethod(true, nameof(cResponseTextProcessor), nameof(ZGetResponseText), pResponseTextCodeBracketSpace, pResponseTextCode);
                     if (!pCursor.SkipBytes(pResponseTextCodeBracketSpace)) { rResponseText = null; return false; }
                     rResponseText = new cResponseText(pResponseTextCode, pCursor.GetRestAsString());
                     lContext.TraceWarning("response text received: {0}", rResponseText);
-                    mResponseText(pResponseTextType, rResponseText, lContext);
+                    mResponseText(pTextType, rResponseText, lContext);
                     return true;
                 }
             }

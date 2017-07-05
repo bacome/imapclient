@@ -396,6 +396,26 @@ namespace work.bacome.imapclient.support
             return true;
         }
 
+        public bool GetModSeq(out ulong rModSeq)
+        {
+            var lBookmark = Position;
+
+            rModSeq = 0;
+
+            if (!GetToken(cCharset.Digit, null, null, out var lBytes)) return false;
+
+            checked
+            {
+                try { foreach (byte lByte in lBytes) rModSeq = rModSeq * 10 + lByte - cASCII.ZERO; }
+                catch { Position = lBookmark; return false; }
+            }
+
+            if (rModSeq > 0) return true;
+
+            Position = lBookmark;
+            return false;
+        }
+
         public bool GetDate(out DateTime rDate)
         {
             var lBookmark = Position;

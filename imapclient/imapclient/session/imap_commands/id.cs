@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("id success");
                         if (ReferenceEquals(mIdResponseDataProcessor.Dictionary, lDictionary)) throw new cUnexpectedServerActionException(fCapabilities.Id, "id not received", lContext);

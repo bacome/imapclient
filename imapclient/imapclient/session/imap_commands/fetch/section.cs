@@ -52,7 +52,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("fetch section success");
                         if (lHook.Body == null) throw new cUnexpectedServerActionException(0, "body not received", lContext);
@@ -65,7 +65,7 @@ namespace work.bacome.imapclient
                     if (pBinary) lTryIgnoring = fCapabilities.Binary;
                     else lTryIgnoring = 0;
 
-                    if (lResult.Result == cCommandResult.eResult.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
                     throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
                 }
             }

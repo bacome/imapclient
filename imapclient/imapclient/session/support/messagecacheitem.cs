@@ -34,6 +34,7 @@ namespace work.bacome.imapclient
                 public cUID UID { get; private set; } = null;
                 public cStrings References { get; private set; } = null;
                 public cBinarySizes BinarySizes { get; private set; } = null;
+                public ulong? ModSeq { get; private set; } = null;
 
                 public void SetExpunged() => mExpunged = true;
 
@@ -60,6 +61,8 @@ namespace work.bacome.imapclient
 
                     if (BinarySizes == null) BinarySizes = lFetch.BinarySizes;
                     else if (lFetch.BinarySizes != null) BinarySizes = BinarySizes + lFetch.BinarySizes;
+
+                    if ((rAttributesSet & fFetchAttributes.modseq) != 0) ModSeq = lFetch.ModSeq;
 
                     mAttributes |= lFetch.Attributes;
                 }

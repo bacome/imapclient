@@ -148,6 +148,7 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartUIDNext = new cCommandPart("UIDNEXT");
                 private static readonly cCommandPart kCommandPartUIDValidity = new cCommandPart("UIDVALIDITY");
                 private static readonly cCommandPart kCommandPartUnseen = new cCommandPart("UNSEEN");
+                private static readonly cCommandPart kCommandPartHighestModSeq = new cCommandPart("HIGHESTMODSEQ");
 
                 // search
                 private static readonly cCommandPart kCommandPartCharsetSpace = new cCommandPart("CHARSET ");
@@ -209,6 +210,7 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartBodyStructure = new cCommandPart("BODYSTRUCTURE");
                 private static readonly cCommandPart kCommandPartUID = new cCommandPart("UID");
                 private static readonly cCommandPart kCommandPartReferences = new cCommandPart("BODY.PEEK[HEADER.FIELDS (references)]");
+                private static readonly cCommandPart kCommandPartModSeq = new cCommandPart("ModSeq");
 
                 // fetch body
                 private static readonly cCommandPart kCommandPartHeader = new cCommandPart("HEADER");
@@ -248,6 +250,7 @@ namespace work.bacome.imapclient
                     if ((pAttributes & fStatusAttributes.uidnext) != 0) Add(kCommandPartUIDNext);
                     if ((pAttributes & fStatusAttributes.uidvalidity) != 0) Add(kCommandPartUIDValidity);
                     if ((pAttributes & fStatusAttributes.unseen) != 0) Add(kCommandPartUnseen);
+                    if ((pAttributes & fStatusAttributes.highestmodseq) != 0) Add(kCommandPartHighestModSeq);
                     EndList();
                 }
 
@@ -262,6 +265,7 @@ namespace work.bacome.imapclient
                     if ((pAttributes & fFetchAttributes.bodystructure) != 0) Add(kCommandPartBodyStructure);
                     if ((pAttributes & fFetchAttributes.uid) != 0) Add(kCommandPartUID);
                     if ((pAttributes & fFetchAttributes.references) != 0) Add(kCommandPartReferences);
+                    if ((pAttributes & fFetchAttributes.modseq) != 0) Add(kCommandPartModSeq);
                     EndList();
                 }
 

@@ -243,6 +243,17 @@ namespace work.bacome.imapclient
             }
         }
 
+        public ulong ModSeq
+        {
+            get
+            {
+                if (!Client.Capability.CondStore) throw new cUnsupportedByServerException(fCapabilities.CondStore);
+                if ((Handle.Attributes & fFetchAttributes.modseq) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.modseq);
+                if ((Handle.Attributes & fFetchAttributes.modseq) == 0) throw new cFetchAttributeException();
+                return Handle.ModSeq.Value;
+            }
+        }
+
         public string PlainText
         {
             get

@@ -54,7 +54,7 @@ namespace work.bacome.imapclient
 
                             var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                            if (lResult.Result == cCommandResult.eResult.ok)
+                            if (lResult.ResultType == eCommandResultType.ok)
                             {
                                 lContext.TraceInformation("extended search unseen success");
                                 if (lHook.Unseen == null) throw new cUnexpectedServerActionException(fCapabilities.ESearch, "unseen not calculated on a successful extended search unseen", lContext);
@@ -63,7 +63,7 @@ namespace work.bacome.imapclient
 
                             if (lHook.Unseen != null) lContext.TraceError("unseen calculated on a failed extended search unseen");
 
-                            if (lResult.Result == cCommandResult.eResult.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.ESearch, lContext);
+                            if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.ESearch, lContext);
                             throw new cProtocolErrorException(lResult, fCapabilities.ESearch, lContext);
                         }
                         else
@@ -77,7 +77,7 @@ namespace work.bacome.imapclient
 
                             var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                            if (lResult.Result == cCommandResult.eResult.ok)
+                            if (lResult.ResultType == eCommandResultType.ok)
                             {
                                 lContext.TraceInformation("search unseen success");
                                 if (lHook.Unseen == null) throw new cUnexpectedServerActionException(0, "unseen not calculated on a successful search unseen", lContext);
@@ -86,7 +86,7 @@ namespace work.bacome.imapclient
 
                             if (lHook.Unseen != null) lContext.TraceError("unseen calculated on a failed search unseen");
 
-                            if (lResult.Result == cCommandResult.eResult.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
+                            if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
                             throw new cProtocolErrorException(lResult, 0, lContext);
                         }
                     }
@@ -104,7 +104,7 @@ namespace work.bacome.imapclient
 
                         var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                        if (lResult.Result == cCommandResult.eResult.ok)
+                        if (lResult.ResultType == eCommandResultType.ok)
                         {
                             lContext.TraceInformation("status success");
                             if (lHook.Status == null) throw new cUnexpectedServerActionException(0, "status not received", lContext);
@@ -113,7 +113,7 @@ namespace work.bacome.imapclient
 
                         if (lHook.Status != null) lContext.TraceError("received status on a failed status");
 
-                        if (lResult.Result == cCommandResult.eResult.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
+                        if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
                         throw new cProtocolErrorException(lResult, 0, lContext);
                     }
                 }
@@ -176,7 +176,7 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cStatusSearchUnseenCommandHook), nameof(CommandCompleted), pResult, pException);
-                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok && mMSNs != null) Unseen = mSelectedMailbox.SetUnseen(mMSNs, lContext);
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mMSNs != null) Unseen = mSelectedMailbox.SetUnseen(mMSNs, lContext);
                 }
             }
 
@@ -189,7 +189,7 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cStatusExtendedSearchUnseenCommandHook), nameof(CommandCompleted), pResult, pException);
-                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok && mSequenceSets != null) Unseen = mSelectedMailbox.SetUnseen(cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Messages), lContext);
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mSequenceSets != null) Unseen = mSelectedMailbox.SetUnseen(cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Messages), lContext);
                 }
             }
         }

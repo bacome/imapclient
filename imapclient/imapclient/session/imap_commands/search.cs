@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("search success");
                         if (lHook.Handles == null) throw new cUnexpectedServerActionException(0, "results not received on a successful search", lContext);
@@ -42,7 +42,7 @@ namespace work.bacome.imapclient
 
                     if (lHook.Handles != null) lContext.TraceError("results received on a failed search");
 
-                    if (lResult.Result == cCommandResult.eResult.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
                     throw new cProtocolErrorException(lResult, 0, lContext);
                 }
             }
@@ -62,7 +62,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSearchCommandHook), nameof(CommandCompleted), pResult, pException);
 
-                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok && mMSNs != null)
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mMSNs != null)
                     {
                         cHandleList lHandles = new cHandleList();
                         foreach (var lMSN in mMSNs.ToSortedUniqueList()) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
