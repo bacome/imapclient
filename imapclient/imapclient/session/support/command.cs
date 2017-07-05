@@ -251,17 +251,17 @@ namespace work.bacome.imapclient
                     EndList();
                 }
 
-                public void Add(fMessageProperties pProperties)
+                public void Add(fFetchAttributes pAttributes)
                 {
                     BeginList(eListBracketing.ifmorethanone);
-                    if ((pProperties & fMessageProperties.flags) != 0) Add(kCommandPartFlags);
-                    if ((pProperties & fMessageProperties.envelope) != 0) Add(kCommandPartEnvelope);
-                    if ((pProperties & fMessageProperties.received) != 0) Add(kCommandPartInternalDate);
-                    if ((pProperties & fMessageProperties.size) != 0) Add(kCommandPartrfc822size);
-                    if ((pProperties & fMessageProperties.body) != 0) Add(kCommandPartBody);
-                    if ((pProperties & fMessageProperties.bodystructure) != 0) Add(kCommandPartBodyStructure);
-                    if ((pProperties & fMessageProperties.uid) != 0) Add(kCommandPartUID);
-                    if ((pProperties & fMessageProperties.references) != 0) Add(kCommandPartReferences);
+                    if ((pAttributes & fFetchAttributes.flags) != 0) Add(kCommandPartFlags);
+                    if ((pAttributes & fFetchAttributes.envelope) != 0) Add(kCommandPartEnvelope);
+                    if ((pAttributes & fFetchAttributes.received) != 0) Add(kCommandPartInternalDate);
+                    if ((pAttributes & fFetchAttributes.size) != 0) Add(kCommandPartrfc822size);
+                    if ((pAttributes & fFetchAttributes.body) != 0) Add(kCommandPartBody);
+                    if ((pAttributes & fFetchAttributes.bodystructure) != 0) Add(kCommandPartBodyStructure);
+                    if ((pAttributes & fFetchAttributes.uid) != 0) Add(kCommandPartUID);
+                    if ((pAttributes & fFetchAttributes.references) != 0) Add(kCommandPartReferences);
                     EndList();
                 }
 
@@ -633,6 +633,11 @@ namespace work.bacome.imapclient
                 public cSASLAuthentication Authentication => mAuthentication;
 
                 public void SetEnqueued() => mDisposeOnCommandCompletion = true;
+
+                public void CommandStarted(cTrace.cContext pParentContext)
+                {
+                    if (mHook != null) mHook.CommandStarted(pParentContext);
+                }
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {

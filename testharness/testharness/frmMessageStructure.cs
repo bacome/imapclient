@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using work.bacome.imapclient;
@@ -26,14 +27,14 @@ namespace testharness
 
             if (mMessage != null)
             {
-                mMessage.Expunged -= ZExpunged;
+                mMessage.PropertyChanged -= ZPropertyChanged;
                 mMessage = null;
             }
 
             if (pMessage != null)
             {
                 mMessage = pMessage;
-                mMessage.Expunged += ZExpunged;
+                mMessage.PropertyChanged += ZPropertyChanged;
 
                 var lRoot = tvwBodyStructure.Nodes.Add("root");
                 lRoot.Tag = new cTVWBodyStructureNodeTag(mMessage);
@@ -78,10 +79,10 @@ namespace testharness
             }
         }
 
-        private async void ZExpunged(object sender, EventArgs e)
+        private async void ZPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmMessageStructure), nameof(ZExpunged));
-            if (ReferenceEquals(sender, mMessage)) await ZTVWBodyStructureCoordinateChildren(lContext);
+            var lContext = mRootContext.NewMethod(nameof(frmMessageStructure), nameof(ZPropertyChanged));
+            if (e.PropertyName == nameof(cMessage.IsExpunged)) await ZTVWBodyStructureCoordinateChildren(lContext);
         }
 
         private async void cmdInspect_Click(object sender, EventArgs e)
@@ -270,7 +271,7 @@ namespace testharness
                     {
                         rtxPartDetail.AppendText($"Message Size: {lTag.Message.Size}\n");
 
-                        await lTag.Message.FetchAsync(fMessageProperties.envelope);
+                        await lTag.Message.FetchAsync(fFetchAttributes.envelope);
                         if (lZTVWBodyStructureCoordinateChildren != mZTVWBodyStructureCoordinateChildren) return; // check if we've been re-entered during the await
 
                         ZDisplayEnvelope(lTag.Message.Handle.Envelope);

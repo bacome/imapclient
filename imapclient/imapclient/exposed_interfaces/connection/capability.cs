@@ -29,7 +29,9 @@ namespace work.bacome.imapclient
         ESort = 1 << 20,
         ThreadOrderedSubject = 1 << 21,
         ThreadReferences = 1 << 22,
-        ThreadRefs = 1 << 23
+        ThreadRefs = 1 << 23,
+        CondStore = 1 << 24,
+        QResync = 1 << 25
     }
 
     public class cCapability
@@ -70,6 +72,8 @@ namespace work.bacome.imapclient
             if (pServerCapabilities.Has("Thread=OrderedSubject")) Capabilities |= fCapabilities.ThreadOrderedSubject;
             if (pServerCapabilities.Has("Thread=References")) Capabilities |= fCapabilities.ThreadReferences;
             if (pServerCapabilities.Has("Thread=Refs")) Capabilities |= fCapabilities.ThreadRefs;
+            if (pServerCapabilities.Has("CondStore")) Capabilities |= fCapabilities.CondStore;
+            if (pServerCapabilities.Has("QResync")) Capabilities |= fCapabilities.QResync;
 
             ServerCapabilities = new cStrings(pServerCapabilities.AsUpperList());
             AuthenticationMechanisms = new cStrings(pAuthenticationMechanisms.AsUpperList());
@@ -102,6 +106,8 @@ namespace work.bacome.imapclient
         public bool ThreadOrderedSubject => (EffectiveCapabilities & fCapabilities.ThreadOrderedSubject) != 0;
         public bool ThreadReferences => (EffectiveCapabilities & fCapabilities.ThreadReferences) != 0;
         public bool ThreadRefs => (EffectiveCapabilities & fCapabilities.ThreadRefs) != 0;
+        public bool CondStore => (EffectiveCapabilities & fCapabilities.CondStore) != 0;
+        public bool QResync => (EffectiveCapabilities & fCapabilities.QResync) != 0;
 
         public bool SupportsAuthenticationMechanism(string pMechanismName)
         {

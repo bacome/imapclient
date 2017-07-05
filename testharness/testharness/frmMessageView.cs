@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using work.bacome.imapclient;
@@ -47,16 +48,14 @@ namespace testharness
 
             if (mMessage != null)
             {
-                mMessage.Expunged -= ZExpunged;
-                mMessage.PropertiesSet -= ZPropertiesSet;
+                mMessage.PropertyChanged -= ZPropertyChanged;
                 mMessage = null;
             }
 
             if (pMessage != null)
             {
                 mMessage = pMessage;
-                mMessage.Expunged += ZExpunged;
-                mMessage.PropertiesSet += ZPropertiesSet;
+                mMessage.PropertyChanged += ZPropertyChanged;
 
                 ZDisplayFlags();
 
@@ -88,14 +87,10 @@ namespace testharness
             ZDGVAttachmentCoordinateChildren();
         }
 
-        private void ZExpunged(object sender, EventArgs e)
+        private void ZPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (ReferenceEquals(sender, mMessage)) ZDGVAttachmentCoordinateChildren();
-        }
-
-        private void ZPropertiesSet(object sender, cPropertiesSetEventArgs e)
-        {
-            if (ReferenceEquals(sender, mMessage) && (e.PropertiesSet & fMessageProperties.flags) != 0) ZDisplayFlags();
+            if (e.PropertyName == nameof(cMessage.IsExpunged)) ZDGVAttachmentCoordinateChildren();
+            else if (e.PropertyName == nameof(cMessage.Flags)) ZDisplayFlags();
         }
 
         private void dgvAttachment_CurrentCellChanged(object sender, EventArgs e)

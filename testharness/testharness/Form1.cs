@@ -156,16 +156,10 @@ namespace testharness
             mIMAPClient.PropertyChanged += ZSetState;
             mIMAPClient.MailboxPropertyChanged += mIMAPClient_MailboxPropertyChanged;
             mIMAPClient.MailboxMessageDelivery += mIMAPClient_MailboxMessageDelivery;
-            mIMAPClient.MessageExpunged += mIMAPClient_MessageExpunged;
-            mIMAPClient.MessagePropertiesSet += mIMAPClient_MessagePropertiesSet;
+            mIMAPClient.MessagePropertyChanged += mIMAPClient_MessagePropertyChanged;
         }
 
-        private void mIMAPClient_MessagePropertiesSet(object sender, cMessagePropertiesSetEventArgs e)
-        {
-            if ((e.PropertiesSet & fMessageProperties.flags) != 0) ZRefreshMessageHeader(e.Handle);
-        }
-
-        private void mIMAPClient_MessageExpunged(object sender, cMessageExpungedEventArgs e)
+        private void mIMAPClient_MessagePropertyChanged(object sender, cMessagePropertyChangedEventArgs e)
         {
             ZRefreshMessageHeader(e.Handle);
         }
@@ -195,7 +189,7 @@ namespace testharness
             try
             {
                 // keep the unseen count up to date
-                await mIMAPClient.FetchAsync(e.MailboxId, e.Handles, fMessageProperties.flags, null);
+                await mIMAPClient.FetchAsync(e.MailboxId, e.Handles, fFetchAttributes.flags, null);
 
                 // could now add these to the grid - TODO
             }
@@ -261,11 +255,12 @@ namespace testharness
             fCapabilities lIgnoreCapabilities = 0;
             if (chkIgnoreNamespace.Checked) lIgnoreCapabilities |= fCapabilities.Namespace;
             if (chkIgnoreBinary.Checked) lIgnoreCapabilities |= fCapabilities.Binary;
+            if (chkIgnoreQResync.Checked) lIgnoreCapabilities |= fCapabilities.QResync;
             mIMAPClient.IgnoreCapabilities = lIgnoreCapabilities;
 
             if (chkFetchNobble.Checked)
             {
-                mIMAPClient.FetchPropertiesConfiguration = new cFetchSizeConfiguration(1, 1, 100, 1);
+                mIMAPClient.FetchAttributesConfiguration = new cFetchSizeConfiguration(1, 1, 100, 1);
                 mIMAPClient.FetchBodyReadConfiguration = new cFetchSizeConfiguration(100, 100, 100, 100);
                 mIMAPClient.FetchBodyWriteConfiguration = new cFetchSizeConfiguration(100, 100, 100, 100);
 
@@ -278,7 +273,7 @@ namespace testharness
             }
             else
             {
-                mIMAPClient.FetchPropertiesConfiguration = new cFetchSizeConfiguration(1, 1000, 10000, 1);
+                mIMAPClient.FetchAttributesConfiguration = new cFetchSizeConfiguration(1, 1000, 10000, 1);
                 mIMAPClient.FetchBodyReadConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
                 mIMAPClient.FetchBodyWriteConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
 
@@ -635,18 +630,18 @@ namespace testharness
                     cmdStructure.Enabled = true;
                     cmdView.Enabled = true;
 
-                    // pre-fetch the properties 
-                    fMessageProperties lProperties = 0;
-                    if (chkMessageFlags.Checked) lProperties |= fMessageProperties.flags;
-                    if (chkMessageEnvelope.Checked) lProperties |= fMessageProperties.envelope;
-                    if (chkMessageReceived.Checked) lProperties |= fMessageProperties.received;
-                    if (chkMessageSize.Checked) lProperties |= fMessageProperties.size;
-                    if (chkMessageBodyStructure.Checked) lProperties |= fMessageProperties.bodystructure;
-                    if (chkMessageUID.Checked) lProperties |= fMessageProperties.uid;
+                    // pre-fetch the attributes 
+                    fFetchAttributes lAttributes = 0;
+                    if (chkMessageFlags.Checked) lAttributes |= fFetchAttributes.flags;
+                    if (chkMessageEnvelope.Checked) lAttributes |= fFetchAttributes.envelope;
+                    if (chkMessageReceived.Checked) lAttributes |= fFetchAttributes.received;
+                    if (chkMessageSize.Checked) lAttributes |= fFetchAttributes.size;
+                    if (chkMessageBodyStructure.Checked) lAttributes |= fFetchAttributes.bodystructure;
+                    if (chkMessageUID.Checked) lAttributes |= fFetchAttributes.uid;
 
-                    if (lProperties != 0)
+                    if (lAttributes != 0)
                     {
-                        await lMessageHeader.Message.FetchAsync(lProperties);
+                        await lMessageHeader.Message.FetchAsync(lAttributes);
                         if (lZDGVMessageHeadersCoordinateChildrenAsync != mZDGVMessageHeadersCoordinateChildrenAsync) return; // check if we've been re-entered during the await
                     }
                 }
@@ -676,15 +671,15 @@ namespace testharness
                 await lTag.Mailbox.StatusAsync(fStatusAttributes.unseen); // force the unseen count to be calculated
                 if (ltvwMailboxes_AfterSelect != mtvwMailboxes_AfterSelect) return;
 
-                fMessageProperties lProperties = 0;
-                if (chkMailboxFlags.Checked) lProperties |= fMessageProperties.flags;
-                if (chkMailboxEnvelope.Checked) lProperties |= fMessageProperties.envelope;
-                if (chkMailboxReceived.Checked) lProperties |= fMessageProperties.received;
-                if (chkMailboxSize.Checked) lProperties |= fMessageProperties.size;
-                if (chkMailboxBodyStructure.Checked) lProperties |= fMessageProperties.bodystructure;
-                if (chkMailboxUID.Checked) lProperties |= fMessageProperties.uid;
+                fFetchAttributes lAttributes = 0;
+                if (chkMailboxFlags.Checked) lAttributes |= fFetchAttributes.flags;
+                if (chkMailboxEnvelope.Checked) lAttributes |= fFetchAttributes.envelope;
+                if (chkMailboxReceived.Checked) lAttributes |= fFetchAttributes.received;
+                if (chkMailboxSize.Checked) lAttributes |= fFetchAttributes.size;
+                if (chkMailboxBodyStructure.Checked) lAttributes |= fFetchAttributes.bodystructure;
+                if (chkMailboxUID.Checked) lAttributes |= fFetchAttributes.uid;
 
-                var lMessages = await lTag.Mailbox.MessagesAsync(null, new cSort(cSortItem.ReceivedDesc), lProperties);
+                var lMessages = await lTag.Mailbox.MessagesAsync(null, new cSort(cSortItem.ReceivedDesc), lAttributes);
                 if (ltvwMailboxes_AfterSelect != mtvwMailboxes_AfterSelect) return;
 
                 BindingSource lBindingSource = new BindingSource();
@@ -703,7 +698,14 @@ namespace testharness
         private async void dgvMessageHeaders_CurrentCellChanged(object sender, EventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(Form1), nameof(dgvMessageHeaders_CurrentCellChanged));
-            await ZDGVMessageHeadersCoordinateChildrenAsync(lContext);
+
+            try { await ZDGVMessageHeadersCoordinateChildrenAsync(lContext); }
+            catch (Exception ex)
+            {
+                lContext.TraceException(ex);
+                MessageBox.Show($"a problem occurred: {ex}");
+                return;
+            }
         }
 
         private void cmdStructure_Click(object sender, EventArgs e)

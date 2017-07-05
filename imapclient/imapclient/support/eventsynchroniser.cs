@@ -121,21 +121,12 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void MessageExpunged(cMailboxId pMailboxId, iMessageHandle pHandle, cTrace.cContext pParentContext)
+            public void MessagePropertyChanged(cMailboxId pMailboxId, iMessageHandle pHandle, string pPropertyName, cTrace.cContext pParentContext)
             {
-                if (mClient.MessageExpunged == null) return; // pre-check for efficiency only
-                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(MessageExpunged), pMailboxId, pHandle);
+                if (mClient.MessagePropertyChanged == null) return; // pre-check for efficiency only
+                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(MessagePropertyChanged), pMailboxId, pHandle, pPropertyName);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
-                ZFireAndForget(new cMessageExpungedEventArgs(pMailboxId, pHandle), lContext);
-                // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
-            }
-
-            public void MessagePropertiesSet(cMailboxId pMailboxId, iMessageHandle pHandle, fMessageProperties pPropertiesSet, cTrace.cContext pParentContext)
-            {
-                if (mClient.MessagePropertiesSet == null) return; // pre-check for efficiency only
-                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(MessagePropertiesSet), pMailboxId, pHandle);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
-                ZFireAndForget(new cMessagePropertiesSetEventArgs(pMailboxId, pHandle, pPropertiesSet), lContext);
+                ZFireAndForget(new cMessagePropertyChangedEventArgs(pMailboxId, pHandle, pPropertyName), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
@@ -223,6 +214,11 @@ namespace work.bacome.imapclient
                     {
                         switch (lEvent.EventArgs)
                         {
+                            case cMessagePropertyChangedEventArgs lEventArgs:
+
+                                mClient.MessagePropertyChanged?.Invoke(mClient, lEventArgs);
+                                break;
+
                             case cMailboxPropertyChangedEventArgs lEventArgs:
 
                                 mClient.MailboxPropertyChanged?.Invoke(mClient, lEventArgs);
@@ -241,16 +237,6 @@ namespace work.bacome.imapclient
                             case cMailboxMessageDeliveryEventArgs lEventArgs:
 
                                 mClient.MailboxMessageDelivery?.Invoke(mClient, lEventArgs);
-                                break;
-
-                            case cMessageExpungedEventArgs lEventArgs:
-
-                                mClient.MessageExpunged?.Invoke(mClient, lEventArgs);
-                                break;
-
-                            case cMessagePropertiesSetEventArgs lEventArgs:
-
-                                mClient.MessagePropertiesSet?.Invoke(mClient, lEventArgs);
                                 break;
 
                             case cIncrementProgressEventArgs lEventArgs:

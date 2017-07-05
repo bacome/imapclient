@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -11,7 +12,7 @@ namespace work.bacome.imapclient
                 private readonly iMessageCache mCache;
                 private readonly int mCacheSequence;
                 private bool mExpunged = false;
-                private fMessageProperties mProperties = 0;
+                private fFetchAttributes mAttributes = 0;
                 private cBodyPart mBody = null;
 
                 public cMessageCacheItem(iMessageCache pCache, int pCacheSequence)
@@ -23,7 +24,7 @@ namespace work.bacome.imapclient
                 public iMessageCache Cache => mCache;
                 public int CacheSequence => mCacheSequence;
                 public bool Expunged => mExpunged;
-                public fMessageProperties Properties => mProperties;
+                public fFetchAttributes Attributes => mAttributes;
                 public cBodyPart Body => mBody ?? BodyStructure;
                 public cBodyPart BodyStructure { get; private set; } = null;
                 public cEnvelope Envelope { get; private set; } = null;
@@ -36,30 +37,31 @@ namespace work.bacome.imapclient
 
                 public void SetExpunged() => mExpunged = true;
 
-                public fMessageProperties Update(uint? pUIDValidity, cResponseDataFetch lFetch)
+                public void Update(uint? pUIDValidity, cResponseDataFetch lFetch, out fFetchAttributes rAttributesSet, out fKnownFlags rFlagsSet)
                 {
-                    var lPropertiesSet = ~mProperties & lFetch.Properties;
+                    rAttributesSet = ~mAttributes & lFetch.Attributes;
+                    rFlagsSet = 0;
 
-                    if ((lPropertiesSet & fMessageProperties.body) != 0) mBody = lFetch.Body;
-                    if ((lPropertiesSet & fMessageProperties.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
-                    if ((lPropertiesSet & fMessageProperties.envelope) != 0) Envelope = lFetch.Envelope;
-                    if ((lPropertiesSet & fMessageProperties.received) != 0) Received = lFetch.Received;
-                    if ((lPropertiesSet & fMessageProperties.size) != 0) Size = lFetch.Size;
-                    if ((lPropertiesSet & fMessageProperties.uid) != 0 && pUIDValidity != null) UID = new cUID(pUIDValidity.Value, lFetch.UID.Value);
-                    if ((lPropertiesSet & fMessageProperties.references) != 0) References = lFetch.References;
-
-                    if (lFetch.Flags != null && lFetch.Flags != Flags)
+                    if ((rAttributesSet & fFetchAttributes.flags) != 0) Flags = lFetch.Flags;
+                    else if (lFetch.Flags != null && lFetch.Flags != Flags)
                     {
-                        lPropertiesSet |= fMessageProperties.flags;
+                        rAttributesSet |= fFetchAttributes.flags;
+                        rFlagsSet = lFetch.Flags.KnownFlags ^ Flags.KnownFlags;
                         Flags = lFetch.Flags;
                     }
+
+                    if ((rAttributesSet & fFetchAttributes.envelope) != 0) Envelope = lFetch.Envelope;
+                    if ((rAttributesSet & fFetchAttributes.received) != 0) Received = lFetch.Received;
+                    if ((rAttributesSet & fFetchAttributes.size) != 0) Size = lFetch.Size;
+                    if ((rAttributesSet & fFetchAttributes.body) != 0) mBody = lFetch.Body;
+                    if ((rAttributesSet & fFetchAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
+                    if ((rAttributesSet & fFetchAttributes.uid) != 0 && pUIDValidity != null) UID = new cUID(pUIDValidity.Value, lFetch.UID.Value);
+                    if ((rAttributesSet & fFetchAttributes.references) != 0) References = lFetch.References;
 
                     if (BinarySizes == null) BinarySizes = lFetch.BinarySizes;
                     else if (lFetch.BinarySizes != null) BinarySizes = BinarySizes + lFetch.BinarySizes;
 
-                    mProperties |= lFetch.Properties;
-
-                    return lPropertiesSet;
+                    mAttributes |= lFetch.Attributes;
                 }
 
                 public override string ToString() => $"{nameof(cMessageCacheItem)}({mCache},{mCacheSequence})";

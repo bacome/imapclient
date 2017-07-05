@@ -9,30 +9,30 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void Fetch(cMailboxId pMailboxId, iMessageHandle pHandle, fMessageProperties pProperties)
+        public void Fetch(cMailboxId pMailboxId, iMessageHandle pHandle, fFetchAttributes pAttributes)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZFetchAsync(pMailboxId, ZFetchHandles(pHandle), pProperties, null, lContext);
+            var lTask = ZFetchAsync(pMailboxId, ZFetchHandles(pHandle), pAttributes, null, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
         }
 
-        public void Fetch(cMailboxId pMailboxId, IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC)
+        public void Fetch(cMailboxId pMailboxId, IList<iMessageHandle> pHandles, fFetchAttributes pAttributes, cFetchControl pFC)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZFetchAsync(pMailboxId, ZFetchHandles(pHandles), pProperties, pFC, lContext);
+            var lTask = ZFetchAsync(pMailboxId, ZFetchHandles(pHandles), pAttributes, pFC, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task FetchAsync(cMailboxId pMailboxId, iMessageHandle pHandle, fMessageProperties pProperties)
+        public Task FetchAsync(cMailboxId pMailboxId, iMessageHandle pHandle, fFetchAttributes pAttributes)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
-            return ZFetchAsync(pMailboxId, ZFetchHandles(pHandle), pProperties, null, lContext);
+            return ZFetchAsync(pMailboxId, ZFetchHandles(pHandle), pAttributes, null, lContext);
         }
 
-        public Task FetchAsync(cMailboxId pMailboxId, IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC)
+        public Task FetchAsync(cMailboxId pMailboxId, IList<iMessageHandle> pHandles, fFetchAttributes pAttributes, cFetchControl pFC)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
-            return ZFetchAsync(pMailboxId, ZFetchHandles(pHandles), pProperties, pFC, lContext);
+            return ZFetchAsync(pMailboxId, ZFetchHandles(pHandles), pAttributes, pFC, lContext);
         }
 
         private cHandleList ZFetchHandles(iMessageHandle pHandle)
@@ -57,9 +57,9 @@ namespace work.bacome.imapclient
             return new cHandleList(pHandles);
         }
 
-        private async Task ZFetchAsync(cMailboxId pMailboxId, cHandleList pHandles, fMessageProperties pProperties, cFetchControl pFC, cTrace.cContext pParentContext)
+        private async Task ZFetchAsync(cMailboxId pMailboxId, cHandleList pHandles, fFetchAttributes pAttributes, cFetchControl pFC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAsync), pMailboxId, pHandles, pProperties, pFC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAsync), pMailboxId, pHandles, pAttributes, pFC);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -70,26 +70,26 @@ namespace work.bacome.imapclient
 
             if (pHandles.Count == 0) return;
 
-            // must have specified some properties to get, there is no default for fetch
-            if ((pProperties & fMessageProperties.allmask) == 0 || (pProperties & fMessageProperties.clientdefault) != 0) throw new ArgumentOutOfRangeException(nameof(pProperties));
+            // must have specified some attributes to get, there is no default for fetch
+            if ((pAttributes & fFetchAttributes.allmask) == 0 || (pAttributes & fFetchAttributes.clientdefault) != 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));
 
             mAsyncCounter.Increment(lContext);
 
             try
             {
-                cFetchPropertiesMethodControl lMC;
-                if (pFC == null) lMC = new cFetchPropertiesMethodControl(mTimeout, CancellationToken, null);
-                else lMC = new cFetchPropertiesMethodControl(pFC.Timeout, pFC.CancellationToken, pFC.IncrementProgress);
-                await lSession.FetchAsync(lMC, pMailboxId, pHandles, pProperties, lContext).ConfigureAwait(false);
+                cFetchAttributesMethodControl lMC;
+                if (pFC == null) lMC = new cFetchAttributesMethodControl(mTimeout, CancellationToken, null);
+                else lMC = new cFetchAttributesMethodControl(pFC.Timeout, pFC.CancellationToken, pFC.IncrementProgress);
+                await lSession.FetchAsync(lMC, pMailboxId, pHandles, pAttributes, lContext).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
         }
 
-        private class cFetchPropertiesMethodControl : cMethodControl
+        private class cFetchAttributesMethodControl : cMethodControl
         {
             private readonly Action<int> mIncrementProgress;
 
-            public cFetchPropertiesMethodControl(int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrementProgress) : base(pTimeout, pCancellationToken)
+            public cFetchAttributesMethodControl(int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrementProgress) : base(pTimeout, pCancellationToken)
             {
                 mIncrementProgress = pIncrementProgress;
             }

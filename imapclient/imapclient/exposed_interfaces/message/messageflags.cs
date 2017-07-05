@@ -32,8 +32,6 @@ namespace work.bacome.imapclient
         public bool Contain(params string[] pFlags) => ZContain(pFlags);
         public bool Contain(IEnumerable<string> pFlags) => ZContain(pFlags);
 
-        // they are 'is' here because they ae settable
-
         public bool IsAnswered
         {
             get => mDictionary.ContainsKey(cMessageFlags.Answered);
@@ -90,8 +88,6 @@ namespace work.bacome.imapclient
         }
 
         public bool ContainsRecent => mDictionary.ContainsKey(cMessageFlags.Recent);
-
-        public bool ContainsCreateNewPossible => false;
 
         public bool IsMDNSent
         {
@@ -203,19 +199,39 @@ namespace work.bacome.imapclient
 
     public class cMessageFlags : cStrings, IEnumerable<string>
     {
+        public const string Asterisk = "\\*";
         public const string Answered = "\\ANSWERED";
         public const string Flagged = "\\FLAGGED";
         public const string Deleted = "\\DELETED";
         public const string Seen = "\\SEEN";
         public const string Draft = "\\DRAFT";
         public const string Recent = "\\RECENT";
-        public const string CreateNewPossible = "\\*";
         public const string MDNSent = "$MDNSENT";
         public const string Forwarded = "$FORWARDED";
         public const string SubmitPending = "$SUBMITPENDING";
         public const string Submitted = "$SUBMITTED";
 
-        public cMessageFlags(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { }
+        public readonly fKnownFlags KnownFlags;
+
+        public cMessageFlags(IEnumerable<string> pFlags) : base(ZCtor(pFlags))
+        {
+            KnownFlags = 0;
+
+            if (Contains(Asterisk)) KnownFlags |= fKnownFlags.asterisk;
+
+            if (Contains(Answered)) KnownFlags |= fKnownFlags.answered;
+            if (Contains(Flagged)) KnownFlags |= fKnownFlags.flagged;
+            if (Contains(Deleted)) KnownFlags |= fKnownFlags.deleted;
+            if (Contains(Seen)) KnownFlags |= fKnownFlags.seen;
+            if (Contains(Draft)) KnownFlags |= fKnownFlags.draft;
+
+            if (Contains(Recent)) KnownFlags |= fKnownFlags.recent;
+
+            if (Contains(MDNSent)) KnownFlags |= fKnownFlags.mdnsent;
+            if (Contains(Forwarded)) KnownFlags |= fKnownFlags.forwarded;
+            if (Contains(SubmitPending)) KnownFlags |= fKnownFlags.submitpending;
+            if (Contains(Submitted)) KnownFlags |= fKnownFlags.submitted;
+        }
 
         private static List<string> ZCtor(IEnumerable<string> pFlags)
         {
@@ -235,19 +251,20 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        public bool ContainsAnswered => Contains(Answered);
-        public bool ContainsFlagged => Contains(Flagged);
-        public bool ContainsDeleted => Contains(Deleted);
-        public bool ContainsSeen => Contains(Seen);
-        public bool ContainsDraft => Contains(Draft);
-        public bool ContainsRecent => Contains(Recent);
+        public bool ContainsCreateNewPossible => (KnownFlags & fKnownFlags.asterisk) != 0;
 
-        public bool ContainsCreateNewPossible => Contains(CreateNewPossible);
+        public bool ContainsAnswered => (KnownFlags & fKnownFlags.answered) != 0;
+        public bool ContainsFlagged => (KnownFlags & fKnownFlags.flagged) != 0;
+        public bool ContainsDeleted => (KnownFlags & fKnownFlags.deleted) != 0;
+        public bool ContainsSeen => (KnownFlags & fKnownFlags.seen) != 0;
+        public bool ContainsDraft => (KnownFlags & fKnownFlags.draft) != 0;
 
-        public bool ContainsMDNSent => Contains(MDNSent);
-        public bool ContainsForwarded => Contains(Forwarded);
-        public bool ContainsSubmitPending => Contains(SubmitPending);
-        public bool ContainsSubmitted => Contains(Submitted);
+        public bool ContainsRecent => (KnownFlags & fKnownFlags.recent) != 0;
+
+        public bool ContainsMDNSent => (KnownFlags & fKnownFlags.mdnsent) != 0;
+        public bool ContainsForwarded => (KnownFlags & fKnownFlags.forwarded) != 0;
+        public bool ContainsSubmitPending => (KnownFlags & fKnownFlags.submitpending) != 0;
+        public bool ContainsSubmitted => (KnownFlags & fKnownFlags.submitted) != 0;
 
         public override bool Equals(object pObject) => (cStrings)this == pObject as cMessageFlags;
         public override int GetHashCode() => base.GetHashCode();
@@ -261,91 +278,4 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
     }
-
-
-
-
-
-
-
-    /*
-    [Flags]
-    public enum fMessageFlags
-    {
-        // rfc 3501
-        asterisk = 1,
-        answered = 1 << 1,
-        flagged = 1 << 2,
-        deleted = 1 << 3,
-        seen = 1 << 4,
-        draft = 1 << 5,
-        recent = 1 << 6,
-
-        // rfc 5788
-        mdnsent = 1 << 7, // 3503
-        forwarded = 1 << 8, // 5550
-        submitpending = 1 << 9, // 5550
-        submitted = 1 << 10, // 5550
-
-        allsettableflags = 0b11111111110
-    } 
-
-    public class cMessageFlags
-    {
-        public readonly fMessageFlags KnownFlags;
-        public readonly cStrings AllFlags; // sorted, upppercased
-
-        public cMessageFlags(cFlags pFlags)
-        {
-            KnownFlags = 0;
-
-            if (pFlags.Has(@"\*")) KnownFlags |= fMessageFlags.asterisk;
-
-            if (pFlags.Has(@"\answered")) KnownFlags |= fMessageFlags.answered;
-            if (pFlags.Has(@"\flagged")) KnownFlags |= fMessageFlags.flagged;
-            if (pFlags.Has(@"\deleted")) KnownFlags |= fMessageFlags.deleted;
-            if (pFlags.Has(@"\seen")) KnownFlags |= fMessageFlags.seen;
-            if (pFlags.Has(@"\draft")) KnownFlags |= fMessageFlags.draft;
-            if (pFlags.Has(@"\recent")) KnownFlags |= fMessageFlags.recent;
-
-            if (pFlags.Has("$mdnsent")) KnownFlags |= fMessageFlags.mdnsent;
-            if (pFlags.Has("$forwarded")) KnownFlags |= fMessageFlags.forwarded;
-            if (pFlags.Has("$submitpending")) KnownFlags |= fMessageFlags.submitpending;
-            if (pFlags.Has("$submitted")) KnownFlags |= fMessageFlags.submitted;
-
-            AllFlags = new cStrings(pFlags.ToSortedUpperList());
-        }
-
-        public bool CanCreateNewKeywords => (KnownFlags & fMessageFlags.asterisk) != 0;
-
-        public bool Answered => (KnownFlags & fMessageFlags.answered) != 0;
-        public bool Flagged => (KnownFlags & fMessageFlags.flagged) != 0;
-        public bool Deleted => (KnownFlags & fMessageFlags.deleted) != 0;
-        public bool Seen => (KnownFlags & fMessageFlags.seen) != 0;
-        public bool Draft => (KnownFlags & fMessageFlags.draft) != 0;
-        public bool Recent => (KnownFlags & fMessageFlags.recent) != 0;
-
-        public bool MDNSent => (KnownFlags & fMessageFlags.mdnsent) != 0;
-        public bool Forwarded => (KnownFlags & fMessageFlags.forwarded) != 0;
-        public bool SubmitPending => (KnownFlags & fMessageFlags.submitpending) != 0;
-        public bool Submitted => (KnownFlags & fMessageFlags.submitted) != 0;
-
-        public bool Has(string pFlag) => AllFlags.Contains(pFlag.ToUpperInvariant());
-
-        public override bool Equals(object pObject) => this == pObject as cMessageFlags;
-
-        public override int GetHashCode() => AllFlags.GetHashCode();
-
-        public override string ToString() => $"{nameof(cMessageFlags)}({KnownFlags},{AllFlags})";
-
-        public static bool operator ==(cMessageFlags pA, cMessageFlags pB)
-        {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-            return (pA.KnownFlags == pB.KnownFlags && pA.AllFlags == pB.AllFlags);
-        }
-
-        public static bool operator !=(cMessageFlags pA, cMessageFlags pB) => !(pA == pB);
-    } */
 }

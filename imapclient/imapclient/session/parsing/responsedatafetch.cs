@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kBinarySizeLBracket = new cBytes("BINARY.SIZE[");
 
                 public readonly uint MSN;
-                public readonly fMessageProperties Properties;
+                public readonly fFetchAttributes Attributes;
                 public readonly cMessageFlags Flags;
                 public readonly cEnvelope Envelope;
                 public readonly DateTime? Received;
@@ -45,10 +45,10 @@ namespace work.bacome.imapclient
                 public readonly cStrings References;
                 public readonly cBinarySizes BinarySizes;
 
-                private cResponseDataFetch(uint pMSN, fMessageProperties pProperties, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cStrings pReferences, cBinarySizes pBinarySizes)
+                private cResponseDataFetch(uint pMSN, fFetchAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cStrings pReferences, cBinarySizes pBinarySizes)
                 {
                     MSN = pMSN;
-                    Properties = pProperties;
+                    Attributes = pAttributes;
                     Flags = pFlags;
                     Envelope = pEnvelope;
                     Received = pReceived;
@@ -69,7 +69,7 @@ namespace work.bacome.imapclient
                     cListBuilder lBuilder = new cListBuilder(nameof(cResponseDataFetch));
 
                     lBuilder.Append(MSN);
-                    lBuilder.Append(Properties);
+                    lBuilder.Append(Attributes);
                     lBuilder.Append(Flags);
                     lBuilder.Append(Envelope);
                     lBuilder.Append(Received);
@@ -99,7 +99,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.LPAREN)) { rResponseData = null; pCursor.ParsedAs = null; return false; }
 
-                    fMessageProperties lProperties = 0;
+                    fFetchAttributes lAttributes = 0;
                     cMessageFlags lFlags = null;
                     cEnvelope lEnvelope = null;
                     DateTime? lReceived = null;
@@ -116,57 +116,57 @@ namespace work.bacome.imapclient
 
                     while (true)
                     {
-                        fMessageProperties lProperty;
+                        fFetchAttributes lAttribute;
                         bool lOK;
 
                         if (pCursor.SkipBytes(kFlagsSpace))
                         {
-                            lProperty = fMessageProperties.flags;
+                            lAttribute = fFetchAttributes.flags;
                             lOK = pCursor.GetFlags(out var lRawFlags);
                             if (lOK) lFlags = new cMessageFlags(lRawFlags);
                         }
                         else if (pCursor.SkipBytes(kEnvelopeSpace))
                         {
-                            lProperty = fMessageProperties.envelope;
+                            lAttribute = fFetchAttributes.envelope;
                             lOK = ZProcessEnvelope(pCursor, out lEnvelope);
                         }
                         else if (pCursor.SkipBytes(kInternalDateSpace))
                         {
-                            lProperty = fMessageProperties.received;
+                            lAttribute = fFetchAttributes.received;
                             lOK = pCursor.GetDateTime(out var lDateTime);
                             if (lOK) lReceived = lDateTime;
                         }
                         else if (pCursor.SkipBytes(kRFC822Space))
                         {
-                            lProperty = fMessageProperties.references;
+                            lAttribute = fFetchAttributes.references;
                             lOK = pCursor.GetNString(out lRFC822); // should look for references
                             if (lOK) lReferences = ZProcessReferences(lRFC822);
                         }
                         else if (pCursor.SkipBytes(kRFC822HeaderSpace))
                         {
-                            lProperty = fMessageProperties.references;
+                            lAttribute = fFetchAttributes.references;
                             lOK = pCursor.GetNString(out lRFC822Header); // should look for references
                             if (lOK) lReferences = ZProcessReferences(lRFC822Header);
                         }
                         else if (pCursor.SkipBytes(kRFC822TextSpace))
                         {
-                            lProperty = 0;
+                            lAttribute = 0;
                             lOK = pCursor.GetNString(out lRFC822Text);
                         }
                         else if (pCursor.SkipBytes(kRFC822SizeSpace))
                         {
-                            lProperty = fMessageProperties.size;
+                            lAttribute = fFetchAttributes.size;
                             lOK = pCursor.GetNumber(out _, out var lNumber);
                             if (lOK) lSize = lNumber;
                         }
                         else if (pCursor.SkipBytes(kBodySpace))
                         {
-                            lProperty = fMessageProperties.body;
+                            lAttribute = fFetchAttributes.body;
                             lOK = ZProcessBodyStructure(pCursor, cSection.Text, false, out lBody);
                         }
                         else if (pCursor.SkipBytes(kBodyStructureSpace))
                         {
-                            lProperty = fMessageProperties.body | fMessageProperties.bodystructure;
+                            lAttribute = fFetchAttributes.bodystructure;
                             lOK = ZProcessBodyStructure(pCursor, cSection.Text, true, out lBodyStructure);
                         }
                         else if (pCursor.SkipBytes(kBodyLBracket))
@@ -191,34 +191,34 @@ namespace work.bacome.imapclient
                                     )
                                    )
                                 {
-                                    lProperty = fMessageProperties.references;
+                                    lAttribute = fFetchAttributes.references;
                                     lReferences = ZProcessReferences(lABody.Bytes);
                                 }
-                                else lProperty = 0;
+                                else lAttribute = 0;
                             }
-                            else lProperty = 0;
+                            else lAttribute = 0;
                         }
                         else if (pCursor.SkipBytes(kUIDSpace))
                         {
-                            lProperty = fMessageProperties.uid;
+                            lAttribute = fFetchAttributes.uid;
                             lOK = pCursor.GetNZNumber(out _, out var lNumber);
                             if (lOK) lUID = lNumber;
                         }
                         else if (pCapability.Binary && pCursor.SkipBytes(kBinaryLBracket))
                         {
-                            lProperty = 0;
+                            lAttribute = 0;
                             lOK = ZProcessBody(pCursor, true, out var lABody);
                             if (lOK) lBodies.Add(lABody);
                         }
                         else if (pCapability.Binary && pCursor.SkipBytes(kBinarySizeLBracket))
                         {
-                            lProperty = 0;
+                            lAttribute = 0;
                             lOK = ZProcessBinarySize(pCursor, out var lPart, out var lBytes);
                             if (lOK) lBinarySizesBuilder.Set(lPart, lBytes);
                         }
                         else break;
 
-                        lProperties |= lProperty;
+                        lAttributes |= lAttribute;
 
                         if (!lOK)
                         {
@@ -233,7 +233,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN) || !pCursor.Position.AtEnd) { rResponseData = null; pCursor.ParsedAs = null; return false; }
 
-                    rResponseData = new cResponseDataFetch(pMSN, lProperties, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lReferences, lBinarySizesBuilder.AsBinarySizes());
+                    rResponseData = new cResponseDataFetch(pMSN, lAttributes, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lReferences, lBinarySizesBuilder.AsBinarySizes());
                     pCursor.ParsedAs = rResponseData;
                     return true;
                 }

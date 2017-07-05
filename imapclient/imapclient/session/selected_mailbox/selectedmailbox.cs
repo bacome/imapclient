@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
 
                 private readonly bool mSelectedForUpdate;
                 private readonly cEventSynchroniser mEventSynchroniser;
-                private cCapability mCapability;
+                private dGetCapability mGetCapability;
                 private bool mHasBeenSetAsSelected = false;
 
                 private cMessageFlags mPermanentFlags = null;
@@ -32,20 +32,13 @@ namespace work.bacome.imapclient
                 private uint? mUnseen = null;
                 private cCache mCache;
 
-                public cSelectedMailbox(cMailboxId pMailboxId, bool pForUpdate, cEventSynchroniser pEventSynchoniser, cCapability pCapability)
+                public cSelectedMailbox(cMailboxId pMailboxId, bool pForUpdate, cEventSynchroniser pEventSynchoniser, dGetCapability pGetCapability)
                 {
                     MailboxId = pMailboxId ?? throw new ArgumentNullException(nameof(pMailboxId));
                     mSelectedForUpdate = pForUpdate;
                     mEventSynchroniser = pEventSynchoniser ?? throw new ArgumentNullException(nameof(pEventSynchoniser));
-                    mCapability = pCapability;
-                    mCache = new cCache(pMailboxId, null, pEventSynchoniser, pCapability, false);
-                }
-
-                public void SetCapability(cCapability pCapability, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(SetCapability), pCapability);
-                    mCapability = pCapability;
-                    mCache.SetCapability(pCapability, lContext);
+                    mGetCapability = pGetCapability;
+                    mCache = new cCache(pMailboxId, null, pEventSynchoniser, mGetCapability, false);
                 }
 
                 public void SetAsSelected(cTrace.cContext pParentContext)
@@ -73,15 +66,6 @@ namespace work.bacome.imapclient
                         else return mCache.UnseenTrue;
                     }
                 }
-
-                /*
-                public cMailboxStatus Status
-                {
-                    get
-                    {
-                        return new cMailboxStatus((uint)mCache.Count, mRecent, mUIDNext, UIDValidity, lUnseen);
-                    }
-                }*/
 
                 public bool Selected => true;
                 public bool SelectedForUpdate => mSelectedForUpdate;
@@ -201,7 +185,7 @@ namespace work.bacome.imapclient
 
                             var lOldCache = mCache;
 
-                            mCache = new cCache(MailboxId, lNumber, mEventSynchroniser, mCapability, mHasBeenSetAsSelected);
+                            mCache = new cCache(MailboxId, lNumber, mEventSynchroniser, mGetCapability, mHasBeenSetAsSelected);
                             mCache.IncreaseCount(lOldCache.Count, lContext);
                             mCache.SetUnseenCount = lOldCache.SetUnseenCount;
 
@@ -232,6 +216,8 @@ namespace work.bacome.imapclient
 
                     return false;
                 }
+
+                public override string ToString() => $"{nameof(cSelectedMailbox)}({MailboxId},{mSelectedForUpdate})";
             }
         }
     }
