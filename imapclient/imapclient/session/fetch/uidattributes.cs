@@ -18,6 +18,9 @@ namespace work.bacome.imapclient
 
                 if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
 
+                var lAttributes = ZFetchAttributes(pMailboxId.MailboxName, pAttributes, lContext);
+
+
                 // split the list into those messages I have handles for and those I dont
                 /////////////////////////////////////////////////////////////////////////
 
@@ -34,7 +37,7 @@ namespace work.bacome.imapclient
                     {
                         var lHandle = _SelectedMailbox.GetHandle(lUID);
                         if (lHandle == null) lUIDs.Add(lUID); // don't have a handle
-                        else if((~lHandle.Attributes & pAttributes) == pAttributes) lUIDs.Add(lUID); // have to get all the attributes
+                        else if((~lHandle.Attributes & lAttributes) == lAttributes) lUIDs.Add(lUID); // have to get all the attributes
                         else lHandles.Add(lHandle);
                     }
                 }
@@ -45,7 +48,7 @@ namespace work.bacome.imapclient
                 if (lHandles.Count > 0)
                 {
                     // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                    foreach (var lGroup in ZFetchGroups(lHandles, pAttributes)) await ZFetchAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
+                    foreach (var lGroup in ZFetchGroups(lHandles, lAttributes)) await ZFetchAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
                 }
 
                 // for the messages only identified by UID or where I have to get all the attributes
@@ -53,7 +56,7 @@ namespace work.bacome.imapclient
 
                 if (lUIDs.Count > 0)
                 {
-                    await ZUIDFetchAsync(pMC, pMailboxId, lUIDs, pAttributes, lContext).ConfigureAwait(false);
+                    await ZUIDFetchAsync(pMC, pMailboxId, lUIDs, lAttributes, lContext).ConfigureAwait(false);
 
                     // resolve uids -> handles whilst blocking select exclusive access
                     //

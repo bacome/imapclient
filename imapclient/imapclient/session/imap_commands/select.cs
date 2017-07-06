@@ -41,8 +41,12 @@ namespace work.bacome.imapclient
                         return;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
-                    throw new cProtocolErrorException(lResult, 0, lContext);
+                    fCapabilities lTryIgnoring;
+                    if (_Capability.CondStore) lTryIgnoring = fCapabilities.CondStore;
+                    else lTryIgnoring = 0;
+
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
+                    throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
                 }
             }
         }

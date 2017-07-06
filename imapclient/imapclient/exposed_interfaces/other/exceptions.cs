@@ -226,15 +226,33 @@ namespace work.bacome.imapclient
     {
         public readonly fCapabilities Required;
 
-        public cUnsupportedByServerException(fCapabilities pRequired)
-        {
-            Required = pRequired;
-        }
-
         public cUnsupportedByServerException(fCapabilities pRequired, cTrace.cContext pContext)
         {
             Required = pRequired;
             pContext.TraceError("{0}: {1}", nameof(cUnsupportedByServerException), pRequired);
+        }
+    }
+
+    // thrown when a required capability for the call isn't available for the mailbox
+    public class cUnsupportedByMailboxException : Exception
+    {
+        public readonly fCapabilities Required;
+
+        public cUnsupportedByMailboxException(fCapabilities pRequired, cTrace.cContext pContext)
+        {
+            Required = pRequired;
+            pContext.TraceError("{0}: {1}", nameof(cUnsupportedByMailboxException), pRequired);
+        }
+    }
+
+    // thrown when a required list property isn't available
+    public class cMailboxListPropertyNotRequestedException : Exception
+    {
+        public readonly fMailboxListProperties Required;
+
+        public cMailboxListPropertyNotRequestedException(fMailboxListProperties pRequired)
+        {
+            Required = pRequired;
         }
     }
 

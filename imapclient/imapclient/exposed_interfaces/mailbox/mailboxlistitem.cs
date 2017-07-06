@@ -17,9 +17,9 @@ namespace work.bacome.imapclient
 
         public string Name => Mailbox.MailboxId.MailboxName.Name;
 
-        public bool? CanHaveChildren => Flags.CanHaveChildren;
+        public bool CanHaveChildren => Flags.CanHaveChildren;
         public bool? HasChildren => Flags.HasChildren;
-        public bool? CanSelect => Flags.CanSelect;
+        public bool CanSelect => Flags.CanSelect;
         public bool? IsMarked => Flags.IsMarked;
         public bool? IsSubscribed => Flags.IsSubscribed;
         public bool? HasSubscribedChildren => Flags.HasSubscribedChildren;
@@ -32,11 +32,18 @@ namespace work.bacome.imapclient
         public bool ContainsSent => Flags.ContainsSent;
         public bool ContainsTrash => Flags.ContainsTrash;
 
-        public int? Messages => Status.Messages;
-        public int? Recent => Status.Recent;
-        public uint? UIDNext => Status.UIDNext;
-        public uint? UIDValidity => Status.UIDValidity;
-        public int? Unseen => Status.Unseen;
+        public int Messages => ZStatus().Messages;
+        public int Recent => ZStatus().Recent;
+        public uint UIDNext => ZStatus().UIDNext;
+        public uint UIDValidity => ZStatus().UIDValidity;
+        public int Unseen => ZStatus().Unseen;
+        public ulong HighestModSeq => ZStatus().HighestModSeq;
+
+        private cMailboxStatus ZStatus()
+        {
+            if (Status == null) throw new cMailboxListPropertyNotRequestedException(fMailboxListProperties.status);
+            return Status;
+        }
 
         public override string ToString() => $"{nameof(cMailboxListItem)}({Mailbox},{Flags},{Status})";
     }

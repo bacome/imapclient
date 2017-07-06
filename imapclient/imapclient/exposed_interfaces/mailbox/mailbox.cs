@@ -77,16 +77,30 @@ namespace work.bacome.imapclient
             if (pArgs.MailboxId == MailboxId) mMessageDelivery?.Invoke(this, pArgs);
         }
 
-        // selected
-        public bool Selected => Client.GetMailboxProperties(MailboxId)?.Selected ?? false;
-
-        // convenience methods
+        // convenience method
         public string Name => MailboxId.MailboxName.Name;
 
+        // properties
+        public bool Selected => Client.MailboxCacheItem(MailboxId)?.Selected ?? false;
+        public bool SelectedForUpdate => Client.MailboxCacheItem(MailboxId)?.SelectedForUpdate ?? false;
+        public bool AccessReadOnly => Client.MailboxCacheItem(MailboxId)?.AccessReadOnly ?? false;
+        public cMessageFlags Flags => Client.MailboxCacheItem(MailboxId)?.Flags;
+        public cMessageFlags PermanentFlags => Client.MailboxCacheItem(MailboxId)?.PermanentFlags;
+
         // get data
-        public cMailboxStatus Status(fStatusAttributes pAttributes = fStatusAttributes.clientdefault) => Client.Status(MailboxId, pAttributes);
-        public Task<cMailboxStatus> StatusAsync(fStatusAttributes pAttributes = fStatusAttributes.clientdefault) => Client.StatusAsync(MailboxId, pAttributes);
-        public List<cMailboxListItem> Mailboxes(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault, fStatusAttributes pStatusAttributes = fStatusAttributes.clientdefault) => Client.Mailboxes(MailboxId, pTypes, pFlagSets, pStatusAttributes);
+        public cMailboxStatus Status(int? pCacheAgeMax = null) => Client.Status(MailboxId, pCacheAgeMax);
+        public Task<cMailboxStatus> StatusAsync(int? pCacheAgeMax = null) => Client.StatusAsync(MailboxId, pCacheAgeMax);
+
+        public int MessageCount => Client.Status(MailboxId, null).Messages;
+        public int Recent => Client.Status(MailboxId, true).Recent;
+        public uint UIDNext => Client.Status(MailboxId, true).UIDNext;
+        public uint NewUnknownUID => Client.Status(MailboxId, true).NewUnknownUID;
+        public uint UIDValidity => Client.Status(MailboxId, true).UIDValidity;
+        public int Unseen => Client.Status(MailboxId, true).Unseen;
+        public int UnseenUnknown => Client.Status(MailboxId, true).UnseenUnknown;
+        public ulong HighestModSeq => Client.Status(MailboxId, true).HighestModSeq;
+
+        public List<cMailboxListItem> Mailboxes(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxListProperties pListProperties = fMailboxListProperties.clientdefault) => Client.Mailboxes(MailboxId, pTypes, pListProperties);
         public Task<List<cMailboxListItem>> MailboxesAsync(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault, fStatusAttributes pStatusAttributes = fStatusAttributes.clientdefault) => Client.MailboxesAsync(MailboxId, pTypes, pFlagSets, pStatusAttributes);
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fFetchAttributes pAttributes = fFetchAttributes.clientdefault) => Client.Messages(MailboxId, pFilter, pSort, pAttributes);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fFetchAttributes pAttributes = fFetchAttributes.clientdefault) => Client.MessagesAsync(MailboxId, pFilter, pSort, pAttributes);
@@ -132,6 +146,8 @@ namespace work.bacome.imapclient
         public Task<List<cMessage>> UIDFetchAsync(IList<cUID> pUIDs, fFetchAttributes pAttributes, cFetchControl pFC = null) => Client.UIDFetchAsync(MailboxId, pUIDs, pAttributes, pFC);
         public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC = null) => Client.UIDFetch(MailboxId, pUID, pSection, pDecoding, pStream, pFC);
         public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC = null) => Client.UIDFetchAsync(MailboxId, pUID, pSection, pDecoding, pStream, pFC);
+
+        // uidstore TODO
 
         // cached data
         public iMailboxProperties Properties => Client.GetMailboxProperties(MailboxId); // only works if the mailbox is selected (and in the future notified)

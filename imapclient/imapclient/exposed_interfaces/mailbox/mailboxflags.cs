@@ -35,12 +35,12 @@ namespace work.bacome.imapclient
 
         public cMailboxFlags(fMailboxFlags pFlags) { Flags = pFlags; }
 
-        public bool? CanHaveChildren
+        public bool CanHaveChildren
         {
             get
             {
                 if ((Flags & fMailboxFlags.rfc3501) != 0) return (Flags & fMailboxFlags.noinferiors) == 0;
-                return null;
+                throw new cMailboxListPropertyNotRequestedException(fMailboxListProperties.rfc3501);
             }
         }
 
@@ -57,12 +57,12 @@ namespace work.bacome.imapclient
 
         // no accessor for non-existent because the noselect flag is implied by it, but there is no way to imply it without extended list
 
-        public bool? CanSelect
+        public bool CanSelect
         {
             get
             {
                 if ((Flags & fMailboxFlags.rfc3501) != 0) return (Flags & fMailboxFlags.noselect) == 0;
-                return null;
+                throw new cMailboxListPropertyNotRequestedException(fMailboxListProperties.rfc3501);
             }
         }
 

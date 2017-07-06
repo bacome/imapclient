@@ -24,6 +24,7 @@ namespace work.bacome.imapclient
             private cFetchSizer mFetchAttributesSizer;
             private cFetchSizer mFetchBodyReadSizer;
             private Encoding mEncoding; // can be null
+            private readonly cMailboxCache mMailboxCache;
 
             // properties
             private cCapabilities _Capabilities = null;
@@ -62,6 +63,8 @@ namespace work.bacome.imapclient
                 mFetchAttributesSizer = new cFetchSizer(pFetchAttributesConfiguration);
                 mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
                 mEncoding = pEncoding;
+
+                mMailboxCache = new cMailboxCache(mEventSynchroniser.MailboxPropertyChanged);
             }
 
             public void SetIgnoreCapabilities(fCapabilities pIgnoreCapabilities, cTrace.cContext pParentContext)
@@ -229,17 +232,8 @@ namespace work.bacome.imapclient
             }
 
             public cMailbox Inbox { get; set; } = null;
-
             public cMailboxId SelectedMailboxId => _SelectedMailbox?.MailboxId;
-
-            public iMailboxProperties GetMailboxProperties(cMailboxId pMailboxId)
-            {
-                if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-                cSelectedMailbox lSelectedMailbox = _SelectedMailbox;
-                if (lSelectedMailbox != null && lSelectedMailbox.MailboxId == pMailboxId) return lSelectedMailbox;
-                // this is where I would check the mailboxes being monitored and return them if there was a match
-                return null;
-            }
+            public iMailboxCacheItem MailboxCacheItem(cMailboxId pMailboxId) => mMailboxCache.Item(pMailboxId);
 
             public void Disconnect(cTrace.cContext pParentContext)
             {

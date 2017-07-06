@@ -9,6 +9,7 @@ namespace work.bacome.imapclient
     {
         public void Select(cMailboxId pMailboxId, bool pForUpdate)
         {
+            ;?; // search unseen control
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Select));
             var lTask = ZSelectAsync(pMailboxId, pForUpdate, lContext);
             mEventSynchroniser.Wait(lTask, lContext);

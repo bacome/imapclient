@@ -7,37 +7,25 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        private fStatusAttributes mStatusDefaultAttributes = fStatusAttributes.messages | fStatusAttributes.unseen;
+        public int StatusCacheAgeMax { get; set; } = 5000;
 
-        public fStatusAttributes StatusDefaultAttributes
-        {
-            get => mStatusDefaultAttributes;
-
-            set
-            {
-                if ((value & fStatusAttributes.all) == 0) throw new ArgumentOutOfRangeException(); // must have something returned
-                if ((value & fStatusAttributes.clientdefault) != 0) throw new ArgumentOutOfRangeException(); // default can't include the default
-                mStatusDefaultAttributes = value;
-            }
-        }
-
-        public cMailboxStatus Status(cMailboxId pMailboxId, fStatusAttributes pAttributes)
+        public cMailboxStatus Status(cMailboxId pMailboxId, int? pCacheAgeMax = null)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Status));
-            var lTask = ZStatusAsync(pMailboxId, pAttributes, lContext);
+            var lTask = ZStatusAsync(pMailboxId, pCacheAgeMax ?? StatusCacheAgeMax, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<cMailboxStatus> StatusAsync(cMailboxId pMailboxId, fStatusAttributes pAttributes)
+        public Task<cMailboxStatus> StatusAsync(cMailboxId pMailboxId, int? pCacheAgeMax = null)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(StatusAsync));
-            return ZStatusAsync(pMailboxId, pAttributes, lContext);
+            return ZStatusAsync(pMailboxId, pCacheAgeMax ?? StatusCacheAgeMax, lContext);
         }
 
-        private async Task<cMailboxStatus> ZStatusAsync(cMailboxId pMailboxId, fStatusAttributes pAttributes, cTrace.cContext pParentContext)
+        private async Task<cMailboxStatus> ZStatusAsync(cMailboxId pMailboxId, int pCacheAgeMax, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZStatusAsync), pMailboxId, pAttributes);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZStatusAsync), pMailboxId, pCacheAgeMax);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -46,16 +34,12 @@ namespace work.bacome.imapclient
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
 
-            fStatusAttributes lAttributes = pAttributes & fStatusAttributes.all;
-            if ((pAttributes & fStatusAttributes.clientdefault) != 0) lAttributes |= mStatusDefaultAttributes;
-            if (lAttributes == 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));
-
             mAsyncCounter.Increment(lContext);
 
             try
             {
                 var lMC = new cMethodControl(mTimeout, CancellationToken);
-                return await lSession.StatusAsync(lMC, pMailboxId, lAttributes, lContext).ConfigureAwait(false);
+                return await lSession.StatusAsync(lMC, pMailboxId, pCacheAgeMax, lContext).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
         }

@@ -142,14 +142,6 @@ namespace work.bacome.imapclient
 
             private class cCommand : cCommandParts, IDisposable
             {
-                // status
-                private static readonly cCommandPart kCommandPartMessages = new cCommandPart("MESSAGES");
-                private static readonly cCommandPart kCommandPartRecent = new cCommandPart("RECENT");
-                private static readonly cCommandPart kCommandPartUIDNext = new cCommandPart("UIDNEXT");
-                private static readonly cCommandPart kCommandPartUIDValidity = new cCommandPart("UIDVALIDITY");
-                private static readonly cCommandPart kCommandPartUnseen = new cCommandPart("UNSEEN");
-                private static readonly cCommandPart kCommandPartHighestModSeq = new cCommandPart("HIGHESTMODSEQ");
-
                 // search
                 private static readonly cCommandPart kCommandPartCharsetSpace = new cCommandPart("CHARSET ");
                 private static readonly cCommandPart kCommandPartUSASCIISpace = new cCommandPart("US-ASCII ");
@@ -161,11 +153,11 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartDeleted = new cCommandPart("DELETED");
                 private static readonly cCommandPart kCommandPartSeen = new cCommandPart("SEEN");
                 private static readonly cCommandPart kCommandPartDraft = new cCommandPart("DRAFT");
-                //private static readonly cCommandPart kCommandPartRecent = new cCommandPart("RECENT");
+                private static readonly cCommandPart kCommandPartRecent = new cCommandPart("RECENT");
                 private static readonly cCommandPart kCommandPartUnanswered = new cCommandPart("UNANSWERED");
                 private static readonly cCommandPart kCommandPartUnflagged = new cCommandPart("UNFLAGGED");
                 private static readonly cCommandPart kCommandPartUndeleted = new cCommandPart("UNDELETED");
-                //private static readonly cCommandPart kCommandPartUnseen = new cCommandPart("UNSEEN");
+                private static readonly cCommandPart kCommandPartUnseen = new cCommandPart("UNSEEN");
                 private static readonly cCommandPart kCommandPartUndraft = new cCommandPart("UNDRAFT");
                 private static readonly cCommandPart kCommandPartOld = new cCommandPart("OLD");
                 private static readonly cCommandPart kCommandPartKeywordSpace = new cCommandPart("KEYWORD ");
@@ -210,7 +202,7 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartBodyStructure = new cCommandPart("BODYSTRUCTURE");
                 private static readonly cCommandPart kCommandPartUID = new cCommandPart("UID");
                 private static readonly cCommandPart kCommandPartReferences = new cCommandPart("BODY.PEEK[HEADER.FIELDS (references)]");
-                private static readonly cCommandPart kCommandPartModSeq = new cCommandPart("ModSeq");
+                private static readonly cCommandPart kCommandPartModSeq = new cCommandPart("MODSEQ");
 
                 // fetch body
                 private static readonly cCommandPart kCommandPartHeader = new cCommandPart("HEADER");
@@ -241,18 +233,6 @@ namespace work.bacome.imapclient
                 private cCommandHook mHook = null;
 
                 public cCommand() { }
-
-                public void Add(fStatusAttributes pAttributes, cCommandPart pListName = null)
-                {
-                    BeginList(eListBracketing.ifany, pListName);
-                    if ((pAttributes & fStatusAttributes.messages) != 0) Add(kCommandPartMessages);
-                    if ((pAttributes & fStatusAttributes.recent) != 0) Add(kCommandPartRecent);
-                    if ((pAttributes & fStatusAttributes.uidnext) != 0) Add(kCommandPartUIDNext);
-                    if ((pAttributes & fStatusAttributes.uidvalidity) != 0) Add(kCommandPartUIDValidity);
-                    if ((pAttributes & fStatusAttributes.unseen) != 0) Add(kCommandPartUnseen);
-                    if ((pAttributes & fStatusAttributes.highestmodseq) != 0) Add(kCommandPartHighestModSeq);
-                    EndList();
-                }
 
                 public void Add(fFetchAttributes pAttributes)
                 {

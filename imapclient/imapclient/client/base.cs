@@ -272,8 +272,7 @@ namespace work.bacome.imapclient
 
         public cMailbox Inbox => mSession?.Inbox;
         public cMailboxId SelectedMailboxId => mSession?.SelectedMailboxId;
-
-        public iMailboxProperties GetMailboxProperties(cMailboxId pMailboxId) => mSession?.GetMailboxProperties(pMailboxId);
+        public iMailboxCacheItem MailboxCacheItem(cMailboxId pMailboxId) => mSession?.MailboxCacheItem(pMailboxId);
 
         public void Dispose()
         {

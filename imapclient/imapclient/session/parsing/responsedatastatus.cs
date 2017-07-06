@@ -18,11 +18,12 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kUIDNextSpace = new cBytes("UIDNEXT ");
                 private static readonly cBytes kUIDValiditySpace = new cBytes("UIDVALIDITY ");
                 private static readonly cBytes kUnseenSpace = new cBytes("UNSEEN ");
+                private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
 
                 public readonly string EncodedMailboxName; // NOT converted from Modified-UTF7 if it is in use
-                public readonly cMailboxStatus Status;
+                public readonly cStatus Status;
 
-                private cResponseDataStatus(string pEncodedMailboxName, cMailboxStatus pStatus)
+                private cResponseDataStatus(string pEncodedMailboxName, cStatus pStatus)
                 {
                     EncodedMailboxName = pEncodedMailboxName;
                     Status = pStatus;
@@ -48,15 +49,16 @@ namespace work.bacome.imapclient
                     return rResponseData != null;
                 }
 
-                private static bool ZProcessAttributes(cBytesCursor pCursor, out cMailboxStatus rStatus, cTrace.cContext pParentContext)
+                private static bool ZProcessAttributes(cBytesCursor pCursor, out cStatus rStatus, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cResponseDataStatus), nameof(ZProcessAttributes));
 
-                    int? lMessages = null;
-                    int? lRecent = null;
-                    uint? lUIDNext = null;
-                    uint? lUIDValidity = null;
-                    int? lUnseen = null;
+                    int? lMessages = 0;
+                    int? lRecent = 0;
+                    uint? lUIDNext = 0;
+                    uint? lUIDValidity = 0;
+                    int? lUnseen = 0;
+                    ulong? lHighestModSeq = 0;
 
                     while (true)
                     {
@@ -75,7 +77,13 @@ namespace work.bacome.imapclient
                                 if (lResult == eProcessAttributeResult.notprocessed)
                                 {
                                     lResult = ZProcessAttribute(pCursor, kUIDValiditySpace, ref lUIDValidity, lContext);
-                                    if (lResult == eProcessAttributeResult.notprocessed) lResult = ZProcessAttribute(pCursor, kUnseenSpace, ref lUnseen, lContext);
+
+                                    if (lResult == eProcessAttributeResult.notprocessed)
+                                    {
+                                        lResult = ZProcessAttribute(pCursor, kUnseenSpace, ref lUnseen, lContext);
+
+                                        if (lResult == eProcessAttributeResult.notprocessed) lResult = ZProcessHighestModSeq(pCursor, ref lHighestModSeq, lContext);
+                                    }
                                 }
                             }
                         }
@@ -88,7 +96,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.SPACE))
                         {
-                            rStatus = new cMailboxStatus(lMessages, lRecent, lUIDNext, lUIDValidity, lUnseen);
+                            rStatus = new cStatus(lMessages, lRecent, lUIDNext, lUIDValidity, lUnseen, lHighestModSeq);
                             return true;
                         }
                     }
@@ -121,6 +129,23 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceVerbose("got {0}", lNumber);
                         rNumber = lNumber;
+                        return eProcessAttributeResult.processed;
+                    }
+
+                    lContext.TraceWarning("likely malformed status-att-list-item: no number?");
+                    return eProcessAttributeResult.error;
+                }
+
+                private static eProcessAttributeResult ZProcessHighestModSeq(cBytesCursor pCursor, ref ulong? rModSeq, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cResponseDataStatus), nameof(ZProcessHighestModSeq));
+
+                    if (!pCursor.SkipBytes(kHighestModSeqSpace)) return eProcessAttributeResult.notprocessed;
+
+                    if (pCursor.GetModSeq(out var lModSeq))
+                    {
+                        lContext.TraceVerbose("got {0}", lModSeq);
+                        rModSeq = lModSeq;
                         return eProcessAttributeResult.processed;
                     }
 

@@ -63,6 +63,11 @@ namespace work.bacome.imapclient
                     else if (lFetch.BinarySizes != null) BinarySizes = BinarySizes + lFetch.BinarySizes;
 
                     if ((rAttributesSet & fFetchAttributes.modseq) != 0) ModSeq = lFetch.ModSeq;
+                    else if (lFetch.ModSeq != null && lFetch.ModSeq != ModSeq)
+                    {
+                        rAttributesSet |= fFetchAttributes.modseq;
+                        ModSeq = lFetch.ModSeq;
+                    }
 
                     mAttributes |= lFetch.Attributes;
                 }

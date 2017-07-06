@@ -65,13 +65,14 @@
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
     <Compile Include="exposed_interfaces\enums\list.cs" />
-    <Compile Include="exposed_interfaces\enums\status.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
+    <Compile Include="exposed_interfaces\support\types\mailboxcacheitem.cs" />
+    <Compile Include="session\session\searchunseen.cs" />
+    <Compile Include="session\session\mailboxcache.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxid.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxlistitem.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxname.cs" />
-    <Compile Include="exposed_interfaces\mailbox\mailboxproperties.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxpropertychangedeventargs.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxstatus.cs" />
     <Compile Include="exposed_interfaces\mailbox\messagedeliveryeventargs.cs" />
@@ -199,6 +200,7 @@
     <Compile Include="session\support\messagecacheitem.cs" />
     <Compile Include="session\support\processors.cs" />
     <Compile Include="session\support\responsetextprocessor.cs" />
+    <Compile Include="session\support\status.cs" />
     <Compile Include="support\asynccounter.cs" />
     <Compile Include="support\body.cs" />
     <Compile Include="support\eventsynchroniser.cs" />

@@ -10,13 +10,13 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kStatusStatusCommandPart = new cCommandPart("STATUS ");
-            private static readonly cCommandPart kStatusSearchUnseenCommandPart = new cCommandPart("SEARCH UNSEEN");
-            private static readonly cCommandPart kStatusExtendedSearchUnseenCommandPart = new cCommandPart("SEARCH RETURN () UNSEEN");
+            private static readonly cCommandPart kStatusCommandPart = new cCommandPart("STATUS ");
+            private static readonly cCommandPart kStatusCommandPartrfc3501Attributes = new cCommandPart(" (MESSAGES RECENT UIDNEXT UIDVALIDITY UNSEEN");
+            private static readonly cCommandPart kStatusCommandPartHighestModSeq = new cCommandPart(" HIGHESTMODSEQ");
 
-            public async Task<cMailboxStatus> StatusAsync(cMethodControl pMC, cMailboxId pMailboxId, fStatusAttributes pAttributes, cTrace.cContext pParentContext)
+            public async Task<cMailboxStatus> StatusAsync(cMethodControl pMC, cMailboxId pMailboxId, int pCacheAgeMax, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StatusAsync), pMC, pMailboxId, pAttributes);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StatusAsync), pMC, pMailboxId, pCacheAgeMax);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
@@ -25,97 +25,54 @@ namespace work.bacome.imapclient
                 cCommandPart.cFactory lFactory = new cCommandPart.cFactory((EnabledExtensions & fEnableableExtensions.utf8) != 0);
                 if (!lFactory.TryAsMailbox(pMailboxId.MailboxName, out var lMailboxCommandPart, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxId));
 
-                if ((pAttributes & fStatusAttributes.all) == 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));
-
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    if (_SelectedMailbox != null && _SelectedMailbox.MailboxId == pMailboxId)
+                    if (_SelectedMailbox != null && _SelectedMailbox.MailboxId == pMailboxId) return mMailboxCache.Item(pMailboxId).Status;
+
+                    if (pCacheAgeMax > 0)
                     {
-                        var lUnseen = _SelectedMailbox.Unseen;
-                        if (lUnseen != null || (pAttributes & fStatusAttributes.unseen) == 0) return new cMailboxStatus(_SelectedMailbox.Messages, _SelectedMailbox.Recent, _SelectedMailbox.UIDNext, _SelectedMailbox.UIDValidity, lUnseen);
-
-                        lCommand.Add(await mSetUnseenExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // set unseen commands must be single threaded
-
-                        var lMessages = _SelectedMailbox.SetUnseenBegin(lContext);
-                        var lRecent = _SelectedMailbox.Recent;
-                        var lUIDNext = _SelectedMailbox.UIDNext;
-                        var lUIDValidity = _SelectedMailbox.UIDValidity;
-
-                        var lCapability = _Capability;
-
-                        if (lCapability.ESearch)
-                        {
-                            lCommand.Add(kStatusExtendedSearchUnseenCommandPart);
-
-                            var lHook = new cStatusExtendedSearchUnseenCommandHook(lCommand.Tag, _SelectedMailbox);
-                            lCommand.Add(lHook);
-
-                            var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
-
-                            if (lResult.ResultType == eCommandResultType.ok)
-                            {
-                                lContext.TraceInformation("extended search unseen success");
-                                if (lHook.Unseen == null) throw new cUnexpectedServerActionException(fCapabilities.ESearch, "unseen not calculated on a successful extended search unseen", lContext);
-                                return new cMailboxStatus(lMessages, lRecent, lUIDNext, lUIDValidity, lHook.Unseen);
-                            }
-
-                            if (lHook.Unseen != null) lContext.TraceError("unseen calculated on a failed extended search unseen");
-
-                            if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.ESearch, lContext);
-                            throw new cProtocolErrorException(lResult, fCapabilities.ESearch, lContext);
-                        }
-                        else
-                        {
-                            lCommand.Add(await mSearchExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // search commands must be single threaded (so we can tell which result is which)
-
-                            lCommand.Add(kStatusSearchUnseenCommandPart);
-
-                            var lHook = new cStatusSearchUnseenCommandHook(_SelectedMailbox);
-                            lCommand.Add(lHook);
-
-                            var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
-
-                            if (lResult.ResultType == eCommandResultType.ok)
-                            {
-                                lContext.TraceInformation("search unseen success");
-                                if (lHook.Unseen == null) throw new cUnexpectedServerActionException(0, "unseen not calculated on a successful search unseen", lContext);
-                                return new cMailboxStatus(lMessages, lRecent, lUIDNext, lUIDValidity, lHook.Unseen);
-                            }
-
-                            if (lHook.Unseen != null) lContext.TraceError("unseen calculated on a failed search unseen");
-
-                            if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
-                            throw new cProtocolErrorException(lResult, 0, lContext);
-                        }
+                        var lItem = mMailboxCache.Item(pMailboxId);
+                        if (lItem.StatusAge <= pCacheAgeMax) return lItem.Status;
                     }
-                    else
+
+                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // status is msnunsafe
+
+                    lCommand.Add(kStatusStatusCommandPart);
+                    lCommand.Add(lMailboxCommandPart);
+                    lCommand.Add(kStatusCommandPartrfc3501Attributes);
+                    if (_Capability.CondStore) lCommand.Add(kStatusCommandPartHighestModSeq);
+                    lCommand.Add(cCommandPart.RParen);
+
+                    var lHook = new cStatusCommandHook(lEncodedMailboxName);
+                    lCommand.Add(lHook);
+
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
-                        lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // status is msnunsafe
+                        lContext.TraceInformation("status success");
 
-                        lCommand.Add(kStatusStatusCommandPart);
-                        lCommand.Add(lMailboxCommandPart);
-                        lCommand.Add(cCommandPart.Space);
-                        lCommand.Add(pAttributes);
+                        var lStatus = lHook.Status;
 
-                        var lHook = new cStatusCommandHook(lEncodedMailboxName);
-                        lCommand.Add(lHook);
+                        if (lStatus == null || lStatus.Messages == null || lStatus.Recent == null || lStatus.Unseen == null) throw new cUnexpectedServerActionException(0, "status not received", lContext);
 
-                        var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                        cMailboxStatus lMailboxStatus = new cMailboxStatus(lStatus.Messages.Value, lStatus.Recent.Value, lStatus.UIDNext ?? 0, 0, lStatus.UIDValidity ?? 0, lStatus.Unseen.Value, 0, lStatus.HighestModSeq ?? 0);
 
-                        if (lResult.ResultType == eCommandResultType.ok)
-                        {
-                            lContext.TraceInformation("status success");
-                            if (lHook.Status == null) throw new cUnexpectedServerActionException(0, "status not received", lContext);
-                            return lHook.Status;
-                        }
+                        mMailboxCache.SetStatus(pMailboxId.MailboxName, lMailboxStatus);
 
-                        if (lHook.Status != null) lContext.TraceError("received status on a failed status");
-
-                        if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
-                        throw new cProtocolErrorException(lResult, 0, lContext);
+                        return lMailboxStatus;
                     }
+
+                    if (lHook.Status != null) lContext.TraceError("received status on a failed status");
+
+                    fCapabilities lTryIgnoring;
+                    if (_Capability.CondStore) lTryIgnoring = fCapabilities.CondStore;
+                    else lTryIgnoring = 0;
+
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
+                    throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
                 }
             }
 
@@ -130,7 +87,7 @@ namespace work.bacome.imapclient
                     mEncodedMailboxName = pEncodedMailboxName;
                 }
 
-                public cMailboxStatus Status { get; private set; } = null;
+                public cStatus Status { get; private set; } = null;
 
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
@@ -156,40 +113,9 @@ namespace work.bacome.imapclient
 
                     if (lStatus.EncodedMailboxName != mEncodedMailboxName) return eProcessDataResult.notprocessed;
 
-                    Status = cMailboxStatus.Combine(lStatus.Status, Status);
+                    Status = cStatus.Combine(lStatus.Status, Status);
 
                     return eProcessDataResult.observed;
-                }
-            }
-
-            private class cStatusSearchUnseenCommandHook : cCommandHookBaseSearch
-            {
-                private readonly cSelectedMailbox mSelectedMailbox;
-
-                public cStatusSearchUnseenCommandHook(cSelectedMailbox pSelectedMailbox)
-                {
-                    mSelectedMailbox = pSelectedMailbox ?? throw new ArgumentNullException(nameof(pSelectedMailbox));
-                }
-
-                public int? Unseen { get; private set; } = null;
-
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cStatusSearchUnseenCommandHook), nameof(CommandCompleted), pResult, pException);
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mMSNs != null) Unseen = mSelectedMailbox.SetUnseen(mMSNs, lContext);
-                }
-            }
-
-            private class cStatusExtendedSearchUnseenCommandHook : cCommandHookBaseSearchExtended
-            {
-                public cStatusExtendedSearchUnseenCommandHook(cCommandTag pCommandTag, cSelectedMailbox pSelectedMailbox) : base(pCommandTag, pSelectedMailbox) { }
-
-                public int? Unseen { get; private set; } = null;
-
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cStatusExtendedSearchUnseenCommandHook), nameof(CommandCompleted), pResult, pException);
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mSequenceSets != null) Unseen = mSelectedMailbox.SetUnseen(cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Messages), lContext);
                 }
             }
         }

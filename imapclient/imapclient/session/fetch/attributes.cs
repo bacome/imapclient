@@ -20,8 +20,30 @@ namespace work.bacome.imapclient
 
                 if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
 
+                var lAttributes = ZFetchAttributes(pMailboxId.MailboxName, pAttributes, lContext);
+
                 // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                foreach (var lGroup in ZFetchGroups(pHandles, pAttributes)) await ZFetchAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
+                foreach (var lGroup in ZFetchGroups(pHandles, lAttributes)) await ZFetchAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
+            }
+
+            private fFetchAttributes ZFetchAttributes(cMailboxName pMailboxName, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributes), pMailboxName, pAttributes);
+
+                if ((pAttributes & (fFetchAttributes.flags | fFetchAttributes.modseq)) == 0) return pAttributes;
+
+                cMailboxStatus lStatus = x;
+
+                if ((pAttributes & fFetchAttributes.modseq) != 0)
+                {
+                    if (!_Capability.CondStore) throw new cUnsupportedByServerException(fCapabilities.CondStore, lContext);
+                    if (lStatus.HighestModSeq == 0) throw new cUnsupportedByMailboxException(fCapabilities.CondStore, lContext);
+                    return pAttributes | fFetchAttributes.flags;
+                }
+
+                if (_Capability.CondStore && lStatus.HighestModSeq != 0) return pAttributes | fFetchAttributes.modseq;
+
+                return pAttributes;
             }
 
             private async Task ZFetchAsync(cFetchAttributesMethodControl pMC, cMailboxId pMailboxId, cFetchGroup pGroup, cTrace.cContext pParentContext)
