@@ -81,11 +81,50 @@ namespace work.bacome.imapclient
         public string Name => MailboxId.MailboxName.Name;
 
         // properties
+
+        public cMailboxFlags MailboxFlags(fMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault)
+        {
+            var lItem = Client.MailboxCacheItem(MailboxId);
+            // if the flagsets are all there, return the cached flags
+            // else do a list
+            // return the cached flags
+        }
+
+        public bool CanHaveChildren => MailboxFlags(fMailboxFlagSets.rfc3501).CanHaveChildren;
+        public bool? HasChildren => MailboxFlags(fMailboxFlagSets.children).HasChildren;
+        public bool CanSelect => Flags.CanSelect;
+        public bool? IsMarked => Flags.IsMarked;
+        public bool? IsSubscribed => Flags.IsSubscribed;
+        public bool? HasSubscribedChildren => Flags.HasSubscribedChildren;
+        public bool? IsRemote => Flags.IsRemote;
+        public bool ContainsAll => Flags.ContainsAll;
+        public bool ContainsArchived => Flags.ContainsArchived;
+        public bool ContainsDrafts => Flags.ContainsDrafts;
+        public bool ContainsFlagged => Flags.ContainsFlagged;
+        public bool ContainsJunk => Flags.ContainsJunk;
+        public bool ContainsSent => Flags.ContainsSent;
+        public bool ContainsTrash => Flags.ContainsTrash;
+
+        private cMailboxFlags ZMailboxFlags()
+
+
+
+
         public bool Selected => Client.MailboxCacheItem(MailboxId)?.Selected ?? false;
         public bool SelectedForUpdate => Client.MailboxCacheItem(MailboxId)?.SelectedForUpdate ?? false;
         public bool AccessReadOnly => Client.MailboxCacheItem(MailboxId)?.AccessReadOnly ?? false;
-        public cMessageFlags Flags => Client.MailboxCacheItem(MailboxId)?.Flags;
+
+        public cMessageFlags MessageFlags => Client.MailboxCacheItem(MailboxId)?.MessageFlags;
         public cMessageFlags PermanentFlags => Client.MailboxCacheItem(MailboxId)?.PermanentFlags;
+
+
+
+
+
+
+
+
+
 
         // get data
         public cMailboxStatus Status(int? pCacheAgeMax = null) => Client.Status(MailboxId, pCacheAgeMax);
@@ -100,8 +139,8 @@ namespace work.bacome.imapclient
         public int UnseenUnknown => Client.Status(MailboxId, true).UnseenUnknown;
         public ulong HighestModSeq => Client.Status(MailboxId, true).HighestModSeq;
 
-        public List<cMailboxListItem> Mailboxes(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxListProperties pListProperties = fMailboxListProperties.clientdefault) => Client.Mailboxes(MailboxId, pTypes, pListProperties);
-        public Task<List<cMailboxListItem>> MailboxesAsync(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault, fStatusAttributes pStatusAttributes = fStatusAttributes.clientdefault) => Client.MailboxesAsync(MailboxId, pTypes, pFlagSets, pStatusAttributes);
+        public List<cMailbox> Mailboxes(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault) => Client.Mailboxes(MailboxId, pTypes, pListProperties);
+        public Task<List<cMailbox>> MailboxesAsync(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fListMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault, fStatusAttributes pStatusAttributes = fStatusAttributes.clientdefault) => Client.MailboxesAsync(MailboxId, pTypes, pFlagSets, pStatusAttributes);
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fFetchAttributes pAttributes = fFetchAttributes.clientdefault) => Client.Messages(MailboxId, pFilter, pSort, pAttributes);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fFetchAttributes pAttributes = fFetchAttributes.clientdefault) => Client.MessagesAsync(MailboxId, pFilter, pSort, pAttributes);
 

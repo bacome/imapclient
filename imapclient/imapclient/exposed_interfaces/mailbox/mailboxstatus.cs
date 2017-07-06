@@ -6,23 +6,23 @@ namespace work.bacome.imapclient
     public class cMailboxStatus
     {
         public readonly int MessageCount;
-        public readonly int Recent;
+        public readonly int RecentCount;
         public readonly uint UIDNext;
-        public readonly int NewUnknownUID; // the number of new messages in the mailbox for which we don't know the UID (indicates the inaccuracy of UIDNext)
+        public readonly int NewUnknownUIDCount; // the number of new messages in the mailbox for which we don't know the UID (indicates the inaccuracy of UIDNext)
         public readonly uint UIDValidity;
-        public readonly int Unseen;
-        public readonly int UnseenUnknown; // the number of messages in the mailbox for which we don't know if they are seen or unseen (indicates the inaccuracy of Unseen)
+        public readonly int UnseenCount;
+        public readonly int UnseenUnknownCount; // the number of messages in the mailbox for which we don't know if they are seen or unseen (indicates the inaccuracy of Unseen)
         public readonly ulong HighestModSeq;
 
-        public cMailboxStatus(int pMessageCount, int pRecent, uint pUIDNext, int pNewKnownUID, uint pUIDValidity, int pUnseen, int pUnseenUnknown, ulong pHighestModSeq)
+        public cMailboxStatus(int pMessageCount, int pRecentCount, uint pUIDNext, int pNewKnownUIDCount, uint pUIDValidity, int pUnseenCount, int pUnseenUnknownCount, ulong pHighestModSeq)
         {
             MessageCount = pMessageCount;
-            Recent = pRecent;
+            RecentCount = pRecentCount;
             UIDNext = pUIDNext;
-            NewUnknownUID = pNewKnownUID;
+            NewUnknownUIDCount = pNewKnownUIDCount;
             UIDValidity = pUIDValidity;
-            Unseen = pUnseen;
-            UnseenUnknown = pUnseenUnknown;
+            UnseenCount = pUnseenCount;
+            UnseenUnknownCount = pUnseenUnknownCount;
             HighestModSeq = pHighestModSeq;
         }
 
@@ -34,18 +34,18 @@ namespace work.bacome.imapclient
             {
                 int lHash = 17;
                 lHash = lHash * 23 + MessageCount.GetHashCode();
-                lHash = lHash * 23 + Recent.GetHashCode();
+                lHash = lHash * 23 + RecentCount.GetHashCode();
                 lHash = lHash * 23 + UIDNext.GetHashCode();
-                lHash = lHash * 23 + NewUnknownUID.GetHashCode();
+                lHash = lHash * 23 + NewUnknownUIDCount.GetHashCode();
                 lHash = lHash * 23 + UIDValidity.GetHashCode();
-                lHash = lHash * 23 + Unseen.GetHashCode();
-                lHash = lHash * 23 + UnseenUnknown.GetHashCode();
+                lHash = lHash * 23 + UnseenCount.GetHashCode();
+                lHash = lHash * 23 + UnseenUnknownCount.GetHashCode();
                 lHash = lHash * 23 + HighestModSeq.GetHashCode();
                 return lHash;
             }
         }
 
-        public override string ToString() => $"{nameof(cMailboxStatus)}({MessageCount},{Recent},{UIDNext},{NewUnknownUID},{UIDValidity},{Unseen},{UnseenUnknown},{HighestModSeq})";
+        public override string ToString() => $"{nameof(cMailboxStatus)}({MessageCount},{RecentCount},{UIDNext},{NewUnknownUIDCount},{UIDValidity},{UnseenCount},{UnseenUnknownCount},{HighestModSeq})";
 
         public static fMailboxCacheItemDifferences Differences(cMailboxStatus pA, cMailboxStatus pB)
         {
@@ -56,12 +56,12 @@ namespace work.bacome.imapclient
             fMailboxCacheItemDifferences lResult = 0;
 
             if (pA.MessageCount != pB.MessageCount) lResult |= fMailboxCacheItemDifferences.messagecount;
-            if (pA.Recent != pB.Recent) lResult |= fMailboxCacheItemDifferences.recent;
+            if (pA.RecentCount != pB.RecentCount) lResult |= fMailboxCacheItemDifferences.recent;
             if (pA.UIDNext != pB.UIDNext) lResult |= fMailboxCacheItemDifferences.uidnext;
-            if (pA.NewUnknownUID != pB.NewUnknownUID) lResult |= fMailboxCacheItemDifferences.newunknownuid;
+            if (pA.NewUnknownUIDCount != pB.NewUnknownUIDCount) lResult |= fMailboxCacheItemDifferences.newunknownuid;
             if (pA.UIDValidity != pB.UIDValidity) lResult |= fMailboxCacheItemDifferences.uidvalidity;
-            if (pA.Unseen != pB.Unseen) lResult |= fMailboxCacheItemDifferences.unseen;
-            if (pA.UnseenUnknown != pB.UnseenUnknown) lResult |= fMailboxCacheItemDifferences.unseenunknown;
+            if (pA.UnseenCount != pB.UnseenCount) lResult |= fMailboxCacheItemDifferences.unseen;
+            if (pA.UnseenUnknownCount != pB.UnseenUnknownCount) lResult |= fMailboxCacheItemDifferences.unseenunknown;
             if (pA.HighestModSeq != pB.HighestModSeq) lResult |= fMailboxCacheItemDifferences.highestmodseq;
 
             return lResult;
