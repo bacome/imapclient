@@ -53,6 +53,7 @@
     <Compile Include="client\messages.cs" />
     <Compile Include="client\select.cs" />
     <Compile Include="client\status.cs" />
+    <Compile Include="client\updatemailboxcache.cs" />
     <Compile Include="exposed_interfaces\collections\addresses.cs" />
     <Compile Include="exposed_interfaces\collections\handlelist.cs" />
     <Compile Include="exposed_interfaces\collections\idreadonlydictionary.cs" />
@@ -66,12 +67,12 @@
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
     <Compile Include="exposed_interfaces\enums\list.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
-    <Compile Include="exposed_interfaces\support\types\mailboxcacheitem.cs" />
+    <Compile Include="exposed_interfaces\mailbox\selectoptions.cs" />
+    <Compile Include="exposed_interfaces\support\types\mailboxcache.cs" />
     <Compile Include="session\session\searchunseen.cs" />
     <Compile Include="session\session\mailboxcache.cs" />
-    <Compile Include="exposed_interfaces\mailbox\mailboxflags.cs" />
+    <Compile Include="exposed_interfaces\mailbox\mailboxflagsets.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxid.cs" />
-    <Compile Include="exposed_interfaces\mailbox\mailboxlistitem.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxname.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxpropertychangedeventargs.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxstatus.cs" />

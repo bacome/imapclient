@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kExamineCommandPart = new cCommandPart("EXAMINE ");
             private static readonly cCommandPart kExamineCommandPartCondStore = new cCommandPart(" (CONDSTORE)");
 
-            public async Task ExamineAsync(cMethodControl pMC, cMailboxId pMailboxId, cTrace.cContext pParentContext)
+            private async Task ZExamineAsync(cMethodControl pMC, cMailboxId pMailboxId, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ExamineAsync), pMC, pMailboxId);
 

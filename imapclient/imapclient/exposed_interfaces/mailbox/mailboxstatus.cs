@@ -50,24 +50,24 @@ namespace work.bacome.imapclient
         public static fMailboxCacheItemDifferences Differences(cMailboxStatus pA, cMailboxStatus pB)
         {
             if (ReferenceEquals(pA, pB)) return 0;
-            if (ReferenceEquals(pA, null)) return fMailboxCacheItemDifferences.all;
-            if (ReferenceEquals(pB, null)) return fMailboxCacheItemDifferences.all;
+            if (ReferenceEquals(pA, null)) return fMailboxCacheItemDifferences.allstatus;
+            if (ReferenceEquals(pB, null)) return fMailboxCacheItemDifferences.allstatus;
 
             fMailboxCacheItemDifferences lResult = 0;
 
             if (pA.MessageCount != pB.MessageCount) lResult |= fMailboxCacheItemDifferences.messagecount;
-            if (pA.RecentCount != pB.RecentCount) lResult |= fMailboxCacheItemDifferences.recent;
+            if (pA.RecentCount != pB.RecentCount) lResult |= fMailboxCacheItemDifferences.recentcount;
             if (pA.UIDNext != pB.UIDNext) lResult |= fMailboxCacheItemDifferences.uidnext;
-            if (pA.NewUnknownUIDCount != pB.NewUnknownUIDCount) lResult |= fMailboxCacheItemDifferences.newunknownuid;
+            if (pA.NewUnknownUIDCount != pB.NewUnknownUIDCount) lResult |= fMailboxCacheItemDifferences.newunknownuidcount;
             if (pA.UIDValidity != pB.UIDValidity) lResult |= fMailboxCacheItemDifferences.uidvalidity;
-            if (pA.UnseenCount != pB.UnseenCount) lResult |= fMailboxCacheItemDifferences.unseen;
-            if (pA.UnseenUnknownCount != pB.UnseenUnknownCount) lResult |= fMailboxCacheItemDifferences.unseenunknown;
+            if (pA.UnseenCount != pB.UnseenCount) lResult |= fMailboxCacheItemDifferences.unseencount;
+            if (pA.UnseenUnknownCount != pB.UnseenUnknownCount) lResult |= fMailboxCacheItemDifferences.unseenunknowncount;
             if (pA.HighestModSeq != pB.HighestModSeq) lResult |= fMailboxCacheItemDifferences.highestmodseq;
 
             return lResult;
         }
 
         public static bool operator ==(cMailboxStatus pA, cMailboxStatus pB) => Differences(pA, pB) == 0;
-        public static bool operator !=(cMailboxStatus pA, cMailboxStatus pB) => !(pA == pB);
+        public static bool operator !=(cMailboxStatus pA, cMailboxStatus pB) => Differences(pA, pB) != 0;
     }
 }

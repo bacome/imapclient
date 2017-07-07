@@ -7,23 +7,22 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void Select(cMailboxId pMailboxId, bool pForUpdate)
+        public void Select(cMailboxId pMailboxId, fSelectOptions pOptions)
         {
-            ;?; // search unseen control
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Select));
-            var lTask = ZSelectAsync(pMailboxId, pForUpdate, lContext);
+            var lTask = ZSelectAsync(pMailboxId, pOptions, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task SelectAsync(cMailboxId pMailboxId, bool pForUpdate)
+        public Task SelectAsync(cMailboxId pMailboxId, fSelectOptions pOptions)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SelectAsync));
-            return ZSelectAsync(pMailboxId, pForUpdate, lContext);
+            return ZSelectAsync(pMailboxId, pOptions, lContext);
         }
 
-        private async Task ZSelectAsync(cMailboxId pMailboxId, bool pForUpdate, cTrace.cContext pParentContext)
+        private async Task ZSelectAsync(cMailboxId pMailboxId, fSelectOptions pOptions, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSelectAsync), pMailboxId, pForUpdate);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSelectAsync), pMailboxId, pOptions);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -37,8 +36,7 @@ namespace work.bacome.imapclient
             try
             {
                 var lMC = new cMethodControl(mTimeout, CancellationToken);
-                if (pForUpdate) await lSession.SelectAsync(lMC, pMailboxId, lContext).ConfigureAwait(false);
-                else await lSession.ExamineAsync(lMC, pMailboxId, lContext).ConfigureAwait(false);
+                await lSession.SelectAsync(lMC, pMailboxId, pOptions, lContext).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
         }

@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kSelectCommandPart = new cCommandPart("SELECT ");
             private static readonly cCommandPart kSelectCommandPartCondStore = new cCommandPart(" (CONDSTORE)");
 
-            public async Task SelectAsync(cMethodControl pMC, cMailboxId pMailboxId, cTrace.cContext pParentContext)
+            private async Task ZSelectAsync(cMethodControl pMC, cMailboxId pMailboxId, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SelectAsync), pMC, pMailboxId);
 

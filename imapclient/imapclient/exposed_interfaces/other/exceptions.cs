@@ -245,12 +245,12 @@ namespace work.bacome.imapclient
         }
     }
 
-    // thrown when a required list property isn't available
-    public class cMailboxListPropertyNotRequestedException : Exception
+    // thrown when required flag sets aren't available
+    public class cMailboxFlagSetsException : Exception
     {
-        public readonly fMailboxListProperties Required;
+        public readonly fMailboxFlagSets Required;
 
-        public cMailboxListPropertyNotRequestedException(fMailboxListProperties pRequired)
+        public cMailboxFlagSetsException(fMailboxFlagSets pRequired)
         {
             Required = pRequired;
         }
