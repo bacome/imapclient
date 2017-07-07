@@ -172,18 +172,27 @@ namespace work.bacome.imapclient
 
                 // if using list-extended, always ask for specialuse attributes if specialuse is advertised 
 
-
                 // also note that while we may have to do a status command for each mailbox; non-selectable mailboxes do not have a status
-                //  list-extended won't return status for non-selectable mailboxes and may not return it for any mailbox (so I might have to do it manually)
-
+                //  list-extended won't return status for non-selectable mailboxes and may not return it for any mailbox
 
                 // must check the list-extended result to see if status was returned for each item: we may need to patch up the status
+                //  NO: not now :- now if the status wasn't returned accessing it through the mailbox will get it
 
                 if (lTypes == (fMailboxTypes.normal | fMailboxTypes.subscribed) && (lFlagSets & ~(fMailboxFlagSets.rfc3501)) == 0)
                 {
                     var lList = await pSession.ListAsync(lMC, new cListPattern(pListMailbox, pDelimiter, pPattern), lContext).ConfigureAwait(false);
+
                     List<cMailbox> lResult = new List<cMailbox>();
-                    foreach (var lItem in lList) lResult.Add(new cMailbox(this, new cMailboxId(pSession.ConnectedAccountId, lItem.MailboxName)));
+
+                    foreach (var lItem in lList)
+                    {
+                        lResult.Add(new cMailbox(this, new cMailboxId(pSession.ConnectedAccountId, lItem.MailboxName)));
+
+                        ;?; // cache the result
+
+                        ;?; // note that multiple lists at one time may be running. which one ends up in the cache?
+                    }
+
                     return lResult;
                 }
 
