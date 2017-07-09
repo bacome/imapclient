@@ -7,22 +7,22 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void Select(cMailboxId pMailboxId, fSelectOptions pOptions)
+        public void Select(cMailboxId pMailboxId, bool pForUpdate = false)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Select));
-            var lTask = ZSelectAsync(pMailboxId, pOptions, lContext);
+            var lTask = ZSelectAsync(pMailboxId, pForUpdate, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task SelectAsync(cMailboxId pMailboxId, fSelectOptions pOptions)
+        public Task SelectAsync(cMailboxId pMailboxId, bool pForUpdate = false)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SelectAsync));
-            return ZSelectAsync(pMailboxId, pOptions, lContext);
+            return ZSelectAsync(pMailboxId, pForUpdate, lContext);
         }
 
-        private async Task ZSelectAsync(cMailboxId pMailboxId, fSelectOptions pOptions, cTrace.cContext pParentContext)
+        private async Task ZSelectAsync(cMailboxId pMailboxId, bool pForUpdate, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSelectAsync), pMailboxId, pOptions);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSelectAsync), pMailboxId, pForUpdate);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
             try
             {
                 var lMC = new cMethodControl(mTimeout, CancellationToken);
-                await lSession.SelectAsync(lMC, pMailboxId, pOptions, lContext).ConfigureAwait(false);
+                await lSession.SelectAsync(lMC, pMailboxId, pForUpdate, lContext).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
         }

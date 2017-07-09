@@ -11,7 +11,6 @@ namespace work.bacome.imapclient
         // defaults
 
         private fMailboxTypes mDefaultMailboxTypes = fMailboxTypes.normal | fMailboxTypes.subscribed;
-        private fMailboxFlagSets mDefaultMailboxFlagSets = fMailboxFlagSets.rfc3501;
 
         public fMailboxTypes DefaultMailboxTypes
         {
@@ -25,23 +24,12 @@ namespace work.bacome.imapclient
             }
         }
 
-        public fMailboxFlagSets DefaultMailboxFlagSets
-        {
-            get => mDefaultMailboxFlagSets;
-
-            set
-            {
-                // having nothing set is a valid option - this allows LSUB to be used by itself
-                if ((value & fMailboxFlagSets.clientdefault) != 0) throw new ArgumentOutOfRangeException(); // default can't include the default
-                mDefaultMailboxFlagSets = value;
-            }
-        }
-
-        public bool DefaultMailboxStatus { get; set; }
+        ;?; // zero is not valid
+        public fMailboxProperties DefaultMailboxProperties { get; set; }
 
         // manual list
 
-        public List<cMailbox> Mailboxes(string pListMailbox, char? pDelimiter, fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault, bool? pStatus = null)
+        public List<cMailbox> Mailboxes(string pListMailbox, char? pDelimiter, fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxProperties )
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
             var lTask = ZMailboxesAsync(pListMailbox, pDelimiter, pTypes, pFlagSets, pStatus, lContext);

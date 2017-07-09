@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient.support
 {
     [Flags]
-    public enum fKnownFlags
+    public enum fKnownMessageFlags
     {
         // rfc 3501
         asterisk = 1,

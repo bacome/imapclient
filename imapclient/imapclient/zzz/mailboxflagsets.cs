@@ -1,7 +1,9 @@
 ﻿using System;
 
-namespace work.bacome.imapclient
+namespace work.bacome.imapclient.zzz
 {
+    ;?; // no - the user should just specify the flags they want
+    ;?; //  we go flags -> sets
     [Flags]
     public enum fMailboxFlagSets
     {

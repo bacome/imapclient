@@ -67,11 +67,13 @@
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
     <Compile Include="exposed_interfaces\enums\list.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
-    <Compile Include="exposed_interfaces\mailbox\selectoptions.cs" />
-    <Compile Include="exposed_interfaces\support\types\mailboxcache.cs" />
+    <Compile Include="exposed_interfaces\mailbox\mailboxproperties.cs" />
+    <Compile Include="exposed_interfaces\support\enums\mailboxcacheproperties.cs" />
+    <Compile Include="exposed_interfaces\support\types\mailboxcacheitem.cs" />
+    <Compile Include="exposed_interfaces\support\types\mailboxflags.cs" />
     <Compile Include="session\session\searchunseen.cs" />
     <Compile Include="session\session\mailboxcache.cs" />
-    <Compile Include="exposed_interfaces\mailbox\mailboxflagsets.cs" />
+    <Compile Include="zzz\mailboxflagsets.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxid.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxname.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxpropertychangedeventargs.cs" />
@@ -126,7 +128,7 @@
     <Compile Include="exposed_interfaces\support\encoding\base64.cs" />
     <Compile Include="exposed_interfaces\support\encoding\modifiedutf7.cs" />
     <Compile Include="exposed_interfaces\support\enums\idfieldnames.cs" />
-    <Compile Include="exposed_interfaces\support\enums\knownflags.cs" />
+    <Compile Include="exposed_interfaces\support\enums\knownmessageflags.cs" />
     <Compile Include="exposed_interfaces\support\parsing\charactersets.cs" />
     <Compile Include="exposed_interfaces\support\parsing\uriparts.cs" />
     <Compile Include="exposed_interfaces\support\parsing\urlparts.cs" />
@@ -195,7 +197,7 @@
     <Compile Include="session\session\poll.cs" />
     <Compile Include="session\support\command.cs" />
     <Compile Include="session\support\commandtag.cs" />
-    <Compile Include="session\support\fetchsizer.cs" />
+    <Compile Include="support\fetchsizer.cs" />
     <Compile Include="session\support\mailboxnamepatterns.cs" />
     <Compile Include="session\support\messagecache.cs" />
     <Compile Include="session\support\messagecacheitem.cs" />
@@ -206,7 +208,7 @@
     <Compile Include="support\body.cs" />
     <Compile Include="support\eventsynchroniser.cs" />
     <Compile Include="support\listpattern.cs" />
-    <Compile Include="support\mailboxlist.cs" />
+    <Compile Include="zzz\mailboxlist.cs" />
     <Compile Include="support\mailboxnamepattern.cs" />
     <Compile Include="support\namespacelist.cs" />
     <Compile Include="support\uidlist.cs" />

@@ -3,43 +3,6 @@
 namespace work.bacome.imapclient.support
 {
     [Flags]
-    public enum fMailboxCacheItemDifferences
-    {
-        canhavechildren = 1,
-        haschildren = 1 << 1,
-        canselect = 1 << 2,
-        ismarked = 1 << 3,
-        issubscribed = 1 << 4,
-        hassubscribedchildren = 1 << 5,
-        islocal = 1 << 6,
-        containsall = 1 << 7,
-        isarchive = 1 << 8,
-        containsdrafts = 1 << 9,
-        containsflagged = 1 << 10,
-        containsjunk = 1 << 11,
-        containssent = 1 << 12,
-        containstrash = 1 << 13,
-        allmailboxflags = 0b11111111111111,
-
-        isselected = 1 << 14,
-        isselectedforupdate = 1 << 15,
-        isaccessreadonly = 1 << 16,
-
-        messageflags = 1 << 17,
-        permanentflags = 1 << 18,
-
-        messagecount = 1 << 19,
-        recentcount = 1 << 20,
-        uidnext = 1 << 21,
-        newunknownuidcount = 1 << 22,
-        uidvalidity = 1 << 23,
-        unseencount = 1 << 24,
-        unseenunknowncount = 1 << 25,
-        highestmodseq = 1 << 26,
-        allstatus = messagecount | recentcount | uidnext | newunknownuidcount | uidvalidity | unseencount | unseenunknowncount | highestmodseq
-    }
-
-    [Flags]
     public enum fMailboxFlags
     {
         noinferiors = 1, // rfc 3501, hasnochildren must be set if this is set
@@ -51,7 +14,7 @@ namespace work.bacome.imapclient.support
         subscribed = 1 << 6, // rfc 5258 
         hassubscribedchildren = 1 << 7, // derived from the LIST/LSUB replies OR the CHILDINFO response, haschildren must be set if this is set
         local = 1 << 8, // set if the mailbox is returned by list, lsub, or list-extended and no /remote was received
-        // next 7 rfc 6154 (specialuse)
+                        // next 7 rfc 6154 (specialuse)
         all = 1 << 9,
         archive = 1 << 10,
         drafts = 1 << 11,
@@ -63,52 +26,69 @@ namespace work.bacome.imapclient.support
 
     public class cMailboxFlags
     {
-        public readonly fMailboxFlagSets FlagSets;
-        public readonly fMailboxFlags Flags;
+        public static readonly fMailboxFlagSets CanHaveChildrenFlagSets = fMailboxFlagSets.rfc3501;
+        public static readonly fMailboxFlagSets HasChildrenFlagSets = fMailboxFlagSets.children;
+        public static readonly fMailboxFlagSets CanSelectFlagSets = fMailboxFlagSets.rfc3501;
+        public static readonly fMailboxFlagSets IsMarkedFlagSets = fMailboxFlagSets.rfc3501;
+        public static readonly fMailboxFlagSets IsSubscribedFlagSets = fMailboxFlagSets.subscribed;
+        public static readonly fMailboxFlagSets HasSubscribedChildrenFlagSets = fMailboxFlagSets.subscribedchildren;
+        public static readonly fMailboxFlagSets IsLocalFlagSets = fMailboxFlagSets.local;
+        public static readonly fMailboxFlagSets ContainsAllFlagSets = fMailboxFlagSets.specialuse;
+        public static readonly fMailboxFlagSets IsArchiveFlagSets = fMailboxFlagSets.specialuse;
+        public static readonly fMailboxFlagSets ContainsDraftsFlagSets = fMailboxFlagSets.specialuse;
+        public static readonly fMailboxFlagSets ContainsFlaggedFlagSets = fMailboxFlagSets.specialuse;
+        public static readonly fMailboxFlagSets ContainsJunkFlagSets = fMailboxFlagSets.specialuse;
+        public static readonly fMailboxFlagSets ContainsSentFlagSets = fMailboxFlagSets.specialuse;
+        public static readonly fMailboxFlagSets ContainsTrashFlagSets = fMailboxFlagSets.specialuse;
 
-        public cMailboxFlags(fMailboxFlagSets pFlagSets, fMailboxFlags pFlags)
+        private static readonly fMailboxFlags krfc3501Flags = fMailboxFlags.noinferiors | fMailboxFlags.noselect | fMailboxFlags.marked | fMailboxFlags.unmarked;
+        private static readonly fMailboxFlags kChildrenFlags = fMailboxFlags.haschildren
+        private static readonly fMailboxFlags kSubscribedFlags =
+        private static readonly fMailboxFlags kSubscribedChildrenFlags =
+        private static readonly fMailboxFlags kLocalFlags =
+        private static readonly fMailboxFlags kSpecialUseFlags =
+
+        private readonly fMailboxFlags mMask;
+        private readonly fMailboxFlags mFlags;
+
+        public cMailboxFlags(fMailboxFlags pMask, fMailboxFlags pFlags)
         {
-            FlagSets = pFlagSets;
-            Flags = pFlags;
+            mMask = pMask;
+            mFlags = pFlags;
         }
 
-        public static readonly fMailboxFlagSets CanHaveChildrenFlagSets = fMailboxFlagSets.rfc3501;
+        public bool HasProperty(fMailboxProperties pProperty) => mMask & 
+
 
         public bool CanHaveChildren
         {
             get
             {
-                ZCheckRequiredFlagSets(CanHaveChildrenFlagSets);
-                return (Flags & fMailboxFlags.noinferiors) == 0;
+                ZCheckRequiredFlagSets(kCanHaveChildrenFlagSets);
+                return (mFlags & fMailboxFlags.noinferiors) == 0;
             }
         }
-
-        public static readonly fMailboxFlagSets HasChildrenFlagSets = fMailboxFlagSets.children;
 
         public bool? HasChildren
         {
             get
             {
-                ZCheckRequiredFlagSets(HasChildrenFlagSets);
-                fMailboxFlags lFlags = Flags & (fMailboxFlags.haschildren | fMailboxFlags.hasnochildren);
+                ZCheckRequiredFlagSets(kHasChildrenFlagSets);
+                fMailboxFlags lFlags = mFlags & (fMailboxFlags.haschildren | fMailboxFlags.hasnochildren);
                 if (lFlags == fMailboxFlags.haschildren) return true;
                 if (lFlags == fMailboxFlags.hasnochildren) return false;
                 return null;
             }
         }
 
-        public static readonly fMailboxFlagSets CanSelectFlagSets = fMailboxFlagSets.rfc3501;
-
         public bool CanSelect
         {
             get
             {
-                ZCheckRequiredFlagSets(CanSelectFlagSets);
-                return (Flags & fMailboxFlags.noselect) == 0;
+                ZCheckRequiredFlagSets(kCanSelectFlagSets);
+                return (mFlags & fMailboxFlags.noselect) == 0;
             }
         }
-
-        public static readonly fMailboxFlagSets IsMarkedFlagSets = fMailboxFlagSets.rfc3501;
 
         public bool? IsMarked
         {
@@ -122,8 +102,6 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public static readonly fMailboxFlagSets IsSubscribedFlagSets = fMailboxFlagSets.subscribed;
-
         public bool IsSubscribed
         {
             get
@@ -132,8 +110,6 @@ namespace work.bacome.imapclient.support
                 return (Flags & fMailboxFlags.subscribed) != 0;
             }
         }
-
-        public static readonly fMailboxFlagSets HasSubscribedChildrenFlagSets = fMailboxFlagSets.subscribedchildren;
 
         public bool HasSubscribedChildren
         {
@@ -144,8 +120,6 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public static readonly fMailboxFlagSets IsLocalFlagSets = fMailboxFlagSets.local;
-
         public bool IsLocal
         {
             get
@@ -154,8 +128,6 @@ namespace work.bacome.imapclient.support
                 return (Flags & fMailboxFlags.local) != 0;
             }
         }
-
-        public static readonly fMailboxFlagSets ContainsAllFlagSets = fMailboxFlagSets.specialuse;
 
         public bool ContainsAll
         {
@@ -166,8 +138,6 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public static readonly fMailboxFlagSets IsArchiveFlagSets = fMailboxFlagSets.specialuse;
-
         public bool IsArchive
         {
             get
@@ -176,8 +146,6 @@ namespace work.bacome.imapclient.support
                 return (Flags & fMailboxFlags.archive) != 0;
             }
         }
-
-        public static readonly fMailboxFlagSets ContainsDraftsFlagSets = fMailboxFlagSets.specialuse;
 
         public bool ContainsDrafts
         {
@@ -188,8 +156,6 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public static readonly fMailboxFlagSets ContainsFlaggedFlagSets = fMailboxFlagSets.specialuse;
-
         public bool ContainsFlagged
         {
             get
@@ -198,8 +164,6 @@ namespace work.bacome.imapclient.support
                 return (Flags & fMailboxFlags.flagged) != 0;
             }
         }
-
-        public static readonly fMailboxFlagSets ContainsJunkFlagSets = fMailboxFlagSets.specialuse;
 
         public bool ContainsJunk
         {
@@ -210,8 +174,6 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public static readonly fMailboxFlagSets ContainsSentFlagSets = fMailboxFlagSets.specialuse;
-
         public bool ContainsSent
         {
             get
@@ -221,8 +183,6 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public static readonly fMailboxFlagSets ContainsTrashFlagSets = fMailboxFlagSets.specialuse;
-
         public bool ContainsTrash
         {
             get
@@ -231,6 +191,26 @@ namespace work.bacome.imapclient.support
                 return (Flags & fMailboxFlags.trash) != 0;
             }
         }
+
+
+
+
+
+
+
+
+        public cMailboxFlags Combine(cMailboxFlags pOld, cMailboxFlags pNew)
+        {
+
+        }
+
+
+
+
+
+
+
+
 
         private void ZCheckRequiredFlagSets(fMailboxFlagSets pRequired)
         {
@@ -288,17 +268,5 @@ namespace work.bacome.imapclient.support
 
         public static bool operator ==(cMailboxFlags pA, cMailboxFlags pB) => Differences(pA, pB) == 0;
         public static bool operator !=(cMailboxFlags pA, cMailboxFlags pB) => Differences(pA, pB) != 0;
-    }
-
-    public interface iMailboxCacheItem
-    {
-        cMailboxFlags MailboxFlags { get; }
-        bool IsSelected { get; }
-        bool IsSelectedForUpdate { get; }
-        bool IsAccessReadOnly { get; }
-        cMessageFlags MessageFlags { get; }
-        cMessageFlags PermanentFlags { get; }
-        cMailboxStatus Status { get; }
-        long StatusAge { get; }
     }
 }

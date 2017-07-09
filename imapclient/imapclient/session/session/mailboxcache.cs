@@ -10,10 +10,11 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
+
             private class cMailboxCache
             {
                 private readonly Action<cMailboxId, string, cTrace.cContext> mMailboxPropertyChanged;
-                private readonly Dictionary<cMailboxName, cItem> mDictionary = new Dictionary<cMailboxName, cItem>();
+                private readonly Dictionary<string, cItem> mDictionary = new Dictionary<string, cItem>();
 
                 public cMailboxCache(Action<cMailboxId, string, cTrace.cContext> pMailboxPropertyChanged)
                 {
@@ -24,6 +25,7 @@ namespace work.bacome.imapclient
 
                 public void SetMailboxFlags(cMailboxId pMailboxId, cMailboxFlags pMailboxFlags, cTrace.cContext pParentContext)
                 {
+                    ;?; // ths should merge liket he mboxlist merges
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(SetMailboxFlags), pMailboxId, pMailboxFlags);
                     if (pMailboxFlags == null) throw new ArgumentNullException(nameof(pMailboxFlags));
                     var lItem = ZItem(pMailboxId.MailboxName, true);
@@ -181,7 +183,8 @@ namespace work.bacome.imapclient
                     if ((pDifferences & fMailboxCacheItemDifferences.isaccessreadonly) != 0) mMailboxPropertyChanged(pMailboxId, nameof(cMailbox.IsAccessReadOnly), lContext);
 
                     if ((pDifferences & fMailboxCacheItemDifferences.messageflags) != 0) mMailboxPropertyChanged(pMailboxId, nameof(cMailbox.MessageFlags), lContext);
-                    if ((pDifferences & fMailboxCacheItemDifferences.permanentflags) != 0) mMailboxPropertyChanged(pMailboxId, nameof(cMailbox.PermanentFlags), lContext);
+                    if ((pDifferences & fMailboxCacheItemDifferences.forupdatepermanentflags) != 0) mMailboxPropertyChanged(pMailboxId, nameof(cMailbox.ForUpdatePermanentFlags), lContext);
+                    if ((pDifferences & fMailboxCacheItemDifferences.readonlypermanentflags) != 0) mMailboxPropertyChanged(pMailboxId, nameof(cMailbox.ReadOnlyPermanentFlags), lContext);
 
                     if ((pDifferences & fMailboxCacheItemDifferences.messagecount) != 0) mMailboxPropertyChanged(pMailboxId, nameof(cMailbox.Status), lContext);
                     if ((pDifferences & fMailboxCacheItemDifferences.recentcount) != 0) mMailboxPropertyChanged(pMailboxId, nameof(cMailbox.Status), lContext);
@@ -195,22 +198,53 @@ namespace work.bacome.imapclient
 
                 private class cItem : iMailboxCacheItem
                 {
-                    private cMessageFlags mPermanentFlags = null;
+                    private bool mBeenSelectedForUpdate = false;
+                    private cMessageFlags mForUpdatePermanentFlags = null;
+                    private bool mBeenSelectedReadOnly = false;
+                    private cMessageFlags mReadOnlyPermanentFlags = null;
                     private cMailboxStatus mStatus = null;
                     private Stopwatch mStatusStopwatch = null;
 
+                    public readonly cMailboxName MailboxName;
                     public cMailboxFlags MailboxFlags { get; set; } = null;
                     public bool IsSelected { get; set; } = false;
                     public bool IsSelectedForUpdate { get; set; } = false;
                     public bool IsAccessReadOnly { get; set; } = false;
                     public cMessageFlags MessageFlags { get; set; } = null;
 
-                    public cItem() { }
-
-                    public cMessageFlags PermanentFlags
+                    public cItem(cMailboxName pMailboxName)
                     {
-                        get => mPermanentFlags ?? MessageFlags;
-                        set => mPermanentFlags = value;
+                        MailboxName = pMailboxName;
+                    }
+
+                    public cMessageFlags ForUpdatePermanentFlags
+                    {
+                        get
+                        {
+                            if (!mBeenSelectedForUpdate) throw new cNeverBeenSelectedForUpdateException();
+                            return mForUpdatePermanentFlags ?? MessageFlags;
+                        }
+
+                        set
+                        {
+                            mBeenSelectedForUpdate = true;
+                            mForUpdatePermanentFlags = value;
+                        }
+                    }
+
+                    public cMessageFlags ReadOnlyPermanentFlags
+                    {
+                        get
+                        {
+                            if (!mBeenSelectedForUpdate) throw new cNeverBeenSelectedReadOnlyException();
+                            return mReadOnlyPermanentFlags ?? MessageFlags;
+                        }
+
+                        set
+                        {
+                            mBeenSelectedReadOnly = true;
+                            mReadOnlyPermanentFlags = value;
+                        }
                     }
 
                     public cMailboxStatus Status

@@ -7,7 +7,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void UpdateMailboxCache(cMailboxId pMailboxId, fMailboxFlagSets pFlagSets, bool pStatus)
+        public void UpdateMailboxCache(cMailboxId pMailboxId, fMailboxListProperties pProperties, bool pStatus)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UpdateMailboxCache));
             var lTask = ZUpdateMailboxCacheAsync(pMailboxId, pFlagSets, pStatus, lContext);
