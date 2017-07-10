@@ -26,6 +26,18 @@ namespace work.bacome.imapclient
             HighestModSeq = pHighestModSeq;
         }
 
+        public cMailboxStatus(cStatus pStatus)
+        {
+            MessageCount = pStatus.Messages ?? 0;
+            RecentCount = pStatus.Recent ?? 0;
+            UIDNext = pStatus.UIDNext ?? 0;
+            NewUnknownUIDCount = 0;
+            UIDValidity = pStatus.UIDValidity ?? 0;
+            UnseenCount = pStatus.Unseen ?? 0;
+            UnseenUnknownCount = 0;
+            HighestModSeq = pStatus.HighestModSeq ?? 0;
+        }
+
         public override bool Equals(object pObject) => this == pObject as cMailboxStatus;
 
         public override int GetHashCode()
@@ -47,27 +59,43 @@ namespace work.bacome.imapclient
 
         public override string ToString() => $"{nameof(cMailboxStatus)}({MessageCount},{RecentCount},{UIDNext},{NewUnknownUIDCount},{UIDValidity},{UnseenCount},{UnseenUnknownCount},{HighestModSeq})";
 
-        public static fMailboxCacheItemDifferences Differences(cMailboxStatus pA, cMailboxStatus pB)
+        public static fMailboxProperties Differences(cMailboxStatus pA, cMailboxStatus pB)
         {
             if (ReferenceEquals(pA, pB)) return 0;
-            if (ReferenceEquals(pA, null)) return fMailboxCacheItemDifferences.allstatus;
-            if (ReferenceEquals(pB, null)) return fMailboxCacheItemDifferences.allstatus;
+            if (ReferenceEquals(pA, null)) return 0;
+            if (ReferenceEquals(pB, null)) return 0;
 
-            fMailboxCacheItemDifferences lResult = 0;
+            fMailboxProperties lResult = 0;
 
-            if (pA.MessageCount != pB.MessageCount) lResult |= fMailboxCacheItemDifferences.messagecount;
-            if (pA.RecentCount != pB.RecentCount) lResult |= fMailboxCacheItemDifferences.recentcount;
-            if (pA.UIDNext != pB.UIDNext) lResult |= fMailboxCacheItemDifferences.uidnext;
-            if (pA.NewUnknownUIDCount != pB.NewUnknownUIDCount) lResult |= fMailboxCacheItemDifferences.newunknownuidcount;
-            if (pA.UIDValidity != pB.UIDValidity) lResult |= fMailboxCacheItemDifferences.uidvalidity;
-            if (pA.UnseenCount != pB.UnseenCount) lResult |= fMailboxCacheItemDifferences.unseencount;
-            if (pA.UnseenUnknownCount != pB.UnseenUnknownCount) lResult |= fMailboxCacheItemDifferences.unseenunknowncount;
-            if (pA.HighestModSeq != pB.HighestModSeq) lResult |= fMailboxCacheItemDifferences.highestmodseq;
+            if (pA.MessageCount != pB.MessageCount) lResult |= fMailboxProperties.messagecount;
+            if (pA.RecentCount != pB.RecentCount) lResult |= fMailboxProperties.recentcount;
+            if (pA.UIDNext != pB.UIDNext) lResult |= fMailboxProperties.uidnext;
+            if (pA.NewUnknownUIDCount != pB.NewUnknownUIDCount) lResult |= fMailboxProperties.newunknownuidcount;
+            if (pA.UIDValidity != pB.UIDValidity) lResult |= fMailboxProperties.uidvalidity;
+            if (pA.UnseenCount != pB.UnseenCount) lResult |= fMailboxProperties.unseencount;
+            if (pA.UnseenUnknownCount != pB.UnseenUnknownCount) lResult |= fMailboxProperties.unseenunknowncount;
+            if (pA.HighestModSeq != pB.HighestModSeq) lResult |= fMailboxProperties.highestmodseq;
 
             return lResult;
         }
 
-        public static bool operator ==(cMailboxStatus pA, cMailboxStatus pB) => Differences(pA, pB) == 0;
-        public static bool operator !=(cMailboxStatus pA, cMailboxStatus pB) => Differences(pA, pB) != 0;
+        public static bool operator ==(cMailboxStatus pA, cMailboxStatus pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+
+            return
+                pA.MessageCount == pB.MessageCount &&
+                pA.RecentCount == pB.RecentCount &&
+                pA.UIDNext == pB.UIDNext &&
+                pA.NewUnknownUIDCount == pB.NewUnknownUIDCount &&
+                pA.UIDValidity == pB.UIDValidity &&
+                pA.UnseenCount == pB.UnseenCount &&
+                pA.UnseenUnknownCount == pB.UnseenUnknownCount &&
+                pA.HighestModSeq == pB.HighestModSeq;
+        }
+
+        public static bool operator !=(cMailboxStatus pA, cMailboxStatus pB) => !(pA == pB);
     }
 }

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using work.bacome.async;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        ;?; // convert to properties 
         private fFetchAttributes mDefaultMessageAttributes = fFetchAttributes.none;
 
         public fFetchAttributes DefaultMessageAttributes
@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
 
         private enum eMessageThreadAlgorithm { orderedsubject, references, refs }
 
-        public List<cMessage> Messages(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fFetchAttributes pAttributes, cFetchControl pFC = null)
+        public List<cMessage> Messages(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fMailboxProperties pAttributes, cFetchControl pFC = null)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));
             var lTask = ZMessagesAsync(pMailboxId, pFilter, pSort, pAttributes, pFC, lContext);
@@ -33,13 +33,13 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<List<cMessage>> MessagesAsync(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fFetchAttributes pAttributes, cFetchControl pFC = null)
+        public Task<List<cMessage>> MessagesAsync(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fMailboxProperties pAttributes, cFetchControl pFC = null)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessagesAsync));
             return ZMessagesAsync(pMailboxId, pFilter, pSort, pAttributes, pFC, lContext);
         }
 
-        private async Task<List<cMessage>> ZMessagesAsync(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fFetchAttributes pAttributes, cFetchControl pFC, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>> ZMessagesAsync(cMailboxId pMailboxId, cFilter pFilter, cSort pSort, fMailboxProperties pAttributes, cFetchControl pFC, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesAsync), pMailboxId, pFilter, pSort, pAttributes, pFC);
 
@@ -49,6 +49,8 @@ namespace work.bacome.imapclient
             if (lSession == null || lSession.State != eState.selected) throw new cMailboxNotSelectedException(lContext);
 
             if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+
+            ;?; // convert properties to attibutes
 
             fFetchAttributes lAttributes = pAttributes & fFetchAttributes.allmask;
             if ((pAttributes & fFetchAttributes.clientdefault) != 0) lAttributes |= mDefaultMessageAttributes;

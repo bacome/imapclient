@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
             [Flags]
             public enum fListExtendedSelect
             {
-                recursivematch = 1, // mod-opt
+                recursivematch = 1 << 0, // mod-opt
                 subscribed = 1 << 1, // base-opt
                 remote = 1 << 2, // independent-opt
                 specialuse = 1 << 3 // independent-opt (!) [which means you can't ask for all special-use mailboxes no matter where they are?]
@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
             [Flags]
             public enum fListExtendedReturn
             {
-                subscribed = 1,
+                subscribed = 1 << 0,
                 children = 1 << 1,
                 specialuse = 1 << 2
             }

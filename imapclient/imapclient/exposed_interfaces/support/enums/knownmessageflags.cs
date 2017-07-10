@@ -6,7 +6,7 @@ namespace work.bacome.imapclient.support
     public enum fKnownMessageFlags
     {
         // rfc 3501
-        asterisk = 1,
+        asterisk = 1 << 0,
         answered = 1 << 1,
         flagged = 1 << 2,
         deleted = 1 << 3,

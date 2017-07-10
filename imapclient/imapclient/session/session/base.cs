@@ -39,6 +39,10 @@ namespace work.bacome.imapclient
             // locks
             private readonly cExclusiveAccess mSelectExclusiveAccess = new cExclusiveAccess("select", 1);
             private readonly cExclusiveAccess mSetUnseenExclusiveAccess = new cExclusiveAccess("setunseen", 40);
+            private readonly cExclusiveAccess mLSubExclusiveAccess = new cExclusiveAccess("lsub", 41);
+            private readonly cExclusiveAccess mListExclusiveAccess = new cExclusiveAccess("list", 41);
+            private readonly cExclusiveAccess mRLSubExclusiveAccess = new cExclusiveAccess("rlsub", 42);
+            private readonly cExclusiveAccess mRListExclusiveAccess = new cExclusiveAccess("rlist", 42);
             private readonly cExclusiveAccess mSearchExclusiveAccess = new cExclusiveAccess("search", 50);
             private readonly cExclusiveAccess mSortExclusiveAccess = new cExclusiveAccess("sort", 50);
             // note that 100 is the idle block in the command pipeline
@@ -272,6 +276,30 @@ namespace work.bacome.imapclient
                 if (mSetUnseenExclusiveAccess != null)
                 {
                     try { mSetUnseenExclusiveAccess.Dispose(); }
+                    catch { }
+                }
+
+                if (mLSubExclusiveAccess != null)
+                {
+                    try { mLSubExclusiveAccess.Dispose(); }
+                    catch { }
+                }
+
+                if (mListExclusiveAccess != null)
+                {
+                    try { mListExclusiveAccess.Dispose(); }
+                    catch { }
+                }
+
+                if (mRLSubExclusiveAccess != null)
+                {
+                    try { mRLSubExclusiveAccess.Dispose(); }
+                    catch { }
+                }
+
+                if (mRListExclusiveAccess != null)
+                {
+                    try { mRListExclusiveAccess.Dispose(); }
                     catch { }
                 }
 

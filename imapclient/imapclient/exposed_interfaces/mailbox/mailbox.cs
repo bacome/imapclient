@@ -125,9 +125,39 @@ namespace work.bacome.imapclient
         public bool IsSelectedForUpdate => Client.MailboxCacheItem(MailboxId)?.IsSelectedForUpdate ?? false;
         public bool IsAccessReadOnly => Client.MailboxCacheItem(MailboxId)?.IsAccessReadOnly ?? false;
 
-        public cMessageFlags MessageFlags => Client.MailboxCacheItem(MailboxId)?.MessageFlags;
-        public cMessageFlags ForUpdatePermanentFlags => Client.MailboxCacheItem(MailboxId)?.ForUpdatePermanentFlags;
-        public cMessageFlags ReadOnlyPermanentFlags => Client.MailboxCacheItem(MailboxId)?.ReadOnlyPermanentFlags;
+        public bool HasBeenSelected => Client.MailboxCacheItem(MailboxId)?.HasBeenSelected ?? false;
+        public bool HasBeenSelectedForUpdate => Client.MailboxCacheItem(MailboxId)?.HasBeenSelectedForUpdate ?? false;
+        public bool HasBeenSelectedReadOnly => Client.MailboxCacheItem(MailboxId)?.HasBeenSelectedReadOnly ?? false;
+
+        public cMessageFlags MessageFlags
+        {
+            get
+            {
+                var lItem = Client.MailboxCacheItem(MailboxId);
+                if (lItem == null) throw new cNeverBeenSelectedException();
+                return lItem.MessageFlags;
+            }
+        }
+
+        public cMessageFlags ForUpdatePermanentFlags
+        {
+            get
+            {
+                var lItem = Client.MailboxCacheItem(MailboxId);
+                if (lItem == null) throw new cNeverBeenSelectedException();
+                return lItem.ForUpdatePermanentFlags;
+            }
+        }
+
+        public cMessageFlags ReadOnlyPermanentFlags
+        {
+            get
+            {
+                var lItem = Client.MailboxCacheItem(MailboxId);
+                if (lItem == null) throw new cNeverBeenSelectedException();
+                return lItem.ReadOnlyPermanentFlags;
+            }
+        }
 
         // talk to server
 

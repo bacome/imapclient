@@ -58,6 +58,7 @@ namespace work.bacome.imapclient
         {
             get
             {
+                ;?; // common
                 if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.bodystructure);
                 if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) throw new cFetchAttributeException();
                 return Handle.BodyStructure;
@@ -341,9 +342,9 @@ namespace work.bacome.imapclient
 
         // get data
 
-        public void Fetch(fFetchAttributes pAttributes) => Client.Fetch(MailboxId, Handle, pAttributes);
+        public void Fetch(fMessageProperties pProperties) => Client.Fetch(MailboxId, Handle, pProperties);
 
-        public Task FetchAsync(fFetchAttributes pAttributes) => Client.FetchAsync(MailboxId, Handle, pAttributes);
+        public Task FetchAsync(fMessageProperties pProperties) => Client.FetchAsync(MailboxId, Handle, pProperties);
 
         public string Fetch(cBodyPart pPart)
         {

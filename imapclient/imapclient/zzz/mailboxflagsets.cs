@@ -8,7 +8,7 @@ namespace work.bacome.imapclient.zzz
     public enum fMailboxFlagSets
     {
         // this lists the properties that the mailbox listing must have filled in accurately
-        clientdefault = 1,
+        clientdefault = 1 << 0,
         rfc3501 = 1 << 1, // rfc 3501 flags
         children = 1 << 2, // may cause multiple list commands to be issued
         subscribed = 1 << 3,

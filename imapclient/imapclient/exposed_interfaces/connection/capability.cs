@@ -6,7 +6,7 @@ namespace work.bacome.imapclient
     [Flags]
     public enum fCapabilities
     {
-        LoginDisabled = 1,
+        LoginDisabled = 1 << 0,
         Idle = 1 << 1,
         LiteralPlus = 1 << 2,
         LiteralMinus = 1 << 3,

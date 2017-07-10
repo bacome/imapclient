@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
@@ -14,47 +15,49 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kListSpace = new cBytes("LIST ");
 
-                private readonly cMailboxNamePattern mMailboxNamePattern; // the first part of the mailboxname must match this pattern
-                private readonly cCapability mCapability;
+                private readonly cMailboxNamePattern mMailboxNamePattern;
                 private readonly fEnableableExtensions mEnabledExtensions;
+                private readonly List<cResponseDataList> mResponses = new List<cResponseDataList>();
 
-                public readonly cMailboxList MailboxList = new cMailboxList();
+                public readonly ReadOnlyCollection<cResponseDataList> Responses;
 
-                public cCommandHookList(cMailboxNamePattern pMailboxNamePattern, cCapability pCapability, fEnableableExtensions pEnabledExtensions)
+                public cCommandHookList(cMailboxNamePattern pMailboxNamePattern, fEnableableExtensions pEnabledExtensions)
                 {
                     mMailboxNamePattern = pMailboxNamePattern;
-                    mCapability = pCapability;
                     mEnabledExtensions = pEnabledExtensions;
+                    Responses = mResponses.AsReadOnly();
                 }
 
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookList), nameof(ProcessData));
 
-                    cResponseDataList lList;
+                    cResponseDataList lResponse;
 
                     if (pCursor.Parsed)
                     {
-                        lList = pCursor.ParsedAs as cResponseDataList;
-                        if (lList == null) return eProcessDataResult.notprocessed;
+                        lResponse = pCursor.ParsedAs as cResponseDataList;
+                        if (lResponse == null) return eProcessDataResult.notprocessed;
                     }
                     else
                     {
                         if (!pCursor.SkipBytes(kListSpace)) return eProcessDataResult.notprocessed;
 
-                        if (!cResponseDataList.Process(pCursor, mCapability, mEnabledExtensions, out lList, lContext))
+                        if (!cResponseDataList.Process(pCursor, mEnabledExtensions, out lResponse, lContext))
                         {
                             lContext.TraceWarning("likely malformed list response");
                             return eProcessDataResult.notprocessed;
                         }
                     }
 
-                    if (!mMailboxNamePattern.Matches(lList.MailboxName.Name)) return eProcessDataResult.notprocessed;
+                    if (!mMailboxNamePattern.Matches(lResponse.MailboxName.Name)) return eProcessDataResult.notprocessed;
 
-                    MailboxList.Store(lList.EncodedMailboxName, lList.MailboxName, lList.MailboxFlags);
+                    mResponses.Add(lResponse);
 
                     return eProcessDataResult.observed;
                 }
+
+                public 
 
                 [Conditional("DEBUG")]
                 public static void _Tests(cTrace.cContext pParentContext)

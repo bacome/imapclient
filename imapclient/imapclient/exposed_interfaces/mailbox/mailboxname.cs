@@ -95,7 +95,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return (pA.Name == pB.Name && pA.Delimiter == pB.Delimiter);
+            return pA.Name == pB.Name && pA.Delimiter == pB.Delimiter;
         }
 
         public static bool operator !=(cMailboxName pA, cMailboxName pB) => !(pA == pB);

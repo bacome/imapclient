@@ -8,9 +8,8 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        // defaults
-
-        private fMailboxTypes mDefaultMailboxTypes = fMailboxTypes.normal | fMailboxTypes.subscribed;
+        private fMailboxTypes mDefaultMailboxTypes = 0;
+        private fMailboxProperties mDefaultMailboxProperties = fMailboxProperties.canhavechildren | fMailboxProperties.canselect | fMailboxProperties.ismarked | fMailboxProperties.islocal; // these are the ones that are rfc3501 list command properties
 
         public fMailboxTypes DefaultMailboxTypes
         {
@@ -18,34 +17,41 @@ namespace work.bacome.imapclient
 
             set
             {
-                if ((value & fMailboxTypes.all) == 0) throw new ArgumentOutOfRangeException(); // must have something returned
-                if ((value & fMailboxTypes.clientdefault) != 0) throw new ArgumentOutOfRangeException(); // default can't include the default
+                if ((value & fMailboxTypes.clientdefault) != 0) throw new ArgumentOutOfRangeException();
                 mDefaultMailboxTypes = value;
             }
         }
 
-        ;?; // zero is not valid
-        public fMailboxProperties DefaultMailboxProperties { get; set; }
+        public fMailboxProperties DefaultMailboxProperties
+        {
+            get => mDefaultMailboxProperties;
+
+            set
+            {
+                if ((value & fMailboxProperties.clientdefault) != 0) throw new ArgumentOutOfRangeException();
+                mDefaultMailboxProperties = value;
+            }
+        }
 
         // manual list
 
-        public List<cMailbox> Mailboxes(string pListMailbox, char? pDelimiter, fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxProperties )
+        public List<cMailbox> Mailboxes(string pListMailbox, char? pDelimiter, fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxProperties pProperties = fMailboxProperties.clientdefault)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
-            var lTask = ZMailboxesAsync(pListMailbox, pDelimiter, pTypes, pFlagSets, pStatus, lContext);
+            var lTask = ZMailboxesAsync(pListMailbox, pDelimiter, pTypes, pProperties, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<List<cMailbox>> MailboxesAsync(string pListMailbox, char? pDelimiter, fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault, bool? pStatus = null)
+        public Task<List<cMailbox>> MailboxesAsync(string pListMailbox, char? pDelimiter, fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxProperties pProperties = fMailboxProperties.clientdefault)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxesAsync));
-            return ZMailboxesAsync(pListMailbox, pDelimiter, pTypes, pFlagSets, pStatus, lContext);
+            return ZMailboxesAsync(pListMailbox, pDelimiter, pTypes, pProperties, lContext);
         }
 
-        private Task<List<cMailbox>> ZMailboxesAsync(string pListMailbox, char? pDelimiter, fMailboxTypes pTypes, fMailboxFlagSets pFlagSets, bool? pStatus, cTrace.cContext pParentContext)
+        private Task<List<cMailbox>> ZMailboxesAsync(string pListMailbox, char? pDelimiter, fMailboxTypes pTypes, fMailboxProperties pProperties, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMailboxesAsync), pListMailbox, pDelimiter, pTypes, pFlagSets, pStatus);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMailboxesAsync), pListMailbox, pDelimiter, pTypes, pProperties);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -56,7 +62,7 @@ namespace work.bacome.imapclient
 
             cMailboxNamePattern lPattern = new cMailboxNamePattern(string.Empty, pListMailbox, pDelimiter);
 
-            return ZZMailboxesAsync(lSession, pListMailbox, pDelimiter, lPattern, pTypes, pFlagSets, pStatus, lContext);
+            return ZZMailboxesAsync(lSession, pListMailbox, pDelimiter, lPattern, pTypes, pProperties, lContext);
         }
 
         // mailbox sub-mailbox list
@@ -132,21 +138,31 @@ namespace work.bacome.imapclient
 
         // common processing
 
-        private async Task<List<cMailbox>> ZZMailboxesAsync(cSession pSession, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, fMailboxTypes pTypes, fMailboxFlagSets pFlagSets, bool? pStatus, cTrace.cContext pParentContext)
+        private async Task<List<cMailbox>> ZZMailboxesAsync(cSession pSession, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, fMailboxTypes pTypes, fMailboxProperties pProperties, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZMailboxesAsync), pListMailbox, pDelimiter, pPattern, pTypes, pFlagSets, pStatus);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZMailboxesAsync), pListMailbox, pDelimiter, pPattern, pTypes, pProperties);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
-            fMailboxTypes lTypes = pTypes & fMailboxTypes.all;
+            var lCapability = pSession.Capability;
+
+            fMailboxTypes lTypes = pTypes;
             if ((pTypes & fMailboxTypes.clientdefault) != 0) lTypes |= mDefaultMailboxTypes;
-            if (lTypes == 0) throw new ArgumentOutOfRangeException(nameof(pTypes));
 
-            fMailboxFlagSets lFlagSets = pFlagSets & fMailboxFlagSets.all;
-            if ((pFlagSets & fMailboxFlagSets.clientdefault) != 0) lFlagSets |= mDefaultMailboxFlagSets;
-            // zero is valid
+            if (!lCapability.MailboxReferrals) lTypes = lTypes & ~fMailboxTypes.remote;
 
-            bool lStatus = pStatus ?? DefaultMailboxStatus;
+            fMailboxProperties lProperties = pProperties;
+            if ((pProperties & fMailboxProperties.clientdefault) != 0) lProperties |= mDefaultMailboxProperties;
+            lProperties = SupportedMailboxProperties(lCapability, lProperties);
+
+            bool lLSubOnly;
+
+            if ((lTypes & (fMailboxTypes.subscribedonly | fMailboxTypes.remote)) == fMailboxTypes.subscribedonly)
+            {
+                if ((lProperties & (fMailboxProperties.list | fMailboxProperties.lsub | fMailboxProperties.specialuse) & ~fMailboxProperties.lsub) == 0) lLSubOnly = true;
+                else lLSubOnly = false;
+            }
+            else lLSubOnly = false;
 
             mAsyncCounter.Increment(lContext);
 
@@ -154,37 +170,88 @@ namespace work.bacome.imapclient
             {
                 var lMC = new cMethodControl(mTimeout, CancellationToken);
 
-                // ;?; // note this is where we do the stuff to honour the flags
-                // including choosing list/rlist/lsub etc
-                // TODO!
-
-                // if using list-extended, always ask for specialuse attributes if specialuse is advertised 
-
-                // also note that while we may have to do a status command for each mailbox; non-selectable mailboxes do not have a status
-                //  list-extended won't return status for non-selectable mailboxes and may not return it for any mailbox
-
-                // must check the list-extended result to see if status was returned for each item: we may need to patch up the status
-                //  NO: not now :- now if the status wasn't returned accessing it through the mailbox will get it
-
-                if (lTypes == (fMailboxTypes.normal | fMailboxTypes.subscribed) && (lFlagSets & ~(fMailboxFlagSets.rfc3501)) == 0)
+                if (!lLSubOnly && lCapability.ListExtended)
                 {
-                    var lList = await pSession.ListAsync(lMC, new cListPattern(pListMailbox, pDelimiter, pPattern), lContext).ConfigureAwait(false);
+                    // if using list-extended, always ask for specialuse attributes if specialuse is advertised 
+                    ;?;
 
-                    List<cMailbox> lResult = new List<cMailbox>();
+                    
 
-                    foreach (var lItem in lList)
+
+                }
+                else
+                {
+                    if ((lTypes & fMailboxTypes.remote) == 0)
                     {
-                        lResult.Add(new cMailbox(this, new cMailboxId(pSession.ConnectedAccountId, lItem.MailboxName)));
+                        if ((lTypes & fMailboxTypes.subscribedonly) == 0)
+                        {
+                            // start a list: ...
+                            ;?;
 
-                        ;?; // cache the result
+                            if ((lProperties & (fMailboxProperties.issubscribed | fMailboxProperties.hassubscribedchildren)) != 0)
+                            {
+                                // start an lsub, this will set the above two attributes
+                                ;?;
+                            }
+                        }
+                        else
+                        {
+                            // start an lsub: this ...
+                            ;?;
 
-                        ;?; // note that multiple lists at one time may be running. which one ends up in the cache?
+                            var lListProperties = lProperties & fMailboxProperties.list;
+
+                            if (lListProperties != 0 && lListProperties != fMailboxProperties.islocal)
+                            {
+                                // start a list
+                                ;?;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if ((lTypes & fMailboxTypes.subscribedonly) == 0)
+                        {
+                            // start an rlist: this returns ...
+                            ;?;
+
+                            if ((lProperties & (fMailboxProperties.issubscribed | fMailboxProperties.hassubscribedchildren)) != 0)
+                            {
+                                // start an rlsub, this will set the above two attributes
+                                ;?;
+                            }
+
+                            if ((lProperties & fMailboxProperties.islocal) != 0)
+                            {
+                                // start a list
+                                ;?;
+                            }
+                        }
+                        else
+                        {
+                            // start rlsub: this returns the list of mailboxes that we are going to return
+                            ;?;
+
+                            var lListProperties = lProperties & fMailboxProperties.list;
+
+                            if (lListProperties != 0)
+                            {
+                                if (lListProperties == fMailboxProperties.islocal)
+                                {
+                                    ;?; // do an lsub
+                                }
+                                else
+                                {
+                                    ;?; // do a list
+                                }
+                            }
+                        }
                     }
 
-                    return lResult;
+                    ;?; // now do a status for each one if required (note that non-selectable mailboxes DONT do it)
                 }
 
-                throw new NotImplementedException();
+                ;?; // now return the list of amilboxes
             }
             finally { mAsyncCounter.Decrement(lContext); }
         }

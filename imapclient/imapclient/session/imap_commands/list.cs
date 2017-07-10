@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
@@ -12,7 +13,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kListCommandPart = new cCommandPart("LIST \"\" ");
 
-            public async Task<cMailboxList> ListAsync(cMethodControl pMC, cListPattern pPattern, cTrace.cContext pParentContext)
+            public async Task<List<cMailboxName>> ListAsync(cMethodControl pMC, cListPattern pPattern, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListAsync), pMC, pPattern);
 
@@ -24,11 +25,16 @@ namespace work.bacome.imapclient
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+
+                    // this command uses the same response as rlist, so wait for rlist to finish and stop rlist from running
+                    lCommand.Add(await mListExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false));
+                    lCommand.Add(await mRListExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); 
+
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lCommand.Add(kListCommandPart, lListMailboxCommandPart);
 
-                    var lHook = new cCommandHookList(pPattern.MailboxNamePattern, _Capability, EnabledExtensions);
+                    var lHook = new cCommandHookList(pPattern.MailboxNamePattern, EnabledExtensions);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -36,10 +42,24 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("list success");
-                        return lHook.MailboxList;
+
+                        var lMailboxNames = new List<cMailboxName>();
+
+                        foreach (var lResponse in lHook.Responses)
+                        {
+                            ;?; // store
+                            // need the capability to do the store: have to say which flags are valid
+                            //  and that might mean children (if not supported) and special use (if not supported) [thinking about this]
+
+
+
+                            lMailboxNames.Add(lResponse.MailboxName);
+                        }
+
+                        return lMailboxNames;
                     }
 
-                    if (lHook.MailboxList.Count != 0) lContext.TraceError("received mailboxes on a failed list");
+                    if (lHook.Responses.Count != 0) lContext.TraceError("received mailboxes on a failed list");
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
                     throw new cProtocolErrorException(lResult, 0, lContext);

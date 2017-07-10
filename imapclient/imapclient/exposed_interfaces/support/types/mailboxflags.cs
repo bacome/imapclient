@@ -5,7 +5,7 @@ namespace work.bacome.imapclient.support
     [Flags]
     public enum fMailboxFlags
     {
-        noinferiors = 1, // rfc 3501, hasnochildren must be set if this is set
+        noinferiors = 1 << 0, // rfc 3501, hasnochildren must be set if this is set
         haschildren = 1 << 1, // rfc 3348/ 5258
         hasnochildren = 1 << 2, // rfc 3348/ 5258
         noselect = 1 << 3, // rfc 3501 \ ((must be set if rfc 5258 nonexistent is received))
@@ -26,30 +26,8 @@ namespace work.bacome.imapclient.support
 
     public class cMailboxFlags
     {
-        public static readonly fMailboxFlagSets CanHaveChildrenFlagSets = fMailboxFlagSets.rfc3501;
-        public static readonly fMailboxFlagSets HasChildrenFlagSets = fMailboxFlagSets.children;
-        public static readonly fMailboxFlagSets CanSelectFlagSets = fMailboxFlagSets.rfc3501;
-        public static readonly fMailboxFlagSets IsMarkedFlagSets = fMailboxFlagSets.rfc3501;
-        public static readonly fMailboxFlagSets IsSubscribedFlagSets = fMailboxFlagSets.subscribed;
-        public static readonly fMailboxFlagSets HasSubscribedChildrenFlagSets = fMailboxFlagSets.subscribedchildren;
-        public static readonly fMailboxFlagSets IsLocalFlagSets = fMailboxFlagSets.local;
-        public static readonly fMailboxFlagSets ContainsAllFlagSets = fMailboxFlagSets.specialuse;
-        public static readonly fMailboxFlagSets IsArchiveFlagSets = fMailboxFlagSets.specialuse;
-        public static readonly fMailboxFlagSets ContainsDraftsFlagSets = fMailboxFlagSets.specialuse;
-        public static readonly fMailboxFlagSets ContainsFlaggedFlagSets = fMailboxFlagSets.specialuse;
-        public static readonly fMailboxFlagSets ContainsJunkFlagSets = fMailboxFlagSets.specialuse;
-        public static readonly fMailboxFlagSets ContainsSentFlagSets = fMailboxFlagSets.specialuse;
-        public static readonly fMailboxFlagSets ContainsTrashFlagSets = fMailboxFlagSets.specialuse;
-
-        private static readonly fMailboxFlags krfc3501Flags = fMailboxFlags.noinferiors | fMailboxFlags.noselect | fMailboxFlags.marked | fMailboxFlags.unmarked;
-        private static readonly fMailboxFlags kChildrenFlags = fMailboxFlags.haschildren
-        private static readonly fMailboxFlags kSubscribedFlags =
-        private static readonly fMailboxFlags kSubscribedChildrenFlags =
-        private static readonly fMailboxFlags kLocalFlags =
-        private static readonly fMailboxFlags kSpecialUseFlags =
-
-        private readonly fMailboxFlags mMask;
-        private readonly fMailboxFlags mFlags;
+        private readonly fMailboxFlags mMask; // the flags that are correct
+        private readonly fMailboxFlags mFlags; // the values of those flags
 
         public cMailboxFlags(fMailboxFlags pMask, fMailboxFlags pFlags)
         {
@@ -57,14 +35,17 @@ namespace work.bacome.imapclient.support
             mFlags = pFlags;
         }
 
-        public bool HasProperty(fMailboxProperties pProperty) => mMask & 
-
+        public bool HasFlagsFor(fMailboxProperties pProperties)
+        {
+            fMailboxFlags lFlags = cIMAPClient.MailboxPropertiesToMailboxFlags(pProperties);
+            return (mMask & lFlags) == lFlags;
+        }
 
         public bool CanHaveChildren
         {
             get
             {
-                ZCheckRequiredFlagSets(kCanHaveChildrenFlagSets);
+                if (!HasFlagsFor(fMailboxProperties.canhavechildren)) return false;
                 return (mFlags & fMailboxFlags.noinferiors) == 0;
             }
         }
@@ -73,7 +54,7 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(kHasChildrenFlagSets);
+                if (!HasFlagsFor(fMailboxProperties.haschildren)) return null;
                 fMailboxFlags lFlags = mFlags & (fMailboxFlags.haschildren | fMailboxFlags.hasnochildren);
                 if (lFlags == fMailboxFlags.haschildren) return true;
                 if (lFlags == fMailboxFlags.hasnochildren) return false;
@@ -85,7 +66,7 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(kCanSelectFlagSets);
+                if (!HasFlagsFor(fMailboxProperties.canselect)) return false;
                 return (mFlags & fMailboxFlags.noselect) == 0;
             }
         }
@@ -94,8 +75,8 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(IsMarkedFlagSets);
-                fMailboxFlags lFlags = Flags & (fMailboxFlags.marked | fMailboxFlags.unmarked);
+                if (!HasFlagsFor(fMailboxProperties.ismarked)) return null;
+                fMailboxFlags lFlags = mFlags & (fMailboxFlags.marked | fMailboxFlags.unmarked);
                 if (lFlags == fMailboxFlags.marked) return true;
                 if (lFlags == fMailboxFlags.unmarked) return false;
                 return null;
@@ -106,8 +87,8 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(IsSubscribedFlagSets);
-                return (Flags & fMailboxFlags.subscribed) != 0;
+                if (!HasFlagsFor(fMailboxProperties.issubscribed)) return false;
+                return (mFlags & fMailboxFlags.subscribed) != 0;
             }
         }
 
@@ -115,8 +96,8 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(HasSubscribedChildrenFlagSets);
-                return (Flags & fMailboxFlags.hassubscribedchildren) != 0;
+                if (!HasFlagsFor(fMailboxProperties.hassubscribedchildren)) return false;
+                return (mFlags & fMailboxFlags.hassubscribedchildren) != 0;
             }
         }
 
@@ -124,8 +105,8 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(IsLocalFlagSets);
-                return (Flags & fMailboxFlags.local) != 0;
+                if (!HasFlagsFor(fMailboxProperties.islocal)) return false;
+                return (mFlags & fMailboxFlags.local) != 0;
             }
         }
 
@@ -133,8 +114,8 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(ContainsAllFlagSets);
-                return (Flags & fMailboxFlags.all) != 0;
+                if (!HasFlagsFor(fMailboxProperties.containsall)) return false;
+                return (mFlags & fMailboxFlags.all) != 0;
             }
         }
 
@@ -142,8 +123,8 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(IsArchiveFlagSets);
-                return (Flags & fMailboxFlags.archive) != 0;
+                if (!HasFlagsFor(fMailboxProperties.isarchive)) return false;
+                return (mFlags & fMailboxFlags.archive) != 0;
             }
         }
 
@@ -151,8 +132,8 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(ContainsDraftsFlagSets);
-                return (Flags & fMailboxFlags.drafts) != 0;
+                if (!HasFlagsFor(fMailboxProperties.containsdrafts)) return false;
+                return (mFlags & fMailboxFlags.drafts) != 0;
             }
         }
 
@@ -160,8 +141,8 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(ContainsFlaggedFlagSets);
-                return (Flags & fMailboxFlags.flagged) != 0;
+                if (!HasFlagsFor(fMailboxProperties.containsflagged)) return false;
+                return (mFlags & fMailboxFlags.flagged) != 0;
             }
         }
 
@@ -169,8 +150,8 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(ContainsJunkFlagSets);
-                return (Flags & fMailboxFlags.junk) != 0;
+                if (!HasFlagsFor(fMailboxProperties.containsjunk)) return false;
+                return (mFlags & fMailboxFlags.junk) != 0;
             }
         }
 
@@ -178,8 +159,8 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(ContainsSentFlagSets);
-                return (Flags & fMailboxFlags.sent) != 0;
+                if (!HasFlagsFor(fMailboxProperties.containssent)) return false;
+                return (mFlags & fMailboxFlags.sent) != 0;
             }
         }
 
@@ -187,34 +168,9 @@ namespace work.bacome.imapclient.support
         {
             get
             {
-                ZCheckRequiredFlagSets(ContainsTrashFlagSets);
-                return (Flags & fMailboxFlags.trash) != 0;
+                if (!HasFlagsFor(fMailboxProperties.containstrash)) return false;
+                return (mFlags & fMailboxFlags.trash) != 0;
             }
-        }
-
-
-
-
-
-
-
-
-        public cMailboxFlags Combine(cMailboxFlags pOld, cMailboxFlags pNew)
-        {
-
-        }
-
-
-
-
-
-
-
-
-
-        private void ZCheckRequiredFlagSets(fMailboxFlagSets pRequired)
-        {
-            if ((FlagSets & pRequired) != pRequired) throw new cMailboxFlagSetsException(pRequired);
         }
 
         public override bool Equals(object pObject) => this == pObject as cMailboxFlags;
@@ -224,49 +180,70 @@ namespace work.bacome.imapclient.support
             unchecked
             {
                 int lHash = 17;
-                lHash = lHash * 23 + FlagSets.GetHashCode();
-                lHash = lHash * 23 + Flags.GetHashCode();
+                lHash = lHash * 23 + mMask.GetHashCode();
+                lHash = lHash * 23 + mFlags.GetHashCode();
                 return lHash;
             }
         }
 
-        public override string ToString() => $"{nameof(cMailboxFlags)}({FlagSets},{Flags})";
+        public override string ToString() => $"{nameof(cMailboxFlags)}({mMask},{mFlags})";
 
-        public static fMailboxCacheItemDifferences Differences(cMailboxFlags pA, cMailboxFlags pB)
+        public static cMailboxFlags Combine(cMailboxFlags pOld, cMailboxFlags pNew)
+        {
+            if (pNew == null) throw new ArgumentNullException(nameof(pNew));
+            if (pOld == null) return pNew;
+            fMailboxFlags lMask = pOld.mMask | pNew.mMask;
+            fMailboxFlags lFlags = (pOld.mFlags & ~pNew.mMask) | pNew.mFlags;
+            return new cMailboxFlags(lMask, lFlags);
+        }
+
+        public static fMailboxProperties Differences(cMailboxFlags pA, cMailboxFlags pB)
         {
             if (ReferenceEquals(pA, pB)) return 0;
-            if (ReferenceEquals(pA, null)) return fMailboxCacheItemDifferences.allmailboxflags;
-            if (ReferenceEquals(pB, null)) return fMailboxCacheItemDifferences.allmailboxflags;
+            if (ReferenceEquals(pA, null)) return 0;
+            if (ReferenceEquals(pB, null)) return 0;
 
-            fMailboxCacheItemDifferences lResult = 0;
+            fMailboxFlags lMask = pA.mMask & pB.mMask;
+            if (lMask == 0) return 0;
 
-            if (ZIsDifferent(pA, pB, CanHaveChildrenFlagSets, fMailboxFlags.noinferiors)) lResult |= fMailboxCacheItemDifferences.canhavechildren;
-            if (ZIsDifferent(pA, pB, HasChildrenFlagSets, fMailboxFlags.haschildren | fMailboxFlags.hasnochildren)) lResult |= fMailboxCacheItemDifferences.haschildren;
-            if (ZIsDifferent(pA, pB, CanSelectFlagSets, fMailboxFlags.noselect)) lResult |= fMailboxCacheItemDifferences.canselect;
-            if (ZIsDifferent(pA, pB, IsMarkedFlagSets, fMailboxFlags.marked | fMailboxFlags.unmarked)) lResult |= fMailboxCacheItemDifferences.ismarked;
-            if (ZIsDifferent(pA, pB, IsSubscribedFlagSets, fMailboxFlags.subscribed)) lResult |= fMailboxCacheItemDifferences.issubscribed;
-            if (ZIsDifferent(pA, pB, HasSubscribedChildrenFlagSets, fMailboxFlags.hassubscribedchildren)) lResult |= fMailboxCacheItemDifferences.hassubscribedchildren;
-            if (ZIsDifferent(pA, pB, IsLocalFlagSets, fMailboxFlags.local)) lResult |= fMailboxCacheItemDifferences.islocal;
-            if (ZIsDifferent(pA, pB, ContainsAllFlagSets, fMailboxFlags.all)) lResult |= fMailboxCacheItemDifferences.containsall;
-            if (ZIsDifferent(pA, pB, IsArchiveFlagSets, fMailboxFlags.archive)) lResult |= fMailboxCacheItemDifferences.isarchive;
-            if (ZIsDifferent(pA, pB, ContainsDraftsFlagSets, fMailboxFlags.drafts)) lResult |= fMailboxCacheItemDifferences.containsdrafts;
-            if (ZIsDifferent(pA, pB, ContainsFlaggedFlagSets, fMailboxFlags.flagged)) lResult |= fMailboxCacheItemDifferences.containsflagged;
-            if (ZIsDifferent(pA, pB, ContainsJunkFlagSets, fMailboxFlags.junk)) lResult |= fMailboxCacheItemDifferences.containsjunk;
-            if (ZIsDifferent(pA, pB, ContainsSentFlagSets, fMailboxFlags.sent)) lResult |= fMailboxCacheItemDifferences.containssent;
-            if (ZIsDifferent(pA, pB, ContainsTrashFlagSets, fMailboxFlags.trash)) lResult |= fMailboxCacheItemDifferences.containstrash;
+            if ((pA.mFlags & lMask) == (pB.mFlags & lMask)) return 0;
+
+            fMailboxProperties lResult = 0;
+
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.canhavechildren);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.haschildren);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.canselect);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.ismarked);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.issubscribed);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.hassubscribedchildren);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.islocal);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.containsall);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.isarchive);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.containsdrafts);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.containsflagged);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.containsjunk);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.containssent);
+            lResult |= ZPropertyIfDifferent(pA, pB, lMask, fMailboxProperties.containstrash);
 
             return lResult;
         }
 
-        private static bool ZIsDifferent(cMailboxFlags pA, cMailboxFlags pB, fMailboxFlagSets pFlagSets, fMailboxFlags pFlags)
+        private static fMailboxProperties ZPropertyIfDifferent(cMailboxFlags pA, cMailboxFlags pB, fMailboxFlags pMask, fMailboxProperties pProperty)
         {
-            if ((pA.FlagSets & pFlagSets) != (pB.FlagSets & pFlagSets)) return true;
-            if ((pA.FlagSets & pFlagSets) != pFlagSets) return false;
-            if ((pA.Flags & pFlags) == (pB.Flags & pFlags)) return false;
-            return true;
+            fMailboxFlags lMask = cIMAPClient.MailboxPropertiesToMailboxFlags(pProperty);
+            if ((lMask & pMask) == 0) return 0;
+            if ((pA.mFlags & lMask) != (pB.mFlags & lMask)) return pProperty;
+            return 0;
         }
 
-        public static bool operator ==(cMailboxFlags pA, cMailboxFlags pB) => Differences(pA, pB) == 0;
-        public static bool operator !=(cMailboxFlags pA, cMailboxFlags pB) => Differences(pA, pB) != 0;
+        public static bool operator ==(cMailboxFlags pA, cMailboxFlags pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return pA.mMask == pB.mMask && pA.mFlags == pB.mFlags;
+        }
+
+        public static bool operator !=(cMailboxFlags pA, cMailboxFlags pB) => !(pA == pB);
     }
 }

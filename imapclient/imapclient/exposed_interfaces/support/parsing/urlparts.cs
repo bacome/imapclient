@@ -23,7 +23,7 @@ namespace work.bacome.imapclient.support
         [Flags]
         private enum fParts
         {
-            scheme = 1,
+            scheme = 1 << 0,
             userid = 1 << 1,
             mechanismname = 1 << 2,
             host = 1 << 3,

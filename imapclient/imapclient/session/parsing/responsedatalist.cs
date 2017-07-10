@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -12,20 +11,22 @@ namespace work.bacome.imapclient
         {
             private class cResponseDataList
             {
+                public readonly cBytesCursor.cFlags Flags;
                 public readonly string EncodedMailboxName;
                 public readonly cMailboxName MailboxName;
-                public readonly fMailboxFlags MailboxFlags;
+                public readonly cExtendedItems ExtendedItems;
 
-                private cResponseDataList(string pEncodedMailboxName, cMailboxName pMailboxName, fMailboxFlags pMailboxFlags)
+                private cResponseDataList(cBytesCursor.cFlags pFlags, string pEncodedMailboxName, cMailboxName pMailboxName, cExtendedItems pExtendedItems)
                 {
+                    Flags = pFlags;
                     EncodedMailboxName = pEncodedMailboxName;
                     MailboxName = pMailboxName;
-                    MailboxFlags = pMailboxFlags;
+                    ExtendedItems = pExtendedItems;
                 }
 
-                public override string ToString() => $"{nameof(cResponseDataList)}({EncodedMailboxName},{MailboxName},{MailboxFlags})";
+                public override string ToString() => $"{nameof(cResponseDataList)}({Flags},{EncodedMailboxName},{MailboxName},{ExtendedItems})";
 
-                public static bool Process(cBytesCursor pCursor, cCapability pCapability, fEnableableExtensions pEnabledExtensions, out cResponseDataList rResponseData, cTrace.cContext pParentContext)
+                public static bool Process(cBytesCursor pCursor, fEnableableExtensions pEnabledExtensions, out cResponseDataList rResponse, cTrace.cContext pParentContext)
                 {
                     //  NOTE: this routine does not return the cursor to its original position if it fails
 
@@ -38,12 +39,12 @@ namespace work.bacome.imapclient
                         pCursor.GetAString(out IList<byte> lEncodedMailboxName) &&
                         ZProcessExtendedItems(pCursor, out var lExtendedItems) &&
                         pCursor.Position.AtEnd &&
-                        cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, pEnabledExtensions, out var lMailboxName)) rResponseData = new cResponseDataList(cTools.UTF8BytesToString(lEncodedMailboxName), lMailboxName, ZGetMailboxFlags(pCapability, lFlags, lExtendedItems));
-                    else rResponseData = null;
+                        cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, pEnabledExtensions, out var lMailboxName)) rResponse = new cResponseDataList(lFlags, cTools.UTF8BytesToString(lEncodedMailboxName), lMailboxName, lExtendedItems);
+                    else rResponse = null;
 
-                    pCursor.ParsedAs = rResponseData;
+                    pCursor.ParsedAs = rResponse;
 
-                    return rResponseData != null;
+                    return rResponse != null;
                 }
 
                 private static bool ZProcessExtendedItems(cBytesCursor pCursor, out cExtendedItems rItems)
@@ -67,9 +68,10 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                private static fMailboxFlags ZGetMailboxFlags(cCapability pCapability, cBytesCursor.cFlags pFlags, cExtendedItems pListExtendedItems)
+                /*
+                private static fMailboxFlags ZGetMailboxFlags(cCapability pCapability, bool pRemote, cBytesCursor.cFlags pFlags, cExtendedItems pListExtendedItems)
                 {
-                    fMailboxFlags lResult = fMailboxFlags.rfc3501;
+                    fMailboxFlags lResult = 0;
 
                     if (pFlags.Has(@"\Noinferiors")) lResult |= fMailboxFlags.noinferiors | fMailboxFlags.hasnochildren;
 
@@ -81,13 +83,18 @@ namespace work.bacome.imapclient
 
                     if (pCapability.ListExtended)
                     {
-                        if (pFlags.Has(@"\NonExistent")) lResult |= fMailboxFlags.nonexistent | fMailboxFlags.noselect;
+                        if (pFlags.Has(@"\NonExistent")) lResult |= fMailboxFlags.noselect;
                         if (pFlags.Has(@"\Subscribed")) lResult |= fMailboxFlags.subscribed;
-                        if (pFlags.Has(@"\Remote")) lResult |= fMailboxFlags.remote;
+                        if (!pFlags.Has(@"\Remote")) lResult |= fMailboxFlags.local;
 
+                        ;?; // this is meant to be for hassubscribed children ...
                         if (pListExtendedItems != null)
                             if (pListExtendedItems.Any(lExtendedItem => lExtendedItem.Tag.Equals("childinfo", StringComparison.InvariantCultureIgnoreCase) && lExtendedItem.Value.Contains("subscribed", StringComparison.InvariantCultureIgnoreCase)))
                                 lResult |= fMailboxFlags.haschildren;
+                    }
+                    else
+                    {
+                        if ()
                     }
 
                     if (pFlags.Has(@"\Noselect")) lResult |= fMailboxFlags.noselect;
@@ -108,8 +115,9 @@ namespace work.bacome.imapclient
 
                     return lResult;
                 }
+                */
 
-                private class cExtendedItems : List<cExtendedItem>
+                public class cExtendedItems : List<cExtendedItem>
                 {
                     public cExtendedItems() { }
 
@@ -121,7 +129,7 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                private class cExtendedItem
+                public class cExtendedItem
                 {
                     public readonly string Tag;
                     public readonly cExtendedValue Value; // can be null if the value is ()
