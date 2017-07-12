@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kLSubCommandPart = new cCommandPart("LSUB \"\" ");
 
-            public async Task<cMailboxList> LSubAsync(cMethodControl pMC, cListPattern pPattern, cTrace.cContext pParentContext)
+            public async Task LSubAsync(cMethodControl pMC, cListPattern pPattern, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(LSubAsync), pMC, pPattern);
 
@@ -28,18 +28,13 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(kLSubCommandPart, lListMailboxCommandPart);
 
-                    var lHook = new cCommandHookLSub(pPattern.MailboxNamePattern, EnabledExtensions);
-                    lCommand.Add(lHook);
-
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("lsub success");
-                        return lHook.MailboxList;
+                        return;
                     }
-
-                    if (lHook.MailboxList.Count != 0) lContext.TraceError("received mailboxes on a failed lsub");
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
                     throw new cProtocolErrorException(lResult, 0, lContext);

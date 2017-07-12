@@ -72,6 +72,7 @@ namespace work.bacome.imapclient
         private fCapabilities mIgnoreCapabilities = 0;
         private cServer mServer = null;
         private cCredentials mCredentials = null;
+        private bool mMailboxReferrals = false;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
         private cFetchSizeConfiguration mFetchAttributesConfiguration = new cFetchSizeConfiguration(1, 1000, 10000, 1);
         private cFetchSizeConfiguration mFetchBodyReadConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
@@ -173,6 +174,19 @@ namespace work.bacome.imapclient
         public void SetNoCredentials() => Credentials = cCredentials.None;
         public void SetAnonymousCredentials(string pTrace, bool pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised);
         public void SetPlainCredentials(string pUserId, string pPassword, bool pTryAuthenticateEvenIfAuthPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTryAuthenticateEvenIfAuthPlainIsntAdvertised);
+
+        // if the caller can handle mailbox referrals
+        public bool MailboxReferrals
+        {
+            get => mMailboxReferrals;
+
+            set
+            {
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                mMailboxReferrals = value;
+            }
+        }
 
         // idle config; either IDLE (rfc 2177) or base protocol CHECK and NOOP
         //  the command pipeline waits until a certain period of inactivity has occurred before starting either an IDLE command or periodic polling

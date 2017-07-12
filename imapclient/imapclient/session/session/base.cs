@@ -16,15 +16,22 @@ namespace work.bacome.imapclient
             private bool mDisposed = false;
             private eState _State = eState.notconnected;
             private readonly cConnection mConnection = new cConnection();
+            private readonly bool mMailboxReferrals;
             private readonly cEventSynchroniser mEventSynchroniser;
             private fCapabilities _IgnoreCapabilities;
             private readonly cResponseTextProcessor mResponseTextProcessor;
-            private readonly cCapabilityDataProcessor mCapabilityDataProcessor;
             private readonly cCommandPipeline mPipeline;
+            private readonly cCapabilityDataProcessor mCapabilityDataProcessor;
             private cFetchSizer mFetchAttributesSizer;
             private cFetchSizer mFetchBodyReadSizer;
             private Encoding mEncoding; // can be null
-            private readonly cMailboxCache mMailboxCache;
+
+            // post enable processing sets these
+            private bool mEnableDone = false;
+            private cMailboxCache mMailboxCache;
+            private cStatusDataProcessor mStatusDataProcessor;
+            private cListDataProcessor mListDataProcessor = null;
+            private cLSubDataProcessor mLSubDataProcessor = null;
 
             // properties
             private cCapabilities _Capabilities = null;
@@ -39,26 +46,22 @@ namespace work.bacome.imapclient
             // locks
             private readonly cExclusiveAccess mSelectExclusiveAccess = new cExclusiveAccess("select", 1);
             private readonly cExclusiveAccess mSetUnseenExclusiveAccess = new cExclusiveAccess("setunseen", 40);
-            private readonly cExclusiveAccess mLSubExclusiveAccess = new cExclusiveAccess("lsub", 41);
-            private readonly cExclusiveAccess mListExclusiveAccess = new cExclusiveAccess("list", 41);
-            private readonly cExclusiveAccess mRLSubExclusiveAccess = new cExclusiveAccess("rlsub", 42);
-            private readonly cExclusiveAccess mRListExclusiveAccess = new cExclusiveAccess("rlist", 42);
             private readonly cExclusiveAccess mSearchExclusiveAccess = new cExclusiveAccess("search", 50);
             private readonly cExclusiveAccess mSortExclusiveAccess = new cExclusiveAccess("sort", 50);
             // note that 100 is the idle block in the command pipeline
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(bool pMailboxReferrals, cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesConfiguration, pFetchBodyReadConfiguration);
+                var lContext = pParentContext.NewObject(nameof(cSession), pMailboxReferrals, pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesConfiguration, pFetchBodyReadConfiguration);
 
+                mMailboxReferrals = pMailboxReferrals;
                 mEventSynchroniser = pEventSynchroniser;
 
                 _IgnoreCapabilities = pIgnoreCapabilities;
 
                 mResponseTextProcessor = new cResponseTextProcessor(mEventSynchroniser.ResponseText);
-
                 mPipeline = new cCommandPipeline(mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
 
                 mCapabilityDataProcessor = new cCapabilityDataProcessor(ZSetCapabilities);
@@ -67,8 +70,29 @@ namespace work.bacome.imapclient
                 mFetchAttributesSizer = new cFetchSizer(pFetchAttributesConfiguration);
                 mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
                 mEncoding = pEncoding;
+            }
 
-                mMailboxCache = new cMailboxCache(mEventSynchroniser.MailboxPropertyChanged);
+            public void EnableDone(cTrace.cContext pParentContext)
+            {
+                ;?;
+
+                // it should also disable enable
+
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(Connected));
+
+                ;?; // change the name of this
+                if (mInstallDataProcessorsDone) throw new InvalidOperationException();
+                mInstallDataProcessorsDone = true;
+
+
+                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId);
+
+                mStatusDataProcessor = new cStatusDataProcessor(mMailboxCache.UpdateStatus);
+                mPipeline.Install(mStatusDataProcessor);
+
+
+                mListDataProcessor = new cListDataProcessor(EnabledExtensions, ZGetCapability, mMailboxCache.SetListFlags);
+                mLSubDataProcessor = new cLSubDataProcessor(EnabledExtensions, mMailboxCache.SetSelected);
             }
 
             public void SetIgnoreCapabilities(fCapabilities pIgnoreCapabilities, cTrace.cContext pParentContext)
@@ -276,30 +300,6 @@ namespace work.bacome.imapclient
                 if (mSetUnseenExclusiveAccess != null)
                 {
                     try { mSetUnseenExclusiveAccess.Dispose(); }
-                    catch { }
-                }
-
-                if (mLSubExclusiveAccess != null)
-                {
-                    try { mLSubExclusiveAccess.Dispose(); }
-                    catch { }
-                }
-
-                if (mListExclusiveAccess != null)
-                {
-                    try { mListExclusiveAccess.Dispose(); }
-                    catch { }
-                }
-
-                if (mRLSubExclusiveAccess != null)
-                {
-                    try { mRLSubExclusiveAccess.Dispose(); }
-                    catch { }
-                }
-
-                if (mRListExclusiveAccess != null)
-                {
-                    try { mRListExclusiveAccess.Dispose(); }
                     catch { }
                 }
 

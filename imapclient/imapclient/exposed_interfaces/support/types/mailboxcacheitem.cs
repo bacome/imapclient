@@ -4,17 +4,10 @@ namespace work.bacome.imapclient.support
 {
     public interface iMailboxCacheItem
     {
-        cMailboxFlags MailboxFlags { get; }
-        bool IsSelected { get; }
-        bool IsSelectedForUpdate { get; }
-        bool IsAccessReadOnly { get; }
-        bool HasBeenSelected { get; }
-        bool HasBeenSelectedForUpdate { get; }
-        bool HasBeenSelectedReadOnly { get; }
-        cMessageFlags MessageFlags { get; }
-        cMessageFlags ForUpdatePermanentFlags { get; }
-        cMessageFlags ReadOnlyPermanentFlags { get; }
-        cMailboxStatus MailboxStatus { get; }
+        cListFlags ListFlags { get; } // not null
+        cLSubFlags LSubFlags { get; } // if null use the values from the listflags
+        cMailboxStatus MailboxStatus { get; } // not null
         long MailboxStatusAge { get; }
+        cSelectedMailboxProperties SelectedMailboxProperties { get; } // not null
     }
 }

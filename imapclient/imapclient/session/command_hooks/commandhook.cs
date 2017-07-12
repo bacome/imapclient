@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private class cCommandHook : iTextCodeProcessor
+            private abstract class cCommandHook : iTextCodeProcessor
             {
                 public cCommandHook() { }
 

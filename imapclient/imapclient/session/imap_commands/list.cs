@@ -11,9 +11,10 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kListCommandPart = new cCommandPart("LIST \"\" ");
+            private static readonly cCommandPart kListCommandPartList = new cCommandPart("LIST \"\" ");
+            private static readonly cCommandPart kListCommandPartRList = new cCommandPart("RLIST \"\" ");
 
-            public async Task<List<cMailboxName>> ListAsync(cMethodControl pMC, cListPattern pPattern, cTrace.cContext pParentContext)
+            public async Task ListAsync(cMethodControl pMC, cListPattern pPattern, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListAsync), pMC, pPattern);
 
@@ -25,44 +26,36 @@ namespace work.bacome.imapclient
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
-
-                    // this command uses the same response as rlist, so wait for rlist to finish and stop rlist from running
-                    lCommand.Add(await mListExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false));
-                    lCommand.Add(await mRListExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); 
-
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lCommand.Add(kListCommandPart, lListMailboxCommandPart);
+                    fCapabilities lTryIgnoring;
 
-                    var lHook = new cCommandHookList(pPattern.MailboxNamePattern, EnabledExtensions);
+                    if (mMailboxReferrals && _Capability.MailboxReferrals)
+                    {
+                        lCommand.Add(kListCommandPartRList);
+                        lTryIgnoring = fCapabilities.MailboxReferrals;
+                    }
+                    else
+                    {
+                        lCommand.Add(kListCommandPartList);
+                        lTryIgnoring = 0;
+                    }
+
+                    lCommand.Add(lListMailboxCommandPart);
+
+                    var lHook = new cCommandHookList(mMailboxCache, pPattern.MailboxNamePattern, cListFlags.LastSequence);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
-                        lContext.TraceInformation("list success");
-
-                        var lMailboxNames = new List<cMailboxName>();
-
-                        foreach (var lResponse in lHook.Responses)
-                        {
-                            ;?; // store
-                            // need the capability to do the store: have to say which flags are valid
-                            //  and that might mean children (if not supported) and special use (if not supported) [thinking about this]
-
-
-
-                            lMailboxNames.Add(lResponse.MailboxName);
-                        }
-
-                        return lMailboxNames;
+                        lContext.TraceInformation("r/list success");
+                        return;
                     }
 
-                    if (lHook.Responses.Count != 0) lContext.TraceError("received mailboxes on a failed list");
-
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
-                    throw new cProtocolErrorException(lResult, 0, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
+                    throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
                 }
             }
         }

@@ -78,7 +78,6 @@ namespace work.bacome.imapclient
 
             private class cStatusCommandHook : cCommandHook
             {
-                private static readonly cBytes kStatusSpace = new cBytes("STATUS ");
 
                 private string mEncodedMailboxName;
 
@@ -106,8 +105,6 @@ namespace work.bacome.imapclient
 
                         if (!cResponseDataStatus.Process(pCursor, out lStatus, lContext))
                         {
-                            lContext.TraceWarning("likely malformed status response");
-                            return eProcessDataResult.notprocessed;
                         }
                     }
 

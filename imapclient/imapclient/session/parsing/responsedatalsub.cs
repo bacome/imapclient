@@ -30,13 +30,6 @@ namespace work.bacome.imapclient
 
                     var lContext = pParentContext.NewMethod(nameof(cResponseDataLSub), nameof(Process), pEnabledExtensions);
 
-                    if (pCursor.GetFlags(out var lFlags) &&
-                        pCursor.SkipByte(cASCII.SPACE) &&
-                        pCursor.GetMailboxDelimiter(out var lDelimiter) &&
-                        pCursor.SkipByte(cASCII.SPACE) &&
-                        pCursor.GetAString(out IList<byte> lEncodedMailboxName) &&
-                        pCursor.Position.AtEnd &&
-                        cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, pEnabledExtensions, out var lMailboxName)) rResponseData = new cResponseDataLSub(cTools.UTF8BytesToString(lEncodedMailboxName), lMailboxName, ZGetMailboxFlags(lFlags));
                     else rResponseData = null;
 
                     pCursor.ParsedAs = rResponseData;
@@ -46,12 +39,6 @@ namespace work.bacome.imapclient
 
                 private static fMailboxFlags ZGetMailboxFlags(cBytesCursor.cFlags pFlags)
                 {
-                    fMailboxFlags lResult = 0;
-
-                    if (pFlags.Has(@"\Noselect")) lResult |= fMailboxFlags.haschildren | fMailboxFlags.notsubscribed | fMailboxFlags.hassubscribedchildren;
-                    else lResult |= fMailboxFlags.subscribed;
-
-                    return lResult;
                 }
             }
         }

@@ -14,6 +14,8 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kStatusSearchUnseenCommandPart = new cCommandPart("SEARCH UNSEEN");
             private static readonly cCommandPart kStatusExtendedSearchUnseenCommandPart = new cCommandPart("SEARCH RETURN () UNSEEN");
 
+            // TODO
+
             public async Task<cMailboxStatus> StatusAsync(cMethodControl pMC, cMailboxId pMailboxId, fStatusAttributes pAttributes, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StatusAsync), pMC, pMailboxId, pAttributes);
