@@ -6,9 +6,6 @@ namespace work.bacome.imapclient.support
     {
         public static readonly cMailboxSelected New = new cMailboxSelected();
 
-        private bool mSelected;
-        private bool mSelectedForUpdate;
-        private bool mAccessReadOnly;
         private bool mBeenSelected;
         private bool mBeenSelectedForUpdate;
         private bool mBeenSelectedReadOnly;
@@ -18,9 +15,6 @@ namespace work.bacome.imapclient.support
 
         private cMailboxSelected()
         {
-            mSelected = false;
-            mSelectedForUpdate = false;
-            mAccessReadOnly = false;
             mBeenSelected = false;
             mBeenSelectedForUpdate = false;
             mBeenSelectedReadOnly = false;
@@ -54,10 +48,30 @@ namespace work.bacome.imapclient.support
             mMessageFlags = pMessageFlags;
         }
 
+        private cMailboxSelected(cMailboxSelected pSelected, bool? pAccessReadOnly, cMessageFlags pMessageFlags, cMessageFlags pPermanentFlags)
+        {
+            mSelected = pSelected.mSelected;
+            mSelectedForUpdate = pSelected.mSelectedForUpdate;
+            mAccessReadOnly = pAccessReadOnly ?? pSelected.mAccessReadOnly;
+            mBeenSelected = pSelected.mBeenSelected;
+            mBeenSelectedForUpdate = pSelected.mBeenSelectedForUpdate;
+            mBeenSelectedReadOnly = pSelected.mBeenSelectedReadOnly;
+            mMessageFlags = pMessageFlags ?? pSelected.mMessageFlags;
+
+            if (mSelectedForUpdate)
+            {
+                mForUpdatePermanentFlags = pPermanentFlags ?? pSelected.mForUpdatePermanentFlags;
+                mReadOnlyPermanentFlags = pSelected.mReadOnlyPermanentFlags;
+            }
+            else
+            {
+                mForUpdatePermanentFlags = pSelected.mForUpdatePermanentFlags;
+                mReadOnlyPermanentFlags = pPermanentFlags ?? pSelected.mReadOnlyPermanentFlags;
+            }
+        }
+
         private cMailboxSelected(cMailboxSelected pSelected)
         {
-            if (pSelected == null) throw new ArgumentNullException(nameof(pSelected));
-
             mSelected = false;
             mSelectedForUpdate = false;
             mAccessReadOnly = false;
@@ -76,15 +90,18 @@ namespace work.bacome.imapclient.support
             return new cMailboxSelected(this, pForUpdate, pAccessReadOnly, pMessageFlags, pPermanentFlags);
         }
 
+        public cMailboxSelected Update(bool? pAccessReadOnly, cMessageFlags pMessageFlags, cMessageFlags pPermanentFlags)
+        {
+            if (!mSelected) throw new InvalidOperationException();
+            return new cMailboxSelected(this, pAccessReadOnly, pMessageFlags, pPermanentFlags);
+        }
+
         public cMailboxSelected Deselect()
         {
             if (!mSelected) throw new InvalidOperationException();
             return new cMailboxSelected(this);
         }
 
-        public bool IsSelected => mSelected;
-        public bool IsSelectedForUpdate => mSelectedForUpdate;
-        public bool IsAccessReadOnly => mAccessReadOnly;
         public bool HasBeenSelected => mBeenSelected;
         public bool HasBeenSelectedForUpdate => mBeenSelectedForUpdate;
         public bool HasBeenSelectedReadOnly => mBeenSelectedReadOnly;
@@ -92,7 +109,7 @@ namespace work.bacome.imapclient.support
         public cMessageFlags ForUpdatePermanentFlags => mForUpdatePermanentFlags ?? mMessageFlags;
         public cMessageFlags ReadOnlyPermanentFlags => mReadOnlyPermanentFlags ?? mMessageFlags;
 
-        public override string ToString() => $"{nameof(cMailboxSelected)}({mSelected},{mSelectedForUpdate},{mAccessReadOnly},{mBeenSelected},{mBeenSelectedForUpdate},{mBeenSelectedReadOnly},{mMessageFlags},{mForUpdatePermanentFlags},{mReadOnlyPermanentFlags})";
+        public override string ToString() => $"{nameof(cMailboxSelected)}({mBeenSelected},{mBeenSelectedForUpdate},{mBeenSelectedReadOnly},{mMessageFlags},{mForUpdatePermanentFlags},{mReadOnlyPermanentFlags})";
 
         public static fMailboxProperties Differences(cMailboxSelected pOld, cMailboxSelected pNew)
         {

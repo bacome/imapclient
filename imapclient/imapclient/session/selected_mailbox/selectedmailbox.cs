@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private partial class cSelectedMailbox : iMailboxProperties
+            private partial class cSelectedMailbox
             {
                 private static readonly cBytes kFlagsSpace = new cBytes("FLAGS ");
                 private static readonly cBytes kExists = new cBytes("EXISTS");
@@ -21,10 +21,13 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kReadWriteRBracketSpace = new cBytes("READ-WRITE] ");
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
 
-                public readonly cMailboxId MailboxId;
+                //public readonly cMailboxId MailboxId;
 
+                
                 private readonly bool mSelectedForUpdate;
-                private readonly cEventSynchroniser mEventSynchroniser;
+
+
+                //private readonly cEventSynchroniser mEventSynchroniser;
                 private dGetCapability mGetCapability;
                 private bool mHasBeenSetAsSelected = false;
 
@@ -67,10 +70,6 @@ namespace work.bacome.imapclient
                         else return mCache.UnseenTrue;
                     }
                 }
-
-                public bool Selected => true;
-                public bool SelectedForUpdate => mSelectedForUpdate;
-                public bool AccessReadOnly { get; private set; } = false;
 
                 public iMessageHandle GetHandle(uint pMSN) => mCache.GetHandle(pMSN); // this should only be called from a commandcompletion
                 public iMessageHandle GetHandle(cUID pUID) => mCache.GetHandle(pUID);

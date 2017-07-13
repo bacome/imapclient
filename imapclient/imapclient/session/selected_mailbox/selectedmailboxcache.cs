@@ -16,9 +16,9 @@ namespace work.bacome.imapclient
                     private static readonly cBytes kExpunge = new cBytes("EXPUNGE");
                     private static readonly cBytes kFetchSpace = new cBytes("FETCH ");
 
-                    private readonly cMailboxId mMailboxId;
+                    //private readonly cMailboxId mMailboxId;
                     private readonly uint? mUIDValidity;
-                    private readonly cEventSynchroniser mEventSynchroniser;
+                    //private readonly cEventSynchroniser mEventSynchroniser;
                     private dGetCapability mGetCapability;
                     private bool mHasBeenSetAsSelected;
                     private bool mValid = true;

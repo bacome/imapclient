@@ -113,10 +113,12 @@ namespace work.bacome.imapclient
         public int UnseenUnknownCount => Client.Status(MailboxId).UnseenUnknownCount;
         public ulong HighestModSeq => Client.Status(MailboxId).HighestModSeq;
 
-        public cMailboxSelected MailboxSelected => Client.MailboxCacheItem(MailboxId).MailboxSelected;
+        ;?;
         public bool IsSelected => Client.MailboxCacheItem(MailboxId).MailboxSelected.IsSelected;
         public bool IsSelectedForUpdate => Client.MailboxCacheItem(MailboxId).MailboxSelected.IsSelectedForUpdate;
         public bool IsAccessReadOnly => Client.MailboxCacheItem(MailboxId).MailboxSelected.IsAccessReadOnly;
+
+        public cMailboxSelected MailboxSelected => Client.MailboxCacheItem(MailboxId).MailboxSelected;
         public bool HasBeenSelected => Client.MailboxCacheItem(MailboxId).MailboxSelected.HasBeenSelected;
         public bool HasBeenSelectedForUpdate => Client.MailboxCacheItem(MailboxId).MailboxSelected.HasBeenSelectedForUpdate;
         public bool HasBeenSelectedReadOnly => Client.MailboxCacheItem(MailboxId).MailboxSelected.HasBeenSelectedReadOnly;
