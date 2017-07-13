@@ -26,19 +26,19 @@ namespace work.bacome.imapclient
             private cFetchSizer mFetchBodyReadSizer;
             private Encoding mEncoding; // can be null
 
-            // post enable processing sets these
-            private bool mEnableDone = false;
-            private cMailboxCache mMailboxCache;
-            private cStatusDataProcessor mStatusDataProcessor;
-            private cListDataProcessor mListDataProcessor = null;
-            private cLSubDataProcessor mLSubDataProcessor = null;
-
             // properties
             private cCapabilities _Capabilities = null;
             private cCapabilities _AuthenticationMechanisms = null;
             private cCapability _Capability = null;
             private cURL _HomeServerReferral = null;
             private cAccountId _ConnectedAccountId = null;
+
+            // post enable processing sets these
+            private bool mEnableDone = false;
+            private cMailboxCache mMailboxCache = null;
+            private cStatusDataProcessor mStatusDataProcessor = null;
+            private cListDataProcessor mListDataProcessor = null;
+            private cLSubDataProcessor mLSubDataProcessor = null;
 
             // selected mailbox
             private cSelectedMailbox _SelectedMailbox = null;
@@ -74,25 +74,21 @@ namespace work.bacome.imapclient
 
             public void EnableDone(cTrace.cContext pParentContext)
             {
-                ;?;
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(EnableDone));
 
-                // it should also disable enable
-
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(Connected));
-
-                ;?; // change the name of this
-                if (mInstallDataProcessorsDone) throw new InvalidOperationException();
-                mInstallDataProcessorsDone = true;
-
+                if (mEnableDone) throw new InvalidOperationException();
+                mEnableDone = true;
 
                 mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId);
 
-                mStatusDataProcessor = new cStatusDataProcessor(mMailboxCache.UpdateStatus);
+                mStatusDataProcessor = new cStatusDataProcessor(mMailboxCache);
                 mPipeline.Install(mStatusDataProcessor);
 
+                mListDataProcessor = new cListDataProcessor(EnabledExtensions, ZGetCapability, mMailboxCache);
+                mPipeline.Install(mListDataProcessor);
 
-                mListDataProcessor = new cListDataProcessor(EnabledExtensions, ZGetCapability, mMailboxCache.SetListFlags);
-                mLSubDataProcessor = new cLSubDataProcessor(EnabledExtensions, mMailboxCache.SetSelected);
+                mLSubDataProcessor = new cLSubDataProcessor(EnabledExtensions, mMailboxCache);
+                mPipeline.Install(mLSubDataProcessor);
             }
 
             public void SetIgnoreCapabilities(fCapabilities pIgnoreCapabilities, cTrace.cContext pParentContext)
@@ -261,7 +257,13 @@ namespace work.bacome.imapclient
 
             public cMailbox Inbox { get; set; } = null;
             public cMailboxId SelectedMailboxId => _SelectedMailbox?.MailboxId;
-            public iMailboxCacheItem MailboxCacheItem(cMailboxId pMailboxId) => mMailboxCache.Item(pMailboxId);
+
+            public iMailboxCacheItem MailboxCacheItem(cMailboxName pMailboxName)
+            {
+                cCommandPart.cFactory lFactory = new cCommandPart.cFactory((EnabledExtensions & fEnableableExtensions.utf8) != 0);
+                if (!lFactory.TryAsMailbox(pMailboxName, out _, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
+                return mMailboxCache.Item(lEncodedMailboxName, pMailboxName);
+            }
 
             public void Disconnect(cTrace.cContext pParentContext)
             {

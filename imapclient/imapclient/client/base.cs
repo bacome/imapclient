@@ -286,7 +286,22 @@ namespace work.bacome.imapclient
 
         public cMailbox Inbox => mSession?.Inbox;
         public cMailboxId SelectedMailboxId => mSession?.SelectedMailboxId;
-        public iMailboxCacheItem MailboxCacheItem(cMailboxId pMailboxId) => mSession?.MailboxCacheItem(pMailboxId);
+
+        public iMailboxCacheItem MailboxCacheItem(cMailboxId pMailboxId)
+        {
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxCacheItem));
+
+            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+
+            var lSession = mSession;
+            if (lSession == null || !lSession.IsConnected) throw new cAccountNotConnectedException(lContext);
+
+            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+
+            if (lSession.ConnectedAccountId != pMailboxId.AccountId) throw new cAccountNotConnectedException(lContext);
+
+            return lSession.MailboxCacheItem(pMailboxId.MailboxName);
+        }
 
         public void Dispose()
         {

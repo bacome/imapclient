@@ -3,61 +3,55 @@ using System.Threading;
 
 namespace work.bacome.imapclient.support
 {
-    [Flags]
-    public enum fLSubFlags
-    {
-        subscribed = 1 << 0,
-        hassubscribedchildren = 1 << 1
-    }
-
     public class cLSubFlags
     {
-        public enum fProperties
-        {
-            issubscribed = 1 << 0,
-            hassubscribedchildren = 1 << 1,
-        }
+        public static readonly fMailboxFlags ClearFlagsMask = ~(fMailboxFlags.subscribed | fMailboxFlags.hassubscribedchildren);
 
-        public static readonly cLSubFlags NonExistent = new cLSubFlags(0);
-        public static readonly cLSubFlags NotSubscribed = new cLSubFlags(0);
+        private static readonly cLSubFlags kNullFlags = new cLSubFlags(0);
 
         private static int mLastSequence = 0;
 
         public readonly int Sequence;
-        private readonly fLSubFlags mFlags;
+        public readonly fMailboxFlags Flags;
 
-        public cLSubFlags(fLSubFlags pFlags)
+        public cLSubFlags(fMailboxFlags pFlags)
         {
             Sequence = Interlocked.Increment(ref mLastSequence);
-            mFlags = pFlags;
+            Flags = pFlags;
         }
 
-        public bool IsSubscribed => (mFlags & fLSubFlags.subscribed) != 0;
-        public bool HasSubscribedChildren => (mFlags & fLSubFlags.hassubscribedchildren) != 0;
+        public bool IsSubscribed => (Flags & fMailboxFlags.subscribed) != 0;
+        public bool HasSubscribedChildren => (Flags & fMailboxFlags.hassubscribedchildren) != 0;
 
-        public override string ToString() => $"{nameof(cLSubFlags)}({Sequence},{mFlags})";
+        public override string ToString() => $"{nameof(cLSubFlags)}({Sequence},{Flags})";
 
         public static int LastSequence = mLastSequence;
 
-        public static fProperties Differences(cLSubFlags pOld, cLSubFlags pNew)
+        public static fMailboxProperties Differences(cLSubFlags pOld, cLSubFlags pNew)
         {
-            if (pOld == null) throw new ArgumentNullException(nameof(pOld));
-            if (pNew == null) throw new ArgumentNullException(nameof(pNew));
+            cLSubFlags lOld;
+            if (pOld == null) lOld = kNullFlags;
+            else lOld = pOld;
 
-            if (ReferenceEquals(pOld, NonExistent)) return 0;
-            if (pOld.mFlags == pNew.mFlags) return 0;
+            cLSubFlags lNew;
+            if (pNew == null) lNew = kNullFlags;
+            else lNew = pNew;
 
-            fProperties lProperties = 0;
+            if (lOld.Flags == lNew.Flags) return 0;
 
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fLSubFlags.subscribed, fProperties.issubscribed);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fLSubFlags.hassubscribedchildren, fProperties.hassubscribedchildren);
+            fMailboxProperties lProperties = 0;
+
+            lProperties |= ZPropertyIfDifferent(lOld, lNew, fMailboxFlags.subscribed, fMailboxProperties.issubscribed);
+            lProperties |= ZPropertyIfDifferent(lOld, lNew, fMailboxFlags.hassubscribedchildren, fMailboxProperties.hassubscribedchildren);
+
+            if (lProperties != 0) lProperties |= fMailboxProperties.mailboxflags;
 
             return lProperties;
         }
 
-        private static fProperties ZPropertyIfDifferent(cLSubFlags pA, cLSubFlags pB, fLSubFlags pFlags, fProperties pProperty)
+        private static fMailboxProperties ZPropertyIfDifferent(cLSubFlags pA, cLSubFlags pB, fMailboxFlags pFlags, fMailboxProperties pProperty)
         {
-            if ((pA.mFlags & pFlags) == (pB.mFlags & pFlags)) return 0;
+            if ((pA.Flags & pFlags) == (pB.Flags & pFlags)) return 0;
             return pProperty;
         }
     }

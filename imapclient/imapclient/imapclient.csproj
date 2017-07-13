@@ -67,12 +67,12 @@
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
-    <Compile Include="exposed_interfaces\mailbox\mailboxtypes.cs" />
     <Compile Include="exposed_interfaces\message\messageproperties.cs" />
+    <Compile Include="exposed_interfaces\support\enums\mailboxproperties.cs" />
     <Compile Include="exposed_interfaces\support\types\lsubflags.cs" />
     <Compile Include="exposed_interfaces\support\types\mailboxcacheitem.cs" />
-    <Compile Include="exposed_interfaces\support\types\listflags.cs" />
-    <Compile Include="exposed_interfaces\support\types\selectedmailboxproperties.cs" />
+    <Compile Include="exposed_interfaces\support\types\mailboxflags.cs" />
+    <Compile Include="exposed_interfaces\support\types\mailboxselected.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\session\searchunseen.cs" />
     <Compile Include="session\mailboxcache\mailboxcache.cs" />

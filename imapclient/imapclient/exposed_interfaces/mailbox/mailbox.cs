@@ -84,90 +84,55 @@ namespace work.bacome.imapclient
 
         // properties
 
-        public bool CanHaveChildren => ZMailboxFlags(cMailboxFlags.CanHaveChildrenFlagSets).CanHaveChildren;
-        public bool? HasChildren => ZMailboxFlags(cMailboxFlags.HasChildrenFlagSets).HasChildren;
-        public bool CanSelect => ZMailboxFlags(cMailboxFlags.CanSelectFlagSets).CanSelect;
-        public bool? IsMarked => ZMailboxFlags(cMailboxFlags.IsMarkedFlagSets).IsMarked;
-        public bool IsSubscribed => ZMailboxFlags(cMailboxFlags.IsSubscribedFlagSets).IsSubscribed;
-        public bool HasSubscribedChildren => ZMailboxFlags(cMailboxFlags.HasSubscribedChildrenFlagSets).HasSubscribedChildren;
-        public bool IsLocal => ZMailboxFlags(cMailboxFlags.IsLocalFlagSets).IsLocal;
-        public bool ContainsAll => ZMailboxFlags(cMailboxFlags.ContainsAllFlagSets).ContainsAll;
-        public bool IsArchive => ZMailboxFlags(cMailboxFlags.IsArchiveFlagSets).IsArchive;
-        public bool ContainsDrafts => ZMailboxFlags(cMailboxFlags.ContainsDraftsFlagSets).ContainsDrafts;
-        public bool ContainsFlagged => ZMailboxFlags(cMailboxFlags.ContainsFlaggedFlagSets).ContainsFlagged;
-        public bool ContainsJunk => ZMailboxFlags(cMailboxFlags.ContainsJunkFlagSets).ContainsJunk;
-        public bool ContainsSent => ZMailboxFlags(cMailboxFlags.ContainsSentFlagSets).ContainsSent;
-        public bool ContainsTrash => ZMailboxFlags(cMailboxFlags.ContainsTrashFlagSets).ContainsTrash;
+        public bool? Exists => Client.MailboxCacheItem(MailboxId).Exists;
 
-        private cMailboxFlags ZMailboxFlags(fMailboxFlagSets pRequiredFlagSets)
-        {
-            var lMailboxFlags = Client.MailboxCacheItem(MailboxId)?.MailboxFlags;
+        public cMailboxFlags MailboxFlags => Client.MailboxCacheItem(MailboxId).MailboxFlags;
+        public bool CanHaveChildren => Client.MailboxCacheItem(MailboxId).MailboxFlags.CanHaveChildren;
+        public bool CanSelect => Client.MailboxCacheItem(MailboxId).MailboxFlags.CanSelect;
+        public bool? IsMarked => Client.MailboxCacheItem(MailboxId).MailboxFlags.IsMarked;
+        public bool NonExistent => Client.MailboxCacheItem(MailboxId).MailboxFlags.NonExistent;
+        public bool IsSubscribed => Client.MailboxCacheItem(MailboxId).MailboxFlags.IsSubscribed;
+        public bool IsRemote => Client.MailboxCacheItem(MailboxId).MailboxFlags.IsRemote;
+        public bool? HasChildren => Client.MailboxCacheItem(MailboxId).MailboxFlags.HasChildren;
+        public bool HasSubscribedChildren => Client.MailboxCacheItem(MailboxId).MailboxFlags.HasSubscribedChildren;
+        public bool ContainsAll => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsAll;
+        public bool IsArchive => Client.MailboxCacheItem(MailboxId).MailboxFlags.IsArchive;
+        public bool ContainsDrafts => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsDrafts;
+        public bool ContainsFlagged => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsFlagged;
+        public bool ContainsJunk => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsJunk;
+        public bool ContainsSent => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsSent;
+        public bool ContainsTrash => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsTrash;
 
-            if (lMailboxFlags == null || (lMailboxFlags.FlagSets & pRequiredFlagSets) != pRequiredFlagSets)
-            {
-                Client.UpdateMailboxCache(MailboxId, pRequiredFlagSets, false);
-                lMailboxFlags = Client.MailboxCacheItem(MailboxId).MailboxFlags;
-            }
+        public cMailboxStatus MailboxStatus => Client.Status(MailboxId);
+        public int MessageCount => Client.Status(MailboxId).MessageCount;
+        public int RecentCount => Client.Status(MailboxId).RecentCount;
+        public uint UIDNext => Client.Status(MailboxId).UIDNext;
+        public int NewUnknownUIDCount => Client.Status(MailboxId).NewUnknownUIDCount;
+        public uint UIDValidity => Client.Status(MailboxId).UIDValidity;
+        public int UnseenCount => Client.Status(MailboxId).UnseenCount;
+        public int UnseenUnknownCount => Client.Status(MailboxId).UnseenUnknownCount;
+        public ulong HighestModSeq => Client.Status(MailboxId).HighestModSeq;
 
-            return lMailboxFlags;
-        }
-
-        public int MessageCount => Client.Status(MailboxId, null).MessageCount;
-        public int RecentCount => Client.Status(MailboxId, null).RecentCount;
-        public uint UIDNext => Client.Status(MailboxId, null).UIDNext;
-        public int NewUnknownUIDCount => Client.Status(MailboxId, null).NewUnknownUIDCount;
-        public uint UIDValidity => Client.Status(MailboxId, null).UIDValidity;
-        public int UnseenCount => Client.Status(MailboxId, null).UnseenCount;
-        public int UnseenUnknownCount => Client.Status(MailboxId, null).UnseenUnknownCount;
-        public ulong HighestModSeq => Client.Status(MailboxId, null).HighestModSeq;
-
-        public bool IsSelected => Client.MailboxCacheItem(MailboxId)?.IsSelected ?? false;
-        public bool IsSelectedForUpdate => Client.MailboxCacheItem(MailboxId)?.IsSelectedForUpdate ?? false;
-        public bool IsAccessReadOnly => Client.MailboxCacheItem(MailboxId)?.IsAccessReadOnly ?? false;
-
-        public bool HasBeenSelected => Client.MailboxCacheItem(MailboxId)?.HasBeenSelected ?? false;
-        public bool HasBeenSelectedForUpdate => Client.MailboxCacheItem(MailboxId)?.HasBeenSelectedForUpdate ?? false;
-        public bool HasBeenSelectedReadOnly => Client.MailboxCacheItem(MailboxId)?.HasBeenSelectedReadOnly ?? false;
-
-        public cMessageFlags MessageFlags
-        {
-            get
-            {
-                var lItem = Client.MailboxCacheItem(MailboxId);
-                if (lItem == null) throw new cNeverBeenSelectedException();
-                return lItem.MessageFlags;
-            }
-        }
-
-        public cMessageFlags ForUpdatePermanentFlags
-        {
-            get
-            {
-                var lItem = Client.MailboxCacheItem(MailboxId);
-                if (lItem == null) throw new cNeverBeenSelectedException();
-                return lItem.ForUpdatePermanentFlags;
-            }
-        }
-
-        public cMessageFlags ReadOnlyPermanentFlags
-        {
-            get
-            {
-                var lItem = Client.MailboxCacheItem(MailboxId);
-                if (lItem == null) throw new cNeverBeenSelectedException();
-                return lItem.ReadOnlyPermanentFlags;
-            }
-        }
+        public cMailboxSelected MailboxSelected => Client.MailboxCacheItem(MailboxId).MailboxSelected;
+        public bool IsSelected => Client.MailboxCacheItem(MailboxId).MailboxSelected.IsSelected;
+        public bool IsSelectedForUpdate => Client.MailboxCacheItem(MailboxId).MailboxSelected.IsSelectedForUpdate;
+        public bool IsAccessReadOnly => Client.MailboxCacheItem(MailboxId).MailboxSelected.IsAccessReadOnly;
+        public bool HasBeenSelected => Client.MailboxCacheItem(MailboxId).MailboxSelected.HasBeenSelected;
+        public bool HasBeenSelectedForUpdate => Client.MailboxCacheItem(MailboxId).MailboxSelected.HasBeenSelectedForUpdate;
+        public bool HasBeenSelectedReadOnly => Client.MailboxCacheItem(MailboxId).MailboxSelected.HasBeenSelectedReadOnly;
+        public cMessageFlags MessageFlags => Client.MailboxCacheItem(MailboxId).MailboxSelected.MessageFlags;
+        public cMessageFlags ForUpdatePermanentFlags => Client.MailboxCacheItem(MailboxId).MailboxSelected.ForUpdatePermanentFlags;
+        public cMessageFlags ReadOnlyPermanentFlags => Client.MailboxCacheItem(MailboxId).MailboxSelected.ReadOnlyPermanentFlags;
 
         // talk to server
 
-        public void UpdateCache(fMailboxProperties pProperties) => Client.UpdateMailboxCache(MailboxId, pProperties);
-        public Task UpdateCacheAsync(fMailboxProperties pProperties) => Client.UpdateMailboxCacheAsync(MailboxId, pProperties);
+        public cMailboxFlags Flags() => Client.Flags(MailboxId);
+        public Task<cMailboxFlags> FlagsAsync() => Client.FlagsAsync(MailboxId);
 
         public cMailboxStatus Status(int? pCacheAgeMax = null) => Client.Status(MailboxId, pCacheAgeMax);
         public Task<cMailboxStatus> StatusAsync(int? pCacheAgeMax = null) => Client.StatusAsync(MailboxId, pCacheAgeMax);
 
-        public List<cMailbox> Mailboxes(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxProperties pProperties = 0) => Client.Mailboxes(MailboxId, pTypes, pProperties);
+        public List<cMailbox> Mailboxes(bool pStatus = false) => Client.Mailboxes(MailboxId, pStatus);
         public Task<List<cMailbox>> MailboxesAsync(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxProperties pProperties = 0) => Client.MailboxesAsync(MailboxId, pTypes, pProperties);
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fFetchAttributes pAttributes = fFetchAttributes.clientdefault) => Client.Messages(MailboxId, pFilter, pSort, pAttributes);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fFetchAttributes pAttributes = fFetchAttributes.clientdefault) => Client.MessagesAsync(MailboxId, pFilter, pSort, pAttributes);

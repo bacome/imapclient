@@ -142,8 +142,8 @@ namespace work.bacome.imapclient
                     if (lIdTask == null && lCurrentCapability.Id) lIdTask = lSession.IdAsync(lMC, mClientId?.ASCIIDictionary, lContext);
                 }
 
-                // install any processors that depend on what has been enabled
-                lSession.InstallDataProcessors(lContext);
+                // further initialise the session
+                lSession.EnableDone(lContext);
 
                 // do a namespace (or list) now ... AFTER possibly enabling UTF8 (namespace processing depends on UTF8)
                 Task lNamespaceTask;

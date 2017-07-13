@@ -67,7 +67,9 @@ namespace work.bacome.imapclient
 
         // mailbox sub-mailbox list
 
-        public List<cMailbox> Mailboxes(cMailboxId pMailboxId, fMailboxTypes pTypes, fMailboxFlagSets pFlagSets, bool? pStatus)
+            ;?;
+
+        public List<cMailbox> Mailboxes(cMailboxId pMailboxId, bool pStatus)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
             var lTask = ZMailboxesAsync(pMailboxId, pTypes, pFlagSets, pStatus, lContext);

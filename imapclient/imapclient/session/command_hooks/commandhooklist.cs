@@ -11,9 +11,9 @@ namespace work.bacome.imapclient
             {
                 private cMailboxCache mCache;
                 private cMailboxNamePattern mPattern;
-                private int mListFlagsLastSequence;
+                private int mLastSequence;
 
-                public cCommandHookList(cMailboxCache pCache, cMailboxNamePattern pPattern, int pListFlagsLastSequence)
+                public cCommandHookList(cMailboxCache pCache, cMailboxNamePattern pPattern, int pLastSequence)
                 {
                     mCache = pCache;
                     mPattern = pPattern;

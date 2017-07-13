@@ -21,6 +21,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(EnableAsync), pMC, pExtensions);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (mEnableDone) throw new InvalidOperationException();            
 
                 using (var lCommand = new cCommand())
                 {

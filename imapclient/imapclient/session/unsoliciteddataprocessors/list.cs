@@ -45,24 +45,24 @@ namespace work.bacome.imapclient
 
                     var lCapability = mGetCapability();
 
-                    fListFlags lMailboxFlags = 0;
+                    fMailboxFlags lMailboxFlags = 0;
 
-                    if (lFlags.Has(@"\Noinferiors")) lMailboxFlags |= fListFlags.noinferiors | fListFlags.hasnochildren;
-                    if (lFlags.Has(@"\Noselect")) lMailboxFlags |= fListFlags.noselect;
-                    if (lFlags.Has(@"\Marked")) lMailboxFlags |= fListFlags.marked;
-                    if (lFlags.Has(@"\Unmarked")) lMailboxFlags |= fListFlags.unmarked;
+                    if (lFlags.Has(@"\Noinferiors")) lMailboxFlags |= fMailboxFlags.noinferiors | fMailboxFlags.hasnochildren;
+                    if (lFlags.Has(@"\Noselect")) lMailboxFlags |= fMailboxFlags.noselect;
+                    if (lFlags.Has(@"\Marked")) lMailboxFlags |= fMailboxFlags.marked;
+                    if (lFlags.Has(@"\Unmarked")) lMailboxFlags |= fMailboxFlags.unmarked;
 
                     if (lCapability.ListExtended)
                     {
-                        if (lFlags.Has(@"\NonExistent")) lMailboxFlags |= fListFlags.noselect | fListFlags.nonexistent;
-                        if (lFlags.Has(@"\Subscribed")) lMailboxFlags |= fListFlags.subscribed;
-                        if (lFlags.Has(@"\Remote")) lMailboxFlags |= fListFlags.remote;
+                        if (lFlags.Has(@"\NonExistent")) lMailboxFlags |= fMailboxFlags.noselect | fMailboxFlags.nonexistent;
+                        if (lFlags.Has(@"\Subscribed")) lMailboxFlags |= fMailboxFlags.subscribed;
+                        if (lFlags.Has(@"\Remote")) lMailboxFlags |= fMailboxFlags.remote;
                     }
 
                     if (lCapability.Children || lCapability.ListExtended)
                     {
-                        if (lFlags.Has(@"\HasChildren")) lMailboxFlags |= fListFlags.haschildren;
-                        if (lFlags.Has(@"\HasNoChildren")) lMailboxFlags |= fListFlags.hasnochildren;
+                        if (lFlags.Has(@"\HasChildren")) lMailboxFlags |= fMailboxFlags.haschildren;
+                        if (lFlags.Has(@"\HasNoChildren")) lMailboxFlags |= fMailboxFlags.hasnochildren;
                     }
 
                     if (lCapability.ListExtended && lExtendedItems != null)
@@ -71,11 +71,11 @@ namespace work.bacome.imapclient
                         {
                             if (lItem.Tag.Equals("childinfo", StringComparison.InvariantCultureIgnoreCase))
                             {
-                                lMailboxFlags |= fListFlags.haschildren;
+                                lMailboxFlags |= fMailboxFlags.haschildren;
 
                                 if (lItem.Value.Contains("subscribed", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    lMailboxFlags |= fListFlags.hassubscribedchildren;
+                                    lMailboxFlags |= fMailboxFlags.hassubscribedchildren;
                                     break;
                                 }
                             }
@@ -83,13 +83,13 @@ namespace work.bacome.imapclient
                     }
 
                     // the special-use capability is to do with support by list-extended, not to do with the return of the attributes
-                    if (lFlags.Has(@"\All")) lMailboxFlags |= fListFlags.all;
-                    if (lFlags.Has(@"\Archive")) lMailboxFlags |= fListFlags.archive;
-                    if (lFlags.Has(@"\Drafts")) lMailboxFlags |= fListFlags.drafts;
-                    if (lFlags.Has(@"\Flagged")) lMailboxFlags |= fListFlags.flagged;
-                    if (lFlags.Has(@"\Junk")) lMailboxFlags |= fListFlags.junk;
-                    if (lFlags.Has(@"\Sent")) lMailboxFlags |= fListFlags.sent;
-                    if (lFlags.Has(@"\Trash")) lMailboxFlags |= fListFlags.trash;
+                    if (lFlags.Has(@"\All")) lMailboxFlags |= fMailboxFlags.all;
+                    if (lFlags.Has(@"\Archive")) lMailboxFlags |= fMailboxFlags.archive;
+                    if (lFlags.Has(@"\Drafts")) lMailboxFlags |= fMailboxFlags.drafts;
+                    if (lFlags.Has(@"\Flagged")) lMailboxFlags |= fMailboxFlags.flagged;
+                    if (lFlags.Has(@"\Junk")) lMailboxFlags |= fMailboxFlags.junk;
+                    if (lFlags.Has(@"\Sent")) lMailboxFlags |= fMailboxFlags.sent;
+                    if (lFlags.Has(@"\Trash")) lMailboxFlags |= fMailboxFlags.trash;
 
                     // store
                     mMailboxCache.SetListFlags(cTools.UTF8BytesToString(lEncodedMailboxName), lMailboxName, lMailboxFlags, lContext);

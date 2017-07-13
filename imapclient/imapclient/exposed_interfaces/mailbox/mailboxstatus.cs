@@ -1,24 +1,11 @@
 ﻿using System;
 using System.Threading;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     public class cMailboxStatus
     {
-        public enum fProperties
-        {
-            messagecount = 1 << 0,
-            recentcount = 1 << 1,
-            uidnext = 1 << 2,
-            newunknownuidcount = 1 << 3,
-            uidvalidity = 1 << 4,
-            unseencount = 1 << 5,
-            unseenunknowncount = 1 << 6,
-            highestmodseq = 1 << 7
-        }
-
-        public static readonly cMailboxStatus NonExistent = new cMailboxStatus(0, 0, 0, 0, 0, 0, 0, 0);
-
         private static int mLastSequence = 0;
 
         public readonly int Sequence;
@@ -48,23 +35,24 @@ namespace work.bacome.imapclient
 
         public static int LastSequence = mLastSequence;
 
-        public static fProperties Differences(cMailboxStatus pOld, cMailboxStatus pNew)
+        public static fMailboxProperties Differences(cMailboxStatus pOld, cMailboxStatus pNew)
         {
-            if (pOld == null) throw new ArgumentNullException(nameof(pOld));
             if (pNew == null) throw new ArgumentNullException(nameof(pNew));
 
-            if (ReferenceEquals(pOld, NonExistent)) return 0;
+            if (pOld == null) return 0;
 
-            fProperties lProperties = 0;
+            fMailboxProperties lProperties = 0;
 
-            if (pOld.MessageCount != pNew.MessageCount) lProperties |= fProperties.messagecount;
-            if (pOld.RecentCount != pNew.RecentCount) lProperties |= fProperties.messagecount;
-            if (pOld.UIDNext != pNew.UIDNext) lProperties |= fProperties.messagecount;
-            if (pOld.NewUnknownUIDCount != pNew.NewUnknownUIDCount) lProperties |= fProperties.messagecount;
-            if (pOld.UIDValidity != pNew.UIDValidity) lProperties |= fProperties.messagecount;
-            if (pOld.UnseenCount != pNew.UnseenCount) lProperties |= fProperties.messagecount;
-            if (pOld.UnseenUnknownCount != pNew.UnseenUnknownCount) lProperties |= fProperties.messagecount;
-            if (pOld.HighestModSeq != pNew.HighestModSeq) lProperties |= fProperties.messagecount;
+            if (pOld.MessageCount != pNew.MessageCount) lProperties |= fMailboxProperties.messagecount;
+            if (pOld.RecentCount != pNew.RecentCount) lProperties |= fMailboxProperties.messagecount;
+            if (pOld.UIDNext != pNew.UIDNext) lProperties |= fMailboxProperties.messagecount;
+            if (pOld.NewUnknownUIDCount != pNew.NewUnknownUIDCount) lProperties |= fMailboxProperties.messagecount;
+            if (pOld.UIDValidity != pNew.UIDValidity) lProperties |= fMailboxProperties.messagecount;
+            if (pOld.UnseenCount != pNew.UnseenCount) lProperties |= fMailboxProperties.messagecount;
+            if (pOld.UnseenUnknownCount != pNew.UnseenUnknownCount) lProperties |= fMailboxProperties.messagecount;
+            if (pOld.HighestModSeq != pNew.HighestModSeq) lProperties |= fMailboxProperties.messagecount;
+
+            if (lProperties != 0) lProperties |= fMailboxProperties.mailboxstatus;
 
             return lProperties;
         }
