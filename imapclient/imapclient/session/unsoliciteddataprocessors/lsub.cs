@@ -33,8 +33,7 @@ namespace work.bacome.imapclient
                         !pCursor.GetMailboxDelimiter(out var lDelimiter) ||
                         !pCursor.SkipByte(cASCII.SPACE) ||
                         !pCursor.GetAString(out IList<byte> lEncodedMailboxName) ||
-                        !pCursor.Position.AtEnd ||
-                        !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mEnabledExtensions, out var lMailboxName))
+                        !pCursor.Position.AtEnd)
                     {
                         lContext.TraceWarning("likely malformed lsub response");
                         return eProcessDataResult.notprocessed;
@@ -45,7 +44,7 @@ namespace work.bacome.imapclient
                     if (lFlags.Has(@"\Noselect")) lLSubFlags = fLSubFlags.hassubscribedchildren;
                     else lLSubFlags = fLSubFlags.subscribed;
 
-                    mMailboxCache.SetLSubFlags(cTools.UTF8BytesToString(lEncodedMailboxName), lMailboxName, lLSubFlags, lContext);
+                    mMailboxCache.SetLSubFlags(cTools.UTF8BytesToString(lEncodedMailboxName), lLSubFlags, lContext);
 
                     return eProcessDataResult.processed;
                 }

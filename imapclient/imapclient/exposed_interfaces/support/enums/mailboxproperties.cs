@@ -33,16 +33,17 @@ namespace work.bacome.imapclient.support
         unseenunknowncount = 1 << 24,
         highestmodseq = 1 << 25,
 
-        isselected = 1 << 26,
-        isselectedforupdate = 1 << 27,
-        isaccessreadonly = 1 << 28,
+        mailboxbeenselected = 1 << 30,
+        hasbeenselected = 1 << 31,
+        hasbeenselectedforupdate = 1 << 32,
+        hasbeenselectedreadonly = 1 << 33,
+        messageflags = 1 << 34,
+        forupdatepermanentflags = 1 << 35,
+        readonlypermanentflags = 1 << 36
 
-        mailboxselected = 1 << 29,
-        hasbeenselected = 1 << 30,
-        hasbeenselectedforupdate = 1 << 31,
-        hasbeenselectedreadonly = 1 << 32,
-        messageflags = 1 << 33,
-        forupdatepermanentflags = 1 << 34,
-        readonlypermanentflags = 1 << 35
+        mailboxselected = 1 << 26,
+        isselected = 1 << 27,
+        isselectedforupdate = 1 << 28,
+        isaccessreadonly = 1 << 29,
     }
 }

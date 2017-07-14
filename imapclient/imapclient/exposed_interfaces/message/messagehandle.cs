@@ -1,10 +1,11 @@
 ﻿using System;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     public interface iMessageHandle
     {
-        iMessageCache Cache { get; }
+        object MessageCache { get; }
         int CacheSequence { get; }
         bool Expunged { get; }
         fFetchAttributes Attributes { get; }

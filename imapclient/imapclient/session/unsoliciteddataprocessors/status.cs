@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
                         return eProcessDataResult.notprocessed;
                     }
 
-                    mMailboxCache.UpdateStatus(lEncodedMailboxName, lStatus, lContext);
+                    mMailboxCache.UpdateMailboxStatus(lEncodedMailboxName, lStatus, lContext);
 
                     return eProcessDataResult.processed;
                 }

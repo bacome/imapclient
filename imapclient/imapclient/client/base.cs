@@ -278,14 +278,24 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (mSession == null) return null;
-                if (mSession.ConnectedAccountId == null) return null;
-                return new cNamespaces(this, mSession.ConnectedAccountId, mSession.PersonalNamespaces, mSession.OtherUsersNamespaces, mSession.SharedNamespaces);
+                var lSession = mSession;
+                if (lSession == null) return null;
+                if (lSession.ConnectedAccountId == null) return null;
+                return new cNamespaces(this, lSession.ConnectedAccountId, lSession.PersonalNamespaces, lSession.OtherUsersNamespaces, lSession.SharedNamespaces);
             }
         }
 
         public cMailbox Inbox => mSession?.Inbox;
-        public cMailboxId SelectedMailboxId => mSession?.SelectedMailboxId;
+
+        public cMailbox SelectedMailbox
+        {
+            get
+            {
+                var lDetails = mSession?.SelectedMailboxDetails;
+                if (lDetails == null) return null;
+                return new cMailbox(this, lDetails.MailboxId);
+            }
+        }
 
         public iMailboxCacheItem MailboxCacheItem(cMailboxId pMailboxId)
         {
@@ -302,6 +312,8 @@ namespace work.bacome.imapclient
 
             return lSession.MailboxCacheItem(pMailboxId.MailboxName);
         }
+
+        public iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
 
         public void Dispose()
         {

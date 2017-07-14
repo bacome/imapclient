@@ -9,19 +9,19 @@ namespace work.bacome.imapclient
         {
             private abstract class cMessageCacheItem : iMessageHandle
             {
-                private readonly iMessageCache mCache;
+                private readonly object mMessageCache;
                 private readonly int mCacheSequence;
                 private bool mExpunged = false;
                 private fFetchAttributes mAttributes = 0;
                 private cBodyPart mBody = null;
 
-                public cMessageCacheItem(iMessageCache pCache, int pCacheSequence)
+                public cMessageCacheItem(object pMessageCache, int pCacheSequence)
                 {
-                    mCache = pCache ?? throw new ArgumentNullException(nameof(pCache));
+                    mMessageCache = pMessageCache ?? throw new ArgumentNullException(nameof(pMessageCache));
                     mCacheSequence = pCacheSequence;
                 }
 
-                public iMessageCache Cache => mCache;
+                public object MessageCache => mMessageCache;
                 public int CacheSequence => mCacheSequence;
                 public bool Expunged => mExpunged;
                 public fFetchAttributes Attributes => mAttributes;
@@ -38,16 +38,16 @@ namespace work.bacome.imapclient
 
                 public void SetExpunged() => mExpunged = true;
 
-                public void Update(uint? pUIDValidity, cResponseDataFetch lFetch, out fFetchAttributes rAttributesSet, out fKnownFlags rFlagsSet)
+                public void Update(uint? pUIDValidity, cResponseDataFetch lFetch, out fFetchAttributes rAttributesSet, out fKnownMessageFlags rKnownMessageFlagsSet)
                 {
                     rAttributesSet = ~mAttributes & lFetch.Attributes;
-                    rFlagsSet = 0;
+                    rKnownMessageFlagsSet = 0;
 
                     if ((rAttributesSet & fFetchAttributes.flags) != 0) Flags = lFetch.Flags;
                     else if (lFetch.Flags != null && lFetch.Flags != Flags)
                     {
                         rAttributesSet |= fFetchAttributes.flags;
-                        rFlagsSet = lFetch.Flags.KnownFlags ^ Flags.KnownFlags;
+                        rKnownMessageFlagsSet = lFetch.Flags.KnownMessageFlags ^ Flags.KnownMessageFlags;
                         Flags = lFetch.Flags;
                     }
 
@@ -72,7 +72,7 @@ namespace work.bacome.imapclient
                     mAttributes |= lFetch.Attributes;
                 }
 
-                public override string ToString() => $"{nameof(cMessageCacheItem)}({mCache},{mCacheSequence})";
+                public override string ToString() => $"{nameof(cMessageCacheItem)}({mMessageCache},{mCacheSequence})";
             }
         }
     }

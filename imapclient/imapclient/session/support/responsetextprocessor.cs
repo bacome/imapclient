@@ -48,13 +48,18 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kUnknownCTERBracketSpace = new cBytes("UNKNOWN-CTE] ");
 
                 private readonly Action<eResponseTextType, cResponseText, cTrace.cContext> mResponseText;
+                private bool mMailboxReferrals = false;
 
                 public cResponseTextProcessor(Action<eResponseTextType, cResponseText, cTrace.cContext> pResponseText)
                 {
                     mResponseText = pResponseText ?? throw new ArgumentNullException(nameof(pResponseText));
                 }
 
-                public bool MailboxReferrals { get; set; } = false;
+                public void SetCapability(cCapability pCapability, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(SetCapability), pCapability.MailboxReferrals);
+                    mMailboxReferrals = pCapability.MailboxReferrals;
+                }
 
                 public cSelectedMailbox SelectedMailbox { get; set; } = null;
 
@@ -136,7 +141,7 @@ namespace work.bacome.imapclient
                         pCursor.Position = lBookmarkAfterLBRACET;
                     }
 
-                    if (MailboxReferrals && pCursor.SkipBytes(kReferralSpace))
+                    if (mMailboxReferrals && pCursor.SkipBytes(kReferralSpace))
                     {
                         List<string> lURIs = new List<string>();
                         

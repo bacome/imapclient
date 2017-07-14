@@ -113,18 +113,53 @@ namespace work.bacome.imapclient
         public int UnseenUnknownCount => Client.Status(MailboxId).UnseenUnknownCount;
         public ulong HighestModSeq => Client.Status(MailboxId).HighestModSeq;
 
-        ;?;
-        public bool IsSelected => Client.MailboxCacheItem(MailboxId).MailboxSelected.IsSelected;
-        public bool IsSelectedForUpdate => Client.MailboxCacheItem(MailboxId).MailboxSelected.IsSelectedForUpdate;
-        public bool IsAccessReadOnly => Client.MailboxCacheItem(MailboxId).MailboxSelected.IsAccessReadOnly;
+        public cMailboxBeenSelected MailboxBeenSelected => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected;
+        public bool HasBeenSelected => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.HasBeenSelected;
+        public bool HasBeenSelectedForUpdate => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.HasBeenSelectedForUpdate;
+        public bool HasBeenSelectedReadOnly => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.HasBeenSelectedReadOnly;
+        public cMessageFlags MessageFlags => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.MessageFlags;
+        public cMessageFlags ForUpdatePermanentFlags => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.ForUpdatePermanentFlags;
+        public cMessageFlags ReadOnlyPermanentFlags => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.ReadOnlyPermanentFlags;
 
-        public cMailboxSelected MailboxSelected => Client.MailboxCacheItem(MailboxId).MailboxSelected;
-        public bool HasBeenSelected => Client.MailboxCacheItem(MailboxId).MailboxSelected.HasBeenSelected;
-        public bool HasBeenSelectedForUpdate => Client.MailboxCacheItem(MailboxId).MailboxSelected.HasBeenSelectedForUpdate;
-        public bool HasBeenSelectedReadOnly => Client.MailboxCacheItem(MailboxId).MailboxSelected.HasBeenSelectedReadOnly;
-        public cMessageFlags MessageFlags => Client.MailboxCacheItem(MailboxId).MailboxSelected.MessageFlags;
-        public cMessageFlags ForUpdatePermanentFlags => Client.MailboxCacheItem(MailboxId).MailboxSelected.ForUpdatePermanentFlags;
-        public cMessageFlags ReadOnlyPermanentFlags => Client.MailboxCacheItem(MailboxId).MailboxSelected.ReadOnlyPermanentFlags;
+        public cMailboxSelected MailboxSelected
+        {
+            get
+            {
+                var lDetails = Client.SelectedMailboxDetails;
+                if (lDetails == null | lDetails.MailboxId != MailboxId) return new cMailboxSelected();
+                return new cMailboxSelected(lDetails.SelectedForUpdate, lDetails.AccessReadOnly);
+            }
+        }
+
+        public bool IsSelected
+        {
+            get
+            {
+                var lDetails = Client.SelectedMailboxDetails;
+                if (lDetails == null | lDetails.MailboxId != MailboxId) return false;
+                return true;
+            }
+        }
+
+        public bool IsSelectedForUpdate
+        {
+            get
+            {
+                var lDetails = Client.SelectedMailboxDetails;
+                if (lDetails == null | lDetails.MailboxId != MailboxId) return false;
+                return lDetails.SelectedForUpdate;
+            }
+        }
+
+        public bool IsAccessReadOnly
+        {
+            get
+            {
+                var lDetails = Client.SelectedMailboxDetails;
+                if (lDetails == null | lDetails.MailboxId != MailboxId) return false;
+                return lDetails.AccessReadOnly;
+            }
+        }
 
         // talk to server
 

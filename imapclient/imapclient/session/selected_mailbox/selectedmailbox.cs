@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private partial class cSelectedMailbox
+            private partial class cSelectedMailbox : iSelectedMailboxDetails
             {
                 private static readonly cBytes kFlagsSpace = new cBytes("FLAGS ");
                 private static readonly cBytes kExists = new cBytes("EXISTS");
@@ -21,69 +21,57 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kReadWriteRBracketSpace = new cBytes("READ-WRITE] ");
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
 
-                //public readonly cMailboxId MailboxId;
-
-                
+                private readonly string mEncodedMailboxName;
+                private readonly cMailboxId mMailboxId;
                 private readonly bool mSelectedForUpdate;
+                private readonly cEventSynchroniser mEventSynchroniser;
+                private readonly cMailboxCache mMailboxCache;
 
+                private cMessageCache mMessageCache;
 
-                //private readonly cEventSynchroniser mEventSynchroniser;
-                private dGetCapability mGetCapability;
+                private cMessageFlags mMessageFlags = null;
+                private cMessageFlags mPermanentFlags = null;
+                private bool mAccessReadOnly = false;
+
                 private bool mHasBeenSetAsSelected = false;
 
-                private cMessageFlags mPermanentFlags = null;
-
-                private uint? mUnseen = null;
-                private cCache mCache;
-
-                public cSelectedMailbox(cMailboxId pMailboxId, bool pForUpdate, cEventSynchroniser pEventSynchoniser, dGetCapability pGetCapability)
+                public cSelectedMailbox(string pEncodedMailboxName, cMailboxId pMailboxId, bool pSelectedForUpdate, cEventSynchroniser pEventSynchoniser, cMailboxCache pMailboxCache)
                 {
-                    MailboxId = pMailboxId ?? throw new ArgumentNullException(nameof(pMailboxId));
-                    mSelectedForUpdate = pForUpdate;
+                    mEncodedMailboxName = pEncodedMailboxName ?? throw new ArgumentNullException(nameof(pEncodedMailboxName));
+                    mMailboxId = pMailboxId ?? throw new ArgumentNullException(nameof(pMailboxId));
+                    mSelectedForUpdate = pSelectedForUpdate;
                     mEventSynchroniser = pEventSynchoniser ?? throw new ArgumentNullException(nameof(pEventSynchoniser));
-                    mGetCapability = pGetCapability;
-                    mCache = new cCache(pMailboxId, null, pEventSynchoniser, mGetCapability, false);
+                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
+                    mMessageCache = new cMessageCache(pMailboxId, 0, false, pEventSynchoniser, pMailboxCache);
                 }
+
+                public string EncodedMailboxName => mEncodedMailboxName;
+                public cMailboxId MailboxId => mMailboxId;
+                public bool SelectedForUpdate => mSelectedForUpdate;
+                public bool AccessReadOnly => mAccessReadOnly;
 
                 public void SetAsSelected(cTrace.cContext pParentContext)
                 {
-                    // called when the mailbox is first set as the selected mailbox
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(SetAsSelected));
                     if (mHasBeenSetAsSelected) throw new InvalidOperationException();
                     mHasBeenSetAsSelected = true;
-                    mCache.SetAsSelected(lContext);
+                    mMessageCache.SetAsSelected(lContext);
+                    mMailboxCache.UpdateMailboxBeenSelected(mEncodedMailboxName, mMailboxId.MailboxName, mMessageFlags, mSelectedForUpdate, mPermanentFlags, lContext);
                 }
 
-                public cMessageFlags Flags { get; private set; } = null;
-                public cMessageFlags PermanentFlags => mPermanentFlags ?? Flags;
-
-                public int Messages => mCache.Count;
-                public int? Recent { get; private set; }
-                public uint? UIDNext { get; private set; }
-                public uint? UIDValidity => mCache.UIDValidity;
-
-                public int? Unseen
-                {
-                    get
-                    {
-                        if (mCache.UnseenNull > 0) return null;
-                        else return mCache.UnseenTrue;
-                    }
-                }
-
-                public iMessageHandle GetHandle(uint pMSN) => mCache.GetHandle(pMSN); // this should only be called from a commandcompletion
-                public iMessageHandle GetHandle(cUID pUID) => mCache.GetHandle(pUID);
-                public uint GetMSN(iMessageHandle pHandle) => mCache.GetMSN(pHandle); // this should only be called when no msnunsafe commands are running
+                public iMessageHandle GetHandle(uint pMSN) => mMessageCache.GetHandle(pMSN); // this should only be called from a commandcompletion
+                public iMessageHandle GetHandle(cUID pUID) => mMessageCache.GetHandle(pUID);
+                public uint GetMSN(iMessageHandle pHandle) => mMessageCache.GetMSN(pHandle); // this should only be called when no msnunsafe commands are running
 
                 public int SetUnseenBegin(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(SetUnseenBegin));
-                    int lCount = mCache.Count;
-                    mCache.SetUnseenCount = lCount;
+                    int lCount = mMessageCache.MessageCount;
+                    mMessageCache.SetUnseenCount = lCount;
                     return lCount;
                 }
 
-                public int SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext) => mCache.SetUnseen(pMSNs, pParentContext); // this should only be called from a commandcompletion
+                public void SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext) => mMessageCache.SetUnseen(pMSNs, pParentContext); // this should only be called from a commandcompletion
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
@@ -92,7 +80,7 @@ namespace work.bacome.imapclient
                     eProcessDataResult lResult;
 
                     var lBookmark = pCursor.Position;
-                    lResult = mCache.ProcessData(pCursor, lContext);
+                    lResult = mMessageCache.ProcessData(pCursor, lContext);
                     if (lResult != eProcessDataResult.notprocessed) return lResult;
                     pCursor.Position = lBookmark;
 
@@ -101,36 +89,15 @@ namespace work.bacome.imapclient
                         if (pCursor.GetFlags(out var lFlags) && pCursor.Position.AtEnd)
                         {
                             lContext.TraceVerbose("got flags available for messages in the mailbox: {0}", lFlags);
-                            Flags = new cMessageFlags(lFlags);
-                            if (mHasBeenSetAsSelected) mEventSynchroniser.MailboxPropertyChanged(MailboxId, nameof(iMailboxProperties.Flags), lContext); // may also mean that permanent flags have changed
+                            mMessageFlags = new cMessageFlags(lFlags);
+                            if (mHasBeenSetAsSelected) mMailboxCache.UpdateMailboxBeenSelected(mEncodedMailboxName, mMailboxId.MailboxName, mMessageFlags, mSelectedForUpdate, mPermanentFlags, lContext);
                             return eProcessDataResult.processed;
                         }
 
                         lContext.TraceWarning("likely malformed flags response");
                     }
 
-                    if (pCursor.GetNumber(out _, out var lNumber) && pCursor.SkipByte(cASCII.SPACE))
-                    {
-                        if (pCursor.SkipBytes(kExists))
-                        {
-                            if (pCursor.Position.AtEnd)
-                            {
-                                mCache.IncreaseCount((int)lNumber, lContext);
-                                if (mHasBeenSetAsSelected) mEventSynchroniser.MailboxPropertyChanged(MailboxId, nameof(iMailboxProperties.Messages), lContext);
-                                return eProcessDataResult.processed;
-                            }
-                        }
-                        else if (pCursor.SkipBytes(kRecent))
-                        {
-                            if (pCursor.Position.AtEnd)
-                            {
-                                lContext.TraceVerbose("got recent: {0}", lNumber);
-                                Recent = (int)lNumber;
-                                if (mHasBeenSetAsSelected) mEventSynchroniser.MailboxPropertyChanged(MailboxId, nameof(iMailboxProperties.Recent), lContext);
-                                return eProcessDataResult.processed;
-                            }
-                        }
-                    }
+                    ;?; // move these
 
                     return eProcessDataResult.notprocessed;
                 }
@@ -144,7 +111,6 @@ namespace work.bacome.imapclient
                         if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                         {
                             lContext.TraceVerbose("got unseen: {0}", lNumber);
-                            mUnseen = lNumber;
                             return true;
                         }
 
@@ -157,24 +123,11 @@ namespace work.bacome.imapclient
                         {
                             lContext.TraceVerbose("got permanentflags: {0}", lFlags);
                             mPermanentFlags = new cMessageFlags(lFlags);
-                            if (mHasBeenSetAsSelected) mEventSynchroniser.MailboxPropertyChanged(MailboxId, nameof(iMailboxProperties.PermanentFlags), lContext);
+                            if (mHasBeenSetAsSelected) mMailboxCache.UpdateMailboxBeenSelected(mEncodedMailboxName, mMailboxId.MailboxName, mMessageFlags, mSelectedForUpdate, mPermanentFlags, lContext);
                             return true;
                         }
 
                         lContext.TraceWarning("likely malformed permanentflags response");
-                    }
-
-                    if (pCursor.SkipBytes(kUIDNextSpace))
-                    {
-                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
-                        {
-                            lContext.TraceVerbose("got uidnext: {0}", lNumber);
-                            UIDNext = lNumber;
-                            if (mHasBeenSetAsSelected) mEventSynchroniser.MailboxPropertyChanged(MailboxId, nameof(iMailboxProperties.UIDNext), lContext);
-                            return true;
-                        }
-
-                        lContext.TraceWarning("likely malformed uidnext response");
                     }
 
                     if (pCursor.SkipBytes(kUIDValiditySpace))
@@ -183,10 +136,10 @@ namespace work.bacome.imapclient
                         {
                             lContext.TraceVerbose("got uidvalidity: {0}", lNumber);
 
-                            var lOldCache = mCache;
+                            var lOldMessageCache = mMessageCache;
 
-                            mCache = new cCache(MailboxId, lNumber, mEventSynchroniser, mGetCapability, mHasBeenSetAsSelected);
-                            mCache.IncreaseCount(lOldCache.Count, lContext);
+                            mMessageCache = new cMessageCache(mMailboxId, lNumber, mEventSynchroniser, mGetCapability, mHasBeenSetAsSelected);
+                            mMessageCache.IncreaseCount(lOldMessageCache.Count, lContext);
                             mCache.SetUnseenCount = lOldCache.SetUnseenCount;
 
                             lOldCache.Invalidate(lContext);
@@ -214,10 +167,14 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
+                    ;?; // highest mod seq
+
+                    ;?; // nomodseq
+
                     return mCache.ProcessTextCode(pCursor, lContext);
                 }
 
-                public override string ToString() => $"{nameof(cSelectedMailbox)}({MailboxId},{mSelectedForUpdate})";
+                public override string ToString() => $"{nameof(cSelectedMailbox)}({mMailboxId},{mSelectedForUpdate})";
             }
         }
     }

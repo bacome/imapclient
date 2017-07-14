@@ -30,9 +30,10 @@ namespace work.bacome.imapclient
         uid = 1 << 22,
         references = 1 << 23,
         modseq = 1 << 24,
-        attachments = 1 << 25,
+        plaintext = 1 << 25,
+        attachments = 1 << 26,
 
-        bodystructure = attachments,
+        bodystructure = plaintext | attachments,
         envelope = sent | subject | from | sender | replyto | to | cc | bcc | inreplyto | messageid,
         flags = isanswered | isflagged | isdeleted | isseen | isdraft | isrecent | ismdnsent | isforwarded | issubmitpending | issubmitted,
     }

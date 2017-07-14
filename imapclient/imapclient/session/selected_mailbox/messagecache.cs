@@ -11,75 +11,41 @@ namespace work.bacome.imapclient
         {
             private partial class cSelectedMailbox
             {
-                private class cCache : iMessageCache
+                private class cMessageCache
                 {
                     private static readonly cBytes kExpunge = new cBytes("EXPUNGE");
                     private static readonly cBytes kFetchSpace = new cBytes("FETCH ");
 
-                    //private readonly cMailboxId mMailboxId;
-                    private readonly uint? mUIDValidity;
-                    //private readonly cEventSynchroniser mEventSynchroniser;
-                    private dGetCapability mGetCapability;
+                    private readonly cMailboxId mMailboxId;
+                    private readonly uint mUIDValidity;
                     private bool mHasBeenSetAsSelected;
-                    private bool mValid = true;
+                    private readonly cEventSynchroniser mEventSynchroniser;
+                    private readonly cMailboxCache mMailboxCache;
                     private int mCacheSequence = 0;
                     private List<cItem> mItems = new List<cItem>();
                     private SortedDictionary<cUID, iMessageHandle> mUIDIndex = new SortedDictionary<cUID, iMessageHandle>();
-                    private int mUnseenTrue = 0; // number of messages with unseen = true
-                    private int mUnseenNull = 0; // number of message with unseen = null 
+                    private int mRecentCount = 0;
+                    private uint mUIDNext = 0;
+                    private int mNewUnknownUIDCount = 0;
+                    private int mUnseenCount = 0; // number of messages with unseen = true
+                    private int mUnseenUnknownCount = 0; // number of message with unseen = null 
+                    private ulong mHighestModSeq = 0; // still to do everything for this ...
 
-                    public cCache(cMailboxId pMailboxId, uint? pUIDValidity, cEventSynchroniser pEventSynchroniser, dGetCapability pGetCapability, bool pHasBeenSetAsSelected)
+                    public cMessageCache(cMailboxId pMailboxId, uint pUIDValidity, bool pHasBeenSetAsSelected, cEventSynchroniser pEventSynchroniser, cMailboxCache pMailboxCache)
                     {
-                        mMailboxId = pMailboxId;
+                        mMailboxId = pMailboxId ?? throw new ArgumentNullException(nameof(pMailboxId));
                         mUIDValidity = pUIDValidity;
-                        mEventSynchroniser = pEventSynchroniser;
-                        mGetCapability = pGetCapability;
                         mHasBeenSetAsSelected = pHasBeenSetAsSelected;
+                        mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
+                        mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     }
-
-                    public uint? UIDValidity => mUIDValidity;
 
                     public void SetAsSelected(cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cCache), nameof(SetAsSelected));
+                        var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(SetAsSelected));
                         if (mHasBeenSetAsSelected) throw new InvalidOperationException();
                         mHasBeenSetAsSelected = true;
-                    }
-
-                    public bool Valid => mValid;
-
-                    public void Invalidate(cTrace.cContext pParentContext)
-                    {
-                        var lContext = pParentContext.NewMethod(nameof(cCache), nameof(Invalidate));
-                        mValid = false;
-                    }
-
-                    public int Count => mItems.Count;
-
-                    public int UnseenTrue => mUnseenTrue;
-                    public int UnseenNull => mUnseenNull;
-
-                    public void IncreaseCount(int pNewCount, cTrace.cContext pParentContext)
-                    {
-                        var lContext = pParentContext.NewMethod(nameof(cCache), nameof(IncreaseCount), pNewCount);
-                        if (pNewCount < mItems.Count) throw new cUnexpectedServerActionException(0, "count should only go up", lContext);
-
-                        int lToAdd = pNewCount - mItems.Count;
-
-                        cHandleList lHandles;
-                        if (mHasBeenSetAsSelected) lHandles = new cHandleList();
-                        else lHandles = null;
-
-                        for (int i = 0; i < lToAdd; i++)
-                        {
-                            cItem lItem = new cItem(this, mCacheSequence++);
-                            mItems.Add(lItem);
-                            if (mHasBeenSetAsSelected) lHandles.Add(lItem);
-                        }
-
-                        mUnseenNull += lToAdd;
-
-                        if (mHasBeenSetAsSelected) mEventSynchroniser.MailboxMessageDelivery(mMailboxId, lHandles, lContext);
+                        ZUpdateMailboxStatus(lContext);
                     }
 
                     public iMessageHandle GetHandle(uint pMSN) => mItems[(int)pMSN - 1];
@@ -96,17 +62,19 @@ namespace work.bacome.imapclient
                         //  zero return means that the message isn't cached
 
                         if (!(pHandle is cItem lItem)) return 0;
-                        if (!ReferenceEquals(lItem.Cache, this)) return 0;
+                        if (!ReferenceEquals(lItem.MessageCache, this)) return 0;
                         int lIndex = mItems.BinarySearch(lItem);
                         if (lIndex < 0) return 0;
                         return (uint)lIndex + 1;
                     }
 
+                    public int MessageCount => mItems.Count;
+
                     public int SetUnseenCount { get; set; } // marker that indicates the point up to which that we can set unseen = false when storing the results of search unseen
 
-                    public int SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext)
+                    public void SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cCache), nameof(SetUnseen), pMSNs);
+                        var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(SetUnseen), pMSNs);
 
                         int lMaxIndex = SetUnseenCount - 1;
                         bool lUnseenUpdated = false;
@@ -122,8 +90,8 @@ namespace work.bacome.imapclient
                             if (lItem.Unseen == null)
                             {
                                 lItem.Unseen = true;
-                                mUnseenNull--;
-                                mUnseenTrue++;
+                                mUnseenUnknownCount--;
+                                mUnseenCount++;
                                 lUnseenUpdated = true;
                             }
                         }
@@ -135,21 +103,17 @@ namespace work.bacome.imapclient
                             if (lItem.Unseen == null)
                             {
                                 lItem.Unseen = false;
-                                mUnseenNull--;
+                                mUnseenUnknownCount--;
                                 lUnseenUpdated = true;
                             }
                         }
 
-                        if (lUnseenUpdated) mEventSynchroniser.MailboxPropertyChanged(mMailboxId, nameof(iMailboxProperties.Unseen), lContext);
-
-                        int lUnseen = 0;
-                        for (int i = 0; i < SetUnseenCount; i++) if (mItems[i].Unseen == true) lUnseen++;
-                        return lUnseen;
+                        if (lUnseenUpdated) ZUpdateMailboxStatus(lContext);
                     }
 
                     public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cCache), nameof(ProcessData));
+                        var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(ProcessData));
 
                         bool lUnseenUpdated = false;
                         cResponseDataFetch lFetch;
@@ -161,6 +125,58 @@ namespace work.bacome.imapclient
                         }
                         else
                         {
+                            if (pCursor.GetNumber(out _, out var lNumber) && pCursor.SkipByte(cASCII.SPACE))
+                            {
+                                if (pCursor.SkipBytes(kExists))
+                                {
+                                    if (pCursor.Position.AtEnd)
+                                    {
+                                        int lNewCount = (int)lNumber;
+
+                                        if (lNewCount < mItems.Count) throw new cUnexpectedServerActionException(0, "count should only go up", lContext);
+
+                                        int lToAdd = lNewCount - mItems.Count;
+
+                                        cHandleList lHandles;
+                                        if (mHasBeenSetAsSelected) lHandles = new cHandleList();
+                                        else lHandles = null;
+
+                                        for (int i = 0; i < lToAdd; i++)
+                                        {
+                                            cItem lItem = new cItem(this, mCacheSequence++);
+                                            mItems.Add(lItem);
+                                            if (mHasBeenSetAsSelected) lHandles.Add(lItem);
+                                        }
+
+                                        if (mHasBeenSetAsSelected) mNewUnknownUIDCount += lToAdd;
+                                        mUnseenUnknownCount += lToAdd;
+
+                                        if (mHasBeenSetAsSelected)
+                                        {
+                                            ZUpdateMailboxStatus(lContext);
+                                            mEventSynchroniser.MailboxMessageDelivery(mMailboxId, lHandles, lContext);
+                                        }
+
+                                        return eProcessDataResult.processed;
+                                    }
+                                }
+                                else if (pCursor.SkipBytes(kRecent))
+                                {
+                                    if (pCursor.Position.AtEnd)
+                                    {
+                                        lContext.TraceVerbose("got recent: {0}", lNumber);
+                                        mRecentCount = (int)lNumber;
+                                        if (mHasBeenSetAsSelected) ZUpdateMailboxStatus(lContext);
+                                        return eProcessDataResult.processed;
+                                    }
+                                }
+
+                                ;?; // the stuff below goes here UP TO HERE!!!!
+                            }
+
+
+
+
                             if (!pCursor.GetNZNumber(out _, out var lMSN) || !pCursor.SkipByte(cASCII.SPACE)) return eProcessDataResult.notprocessed;
 
                             if (pCursor.SkipBytes(kExpunge))
@@ -181,12 +197,12 @@ namespace work.bacome.imapclient
 
                                 if (lExpungedItem.Unseen == null)
                                 {
-                                    mUnseenNull--;
+                                    mUnseenUnknownCount--;
                                     lUnseenUpdated = true;
                                 }
                                 else if (lExpungedItem.Unseen.Value)
                                 {
-                                    mUnseenTrue--;
+                                    mUnseenCount--;
                                     lUnseenUpdated = true;
                                 }
 
@@ -216,23 +232,23 @@ namespace work.bacome.imapclient
 
                         var lFetchedItem = mItems[(int)lFetch.MSN - 1];
 
-                        lFetchedItem.Update(mUIDValidity, lFetch, out var lAttributesSet, out var lFlagsSet);
+                        lFetchedItem.Update(mUIDValidity, lFetch, out var lAttributesSet, out var lKnownMessageFlagsSet);
 
                         if ((lAttributesSet & fFetchAttributes.flags) != 0)
                         {
-                            if ((lFetch.Flags.KnownFlags & fKnownFlags.seen) == 0)
+                            if ((lFetch.Flags.KnownMessageFlags & fKnownMessageFlags.seen) == 0)
                             {
                                 if (lFetchedItem.Unseen == null)
                                 {
                                     lFetchedItem.Unseen = true;
-                                    mUnseenNull--;
-                                    mUnseenTrue++;
+                                    mUnseenUnknownCount--;
+                                    mUnseenCount++;
                                     lUnseenUpdated = true;
                                 }
                                 else if (!lFetchedItem.Unseen.Value)
                                 {
                                     lFetchedItem.Unseen = true;
-                                    mUnseenTrue++;
+                                    mUnseenCount++;
                                     lUnseenUpdated = true;
                                 }
                             }
@@ -241,13 +257,13 @@ namespace work.bacome.imapclient
                                 if (lFetchedItem.Unseen == null)
                                 {
                                     lFetchedItem.Unseen = false;
-                                    mUnseenNull--;
+                                    mUnseenUnknownCount--;
                                     lUnseenUpdated = true;
                                 }
                                 else if (lFetchedItem.Unseen.Value)
                                 {
                                     lFetchedItem.Unseen = false;
-                                    mUnseenTrue--;
+                                    mUnseenCount--;
                                     lUnseenUpdated = true;
                                 }
                             }
@@ -284,13 +300,71 @@ namespace work.bacome.imapclient
                         return eProcessDataResult.observed;
                     }
 
+                    public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                    {
+                        var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(ProcessTextCode));
+
+                        if (pCursor.SkipBytes(kUIDNextSpace))
+                        {
+                            if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                            {
+                                lContext.TraceVerbose("got uidnext: {0}", lNumber);
+
+                                mUIDNext = lNumber;
+
+                                if (mHasBeenSetAsSelected)
+                                {
+                                    mNewUnknownUIDCount = 0;
+                                    ZUpdateMailboxStatus(lContext);
+                                }
+
+                                return true;
+                            }
+
+                            ;?; // consider the maintenance of the newunknown and the uidnext
+
+                            lContext.TraceWarning("likely malformed uidnext response");
+                        }
+
+
+                    }
+
+
+
+
+
+
+
+
+
+
+                    private void ZIncreaseCount(int pNewCount, cTrace.cContext pParentContext)
+                    {
+                        var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(IncreaseCount), pNewCount);
+                    }
+
+
+
+                    private void ZUpdateMailboxStatus(cTrace.cContext pParentContext)
+                    {
+                        var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(ZUpdateMailboxStatus));
+                        if (!mHasBeenSetAsSelected) throw new InvalidOperationException();
+                        mMailboxCache.SetMailboxStatus(new cMailboxStatus(mItems.Count, mRecentCount, mUIDNext, mNewUnknownUIDCount, mUIDValidity, mUnseenCount, mUnseenUnknownCount, mHighestModSeq), lContext);
+                    }
+
+
+
+
+
+
+
                     public override string ToString() => $"{nameof(cCache)}({mMailboxId},{mUIDValidity},{mValid})";
 
                     private class cItem : cMessageCacheItem, IComparable<cItem>
                     {
                         public bool? Unseen = null; // is this message unseen (null = don't know)
 
-                        public cItem(cCache pCache, int pCacheSequence) : base(pCache, pCacheSequence) { }
+                        public cItem(cMessageCache pCache, int pCacheSequence) : base(pCache, pCacheSequence) { }
 
                         public int CompareTo(cItem pOther)
                         {

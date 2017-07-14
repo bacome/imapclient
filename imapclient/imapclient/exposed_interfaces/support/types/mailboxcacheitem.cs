@@ -8,6 +8,6 @@ namespace work.bacome.imapclient.support
         cMailboxFlags MailboxFlags { get; } 
         cMailboxStatus MailboxStatus { get; }
         long MailboxStatusAge { get; }
-        cMailboxSelected MailboxSelected { get; } // not null
+        cMailboxBeenSelected MailboxBeenSelected { get; } // not null
     }
 }

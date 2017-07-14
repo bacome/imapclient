@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient.support
 {

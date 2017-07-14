@@ -22,6 +22,8 @@ namespace work.bacome.imapclient
                     mConnectedAccountId = pConnectedAccountId ?? throw new ArgumentNullException(nameof(pConnectedAccountId));
                 }
 
+                public cSelectedMailbox SelectedMailbox { get; set; } = null;
+
                 public iMailboxCacheItem Item(string pEncodedMailboxName, cMailboxName pMailboxName) => ZItem(pEncodedMailboxName, pMailboxName);
 
                 public void ResetExists(cMailboxNamePattern pPattern, int pMailboxFlagsSequence, cTrace.cContext pParentContext)
@@ -37,6 +39,8 @@ namespace work.bacome.imapclient
 
                 public void ResetExists(string pEncodedMailboxName, int pMailboxStatusSequence, cTrace.cContext pParentContext)
                 {
+                    // this must not be called for the selected mailbox
+
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pEncodedMailboxName, pMailboxStatusSequence);
 
                     if (mDictionary.TryGetValue(pEncodedMailboxName, out var lItem))
@@ -54,8 +58,7 @@ namespace work.bacome.imapclient
                     if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
                     if (pMailboxFlags == null) throw new ArgumentNullException(nameof(pMailboxFlags));
 
-                    var lItem = ZItem(pEncodedMailboxName, pMailboxName);
-                    var lProperties = lItem.SetMailboxFlags(pMailboxFlags);
+                    var lProperties = ZItem(pEncodedMailboxName, pMailboxName).SetMailboxFlags(pMailboxFlags);
                     if (lProperties != 0) ZMailboxPropertiesChanged(pMailboxName, lProperties, lContext);
                 }
 
@@ -82,15 +85,15 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public void StoreStatus(string pEncodedMailboxName, cStatus pStatus, cTrace.cContext pParentContext)
+                public void UpdateMailboxStatus(string pEncodedMailboxName, cStatus pStatus, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(StoreStatus), pEncodedMailboxName, pStatus);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(UpdateMailboxStatus), pEncodedMailboxName, pStatus);
 
                     var lItem = ZItem(pEncodedMailboxName, null);
                     cStatus lStatus = cStatus.Combine(lItem.Status, pStatus);
                     lItem.Status = lStatus;
 
-                    if (lItem.MailboxSelected.IsSelected) return;
+                    if (SelectedMailbox?.EncodedMailboxName == pEncodedMailboxName) return; // the status is currently coming from the selected mailbox
 
                     cMailboxStatus lMailboxStatus = new cMailboxStatus(lStatus.Messages ?? 0, lStatus.Recent ?? 0, lStatus.UIDNext ?? 0, 0, lStatus.UIDValidity ?? 0, lStatus.Unseen ?? 0, 0, lStatus.HighestModSeq ?? 0);
 
@@ -98,75 +101,28 @@ namespace work.bacome.imapclient
                     if (lProperties != 0) ZMailboxPropertiesChanged(lItem.MailboxName, lProperties, lContext);
                 }
 
-                public void Select(string pEncodedMailboxName, cMailboxName pMailboxName, bool pForUpdate, bool pAccessReadOnly, cMessageFlags pMessageFlags, cMessageFlags pPermanentFlags, cMailboxStatus pMailboxStatus, cTrace.cContext pParentContext)
+                public void SetMailboxStatus(cMailboxStatus pMailboxStatus, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pEncodedMailboxName, pMailboxName, pForUpdate, pAccessReadOnly, pMessageFlags, pPermanentFlags, pMailboxStatus);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(SetMailboxStatus), pMailboxStatus);
+
+                    if (SelectedMailbox == null) throw new InvalidOperationException();
+                    if (pMailboxStatus == null) throw new ArgumentNullException(nameof(pMailboxStatus));
+
+                    var lProperties = ZItem(SelectedMailbox.EncodedMailboxName, SelectedMailbox.MailboxId.MailboxName).SetMailboxStatus(pMailboxStatus);
+                    if (lProperties != 0) cSession.ZMailboxPropertiesChanged(mEventSynchroniser, SelectedMailbox.MailboxId, lProperties, lContext);
+                }
+
+                public void UpdateMailboxBeenSelected(string pEncodedMailboxName, cMailboxName pMailboxName, cMessageFlags pMessageFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(UpdateMailboxBeenSelected), pEncodedMailboxName, pMailboxName, pMessageFlags, pSelectedForUpdate, pPermanentFlags);
 
                     if (pEncodedMailboxName == null) throw new ArgumentNullException(nameof(pEncodedMailboxName));
                     if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
                     if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
-                    if (pMailboxStatus == null) throw new ArgumentNullException(nameof(pMailboxStatus));
 
-                    var lItem = ZItem(pEncodedMailboxName, pMailboxName);
-                    if (lItem.MailboxSelected.IsSelected) throw new InvalidOperationException();
-
-                    var lProperties = lItem.Select(pForUpdate, pAccessReadOnly, pMessageFlags, pPermanentFlags, pMailboxStatus);
+                    var lProperties = ZItem(pEncodedMailboxName, pMailboxName).UpdateMailboxBeenSelected(pMessageFlags, pSelectedForUpdate, pPermanentFlags);
                     if (lProperties != 0) ZMailboxPropertiesChanged(pMailboxName, lProperties, lContext);
                 }
-
-                public void Update(string pEncodedMailboxName, bool pAccessReadOnly, cMessageFlags pMessageFlags, cMessageFlags pPermanentFlags, cMailboxStatus pMailboxStatus, cTrace.cContext pParentContext)
-                {
-                    ;?;
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(SetAccessReadOnly), pAccessReadOnly);
-                    var lItem = ZItem(pEncodedMailboxName, null);
-                    var lMailboxSelected = lItem.MailboxSelected;
-                    if (!lMailboxSelected.IsSelected) throw new InvalidOperationException();
-                    var lSelected = lMailboxSelected.Update(pAccessReadOnly, null, null);
-                    var lProperties = lItem.setmailboxselected(lSelected);
-                    if (lProperties != 0) ZMailboxPropertiesChanged(lItem.MailboxName, lProperties, lContext);
-                }
-
-                public void SetMessageFlags()
-                {
-                    ;?;
-                }
-
-                public void SetPermanentFlags()
-                {
-                    ;?;
-                }
-
-                public void SetMailboxStatus(string pEncodedMailboxName, cMailboxStatus pMailboxStatus, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(SetMailboxStatus), pEncodedMailboxName, pMailboxName, pMailboxStatus);
-
-                    if (pEncodedMailboxName == null) throw new ArgumentNullException(nameof(pEncodedMailboxName));
-                    if (pMailboxStatus == null) throw new ArgumentNullException(nameof(pMailboxStatus));
-
-                    var lItem = ZItem(pEncodedMailboxName, null);
-
-                    if (!lItem.MailboxSelected.IsSelected) throw new InvalidOperationException();
-
-                    var lProperties = lItem.SetMailboxStatus(pMailboxStatus);
-                    if (lProperties != 0) ZMailboxPropertiesChanged(lItem.MailboxName, lProperties, lContext);
-                }
-
-                public void Deselect(string pEncodedMailboxName, cMailboxName pMailboxName, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Deselect), pEncodedMailboxName, pMailboxName);
-
-                    if (pEncodedMailboxName == null) throw new ArgumentNullException(nameof(pEncodedMailboxName));
-                    if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
-
-                    var lItem = ZItem(pEncodedMailboxName, pMailboxName);
-                    if (!lItem.MailboxSelected.IsSelected) throw new InvalidOperationException();
-
-                    fMailboxProperties lProperties = lItem.Deselect();
-                    if (lProperties != 0) ZMailboxPropertiesChanged(pMailboxName, lProperties, lContext);
-                }
-
-                ;?; // api name?
-                public long StatusAge(cMailboxName pMailboxName) => ZItem(pMailboxId.MailboxName, false)?.StatusAge ?? long.MaxValue;
 
                 private cItem ZItem(string pEncodedMailboxName, cMailboxName pMailboxName)
                 {
@@ -175,53 +131,10 @@ namespace work.bacome.imapclient
                     return lItem;
                 }
 
-                private void ZMailboxPropertiesChanged(cMailboxName pMailboxName, fMailboxProperties pProperties, cTrace.cContext pParentContext)
+                private void ZMailboxPropertiesChanged(cMailboxName pMailboxName, fMailboxProperties pProperties, cTrace.cContext pContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZMailboxPropertiesChanged), pMailboxName, pProperties);
-
                     if (pMailboxName == null || pProperties == 0 || !mEventSynchroniser.AreMailboxPropertyChangedSubscriptions) return;
-
-                    cMailboxId lMailboxId = new cMailboxId(mConnectedAccountId, pMailboxName);
-
-                    if ((pProperties & fMailboxProperties.exists) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.Exists), lContext);
-
-                    if ((pProperties & fMailboxProperties.mailboxflags) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.MailboxFlags), lContext);
-                    if ((pProperties & fMailboxProperties.canhavechildren) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.CanHaveChildren), lContext);
-                    if ((pProperties & fMailboxProperties.canselect) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.CanSelect), lContext);
-                    if ((pProperties & fMailboxProperties.ismarked) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.IsMarked), lContext);
-                    if ((pProperties & fMailboxProperties.nonexistent) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.NonExistent), lContext);
-                    if ((pProperties & fMailboxProperties.issubscribed) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.IsSubscribed), lContext);
-                    if ((pProperties & fMailboxProperties.isremote) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.IsRemote), lContext);
-                    if ((pProperties & fMailboxProperties.haschildren) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.HasChildren), lContext);
-                    if ((pProperties & fMailboxProperties.hassubscribedchildren) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.HasSubscribedChildren), lContext);
-                    if ((pProperties & fMailboxProperties.containsall) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.ContainsAll), lContext);
-                    if ((pProperties & fMailboxProperties.isarchive) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.IsArchive), lContext);
-                    if ((pProperties & fMailboxProperties.containsdrafts) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.ContainsDrafts), lContext);
-                    if ((pProperties & fMailboxProperties.containsflagged) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.ContainsFlagged), lContext);
-                    if ((pProperties & fMailboxProperties.containsjunk) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.ContainsJunk), lContext);
-                    if ((pProperties & fMailboxProperties.containssent) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.ContainsSent), lContext);
-                    if ((pProperties & fMailboxProperties.containstrash) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.ContainsTrash), lContext);
-
-                    if ((pProperties & fMailboxProperties.mailboxstatus) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.MailboxStatus), lContext);
-                    if ((pProperties & fMailboxProperties.messagecount) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.MessageCount), lContext);
-                    if ((pProperties & fMailboxProperties.recentcount) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.RecentCount), lContext);
-                    if ((pProperties & fMailboxProperties.uidnext) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.UIDNext), lContext);
-                    if ((pProperties & fMailboxProperties.newunknownuidcount) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.NewUnknownUIDCount), lContext);
-                    if ((pProperties & fMailboxProperties.uidvalidity) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.UIDValidity), lContext);
-                    if ((pProperties & fMailboxProperties.unseencount) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.UnseenCount), lContext);
-                    if ((pProperties & fMailboxProperties.unseenunknowncount) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.UnseenUnknownCount), lContext);
-                    if ((pProperties & fMailboxProperties.highestmodseq) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.HighestModSeq), lContext);
-
-                    if ((pProperties & fMailboxProperties.mailboxselected) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.MailboxSelected), lContext);
-                    if ((pProperties & fMailboxProperties.isselected) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.IsSelected), lContext);
-                    if ((pProperties & fMailboxProperties.isselectedforupdate) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.IsSelectedForUpdate), lContext);
-                    if ((pProperties & fMailboxProperties.isaccessreadonly) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.IsAccessReadOnly), lContext);
-                    if ((pProperties & fMailboxProperties.hasbeenselected) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.HasBeenSelected), lContext);
-                    if ((pProperties & fMailboxProperties.hasbeenselectedforupdate) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.HasBeenSelectedForUpdate), lContext);
-                    if ((pProperties & fMailboxProperties.hasbeenselectedreadonly) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.HasBeenSelectedReadOnly), lContext);
-                    if ((pProperties & fMailboxProperties.messageflags) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.MessageFlags), lContext);
-                    if ((pProperties & fMailboxProperties.forupdatepermanentflags) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.ForUpdatePermanentFlags), lContext);
-                    if ((pProperties & fMailboxProperties.readonlypermanentflags) != 0) mEventSynchroniser.MailboxPropertyChanged(lMailboxId, nameof(cMailbox.ReadOnlyPermanentFlags), lContext);
+                    cSession.ZMailboxPropertiesChanged(mEventSynchroniser, new cMailboxId(mConnectedAccountId, pMailboxName), pProperties, pContext);
                 }
 
                 private class cItem : iMailboxCacheItem
@@ -234,7 +147,7 @@ namespace work.bacome.imapclient
                     private cStatus mStatus = null;
                     private cMailboxStatus mMailboxStatus = null;
                     private Stopwatch mMailboxStatusStopwatch = null;
-                    private cMailboxSelected mMailboxSelected = cMailboxSelected.New;
+                    private cMailboxBeenSelected mMailboxBeenSelected = cMailboxBeenSelected.No;
 
                     public cItem() { }
 
@@ -258,7 +171,6 @@ namespace work.bacome.imapclient
                     public fMailboxProperties ResetExists(int pMailboxStatusSequence)
                     {
                         if (mExists == false) return 0; // already done
-                        if (mMailboxSelected.IsSelected) return 0; // never expect a status reply for the selected mailbox
                         if (mMailboxStatus != null && mMailboxStatus.Sequence > pMailboxStatusSequence) return 0; // been refreshed recently => probably still exists
                         return ZResetExists();
                     }
@@ -314,63 +226,24 @@ namespace work.bacome.imapclient
                     public fMailboxProperties SetMailboxStatus(cMailboxStatus pMailboxStatus)
                     {
                         if (pMailboxStatus == null) throw new ArgumentNullException(nameof(pMailboxStatus));
-
                         fMailboxProperties lDifferences = ZSetExists() | cMailboxStatus.Differences(mMailboxStatus, pMailboxStatus);
-
                         mMailboxStatus = pMailboxStatus;
-
-                        if (!mMailboxSelected.IsSelected)
-                        {
-                            if (mMailboxStatusStopwatch == null) mMailboxStatusStopwatch = Stopwatch.StartNew();
-                            else mMailboxStatusStopwatch.Restart();
-                        }
-
+                        if (mMailboxStatusStopwatch == null) mMailboxStatusStopwatch = Stopwatch.StartNew();
+                        else mMailboxStatusStopwatch.Restart();
                         return lDifferences;
                     }
 
                     public long MailboxStatusAge => mMailboxStatusStopwatch?.ElapsedMilliseconds ?? long.MaxValue;
 
-                    public cMailboxSelected MailboxSelected => mMailboxSelected;
+                    public cMailboxBeenSelected MailboxBeenSelected => mMailboxBeenSelected;
 
-                    public fMailboxProperties Select(bool pForUpdate, bool pAccessReadOnly, cMessageFlags pMessageFlags, cMessageFlags pPermanentFlags, cMailboxStatus pMailboxStatus)
+                    public fMailboxProperties UpdateMailboxBeenSelected(cMessageFlags pMessageFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags)
                     {
                         if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
-                        if (pMailboxStatus == null) throw new ArgumentNullException(nameof(pMailboxStatus));
-
-                        var lSelected = mMailboxSelected.Select(pForUpdate, pAccessReadOnly, pMessageFlags, pPermanentFlags);
-
-                        fMailboxProperties lDifferences = ZSetExists() | cMailboxSelected.Differences(mMailboxSelected, lSelected) | cMailboxStatus.Differences(mMailboxStatus, pMailboxStatus);
-
-                        mMailboxSelected = lSelected;
-                        mMailboxStatus = pMailboxStatus;
-                        mMailboxStatusStopwatch = null;
-
-                        return lDifferences;
-                    }
-
-                    public fMailboxProperties SetMailboxSelected(cMailboxSelected pAccessReadOnly)
-                    {
-                        ;?;
-                        var lSelected = mMailboxSelected.SetAccessReadOnly(pAccessReadOnly);
-                        fMailboxProperties lDifferences = cMailboxSelected.Differences(mMailboxSelected, lSelected);
-                        mMailboxSelected = lSelected;
-                        return lDifferences;
-                    }
-
-                    public fMailboxProperties SetMessageFlags(cMessageFlags pMessageFlags)
-                    {
-                        ;?;
-                        var lSelected = mMailboxSelected.SetMessageFlags(pMessageFlags);
-                        fMailboxProperties lDifferences = cMailboxSelected.Differences(mMailboxSelected, lSelected);
-                        mMailboxSelected = lSelected;
-                        return lDifferences;
-                    }
-
-                    public fMailboxProperties Deselect()
-                    {
-                        var lSelected = mMailboxSelected.Deselect();
-                        fMailboxProperties lDifferences = cMailboxSelected.Differences(mMailboxSelected, lSelected);
-                        mMailboxSelected = lSelected;
+                        if (pPermanentFlags == null) throw new ArgumentNullException(nameof(pPermanentFlags));
+                        var lMailboxBeenSelected = mMailboxBeenSelected.Update(pMessageFlags, pSelectedForUpdate, pPermanentFlags);
+                        fMailboxProperties lDifferences = ZSetExists() | cMailboxBeenSelected.Differences(mMailboxBeenSelected, lMailboxBeenSelected);
+                        mMailboxBeenSelected = lMailboxBeenSelected;
                         return lDifferences;
                     }
 
@@ -383,7 +256,7 @@ namespace work.bacome.imapclient
                         mStatus = null;
                         mMailboxStatus = null;
                         mMailboxStatusStopwatch = null;
-                        mMailboxSelected = cMailboxSelected.New;
+                        mMailboxBeenSelected = cMailboxBeenSelected.No;
                         return fMailboxProperties.exists;
                     }
 
