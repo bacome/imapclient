@@ -11,13 +11,9 @@ namespace work.bacome.imapclient
             private partial class cSelectedMailbox : iSelectedMailboxDetails
             {
                 private static readonly cBytes kFlagsSpace = new cBytes("FLAGS ");
-                private static readonly cBytes kExists = new cBytes("EXISTS");
-                private static readonly cBytes kRecent = new cBytes("RECENT");
                 private static readonly cBytes kUnseenSpace = new cBytes("UNSEEN ");
                 private static readonly cBytes kPermanentFlagsSpace = new cBytes("PERMANENTFLAGS ");
-                private static readonly cBytes kUIDNextSpace = new cBytes("UIDNEXT ");
                 private static readonly cBytes kUIDValiditySpace = new cBytes("UIDVALIDITY ");
-                private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
                 private static readonly cBytes kReadWriteRBracketSpace = new cBytes("READ-WRITE] ");
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
 
@@ -97,8 +93,6 @@ namespace work.bacome.imapclient
                         lContext.TraceWarning("likely malformed flags response");
                     }
 
-                    ;?; // move these
-
                     return eProcessDataResult.notprocessed;
                 }
 
@@ -135,16 +129,7 @@ namespace work.bacome.imapclient
                         if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                         {
                             lContext.TraceVerbose("got uidvalidity: {0}", lNumber);
-
-                            var lOldMessageCache = mMessageCache;
-
-                            mMessageCache = new cMessageCache(mMailboxId, lNumber, mEventSynchroniser, mGetCapability, mHasBeenSetAsSelected);
-                            mMessageCache.IncreaseCount(lOldMessageCache.Count, lContext);
-                            mCache.SetUnseenCount = lOldCache.SetUnseenCount;
-
-                            lOldCache.Invalidate(lContext);
-                            if (mHasBeenSetAsSelected) mEventSynchroniser.MailboxPropertyChanged(MailboxId, nameof(iMailboxProperties.UIDValidity), lContext);
-
+                            mMessageCache = new cMessageCache(mMessageCache, lNumber);
                             return true;
                         }
 

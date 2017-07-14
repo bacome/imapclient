@@ -185,7 +185,7 @@ namespace work.bacome.imapclient
             return Handle.Flags.Contain(pFlags);
         }
 
-        public bool IsAnswered => ZFlagsContain(fKnownFlags.answered);
+        public bool IsAnswered => ZFlagsContain(fKnownMessageFlags.answered);
         public bool IsFlagged => ZFlagsContain(fKnownFlags.flagged);
         public bool IsDeleted => ZFlagsContain(fKnownFlags.deleted);
         public bool IsSeen => ZFlagsContain(fKnownFlags.seen);
@@ -197,7 +197,7 @@ namespace work.bacome.imapclient
         public bool IsSubmitPending => ZFlagsContain(fKnownFlags.submitpending);
         public bool IsSubmitted => ZFlagsContain(fKnownFlags.submitted);
 
-        private bool ZFlagsContain(fKnownFlags pFlag)
+        private bool ZFlagsContain(fKnownMessageFlags pFlag)
         {
             if ((Handle.Attributes & fFetchAttributes.flags) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.flags);
             if ((Handle.Attributes & fFetchAttributes.flags) == 0) throw new cFetchAttributeException();
