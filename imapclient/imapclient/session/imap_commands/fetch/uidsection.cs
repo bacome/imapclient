@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task<cBody> ZUIDFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cUID pUID, cCapability pCapability, bool pBinary, cSection pSection, uint pOrigin, uint pLength, cTrace.cContext pParentContext)
+            private async Task<cBody> ZUIDFetchBodyAsync(cMethodControl pMC, cMailboxId pMailboxId, cUID pUID, cCapability pCapability, bool pBinary, cSection pSection, uint pOrigin, uint pLength, cTrace.cContext pParentContext)
             {
                 // the caller must have checked that the binary option is compatible with the section (e.g. if binary is true the section can't specify a textpart)
                 //  the length must be greater than zero

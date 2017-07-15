@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
-using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -83,6 +82,8 @@ namespace work.bacome.imapclient
         public string Name => MailboxId.MailboxName.Name;
 
         // properties
+
+        ;?; // this isn't right - it should be like the message ones and do the fetch if required
 
         public bool? Exists => Client.MailboxCacheItem(MailboxId).Exists;
 
@@ -166,8 +167,9 @@ namespace work.bacome.imapclient
         public cMailboxFlags Flags() => Client.Flags(MailboxId);
         public Task<cMailboxFlags> FlagsAsync() => Client.FlagsAsync(MailboxId);
 
-        public cMailboxStatus Status(int? pCacheAgeMax = null) => Client.Status(MailboxId, pCacheAgeMax);
-        public Task<cMailboxStatus> StatusAsync(int? pCacheAgeMax = null) => Client.StatusAsync(MailboxId, pCacheAgeMax);
+        ;?;
+        public cMailboxStatus Status(int? pAgeMax = null) => Client.Status(MailboxId, pAgeMax);
+        public Task<cMailboxStatus> StatusAsync(int? pAgeMax = null) => Client.StatusAsync(MailboxId, pAgeMax);
 
         public List<cMailbox> Mailboxes(bool pStatus = false) => Client.Mailboxes(MailboxId, pStatus);
         public Task<List<cMailbox>> MailboxesAsync(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxProperties pProperties = 0) => Client.MailboxesAsync(MailboxId, pTypes, pProperties);
@@ -209,6 +211,8 @@ namespace work.bacome.imapclient
             return lHandles;
         }
 
+        ;?;
+        // convert these to properties
         public cMessage UIDFetch(cUID pUID, fFetchAttributes pAttributes) => Client.UIDFetch(MailboxId, pUID, pAttributes);
         public Task<cMessage> UIDFetchAsync(cUID pUID, fFetchAttributes pAttributes) => Client.UIDFetchAsync(MailboxId, pUID, pAttributes);
         public List<cMessage> UIDFetch(IList<cUID> pUIDs, fFetchAttributes pAttributes, cFetchControl pFC = null) => Client.UIDFetch(MailboxId, pUIDs, pAttributes, pFC);

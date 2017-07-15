@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -58,9 +57,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                ;?; // common
-                if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.bodystructure);
-                if ((Handle.Attributes & fFetchAttributes.bodystructure) == 0) throw new cFetchAttributeException();
+                Client.Fetch(MailboxId, Handle, fMessageProperties.bodystructure);
                 return Handle.BodyStructure;
             }
         }
@@ -69,6 +66,9 @@ namespace work.bacome.imapclient
         {
             get
             {
+
+
+
                 if ((Handle.Attributes & fFetchAttributes.envelope) == 0) Client.Fetch(MailboxId, Handle, fFetchAttributes.envelope);
                 if ((Handle.Attributes & fFetchAttributes.envelope) == 0) throw new cFetchAttributeException();
                 return Handle.Envelope.Sent;

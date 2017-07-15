@@ -16,6 +16,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kUIDValiditySpace = new cBytes("UIDVALIDITY ");
                 private static readonly cBytes kReadWriteRBracketSpace = new cBytes("READ-WRITE] ");
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
+                ;?;
 
                 private readonly string mEncodedMailboxName;
                 private readonly cMailboxId mMailboxId;
@@ -28,6 +29,7 @@ namespace work.bacome.imapclient
                 private cMessageFlags mMessageFlags = null;
                 private cMessageFlags mPermanentFlags = null;
                 private bool mAccessReadOnly = false;
+                private bool mNoModSeq = true; ;?; // the cache knows about highestmodseq
 
                 private bool mHasBeenSetAsSelected = false;
 
@@ -139,7 +141,7 @@ namespace work.bacome.imapclient
                     if (pCursor.SkipBytes(kReadWriteRBracketSpace))
                     {
                         lContext.TraceVerbose("got read-write");
-                        AccessReadOnly = false;
+                        mAccessReadOnly = false;
                         if (mHasBeenSetAsSelected) mEventSynchroniser.MailboxPropertyChanged(MailboxId, nameof(iMailboxProperties.AccessReadOnly), lContext);
                         return true;
                     }

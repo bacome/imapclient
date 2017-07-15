@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZFetchAsync(pMailboxId, pHandle, pSection, pDecoding, pStream, pFC, lContext);
+            var lTask = ZFetchBodyAsync(pMailboxId, pHandle, pSection, pDecoding, pStream, pFC, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
         }
 
@@ -21,12 +21,12 @@ namespace work.bacome.imapclient
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
-            return ZFetchAsync(pMailboxId, pHandle, pSection, pDecoding, pStream, pFC, lContext);
+            return ZFetchBodyAsync(pMailboxId, pHandle, pSection, pDecoding, pStream, pFC, lContext);
         }
 
-        private async Task ZFetchAsync(cMailboxId pMailboxId, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC, cTrace.cContext pParentContext)
+        private async Task ZFetchBodyAsync(cMailboxId pMailboxId, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAsync), pMailboxId, pHandle, pSection, pDecoding, pFC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchBodyAsync), pMailboxId, pHandle, pSection, pDecoding, pFC);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
                 cFetchBodyMethodControl lMC;
                 if (pFC == null) lMC = new cFetchBodyMethodControl(mTimeout, CancellationToken, null, null, mFetchBodyWriteConfiguration);
                 else lMC = new cFetchBodyMethodControl(pFC.Timeout, pFC.CancellationToken, mEventSynchroniser, pFC.IncrementProgress, pFC.WriteConfiguration ?? mFetchBodyWriteConfiguration);
-                await lSession.FetchAsync(lMC, pMailboxId, pHandle, pSection, pDecoding, pStream, lContext).ConfigureAwait(false);
+                await lSession.FetchBodyAsync(lMC, pMailboxId, pHandle, pSection, pDecoding, pStream, lContext).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
         }

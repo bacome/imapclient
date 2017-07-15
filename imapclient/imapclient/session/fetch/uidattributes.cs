@@ -10,9 +10,9 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cHandleList> UIDFetchAsync(cFetchAttributesMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            public async Task<cHandleList> UIDFetchAttributesAsync(cFetchAttributesMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchAsync), pMC, pMailboxId, pUIDs, pAttributes);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchAttributesAsync), pMC, pMailboxId, pUIDs, pAttributes);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
                 if (lHandles.Count > 0)
                 {
                     // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                    foreach (var lGroup in ZFetchGroups(lHandles, lAttributes)) await ZFetchAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
+                    foreach (var lGroup in ZFetchAttributesGroups(lHandles, lAttributes)) await ZFetchAttributesAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
                 }
 
                 // for the messages only identified by UID or where I have to get all the attributes
@@ -56,7 +56,7 @@ namespace work.bacome.imapclient
 
                 if (lUIDs.Count > 0)
                 {
-                    await ZUIDFetchAsync(pMC, pMailboxId, lUIDs, lAttributes, lContext).ConfigureAwait(false);
+                    await ZUIDFetchAttributesAsync(pMC, pMailboxId, lUIDs, lAttributes, lContext).ConfigureAwait(false);
 
                     // resolve uids -> handles whilst blocking select exclusive access
                     //
@@ -75,9 +75,9 @@ namespace work.bacome.imapclient
                 return lHandles;
             }
 
-            public async Task ZUIDFetchAsync(cFetchAttributesMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            public async Task ZUIDFetchAttributesAsync(cFetchAttributesMethodControl pMC, cMailboxId pMailboxId, cUIDList pUIDs, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAsync), pMC, pMailboxId, pUIDs, pAttributes);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAttributesAsync), pMC, pMailboxId, pUIDs, pAttributes);
 
                 // get the UIDValidity
                 uint lUIDValidity = pUIDs[0].UIDValidity;
@@ -98,7 +98,7 @@ namespace work.bacome.imapclient
 
                     // fetch
                     Stopwatch lStopwatch = Stopwatch.StartNew();
-                    await ZUIDFetchAsync(pMC, pMailboxId, lUIDValidity, lUIDs, pAttributes, lContext).ConfigureAwait(false);
+                    await ZUIDFetchAttributesAsync(pMC, pMailboxId, lUIDValidity, lUIDs, pAttributes, lContext).ConfigureAwait(false);
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size

@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using work.bacome.async;
-using work.bacome.imapclient.support;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
@@ -13,27 +9,71 @@ namespace work.bacome.imapclient
         public void Fetch(cMailboxId pMailboxId, iMessageHandle pHandle, fMessageProperties pProperties)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZFetchAsync(pMailboxId, ZFetchHandles(pHandle), pProperties, null, lContext);
+
+            var lRequired = ZFetchAttributesRequired(pProperties);
+            if (lRequired == 0) return; // nothing to do
+
+            var lHandles = ZFetchHandles(pHandle);
+            var lToFetch = ZFetchAttributesToFetch(lHandles, lRequired);
+            if (lToFetch == 0) return; // got everything already
+
+            var lTask = ZFetchAttributesAsync(pMailboxId, lHandles, lToFetch, null, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
+
+            var lMissing = ZFetchAttributesToFetch(lHandles, lRequired);
+            if (lMissing != 0) throw new cFetchFailedException();
         }
 
         public void Fetch(cMailboxId pMailboxId, IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZFetchAsync(pMailboxId, ZFetchHandles(pHandles), pProperties, pFC, lContext);
+
+            var lRequired = ZFetchAttributesRequired(pProperties);
+            if (lRequired == 0) return; // nothing to do
+
+            var lHandles = ZFetchHandles(pHandles);
+            var lToFetch = ZFetchAttributesToFetch(lHandles, lRequired);
+            if (lToFetch == 0) return; // got everything already
+
+            var lTask = ZFetchAttributesAsync(pMailboxId, lHandles, lToFetch, pFC, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
+
+            var lMissing = ZFetchAttributesToFetch(lHandles, lRequired);
+            if (lMissing != 0) throw new cFetchFailedException();
         }
 
-        public Task FetchAsync(cMailboxId pMailboxId, iMessageHandle pHandle, fMessageProperties pProperties)
+        public async Task FetchAsync(cMailboxId pMailboxId, iMessageHandle pHandle, fMessageProperties pProperties)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
-            return ZFetchAsync(pMailboxId, ZFetchHandles(pHandle), pProperties, null, lContext);
+
+            var lRequired = ZFetchAttributesRequired(pProperties);
+            if (lRequired == 0) return; // nothing to do
+
+            var lHandles = ZFetchHandles(pHandle);
+            var lToFetch = ZFetchAttributesToFetch(lHandles, lRequired);
+            if (lToFetch == 0) return; // got everything already
+
+            await ZFetchAttributesAsync(pMailboxId, lHandles, lToFetch, null, lContext).ConfigureAwait(false);
+
+            var lMissing = ZFetchAttributesToFetch(lHandles, lRequired);
+            if (lMissing != 0) throw new cFetchFailedException();
         }
 
-        public Task FetchAsync(cMailboxId pMailboxId, IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC)
+        public async Task FetchAsync(cMailboxId pMailboxId, IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
-            return ZFetchAsync(pMailboxId, ZFetchHandles(pHandles), pProperties, pFC, lContext);
+
+            var lRequired = ZFetchAttributesRequired(pProperties);
+            if (lRequired == 0) return; // nothing to do
+
+            var lHandles = ZFetchHandles(pHandles);
+            var lToFetch = ZFetchAttributesToFetch(lHandles, lRequired);
+            if (lToFetch == 0) return; // got everything already
+
+            await ZFetchAttributesAsync(pMailboxId, lHandles, lToFetch, pFC, lContext).ConfigureAwait(false);
+
+            var lMissing = ZFetchAttributesToFetch(lHandles, lRequired);
+            if (lMissing != 0) throw new cFetchFailedException();
         }
 
         private cHandleList ZFetchHandles(iMessageHandle pHandle)
@@ -46,56 +86,16 @@ namespace work.bacome.imapclient
         {
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
 
-            iMessageCache lCache = null;
+            object lMessageCache = null;
 
             foreach (var lHandle in pHandles)
             {
                 if (lHandle == null) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains nulls");
-                if (lCache == null) lCache = lHandle.Cache;
-                else if (!ReferenceEquals(lHandle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains mixed caches");
+                if (lMessageCache == null) lMessageCache = lHandle.MessageCache;
+                else if (!ReferenceEquals(lHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains mixed message caches");
             }
 
             return new cHandleList(pHandles);
-        }
-
-        private async Task ZFetchAsync(cMailboxId pMailboxId, cHandleList pHandles, fMessageProperties pProperties, cFetchControl pFC, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAsync), pMailboxId, pHandles, pProperties, pFC);
-
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-
-            var lSession = mSession;
-            if (lSession == null || lSession.State != eState.selected) throw new cMailboxNotSelectedException(lContext);
-
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-
-            if (pHandles.Count == 0) return;
-
-            var lAttributes = ZMessagePropertiesToFetchAttributes(pProperties);
-            if (lAttributes == 0) throw new ArgumentOutOfRangeException(nameof(pProperties));
- 
-            mAsyncCounter.Increment(lContext);
-
-            try
-            {
-                cFetchAttributesMethodControl lMC;
-                if (pFC == null) lMC = new cFetchAttributesMethodControl(mTimeout, CancellationToken, null);
-                else lMC = new cFetchAttributesMethodControl(pFC.Timeout, pFC.CancellationToken, pFC.IncrementProgress);
-                await lSession.FetchAsync(lMC, pMailboxId, pHandles, lAttributes, lContext).ConfigureAwait(false);
-            }
-            finally { mAsyncCounter.Decrement(lContext); }
-        }
-
-        private class cFetchAttributesMethodControl : cMethodControl
-        {
-            private readonly Action<int> mIncrementProgress;
-
-            public cFetchAttributesMethodControl(int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrementProgress) : base(pTimeout, pCancellationToken)
-            {
-                mIncrementProgress = pIncrementProgress;
-            }
-
-            public void IncrementProgress(int pValue) => mIncrementProgress?.Invoke(pValue);
         }
     }
 }

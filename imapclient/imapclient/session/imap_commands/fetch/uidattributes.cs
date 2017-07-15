@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task ZUIDFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, uint pUIDValidity, cUIntList pUIDs, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            private async Task ZUIDFetchAttributesAsync(cMethodControl pMC, cMailboxId pMailboxId, uint pUIDValidity, cUIntList pUIDs, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
             {
                 // note that this will fail if the UIDValidity has changed (this is different to the behaviour of standard fetch)
                 // note that the caller should have checked that pAttributes contains some attributes to fetch

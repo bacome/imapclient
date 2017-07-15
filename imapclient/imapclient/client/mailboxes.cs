@@ -65,11 +65,16 @@ namespace work.bacome.imapclient
             return ZZMailboxesAsync(lSession, pListMailbox, pDelimiter, lPattern, pTypes, pProperties, lContext);
         }
 
+        // mailbox 
+
+        ;?; // (refresh/ inquire for the first time)
+
+
         // mailbox sub-mailbox list
 
             ;?;
 
-        public List<cMailbox> Mailboxes(cMailboxId pMailboxId, bool pStatus)
+        public List<cMailbox> Mailboxes(cMailboxId pMailboxId, fmail pStatus)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
             var lTask = ZMailboxesAsync(pMailboxId, pTypes, pFlagSets, pStatus, lContext);

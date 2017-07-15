@@ -34,21 +34,5 @@ namespace work.bacome.imapclient
 
             return lResult;
         }
-
-        private static fFetchAttributes ZMessagePropertiesToFetchAttributes(fMessageProperties pProperties)
-        {
-            fFetchAttributes lResult = 0;
-
-            if ((pProperties & fMessageProperties.flags) != 0) lResult |= fFetchAttributes.flags;
-            if ((pProperties & fMessageProperties.envelope) != 0) lResult |= fFetchAttributes.envelope;
-            if ((pProperties & fMessageProperties.received) != 0) lResult |= fFetchAttributes.received;
-            if ((pProperties & fMessageProperties.size) != 0) lResult |= fFetchAttributes.size;
-            if ((pProperties & fMessageProperties.bodystructure) != 0) lResult |= fFetchAttributes.bodystructure;
-            if ((pProperties & fMessageProperties.uid) != 0) lResult |= fFetchAttributes.uid;
-            if ((pProperties & fMessageProperties.references) != 0) lResult |= fFetchAttributes.references;
-            if ((pProperties & fMessageProperties.modseq) != 0) lResult |= fFetchAttributes.modseq;
-
-            return lResult;
-        }
     }
 }

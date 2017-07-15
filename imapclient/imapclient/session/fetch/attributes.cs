@@ -11,9 +11,9 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchAsync(cFetchAttributesMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            public async Task FetchAttributesAsync(cFetchAttributesMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchAsync), pMC, pMailboxId, pHandles, pAttributes);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchAttributesAsync), pMC, pMailboxId, pHandles, pAttributes);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
                 var lAttributes = ZFetchAttributes(pMailboxId.MailboxName, pAttributes, lContext);
 
                 // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                foreach (var lGroup in ZFetchGroups(pHandles, lAttributes)) await ZFetchAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
+                foreach (var lGroup in ZFetchAttributesGroups(pHandles, lAttributes)) await ZFetchAttributesAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
             }
 
             private fFetchAttributes ZFetchAttributes(cMailboxName pMailboxName, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
@@ -31,23 +31,21 @@ namespace work.bacome.imapclient
 
                 if ((pAttributes & (fFetchAttributes.flags | fFetchAttributes.modseq)) == 0) return pAttributes;
 
-                cMailboxStatus lStatus = x;
-
                 if ((pAttributes & fFetchAttributes.modseq) != 0)
                 {
                     if (!_Capability.CondStore) throw new cUnsupportedByServerException(fCapabilities.CondStore, lContext);
-                    if (lStatus.HighestModSeq == 0) throw new cUnsupportedByMailboxException(fCapabilities.CondStore, lContext);
+                    if (_SelectedMailbox.nomodseq) throw new cUnsupportedByMailboxException(fCapabilities.CondStore, lContext);
                     return pAttributes | fFetchAttributes.flags;
                 }
 
-                if (_Capability.CondStore && lStatus.HighestModSeq != 0) return pAttributes | fFetchAttributes.modseq;
+                if (_Capability.CondStore && !_SelectedMailbox.nomodseq) return pAttributes | fFetchAttributes.modseq;
 
                 return pAttributes;
             }
 
-            private async Task ZFetchAsync(cFetchAttributesMethodControl pMC, cMailboxId pMailboxId, cFetchGroup pGroup, cTrace.cContext pParentContext)
+            private async Task ZFetchAttributesAsync(cFetchAttributesMethodControl pMC, cMailboxId pMailboxId, cFetchAttributesGroup pGroup, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAsync), pMC, pMailboxId, pGroup);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributesAsync), pMC, pMailboxId, pGroup);
 
                 if (pGroup.Attributes == 0) return; // the group where we already have everything that we need
 
@@ -103,7 +101,7 @@ namespace work.bacome.imapclient
                         {
                             // fetch
                             Stopwatch lStopwatch = Stopwatch.StartNew();
-                            await ZFetchAsync(pMC, pMailboxId, lHandles, pGroup.Attributes, lContext).ConfigureAwait(false);
+                            await ZFetchAttributesAsync(pMC, pMailboxId, lHandles, pGroup.Attributes, lContext).ConfigureAwait(false);
                             lStopwatch.Stop();
 
                             // store the time taken so the next fetch is a better size
@@ -117,22 +115,22 @@ namespace work.bacome.imapclient
                 }
 
                 // uid fetch the remainder
-                await ZUIDFetchAsync(pMC, pMailboxId, lUIDs, pGroup.Attributes, lContext).ConfigureAwait(false);
+                await ZUIDFetchAttributesAsync(pMC, pMailboxId, lUIDs, pGroup.Attributes, lContext).ConfigureAwait(false);
             }
 
-            private IEnumerable<cFetchGroup> ZFetchGroups(cHandleList pHandles, fFetchAttributes pAttributes)
+            private IEnumerable<cFetchAttributesGroup> ZFetchAttributesGroups(cHandleList pHandles, fFetchAttributes pAttributes)
             {
-                Dictionary<fFetchAttributes, cFetchGroup> lGroups = new Dictionary<fFetchAttributes, cFetchGroup>();
+                Dictionary<fFetchAttributes, cFetchAttributesGroup> lGroups = new Dictionary<fFetchAttributes, cFetchAttributesGroup>();
 
                 foreach (var lHandle in pHandles)
                 {
                     fFetchAttributes lAttributes = ~lHandle.Attributes & pAttributes;
 
-                    cFetchGroup lGroup;
+                    cFetchAttributesGroup lGroup;
 
                     if (!lGroups.TryGetValue(lAttributes, out lGroup))
                     {
-                        lGroup = new cFetchGroup(lAttributes);
+                        lGroup = new cFetchAttributesGroup(lAttributes);
                         lGroups.Add(lAttributes, lGroup);
                     }
 
@@ -144,17 +142,17 @@ namespace work.bacome.imapclient
                 return lGroups.Values;
             }
 
-            private class cFetchGroup
+            private class cFetchAttributesGroup
             {
                 public readonly fFetchAttributes Attributes;
                 public int MSNHandleCount = 0;
                 public readonly cHandleList Handles = new cHandleList();
 
-                public cFetchGroup(fFetchAttributes pAttributes) { Attributes = pAttributes; }
+                public cFetchAttributesGroup(fFetchAttributes pAttributes) { Attributes = pAttributes; }
 
                 public override string ToString()
                 {
-                    cListBuilder lBuilder = new cListBuilder(nameof(cFetchGroup));
+                    cListBuilder lBuilder = new cListBuilder(nameof(cFetchAttributesGroup));
                     lBuilder.Append(Attributes);
                     lBuilder.Append(MSNHandleCount);
                     lBuilder.Append(Handles);

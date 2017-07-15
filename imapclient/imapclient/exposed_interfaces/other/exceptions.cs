@@ -223,9 +223,9 @@ namespace work.bacome.imapclient
     }
 
     // thrown when a fetch of an attribute didn't return it
-    public class cFetchAttributeException : cIMAPException
+    public class cFetchFailedException : cIMAPException
     {
-        public cFetchAttributeException() { }
+        public cFetchFailedException() { }
     }
 
     // thrown when a required capability for the call isn't available on the server

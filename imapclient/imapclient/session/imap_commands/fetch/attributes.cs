@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task ZFetchAsync(cMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            private async Task ZFetchAttributesAsync(cMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
             {
                 // note that this silently fails if the handles are out of date
                 //  AND if a UID validity change were to happen during the run it wouldn't complain either

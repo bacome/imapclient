@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using work.bacome.async;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -11,12 +10,12 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public Task FetchAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext) => ZFetchSectionAsync(pMC, pMailboxId, pHandle.UID, pHandle, pSection, pDecoding, pStream, pParentContext);
-            public Task UIDFetchAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext) => ZFetchSectionAsync(pMC, pMailboxId, pUID, null, pSection, pDecoding, pStream, pParentContext);
+            public Task FetchBodyAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext) => ZFetchBodyAsync(pMC, pMailboxId, pHandle.UID, pHandle, pSection, pDecoding, pStream, pParentContext);
+            public Task UIDFetchBodyAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext) => ZFetchBodyAsync(pMC, pMailboxId, pUID, null, pSection, pDecoding, pStream, pParentContext);
 
-            private async Task ZFetchSectionAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, cUID pUID, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
+            private async Task ZFetchBodyAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, cUID pUID, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchSectionAsync), pMC, pMailboxId, pUID, pHandle, pSection, pDecoding);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxId, pUID, pHandle, pSection, pDecoding);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
@@ -44,8 +43,8 @@ namespace work.bacome.imapclient
                     Stopwatch lStopwatch = Stopwatch.StartNew();
 
                     cBody lBody;
-                    if (pUID == null) lBody = await ZFetchAsync(pMC, pMailboxId, pHandle, lCapability, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
-                    else lBody = await ZUIDFetchAsync(pMC, pMailboxId, pUID, lCapability, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
+                    if (pUID == null) lBody = await ZFetchBodyAsync(pMC, pMailboxId, pHandle, lCapability, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
+                    else lBody = await ZUIDFetchBodyAsync(pMC, pMailboxId, pUID, lCapability, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
 
                     lStopwatch.Stop();
 
