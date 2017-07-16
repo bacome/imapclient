@@ -68,13 +68,14 @@
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
+    <Compile Include="exposed_interfaces\mailbox\mailboxes.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxselected.cs" />
     <Compile Include="exposed_interfaces\message\messageproperties.cs" />
     <Compile Include="exposed_interfaces\support\enums\mailboxflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxproperties.cs" />
     <Compile Include="exposed_interfaces\support\types\selectedmailboxdetails.cs" />
     <Compile Include="exposed_interfaces\support\types\lsubflags.cs" />
-    <Compile Include="exposed_interfaces\support\types\mailboxcacheitem.cs" />
+    <Compile Include="exposed_interfaces\support\types\mailboxhande.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxbeenselected.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
@@ -99,7 +100,7 @@
     <Compile Include="exposed_interfaces\message\filter.cs" />
     <Compile Include="exposed_interfaces\message\message.cs" />
     <Compile Include="exposed_interfaces\message\messageflags.cs" />
-    <Compile Include="exposed_interfaces\message\messagehandle.cs" />
+    <Compile Include="exposed_interfaces\support\types\messagehandle.cs" />
     <Compile Include="exposed_interfaces\support\types\fetchattributes.cs" />
     <Compile Include="exposed_interfaces\message\messagepropertychangedeventargs.cs" />
     <Compile Include="exposed_interfaces\message\section.cs" />
@@ -140,7 +141,6 @@
     <Compile Include="exposed_interfaces\support\encoding\base64.cs" />
     <Compile Include="exposed_interfaces\support\encoding\modifiedutf7.cs" />
     <Compile Include="exposed_interfaces\support\enums\idfieldnames.cs" />
-    <Compile Include="exposed_interfaces\support\enums\knownmessageflags.cs" />
     <Compile Include="exposed_interfaces\support\parsing\charactersets.cs" />
     <Compile Include="exposed_interfaces\support\parsing\uriparts.cs" />
     <Compile Include="exposed_interfaces\support\parsing\urlparts.cs" />

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
-using work.bacome.async;
-using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -10,6 +7,33 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
+            private static void ZMessagePropertiesChanged(cEventSynchroniser pEventSynchroniser, cMailboxId pMailboxId, iMessageHandle pHandle, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZMailboxPropertiesChanged), pMailboxId, pProperties);
+
+                if (pEventSynchroniser == null) throw new ArgumentNullException(nameof(pEventSynchroniser));
+                if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+
+                if (pProperties == 0 || !pEventSynchroniser.AreMessagePropertyChangedSubscriptions) return;
+
+                if ((pProperties & fMessageProperties.isexpunged) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.IsExpunged), lContext);
+
+                if ((pProperties & fMessageProperties.flags) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.Flags), lContext);
+                if ((pProperties & fMessageProperties.isanswered) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.IsAnswered), lContext);
+                if ((pProperties & fMessageProperties.isflagged) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.IsFlagged), lContext);
+                if ((pProperties & fMessageProperties.isdeleted) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.IsDeleted), lContext);
+                if ((pProperties & fMessageProperties.isseen) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.IsSeen), lContext);
+                if ((pProperties & fMessageProperties.isdraft) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.IsDraft), lContext);
+                if ((pProperties & fMessageProperties.isrecent) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.IsRecent), lContext);
+                if ((pProperties & fMessageProperties.ismdnsent) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.IsMDNSent), lContext);
+                if ((pProperties & fMessageProperties.isforwarded) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.IsForwarded), lContext);
+                if ((pProperties & fMessageProperties.issubmitpending) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.IsSubmitPending), lContext);
+                if ((pProperties & fMessageProperties.issubmitted) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.IsSubmitted), lContext);
+
+                if ((pProperties & fMessageProperties.modseq) != 0) pEventSynchroniser.MessagePropertyChanged(pMailboxId, pHandle, nameof(cMessage.ModSeq), lContext);
+            }
+
             private static void ZMailboxPropertiesChanged(cEventSynchroniser pEventSynchroniser, cMailboxId pMailboxId, fMailboxProperties pProperties, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZMailboxPropertiesChanged), pMailboxId, pProperties);

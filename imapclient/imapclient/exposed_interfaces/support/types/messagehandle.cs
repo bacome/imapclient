@@ -1,7 +1,6 @@
 ﻿using System;
-using work.bacome.imapclient.support;
 
-namespace work.bacome.imapclient
+namespace work.bacome.imapclient.support
 {
     public interface iMessageHandle
     {
@@ -17,7 +16,7 @@ namespace work.bacome.imapclient
         uint? Size { get; }
         cUID UID { get; }
         cStrings References { get; }
-        cBinarySizes BinarySizes { get; } // part => size
+        cBinarySizes BinarySizes { get; }
         ulong? ModSeq { get; }
     }
 }

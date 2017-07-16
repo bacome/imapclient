@@ -2,12 +2,12 @@
 
 namespace work.bacome.imapclient.support
 {
-    public interface iMailboxCacheItem
+    public interface iMailboxHandle
     {
         bool? Exists { get; }
         cMailboxFlags MailboxFlags { get; } 
         cMailboxStatus MailboxStatus { get; }
         long MailboxStatusAge { get; }
-        cMailboxBeenSelected MailboxBeenSelected { get; } // not null
+        cMailboxSelectedProperties MailboxSelectedProperties { get; } // not null
     }
 }

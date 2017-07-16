@@ -297,7 +297,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        public iMailboxCacheItem MailboxCacheItem(cMailboxId pMailboxId)
+        public iMailboxCacheItem MailboxProperties(cMailboxId pMailboxId)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxCacheItem));
 

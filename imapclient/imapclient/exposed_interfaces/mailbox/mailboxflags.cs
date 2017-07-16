@@ -73,7 +73,7 @@ namespace work.bacome.imapclient
             if (pOld == null) return 0;
             if (pOld.mFlags == pNew.mFlags) return 0;
 
-            fMailboxProperties lProperties = 0;
+            fMailboxProperties lProperties = fMailboxProperties.mailboxflags;
 
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fMailboxFlags.noinferiors, fMailboxProperties.canhavechildren);
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fMailboxFlags.noselect, fMailboxProperties.canselect);
@@ -90,8 +90,6 @@ namespace work.bacome.imapclient
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fMailboxFlags.junk, fMailboxProperties.containsjunk);
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fMailboxFlags.sent, fMailboxProperties.containssent);
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fMailboxFlags.trash, fMailboxProperties.containstrash);
-
-            if (lProperties != 0) lProperties |= fMailboxProperties.mailboxflags;
 
             return lProperties;
         }

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace work.bacome.imapclient
 {
-    public class cNamespace
+    public class cNamespace : iMailboxes
     {
         public readonly cIMAPClient Client;
         public readonly cNamespaceId NamespaceId;

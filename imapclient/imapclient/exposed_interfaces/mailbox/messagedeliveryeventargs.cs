@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -12,7 +13,14 @@ namespace work.bacome.imapclient
     public class cMailboxMessageDeliveryEventArgs : cMessageDeliveryEventArgs
     {
         public readonly cMailboxId MailboxId;
-        public cMailboxMessageDeliveryEventArgs(cMailboxId pMailboxId, cHandleList pHandles) : base(pHandles) { MailboxId = pMailboxId; }
-        public override string ToString() => $"{nameof(cMailboxMessageDeliveryEventArgs)}({MailboxId},{Handles})";
+        public readonly iMailboxHandle Handle;
+
+        public cMailboxMessageDeliveryEventArgs(cMailboxId pMailboxId, iMailboxHandle pHandle, cHandleList pHandles) : base(pHandles)
+        {
+            MailboxId = pMailboxId;
+            Handle = pHandle;
+        }
+
+        public override string ToString() => $"{nameof(cMailboxMessageDeliveryEventArgs)}({MailboxId},{Handle},{Handles})";
     }
 }

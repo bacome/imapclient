@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {

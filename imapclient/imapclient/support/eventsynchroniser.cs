@@ -123,6 +123,8 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
+            public bool AreMessagePropertyChangedSubscriptions => mClient.MessagePropertyChanged != null;
+
             public void MessagePropertyChanged(cMailboxId pMailboxId, iMessageHandle pHandle, string pPropertyName, cTrace.cContext pParentContext)
             {
                 if (mClient.MessagePropertyChanged == null) return; // pre-check for efficiency only

@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
 
         exists = 1 << 1,
 
-        mailboxflags = 1 << 2,
+        flags = 1 << 2,
         canhavechildren = 1 << 3,
         canselect = 1 << 4,
         ismarked = 1 << 5,
@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
         containssent = 1 << 16,
         containstrash = 1 << 17,
 
-        mailboxstatus = 1 << 18,
+        status = 1 << 18,
         messagecount = 1 << 19,
         recentcount = 1 << 20,
         uidnext = 1 << 21,
@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
         unseenunknowncount = 1 << 25,
         highestmodseq = 1 << 26,
 
-        mailboxbeenselected = 1 << 27,
+        selectedproperties = 1 << 27,
         hasbeenselected = 1 << 28,
         hasbeenselectedforupdate = 1 << 29,
         hasbeenselectedreadonly = 1 << 30,
@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
         forupdatepermanentflags = 1 << 32,
         readonlypermanentflags = 1 << 33,
 
-        mailboxselected = 1 << 34,
+        selected = 1 << 34,
         isselected = 1 << 35,
         isselectedforupdate = 1 << 36,
         isaccessreadonly = 1 << 37

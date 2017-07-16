@@ -2,7 +2,7 @@
 
 namespace work.bacome.imapclient
 {
-    public class cMailboxBeenSelected
+    public class cMailboxSelectedProperties
     {
         public static readonly cMailboxBeenSelected No = new cMailboxBeenSelected();
 

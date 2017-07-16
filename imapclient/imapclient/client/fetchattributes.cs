@@ -16,11 +16,11 @@ namespace work.bacome.imapclient
 
             var lProperties = ZDefaultMessagePropertiesAdd(pProperties);
 
-            if ((lProperties & fMessageProperties.flags) != 0) lRequired |= fFetchAttributes.flags;
-            if ((lProperties & fMessageProperties.envelope) != 0) lRequired |= fFetchAttributes.envelope;
+            if ((lProperties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0) lRequired |= fFetchAttributes.flags;
+            if ((lProperties & (fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0) lRequired |= fFetchAttributes.envelope;
             if ((lProperties & fMessageProperties.received) != 0) lRequired |= fFetchAttributes.received;
             if ((lProperties & fMessageProperties.size) != 0) lRequired |= fFetchAttributes.size;
-            if ((lProperties & fMessageProperties.bodystructure) != 0) lRequired |= fFetchAttributes.bodystructure;
+            if ((lProperties & (fMessageProperties.plaintext | fMessageProperties.attachments)) != 0) lRequired |= fFetchAttributes.bodystructure;
             if ((lProperties & fMessageProperties.uid) != 0) lRequired |= fFetchAttributes.uid;
             if ((lProperties & fMessageProperties.references) != 0) lRequired |= fFetchAttributes.references;
             if ((lProperties & fMessageProperties.modseq) != 0) lRequired |= fFetchAttributes.modseq;

@@ -197,7 +197,28 @@ namespace work.bacome.imapclient
         public cSettableFlags(params string[] pFlags) : base(false, pFlags) { }
     }
 
-    public class cMessageFlags : cStrings, IEnumerable<string>
+    [Flags]
+    public enum fKnownMessageFlags
+    {
+        // rfc 3501
+        asterisk = 1 << 0,
+        answered = 1 << 1,
+        flagged = 1 << 2,
+        deleted = 1 << 3,
+        seen = 1 << 4,
+        draft = 1 << 5,
+        recent = 1 << 6,
+
+        // rfc 5788
+        mdnsent = 1 << 7, // 3503
+        forwarded = 1 << 8, // 5550
+        submitpending = 1 << 9, // 5550
+        submitted = 1 << 10, // 5550
+
+        allsettableflags = 0b11111111110
+    }
+
+    public class cMessageFlags : cStrings
     {
         public const string Asterisk = "\\*";
         public const string Answered = "\\ANSWERED";
@@ -268,14 +289,44 @@ namespace work.bacome.imapclient
 
         public override bool Equals(object pObject) => (cStrings)this == pObject as cMessageFlags;
         public override int GetHashCode() => base.GetHashCode();
-        public static bool operator ==(cMessageFlags pA, cMessageFlags pB) => (cStrings)pA == pB;
-        public static bool operator !=(cMessageFlags pA, cMessageFlags pB) => (cStrings)pA != pB;
 
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cMessageFlags));
             foreach (var lFlag in this) lBuilder.Append(lFlag);
             return lBuilder.ToString();
+        }
+
+        public static bool operator ==(cMessageFlags pA, cMessageFlags pB) => (cStrings)pA == pB;
+        public static bool operator !=(cMessageFlags pA, cMessageFlags pB) => (cStrings)pA != pB;
+
+        public static fMessageProperties Differences(cMessageFlags pOld, cMessageFlags pNew)
+        {
+            if (pNew == null) throw new ArgumentNullException(nameof(pNew));
+
+            if (pOld == null) return 0;
+            if (pOld == pNew) return 0;
+
+            fMessageProperties lProperties = fMessageProperties.messageflags;
+
+            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.answered, fMessageProperties.isanswered);
+            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.flagged, fMessageProperties.isflagged);
+            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.deleted, fMessageProperties.isdeleted);
+            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.seen, fMessageProperties.isseen);
+            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.draft, fMessageProperties.isdraft);
+            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.recent, fMessageProperties.isrecent);
+            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.mdnsent, fMessageProperties.ismdnsent);
+            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.forwarded, fMessageProperties.isforwarded);
+            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.submitpending, fMessageProperties.issubmitpending);
+            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.submitted, fMessageProperties.issubmitted);
+
+            return lProperties;
+        }
+
+        private static fMessageProperties ZPropertyIfDifferent(cMessageFlags pA, cMessageFlags pB, fKnownMessageFlags pFlags, fMessageProperties pProperty)
+        {
+            if ((pA.KnownMessageFlags & pFlags) == (pB.KnownMessageFlags & pFlags)) return 0;
+            return pProperty;
         }
     }
 }
