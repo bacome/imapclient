@@ -22,6 +22,7 @@ namespace work.bacome.imapclient
 
             private bool mDisposed = false;
 
+            private readonly object mSender;
             private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource(); // for use when disposing
             private readonly cReleaser mForegroundReleaser;
             private readonly cReleaser mBackgroundReleaser;
@@ -29,9 +30,10 @@ namespace work.bacome.imapclient
             private readonly ConcurrentQueue<sEvent> mEvents = new ConcurrentQueue<sEvent>();
             private volatile bool mOutstandingPost = false;
 
-            public cEventSynchroniser(cTrace.cContext pParentContext)
+            public cEventSynchroniser(object pSender, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewObject(nameof(cEventSynchroniser));
+                mSender = pSender;
                 mForegroundReleaser = new cReleaser("eventsynchroniser_foreground", mCancellationTokenSource.Token);
                 mBackgroundReleaser = new cReleaser("eventsynchroniser_background", mCancellationTokenSource.Token);
                 mBackgroundTask = ZBackgroundTaskAsync(lContext);
@@ -108,11 +110,11 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void FireMailboxPropertyChanged(iMailboxHandle pHandle, fMailboxProperties pProperties, cTrace.cContext pParentContext)
+            public void FireMailboxPropertiesChanged(iMailboxHandle pHandle, fMailboxProperties pProperties, cTrace.cContext pParentContext)
             {
                 if (MailboxPropertyChanged == null | pProperties == 0) return; // pre-checks for efficiency
 
-                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(FireMailboxPropertyChanged), pHandle, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(FireMailboxPropertiesChanged), pHandle, pProperties);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
 
@@ -170,11 +172,11 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void FireMessagePropertyChanged(iMessageHandle pHandle, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            public void FireMessagePropertiesChanged(iMessageHandle pHandle, fMessageProperties pProperties, cTrace.cContext pParentContext)
             {
                 if (MessagePropertyChanged == null | pProperties == 0) return; // pre-checks for efficiency
 
-                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(FireMessagePropertyChanged), pHandle, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(FireMessagePropertiesChanged), pHandle, pProperties);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
 
@@ -289,27 +291,27 @@ namespace work.bacome.imapclient
                         {
                             case cMessagePropertyChangedEventArgs lEventArgs:
 
-                                MessagePropertyChanged?.Invoke(mClient, lEventArgs);
+                                MessagePropertyChanged?.Invoke(mSender, lEventArgs);
                                 break;
 
                             case cMailboxPropertyChangedEventArgs lEventArgs:
 
-                                MailboxPropertyChanged?.Invoke(mClient, lEventArgs);
+                                MailboxPropertyChanged?.Invoke(mSender, lEventArgs);
                                 break;
 
                             case PropertyChangedEventArgs lEventArgs:
 
-                                PropertyChanged?.Invoke(mClient, lEventArgs);
+                                PropertyChanged?.Invoke(mSender, lEventArgs);
                                 break;
 
                             case cResponseTextEventArgs lEventArgs:
 
-                                ResponseText?.Invoke(mClient, lEventArgs);
+                                ResponseText?.Invoke(mSender, lEventArgs);
                                 break;
 
                             case cMailboxMessageDeliveryEventArgs lEventArgs:
 
-                                MailboxMessageDelivery?.Invoke(mClient, lEventArgs);
+                                MailboxMessageDelivery?.Invoke(mSender, lEventArgs);
                                 break;
 
                             case cIncrementProgressEventArgs lEventArgs:

@@ -43,8 +43,8 @@ namespace work.bacome.imapclient
         //  async is generic async tools
 
         // version and release date of this class
-        public static Version Version = new Version(0, 1);
-        public static DateTime ReleaseDate = new DateTime(2017, 6, 19);
+        public static Version Version = new Version(0, 2);
+        public static DateTime ReleaseDate = new DateTime(2017, 7, 18);
 
         public enum eState { notconnected, connecting, notauthenticated, authenticated, selected, disconnecting, disconnected }
 
@@ -77,24 +77,12 @@ namespace work.bacome.imapclient
         {
             mRootContext = mTrace.NewRoot(pInstanceName);
             mRootContext.TraceInformation("cIMAPClient by bacome version {0}, release date {1}", Version, ReleaseDate);
-            mEventSynchroniser = new cEventSynchroniser(mRootContext);
-            mAsyncCounter = new cAsyncCounter(mEventSynchroniser.PropertyChanged);
+            mEventSynchroniser = new cEventSynchroniser(this, mRootContext);
+            mAsyncCounter = new cAsyncCounter(mEventSynchroniser.FirePropertyChanged);
         }
 
+        // events
 
-
-
-
-
-
-
-
-
-
-        // the synchronisation context on which the events should be delivered
-        //  if null, any context will do
-        //   (changing this while events are being delivered will result in undefined behaviour)
-        //
         public SynchronizationContext SynchronizationContext
         {
             get => mEventSynchroniser.SynchronizationContext;
@@ -131,29 +119,7 @@ namespace work.bacome.imapclient
             remove { mEventSynchroniser.MessagePropertyChanged -= value; }
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        // method termination
 
         public int Timeout
         {
@@ -168,7 +134,8 @@ namespace work.bacome.imapclient
 
         public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
 
-        // state of the connection
+        // state
+
         public eState State => mSession?.State ?? eState.notconnected;
         public cCapability Capability => mSession?.Capability;
         public fEnableableExtensions EnabledExtensions => mSession?.EnabledExtensions ?? fEnableableExtensions.none;
@@ -178,11 +145,9 @@ namespace work.bacome.imapclient
         public cURL HomeServerReferral => mSession?.HomeServerReferral;
 
         // for cheapskate UIs: if this number is greater than zero then a cancel button might be enabled
-        //   (to cancel the cancellationtokensource associated with the cancellationtoken that has been set via the property above)
-        //
         public int AsyncCount => mAsyncCounter.Count;
 
-        // list of capabilities to ignore
+        // capabilities to ignore
         public fCapabilities IgnoreCapabilities
         {
             get => mIgnoreCapabilities;
@@ -233,6 +198,7 @@ namespace work.bacome.imapclient
         public void SetPlainCredentials(string pUserId, string pPassword, bool pTryAuthenticateEvenIfAuthPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTryAuthenticateEvenIfAuthPlainIsntAdvertised);
 
         // if the caller can handle mailbox referrals
+        //
         public bool MailboxReferrals
         {
             get => mMailboxReferrals;
@@ -260,6 +226,8 @@ namespace work.bacome.imapclient
                 mSession?.SetIdleConfiguration(value, lContext);
             }
         }
+
+        // controls for long running activities
 
         public cFetchSizeConfiguration FetchAttributesConfiguration
         {
@@ -300,6 +268,7 @@ namespace work.bacome.imapclient
         }
 
         // encoding to use when UTF8 (rfc 6855) is not supported directly by the server
+        //
         public Encoding Encoding
         {
             get => mEncoding;
@@ -315,7 +284,7 @@ namespace work.bacome.imapclient
         }
 
         // id command (rfc 2971): a way of identifying the client and server software versions
-
+        
         public cId ClientId
         {
             get => mClientId;
@@ -331,6 +300,7 @@ namespace work.bacome.imapclient
         public cIdReadOnlyDictionary ServerId => mSession?.ServerId;
 
         // rfc 2342 namespaces (if the server doesn't support namespaces then this will still work - there will be one personal namespace retrieved using LIST)
+        //
         public cNamespaces Namespaces
         {
             get
@@ -350,24 +320,24 @@ namespace work.bacome.imapclient
             {
                 var lDetails = mSession?.SelectedMailboxDetails;
                 if (lDetails == null) return null;
-                return new cMailbox(this, lDetails.MailboxId);
+                return new cMailbox(this, lDetails.Handle);
             }
         }
 
-        public iMailboxCacheItem MailboxProperties(cMailboxId pMailboxId)
+        public cMailbox GetMailbox(cMailboxName pMailboxName)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxCacheItem));
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(GetMailbox));
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new cAccountNotConnectedException(lContext);
 
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+            if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 
-            if (lSession.ConnectedAccountId != pMailboxId.AccountId) throw new cAccountNotConnectedException(lContext);
+            var lHandle = lSession.GetMailboxHandle(pMailboxName);
 
-            return lSession.MailboxCacheItem(pMailboxId.MailboxName);
+            return new cMailbox(this, lHandle);
         }
 
         public iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;

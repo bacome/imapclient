@@ -18,33 +18,33 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
                 ;?;
 
-                private readonly string mEncodedMailboxName;
-                private readonly cMailboxId mMailboxId;
-                private readonly bool mSelectedForUpdate;
-                private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cMailboxCache mMailboxCache;
+                private readonly iMailboxHandle mHandle;
+                private readonly bool mSelectedForUpdate;
+                private readonly bool mCondStoreRequested;
+                private readonly cEventSynchroniser mEventSynchroniser;
 
                 private cMessageCache mMessageCache;
 
                 private cMessageFlags mMessageFlags = null;
                 private cMessageFlags mPermanentFlags = null;
                 private bool mAccessReadOnly = false;
-                private bool mNoModSeq = true; ;?; // the cache knows about highestmodseq
+                private bool mCondStoreEnabled = false; // true if condstore was asked for and we see a highestmodseq before setasselected is called
 
                 private bool mHasBeenSetAsSelected = false;
 
-                public cSelectedMailbox(string pEncodedMailboxName, cMailboxId pMailboxId, bool pSelectedForUpdate, cEventSynchroniser pEventSynchoniser, cMailboxCache pMailboxCache)
+                public cSelectedMailbox(cMailboxCache pMailboxCache, iMailboxHandle pHandle, bool pSelectedForUpdate, bool pCondStoreRequested, cEventSynchroniser pEventSynchoniser)
                 {
-                    mEncodedMailboxName = pEncodedMailboxName ?? throw new ArgumentNullException(nameof(pEncodedMailboxName));
-                    mMailboxId = pMailboxId ?? throw new ArgumentNullException(nameof(pMailboxId));
-                    mSelectedForUpdate = pSelectedForUpdate;
-                    mEventSynchroniser = pEventSynchoniser ?? throw new ArgumentNullException(nameof(pEventSynchoniser));
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
-                    mMessageCache = new cMessageCache(pMailboxId, 0, false, pEventSynchoniser, pMailboxCache);
+                    mHandle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+                    mSelectedForUpdate = pSelectedForUpdate;
+                    mCondStoreRequested = pCondStoreRequested;
+                    mEventSynchroniser = pEventSynchoniser ?? throw new ArgumentNullException(nameof(pEventSynchoniser));
+
+                    mMessageCache = new cMessageCache(pMailboxCache, pHandle, 0, false, pEventSynchoniser, ); ???
                 }
 
-                public string EncodedMailboxName => mEncodedMailboxName;
-                public cMailboxId MailboxId => mMailboxId;
+                public iMailboxHandle Handle => mHandle;
                 public bool SelectedForUpdate => mSelectedForUpdate;
                 public bool AccessReadOnly => mAccessReadOnly;
 
@@ -56,6 +56,8 @@ namespace work.bacome.imapclient
                     mMessageCache.SetAsSelected(lContext);
                     mMailboxCache.UpdateMailboxBeenSelected(mEncodedMailboxName, mMailboxId.MailboxName, mMessageFlags, mSelectedForUpdate, mPermanentFlags, lContext);
                 }
+
+                public bool CondStoreEnabled => mCondStoreEnabled;
 
                 public iMessageHandle GetHandle(uint pMSN) => mMessageCache.GetHandle(pMSN); // this should only be called from a commandcompletion
                 public iMessageHandle GetHandle(cUID pUID) => mMessageCache.GetHandle(pUID);
