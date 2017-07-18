@@ -101,13 +101,11 @@ namespace work.bacome.imapclient
 
                 // patterns
 
-                cCommandPart.cFactory lFactory = new cCommandPart.cFactory((pEnabledExtensions & fEnableableExtensions.utf8) != 0);
-
                 pCommand.BeginList(cCommand.eListBracketing.ifmorethanone);
 
                 foreach (var lPattern in pPatterns)
                 {
-                    if (!lFactory.TryAsListMailbox(lPattern.ListMailbox, lPattern.Delimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pPatterns));
+                    if (!mMail.TryAsListMailbox(lPattern.ListMailbox, lPattern.Delimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pPatterns));
                     pCommand.Add(lListMailboxCommandPart);
                 }
 

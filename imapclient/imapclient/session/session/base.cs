@@ -35,10 +35,8 @@ namespace work.bacome.imapclient
 
             // post enable processing sets these
             private bool mEnableDone = false;
+            private cCommandPart.cFactory mStringFactory = null;
             private cMailboxCache mMailboxCache = null;
-            private cStatusDataProcessor mStatusDataProcessor = null;
-            private cListDataProcessor mListDataProcessor = null;
-            private cLSubDataProcessor mLSubDataProcessor = null;
 
             // selected mailbox
             private cSelectedMailbox _SelectedMailbox = null;
@@ -61,7 +59,7 @@ namespace work.bacome.imapclient
 
                 _IgnoreCapabilities = pIgnoreCapabilities;
 
-                mResponseTextProcessor = new cResponseTextProcessor(mEventSynchroniser.ResponseText);
+                mResponseTextProcessor = new cResponseTextProcessor(mEventSynchroniser.FireResponseText);
                 mPipeline = new cCommandPipeline(mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
 
                 mCapabilityDataProcessor = new cCapabilityDataProcessor(ZSetCapabilities);
@@ -79,6 +77,7 @@ namespace work.bacome.imapclient
                 if (mEnableDone) throw new InvalidOperationException();
                 mEnableDone = true;
 
+                mStringFactory = new cCommandPart.cFactory((EnabledExtensions & fEnableableExtensions.utf8) != 0);
                 mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId);
 
                 mStatusDataProcessor = new cStatusDataProcessor(mMailboxCache);
@@ -185,8 +184,6 @@ namespace work.bacome.imapclient
 
             public bool SecurityInstalled => mConnection?.SecurityInstalled ?? false;
 
-            public iSelectedMailboxDetails SelectedMailboxDetails => _SelectedMailbox;
-
             private void ZSetSelectedMailbox(cSelectedMailbox pSelectedMailbox, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetSelectedMailbox), pSelectedMailbox);
@@ -261,11 +258,12 @@ namespace work.bacome.imapclient
 
             public cMailbox Inbox { get; set; } = null;
 
-            public iMailboxCacheItem MailboxCacheItem(cMailboxName pMailboxName)
+            public iSelectedMailboxDetails SelectedMailboxDetails => _SelectedMailbox;
+
+            public iMailboxHandle GetMailboxHandle(cMailboxName pMailboxName)
             {
-                cCommandPart.cFactory lFactory = new cCommandPart.cFactory((EnabledExtensions & fEnableableExtensions.utf8) != 0);
-                if (!lFactory.TryAsMailbox(pMailboxName, out _, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
-                return mMailboxCache.Item(lEncodedMailboxName, pMailboxName);
+                if (!mStringFactory.TryAsMailbox(pMailboxName, out _, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
+                return mMailboxCache.GetHandle(lEncodedMailboxName, pMailboxName);
             }
 
             public void Disconnect(cTrace.cContext pParentContext)

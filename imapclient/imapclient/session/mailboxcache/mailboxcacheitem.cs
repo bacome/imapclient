@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using work.bacome.imapclient.support;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
@@ -121,8 +118,8 @@ namespace work.bacome.imapclient
                         if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
                         if (pPermanentFlags == null) throw new ArgumentNullException(nameof(pPermanentFlags));
                         var lMailboxSelectedProperties = mMailboxSelectedProperties.Update(pMessageFlags, pSelectedForUpdate, pPermanentFlags);
-                        fMailboxProperties lDifferences = ZSetExists() | cMailboxSelectedProperties.Differences(mMailboxBeenSelected, lMailboxBeenSelected);
-                        mMailboxBeenSelected = lMailboxBeenSelected;
+                        fMailboxProperties lDifferences = ZSetExists() | cMailboxSelectedProperties.Differences(mMailboxSelectedProperties, lMailboxSelectedProperties);
+                        mMailboxSelectedProperties = lMailboxSelectedProperties;
                         return lDifferences;
                     }
 
@@ -134,8 +131,7 @@ namespace work.bacome.imapclient
                         mMergedFlags = null;
                         mStatus = null;
                         mMailboxStatus = null;
-                        mMailboxStatusStopwatch = null;
-                        mMailboxBeenSelected = cMailboxBeenSelected.No;
+                        mMailboxSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
                         return fMailboxProperties.exists;
                     }
 

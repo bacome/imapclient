@@ -41,14 +41,12 @@ namespace work.bacome.imapclient
                     if (pClientDictionary == null) lCommand.Add(cCommandPart.Nil);
                     else
                     {
-                        cCommandPart.cFactory lFactory = new cCommandPart.cFactory((EnabledExtensions & fEnableableExtensions.utf8) != 0);
-
                         lCommand.BeginList(cCommand.eListBracketing.bracketed);
 
                         foreach (var lFieldValuePair in pClientDictionary)
                         {
-                            lCommand.Add(lFactory.AsString(lFieldValuePair.Key));
-                            lCommand.Add(lFactory.AsNString(lFieldValuePair.Value));
+                            lCommand.Add(mStringFactory.AsString(lFieldValuePair.Key));
+                            lCommand.Add(mStringFactory.AsNString(lFieldValuePair.Value));
                         }
 
                         lCommand.EndList();

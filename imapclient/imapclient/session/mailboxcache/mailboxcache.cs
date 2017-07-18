@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -81,7 +80,7 @@ namespace work.bacome.imapclient
                     foreach (var lItem in mDictionary.Values)
                     {
                         var lProperties = lItem.ClearLSubFlags(pPattern, pLSubFlagsSequence);
-                        if (lProperties != 0) ZMailboxPropertiesChanged(lItem.MailboxName, lProperties, lContext);
+                        if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
                     }
                 }
 
@@ -111,7 +110,10 @@ namespace work.bacome.imapclient
                     if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                     if (pStatus == null) throw new ArgumentNullException(nameof(pStatus));
 
-                    var lProperties = ZItem(pHandle.EncodedMailboxName, null).SetMailboxStatus(pStatus);
+                    var lItem = pHandle as cItem;
+                    if (lItem == null) throw new ArgumentOutOfRangeException(nameof(pHandle));
+
+                    var lProperties = lItem.SetMailboxStatus(pStatus);
                     if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
                 }
 
@@ -119,17 +121,16 @@ namespace work.bacome.imapclient
                 {
                     // should only be called for the selected mailbox
 
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(UpdateMailboxBeenSelected), pEncodedMailboxName, pMailboxName, pMessageFlags, pSelectedForUpdate, pPermanentFlags);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(UpdateMailboxSelectedProperties), pHandle, pMessageFlags, pSelectedForUpdate, pPermanentFlags);
 
-                    if (pEncodedMailboxName == null) throw new ArgumentNullException(nameof(pEncodedMailboxName));
-                    if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
+                    if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                     if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
 
-                    // get the handle
-                    var lItem = ZItem(pEncodedMailboxName, pMailboxName);
+                    var lItem = pHandle as cItem;
+                    if (lItem == null) throw new ArgumentOutOfRangeException(nameof(pHandle));
 
-                    var lProperties = lItem.UpdateMailboxBeenSelected(pMessageFlags, pSelectedForUpdate, pPermanentFlags);
-                    if (lProperties != 0) ZMailboxPropertiesChanged(pMailboxName, lProperties, lContext);
+                    var lProperties = lItem.UpdateMailboxSelectedProperties(pMessageFlags, pSelectedForUpdate, pPermanentFlags);
+                    if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
                 }
 
                 private cItem ZItem(string pEncodedMailboxName, cMailboxName pMailboxName)

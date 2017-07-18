@@ -314,6 +314,8 @@ namespace work.bacome.imapclient
 
         public cMailbox Inbox => mSession?.Inbox;
 
+        public iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
+
         public cMailbox SelectedMailbox
         {
             get
@@ -339,8 +341,6 @@ namespace work.bacome.imapclient
 
             return new cMailbox(this, lHandle);
         }
-
-        public iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
 
         public void Dispose()
         {
