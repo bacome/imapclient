@@ -29,9 +29,10 @@ namespace work.bacome.imapclient
                 private cMessageFlags mMessageFlags = null;
                 private cMessageFlags mPermanentFlags = null;
                 private bool mAccessReadOnly = false;
-                private bool mCondStoreEnabled = false; // true if condstore was asked for and we see a highestmodseq before setasselected is called
+                ??private bool mCondStoreEnabled = false; // true if condstore was asked for and we see a highestmodseq before setasselected is called
 
-                private bool mHasBeenSetAsSelected = false;
+                ;?; no longer required
+                //private bool mHasBeenSetAsSelected = false;
 
                 public cSelectedMailbox(cMailboxCache pMailboxCache, iMailboxHandle pHandle, bool pSelectedForUpdate, bool pCondStoreRequested, cEventSynchroniser pEventSynchoniser)
                 {
