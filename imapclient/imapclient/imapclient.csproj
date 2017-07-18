@@ -79,6 +79,7 @@
     <Compile Include="exposed_interfaces\mailbox\mailboxflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxbeenselected.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
+    <Compile Include="session\mailboxcache\mailboxcacheitem.cs" />
     <Compile Include="session\session\searchunseen.cs" />
     <Compile Include="session\mailboxcache\mailboxcache.cs" />
     <Compile Include="session\session\tools.cs" />
@@ -107,7 +108,6 @@
     <Compile Include="exposed_interfaces\message\sort.cs" />
     <Compile Include="exposed_interfaces\message\uid.cs" />
     <Compile Include="exposed_interfaces\namespace\namespace.cs" />
-    <Compile Include="exposed_interfaces\namespace\namespaceid.cs" />
     <Compile Include="exposed_interfaces\namespace\namespacename.cs" />
     <Compile Include="exposed_interfaces\namespace\namespaces.cs" />
     <Compile Include="exposed_interfaces\other\commandresult.cs" />

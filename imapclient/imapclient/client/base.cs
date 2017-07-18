@@ -51,13 +51,6 @@ namespace work.bacome.imapclient
         public const string TraceSourceName = "work.bacome.cIMAPClient";
         private static readonly cTrace mTrace = new cTrace(TraceSourceName);
 
-        // events
-        public event PropertyChangedEventHandler PropertyChanged;
-        public event EventHandler<cResponseTextEventArgs> ResponseText;
-        public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged;
-        public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery;
-        public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged;
-
         // mechanics
         private bool mDisposed = false;
         private readonly cTrace.cContext mRootContext;
@@ -84,9 +77,19 @@ namespace work.bacome.imapclient
         {
             mRootContext = mTrace.NewRoot(pInstanceName);
             mRootContext.TraceInformation("cIMAPClient by bacome version {0}, release date {1}", Version, ReleaseDate);
-            mEventSynchroniser = new cEventSynchroniser(this, mRootContext);
+            mEventSynchroniser = new cEventSynchroniser(mRootContext);
             mAsyncCounter = new cAsyncCounter(mEventSynchroniser.PropertyChanged);
         }
+
+
+
+
+
+
+
+
+
+
 
         // the synchronisation context on which the events should be delivered
         //  if null, any context will do
@@ -97,6 +100,60 @@ namespace work.bacome.imapclient
             get => mEventSynchroniser.SynchronizationContext;
             set => mEventSynchroniser.SynchronizationContext = value;
         }
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add { mEventSynchroniser.PropertyChanged += value; }
+            remove { mEventSynchroniser.PropertyChanged -= value; }
+        }
+
+        public event EventHandler<cResponseTextEventArgs> ResponseText
+        {
+            add { mEventSynchroniser.ResponseText += value; }
+            remove { mEventSynchroniser.ResponseText -= value; }
+        }
+
+        public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged
+        {
+            add { mEventSynchroniser.MailboxPropertyChanged += value; }
+            remove { mEventSynchroniser.MailboxPropertyChanged -= value; }
+        }
+
+        public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery
+        {
+            add { mEventSynchroniser.MailboxMessageDelivery += value; }
+            remove { mEventSynchroniser.MailboxMessageDelivery -= value; }
+        }
+
+        public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged
+        {
+            add { mEventSynchroniser.MessagePropertyChanged += value; }
+            remove { mEventSynchroniser.MessagePropertyChanged -= value; }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         public int Timeout
         {

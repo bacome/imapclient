@@ -16,13 +16,11 @@ namespace work.bacome.imapclient
         private object mMessageDeliveryLock = new object();
 
         public readonly cIMAPClient Client;
-        public readonly cMailboxId MailboxId;
         public readonly iMailboxHandle Handle;
 
-        public cMailbox(cIMAPClient pClient, cMailboxId pMailboxId, iMailboxHandle pHandle)
+        public cMailbox(cIMAPClient pClient, iMailboxHandle pHandle)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            MailboxId = pMailboxId ?? throw new ArgumentNullException(nameof(pMailboxId));
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
         }
 
@@ -51,7 +49,7 @@ namespace work.bacome.imapclient
 
         private void ZMailboxPropertyChanged(object pSender, cMailboxPropertyChangedEventArgs pArgs)
         {
-            if (pArgs.MailboxId == MailboxId && ReferenceEquals(pArgs.Handle, Handle)) mPropertyChanged?.Invoke(this, pArgs);
+            if (ReferenceEquals(pArgs.Handle, Handle)) mPropertyChanged?.Invoke(this, pArgs);
         }
 
         public event EventHandler<cMessageDeliveryEventArgs> MessageDelivery
@@ -77,12 +75,12 @@ namespace work.bacome.imapclient
 
         private void ZMailboxMessageDelivery(object pSender, cMailboxMessageDeliveryEventArgs pArgs)
         {
-            if (pArgs.MailboxId == MailboxId && ReferenceEquals(pArgs.Handle, Handle)) mMessageDelivery?.Invoke(this, pArgs);
+            if (ReferenceEquals(pArgs.Handle, Handle)) mMessageDelivery?.Invoke(this, pArgs);
         }
 
         // convenience method
 
-        public string Name => MailboxId.MailboxName.Name;
+        public string Name => Handle.MailboxName.Name;
 
         // properties
 

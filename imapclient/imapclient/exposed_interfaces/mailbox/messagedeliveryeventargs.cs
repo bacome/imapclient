@@ -5,22 +5,20 @@ namespace work.bacome.imapclient
 {
     public class cMessageDeliveryEventArgs : EventArgs
     {
-        public readonly cHandleList Handles;
-        public cMessageDeliveryEventArgs(cHandleList pHandles) { Handles = pHandles; }
+        public readonly cMessageHandleList Handles;
+        public cMessageDeliveryEventArgs(cMessageHandleList pHandles) { Handles = pHandles; }
         public override string ToString() => $"{nameof(cMessageDeliveryEventArgs)}({Handles})";
     }
 
     public class cMailboxMessageDeliveryEventArgs : cMessageDeliveryEventArgs
     {
-        public readonly cMailboxId MailboxId;
         public readonly iMailboxHandle Handle;
 
-        public cMailboxMessageDeliveryEventArgs(cMailboxId pMailboxId, iMailboxHandle pHandle, cHandleList pHandles) : base(pHandles)
+        public cMailboxMessageDeliveryEventArgs(iMailboxHandle pHandle, cMessageHandleList pHandles) : base(pHandles)
         {
-            MailboxId = pMailboxId;
             Handle = pHandle;
         }
 
-        public override string ToString() => $"{nameof(cMailboxMessageDeliveryEventArgs)}({MailboxId},{Handle},{Handles})";
+        public override string ToString() => $"{nameof(cMailboxMessageDeliveryEventArgs)}({Handle},{Handles})";
     }
 }

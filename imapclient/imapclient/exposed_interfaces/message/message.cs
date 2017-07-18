@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-namespace work.bacome.imapclient.support;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -14,14 +14,12 @@ namespace work.bacome.imapclient
         private object mPropertyChangedLock = new object();
 
         public readonly cIMAPClient Client;
-        public readonly cMailboxId MailboxId;
         public readonly iMessageHandle Handle;
         public readonly int Indent; // Indicates the indent of the message. This only means something when compared to the indents of surrounding items in a threaded list of messages. It is a bit of a hack having it in this class.
 
-        public cMessage(cIMAPClient pClient, cMailboxId pMailboxId, iMessageHandle pHandle, int pIndent = -1)
+        public cMessage(cIMAPClient pClient, iMessageHandle pHandle, int pIndent = -1)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            MailboxId = pMailboxId ?? throw new ArgumentNullException(nameof(pMailboxId));
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
             Indent = pIndent;
         }

@@ -4,11 +4,11 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public class cHandleList : List<iMessageHandle>
+    public class cMessageHandleList : List<iMessageHandle>
     {
-        public cHandleList() { }
-        public cHandleList(iMessageHandle pHandle) : base(new iMessageHandle[] { pHandle }) { }
-        public cHandleList(IList<iMessageHandle> pHandles) : base(pHandles) { }
+        public cMessageHandleList() { }
+        public cMessageHandleList(iMessageHandle pHandle) : base(new iMessageHandle[] { pHandle }) { }
+        public cMessageHandleList(IList<iMessageHandle> pHandles) : base(pHandles) { }
 
         public void SortByCacheSequence() => Sort(ZCompareCacheSequence);
         public void Sort(cSort pSort) => Sort(pSort.Comparison);
@@ -17,16 +17,16 @@ namespace work.bacome.imapclient
 
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cHandleList));
+            var lBuilder = new cListBuilder(nameof(cMessageHandleList));
 
             object lLastCache = null;
 
             foreach (var lHandle in this)
             {
-                if (!ReferenceEquals(lHandle.Cache, lLastCache))
+                if (!ReferenceEquals(lHandle.MessageCache, lLastCache))
                 {
-                    lLastCache = lHandle.Cache;
-                    lBuilder.Append(lHandle.Cache);
+                    lLastCache = lHandle.MessageCache;
+                    lBuilder.Append(lHandle.MessageCache);
                 }
 
                 lBuilder.Append(lHandle.CacheSequence);

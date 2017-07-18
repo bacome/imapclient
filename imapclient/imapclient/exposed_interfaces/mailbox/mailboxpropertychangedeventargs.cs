@@ -6,15 +6,13 @@ namespace work.bacome.imapclient
 {
     public class cMailboxPropertyChangedEventArgs : PropertyChangedEventArgs
     {
-        public readonly cMailboxId MailboxId;
         public readonly iMailboxHandle Handle;
 
-        public cMailboxPropertyChangedEventArgs(cMailboxId pMailboxId, iMailboxHandle pHandle, string pPropertyName) : base(pPropertyName)
+        public cMailboxPropertyChangedEventArgs(iMailboxHandle pHandle, string pPropertyName) : base(pPropertyName)
         {
-            MailboxId = pMailboxId;
             Handle = pHandle;
         }
 
-        public override string ToString() => $"{nameof(cMailboxPropertyChangedEventArgs)}({MailboxId},{Handle},{PropertyName})";
+        public override string ToString() => $"{nameof(cMailboxPropertyChangedEventArgs)}({Handle},{PropertyName})";
     }
 }

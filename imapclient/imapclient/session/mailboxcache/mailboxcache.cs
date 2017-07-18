@@ -10,7 +10,8 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private class cMailboxCache
+            ;?; // this should be a processor and handle the status and list replies itself
+            private partial class cMailboxCache
             {
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cAccountId mConnectedAccountId;
@@ -24,7 +25,7 @@ namespace work.bacome.imapclient
 
                 public cSelectedMailbox SelectedMailbox { get; set; } = null;
 
-                public iMailboxCacheItem Item(string pEncodedMailboxName, cMailboxName pMailboxName) => ZItem(pEncodedMailboxName, pMailboxName);
+                public iMailboxHandle GetHandle(string pEncodedMailboxName, cMailboxName pMailboxName) => ZItem(pEncodedMailboxName, pMailboxName);
 
                 public void ResetExists(cMailboxNamePattern pPattern, int pMailboxFlagsSequence, cTrace.cContext pParentContext)
                 {
@@ -135,137 +136,6 @@ namespace work.bacome.imapclient
                 {
                     if (pMailboxName == null || pProperties == 0 || !mEventSynchroniser.AreMailboxPropertyChangedSubscriptions) return;
                     cSession.ZMailboxPropertiesChanged(mEventSynchroniser, new cMailboxId(mConnectedAccountId, pMailboxName), pProperties, pContext);
-                }
-
-                private class cItem : iMailboxCacheItem
-                {
-                    private cMailboxName mMailboxName = null;
-                    private bool? mExists = null;
-                    private cMailboxFlags mMailboxFlags = null;
-                    private cLSubFlags mLSubFlags = null;
-                    private cMailboxFlags mMergedFlags = null; // the merge between the mailbox and the lsub flags
-                    private cStatus mStatus = null;
-                    private cMailboxStatus mMailboxStatus = null;
-                    private Stopwatch mMailboxStatusStopwatch = null;
-                    private cMailboxBeenSelected mMailboxBeenSelected = cMailboxBeenSelected.No;
-
-                    public cItem() { }
-
-                    public cMailboxName MailboxName
-                    {
-                        get => mMailboxName;
-                        set => mMailboxName = value ?? throw new ArgumentNullException();
-                    }
-
-                    public bool? Exists => mExists;
-
-                    public fMailboxProperties ResetExists(cMailboxNamePattern pPattern, int pMailboxFlagsSequence)
-                    {
-                        if (mExists == false) return 0; // already done
-                        if (mMailboxName == null) return 0; // can't tell
-                        if (mMailboxFlags != null && mMailboxFlags.Sequence > pMailboxFlagsSequence) return 0; // been refreshed recently => probably still exists
-                        if (!pPattern.Matches(mMailboxName.Name)) return 0; // don't expect that it should have been refreshed
-                        return ZResetExists();
-                    }
-
-                    public fMailboxProperties ResetExists(int pMailboxStatusSequence)
-                    {
-                        if (mExists == false) return 0; // already done
-                        if (mMailboxStatus != null && mMailboxStatus.Sequence > pMailboxStatusSequence) return 0; // been refreshed recently => probably still exists
-                        return ZResetExists();
-                    }
-
-                    public cMailboxFlags MailboxFlags
-                    {
-                        get
-                        {
-                            if (mMergedFlags == null && mMailboxFlags != null) mMergedFlags = mMailboxFlags.Merge(mLSubFlags);
-                            return mMergedFlags;
-                        }
-                    }
-
-                    public fMailboxProperties SetMailboxFlags(cMailboxFlags pMailboxFlags)
-                    { 
-                        if (pMailboxFlags == null) throw new ArgumentNullException(nameof(pMailboxFlags));
-                        fMailboxProperties lDifferences = ZSetExists() | cMailboxFlags.Differences(mMailboxFlags, pMailboxFlags);
-                        mMailboxFlags = pMailboxFlags;
-                        mMergedFlags = null;
-                        return lDifferences;
-                    }
-
-                    public fMailboxProperties SetLSubFlags(cLSubFlags pLSubFlags)
-                    {
-                        if (pLSubFlags == null) throw new ArgumentNullException(nameof(pLSubFlags));
-                        var lDifferences = cLSubFlags.Differences(mLSubFlags, pLSubFlags);
-                        mLSubFlags = pLSubFlags;
-                        mMergedFlags = null;
-                        return lDifferences;
-                    }
-
-                    public fMailboxProperties ClearLSubFlags(cMailboxNamePattern pPattern, int pLSubFlagsSequence)
-                    {
-                        if (mLSubFlags == null) return 0;
-                        if (mMailboxName == null) return 0; // can't tell
-                        if (mLSubFlags.Sequence > pLSubFlagsSequence) return 0; // been refreshed recently
-                        if (!pPattern.Matches(mMailboxName.Name)) return 0; // don't expect that it should have been refreshed
-
-                        fMailboxProperties lDifferences = cLSubFlags.Differences(mLSubFlags, null);
-                        mLSubFlags = null;
-                        mMergedFlags = null;
-                        return lDifferences;
-                    }
-
-                    public cStatus Status
-                    {
-                        get => mStatus;
-                        set => mStatus = value ?? throw new ArgumentNullException();
-                    }
-
-                    public cMailboxStatus MailboxStatus => mMailboxStatus;
-
-                    public fMailboxProperties SetMailboxStatus(cMailboxStatus pMailboxStatus)
-                    {
-                        if (pMailboxStatus == null) throw new ArgumentNullException(nameof(pMailboxStatus));
-                        fMailboxProperties lDifferences = ZSetExists() | cMailboxStatus.Differences(mMailboxStatus, pMailboxStatus);
-                        mMailboxStatus = pMailboxStatus;
-                        if (mMailboxStatusStopwatch == null) mMailboxStatusStopwatch = Stopwatch.StartNew();
-                        else mMailboxStatusStopwatch.Restart();
-                        return lDifferences;
-                    }
-
-                    public long MailboxStatusAge => mMailboxStatusStopwatch?.ElapsedMilliseconds ?? long.MaxValue;
-
-                    public cMailboxBeenSelected MailboxBeenSelected => mMailboxBeenSelected;
-
-                    public fMailboxProperties UpdateMailboxBeenSelected(cMessageFlags pMessageFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags)
-                    {
-                        if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
-                        if (pPermanentFlags == null) throw new ArgumentNullException(nameof(pPermanentFlags));
-                        var lMailboxBeenSelected = mMailboxBeenSelected.Update(pMessageFlags, pSelectedForUpdate, pPermanentFlags);
-                        fMailboxProperties lDifferences = ZSetExists() | cMailboxBeenSelected.Differences(mMailboxBeenSelected, lMailboxBeenSelected);
-                        mMailboxBeenSelected = lMailboxBeenSelected;
-                        return lDifferences;
-                    }
-
-                    private fMailboxProperties ZResetExists()
-                    {
-                        mExists = false;
-                        mMailboxFlags = null;
-                        mLSubFlags = null;
-                        mMergedFlags = null;
-                        mStatus = null;
-                        mMailboxStatus = null;
-                        mMailboxStatusStopwatch = null;
-                        mMailboxBeenSelected = cMailboxBeenSelected.No;
-                        return fMailboxProperties.exists;
-                    }
-
-                    private fMailboxProperties ZSetExists()
-                    {
-                        if (mExists == true) return 0;
-                        mExists = true;
-                        return fMailboxProperties.exists;
-                    }
                 }
             }
         }
