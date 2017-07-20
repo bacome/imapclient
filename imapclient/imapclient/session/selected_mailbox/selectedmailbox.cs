@@ -18,6 +18,9 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
                 ;?;
 
+                public readonly string EncodedMailboxName;
+                public readonly cMailboxName MailboxName;
+
                 private readonly cMailboxCache mMailboxCache;
                 private readonly iMailboxHandle mHandle;
                 private readonly bool mSelectedForUpdate;
@@ -49,6 +52,7 @@ namespace work.bacome.imapclient
                 public bool SelectedForUpdate => mSelectedForUpdate;
                 public bool AccessReadOnly => mAccessReadOnly;
 
+                /*
                 public void SetAsSelected(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(SetAsSelected));
@@ -56,7 +60,7 @@ namespace work.bacome.imapclient
                     mHasBeenSetAsSelected = true;
                     mMessageCache.SetAsSelected(lContext);
                     mMailboxCache.UpdateMailboxBeenSelected(mEncodedMailboxName, mMailboxId.MailboxName, mMessageFlags, mSelectedForUpdate, mPermanentFlags, lContext);
-                }
+                } */
 
                 public bool CondStoreEnabled => mCondStoreEnabled;
 

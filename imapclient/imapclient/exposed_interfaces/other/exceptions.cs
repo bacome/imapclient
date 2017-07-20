@@ -197,16 +197,23 @@ namespace work.bacome.imapclient
         public cUIDValidityChangedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityChangedException));
     }
 
+    /*
     // thrown when the required account is not connected
     public class cAccountNotConnectedException : cIMAPException
     {
         public cAccountNotConnectedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cAccountNotConnectedException));
-    }
+    } */
 
     // thrown when the required mailbox is not selected
     public class cMailboxNotSelectedException : cIMAPException
     {
         public cMailboxNotSelectedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cMailboxNotSelectedException));
+    }
+
+    // thrown when an invalid handle is passed
+    public class cInvalidMailboxHandleException : cIMAPException
+    {
+        public cInvalidMailboxHandleException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInvalidMailboxHandleException));
     }
 
     // thrown when an invalid handle is passed

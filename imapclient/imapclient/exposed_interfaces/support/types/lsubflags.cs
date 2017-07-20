@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 
 namespace work.bacome.imapclient.support
 {
@@ -9,14 +8,11 @@ namespace work.bacome.imapclient.support
 
         private static readonly cLSubFlags kNullFlags = new cLSubFlags(0);
 
-        private static int mLastSequence = 0;
-
         public readonly int Sequence;
         public readonly fMailboxFlags Flags;
 
         public cLSubFlags(fMailboxFlags pFlags)
         {
-            Sequence = Interlocked.Increment(ref mLastSequence);
             Flags = pFlags;
         }
 
@@ -24,8 +20,6 @@ namespace work.bacome.imapclient.support
         public bool HasSubscribedChildren => (Flags & fMailboxFlags.hassubscribedchildren) != 0;
 
         public override string ToString() => $"{nameof(cLSubFlags)}({Sequence},{Flags})";
-
-        public static int LastSequence = mLastSequence;
 
         public static fMailboxProperties Differences(cLSubFlags pOld, cLSubFlags pNew)
         {
@@ -44,7 +38,7 @@ namespace work.bacome.imapclient.support
             lProperties |= ZPropertyIfDifferent(lOld, lNew, fMailboxFlags.subscribed, fMailboxProperties.issubscribed);
             lProperties |= ZPropertyIfDifferent(lOld, lNew, fMailboxFlags.hassubscribedchildren, fMailboxProperties.hassubscribedchildren);
 
-            if (lProperties != 0) lProperties |= fMailboxProperties.mailboxflags;
+            if (lProperties != 0) lProperties |= fMailboxProperties.flags;
 
             return lProperties;
         }

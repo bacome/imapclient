@@ -17,12 +17,13 @@ namespace work.bacome.imapclient
                 {
                     mCache = pCache;
                     mPattern = pPattern;
-                    mListFlagsLastSequence = pListFlagsLastSequence;
+                    mLastSequence = pLastSequence;
                 }
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mCache.SetNonExistent(mPattern, mListFlagsLastSequence);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookList), nameof(CommandCompleted), pResult, pException);
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mCache.ResetExists(mPattern, mLastSequence, lContext);
                 }
             }
         }

@@ -8,14 +8,14 @@ namespace work.bacome.imapclient
         {
             private class cStatus
             {
-                public readonly int? Messages;
-                public readonly int? Recent;
+                public readonly uint? Messages;
+                public readonly uint? Recent;
                 public readonly uint? UIDNext;
                 public readonly uint? UIDValidity;
-                public readonly int? Unseen;
+                public readonly uint? Unseen;
                 public readonly ulong? HighestModSeq;
 
-                public cStatus(int? pMessages, int? pRecent, uint? pUIDNext, uint? pUIDValidity, int? pUnseen, ulong? pHighestModSeq)
+                public cStatus(uint? pMessages, uint? pRecent, uint? pUIDNext, uint? pUIDValidity, uint? pUnseen, ulong? pHighestModSeq)
                 {
                     Messages = pMessages;
                     Recent = pRecent;

@@ -14,14 +14,17 @@ namespace work.bacome.imapclient
             // this class implements the methods in rfc3501 and extensions pretty much directly
 
             private bool mDisposed = false;
+
             private eState _State = eState.notconnected;
             private readonly cConnection mConnection = new cConnection();
+
             private readonly bool mMailboxReferrals;
             private readonly cEventSynchroniser mEventSynchroniser;
             private fCapabilities _IgnoreCapabilities;
             private readonly cResponseTextProcessor mResponseTextProcessor;
             private readonly cCommandPipeline mPipeline;
             private readonly cCapabilityDataProcessor mCapabilityDataProcessor;
+
             private cFetchSizer mFetchAttributesSizer;
             private cFetchSizer mFetchBodyReadSizer;
             private Encoding mEncoding; // can be null
@@ -39,7 +42,7 @@ namespace work.bacome.imapclient
             private cMailboxCache mMailboxCache = null;
 
             // selected mailbox
-            private cSelectedMailbox _SelectedMailbox = null;
+            //private cSelectedMailbox _SelectedMailbox = null;
 
             // locks
             private readonly cExclusiveAccess mSelectExclusiveAccess = new cExclusiveAccess("select", 1);
@@ -78,7 +81,11 @@ namespace work.bacome.imapclient
                 mEnableDone = true;
 
                 mStringFactory = new cCommandPart.cFactory((EnabledExtensions & fEnableableExtensions.utf8) != 0);
-                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId);
+                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mStringFactory, ZSetState);
+
+                mResponseTextProcessor.SetMailboxCache(mMailboxCache, lContext);
+                mPipeline.SetMailboxCache(mMailboxCache, lContext);
+
 
                 mStatusDataProcessor = new cStatusDataProcessor(mMailboxCache);
                 mPipeline.Install(mStatusDataProcessor);
@@ -130,13 +137,10 @@ namespace work.bacome.imapclient
             private void ZSetState(eState pState, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetState), pState);
-
                 if (pState == _State) return;
-
                 _State = pState;
                 mPipeline.SetState(pState, lContext);
-
-                mEventSynchroniser.PropertyChanged(nameof(cIMAPClient.State), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.State), lContext);
             }
 
             private void ZSetCapabilities(cCapabilities pCapabilities, cCapabilities pAuthenticationMechanisms, cTrace.cContext pParentContext)
@@ -161,7 +165,7 @@ namespace work.bacome.imapclient
                 mResponseTextProcessor.SetCapability(_Capability, lContext);
                 mPipeline.SetCapability(_Capability, lContext);
 
-                mEventSynchroniser.PropertyChanged(nameof(cIMAPClient.Capability), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Capability), lContext);
             }
 
             public cURL HomeServerReferral => _HomeServerReferral;
@@ -183,37 +187,6 @@ namespace work.bacome.imapclient
             }
 
             public bool SecurityInstalled => mConnection?.SecurityInstalled ?? false;
-
-            private void ZSetSelectedMailbox(cSelectedMailbox pSelectedMailbox, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetSelectedMailbox), pSelectedMailbox);
-
-                if (_SelectedMailbox == pSelectedMailbox) return; // should only happen when both are null
-
-                var lOldSelectedMailbox = _SelectedMailbox;
-                _SelectedMailbox = pSelectedMailbox;
-
-                if (_SelectedMailbox != null) _SelectedMailbox.SetAsSelected(lContext);
-
-                mResponseTextProcessor.SelectedMailbox = _SelectedMailbox;
-                mPipeline.SelectedMailbox = _SelectedMailbox;
-                mMailboxCache.SelectedMailbox = _SelectedMailbox;
-
-                // state change
-                if (_SelectedMailbox == null) ZSetState(eState.authenticated, lContext);
-                else ZSetState(eState.selected, lContext);
-
-                // mailbox events
-                if (lOldSelectedMailbox != null)
-                {
-                    mEventSynchroniser.MailboxPropertyChanged(lOldSelectedMailbox.MailboxId, nameof(cMailbox.Selected), lContext);
-                }
-
-                if (_SelectedMailbox != null)
-                {
-                    mEventSynchroniser.MailboxPropertyChanged(_SelectedMailbox.MailboxId, nameof(cMailbox.Selected), lContext);
-                }
-            }
 
             public ReadOnlyCollection<cNamespaceName> PersonalNamespaces { get; private set; } = null;
             public ReadOnlyCollection<cNamespaceName> OtherUsersNamespaces { get; private set; } = null;
@@ -253,12 +226,12 @@ namespace work.bacome.imapclient
                 OtherUsersNamespaces = pOtherUsers == null ? null : pOtherUsers.AsReadOnly();
                 SharedNamespaces = pShared == null ? null : pShared.AsReadOnly();
 
-                mEventSynchroniser.PropertyChanged(nameof(cIMAPClient.Namespaces), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Namespaces), lContext);
             }
 
             public cMailbox Inbox { get; set; } = null;
 
-            public iSelectedMailboxDetails SelectedMailboxDetails => _SelectedMailbox;
+            public iSelectedMailboxDetails SelectedMailboxDetails => mMailboxCache?.selectedmailbox;
 
             public iMailboxHandle GetMailboxHandle(cMailboxName pMailboxName)
             {

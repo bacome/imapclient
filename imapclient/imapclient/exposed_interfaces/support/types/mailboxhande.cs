@@ -4,12 +4,13 @@ namespace work.bacome.imapclient.support
 {
     public interface iMailboxHandle
     {
-        object MailboxCache { get; }
+        object Cache { get; }
         string EncodedMailboxName { get; }
+        cCommandPart CommandPart { get; }
         cMailboxName MailboxName { get; }
         bool? Exists { get; }
         cMailboxFlags MailboxFlags { get; } 
         cMailboxStatus MailboxStatus { get; }
-        cMailboxSelectedProperties MailboxSelectedProperties { get; } // not null
+        cMailboxSelectedProperties SelectedProperties { get; } // not null
     }
 }

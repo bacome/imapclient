@@ -14,29 +14,26 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kStatusCommandPartrfc3501Attributes = new cCommandPart(" (MESSAGES RECENT UIDNEXT UIDVALIDITY UNSEEN");
             private static readonly cCommandPart kStatusCommandPartHighestModSeq = new cCommandPart(" HIGHESTMODSEQ");
 
-            public async Task<cMailboxStatus> StatusAsync(cMethodControl pMC, cMailboxId pMailboxId, int pCacheAgeMax, cTrace.cContext pParentContext)
+            public async Task<cMailboxStatus> StatusAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StatusAsync), pMC, pMailboxId, pCacheAgeMax);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StatusAsync), pMC, pHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
-                if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
-
-                if (!mStringFactory.TryAsMailbox(pMailboxId.MailboxName, out var lMailboxCommandPart, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxId));
+                mMailboxCache.CheckHandle(pHandle, lContext);
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    if (_SelectedMailbox != null && _SelectedMailbox.MailboxId == pMailboxId) return mMailboxCache.Item(pMailboxId).Status;
-
-                    if (pCacheAgeMax > 0)
-                    {
-                        var lItem = mMailboxCache.Item(pMailboxId);
-                        if (lItem.StatusAge <= pCacheAgeMax) return lItem.Status;
-                    }
+                    var lHandle = mMailboxCache.SelectedMailboxDetails?.Handle;
+                    if (lHandle == pHandle) return lHandle.MailboxStatus;
 
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // status is msnunsafe
+
+
+                    ccom
+
 
                     lCommand.Add(kStatusStatusCommandPart);
                     lCommand.Add(lMailboxCommandPart);
@@ -72,46 +69,6 @@ namespace work.bacome.imapclient
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
                     throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
-                }
-            }
-
-            private class cStatusCommandHook : cCommandHook
-            {
-
-                private string mEncodedMailboxName;
-
-                public cStatusCommandHook(string pEncodedMailboxName)
-                {
-                    mEncodedMailboxName = pEncodedMailboxName;
-                }
-
-                public cStatus Status { get; private set; } = null;
-
-                public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cStatusCommandHook), nameof(ProcessData));
-
-                    cResponseDataStatus lStatus;
-
-                    if (pCursor.Parsed)
-                    {
-                        lStatus = pCursor.ParsedAs as cResponseDataStatus;
-                        if (lStatus == null) return eProcessDataResult.notprocessed;
-                    }
-                    else
-                    {
-                        if (!pCursor.SkipBytes(kStatusSpace)) return eProcessDataResult.notprocessed;
-
-                        if (!cResponseDataStatus.Process(pCursor, out lStatus, lContext))
-                        {
-                        }
-                    }
-
-                    if (lStatus.EncodedMailboxName != mEncodedMailboxName) return eProcessDataResult.notprocessed;
-
-                    Status = cStatus.Combine(lStatus.Status, Status);
-
-                    return eProcessDataResult.observed;
                 }
             }
         }

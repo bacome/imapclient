@@ -96,7 +96,7 @@ namespace work.bacome.imapclient
         ;?; // this isn't right - it should be like the message ones and do the fetch if required
 
 
-        public cMailboxFlags Flags => Client.MailboxCacheItem(MailboxId).MailboxFlags;
+        public cMailboxFlags MailboxFlags => Client.MailboxCacheItem(MailboxId).MailboxFlags;
         public bool CanHaveChildren => Client.MailboxCacheItem(MailboxId).MailboxFlags.CanHaveChildren;
         public bool CanSelect => Client.MailboxCacheItem(MailboxId).MailboxFlags.CanSelect;
         public bool? IsMarked => Client.MailboxCacheItem(MailboxId).MailboxFlags.IsMarked;

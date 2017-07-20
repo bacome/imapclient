@@ -20,13 +20,17 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kUIDNextSpace = new cBytes("UIDNEXT ");
                 private static readonly cBytes kUIDValiditySpace = new cBytes("UIDVALIDITY ");
                 private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
+                private static readonly cBytes kNoModSeqRBracketSpace = new cBytes("NOMODSEQ] ");
                 private static readonly cBytes kReadWriteRBracketSpace = new cBytes("READ-WRITE] ");
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
 
-                private bool mDeselectRequired;
+                private readonly string mEncodedMailboxName;
+                private readonly cMailboxName mMailboxName;
+                private readonly bool mSelectedForUpdate;
                 private readonly cCapability mCapability;
-                private readonly Action<cSelectedMailbox, cTrace.cContext> mSetSelectedMailbox;
+                private readonly cMailboxCache mMailboxCache;
 
+                private bool mDeselectDone = false;
                 private cMessageFlags mFlags = null;
                 private int mExists = 0;
                 private int mRecent = 0;
@@ -36,20 +40,22 @@ namespace work.bacome.imapclient
                 private uint mHighestModSeq = 0;
                 private bool mAccessReadOnly = false;
 
-                public cCommandHookSelect(bool pDeselectRequired, cCapability pCapability, bool pSelectedForUpdate, Action<cSelectedMailbox, cTrace.cContext> pSetSelectedMailbox)
+                public cCommandHookSelect(string pEncodedMailboxName, cMailboxName pMailboxName, bool pSelectedForUpdate, cCapability pCapability, cMailboxCache pMailboxCache)
                 {
-                    mDeselectRequired = pDeselectRequired;
+                    mEncodedMailboxName = pEncodedMailboxName ?? throw new ArgumentNullException(nameof(pEncodedMailboxName));
+                    mMailboxName = pMailboxName ?? throw new ArgumentNullException(nameof(pMailboxName));
+                    mSelectedForUpdate = pSelectedForUpdate;
                     mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
-                    mSetSelectedMailbox = pSetSelectedMailbox ?? throw new ArgumentNullException(nameof(pSetSelectedMailbox));
+                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                 }
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandStarted));
 
-                    if (mDeselectRequired && !mCapability.QResync)
+                    if (!mCapability.QResync)
                     {
-                        mDeselectRequired = false;
+                        mDeselectDone = true;
                         mSetSelectedMailbox(null, lContext);
                     }
                 }
@@ -58,13 +64,13 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessData));
 
-                    if (mDeselectRequired) return eProcessDataResult.notprocessed;
+                    if (!mDeselectDone) return eProcessDataResult.notprocessed;
 
                     if (pCursor.SkipBytes(kFlagsSpace))
                     {
                         if (pCursor.GetFlags(out var lFlags) && pCursor.Position.AtEnd)
                         {
-                            lContext.TraceVerbose("got flags available for messages in the mailbox: {0}", lFlags);
+                            lContext.TraceVerbose("got flags: {0}", lFlags);
                             mFlags = new cMessageFlags(lFlags);
                             return eProcessDataResult.processed;
                         }
@@ -79,7 +85,7 @@ namespace work.bacome.imapclient
                         {
                             if (pCursor.Position.AtEnd)
                             {
-                                lContext.TraceVerbose("got the number of messages in the mailbox: {0}", lNumber);
+                                lContext.TraceVerbose("got exists: {0}", lNumber);
                                 mExists = (int)lNumber;
                                 return eProcessDataResult.processed;
                             }
@@ -92,7 +98,7 @@ namespace work.bacome.imapclient
                         {
                             if (pCursor.Position.AtEnd)
                             {
-                                lContext.TraceVerbose("got the number of recent messages in the mailbox: {0}", lNumber);
+                                lContext.TraceVerbose("got recent: {0}", lNumber);
                                 mRecent = (int)lNumber;
                                 return eProcessDataResult.processed;
                             }
@@ -109,27 +115,18 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode));
 
-                    if (mDeselectRequired)
+                    if (!mDeselectDone)
                     {
                         if (pCursor.SkipBytes(kClosedRBracketSpace))
                         {
                             lContext.TraceVerbose("got closed");
-                            mDeselectRequired = false;
+                            mDeselectDone = true;
                             mSetSelectedMailbox(null, lContext);
                             return true;
                         }
 
                         return false;
                     }
-
-                    ;?;
-
-
-
-
-
-
-
 
                     if (pCursor.SkipBytes(kUnseenSpace))
                     {
@@ -140,6 +137,7 @@ namespace work.bacome.imapclient
                         }
 
                         lContext.TraceWarning("likely malformed unseen response");
+                        return false;
                     }
 
                     if (pCursor.SkipBytes(kPermanentFlagsSpace))
@@ -148,11 +146,24 @@ namespace work.bacome.imapclient
                         {
                             lContext.TraceVerbose("got permanentflags: {0}", lFlags);
                             mPermanentFlags = new cMessageFlags(lFlags);
-                            if (mHasBeenSetAsSelected) mMailboxCache.UpdateMailboxBeenSelected(mEncodedMailboxName, mMailboxId.MailboxName, mMessageFlags, mSelectedForUpdate, mPermanentFlags, lContext);
                             return true;
                         }
 
                         lContext.TraceWarning("likely malformed permanentflags response");
+                        return false;
+                    }
+
+                    if (pCursor.SkipBytes(kUIDNextSpace))
+                    {
+                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                        {
+                            lContext.TraceVerbose("got uidnext: {0}", lNumber);
+                            mUIDNext = lNumber;
+                            return true;
+                        }
+
+                        lContext.TraceWarning("likely malformed uidnext response");
+                        return false;
                     }
 
                     if (pCursor.SkipBytes(kUIDValiditySpace))
@@ -160,51 +171,49 @@ namespace work.bacome.imapclient
                         if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                         {
                             lContext.TraceVerbose("got uidvalidity: {0}", lNumber);
-                            mMessageCache = new cMessageCache(mMessageCache, lNumber);
+                            mUIDValidity = lNumber;
                             return true;
                         }
 
                         lContext.TraceWarning("likely malformed uidvalidity response");
+                        return false;
+                    }
+
+                    if (pCursor.SkipBytes(kHighestModSeqSpace))
+                    {
+                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                        {
+                            lContext.TraceVerbose("got highestmodseq: {0}", lNumber);
+                            mHighestModSeq = lNumber;
+                            return true;
+                        }
+
+                        lContext.TraceWarning("likely malformed highestmodseq response");
+                        return false;
+                    }
+
+                    if (pCursor.SkipBytes(kNoModSeqRBracketSpace))
+                    {
+                        lContext.TraceVerbose("got nomodseq");
+                        mHighestModSeq = 0;
+                        return true;
                     }
 
                     if (pCursor.SkipBytes(kReadWriteRBracketSpace))
                     {
                         lContext.TraceVerbose("got read-write");
                         mAccessReadOnly = false;
-                        if (mHasBeenSetAsSelected) mEventSynchroniser.MailboxPropertyChanged(MailboxId, nameof(iMailboxProperties.AccessReadOnly), lContext);
                         return true;
                     }
 
                     if (pCursor.SkipBytes(kReadOnlyRBracketSpace))
                     {
                         lContext.TraceVerbose("got read-only");
-                        AccessReadOnly = true;
-                        if (mHasBeenSetAsSelected) mEventSynchroniser.MailboxPropertyChanged(MailboxId, nameof(iMailboxProperties.AccessReadOnly), lContext);
+                        mAccessReadOnly = true;
                         return true;
                     }
 
-                    ;?; // highest mod seq
-
-                    ;?; // nomodseq
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                    return false;
                 }
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
@@ -213,9 +222,22 @@ namespace work.bacome.imapclient
 
                     if (pResult != null && pResult.ResultType == eCommandResultType.ok)
                     {
+                        var lHandle = mMailboxCache.GetHandle(mEncodedMailboxName, mMailboxName);
+                        mMailboxCache.UpdateMailboxSelectedProperties(lHandle, )
+
+
+                        mMailboxCache.
+
+                        ;?;
+                        var lSelectedMailbox = new cSelectedMailbox(mMailboxCache, lHandle, mSelectedForUpdate, mCapability, mFlags, mPermanentFlags, )
+
+
+                        mMailboxCache.UpdateMailboxSelectedProperties(lHandle, new cMailboxStatus(mExists, mRecent, mUIDNext, )
+
+
                         ;?; // this is where the cache is created/updated
                         ;?; // this is where rthe new mailbox is created
-                        mSetSelectedMailbox(mPendingSelectedMailbox, lContext);
+                        mSetSelectedMailbox(lSelectedMailbox, lContext);
                     }
                 }
             }

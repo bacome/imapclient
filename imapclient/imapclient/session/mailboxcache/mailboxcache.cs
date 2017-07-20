@@ -9,19 +9,213 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private partial class cMailboxCache : iUnsolicitedDataProcessor
+            private partial class cMailboxCache
             {
+                private static readonly cBytes kFlagsSpace = new cBytes("FLAGS ");
+                private static readonly cBytes kStatusSpace = new cBytes("STATUS ");
+                private static readonly cBytes kMessagesSpace = new cBytes("MESSAGES ");
+                private static readonly cBytes kRecentSpace = new cBytes("RECENT ");
+                private static readonly cBytes kUIDNextSpace = new cBytes("UIDNEXT ");
+                private static readonly cBytes kUIDValiditySpace = new cBytes("UIDVALIDITY ");
+                private static readonly cBytes kUnseenSpace = new cBytes("UNSEEN ");
+                private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
+
+                private enum eProcessStatusAttributeResult { notprocessed, processed, error }
+
+                private static int mLastSequence = 0;    
+
+                ;?; // don't forget to call this from the dataprocessor of the pipeline
+
+
+
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cAccountId mConnectedAccountId;
+                private readonly cCommandPart.cFactory mStringFactory;
+                private readonly Action<eState, cTrace.cContext> mSetState;
+
                 private readonly ConcurrentDictionary<string, cItem> mDictionary = new ConcurrentDictionary<string, cItem>();
 
-                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId)
+                private cSelectedMailbox mSelectedMailbox = null;
+
+                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, cCommandPart.cFactory pStringFactory, Action<eState, cTrace.cContext> pSetState)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mConnectedAccountId = pConnectedAccountId ?? throw new ArgumentNullException(nameof(pConnectedAccountId));
+                    mStringFactory = pStringFactory ?? throw new ArgumentNullException(nameof(pStringFactory));
+                    mSetState = pSetState ?? throw new ArgumentNullException(nameof(pSetState));
                 }
 
-                public iMailboxHandle GetHandle(string pEncodedMailboxName, cMailboxName pMailboxName) => ZItem(pEncodedMailboxName, pMailboxName);
+                public iMailboxHandle GetHandle(cMailboxName pMailboxName) => ZItem(pMailboxName);
+
+                public void CheckHandle(iMailboxHandle pHandle, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(CheckHandle), pHandle);
+                    if (!mDictionary.TryGetValue(pHandle.EncodedMailboxName, out var lItem)) throw new cInvalidMailboxHandleException(lContext);
+                    if (!ReferenceEquals(lItem, pHandle)) throw new cInvalidMailboxHandleException(lContext);
+                }
+
+                public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ProcessData));
+
+                    if (mSelectedMailbox != null)
+                    {
+                        if (pCursor.SkipBytes(kFlagsSpace))
+                        {
+                            if (pCursor.GetFlags(out var lFlags) && pCursor.Position.AtEnd)
+                            {
+                                lContext.TraceVerbose("got flags: {0}", lFlags);
+
+                                var lItem = mSelectedMailbox.Handle as cItem;
+                                lItem.SetMessageFlags(new cMessageFlags(lFlags), lContext);
+                                return eProcessDataResult.processed;
+                            }
+
+                            lContext.TraceWarning("likely malformed flags response");
+                            return eProcessDataResult.notprocessed;
+                        }
+
+                        ;?; // route to the selected mailbox (exists and recent)
+                    }
+
+                    if (pCursor.SkipBytes(kStatusSpace))
+                    {
+                        if (!pCursor.GetAString(out string lEncodedMailboxName) ||
+                            !pCursor.SkipBytes(cBytesCursor.SpaceLParen) ||
+                            !ZProcessStatusAttributes(pCursor, out var lStatus, lContext) ||
+                            !pCursor.SkipByte(cASCII.RPAREN) ||
+                            !pCursor.Position.AtEnd)
+                        {
+                            lContext.TraceWarning("likely malformed status response");
+                            return eProcessDataResult.notprocessed;
+                        }
+
+                        var lItem = ZItem(lEncodedMailboxName);
+
+                        ;?; // sequence interlocked
+                        Sequence = Interlocked.Increment(ref mLastSequence);
+
+
+                        lItem.UpdateStatus(lStatus);
+
+                        if (!ReferenceEquals(lItem, mSelectedMailbox?.Handle))
+                        {
+                            var lProperties = lItem.UpdateMailboxStatus();
+                            if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(lItem, lProperties, lContext);
+                        }
+
+                        return eProcessDataResult.processed;
+                    }
+
+                    ;?;
+
+
+
+
+
+
+
+
+                }
+
+
+                private static bool ZProcessStatusAttributes(cBytesCursor pCursor, out cStatus rStatus, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessStatusAttributes));
+
+                    uint? lMessages = 0;
+                    uint? lRecent = 0;
+                    uint? lUIDNext = 0;
+                    uint? lUIDValidity = 0;
+                    uint? lUnseen = 0;
+                    ulong? lHighestModSeq = 0;
+
+                    while (true)
+                    {
+                        eProcessStatusAttributeResult lResult;
+
+                        lResult = ZProcessStatusAttribute(pCursor, kMessagesSpace, ref lMessages, lContext);
+
+                        if (lResult == eProcessStatusAttributeResult.notprocessed)
+                        {
+                            lResult = ZProcessStatusAttribute(pCursor, kRecentSpace, ref lRecent, lContext);
+
+                            if (lResult == eProcessStatusAttributeResult.notprocessed)
+                            {
+                                lResult = ZProcessStatusAttribute(pCursor, kUIDNextSpace, ref lUIDNext, lContext);
+
+                                if (lResult == eProcessStatusAttributeResult.notprocessed)
+                                {
+                                    lResult = ZProcessStatusAttribute(pCursor, kUIDValiditySpace, ref lUIDValidity, lContext);
+
+                                    if (lResult == eProcessStatusAttributeResult.notprocessed)
+                                    {
+                                        lResult = ZProcessStatusAttribute(pCursor, kUnseenSpace, ref lUnseen, lContext);
+
+                                        if (lResult == eProcessStatusAttributeResult.notprocessed) lResult = ZProcessStatusAttribute(pCursor, kHighestModSeqSpace, ref lHighestModSeq, lContext);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (lResult != eProcessStatusAttributeResult.processed)
+                        {
+                            rStatus = null;
+                            return false;
+                        }
+
+                        if (!pCursor.SkipByte(cASCII.SPACE))
+                        {
+                            rStatus = new cStatus(lMessages, lRecent, lUIDNext, lUIDValidity, lUnseen, lHighestModSeq);
+                            return true;
+                        }
+                    }
+                }
+
+                private static eProcessStatusAttributeResult ZProcessStatusAttribute(cBytesCursor pCursor, cBytes pAttributeSpace, ref uint? rNumber, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessStatusAttribute), pAttributeSpace);
+
+                    if (!pCursor.SkipBytes(pAttributeSpace)) return eProcessStatusAttributeResult.notprocessed;
+
+                    if (pCursor.GetNumber(out _, out var lNumber))
+                    {
+                        lContext.TraceVerbose("got {0}", lNumber);
+                        rNumber = lNumber;
+                        return eProcessStatusAttributeResult.processed;
+                    }
+
+                    lContext.TraceWarning("likely malformed status-att-list-item: no number?");
+                    return eProcessStatusAttributeResult.error;
+                }
+
+                private static eProcessStatusAttributeResult ZProcessStatusAttribute(cBytesCursor pCursor, cBytes pAttributeSpace, ref ulong? rNumber, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessStatusAttribute));
+
+                    if (!pCursor.SkipBytes(pAttributeSpace)) return eProcessStatusAttributeResult.notprocessed;
+
+                    if (pCursor.GetNumber(out var lNumber))
+                    {
+                        lContext.TraceVerbose("got {0}", lNumber);
+                        rNumber = lNumber;
+                        return eProcessStatusAttributeResult.processed;
+                    }
+
+                    lContext.TraceWarning("likely malformed status-att-list-item: no number?");
+                    return eProcessStatusAttributeResult.error;
+                }
+
+
+
+
+
+
+
+
+
+
+
 
                 public void ResetExists(cMailboxNamePattern pPattern, int pMailboxFlagsSequence, cTrace.cContext pParentContext)
                 {
@@ -29,6 +223,16 @@ namespace work.bacome.imapclient
 
                     foreach (var lItem in mDictionary.Values)
                     {
+                        if (lItem.Exists && lItem.MailboxName != null && lItem.MailboxFlagSequence 
+
+
+
+
+
+
+
+
+
                         var lProperties = lItem.ResetExists(pPattern, pMailboxFlagsSequence);
                         if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(lItem, lProperties, lContext);
                     }
@@ -100,43 +304,48 @@ namespace work.bacome.imapclient
                     var lProperties = lItem.SetMailboxStatus(lMailboxStatus);
                     if (lProperties != 0) ZMailboxPropertiesChanged(lItem.MailboxName, lProperties, lContext);
                 } */
-                
-                public void SetMailboxStatus(iMailboxHandle pHandle, cMailboxStatus pStatus, cTrace.cContext pParentContext)
-                {
-                    // should only be called for the selected mailbox
 
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(SetMailboxStatus), pHandle, pStatus);
+                public iSelectedMailboxDetails SelectedMailboxDetails => mSelectedMailbox;
+
+                public void Select(string pEncodedMailboxName, cMailboxName pMailboxName, bool pSelectedForUpdate, cMailboxStatus pStatus, cMessageFlags pFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags, cTrace.cContext pParentContext)
+                {
+                    // should only be called just before the mailbox is selected
+
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(UpdateMailboxSelectedProperties), pHandle, pFlags, pSelectedForUpdate, pPermanentFlags);
 
                     if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                     if (pStatus == null) throw new ArgumentNullException(nameof(pStatus));
+                    if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
                     var lItem = pHandle as cItem;
                     if (lItem == null) throw new ArgumentOutOfRangeException(nameof(pHandle));
 
-                    var lProperties = lItem.SetMailboxStatus(pStatus);
+                    var lProperties = lItem.UpdateMailboxSelectedProperties(pStatus, pFlags, pSelectedForUpdate, pPermanentFlags);
                     if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
+
+
+                    mSetState(eState.selected, lContext);
                 }
 
-                public void UpdateMailboxSelectedProperties(iMailboxHandle pHandle, cMessageFlags pMessageFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags, cTrace.cContext pParentContext)
+                public void Deselect()
                 {
-                    // should only be called for the selected mailbox
+                    ;?;
 
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(UpdateMailboxSelectedProperties), pHandle, pMessageFlags, pSelectedForUpdate, pPermanentFlags);
 
-                    if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-                    if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
-
-                    var lItem = pHandle as cItem;
-                    if (lItem == null) throw new ArgumentOutOfRangeException(nameof(pHandle));
-
-                    var lProperties = lItem.UpdateMailboxSelectedProperties(pMessageFlags, pSelectedForUpdate, pPermanentFlags);
-                    if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
+                    mSetState(eState.authenticated, lContext);
                 }
 
-                private cItem ZItem(string pEncodedMailboxName, cMailboxName pMailboxName)
+                public static int LastSequence = mLastSequence;
+
+                private cItem ZItem(string pEncodedMailboxName) => mDictionary.GetOrAdd(pEncodedMailboxName, new cItem(this, mEventSynchroniser, pEncodedMailboxName));
+
+                private cItem ZItem(cMailboxName pMailboxName)
                 {
-                    cItem lItem = mDictionary.GetOrAdd(pEncodedMailboxName, new cItem(this, pEncodedMailboxName));
-                    if (lItem.MailboxName == null && pMailboxName != null) lItem.MailboxName = pMailboxName;
+                    if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
+                    if (!mStringFactory.TryAsMailbox(pMailboxName, out var lCommandPart, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
+                    var lItem = mDictionary.GetOrAdd(lEncodedMailboxName, new cItem(this, mEventSynchroniser, lEncodedMailboxName));
+                    lItem.MailboxName = pMailboxName;
+                    lItem.CommandPart = lCommandPart;
                     return lItem;
                 }
             }

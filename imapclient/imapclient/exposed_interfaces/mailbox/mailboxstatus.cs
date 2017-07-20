@@ -5,9 +5,6 @@ namespace work.bacome.imapclient
 {
     public class cMailboxStatus
     {
-        private static int mLastSequence = 0;
-
-        public readonly int Sequence;
         public readonly int MessageCount;
         public readonly int RecentCount;
         public readonly uint UIDNext;
@@ -17,9 +14,20 @@ namespace work.bacome.imapclient
         public readonly int UnseenUnknownCount; // the number of messages in the mailbox for which we don't know if they are seen or unseen (indicates the inaccuracy of Unseen)
         public readonly ulong HighestModSeq;
 
+        public cMailboxStatus(uint pMessages, uint pRecent, uint pUIDNext, uint pUIDValidity, uint pUnseen, ulong pHighestModSeq)
+        {
+            MessageCount = (int)pMessages;
+            RecentCount = (int)pRecent;
+            UIDNext = pUIDNext;
+            NewUnknownUIDCount = 0;
+            UIDValidity = pUIDValidity;
+            UnseenCount = (int)pUnseen;
+            UnseenUnknownCount = 0;
+            HighestModSeq = pHighestModSeq;
+        }
+
         public cMailboxStatus(int pMessageCount, int pRecentCount, uint pUIDNext, int pNewKnownUIDCount, uint pUIDValidity, int pUnseenCount, int pUnseenUnknownCount, ulong pHighestModSeq)
         {
-            Sequence = Interlocked.Increment(ref mLastSequence);
             MessageCount = pMessageCount;
             RecentCount = pRecentCount;
             UIDNext = pUIDNext;
@@ -31,8 +39,6 @@ namespace work.bacome.imapclient
         }
 
         public override string ToString() => $"{nameof(cMailboxStatus)}({MessageCount},{RecentCount},{UIDNext},{NewUnknownUIDCount},{UIDValidity},{UnseenCount},{UnseenUnknownCount},{HighestModSeq})";
-
-        public static int LastSequence = mLastSequence;
 
         public static fMailboxProperties Differences(cMailboxStatus pOld, cMailboxStatus pNew)
         {
@@ -51,7 +57,7 @@ namespace work.bacome.imapclient
             if (pOld.UnseenUnknownCount != pNew.UnseenUnknownCount) lProperties |= fMailboxProperties.messagecount;
             if (pOld.HighestModSeq != pNew.HighestModSeq) lProperties |= fMailboxProperties.messagecount;
 
-            if (lProperties != 0) lProperties |= fMailboxProperties.mailboxstatus;
+            if (lProperties != 0) lProperties |= fMailboxProperties.status;
 
             return lProperties;
         }

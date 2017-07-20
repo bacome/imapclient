@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
 
         exists = 1 << 1,
 
-        flags = 1 << 2,
+        mailboxflags = 1 << 2,
         canhavechildren = 1 << 3,
         canselect = 1 << 4,
         ismarked = 1 << 5,

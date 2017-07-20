@@ -48,6 +48,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kUnknownCTERBracketSpace = new cBytes("UNKNOWN-CTE] ");
 
                 private readonly Action<eResponseTextType, cResponseText, cTrace.cContext> mFireResponseText;
+                private cMailboxCache mMailboxCache = null;
                 private bool mMailboxReferrals = false;
 
                 public cResponseTextProcessor(Action<eResponseTextType, cResponseText, cTrace.cContext> pFireResponseText)
@@ -55,13 +56,18 @@ namespace work.bacome.imapclient
                     mFireResponseText = pFireResponseText ?? throw new ArgumentNullException(nameof(pFireResponseText));
                 }
 
+                public void SetMailboxCache(cMailboxCache pMailboxCache, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(SetMailboxCache));
+                    if (mMailboxCache != null) throw new InvalidOperationException();
+                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
+                }
+
                 public void SetCapability(cCapability pCapability, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(SetCapability), pCapability.MailboxReferrals);
                     mMailboxReferrals = pCapability.MailboxReferrals;
                 }
-
-                public cSelectedMailbox SelectedMailbox { get; set; } = null;
 
                 public cResponseText Process(cBytesCursor pCursor, eResponseTextType pTextType, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
                 {
@@ -167,9 +173,9 @@ namespace work.bacome.imapclient
                         pCursor.Position = lBookmarkAfterLBRACET;
                     }
 
-                    if (SelectedMailbox != null)
+                    if (mMailboxCache != null)
                     {
-                        if (SelectedMailbox.ProcessTextCode(pCursor, lContext))
+                        if (mMailboxCache.ProcessTextCode(pCursor, lContext))
                         {
                             lResponseText = new cResponseText(pCursor.GetRestAsString());
                             lContext.TraceVerbose("response text received: {0}", lResponseText);

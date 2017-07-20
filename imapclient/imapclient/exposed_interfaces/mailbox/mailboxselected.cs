@@ -4,11 +4,13 @@ namespace work.bacome.imapclient
 {
     public class cMailboxSelected
     {
+        public static readonly cMailboxSelected NotSelected = new cMailboxSelected();
+
         public readonly bool IsSelected;
         public readonly bool IsSelectedForUpdate;
         public readonly bool IsAccessReadOnly;
 
-        public cMailboxSelected()
+        private cMailboxSelected()
         {
             IsSelected = false;
             IsSelectedForUpdate = false;
@@ -35,7 +37,7 @@ namespace work.bacome.imapclient
             if (pOld.IsSelectedForUpdate != pNew.IsSelectedForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
             if (pOld.IsAccessReadOnly != pNew.IsAccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
 
-            if (lProperties != 0) lProperties |= fMailboxProperties.mailboxselected;
+            if (lProperties != 0) lProperties |= fMailboxProperties.selected;
 
             return lProperties;
         }

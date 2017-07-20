@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
                 private cIdleConfiguration mIdleConfiguration;
                 private readonly Action<cTrace.cContext> mDisconnect;
                 private readonly List<iUnsolicitedDataProcessor> mUnsolicitedDataProcessors = new List<iUnsolicitedDataProcessor>();
-                private bool mSelected = false; // based on state
+                private cMailboxCache mMailboxCache = null;
                 private bool mIdleAllowed = false; // based on state
                 private bool mIdleCommandSupported = false; // based on capability
                 private bool mLiteralPlus = false; // based on capability
@@ -55,11 +55,19 @@ namespace work.bacome.imapclient
                     mBackgroundTask = ZBackgroundTaskAsync(lContext);
                 }
 
+                public void Install(iUnsolicitedDataProcessor pResponseDataProcessor) => mUnsolicitedDataProcessors.Add(pResponseDataProcessor);
+
+                public void SetMailboxCache(cMailboxCache pMailboxCache, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetMailboxCache));
+                    if (mMailboxCache != null) throw new InvalidOperationException();
+                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
+                }
+
                 public void SetState(eState pState, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetState), pState);
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
-                    mSelected = pState == eState.selected;
                     bool lIdleAllowed = (pState == eState.authenticated || pState == eState.selected);
                     if (lIdleAllowed == mIdleAllowed) return;
                     mIdleAllowed = lIdleAllowed;
@@ -89,10 +97,6 @@ namespace work.bacome.imapclient
                     mLiteralPlus = pCapability.LiteralPlus;
                     mLiteralMinus = pCapability.LiteralMinus;
                 }
-
-                public void Install(iUnsolicitedDataProcessor pResponseDataProcessor) => mUnsolicitedDataProcessors.Add(pResponseDataProcessor);
-
-                public cSelectedMailbox SelectedMailbox { get; set; }
 
                 public async Task<cExclusiveAccess.cToken> GetIdleBlockTokenAsync(cMethodControl pMC, cTrace.cContext pParentContext)
                 {
@@ -648,9 +652,9 @@ namespace work.bacome.imapclient
 
                     var lResult = eProcessDataResult.notprocessed;
 
-                    if (SelectedMailbox != null)
+                    if (mMailboxCache != null)
                     {
-                        ZProcessDataWorker(ref lResult, SelectedMailbox.ProcessData(pCursor, lContext), lContext);
+                        ZProcessDataWorker(ref lResult, mMailboxCache.ProcessData(pCursor, lContext), lContext);
                         pCursor.Position = lBookmark;
                     }
 

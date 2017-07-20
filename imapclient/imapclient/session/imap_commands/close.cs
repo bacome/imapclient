@@ -28,6 +28,7 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(kCloseCommandPart);
 
+                    ;?; // should be via mailboxcache
                     var lHook = new cCloseCommandHook(ZSetSelectedMailbox);
                     lCommand.Add(lHook);
 

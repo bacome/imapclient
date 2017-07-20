@@ -23,32 +23,66 @@ namespace work.bacome.imapclient
             mReadOnlyPermanentFlags = null;
         }
 
-        private cMailboxSelectedProperties(cMailboxSelectedProperties pHasBeenSelected, cMessageFlags pMessageFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags)
+        public cMailboxSelectedProperties(cMailboxSelectedProperties pSelectedProperties, cMessageFlags pMessageFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags)
         {
+            if (pSelectedProperties == null) throw new ArgumentNullException(nameof(pSelectedProperties));
+            if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
+
             mBeenSelected = true;
 
             if (pSelectedForUpdate)
             {
                 mBeenSelectedForUpdate = true;
-                mBeenSelectedReadOnly = pHasBeenSelected.mBeenSelectedReadOnly;
+                mBeenSelectedReadOnly = pSelectedProperties.mBeenSelectedReadOnly;
                 mForUpdatePermanentFlags = pPermanentFlags;
-                mReadOnlyPermanentFlags = pHasBeenSelected.mReadOnlyPermanentFlags;
+                mReadOnlyPermanentFlags = pSelectedProperties.mReadOnlyPermanentFlags;
             }
             else
             {
-                mBeenSelectedForUpdate = pHasBeenSelected.mBeenSelectedForUpdate;
+                mBeenSelectedForUpdate = pSelectedProperties.mBeenSelectedForUpdate;
                 mBeenSelectedReadOnly = true;
-                mForUpdatePermanentFlags = pHasBeenSelected.mForUpdatePermanentFlags;
+                mForUpdatePermanentFlags = pSelectedProperties.mForUpdatePermanentFlags;
                 mReadOnlyPermanentFlags = pPermanentFlags;
             }
 
             mMessageFlags = pMessageFlags;
         }
 
-        public cMailboxSelectedProperties Update(cMessageFlags pMessageFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags)
+        public cMailboxSelectedProperties(cMailboxSelectedProperties pSelectedProperties, cMessageFlags pMessageFlags)
         {
+            if (pSelectedProperties == null) throw new ArgumentNullException(nameof(pSelectedProperties));
             if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
-            return new cMailboxSelectedProperties(this, pMessageFlags, pSelectedForUpdate, pPermanentFlags);
+
+            mBeenSelected = true;
+            mBeenSelectedForUpdate = pSelectedProperties.mBeenSelectedForUpdate;
+            mBeenSelectedReadOnly = pSelectedProperties.mBeenSelectedReadOnly;
+            mMessageFlags = pMessageFlags;
+            mForUpdatePermanentFlags = pSelectedProperties.mForUpdatePermanentFlags;
+            mReadOnlyPermanentFlags = pSelectedProperties.mReadOnlyPermanentFlags;
+        }
+
+        public cMailboxSelectedProperties(cMailboxSelectedProperties pSelectedProperties, bool pSelectedForUpdate, cMessageFlags pPermanentFlags)
+        {
+            if (pSelectedProperties == null) throw new ArgumentNullException(nameof(pSelectedProperties));
+
+            mBeenSelected = true;
+
+            if (pSelectedForUpdate)
+            {
+                mBeenSelectedForUpdate = true;
+                mBeenSelectedReadOnly = pSelectedProperties.mBeenSelectedReadOnly;
+                mForUpdatePermanentFlags = pPermanentFlags;
+                mReadOnlyPermanentFlags = pSelectedProperties.mReadOnlyPermanentFlags;
+            }
+            else
+            {
+                mBeenSelectedForUpdate = pSelectedProperties.mBeenSelectedForUpdate;
+                mBeenSelectedReadOnly = true;
+                mForUpdatePermanentFlags = pSelectedProperties.mForUpdatePermanentFlags;
+                mReadOnlyPermanentFlags = pPermanentFlags;
+            }
+
+            mMessageFlags = pSelectedProperties.mMessageFlags;
         }
 
         public bool HasBeenSelected => mBeenSelected;

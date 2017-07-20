@@ -6,14 +6,10 @@ namespace work.bacome.imapclient
 {
     public class cMailboxFlags
     {
-        private static int mLastSequence = 0;    
-
-        public readonly int Sequence;
         private readonly fMailboxFlags mFlags;
 
         public cMailboxFlags(fMailboxFlags pFlags)
         {
-            Sequence = Interlocked.Increment(ref mLastSequence);
             mFlags = pFlags;
         }
 
@@ -62,9 +58,7 @@ namespace work.bacome.imapclient
             return new cMailboxFlags(mFlags & cLSubFlags.ClearFlagsMask | pLSubFlags.Flags);
         }
 
-        public override string ToString() => $"{nameof(cMailboxFlags)}({Sequence},{mFlags})";
-
-        public static int LastSequence = mLastSequence;
+        public override string ToString() => $"{nameof(cMailboxFlags)}({mFlags})";
 
         public static fMailboxProperties Differences(cMailboxFlags pOld, cMailboxFlags pNew)
         {
@@ -73,7 +67,7 @@ namespace work.bacome.imapclient
             if (pOld == null) return 0;
             if (pOld.mFlags == pNew.mFlags) return 0;
 
-            fMailboxProperties lProperties = fMailboxProperties.mailboxflags;
+            fMailboxProperties lProperties = fMailboxProperties.flags;
 
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fMailboxFlags.noinferiors, fMailboxProperties.canhavechildren);
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fMailboxFlags.noselect, fMailboxProperties.canselect);
