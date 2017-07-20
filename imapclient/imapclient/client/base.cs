@@ -326,9 +326,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        public cMailbox GetMailbox(cMailboxName pMailboxName)
+        public cMailbox GetMailbox(cMailboxName pMailboxName, fMailboxProperties pProperties)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(GetMailbox));
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(GetMailbox), pProperties);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -338,6 +338,8 @@ namespace work.bacome.imapclient
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 
             var lHandle = lSession.GetMailboxHandle(pMailboxName);
+            // get the properties
+            ;?;
 
             return new cMailbox(this, lHandle);
         }

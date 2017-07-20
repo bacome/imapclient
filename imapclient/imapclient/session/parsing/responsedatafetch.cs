@@ -95,7 +95,7 @@ namespace work.bacome.imapclient
                     return lBuilder.ToString();
                 }
 
-                public static bool Process(cBytesCursor pCursor, uint pMSN, cCapability pCapability, out cResponseDataFetch rResponseData, cTrace.cContext pParentContext)
+                public static bool Process(cBytesCursor pCursor, uint pMSN, out cResponseDataFetch rResponseData, cTrace.cContext pParentContext)
                 {
                     //  NOTE: this routine does not return the cursor to its original position if it fails
 
@@ -209,13 +209,13 @@ namespace work.bacome.imapclient
                             lOK = pCursor.GetNZNumber(out _, out var lNumber);
                             if (lOK) lUID = lNumber;
                         }
-                        else if (pCapability.Binary && pCursor.SkipBytes(kBinaryLBracket))
+                        else if (pCursor.SkipBytes(kBinaryLBracket))
                         {
                             lAttribute = 0;
                             lOK = ZProcessBody(pCursor, true, out var lABody);
                             if (lOK) lBodies.Add(lABody);
                         }
-                        else if (pCapability.Binary && pCursor.SkipBytes(kBinarySizeLBracket))
+                        else if (pCursor.SkipBytes(kBinarySizeLBracket))
                         {
                             lAttribute = 0;
                             lOK = ZProcessBinarySize(pCursor, out var lPart, out var lBytes);
@@ -224,7 +224,7 @@ namespace work.bacome.imapclient
                         else if (pCursor.SkipBytes(kModSeqSpace))
                         {
                             lAttribute = fFetchAttributes.modseq;
-                            lOK = pCursor.GetModSeq(out var lTemp);
+                            lOK = pCursor.GetNumber(out var lTemp);
                             if (lOK) lModSeq = lTemp;
                         }
                         else break;
@@ -1128,7 +1128,6 @@ namespace work.bacome.imapclient
                     cBytesCursor lCursor;
                     cCapabilities lCapabilities = new cCapabilities();
                     lCapabilities.Set("binary");
-                    cCapability lCapability = new cCapability(lCapabilities, new cCapabilities(), 0);
                     cResponseDataFetch lData;
                     cEmailAddress lEmailAddress;
                     cTextBodyPart lTextPart;
@@ -1146,7 +1145,7 @@ namespace work.bacome.imapclient
                             @"""<B27397-0100000@cac.washington.edu>"") " +
                             @"BODY (""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 3028 92))", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.0");
 
-                    if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1");
+                    if (!Process(lCursor, 12, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1");
 
                     if (lData.Flags.Count != 1 || !lData.Flags.ContainsSeen) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
                     if (lData.Received != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
@@ -1193,7 +1192,7 @@ namespace work.bacome.imapclient
                             "\r\n",
                         ")");
 
-                    if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.0");
+                    if (!Process(lCursor, 12, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.0");
 
                     if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.1");
                     lBody = lData.Bodies[0];
@@ -1213,7 +1212,7 @@ namespace work.bacome.imapclient
                             "\r\n",
                         ")");
 
-                    if (!Process(lCursor, 12, lCapability, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.0");
+                    if (!Process(lCursor, 12, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.0");
 
                     if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.1");
                     lBody = lData.Bodies[0];

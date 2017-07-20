@@ -25,6 +25,7 @@ namespace work.bacome.imapclient
                 private static int mLastSequence = 0;    
 
                 ;?; // don't forget to call this from the dataprocessor of the pipeline
+                
 
 
 
@@ -50,6 +51,7 @@ namespace work.bacome.imapclient
                 public void CheckHandle(iMailboxHandle pHandle, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(CheckHandle), pHandle);
+                    if (!ReferenceEquals(pHandle.Cache, this)) throw new cInvalidMailboxHandleException(lContext);
                     if (!mDictionary.TryGetValue(pHandle.EncodedMailboxName, out var lItem)) throw new cInvalidMailboxHandleException(lContext);
                     if (!ReferenceEquals(lItem, pHandle)) throw new cInvalidMailboxHandleException(lContext);
                 }
@@ -75,7 +77,10 @@ namespace work.bacome.imapclient
                             return eProcessDataResult.notprocessed;
                         }
 
-                        ;?; // route to the selected mailbox (exists and recent)
+                        var lBookmark = pCursor.Position;
+                        var lResult = mSelectedMailbox.ProcessData(pCursor, lContext);
+                        if (lResult != eProcessDataResult.notprocessed) return lResult;
+                        pCursor.Position = lBookmark;
                     }
 
                     if (pCursor.SkipBytes(kStatusSpace))

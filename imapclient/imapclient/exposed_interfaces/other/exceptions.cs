@@ -210,7 +210,7 @@ namespace work.bacome.imapclient
         public cMailboxNotSelectedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cMailboxNotSelectedException));
     }
 
-    // thrown when an invalid handle is passed
+    /* thrown when an invalid handle is passed
     public class cInvalidMailboxHandleException : cIMAPException
     {
         public cInvalidMailboxHandleException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInvalidMailboxHandleException));
@@ -220,7 +220,7 @@ namespace work.bacome.imapclient
     public class cInvalidMessageHandleException : cIMAPException
     {
         public cInvalidMessageHandleException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInvalidMessageHandleException));
-    }
+    } */
 
     // thrown when the CTE can't be handled
     public class cContentTransferDecodingException : cIMAPException

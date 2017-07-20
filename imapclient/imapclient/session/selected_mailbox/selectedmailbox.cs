@@ -78,32 +78,7 @@ namespace work.bacome.imapclient
 
                 public void SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext) => mMessageCache.SetUnseen(pMSNs, pParentContext); // this should only be called from a commandcompletion
 
-                public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(ProcessData));
-
-                    eProcessDataResult lResult;
-
-                    var lBookmark = pCursor.Position;
-                    lResult = mMessageCache.ProcessData(pCursor, lContext);
-                    if (lResult != eProcessDataResult.notprocessed) return lResult;
-                    pCursor.Position = lBookmark;
-
-                    if (pCursor.SkipBytes(kFlagsSpace))
-                    {
-                        if (pCursor.GetFlags(out var lFlags) && pCursor.Position.AtEnd)
-                        {
-                            lContext.TraceVerbose("got flags available for messages in the mailbox: {0}", lFlags);
-                            mMessageFlags = new cMessageFlags(lFlags);
-                            if (mHasBeenSetAsSelected) mMailboxCache.UpdateMailboxBeenSelected(mEncodedMailboxName, mMailboxId.MailboxName, mMessageFlags, mSelectedForUpdate, mPermanentFlags, lContext);
-                            return eProcessDataResult.processed;
-                        }
-
-                        lContext.TraceWarning("likely malformed flags response");
-                    }
-
-                    return eProcessDataResult.notprocessed;
-                }
+                public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mMessageCache.ProcessData(pCursor, pParentContext);
 
                 public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {

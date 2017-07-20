@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task<cBody> ZFetchBodyAsync(cMethodControl pMC, cMailboxId pMailboxId, iMessageHandle pHandle, cCapability pCapability, bool pBinary, cSection pSection, uint pOrigin, uint pLength, cTrace.cContext pParentContext)
+            private async Task<cBody> ZFetchBodyAsync(cMethodControl pMC, iMessageHandle pHandle, cCapability pCapability, bool pBinary, cSection pSection, uint pOrigin, uint pLength, cTrace.cContext pParentContext)
             {
                 // the caller must have checked that the binary option is compatible with the section (e.g. if binary is true the section can't specify a textpart)
                 //  the length must be greater than zero
@@ -19,11 +19,10 @@ namespace work.bacome.imapclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
-                if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
-
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+
                     if (_SelectedMailbox == null || _SelectedMailbox.MailboxId != pMailboxId) throw new cMailboxNotSelectedException(lContext);
                     lCommand.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
                     lCommand.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
