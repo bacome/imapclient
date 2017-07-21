@@ -84,11 +84,13 @@ namespace work.bacome.imapclient
                 public void ResetExists(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pPattern, pSequence);
-                    foreach (var lItem in mDictionary.Values) if (lItem.Exists == true && lItem.MailboxName != null && lItem.Sequence < pSequence && pPattern.Matches(lItem.MailboxName.Name)) lItem.ResetExists(lContext);
+                    foreach (var lItem in mDictionary.Values) if (lItem.Exists != false && lItem.MailboxName != null && lItem.Sequence < pSequence && pPattern.Matches(lItem.MailboxName.Name)) lItem.ResetExists(lContext);
                 }
 
                 public void ResetExists(string pEncodedMailboxName, int pMailboxStatusSequence, cTrace.cContext pParentContext)
                 {
+
+
                     // this must not be called for the selected mailbox
 
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pEncodedMailboxName, pMailboxStatusSequence);

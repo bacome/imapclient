@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(kRListCommandPart, lListMailboxCommandPart);
 
-                    var lHook = new cCommandHookList(mMailboxCache, pPattern, mMailboxCache.LastSequence);
+                    var lHook = new cCommandHookList(mMailboxCache, pPattern, mMailboxCache.Sequence);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);

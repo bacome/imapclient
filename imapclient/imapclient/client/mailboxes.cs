@@ -200,11 +200,14 @@ namespace work.bacome.imapclient
                     {
                         ;?; // do an r/lsub
                     }
+
+                    //  if the lsub task is something, zero (not null) the non-refreshed ones
                 }
             }
             finally { mAsyncCounter.Decrement(lContext); }
 
-
+            // now extract the matching entries from the mailbox cache
+            ;?;
 
 
 

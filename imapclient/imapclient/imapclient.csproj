@@ -88,7 +88,6 @@
     <Compile Include="session\session\searchunseen.cs" />
     <Compile Include="session\mailboxcache\mailboxcache.cs" />
     <Compile Include="session\unsoliciteddataprocessors\capability.cs" />
-    <Compile Include="session\unsoliciteddataprocessors\list.cs" />
     <Compile Include="session\unsoliciteddataprocessors\lsub.cs" />
     <Compile Include="session\unsoliciteddataprocessors\status.cs" />
     <Compile Include="zzz\mailboxflagsets.cs" />

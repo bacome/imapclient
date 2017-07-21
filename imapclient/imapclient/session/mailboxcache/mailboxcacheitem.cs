@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
 
                         fMailboxProperties lProperties;
 
-                        if (mExists == true) lProperties = -1;
+                        if (mExists == true) lProperties = fMailboxProperties.exists;
                         else lProperties = 0;
 
                         mExists = false;
@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
                         mMailboxStatus = null;
                         mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
 
-                        mEventSynchroniser.FireMailboxPropertiesChanged(this, fMailboxProperties.exists, lContext);
+                        mEventSynchroniser.FireMailboxPropertiesChanged(this, lProperties, lContext);
                     }
 
 
