@@ -197,37 +197,19 @@ namespace work.bacome.imapclient
         public cUIDValidityChangedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityChangedException));
     }
 
-    /*
-    // thrown when the required account is not connected
-    public class cAccountNotConnectedException : cIMAPException
-    {
-        public cAccountNotConnectedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cAccountNotConnectedException));
-    } */
-
-    // thrown when the required mailbox is not selected
-    public class cMailboxNotSelectedException : cIMAPException
-    {
-        public cMailboxNotSelectedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cMailboxNotSelectedException));
-    }
-
-    /* thrown when an invalid handle is passed
-    public class cInvalidMailboxHandleException : cIMAPException
-    {
-        public cInvalidMailboxHandleException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInvalidMailboxHandleException));
-    }
-
-    // thrown when an invalid handle is passed
-    public class cInvalidMessageHandleException : cIMAPException
-    {
-        public cInvalidMessageHandleException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInvalidMessageHandleException));
-    } */
-
     // thrown when the CTE can't be handled
     public class cContentTransferDecodingException : cIMAPException
     {
         public cContentTransferDecodingException(cTrace.cContext pContext) => pContext.TraceError(nameof(cContentTransferDecodingException));
         public cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
     }
+
+    /*
+    // thrown when an invalid handle is detected
+    public class cInvalidMessageHandleException : cIMAPException
+    {
+        public cInvalidMessageHandleException() { }
+    } */
 
     // thrown when a fetch of an attribute didn't return it
     public class cFetchFailedException : cIMAPException
@@ -264,18 +246,6 @@ namespace work.bacome.imapclient
     {
         public cNeverBeenSelectedException() { }
     }
-
-    /*
-    // thrown when required flag sets aren't available
-    public class cMailboxFlagSetsException : cIMAPException
-    {
-        public readonly fMailboxFlagSets Required;
-
-        public cMailboxFlagSetsException(fMailboxFlagSets pRequired)
-        {
-            Required = pRequired;
-        }
-    } */
 
     public class cTestsException : Exception
     {

@@ -23,10 +23,10 @@ namespace work.bacome.imapclient
 
             foreach (var lHandle in this)
             {
-                if (!ReferenceEquals(lHandle.MessageCache, lLastCache))
+                if (!ReferenceEquals(lHandle.Cache, lLastCache))
                 {
-                    lLastCache = lHandle.MessageCache;
-                    lBuilder.Append(lHandle.MessageCache);
+                    lLastCache = lHandle.Cache;
+                    lBuilder.Append(lHandle.Cache);
                 }
 
                 lBuilder.Append(lHandle.CacheSequence);

@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
 
         private void ZMessagePropertyChanged(object pSender, cMessagePropertyChangedEventArgs pArgs)
         {
-            if (pArgs.MailboxId == MailboxId && ReferenceEquals(pArgs.Handle, Handle)) mPropertyChanged?.Invoke(this, pArgs);
+            if (ReferenceEquals(pArgs.Handle, Handle)) mPropertyChanged?.Invoke(this, pArgs);
         }
 
         public bool IsExpunged => Handle.Expunged;
@@ -56,7 +56,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                Client.Fetch(MailboxId, Handle, fMessageProperties.sent);
+                Client.Fetch(Handle, fMessageProperties.sent);
                 return Handle.Envelope.Sent;
             }
         }

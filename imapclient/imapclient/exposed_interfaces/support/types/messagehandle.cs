@@ -4,7 +4,7 @@ namespace work.bacome.imapclient.support
 {
     public interface iMessageHandle
     {
-        object Cache { get; }
+        iMessageCache Cache { get; }
         int CacheSequence { get; }
         bool Expunged { get; }
         fFetchAttributes Attributes { get; }

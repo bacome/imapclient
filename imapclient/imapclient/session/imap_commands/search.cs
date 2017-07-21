@@ -12,23 +12,24 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kSearchCommandPart = new cCommandPart("SEARCH ");
 
-            public async Task<cHandleList> SearchAsync(cMethodControl pMC, cMailboxId pMailboxId, cFilter pFilter, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> SearchAsync(cMethodControl pMC, iMailboxHandle pHandle, cFilter pFilter, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SearchAsync), pMC, pMailboxId, pFilter);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SearchAsync), pMC, pHandle, pFilter);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
-                    if (_SelectedMailbox == null || _SelectedMailbox.MailboxId != pMailboxId) throw new cMailboxNotSelectedException(lContext);
+
+                    cSelectedMailbox lSelectedMailbox = ZCheckHandle(pHandle);
+
                     lCommand.Add(await mSearchExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // search commands must be single threaded (so we can tell which result is which)
 
                     lCommand.Add(kSearchCommandPart);
                     lCommand.Add(pFilter, false, EnabledExtensions, mEncoding); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
 
-                    var lHook = new cSearchCommandHook(_SelectedMailbox);
+                    var lHook = new cSearchCommandHook(lSelectedMailbox);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -56,7 +57,7 @@ namespace work.bacome.imapclient
                     mSelectedMailbox = pSelectedMailbox ?? throw new ArgumentNullException(nameof(pSelectedMailbox));
                 }
 
-                public cHandleList Handles { get; private set; } = null;
+                public cMessageHandleList Handles { get; private set; } = null;
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
@@ -64,7 +65,7 @@ namespace work.bacome.imapclient
 
                     if (pResult != null && pResult.ResultType == eCommandResultType.ok && mMSNs != null)
                     {
-                        cHandleList lHandles = new cHandleList();
+                        cMessageHandleList lHandles = new cMessageHandleList();
                         foreach (var lMSN in mMSNs.ToSortedUniqueList()) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
                         Handles = lHandles;
                     }

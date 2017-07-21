@@ -328,12 +328,12 @@ namespace work.bacome.imapclient
 
         public cMailbox GetMailbox(cMailboxName pMailboxName, fMailboxProperties pProperties)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(GetMailbox), pProperties);
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(GetMailbox), pMailboxName, pProperties);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new cAccountNotConnectedException(lContext);
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
 
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 

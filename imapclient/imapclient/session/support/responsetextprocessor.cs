@@ -49,7 +49,6 @@ namespace work.bacome.imapclient
 
                 private readonly Action<eResponseTextType, cResponseText, cTrace.cContext> mFireResponseText;
                 private cMailboxCache mMailboxCache = null;
-                private bool mMailboxReferrals = false;
 
                 public cResponseTextProcessor(Action<eResponseTextType, cResponseText, cTrace.cContext> pFireResponseText)
                 {
@@ -61,12 +60,6 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(SetMailboxCache));
                     if (mMailboxCache != null) throw new InvalidOperationException();
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
-                }
-
-                public void SetCapability(cCapability pCapability, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(SetCapability), pCapability.MailboxReferrals);
-                    mMailboxReferrals = pCapability.MailboxReferrals;
                 }
 
                 public cResponseText Process(cBytesCursor pCursor, eResponseTextType pTextType, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
@@ -147,7 +140,7 @@ namespace work.bacome.imapclient
                         pCursor.Position = lBookmarkAfterLBRACET;
                     }
 
-                    if (mMailboxReferrals && pCursor.SkipBytes(kReferralSpace))
+                    if (pCursor.SkipBytes(kReferralSpace))
                     {
                         List<string> lURIs = new List<string>();
                         

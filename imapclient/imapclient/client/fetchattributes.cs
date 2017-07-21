@@ -28,26 +28,24 @@ namespace work.bacome.imapclient
             return lRequired;
         }
 
-        private fFetchAttributes ZFetchAttributesToFetch(cHandleList pHandles, fFetchAttributes pRequired)
+        private fFetchAttributes ZFetchAttributesToFetch(cMessageHandleList pHandles, fFetchAttributes pRequired)
         {
             fFetchAttributes lToFetch = 0;
             foreach (var lHandle in pHandles) lToFetch |= pRequired & ~lHandle.Attributes;
             return lToFetch;
         }
 
-        private async Task ZFetchAttributesAsync(cMailboxId pMailboxId, cHandleList pHandles, fFetchAttributes pAttributes, cFetchControl pFC, cTrace.cContext pParentContext)
+        private async Task ZFetchAttributesAsync(cMessageHandleList pHandles, fFetchAttributes pAttributes, cFetchControl pFC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAttributesAsync), pMailboxId, pHandles, pAttributes, pFC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAttributesAsync), pHandles, pAttributes, pFC);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || lSession.State != eState.selected) throw new cMailboxNotSelectedException(lContext);
+            if (lSession == null || lSession.State != eState.selected) throw new InvalidOperationException();
 
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-
+            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
             if (pHandles.Count == 0) return;
-
             if (pAttributes == 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));
 
             mAsyncCounter.Increment(lContext);
@@ -57,27 +55,26 @@ namespace work.bacome.imapclient
                 cFetchAttributesMethodControl lMC;
                 if (pFC == null) lMC = new cFetchAttributesMethodControl(mTimeout, CancellationToken, null);
                 else lMC = new cFetchAttributesMethodControl(pFC.Timeout, pFC.CancellationToken, pFC.IncrementProgress);
-                await lSession.FetchAttributesAsync(lMC, pMailboxId, pHandles, pAttributes, lContext).ConfigureAwait(false);
+                await lSession.FetchAttributesAsync(lMC, pHandles, pAttributes, lContext).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
         }
 
-        private async Task<List<cMessage>> ZUIDFetchAttributesAsync(cMailboxId pMailboxId, cUIDList pUIDs, fFetchAttributes pAttributes, cFetchControl pFC, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>> ZUIDFetchAttributesAsync(iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cFetchControl pFC, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchAttributesAsync), pMailboxId, pUIDs, pAttributes, pFC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchAttributesAsync), pHandle, pUIDs, pAttributes, pFC);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || lSession.State != eState.selected) throw new cMailboxNotSelectedException(lContext);
+            if (lSession == null || lSession.State != eState.selected) throw new InvalidOperationException();
 
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
-
+            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
             if (pUIDs.Count == 0) return new List<cMessage>();
-
             if (pAttributes == 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));
 
-            cHandleList lHandles;
+            cMessageHandleList lHandles;
 
             mAsyncCounter.Increment(lContext);
 
@@ -86,12 +83,12 @@ namespace work.bacome.imapclient
                 cFetchAttributesMethodControl lMC;
                 if (pFC == null) lMC = new cFetchAttributesMethodControl(mTimeout, CancellationToken, null);
                 else lMC = new cFetchAttributesMethodControl(pFC.Timeout, pFC.CancellationToken, pFC.IncrementProgress);
-                lHandles = await lSession.UIDFetchAttributesAsync(lMC, pMailboxId, pUIDs, pAttributes, lContext).ConfigureAwait(false);
+                lHandles = await lSession.UIDFetchAttributesAsync(lMC, pHandle, pUIDs, pAttributes, lContext).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
 
             List<cMessage> lMessages = new List<cMessage>(lHandles.Count);
-            foreach (var lHandle in lHandles) lMessages.Add(new cMessage(this, pMailboxId, lHandle));
+            foreach (var lHandle in lHandles) lMessages.Add(new cMessage(this, lHandle));
             return lMessages;
         }
 

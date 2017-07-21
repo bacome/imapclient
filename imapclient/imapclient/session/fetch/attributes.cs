@@ -11,41 +11,42 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchAttributesAsync(cFetchAttributesMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            public async Task FetchAttributesAsync(cFetchAttributesMethodControl pMC, cMessageHandleList pHandles, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchAttributesAsync), pMC, pMailboxId, pHandles, pAttributes);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchAttributesAsync), pMC, pHandles, pAttributes);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                mMailboxCache.CheckInSelectedMailbox(pHandles); // to be repeated inside the select lock
 
-                if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
-
-                var lAttributes = ZFetchAttributes(pMailboxId.MailboxName, pAttributes, lContext);
+                // always get the flags and modseq together
+                var lAttributes = ZFetchAttributes(pAttributes, lContext);
 
                 // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                foreach (var lGroup in ZFetchAttributesGroups(pHandles, lAttributes)) await ZFetchAttributesAsync(pMC, pMailboxId, lGroup, lContext).ConfigureAwait(false);
+                foreach (var lGroup in ZFetchAttributesGroups(pHandles, lAttributes)) await ZFetchAttributesAsync(pMC, lGroup, lContext).ConfigureAwait(false);
             }
 
-            private fFetchAttributes ZFetchAttributes(cMailboxName pMailboxName, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            private fFetchAttributes ZFetchAttributes(fFetchAttributes pAttributes, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributes), pMailboxName, pAttributes);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributes), pAttributes);
 
                 if ((pAttributes & (fFetchAttributes.flags | fFetchAttributes.modseq)) == 0) return pAttributes;
 
+                bool lModSeqSupported = mMailboxCache.SelectedMailbox?.ModSeqSupported ?? false;
+
                 if ((pAttributes & fFetchAttributes.modseq) != 0)
                 {
-                    if (!_Capability.CondStore) throw new cUnsupportedByServerException(fCapabilities.CondStore, lContext);
-                    if (_SelectedMailbox.nomodseq) throw new cUnsupportedByMailboxException(fCapabilities.CondStore, lContext);
+                    if (!lModSeqSupported) throw new cUnsupportedByMailboxException(fCapabilities.CondStore, lContext);
                     return pAttributes | fFetchAttributes.flags;
                 }
 
-                if (_Capability.CondStore && !_SelectedMailbox.nomodseq) return pAttributes | fFetchAttributes.modseq;
+                if (lModSeqSupported) return pAttributes | fFetchAttributes.modseq;
 
                 return pAttributes;
             }
 
-            private async Task ZFetchAttributesAsync(cFetchAttributesMethodControl pMC, cMailboxId pMailboxId, cFetchAttributesGroup pGroup, cTrace.cContext pParentContext)
+            private async Task ZFetchAttributesAsync(cFetchAttributesMethodControl pMC, cFetchAttributesGroup pGroup, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributesAsync), pMC, pMailboxId, pGroup);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributesAsync), pMC, pGroup);
 
                 if (pGroup.Attributes == 0) return; // the group where we already have everything that we need
 
@@ -76,7 +77,7 @@ namespace work.bacome.imapclient
 
                         // get the handles to fetch this time
 
-                        cHandleList lHandles = new cHandleList();
+                        cMessageHandleList lHandles = new cMessageHandleList();
 
                         while (lIndex < pGroup.Handles.Count && lHandles.Count < lFetchCount)
                         {
@@ -101,7 +102,7 @@ namespace work.bacome.imapclient
                         {
                             // fetch
                             Stopwatch lStopwatch = Stopwatch.StartNew();
-                            await ZFetchAttributesAsync(pMC, pMailboxId, lHandles, pGroup.Attributes, lContext).ConfigureAwait(false);
+                            await ZFetchAttributesAsync(pMC, lHandles, pGroup.Attributes, lContext).ConfigureAwait(false);
                             lStopwatch.Stop();
 
                             // store the time taken so the next fetch is a better size
@@ -115,10 +116,11 @@ namespace work.bacome.imapclient
                 }
 
                 // uid fetch the remainder
-                await ZUIDFetchAttributesAsync(pMC, pMailboxId, lUIDs, pGroup.Attributes, lContext).ConfigureAwait(false);
+                var lMailboxHandle = pGroup.Handles[0].Cache.MailboxHandle;
+                await ZUIDFetchAttributesAsync(pMC, lMailboxHandle, lUIDs, pGroup.Attributes, lContext).ConfigureAwait(false);
             }
 
-            private IEnumerable<cFetchAttributesGroup> ZFetchAttributesGroups(cHandleList pHandles, fFetchAttributes pAttributes)
+            private IEnumerable<cFetchAttributesGroup> ZFetchAttributesGroups(cMessageHandleList pHandles, fFetchAttributes pAttributes)
             {
                 Dictionary<fFetchAttributes, cFetchAttributesGroup> lGroups = new Dictionary<fFetchAttributes, cFetchAttributesGroup>();
 
@@ -146,7 +148,7 @@ namespace work.bacome.imapclient
             {
                 public readonly fFetchAttributes Attributes;
                 public int MSNHandleCount = 0;
-                public readonly cHandleList Handles = new cHandleList();
+                public readonly cMessageHandleList Handles = new cMessageHandleList();
 
                 public cFetchAttributesGroup(fFetchAttributes pAttributes) { Attributes = pAttributes; }
 

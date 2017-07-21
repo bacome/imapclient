@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
         {
             private partial class cSelectedMailbox
             {
-                private class cMessageCache
+                private class cMessageCache : iMessageCache
                 {
                     private static readonly cBytes kExists = new cBytes("EXISTS");
                     private static readonly cBytes kRecent = new cBytes("RECENT");

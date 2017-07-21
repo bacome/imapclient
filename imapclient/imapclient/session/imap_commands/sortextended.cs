@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
@@ -13,30 +12,30 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kSortExtendedCommandPart = new cCommandPart("SORT RETURN () ");
 
-            public async Task<cHandleList> SortExtendedAsync(cMethodControl pMC, cMailboxId pMailboxId, cFilter pFilter, cSort pSort, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> SortExtendedAsync(cMethodControl pMC, iMailboxHandle pHandle, cFilter pFilter, cSort pSort, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SortExtendedAsync), pMC, pMailboxId, pFilter, pSort);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SortExtendedAsync), pMC, pHandle, pFilter, pSort);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-
-                if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
+                if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
-                    if (_SelectedMailbox == null || _SelectedMailbox.MailboxId != pMailboxId) throw new cMailboxNotSelectedException(lContext);
+
+                    cSelectedMailbox lSelectedMailbox = ZCheckHandle(pHandle);
 
                     lCommand.Add(kSortExtendedCommandPart);
                     lCommand.Add(pSort);
                     lCommand.Add(cCommandPart.Space);
                     lCommand.Add(pFilter, true, EnabledExtensions, mEncoding); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
 
-                    var lHook = new cCommandHookSearchExtended(lCommand.Tag, _SelectedMailbox, true);
+                    var lHook = new cCommandHookSearchExtended(lCommand.Tag, lSelectedMailbox, true);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("extended sort success");
                         if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.ESort, "results not received on a successful extended sort", lContext);
@@ -45,7 +44,7 @@ namespace work.bacome.imapclient
 
                     if (lHook.Handles != null) lContext.TraceError("results received on a failed extended sort");
 
-                    if (lResult.Result == cCommandResult.eResult.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.ESort, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.ESort, lContext);
                     throw new cProtocolErrorException(lResult, fCapabilities.ESort, lContext);
                 }
             }

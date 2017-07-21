@@ -17,6 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(LSubAsync), pMC, pPattern);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
 
                 if (!mStringFactory.TryAsListMailbox(pPattern.ListMailbox, pPattern.Delimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pPattern));
 
@@ -26,6 +27,8 @@ namespace work.bacome.imapclient
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lCommand.Add(kLSubCommandPart, lListMailboxCommandPart);
+
+                    ;?; // hook
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 

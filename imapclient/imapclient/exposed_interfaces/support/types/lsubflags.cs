@@ -4,7 +4,8 @@ namespace work.bacome.imapclient.support
 {
     public class cLSubFlags
     {
-        public static readonly fMailboxFlags ClearFlagsMask = ~(fMailboxFlags.subscribed | fMailboxFlags.hassubscribedchildren);
+        public static readonly fMailboxProperties Mask = fMailboxProperties.issubscribed | fMailboxProperties.hassubscribedchildren;
+        public static readonly fMailboxFlags ClearMask = ~(fMailboxFlags.subscribed | fMailboxFlags.hassubscribedchildren);
 
         private static readonly cLSubFlags kNullFlags = new cLSubFlags(0);
 
@@ -38,7 +39,7 @@ namespace work.bacome.imapclient.support
             lProperties |= ZPropertyIfDifferent(lOld, lNew, fMailboxFlags.subscribed, fMailboxProperties.issubscribed);
             lProperties |= ZPropertyIfDifferent(lOld, lNew, fMailboxFlags.hassubscribedchildren, fMailboxProperties.hassubscribedchildren);
 
-            if (lProperties != 0) lProperties |= fMailboxProperties.flags;
+            if (lProperties != 0) lProperties |= fMailboxProperties.mailboxflags;
 
             return lProperties;
         }

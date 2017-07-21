@@ -10,23 +10,21 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task ZFetchAttributesAsync(cMethodControl pMC, cMailboxId pMailboxId, cHandleList pHandles, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            private async Task ZFetchAttributesAsync(cMethodControl pMC, cMessageHandleList pHandles, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
             {
-                // note that this silently fails if the handles are out of date
-                //  AND if a UID validity change were to happen during the run it wouldn't complain either
-                //
-                // note that the caller should have checked that pHandles is non-null and contains no null entries and that pAttributes contains some attributes to fetch
-
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAsync), pMC, pMailboxId, pHandles, pAttributes);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributesAsync), pMC, pHandles, pAttributes);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-
-                if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
+                if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+                if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
+                if (pAttributes == 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
-                    if (_SelectedMailbox == null || _SelectedMailbox.MailboxId != pMailboxId) throw new cMailboxNotSelectedException(lContext);
+
+                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pHandles);
+
                     lCommand.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
                     lCommand.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
@@ -36,7 +34,7 @@ namespace work.bacome.imapclient
 
                     foreach (var lHandle in pHandles)
                     {
-                        var lMSN = _SelectedMailbox.GetMSN(lHandle);
+                        var lMSN = lSelectedMailbox.GetMSN(lHandle);
                         if (lMSN != 0) lMSNs.Add(lMSN);
                     }
 

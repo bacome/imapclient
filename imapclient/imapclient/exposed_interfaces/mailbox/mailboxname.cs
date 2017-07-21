@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        public static bool TryConstruct(IList<byte> pBytes, byte? pDelimiter, fEnableableExtensions pEnabledExtensions, out cMailboxName rResult)
+        public static bool TryConstruct(IList<byte> pBytes, byte? pDelimiter, bool pUTF8Enabled, out cMailboxName rResult)
         {
             if (pBytes == null) { rResult = null; return false; }
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
@@ -66,7 +66,7 @@ namespace work.bacome.imapclient
             string lName;
 
             if (cASCII.Compare(pBytes, InboxBytes, false)) lName = InboxString;
-            else if (!cTools.TryMailboxNameBytesToString(pBytes, pDelimiter, pEnabledExtensions, out lName)) { rResult = null; return false; }
+            else if (!cTools.TryMailboxNameBytesToString(pBytes, pDelimiter, pUTF8Enabled, out lName)) { rResult = null; return false; }
 
             char? lDelimiter;
             if (pDelimiter == null) lDelimiter = null;

@@ -18,7 +18,6 @@ namespace work.bacome.imapclient
             private eState _State = eState.notconnected;
             private readonly cConnection mConnection = new cConnection();
 
-            private readonly bool mMailboxReferrals;
             private readonly cEventSynchroniser mEventSynchroniser;
             private fCapabilities _IgnoreCapabilities;
             private readonly cResponseTextProcessor mResponseTextProcessor;
@@ -38,6 +37,7 @@ namespace work.bacome.imapclient
 
             // post enable processing sets these
             private bool mEnableDone = false;
+            private bool mUTF8Enabled = false;
             private cCommandPart.cFactory mStringFactory = null;
             private cMailboxCache mMailboxCache = null;
 
@@ -53,11 +53,10 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(bool pMailboxReferrals, cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewObject(nameof(cSession), pMailboxReferrals, pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesConfiguration, pFetchBodyReadConfiguration);
+                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesConfiguration, pFetchBodyReadConfiguration);
 
-                mMailboxReferrals = pMailboxReferrals;
                 mEventSynchroniser = pEventSynchroniser;
 
                 _IgnoreCapabilities = pIgnoreCapabilities;
@@ -80,8 +79,9 @@ namespace work.bacome.imapclient
                 if (mEnableDone) throw new InvalidOperationException();
                 mEnableDone = true;
 
-                mStringFactory = new cCommandPart.cFactory((EnabledExtensions & fEnableableExtensions.utf8) != 0);
-                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mStringFactory, ZSetState);
+                mUTF8Enabled = (EnabledExtensions & fEnableableExtensions.utf8) != 0;
+                mStringFactory = new cCommandPart.cFactory(mUTF8Enabled);
+                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mUTF8Enabled, ZSetState, _Capability);
 
                 mResponseTextProcessor.SetMailboxCache(mMailboxCache, lContext);
                 mPipeline.SetMailboxCache(mMailboxCache, lContext);
@@ -96,6 +96,8 @@ namespace work.bacome.imapclient
                 mLSubDataProcessor = new cLSubDataProcessor(EnabledExtensions, mMailboxCache);
                 mPipeline.Install(mLSubDataProcessor);
             }
+
+
 
             public void SetIgnoreCapabilities(fCapabilities pIgnoreCapabilities, cTrace.cContext pParentContext)
             {
@@ -162,8 +164,8 @@ namespace work.bacome.imapclient
                 _Capability = new cCapability(_Capabilities, _AuthenticationMechanisms, _IgnoreCapabilities);
 
                 mConnection.SetCapability(_Capability, lContext);
-                mResponseTextProcessor.SetCapability(_Capability, lContext);
                 mPipeline.SetCapability(_Capability, lContext);
+                if (mMailboxCache != null) mMailboxCache.SetCapability(_Capability, lContext);
 
                 mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Capability), lContext);
             }
@@ -233,11 +235,7 @@ namespace work.bacome.imapclient
 
             public iSelectedMailboxDetails SelectedMailboxDetails => mMailboxCache?.selectedmailbox;
 
-            public iMailboxHandle GetMailboxHandle(cMailboxName pMailboxName)
-            {
-                if (!mStringFactory.TryAsMailbox(pMailboxName, out _, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
-                return mMailboxCache.GetHandle(lEncodedMailboxName, pMailboxName);
-            }
+            public iMailboxHandle GetMailboxHandle(cMailboxName pMailboxName) => mMailboxCache.GetHandle(pMailboxName);
 
             public void Disconnect(cTrace.cContext pParentContext)
             {

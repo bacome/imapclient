@@ -12,18 +12,19 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kSortCommandPart = new cCommandPart("SORT ");
 
-            public async Task<cHandleList> SortAsync(cMethodControl pMC, cMailboxId pMailboxId, cFilter pFilter, cSort pSort, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> SortAsync(cMethodControl pMC, iMailboxHandle pHandle, cFilter pFilter, cSort pSort, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SortAsync), pMC, pMailboxId, pFilter, pSort);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SortAsync), pMC, pHandle, pFilter, pSort);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-
-                if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
+                if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
-                    if (_SelectedMailbox == null || _SelectedMailbox.MailboxId != pMailboxId) throw new cMailboxNotSelectedException(lContext);
+
+                    cSelectedMailbox lSelectedMailbox = ZCheckHandle(pHandle);
+
                     lCommand.Add(await mSortExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // sort commands must be single threaded (so we can tell which result is which)
 
                     lCommand.Add(kSortCommandPart);
@@ -31,12 +32,12 @@ namespace work.bacome.imapclient
                     lCommand.Add(cCommandPart.Space);
                     lCommand.Add(pFilter, true, EnabledExtensions, mEncoding); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
 
-                    var lHook = new cSortCommandHook(_SelectedMailbox);
+                    var lHook = new cSortCommandHook(lSelectedMailbox);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("sort success");
                         if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.Sort, "results not received on a successful sort", lContext);
@@ -45,7 +46,7 @@ namespace work.bacome.imapclient
 
                     if (lHook.Handles != null) lContext.TraceError("results received on a failed sort");
 
-                    if (lResult.Result == cCommandResult.eResult.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.Sort, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.Sort, lContext);
                     throw new cProtocolErrorException(lResult, fCapabilities.Sort, lContext);
                 }
             }
@@ -95,15 +96,15 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.processed;
                 }
 
-                public cHandleList Handles { get; private set; } = null;
+                public cMessageHandleList Handles { get; private set; } = null;
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSortCommandHook), nameof(CommandCompleted), pResult, pException);
 
-                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok && mMSNs != null)
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mMSNs != null)
                     {
-                        cHandleList lHandles = new cHandleList();
+                        cMessageHandleList lHandles = new cMessageHandleList();
                         foreach (var lMSN in mMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
                         Handles = lHandles;
                     }

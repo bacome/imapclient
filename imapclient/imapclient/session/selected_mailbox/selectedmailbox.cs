@@ -18,13 +18,10 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
                 ;?;
 
-                public readonly string EncodedMailboxName;
-                public readonly cMailboxName MailboxName;
-
                 private readonly cMailboxCache mMailboxCache;
                 private readonly iMailboxHandle mHandle;
                 private readonly bool mSelectedForUpdate;
-                private readonly bool mCondStoreRequested;
+                private readonly bool mModSeqSupported;
                 private readonly cEventSynchroniser mEventSynchroniser;
 
                 private cMessageCache mMessageCache;
@@ -32,7 +29,7 @@ namespace work.bacome.imapclient
                 private cMessageFlags mMessageFlags = null;
                 private cMessageFlags mPermanentFlags = null;
                 private bool mAccessReadOnly = false;
-                ??private bool mCondStoreEnabled = false; // true if condstore was asked for and we see a highestmodseq before setasselected is called
+                private bool mModSeqSupported = false;
 
                 ;?; no longer required
                 //private bool mHasBeenSetAsSelected = false;
@@ -51,6 +48,10 @@ namespace work.bacome.imapclient
                 public iMailboxHandle Handle => mHandle;
                 public bool SelectedForUpdate => mSelectedForUpdate;
                 public bool AccessReadOnly => mAccessReadOnly;
+
+                public bool ModSeqSupported => mModSeqSupported;
+                public iMessageCache MessageCache => mMessageCache;
+               
 
                 /*
                 public void SetAsSelected(cTrace.cContext pParentContext)

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -10,16 +11,30 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public Task FetchBodyAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext) => ZFetchBodyAsync(pMC, pMailboxId, pHandle.UID, pHandle, pSection, pDecoding, pStream, pParentContext);
-            public Task UIDFetchBodyAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext) => ZFetchBodyAsync(pMC, pMailboxId, pUID, null, pSection, pDecoding, pStream, pParentContext);
-
-            private async Task ZFetchBodyAsync(cFetchBodyMethodControl pMC, cMailboxId pMailboxId, cUID pUID, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
+            public Task FetchBodyAsync(cFetchBodyMethodControl pMC, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxId, pUID, pHandle, pSection, pDecoding);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pMC, pHandle, pSection, pDecoding);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                var lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pHandle); // to be repeated inside the select lock
 
-                if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
+                if (pHandle.UID == null) return ZFetchBodyAsync(pMC, lSelectedMailbox.Handle, pHandle.UID, null, pSection, pDecoding, pStream, lContext);
+                else return ZFetchBodyAsync(pMC, null, null, pHandle, pSection, pDecoding, pStream, lContext);
+            }
+
+            public Task UIDFetchBodyAsync(cFetchBodyMethodControl pMC, iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBodyAsync), pMC, pHandle, pUID, pSection, pDecoding);
+
+                if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                mMailboxCache.CheckIsSelectedMailbox(pHandle); // to be repeated inside the select lock
+
+                return ZFetchBodyAsync(pMC, pHandle, pUID, null, pSection, pDecoding, pStream, lContext);
+            }
+
+            private async Task ZFetchBodyAsync(cFetchBodyMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
 
                 // capture the capability
                 var lCapability = _Capability;
@@ -43,8 +58,8 @@ namespace work.bacome.imapclient
                     Stopwatch lStopwatch = Stopwatch.StartNew();
 
                     cBody lBody;
-                    if (pUID == null) lBody = await ZFetchBodyAsync(pMC, pMailboxId, pHandle, lCapability, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
-                    else lBody = await ZUIDFetchBodyAsync(pMC, pMailboxId, pUID, lCapability, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
+                    if (pUID == null) lBody = await ZFetchBodyAsync(pMC, pMessageHandle, lCapability, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
+                    else lBody = await ZUIDFetchBodyAsync(pMC, pMailboxHandle, pUID, lCapability, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
 
                     lStopwatch.Stop();
 

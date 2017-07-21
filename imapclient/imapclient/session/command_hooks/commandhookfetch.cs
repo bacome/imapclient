@@ -12,15 +12,13 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kFetchSpace = new cBytes("FETCH ");
 
-                private cCapability mCapability;
                 private bool mBinary;
                 private cSection mSection;
                 private uint mOrigin;
                 private uint mTo = 0;
 
-                public cCommandHookFetchBase(cCapability pCapability, bool pBinary, cSection pSection, uint pOrigin)
+                public cCommandHookFetchBase(bool pBinary, cSection pSection, uint pOrigin)
                 {
-                    mCapability = pCapability;
                     mBinary = pBinary;
                     mSection = pSection;
                     mOrigin = pOrigin;
@@ -43,7 +41,7 @@ namespace work.bacome.imapclient
                     {
                         if (!pCursor.GetNZNumber(out _, out var lMSN) || !pCursor.SkipByte(cASCII.SPACE) || !pCursor.SkipBytes(kFetchSpace)) return eProcessDataResult.notprocessed;
 
-                        if (!cResponseDataFetch.Process(pCursor, lMSN, mCapability, out lFetch, lContext))
+                        if (!cResponseDataFetch.Process(pCursor, lMSN, out lFetch, lContext))
                         {
                             lContext.TraceWarning("likely malformed fetch response");
                             return eProcessDataResult.notprocessed;
@@ -85,7 +83,7 @@ namespace work.bacome.imapclient
             {
                 private uint mMSN;
 
-                public cCommandHookFetchMSN(cCapability pCapability, bool pBinary, cSection pSection, uint pOrigin, uint pMSN) : base (pCapability, pBinary, pSection, pOrigin)
+                public cCommandHookFetchMSN(bool pBinary, cSection pSection, uint pOrigin, uint pMSN) : base (pBinary, pSection, pOrigin)
                 {
                     mMSN = pMSN;
                 }
@@ -97,7 +95,7 @@ namespace work.bacome.imapclient
             {
                 private uint mUID;
 
-                public cCommandHookFetchUID(cCapability pCapability, bool pBinary, cSection pSection, uint pOrigin, uint pUID) : base (pCapability, pBinary, pSection, pOrigin)
+                public cCommandHookFetchUID(bool pBinary, cSection pSection, uint pOrigin, uint pUID) : base (pBinary, pSection, pOrigin)
                 {
                     mUID = pUID;
                 }

@@ -12,28 +12,27 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kSearchExtendedCommandPart = new cCommandPart("SEARCH RETURN () ");
 
-            public async Task<cHandleList> SearchExtendedAsync(cMethodControl pMC, cMailboxId pMailboxId, cFilter pFilter, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> SearchExtendedAsync(cMethodControl pMC, iMailboxHandle pHandle, cFilter pFilter, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SearchExtendedAsync), pMC, pMailboxId, pFilter);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SearchExtendedAsync), pMC, pHandle, pFilter);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-
-                if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
-                    if (_SelectedMailbox == null || _SelectedMailbox.MailboxId != pMailboxId) throw new cMailboxNotSelectedException(lContext);
+
+                    cSelectedMailbox lSelectedMailbox = ZCheckHandle(pHandle);
 
                     lCommand.Add(kSearchExtendedCommandPart);
                     lCommand.Add(pFilter, false, EnabledExtensions, mEncoding); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
 
-                    var lHook = new cCommandHookSearchExtended(lCommand.Tag, _SelectedMailbox, false);
+                    var lHook = new cCommandHookSearchExtended(lCommand.Tag, lSelectedMailbox, false);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("extended search success");
                         if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.ESearch, "results not received on a successful extended search", lContext);
@@ -42,7 +41,7 @@ namespace work.bacome.imapclient
 
                     if (lHook.Handles != null) lContext.TraceError("results received on a failed extended search");
 
-                    if (lResult.Result == cCommandResult.eResult.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.ESearch, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.ESearch, lContext);
                     throw new cProtocolErrorException(lResult, fCapabilities.ESearch, lContext);
                 }
             }

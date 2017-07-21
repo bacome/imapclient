@@ -69,9 +69,9 @@ namespace work.bacome.imapclient.support
             return lBuilder.ToString() + ")";
         }
 
-        public static bool TryMailboxNameBytesToString(IList<byte> pBytes, byte? pDelimiter, fEnableableExtensions pEnabledExtensions, out string rString)
+        public static bool TryMailboxNameBytesToString(IList<byte> pBytes, byte? pDelimiter, bool pUTF8Enabled, out string rString)
         {
-            if ((pEnabledExtensions & fEnableableExtensions.utf8) != 0) { rString = UTF8BytesToString(pBytes); return true; }
+            if (pUTF8Enabled) { rString = UTF8BytesToString(pBytes); return true; }
 
             if (pDelimiter == null) return cModifiedUTF7.TryDecode(pBytes, out rString, out _);
 

@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
         public cMailboxFlags Merge(cLSubFlags pLSubFlags)
         {
             if (pLSubFlags == null) return this;
-            return new cMailboxFlags(mFlags & cLSubFlags.ClearFlagsMask | pLSubFlags.Flags);
+            return new cMailboxFlags(mFlags & cLSubFlags.ClearMask | pLSubFlags.Flags);
         }
 
         public override string ToString() => $"{nameof(cMailboxFlags)}({mFlags})";
@@ -67,7 +67,7 @@ namespace work.bacome.imapclient
             if (pOld == null) return 0;
             if (pOld.mFlags == pNew.mFlags) return 0;
 
-            fMailboxProperties lProperties = fMailboxProperties.flags;
+            fMailboxProperties lProperties = fMailboxProperties.mailboxflags;
 
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fMailboxFlags.noinferiors, fMailboxProperties.canhavechildren);
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fMailboxFlags.noselect, fMailboxProperties.canselect);

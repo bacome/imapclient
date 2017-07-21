@@ -33,10 +33,36 @@ namespace work.bacome.imapclient
 
                     public object Cache => mCache;
                     public string EncodedMailboxName => mEncodedMailboxName;
+
                     public cMailboxName MailboxName { get; set; }
                     public cCommandPart CommandPart { get; set; }
+
                     public int Sequence => mSequence;
+
                     public bool? Exists => mExists;
+
+                    public void ResetExists(cTrace.cContext pParentContext)
+                    {
+                        var lContext = pParentContext.NewMethod(nameof(cItem), nameof(ResetExists));
+
+                        fMailboxProperties lProperties;
+
+                        if (mExists == true) lProperties = -1;
+                        else lProperties = 0;
+
+                        mExists = false;
+                        mMailboxFlags = null;
+                        mLSubFlags = null;
+                        mMergedFlags = null;
+                        mStatus = null;
+                        mMailboxStatus = null;
+                        mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
+
+                        mEventSynchroniser.FireMailboxPropertiesChanged(this, fMailboxProperties.exists, lContext);
+                    }
+
+
+
 
                     /*
                     public void ResetExists(cMailboxNamePattern pPattern, int pMailboxFlagsSequence, cTrace.cContext pParentContext)
@@ -156,18 +182,6 @@ namespace work.bacome.imapclient
                         mMailboxStatus = pStatus;
                         mMailboxSelectedProperties = lMailboxSelectedProperties;
                         return lDifferences;
-                    }
-
-                    private fMailboxProperties ZResetExists()
-                    {
-                        mExists = false;
-                        mMailboxFlags = null;
-                        mLSubFlags = null;
-                        mMergedFlags = null;
-                        mStatus = null;
-                        mMailboxStatus = null;
-                        mMailboxSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
-                        return fMailboxProperties.exists;
                     }
 
                     private fMailboxProperties ZSetExists()
