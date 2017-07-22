@@ -84,9 +84,29 @@ namespace work.bacome.imapclient
                 public void ResetExists(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pPattern, pSequence);
-                    foreach (var lItem in mDictionary.Values) if (lItem.Exists != false && lItem.MailboxName != null && lItem.Sequence < pSequence && pPattern.Matches(lItem.MailboxName.Name)) lItem.ResetExists(lContext);
+                    foreach (var lItem in mDictionary.Values) if (lItem.Exists != false && lItem.MailboxName != null && (lItem.ListFlags == null || lItem.ListFlags.Sequence < pSequence) && pPattern.Matches(lItem.MailboxName.Name)) lItem.ResetExists(lContext);
                 }
 
+                public void ResetExists(iMailboxHandle pHandle, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pHandle);
+                    if (!ReferenceEquals(pHandle.Cache, this)) throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    if (mSelectedMailbox != null && ReferenceEquals(mSelectedMailbox.Handle, pHandle)) return; // never expect a status response for the selected mailbox
+                    if (!mDictionary.TryGetValue(pHandle.EncodedMailboxName, out var lItem)) throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    if (!ReferenceEquals(lItem, pHandle)) throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    lItem.ResetExists(lContext);
+                }
+
+                public void ResetLSubFlags(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetLSubFlags), pPattern, pSequence);
+                    foreach (var lItem in mDictionary.Values) if (lItem.Exists != false && lItem.MailboxName != null && (lItem.LSubFlags == null || lItem.LSubFlags.Sequence < pSequence) && pPattern.Matches(lItem.MailboxName.Name)) lItem.SetFlags(null, new cLSubFlags(mSequence++, 0), lContext);
+                }
+
+
+
+
+                /*
                 public void ResetExists(string pEncodedMailboxName, int pMailboxStatusSequence, cTrace.cContext pParentContext)
                 {
 
@@ -100,7 +120,7 @@ namespace work.bacome.imapclient
                         var lProperties = lItem.ResetExists(pMailboxStatusSequence);
                         if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(lItem, lProperties, lContext);
                     }
-                }
+                } */
 
                 // these now done direct from the processing of the responses
                 /*

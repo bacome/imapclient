@@ -9,7 +9,8 @@ namespace work.bacome.imapclient.support
         cCommandPart CommandPart { get; }
         cMailboxName MailboxName { get; }
         bool? Exists { get; }
-        cMailboxFlags MailboxFlags { get; } 
+        cListFlags ListFlags { get; }
+        cLSubFlags LSubFlags { get; } 
         cMailboxStatus MailboxStatus { get; }
         cMailboxSelectedProperties SelectedProperties { get; } // not null
     }

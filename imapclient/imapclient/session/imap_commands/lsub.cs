@@ -12,14 +12,14 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kLSubCommandPart = new cCommandPart("LSUB \"\" ");
 
-            public async Task LSubAsync(cMethodControl pMC, cListPattern pPattern, cTrace.cContext pParentContext)
+            public async Task LSubAsync(cMethodControl pMC, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(LSubAsync), pMC, pPattern);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(LSubAsync), pMC, pListMailbox, pDelimiter, pPattern);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
 
-                if (!mStringFactory.TryAsListMailbox(pPattern.ListMailbox, pPattern.Delimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pPattern));
+                if (!mStringFactory.TryAsListMailbox(pListMailbox, pDelimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pListMailbox));
 
                 using (var lCommand = new cCommand())
                 {

@@ -68,7 +68,11 @@ namespace work.bacome.imapclient
                         }
 
                         var lItem = ZItem(lMailboxName);
-                        lItem.SetMailboxFlags(mSequence++, ZProcessListMailboxFlags(lFlags, lExtendedItems), lContext);
+
+                        ZProcessListMailboxFlags(lFlags, lExtendedItems, out var lListFlags, out var lLSubFlags);
+
+                        lItem.SetListFlags(mSequence++, lListFlags, lContext);
+                        if (mCapability.ListExtended) lItem.setlsubflags(mSequence++, lLsubFlags, lContext);
                     }
 
                     if (pCursor.SkipBytes(kStatusSpace))
@@ -133,26 +137,27 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                private cMailboxFlags ZProcessListMailboxFlags(cFlags pFlags, cExtendedItems pExtendedItems)
+                private void ZProcessListMailboxFlags(cFlags pFlags, cExtendedItems pExtendedItems, out cListFlags rListFlags, out cLSubFlags rLSubFlags)
                 {
-                    fMailboxFlags lFlags = 0;
+                    fListFlags lListFlags = 0;
+                    fLSubFlags lLSubFlags = 0;
 
-                    if (pFlags.Has(@"\Noinferiors")) lFlags |= fMailboxFlags.noinferiors | fMailboxFlags.hasnochildren;
-                    if (pFlags.Has(@"\Noselect")) lFlags |= fMailboxFlags.noselect;
-                    if (pFlags.Has(@"\Marked")) lFlags |= fMailboxFlags.marked;
-                    if (pFlags.Has(@"\Unmarked")) lFlags |= fMailboxFlags.unmarked;
+                    if (pFlags.Has(@"\Noinferiors")) lListFlags |= fListFlags.noinferiors | fListFlags.hasnochildren;
+                    if (pFlags.Has(@"\Noselect")) lListFlags |= fListFlags.noselect;
+                    if (pFlags.Has(@"\Marked")) lListFlags |= fListFlags.marked;
+                    if (pFlags.Has(@"\Unmarked")) lListFlags |= fListFlags.unmarked;
 
                     if (mCapability.ListExtended)
                     {
-                        if (pFlags.Has(@"\NonExistent")) lFlags |= fMailboxFlags.noselect | fMailboxFlags.nonexistent;
-                        if (pFlags.Has(@"\Subscribed")) lFlags |= fMailboxFlags.subscribed;
-                        if (pFlags.Has(@"\Remote")) lFlags |= fMailboxFlags.remote;
+                        if (pFlags.Has(@"\NonExistent")) lListFlags |= fListFlags.noselect | fListFlags.nonexistent;
+                        if (pFlags.Has(@"\Subscribed")) lLSubFlags |= fLSubFlags.subscribed;
+                        if (pFlags.Has(@"\Remote")) lListFlags |= fListFlags.remote;
                     }
 
                     if (mCapability.Children || mCapability.ListExtended)
                     {
-                        if (pFlags.Has(@"\HasChildren")) lFlags |= fMailboxFlags.haschildren;
-                        if (pFlags.Has(@"\HasNoChildren")) lFlags |= fMailboxFlags.hasnochildren;
+                        if (pFlags.Has(@"\HasChildren")) lListFlags |= fListFlags.haschildren;
+                        if (pFlags.Has(@"\HasNoChildren")) lListFlags |= fListFlags.hasnochildren;
                     }
 
                     if (mCapability.ListExtended && pExtendedItems != null)
@@ -161,11 +166,11 @@ namespace work.bacome.imapclient
                         {
                             if (lItem.Tag.Equals("childinfo", StringComparison.InvariantCultureIgnoreCase))
                             {
-                                lFlags |= fMailboxFlags.haschildren;
+                                lListFlags |= fListFlags.haschildren;
 
                                 if (lItem.Value.Contains("subscribed", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    lFlags |= fMailboxFlags.hassubscribedchildren;
+                                    lLSubFlags |= fLSubFlags.hassubscribedchildren;
                                     break;
                                 }
                             }
@@ -173,27 +178,30 @@ namespace work.bacome.imapclient
                     }
 
                     // the special-use capability is to do with support by list-extended, not to do with the return of the attributes
-                    if (pFlags.Has(@"\All")) lFlags |= fMailboxFlags.all;
-                    if (pFlags.Has(@"\Archive")) lFlags |= fMailboxFlags.archive;
-                    if (pFlags.Has(@"\Drafts")) lFlags |= fMailboxFlags.drafts;
-                    if (pFlags.Has(@"\Flagged")) lFlags |= fMailboxFlags.flagged;
-                    if (pFlags.Has(@"\Junk")) lFlags |= fMailboxFlags.junk;
-                    if (pFlags.Has(@"\Sent")) lFlags |= fMailboxFlags.sent;
-                    if (pFlags.Has(@"\Trash")) lFlags |= fMailboxFlags.trash;
+                    if (pFlags.Has(@"\All")) lListFlags |= fListFlags.all;
+                    if (pFlags.Has(@"\Archive")) lListFlags |= fListFlags.archive;
+                    if (pFlags.Has(@"\Drafts")) lListFlags |= fListFlags.drafts;
+                    if (pFlags.Has(@"\Flagged")) lListFlags |= fListFlags.flagged;
+                    if (pFlags.Has(@"\Junk")) lListFlags |= fListFlags.junk;
+                    if (pFlags.Has(@"\Sent")) lListFlags |= fListFlags.sent;
+                    if (pFlags.Has(@"\Trash")) lListFlags |= fListFlags.trash;
 
-                    return new cMailboxFlags(lFlags);
+                    rListFlags = new cListFlags(mSequence++, lListFlags);
+
+                    if (mCapability.ListExtended) rLSubFlags = new cLSubFlags(mSequence++, lLSubFlags);
+                    else rLSubFlags = null;
                 }
 
-                private bool ZProcessStatusAttributes(cBytesCursor pCursor, out cStatus rStatus, cTrace.cContext pParentContext)
+                private bool ZProcessStatusAttributes(cBytesCursor pCursor,  out cStatus rStatus, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessStatusAttributes));
 
-                    uint? lMessages = 0;
-                    uint? lRecent = 0;
-                    uint? lUIDNext = 0;
-                    uint? lUIDValidity = 0;
-                    uint? lUnseen = 0;
-                    ulong? lHighestModSeq = 0;
+                    uint? lMessages = null;
+                    uint? lRecent = null;
+                    uint? lUIDNext = null;
+                    uint? lUIDValidity = null;
+                    uint? lUnseen = null;
+                    ulong? lHighestModSeq = null;
 
                     while (true)
                     {
@@ -231,7 +239,8 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.SPACE))
                         {
-                            rStatus = new cStatus(lMessages, lRecent, lUIDNext, lUIDValidity, lUnseen, lHighestModSeq);
+                            if (!mCapability.CondStore) lHighestModSeq = 0;
+                            rStatus = new cStatus(mSequence++, lMessages, lRecent, lUIDNext, lUIDValidity, lUnseen, lHighestModSeq);
                             return true;
                         }
                     }

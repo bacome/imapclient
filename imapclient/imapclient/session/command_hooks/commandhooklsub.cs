@@ -7,13 +7,13 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private class cCommandHookList : cCommandHook
+            private class cCommandHookLSub : cCommandHook
             {
                 private cMailboxCache mCache;
                 private cMailboxNamePattern mPattern;
                 private int mSequence;
 
-                public cCommandHookList(cMailboxCache pCache, cMailboxNamePattern pPattern, int pSequence)
+                public cCommandHookLSub(cMailboxCache pCache, cMailboxNamePattern pPattern, int pSequence)
                 {
                     mCache = pCache;
                     mPattern = pPattern;
@@ -22,8 +22,8 @@ namespace work.bacome.imapclient
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookList), nameof(CommandCompleted), pResult, pException);
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mCache.ResetExists(mPattern, mSequence, lContext);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookLSub), nameof(CommandCompleted), pResult, pException);
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mCache.ResetLSubFlags(mPattern, mSequence, lContext);
                 }
             }
         }

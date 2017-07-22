@@ -67,6 +67,8 @@
     <Compile Include="exposed_interfaces\connection\server.cs" />
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
+    <Compile Include="exposed_interfaces\mailbox\listflags.cs" />
+    <Compile Include="exposed_interfaces\mailbox\lsubflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxes.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxselected.cs" />
@@ -75,11 +77,10 @@
     <Compile Include="exposed_interfaces\mailbox\mailboxproperties.cs" />
     <Compile Include="exposed_interfaces\support\types\messagecache.cs" />
     <Compile Include="exposed_interfaces\support\types\selectedmailboxdetails.cs" />
-    <Compile Include="exposed_interfaces\support\types\lsubflags.cs" />
     <Compile Include="exposed_interfaces\support\types\mailboxhandle.cs" />
-    <Compile Include="exposed_interfaces\mailbox\mailboxflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxbeenselected.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
+    <Compile Include="session\command_hooks\commandhooklsub.cs" />
     <Compile Include="session\imap_commands\rlist.cs" />
     <Compile Include="session\mailboxcache\support_classes.cs" />
     <Compile Include="session\mailboxcache\mailboxcacheitem.cs" />

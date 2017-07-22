@@ -8,6 +8,7 @@ namespace work.bacome.imapclient
         {
             private class cStatus
             {
+                public readonly int Sequence;
                 public readonly uint? Messages;
                 public readonly uint? Recent;
                 public readonly uint? UIDNext;
@@ -15,8 +16,9 @@ namespace work.bacome.imapclient
                 public readonly uint? Unseen;
                 public readonly ulong? HighestModSeq;
 
-                public cStatus(uint? pMessages, uint? pRecent, uint? pUIDNext, uint? pUIDValidity, uint? pUnseen, ulong? pHighestModSeq)
+                public cStatus(int pSequence, uint? pMessages, uint? pRecent, uint? pUIDNext, uint? pUIDValidity, uint? pUnseen, ulong? pHighestModSeq)
                 {
+                    Sequence = pSequence;
                     Messages = pMessages;
                     Recent = pRecent;
                     UIDNext = pUIDNext;
@@ -33,6 +35,7 @@ namespace work.bacome.imapclient
                     return
                         new cStatus
                             (
+                                pNew.Sequence,
                                 pNew.Messages ?? pOld.Messages,
                                 pNew.Recent ?? pOld.Recent,
                                 pNew.UIDNext ?? pOld.UIDNext,
@@ -42,7 +45,7 @@ namespace work.bacome.imapclient
                             );
                 }
 
-                public override string ToString() => $"{nameof(cStatus)}({Messages},{Recent},{UIDNext},{UIDValidity},{Unseen},{HighestModSeq})";
+                public override string ToString() => $"{nameof(cStatus)}({Sequence},{Messages},{Recent},{UIDNext},{UIDValidity},{Unseen},{HighestModSeq})";
             }
         }
     }
