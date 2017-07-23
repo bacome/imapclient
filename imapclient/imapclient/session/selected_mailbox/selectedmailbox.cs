@@ -10,31 +10,25 @@ namespace work.bacome.imapclient
         {
             private partial class cSelectedMailbox : iSelectedMailboxDetails
             {
-                private static readonly cBytes kFlagsSpace = new cBytes("FLAGS ");
-                private static readonly cBytes kUnseenSpace = new cBytes("UNSEEN ");
-                private static readonly cBytes kPermanentFlagsSpace = new cBytes("PERMANENTFLAGS ");
                 private static readonly cBytes kUIDValiditySpace = new cBytes("UIDVALIDITY ");
                 private static readonly cBytes kReadWriteRBracketSpace = new cBytes("READ-WRITE] ");
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
                 ;?;
 
-                private readonly cMailboxCache mMailboxCache;
-                private readonly iMailboxHandle mHandle;
+                public readonly cMailboxCacheItem MailboxCacheItem;
+
                 private readonly bool mSelectedForUpdate;
                 private readonly bool mModSeqSupported;
                 private readonly cEventSynchroniser mEventSynchroniser;
 
                 private cMessageCache mMessageCache;
 
-                private cMessageFlags mMessageFlags = null;
-                private cMessageFlags mPermanentFlags = null;
                 private bool mAccessReadOnly = false;
-                private bool mModSeqSupported = false;
 
                 ;?; no longer required
                 //private bool mHasBeenSetAsSelected = false;
 
-                public cSelectedMailbox(cMailboxCache pMailboxCache, iMailboxHandle pHandle, bool pSelectedForUpdate, bool pCondStoreRequested, cEventSynchroniser pEventSynchoniser)
+                public cSelectedMailbox(cMailboxCacheItem pCacheItem, cEventSynchroniser pEventSynchoniser)
                 {
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     mHandle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));

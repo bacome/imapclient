@@ -12,22 +12,23 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kRLSubCommandPart = new cCommandPart("RLSUB \"\" ");
 
-            public async Task<cMailboxList> RLSubAsync(cMethodControl pMC, cListPattern pPattern, cTrace.cContext pParentContext)
+            public async Task RLSubAsync(cMethodControl pMC, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(RLSubAsync), pMC, pPattern);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(RLSubAsync), pMC, pListMailbox, pDelimiter, pPattern);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
 
-                if (!mStringFactory.TryAsListMailbox(pPattern.ListMailbox, pPattern.Delimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pPattern));
+                if (!mStringFactory.TryAsListMailbox(pListMailbox, pDelimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pListMailbox));
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lCommand.Add(kLSubCommandPart, lListMailboxCommandPart);
+                    lCommand.Add(kRLSubCommandPart, lListMailboxCommandPart);
 
-                    var lHook = new cCommandHookLSub(pPattern.MailboxNamePattern, EnabledExtensions);
+                    var lHook = new cCommandHookLSub(mMailboxCache, pPattern, mMailboxCache.Sequence);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -35,13 +36,11 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("rlsub success");
-                        return lHook.MailboxList;
+                        return;
                     }
 
-                    if (lHook.MailboxList.Count != 0) lContext.TraceError("received mailboxes on a failed rlsub");
-
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
-                    throw new cProtocolErrorException(lResult, 0, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.MailboxReferrals, lContext);
+                    throw new cProtocolErrorException(lResult, fCapabilities.MailboxReferrals, lContext);
                 }
             }
         }

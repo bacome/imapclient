@@ -762,7 +762,7 @@ namespace work.bacome.imapclient
 
                     var lResult = new cCommandResult(lResultType, mResponseTextProcessor.Process(pCursor, lTextType, pTextCodeProcessor, lContext));
 
-                    if (SelectedMailbox != null) SelectedMailbox.UpdateHighestModSeq(lContext);
+                    if (mMailboxCache != null) mMailboxCache.CommandCompletion(lContext);
 
                     return lResult;
                 }

@@ -14,6 +14,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kFlagsSpace = new cBytes("FLAGS ");
 
                 private static readonly cBytes kListSpace = new cBytes("LIST ");
+                private static readonly cBytes kLSubSpace = new cBytes("LSUB ");
 
                 private static readonly cBytes kStatusSpace = new cBytes("STATUS ");
                 private static readonly cBytes kMessagesSpace = new cBytes("MESSAGES ");
@@ -22,6 +23,8 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kUIDValiditySpace = new cBytes("UIDVALIDITY ");
                 private static readonly cBytes kUnseenSpace = new cBytes("UNSEEN ");
                 private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
+
+                private static readonly cBytes kPermanentFlagsSpace = new cBytes("PERMANENTFLAGS ");
 
                 private enum eProcessStatusAttributeResult { notprocessed, processed, error }
 
@@ -36,9 +39,7 @@ namespace work.bacome.imapclient
                             if (pCursor.GetFlags(out var lFlags) && pCursor.Position.AtEnd)
                             {
                                 lContext.TraceVerbose("got flags: {0}", lFlags);
-
-                                var lItem = mSelectedMailbox.Handle as cItem;
-                                lItem.SetMessageFlags(new cMessageFlags(lFlags), lContext);
+                                mSelectedMailbox.MailboxCacheItem.SetMessageFlags(new cMessageFlags(lFlags), lContext);
                                 return eProcessDataResult.processed;
                             }
 
@@ -59,7 +60,7 @@ namespace work.bacome.imapclient
                             !pCursor.GetMailboxDelimiter(out var lDelimiter) ||
                             !pCursor.SkipByte(cASCII.SPACE) ||
                             !pCursor.GetAString(out IList<byte> lEncodedMailboxName) ||
-                            !ZProcessListExtendedItems(pCursor, out var lExtendedItems) ||
+                            !ZProcessDataListExtendedItems(pCursor, out var lExtendedItems) ||
                             !pCursor.Position.AtEnd ||
                             !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mUTF8Enabled, out var lMailboxName))
                         {
@@ -67,19 +68,41 @@ namespace work.bacome.imapclient
                             return eProcessDataResult.notprocessed;
                         }
 
+                        ZProcessDataListMailboxFlags(lFlags, lExtendedItems, out var lListFlags, out var lLSubFlags);
+
                         var lItem = ZItem(lMailboxName);
+                        lItem.SetFlags(lListFlags, lLSubFlags, lContext);
 
-                        ZProcessListMailboxFlags(lFlags, lExtendedItems, out var lListFlags, out var lLSubFlags);
+                        return eProcessDataResult.processed;
+                    }
 
-                        lItem.SetListFlags(mSequence++, lListFlags, lContext);
-                        if (mCapability.ListExtended) lItem.setlsubflags(mSequence++, lLsubFlags, lContext);
+                    if (pCursor.SkipBytes(kLSubSpace))
+                    {
+                        if (!pCursor.GetFlags(out var lFlags) ||
+                            !pCursor.SkipByte(cASCII.SPACE) ||
+                            !pCursor.GetMailboxDelimiter(out var lDelimiter) ||
+                            !pCursor.SkipByte(cASCII.SPACE) ||
+                            !pCursor.GetAString(out IList<byte> lEncodedMailboxName) ||
+                            !pCursor.Position.AtEnd ||
+                            !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mUTF8Enabled, out var lMailboxName))
+                        {
+                            lContext.TraceWarning("likely malformed lsub response");
+                            return eProcessDataResult.notprocessed;
+                        }
+
+                        ZProcessDataLSubMailboxFlags(lFlags, out var lLSubFlags);
+
+                        var lItem = ZItem(lMailboxName);
+                        lItem.SetFlags(null, lLSubFlags, lContext);
+
+                        return eProcessDataResult.processed;
                     }
 
                     if (pCursor.SkipBytes(kStatusSpace))
                     {
                         if (!pCursor.GetAString(out string lEncodedMailboxName) ||
                             !pCursor.SkipBytes(cBytesCursor.SpaceLParen) ||
-                            !ZProcessStatusAttributes(pCursor, out var lStatus, lContext) ||
+                            !ZProcessDataStatusAttributes(pCursor, out var lStatus, lContext) ||
                             !pCursor.SkipByte(cASCII.RPAREN) ||
                             !pCursor.Position.AtEnd)
                         {
@@ -88,18 +111,8 @@ namespace work.bacome.imapclient
                         }
 
                         var lItem = ZItem(lEncodedMailboxName);
-
-                        ;?; // sequence interlocked
-                        Sequence = Interlocked.Increment(ref mLastSequence);
-
-
-                        lItem.UpdateStatus(lStatus);
-
-                        if (!ReferenceEquals(lItem, mSelectedMailbox?.Handle))
-                        {
-                            var lProperties = lItem.UpdateMailboxStatus();
-                            if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(lItem, lProperties, lContext);
-                        }
+                        lItem.UpdateStatus(lStatus, lContext);
+                        if (mSelectedMailbox == null || !ReferenceEquals(mSelectedMailbox.MailboxCacheItem, lItem)) lItem.UpdateMailboxStatus(lContext);
 
                         return eProcessDataResult.processed;
                     }
@@ -112,11 +125,42 @@ namespace work.bacome.imapclient
 
 
 
+                    return eProcessDataResult.notprocessed;
+                }
+
+                public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ProcessTextCode));
+
+                    if (mSelectedMailbox != null)
+                    {
+                        // permanent flags
+
+                        ;?;
+                        if (pCursor.SkipBytes(kFlagsSpace))
+                        {
+                            if (pCursor.GetFlags(out var lFlags) && pCursor.Position.AtEnd)
+                            {
+                                lContext.TraceVerbose("got flags: {0}", lFlags);
+                                mSelectedMailbox.MailboxCacheItem.SetMessageFlags(new cMessageFlags(lFlags), lContext);
+                                return eProcessDataResult.processed;
+                            }
+
+                            lContext.TraceWarning("likely malformed flags response");
+                            return eProcessDataResult.notprocessed;
+                        }
+
+                        ;?;
+                        var lBookmark = pCursor.Position;
+                        var lResult = mSelectedMailbox.ProcessData(pCursor, lContext);
+                        if (lResult != eProcessDataResult.notprocessed) return lResult;
+                        pCursor.Position = lBookmark;
+                    }
+                    ;?;
 
                 }
 
-
-                private bool ZProcessListExtendedItems(cBytesCursor pCursor, out cExtendedItems rItems)
+                private bool ZProcessDataListExtendedItems(cBytesCursor pCursor, out cExtendedItems rItems)
                 {
                     rItems = new cExtendedItems();
 
@@ -137,7 +181,7 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                private void ZProcessListMailboxFlags(cFlags pFlags, cExtendedItems pExtendedItems, out cListFlags rListFlags, out cLSubFlags rLSubFlags)
+                private void ZProcessDataListMailboxFlags(cFlags pFlags, cExtendedItems pExtendedItems, out cListFlags rListFlags, out cLSubFlags rLSubFlags)
                 {
                     fListFlags lListFlags = 0;
                     fLSubFlags lLSubFlags = 0;
@@ -192,7 +236,17 @@ namespace work.bacome.imapclient
                     else rLSubFlags = null;
                 }
 
-                private bool ZProcessStatusAttributes(cBytesCursor pCursor,  out cStatus rStatus, cTrace.cContext pParentContext)
+                private void ZProcessDataLSubMailboxFlags(cFlags pFlags, out cLSubFlags rLSubFlags)
+                {
+                    fLSubFlags lLSubFlags;
+
+                    if (pFlags.Has(@"\Noselect")) lLSubFlags = fLSubFlags.hassubscribedchildren;
+                    else lLSubFlags = fLSubFlags.subscribed;
+
+                    rLSubFlags = new cLSubFlags(mSequence++, lLSubFlags);
+                }
+
+                private bool ZProcessDataStatusAttributes(cBytesCursor pCursor,  out cStatus rStatus, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessStatusAttributes));
 
@@ -246,7 +300,7 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                private static eProcessStatusAttributeResult ZProcessStatusAttribute(cBytesCursor pCursor, cBytes pAttributeSpace, ref uint? rNumber, cTrace.cContext pParentContext)
+                private static eProcessStatusAttributeResult ZProcessDataStatusAttribute(cBytesCursor pCursor, cBytes pAttributeSpace, ref uint? rNumber, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessStatusAttribute), pAttributeSpace);
 
@@ -263,7 +317,7 @@ namespace work.bacome.imapclient
                     return eProcessStatusAttributeResult.error;
                 }
 
-                private static eProcessStatusAttributeResult ZProcessStatusAttribute(cBytesCursor pCursor, cBytes pAttributeSpace, ref ulong? rNumber, cTrace.cContext pParentContext)
+                private static eProcessStatusAttributeResult ZProcessDataStatusAttribute(cBytesCursor pCursor, cBytes pAttributeSpace, ref ulong? rNumber, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessStatusAttribute));
 

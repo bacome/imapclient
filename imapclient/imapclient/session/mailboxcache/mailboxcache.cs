@@ -11,21 +11,14 @@ namespace work.bacome.imapclient
         {
             private partial class cMailboxCache
             {
-
-
-                ;?; // don't forget to call this from the dataprocessor of the pipeline
-                
-
-
-
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cAccountId mConnectedAccountId;
                 private readonly bool mUTF8Enabled;
                 private readonly cCommandPart.cFactory mFactory;
                 private readonly Action<eState, cTrace.cContext> mSetState;
-                private cCapability mCapability;
+                private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
 
-                private readonly ConcurrentDictionary<string, cItem> mDictionary = new ConcurrentDictionary<string, cItem>();
+                private cCapability mCapability;
 
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
@@ -53,6 +46,7 @@ namespace work.bacome.imapclient
                     if (!ReferenceEquals(pHandle.Cache, this)) throw new ArgumentOutOfRangeException(nameof(pHandle));
                     if (!mDictionary.TryGetValue(pHandle.EncodedMailboxName, out var lItem)) throw new ArgumentOutOfRangeException(nameof(pHandle));
                     if (!ReferenceEquals(lItem, pHandle)) throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    //return lItem;
                 }
 
                 public cSelectedMailbox SelectedMailbox => mSelectedMailbox;
@@ -100,7 +94,17 @@ namespace work.bacome.imapclient
                 public void ResetLSubFlags(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetLSubFlags), pPattern, pSequence);
-                    foreach (var lItem in mDictionary.Values) if (lItem.Exists != false && lItem.MailboxName != null && (lItem.LSubFlags == null || lItem.LSubFlags.Sequence < pSequence) && pPattern.Matches(lItem.MailboxName.Name)) lItem.SetFlags(null, new cLSubFlags(mSequence++, 0), lContext);
+
+                    cLSubFlags lFlags = null;
+
+                    foreach (var lItem in mDictionary.Values)
+                    {
+                        if (lItem.Exists != false && lItem.MailboxName != null && (lItem.LSubFlags == null || lItem.LSubFlags.Sequence < pSequence) && pPattern.Matches(lItem.MailboxName.Name))
+                        {
+                            if (lFlags == null) lFlags = new cLSubFlags(mSequence++, 0);
+                            lItem.SetFlags(null, lFlags, lContext);
+                        }
+                    }
                 }
 
 
@@ -204,13 +208,13 @@ namespace work.bacome.imapclient
                     mSetState(eState.authenticated, lContext);
                 }
 
-                private cItem ZItem(string pEncodedMailboxName) => mDictionary.GetOrAdd(pEncodedMailboxName, new cItem(this, mEventSynchroniser, pEncodedMailboxName));
+                private cMailboxCacheItem ZItem(string pEncodedMailboxName) => mDictionary.GetOrAdd(pEncodedMailboxName, new cMailboxCacheItem(this, mEventSynchroniser, pEncodedMailboxName));
 
-                private cItem ZItem(cMailboxName pMailboxName)
+                private cMailboxCacheItem ZItem(cMailboxName pMailboxName)
                 {
                     if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
                     if (!mFactory.TryAsMailbox(pMailboxName, out var lCommandPart, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
-                    var lItem = mDictionary.GetOrAdd(lEncodedMailboxName, new cItem(this, mEventSynchroniser, lEncodedMailboxName));
+                    var lItem = mDictionary.GetOrAdd(lEncodedMailboxName, new cMailboxCacheItem(this, mEventSynchroniser, lEncodedMailboxName));
                     lItem.MailboxName = pMailboxName;
                     lItem.CommandPart = lCommandPart;
                     return lItem;

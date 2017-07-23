@@ -41,9 +41,9 @@ namespace work.bacome.imapclient
                 specialuse = 1 << 3
             }
 
-            public async Task ListExtendedAsync(cMethodControl pMC, fListExtendedSelect pSelect, cListPatterns pPatterns, fListExtendedReturn pReturn, cTrace.cContext pParentContext)
+            public async Task ListExtendedAsync(cMethodControl pMC, fListExtendedSelect pSelect, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, fListExtendedReturn pReturn, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListExtendedAsync), pMC, pSelect, pPatterns, pReturn);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListExtendedAsync), pMC, pSelect, pListMailbox, pDelimiter, pPattern, pReturn);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
@@ -54,12 +54,48 @@ namespace work.bacome.imapclient
                     if ((pSelect & fListExtendedSelect.subscribed) == 0) throw new ArgumentOutOfRangeException(nameof(pSelect));
                 }
 
+                if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
+
+                if (!mStringFactory.TryAsListMailbox(pListMailbox, pDelimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pListMailbox));
+
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    ZListExtendedAddCommandParts(pSelect, pPatterns, pReturn, lCommand);
+                    // note that remote can't be specified 
+                    //  if mmailboxreferrals is true then we will always add it
+
+                    // note that specialuse can't be specified as there is no way to remove items from the cache
+
+                    // => select option is reduced to subscribedonly.  If it is on then it is always subscribed recursiveematch 
+
+
+                    // note that return will always be subscribed, children, specailuse (if supported), status if supported and requested
+                    //  no
+                    //   return will be based on the properties asked for
+
+
+                    ;?; // pass the listmailbox command part
+                    ZListExtendedAddCommandParts(pSelect, pListMailbox, pDelimiter, pPattern, pReturn, lCommand);
+
+
+
+
+                    ;?; // note that this isn't the right command hook -
+                    //   if a selection is present then we wouldn't expect all mailboxes to be returned => 
+                    //    if subscribed is set the hook should do processing like lsub
+
+                    var lHook = new cListExtendedCommandHook(mMailboxCache, pPattern, mMailboxCache.Sequence);
+                    lCommand.Add(lHook);
+
+
+
+
+
+
+
+
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
@@ -80,7 +116,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private static void ZListExtendedAddCommandParts(fListExtendedSelect pSelect, cListPatterns pPatterns, fListExtendedReturn pReturn, cCommand pCommand)
+            private static void ZListExtendedAddCommandParts(fListExtendedSelect pSelect, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, fListExtendedReturn pReturn, cCommand pCommand)
             {
                 pCommand.BeginList(cCommand.eListBracketing.none); // space separate each section
 
