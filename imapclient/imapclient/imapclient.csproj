@@ -83,6 +83,7 @@
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
     <Compile Include="session\imap_commands\rlist.cs" />
+    <Compile Include="session\imap_commands\starttls.cs" />
     <Compile Include="session\mailboxcache\support_classes.cs" />
     <Compile Include="session\mailboxcache\mailboxcacheitem.cs" />
     <Compile Include="session\mailboxcache\processing.cs" />

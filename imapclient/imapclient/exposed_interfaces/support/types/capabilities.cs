@@ -18,7 +18,7 @@ namespace work.bacome.imapclient.support
 
             if (mDictionary.ContainsKey(pCapability)) return;
 
-            if (!cCommandPart.TryAsAtom(pCapability, out _)) throw new ArgumentOutOfRangeException(nameof(pCapability));
+            if (!cCommandPartFactory.TryAsAtom(pCapability, out _)) throw new ArgumentOutOfRangeException(nameof(pCapability));
 
             mDictionary.Add(pCapability, true);
         }

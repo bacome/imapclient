@@ -9,33 +9,36 @@ namespace work.bacome.imapclient
     {
         // rfc4616
 
-        private static string kName = "PLAIN";
+        private const string kName = "PLAIN";
 
-        private string mAuthenticationId;
-        private string mPassword;
+        private readonly string mAuthenticationId;
+        private readonly string mPassword;
+        private readonly bool mRequireTLS;
 
-        public cSASLPlain(string pAuthenticationId, string pPassword)
+        private cSASLPlain(string pAuthenticationId, string pPassword, bool pRequireTLS, bool pPrechecked)
+        {
+            mAuthenticationId = pAuthenticationId;
+            mPassword = pPassword;
+            mRequireTLS = pRequireTLS;
+        }
+
+        public cSASLPlain(string pAuthenticationId, string pPassword, bool pRequireTLS)
         {
             if (string.IsNullOrEmpty(pAuthenticationId) || pAuthenticationId.IndexOf(cChar.NUL) != -1) throw new ArgumentOutOfRangeException(nameof(pAuthenticationId));
             if (string.IsNullOrEmpty(pPassword) || pPassword.IndexOf(cChar.NUL) != -1) throw new ArgumentOutOfRangeException(nameof(pPassword));
             mAuthenticationId = pAuthenticationId;
             mPassword = pPassword;
+            mRequireTLS = pRequireTLS;
         }
 
-        private cSASLPlain(string pAuthenticationId, string pPassword, bool pPrechecked)
-        {
-            mAuthenticationId = pAuthenticationId;
-            mPassword = pPassword;
-        }
-
-        public static bool TryConstruct(string pAuthenticationId, string pPassword, out cSASLPlain rPlain)
+        public static bool TryConstruct(string pAuthenticationId, string pPassword, bool pRequireTLS, out cSASLPlain rPlain)
         {
             if (!string.IsNullOrEmpty(pAuthenticationId) &&
                 pAuthenticationId.IndexOf(cChar.NUL) == -1 &&
                 !string.IsNullOrEmpty(pPassword) &&
                 pPassword.IndexOf(cChar.NUL) == -1)
             {
-                rPlain = new cSASLPlain(pAuthenticationId, pPassword, true);
+                rPlain = new cSASLPlain(pAuthenticationId, pPassword, pRequireTLS, true);
                 return true;
             }
 
@@ -44,6 +47,7 @@ namespace work.bacome.imapclient
         }
 
         public override string MechanismName => kName;
+        public override bool RequireTLS => mRequireTLS;
         public override cSASLAuthentication GetAuthentication() => new cAuth(mAuthenticationId, mPassword);
 
         private class cAuth : cSASLAuthentication

@@ -10,6 +10,7 @@ namespace work.bacome.imapclient
 
         // returns a string containing the SASL mechanism name
         public abstract string MechanismName { get; }
+        public abstract bool RequireTLS { get; }
 
         // gets an object that can do the authentication
         //  each time the object is got it will be disposed once the authentication is complete and any security object is obtained

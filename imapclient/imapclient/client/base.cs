@@ -195,8 +195,8 @@ namespace work.bacome.imapclient
         }
 
         public void SetNoCredentials() => Credentials = cCredentials.None;
-        public void SetAnonymousCredentials(string pTrace, bool pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised);
-        public void SetPlainCredentials(string pUserId, string pPassword, bool pTryAuthenticateEvenIfAuthPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTryAuthenticateEvenIfAuthPlainIsntAdvertised);
+        public void SetAnonymousCredentials(string pTrace, bool pRequireTLS, bool pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pRequireTLS, pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised);
+        public void SetPlainCredentials(string pUserId, string pPassword, bool pRequireTLS, bool pTryAuthenticateEvenIfAuthPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pRequireTLS, pTryAuthenticateEvenIfAuthPlainIsntAdvertised);
 
         // if the caller can handle mailbox referrals
         //

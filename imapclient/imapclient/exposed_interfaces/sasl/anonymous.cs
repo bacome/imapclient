@@ -9,26 +9,29 @@ namespace work.bacome.imapclient
     {
         // rfc4505
 
-        private static string kName = "ANONYMOUS";
+        private const string kName = "ANONYMOUS";
 
-        private string mTrace;
+        private readonly string mTrace;
+        private readonly bool mRequireTLS;
 
-        public cSASLAnonymous(string pTrace)
+        private cSASLAnonymous(string pTrace, bool pRequireTLS, bool pPrechecked)
+        {
+            mTrace = pTrace;
+            mRequireTLS = pRequireTLS;
+        }
+
+        public cSASLAnonymous(string pTrace, bool pRequireTLS)
         {
             if (!ZIsValid(pTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
             mTrace = pTrace;
+            mRequireTLS = pRequireTLS;
         }
 
-        private cSASLAnonymous(string pTrace, bool pPrechecked)
-        {
-            mTrace = pTrace;
-        }
-
-        public static bool TryConstruct(string pTrace, out cSASLAnonymous rAnonymous)
+        public static bool TryConstruct(string pTrace, bool pRequireTLS, out cSASLAnonymous rAnonymous)
         {
             if (ZIsValid(pTrace))
             {
-                rAnonymous = new cSASLAnonymous(pTrace, true);
+                rAnonymous = new cSASLAnonymous(pTrace, pRequireTLS, true);
                 return true;
             }
 
@@ -54,6 +57,7 @@ namespace work.bacome.imapclient
         }
 
         public override string MechanismName => kName;
+        public override bool RequireTLS => mRequireTLS;
         public override cSASLAuthentication GetAuthentication() => new cAuth(mTrace);
 
         private class cAuth : cSASLAuthentication

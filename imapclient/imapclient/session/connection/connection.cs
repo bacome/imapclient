@@ -105,6 +105,35 @@ namespace work.bacome.imapclient
                     mBuilder.Binary = pCapability.Binary;
                 }
 
+                public void InstallTLS(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(InstallSecurity));
+
+                    if (mState != eState.connected) throw new InvalidOperationException("must be connected");
+                    if (mSSLStream != null) throw new InvalidOperationException("tls already installed");
+
+                    lContext.TraceInformation("installing TLS");
+
+
+
+
+
+
+
+
+                    lContext.TraceInformation("installing security");
+
+
+
+
+
+
+
+                    ;?;
+                }
+
+                public bool TLSInstalled => mSSLStream != null;
+
                 public void InstallSecurity(cSASLSecurity pSecurity, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(InstallSecurity));
@@ -125,7 +154,7 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public bool SecurityInstalled => (mSecurity != null);
+                public bool SecurityInstalled => mSecurity != null;
 
                 public Task GetAwaitResponseTask(cTrace.cContext pParentContext)
                 {

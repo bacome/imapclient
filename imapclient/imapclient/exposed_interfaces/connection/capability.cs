@@ -7,31 +7,32 @@ namespace work.bacome.imapclient
     public enum fCapabilities
     {
         LoginDisabled = 1 << 0,
-        Idle = 1 << 1,
-        LiteralPlus = 1 << 2,
-        LiteralMinus = 1 << 3,
-        Enable = 1 << 4,
-        UTF8Accept = 1 << 5,
-        UTF8Only = 1 << 6,
-        ListExtended = 1 << 7,
-        Children = 1 << 8,
-        SASL_IR = 1 << 9,
-        LoginReferrals = 1 << 10,
-        MailboxReferrals = 1 << 11,
-        Id = 1 << 12,
-        Binary = 1 << 13,
-        Namespace = 1 << 14,
-        ListStatus = 1 << 15,
-        SpecialUse = 1 << 16,
-        ESearch = 1 << 17,
-        Sort = 1 << 18,
-        SortDisplay = 1 << 19,
-        ESort = 1 << 20,
-        ThreadOrderedSubject = 1 << 21,
-        ThreadReferences = 1 << 22,
-        ThreadRefs = 1 << 23,
-        CondStore = 1 << 24,
-        QResync = 1 << 25
+        StartTLS = 1 << 1,
+        Idle = 1 << 2,
+        LiteralPlus = 1 << 3,
+        LiteralMinus = 1 << 4,
+        Enable = 1 << 5,
+        UTF8Accept = 1 << 6,
+        UTF8Only = 1 << 7,
+        ListExtended = 1 << 8,
+        Children = 1 << 9,
+        SASL_IR = 1 << 10,
+        LoginReferrals = 1 << 11,
+        MailboxReferrals = 1 << 12,
+        Id = 1 << 13,
+        Binary = 1 << 14,
+        Namespace = 1 << 15,
+        ListStatus = 1 << 16,
+        SpecialUse = 1 << 17,
+        ESearch = 1 << 18,
+        Sort = 1 << 19,
+        SortDisplay = 1 << 20,
+        ESort = 1 << 21,
+        ThreadOrderedSubject = 1 << 22,
+        ThreadReferences = 1 << 23,
+        ThreadRefs = 1 << 24,
+        CondStore = 1 << 25,
+        QResync = 1 << 26
     }
 
     public class cCapability
@@ -49,6 +50,7 @@ namespace work.bacome.imapclient
             Capabilities = 0;
 
             if (pServerCapabilities.Has("LoginDisabled")) Capabilities |= fCapabilities.LoginDisabled;
+            if (pServerCapabilities.Has("StartTLS")) Capabilities |= fCapabilities.StartTLS;
             if (pServerCapabilities.Has("Idle")) Capabilities |= fCapabilities.Idle;
             if (pServerCapabilities.Has("Literal+")) Capabilities |= fCapabilities.LiteralPlus;
             if (pServerCapabilities.Has("Literal-")) Capabilities |= fCapabilities.LiteralMinus;
@@ -83,6 +85,7 @@ namespace work.bacome.imapclient
         }
 
         public bool LoginDisabled => (EffectiveCapabilities & fCapabilities.LoginDisabled) != 0;
+        public bool StartTLS => (EffectiveCapabilities & fCapabilities.StartTLS) != 0;
         public bool Idle => (EffectiveCapabilities & fCapabilities.Idle) != 0;
         public bool LiteralPlus => (EffectiveCapabilities & fCapabilities.LiteralPlus) != 0;
         public bool LiteralMinus => (EffectiveCapabilities & fCapabilities.LiteralMinus) != 0;

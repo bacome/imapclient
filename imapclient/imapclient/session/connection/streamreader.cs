@@ -17,26 +17,17 @@ namespace work.bacome.imapclient
                 private sealed class cStreamReader : IDisposable
                 {
                     private bool mStopped = false;
-                    private bool mDisposed = false;
-
                     private readonly Stream mStream;
-                    private readonly SemaphoreSlim mSemaphore = new SemaphoreSlim(0, 1);
-                    private readonly Task mBackgroundTask;
-                    private Exception mBackgroundTaskException = null;
-                    private readonly ConcurrentQueue<byte[]> mBuffers = new ConcurrentQueue<byte[]>();
 
                     public cStreamReader(Stream pStream, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewObject(nameof(cStreamReader));
                         mStream = pStream;
-                        mBackgroundTask = ZBackgroundTaskAsync(lContext);
                     }
 
                     public async Task<byte[]> GetBufferAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cStreamReader), nameof(GetBufferAsync));
-
-                        if (mDisposed) throw new ObjectDisposedException(nameof(cStreamReader));
 
                         if (mStopped)
                         {
@@ -79,7 +70,7 @@ namespace work.bacome.imapclient
                         {
                             while (true)
                             {
-                                lByteCount = await mStream.ReadAsync(lBuffer, 0, kBufferSize).ConfigureAwait(false);
+                                lByteCount = await mStream.ReadAsync(lBuffer, 0, kBufferSize, ).ConfigureAwait(false);
 
                                 if (lByteCount == 0)
                                 {
