@@ -47,12 +47,12 @@ namespace work.bacome.imapclient
                 // rfc 3516
                 private static readonly cBytes kUnknownCTERBracketSpace = new cBytes("UNKNOWN-CTE] ");
 
-                private readonly Action<eResponseTextType, cResponseText, cTrace.cContext> mFireResponseText;
+                private readonly cEventSynchroniser mEventSynchroniser;
                 private cMailboxCache mMailboxCache = null;
 
-                public cResponseTextProcessor(Action<eResponseTextType, cResponseText, cTrace.cContext> pFireResponseText)
+                public cResponseTextProcessor(cEventSynchroniser pEventSynchroniser)
                 {
-                    mFireResponseText = pFireResponseText ?? throw new ArgumentNullException(nameof(pFireResponseText));
+                    mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                 }
 
                 public void SetMailboxCache(cMailboxCache pMailboxCache, cTrace.cContext pParentContext)
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
                     {
                         lResponseText = new cResponseText(pCursor.GetRestAsString());
                         lContext.TraceVerbose("response text received: {0}", lResponseText);
-                        mFireResponseText(pTextType, lResponseText, lContext);
+                        mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
                         return lResponseText;
                     }
 
@@ -109,7 +109,7 @@ namespace work.bacome.imapclient
                         {
                             lResponseText = new cResponseText(eResponseTextCode.badcharset, pCursor.GetRestAsString());
                             lContext.TraceWarning("response text received: {0}", lResponseText);
-                            mFireResponseText(pTextType, lResponseText, lContext);
+                            mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
                             return lResponseText;
                         }
 
@@ -128,7 +128,7 @@ namespace work.bacome.imapclient
                                 {
                                     lResponseText = new cResponseText(eResponseTextCode.badcharset, new cStrings(lCharsets), pCursor.GetRestAsString());
                                     lContext.TraceWarning("response text received: {0}", lResponseText);
-                                    mFireResponseText(pTextType, lResponseText, lContext);
+                                    mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
                                     return lResponseText;
                                 }
 
@@ -155,7 +155,7 @@ namespace work.bacome.imapclient
                             {
                                 lResponseText = new cResponseText(eResponseTextCode.referral, new cStrings(lURIs), pCursor.GetRestAsString());
                                 lContext.TraceWarning("response text received: {0}", lResponseText);
-                                mFireResponseText(pTextType, lResponseText, lContext);
+                                mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
                                 return lResponseText;
                             }
 
@@ -172,7 +172,7 @@ namespace work.bacome.imapclient
                         {
                             lResponseText = new cResponseText(pCursor.GetRestAsString());
                             lContext.TraceVerbose("response text received: {0}", lResponseText);
-                            mFireResponseText(pTextType, lResponseText, lContext);
+                            mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
                             return lResponseText;
                         }
 
@@ -185,7 +185,7 @@ namespace work.bacome.imapclient
                         {
                             lResponseText = new cResponseText(pCursor.GetRestAsString());
                             lContext.TraceVerbose("response text received: {0}", lResponseText);
-                            mFireResponseText(pTextType, lResponseText, lContext);
+                            mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
                             return lResponseText;
                         }
 
@@ -198,7 +198,7 @@ namespace work.bacome.imapclient
                         {
                             lResponseText = new cResponseText(lUnknownCodeAtom, null, pCursor.GetRestAsString());
                             lContext.TraceVerbose("response text received: {0}", lResponseText);
-                            mFireResponseText(pTextType, lResponseText, lContext);
+                            mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
                             return lResponseText;
                         }
 
@@ -206,7 +206,7 @@ namespace work.bacome.imapclient
                         {
                             lResponseText = new cResponseText(lUnknownCodeAtom, lUnknownCodeText, pCursor.GetRestAsString());
                             lContext.TraceVerbose("response text received: {0}", lResponseText);
-                            mFireResponseText(pTextType, lResponseText, lContext);
+                            mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
                             return lResponseText;
                         }
                     }
@@ -216,7 +216,7 @@ namespace work.bacome.imapclient
 
                     lResponseText = new cResponseText(pCursor.GetRestAsString());
                     lContext.TraceVerbose("response text received: {0}", lResponseText);
-                    mFireResponseText(pTextType, lResponseText, lContext);
+                    mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
                     return lResponseText;
                 }
 
@@ -227,7 +227,7 @@ namespace work.bacome.imapclient
                     if (!pCursor.SkipBytes(pResponseTextCodeBracketSpace)) { rResponseText = null; return false; }
                     rResponseText = new cResponseText(pResponseTextCode, pCursor.GetRestAsString());
                     lContext.TraceWarning("response text received: {0}", rResponseText);
-                    mFireResponseText(pTextType, rResponseText, lContext);
+                    mEventSynchroniser.FireResponseText(pTextType, rResponseText, lContext);
                     return true;
                 }
             }

@@ -13,8 +13,7 @@ namespace work.bacome.imapclient
             {
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cAccountId mConnectedAccountId;
-                private readonly bool mUTF8Enabled;
-                private readonly cCommandPart.cFactory mFactory;
+                private readonly cCommandPartFactory mStringFactory;
                 private readonly Action<eState, cTrace.cContext> mSetState;
                 private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
 
@@ -23,12 +22,11 @@ namespace work.bacome.imapclient
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, bool pUTF8Enabled, Action<eState, cTrace.cContext> pSetState, cCapability pCapability)
+                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, cCommandPartFactory pStringFactory, Action<eState, cTrace.cContext> pSetState, cCapability pCapability)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mConnectedAccountId = pConnectedAccountId ?? throw new ArgumentNullException(nameof(pConnectedAccountId));
-                    mUTF8Enabled = pUTF8Enabled;
-                    mFactory = new cCommandPart.cFactory(mUTF8Enabled);
+                    mStringFactory = pStringFactory;
                     mSetState = pSetState ?? throw new ArgumentNullException(nameof(pSetState));
                     mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
                 }

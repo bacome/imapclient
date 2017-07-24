@@ -66,6 +66,7 @@ namespace work.bacome.imapclient
         private cServer mServer = null;
         private cCredentials mCredentials = null;
         private bool mMailboxReferrals = false;
+        private fMailboxProperties mMailboxProperties;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
         private cFetchSizeConfiguration mFetchAttributesConfiguration = new cFetchSizeConfiguration(1, 1000, 10000, 1);
         private cFetchSizeConfiguration mFetchBodyReadConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
@@ -78,7 +79,7 @@ namespace work.bacome.imapclient
             mRootContext = mTrace.NewRoot(pInstanceName);
             mRootContext.TraceInformation("cIMAPClient by bacome version {0}, release date {1}", Version, ReleaseDate);
             mEventSynchroniser = new cEventSynchroniser(this, mRootContext);
-            mAsyncCounter = new cAsyncCounter(mEventSynchroniser.FirePropertyChanged);
+            mAsyncCounter = new cAsyncCounter(mEventSynchroniser);
         }
 
         // events
@@ -208,6 +209,20 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
                 mMailboxReferrals = value;
+            }
+        }
+
+        // the properties required when listing mailboxes
+        //
+        public fMailboxProperties MailboxProperties
+        {
+            get => mMailboxProperties;
+
+            set
+            {
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                mMailboxProperties = value;
             }
         }
 

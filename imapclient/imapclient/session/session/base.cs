@@ -26,7 +26,9 @@ namespace work.bacome.imapclient
 
             private cFetchSizer mFetchAttributesSizer;
             private cFetchSizer mFetchBodyReadSizer;
-            private Encoding mEncoding; // can be null
+
+            private cCommandPartFactory mStringFactory;
+            private cCommandPartFactory mEncodedStringFactory;
 
             // properties
             private cCapabilities _Capabilities = null;
@@ -38,11 +40,7 @@ namespace work.bacome.imapclient
             // post enable processing sets these
             private bool mEnableDone = false;
             private bool mUTF8Enabled = false;
-            private cCommandPart.cFactory mStringFactory = null;
             private cMailboxCache mMailboxCache = null;
-
-            // selected mailbox
-            //private cSelectedMailbox _SelectedMailbox = null;
 
             // locks
             private readonly cExclusiveAccess mSelectExclusiveAccess = new cExclusiveAccess("select", 1);
@@ -61,7 +59,7 @@ namespace work.bacome.imapclient
 
                 _IgnoreCapabilities = pIgnoreCapabilities;
 
-                mResponseTextProcessor = new cResponseTextProcessor(mEventSynchroniser.FireResponseText);
+                mResponseTextProcessor = new cResponseTextProcessor(mEventSynchroniser);
                 mPipeline = new cCommandPipeline(mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
 
                 mCapabilityDataProcessor = new cCapabilityDataProcessor(ZSetCapabilities);
@@ -69,7 +67,9 @@ namespace work.bacome.imapclient
 
                 mFetchAttributesSizer = new cFetchSizer(pFetchAttributesConfiguration);
                 mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
-                mEncoding = pEncoding;
+
+                mStringFactory = new cCommandPartFactory(false, null);
+                mEncodedStringFactory = new cCommandPartFactory(false, pEncoding);
             }
 
             public void EnableDone(cTrace.cContext pParentContext)
@@ -80,24 +80,14 @@ namespace work.bacome.imapclient
                 mEnableDone = true;
 
                 mUTF8Enabled = (EnabledExtensions & fEnableableExtensions.utf8) != 0;
-                mStringFactory = new cCommandPart.cFactory(mUTF8Enabled);
-                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mUTF8Enabled, ZSetState, _Capability);
+
+                if (mUTF8Enabled) mStringFactory = new cCommandPartFactory(true, null);
+
+                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mStringFactory, ZSetState, _Capability);
 
                 mResponseTextProcessor.SetMailboxCache(mMailboxCache, lContext);
                 mPipeline.SetMailboxCache(mMailboxCache, lContext);
-
-
-                mStatusDataProcessor = new cStatusDataProcessor(mMailboxCache);
-                mPipeline.Install(mStatusDataProcessor);
-
-                mListDataProcessor = new cListDataProcessor(EnabledExtensions, ZGetCapability, mMailboxCache);
-                mPipeline.Install(mListDataProcessor);
-
-                mLSubDataProcessor = new cLSubDataProcessor(EnabledExtensions, mMailboxCache);
-                mPipeline.Install(mLSubDataProcessor);
             }
-
-
 
             public void SetIgnoreCapabilities(fCapabilities pIgnoreCapabilities, cTrace.cContext pParentContext)
             {
@@ -129,7 +119,7 @@ namespace work.bacome.imapclient
             public void SetEncoding(Encoding pEncoding, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetEncoding), pEncoding.WebName);
-                mEncoding = pEncoding;
+                mEncodedStringFactory = new cCommandPartFactory(mUTF8Enabled, pEncoding);
             }
 
             public eState State => _State;

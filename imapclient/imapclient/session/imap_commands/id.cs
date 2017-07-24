@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
                 // install the permanant response data processor
                 if (mIdResponseDataProcessor == null)
                 {
-                    mIdResponseDataProcessor = new cIdDataProcessor(mEventSynchroniser.PropertyChanged);
+                    mIdResponseDataProcessor = new cIdDataProcessor(mEventSynchroniser);
                     mPipeline.Install(mIdResponseDataProcessor);
                 }
 
@@ -41,10 +41,11 @@ namespace work.bacome.imapclient
                     if (pClientDictionary == null) lCommand.Add(cCommandPart.Nil);
                     else
                     {
-                        lCommand.BeginList(cCommand.eListBracketing.bracketed);
+                        lCommand.BeginList(eListBracketing.bracketed);
 
                         foreach (var lFieldValuePair in pClientDictionary)
                         {
+                            ;?; // this won't work
                             lCommand.Add(mStringFactory.AsString(lFieldValuePair.Key));
                             lCommand.Add(mStringFactory.AsNString(lFieldValuePair.Value));
                         }
@@ -71,12 +72,12 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kIdSpace = new cBytes("ID ");
 
-                private readonly Action<string, cTrace.cContext> mPropertyChanged;
+                private readonly cEventSynchroniser mEventSynchroniser;
                 private cIdReadOnlyDictionary mDictionary = null;
 
-                public cIdDataProcessor(Action<string, cTrace.cContext> pPropertyChanged)
+                public cIdDataProcessor(cEventSynchroniser pEventSynchroniser)
                 {
-                    mPropertyChanged = pPropertyChanged ?? throw new ArgumentNullException(nameof(pPropertyChanged));
+                    mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                 }
 
                 public cIdReadOnlyDictionary Dictionary => mDictionary;
@@ -90,7 +91,7 @@ namespace work.bacome.imapclient
                         if (ZGetId(pCursor, out mDictionary, lContext) && pCursor.Position.AtEnd)
                         {
                             lContext.TraceVerbose("got id: {0}", mDictionary);
-                            mPropertyChanged(nameof(cIMAPClient.ServerId), lContext);
+                            mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.ServerId), lContext);
                             return eProcessDataResult.processed;
                         }
 

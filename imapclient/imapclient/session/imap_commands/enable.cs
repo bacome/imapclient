@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public fEnableableExtensions EnabledExtensions { get; private set; } = fEnableableExtensions.none;
+            ;?; // do not expose this
 
             private static readonly cCommandPart kEnableCommandPartEnable = new cCommandPart("ENABLE");
             private static readonly cBytes kEnableExtensionUTF8 = new cBytes("UTF8=ACCEPT");
@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
                 {
                     //  note the lack of locking - this is only called during connect
 
-                    lCommand.BeginList(cCommand.eListBracketing.none);
+                    lCommand.BeginList(eListBracketing.none);
                     lCommand.Add(kEnableCommandPartEnable);
                     if ((pExtensions & fEnableableExtensions.utf8) != 0) lCommand.Add(kEnableCommandPartUTF8);
                     // more here as required

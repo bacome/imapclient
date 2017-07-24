@@ -42,12 +42,13 @@
   <ItemGroup>
     <Compile Include="client\base.cs" />
     <Compile Include="client\connect.cs" />
-    <Compile Include="client\defaultproperties.cs" />
+    <Compile Include="client\defaultmessageproperties.cs" />
     <Compile Include="client\disconnect.cs" />
     <Compile Include="client\fetchattributes.cs" />
     <Compile Include="client\fetchcontrol.cs" />
     <Compile Include="client\fetchproperties.cs" />
     <Compile Include="client\fetchbody.cs" />
+    <Compile Include="client\requiredmailboxproperties.cs" />
     <Compile Include="client\tools.cs" />
     <Compile Include="client\uidfetchbody.cs" />
     <Compile Include="client\mailboxes.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="session\session\checkhandles.cs" />
     <Compile Include="session\session\searchunseen.cs" />
     <Compile Include="session\mailboxcache\mailboxcache.cs" />
+    <Compile Include="exposed_interfaces\support\types\commandpartfactory.cs" />
     <Compile Include="session\unsoliciteddataprocessors\capability.cs" />
     <Compile Include="zzz\mailboxflagsets.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxname.cs" />

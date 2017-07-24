@@ -22,6 +22,7 @@ namespace work.bacome.imapclient
             if (pPrefix == null) throw new ArgumentNullException(nameof(pPrefix));
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) throw new ArgumentOutOfRangeException(nameof(pDelimiter));
 
+            ;?; // can these not be utf8?
             cCommandPart.cFactory lFactory = new cCommandPart.cFactory();
             if (!lFactory.TryAsListMailbox(pPrefix, pDelimiter, out _)) throw new ArgumentOutOfRangeException(nameof(pPrefix));
 
@@ -41,12 +42,12 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        public static bool TryConstruct(IList<byte> pBytes, byte? pDelimiter, fEnableableExtensions pEnabledExtensions, out cNamespaceName rResult)
+        public static bool TryConstruct(IList<byte> pBytes, byte? pDelimiter, bool pUTF8Enabled, out cNamespaceName rResult)
         {
             if (pBytes == null) { rResult = null; return false; }
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
 
-            if (!cTools.TryMailboxNameBytesToString(pBytes, pDelimiter, pEnabledExtensions, out var lPrefix)) { rResult = null; return false; }
+            if (!cTools.TryMailboxNameBytesToString(pBytes, pDelimiter, pUTF8Enabled, out var lPrefix)) { rResult = null; return false; }
 
             char? lDelimiter;
             if (pDelimiter == null) lDelimiter = null;

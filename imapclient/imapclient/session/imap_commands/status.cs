@@ -11,8 +11,6 @@ namespace work.bacome.imapclient
         private partial class cSession
         {
             private static readonly cCommandPart kStatusCommandPart = new cCommandPart("STATUS ");
-            private static readonly cCommandPart kStatusCommandPartrfc3501Attributes = new cCommandPart(" (MESSAGES RECENT UIDNEXT UIDVALIDITY UNSEEN");
-            private static readonly cCommandPart kStatusCommandPartHighestModSeq = new cCommandPart(" HIGHESTMODSEQ");
 
             public async Task<cMailboxStatus> StatusAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {

@@ -133,14 +133,14 @@ namespace work.bacome.imapclient
             lFactory.TryAsMailbox(new cMailboxName(pMailboxName, '/'), out lCommandPart, out _);
             lCursor = new cBytesCursor(lCommandPart.Bytes);
             lCursor.GetAString(out lEncodedMailboxName);
-            cMailboxName.TryConstruct(lEncodedMailboxName, cASCII.SLASH, fEnableableExtensions.none, out lMailboxName);
+            cMailboxName.TryConstruct(lEncodedMailboxName, cASCII.SLASH, false, out lMailboxName);
             if (lMailboxName.Name != pMailboxName) throw new cTestsException($"mailboxname conversion failed on '{pMailboxName}' -> {lCommandPart.Bytes} -> '{lMailboxName}'", lContext);
 
             lFactory = new cCommandPart.cFactory(true);
             lFactory.TryAsMailbox(new cMailboxName(pMailboxName, '/'), out lCommandPart, out _);
             lCursor = new cBytesCursor(lCommandPart.Bytes);
             lCursor.GetAString(out lEncodedMailboxName);
-            cMailboxName.TryConstruct(lEncodedMailboxName, cASCII.SLASH, fEnableableExtensions.utf8, out lMailboxName);
+            cMailboxName.TryConstruct(lEncodedMailboxName, cASCII.SLASH, true, out lMailboxName);
             if (lMailboxName.Name != pMailboxName) throw new cTestsException($"mailboxname conversion failed on '{pMailboxName}' -> {lCommandPart.Bytes} -> '{lMailboxName}'", lContext);
         }
     }

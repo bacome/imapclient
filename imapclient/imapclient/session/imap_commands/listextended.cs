@@ -63,39 +63,10 @@ namespace work.bacome.imapclient
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    // note that remote can't be specified 
-                    //  if mmailboxreferrals is true then we will always add it
+                    ZListExtendedAddCommandParts(pSelect, lListMailboxCommandPart, pReturn, lCommand);
 
-                    // note that specialuse can't be specified as there is no way to remove items from the cache
-
-                    // => select option is reduced to subscribedonly.  If it is on then it is always subscribed recursiveematch 
-
-
-                    // note that return will always be subscribed, children, specailuse (if supported), status if supported and requested
-                    //  no
-                    //   return will be based on the properties asked for
-
-
-                    ;?; // pass the listmailbox command part
-                    ZListExtendedAddCommandParts(pSelect, pListMailbox, pDelimiter, pPattern, pReturn, lCommand);
-
-
-
-
-                    ;?; // note that this isn't the right command hook -
-                    //   if a selection is present then we wouldn't expect all mailboxes to be returned => 
-                    //    if subscribed is set the hook should do processing like lsub
-
-                    var lHook = new cListExtendedCommandHook(mMailboxCache, pPattern, mMailboxCache.Sequence);
+                    var lHook = new cListExtendedCommandHook(mMailboxCache, pSelect, pPattern, mMailboxCache.Sequence);
                     lCommand.Add(lHook);
-
-
-
-
-
-
-
-
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
@@ -116,49 +87,77 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private static void ZListExtendedAddCommandParts(fListExtendedSelect pSelect, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, fListExtendedReturn pReturn, cCommand pCommand)
+            private static void ZListExtendedAddCommandParts(fListExtendedSelect pSelect, cCommandPart pListMailboxCommandPart, fListExtendedReturn pReturn, cCommand pCommand)
             {
-                pCommand.BeginList(cCommand.eListBracketing.none); // space separate each section
+                pCommand.BeginList(eListBracketing.none); // space separate each section
 
                 pCommand.Add(kListExtendedCommandPartList);
 
                 // select options
 
-                pCommand.BeginList(cCommand.eListBracketing.ifany);
+                pCommand.BeginList(eListBracketing.ifany);
                 if ((pSelect & fListExtendedSelect.recursivematch) != 0) pCommand.Add(kListExtendedCommandPartRecursiveMatch);
                 if ((pSelect & fListExtendedSelect.subscribed) != 0) pCommand.Add(kListExtendedCommandPartSubscribed);
                 if ((pSelect & fListExtendedSelect.remote) != 0) pCommand.Add(kListExtendedCommandPartRemote);
                 if ((pSelect & fListExtendedSelect.specialuse) != 0) pCommand.Add(kListExtendedCommandPartSpecialUse);
                 pCommand.EndList();
 
-                // mailbox
+                // mailbox/ listmailbox
 
                 pCommand.Add(kListExtendedCommandPartMailbox);
-
-                // patterns
-
-                pCommand.BeginList(cCommand.eListBracketing.ifmorethanone);
-
-                foreach (var lPattern in pPatterns)
-                {
-                    if (!mMail.TryAsListMailbox(lPattern.ListMailbox, lPattern.Delimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pPatterns));
-                    pCommand.Add(lListMailboxCommandPart);
-                }
-
-                pCommand.EndList();
+                pCommand.Add(pListMailboxCommandPart);
 
                 // return options
 
-                pCommand.BeginList(cCommand.eListBracketing.ifany, kListExtendedCommandPartReturn);
+                pCommand.BeginList(eListBracketing.ifany, kListExtendedCommandPartReturn);
+
                 if ((pReturn & fListExtendedReturn.subscribed) != 0) pCommand.Add(kListExtendedCommandPartSubscribed);
                 if ((pReturn & fListExtendedReturn.children) != 0) pCommand.Add(kListExtendedCommandPartChildren);
+
+                if ((pReturn & fListExtendedReturn.status) != 0)
+                {
+                    // status ()
+                    ;?;
+                }
+
                 if ((pReturn & fListExtendedReturn.specialuse) != 0) pCommand.Add(kListExtendedCommandPartSpecialUse);
-                pCommand.Add(pStatus, kListExtendedCommandPartStatus);
+
                 pCommand.EndList();
 
                 // done
                 pCommand.EndList();
             }
+
+
+
+
+            private class cListExtendedCommandHook : cCommandHook
+            {
+                private cMailboxCache mCache;
+                private fListExtendedSelect mSelect;
+                private cMailboxNamePattern mPattern;
+                private int mSequence;
+
+                public cListExtendedCommandHook(cMailboxCache pCache, fListExtendedSelect pSelect, cMailboxNamePattern pPattern, int pSequence)
+                {
+                    mCache = pCache;
+                    mSelect = pSelect;
+                    mPattern = pPattern;
+                    mSequence = pSequence;
+                }
+
+                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cListExtendedCommandHook), nameof(CommandCompleted), pResult, pException);
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mCache.Reset(mSelect, mPattern, mSequence, lContext);
+                }
+            }
+
+
+
+
+
+
 
             [Conditional("DEBUG")]
             private static void _Tests_ListExtendedCommandParts(cTrace.cContext pParentContext)

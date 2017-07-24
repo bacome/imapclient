@@ -50,6 +50,8 @@ namespace work.bacome.imapclient
 
                 if (lSession.Capability == null) await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
 
+                // starttls TODO
+
                 Task lIdTask = null;
 
                 object lOriginalCapability = lSession.Capability;
@@ -118,6 +120,8 @@ namespace work.bacome.imapclient
                     lCurrentCapability = lSession.Capability;
                 }
 
+
+
                 if (lCurrentCapability.Enable)
                 {
                     fEnableableExtensions lExtensions = fEnableableExtensions.none;
@@ -128,8 +132,10 @@ namespace work.bacome.imapclient
                     {
                         await lSession.EnableAsync(lMC, lExtensions, lContext).ConfigureAwait(false);
 
+                        ;?; // do this after enable done
+
                         // if we just enabled UTF8 redo the id incase 1) we have UTF8 in our id OR 2) the server has UTF8 in its id (that it couldn't send before)
-                        if ((lSession.EnabledExtensions & fEnableableExtensions.utf8) != 0 && lCurrentCapability.Id)
+                        if ((lSession.EnabledExtensions & fEnableableExtensions.utf8) != 0 && lCurrentCapability.Id) 
                         {
                             if (lIdTask != null) await cTerminator.AwaitAll(lMC, lIdTask).ConfigureAwait(false);
                             lIdTask = lSession.IdAsync(lMC, mClientId?.Dictionary, lContext);
@@ -142,8 +148,20 @@ namespace work.bacome.imapclient
                     if (lIdTask == null && lCurrentCapability.Id) lIdTask = lSession.IdAsync(lMC, mClientId?.ASCIIDictionary, lContext);
                 }
 
+
+
+
+
                 // further initialise the session
                 lSession.EnableDone(lContext);
+
+
+
+
+                if (
+
+
+
 
                 // do a namespace (or list) now ... AFTER possibly enabling UTF8 (namespace processing depends on UTF8)
                 Task lNamespaceTask;

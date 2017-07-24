@@ -8,26 +8,26 @@ namespace work.bacome.imapclient
     {
         private class cAsyncCounter
         {
-            private readonly Action<string, cTrace.cContext> mFirePropertyChanged;
+            private readonly cEventSynchroniser mEventSynchroniser;
             private int mCount = 0;
 
-            public cAsyncCounter(Action<string, cTrace.cContext> pFirePropertyChanged)
+            public cAsyncCounter(cEventSynchroniser pEventSynchroniser)
             {
-                mFirePropertyChanged = pFirePropertyChanged ?? throw new ArgumentNullException(nameof(pFirePropertyChanged));
+                mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
             }
 
             public void Increment(cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cAsyncCounter), nameof(Increment));
                 Interlocked.Increment(ref mCount);
-                mFirePropertyChanged(nameof(cIMAPClient.AsyncCount), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.AsyncCount), lContext);
             }
 
             public void Decrement(cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cAsyncCounter), nameof(Decrement));
                 Interlocked.Decrement(ref mCount);
-                mFirePropertyChanged(nameof(cIMAPClient.AsyncCount), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.AsyncCount), lContext);
             }
 
             public int Count => mCount;
