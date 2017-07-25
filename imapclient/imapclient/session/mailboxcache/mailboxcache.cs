@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -13,7 +14,7 @@ namespace work.bacome.imapclient
             {
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cAccountId mConnectedAccountId;
-                private readonly cCommandPartFactory mCommandPartFactory;
+                private readonly bool mUTF8Enabled;
                 private readonly Action<eState, cTrace.cContext> mSetState;
                 private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
 
@@ -22,11 +23,11 @@ namespace work.bacome.imapclient
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, Action<eState, cTrace.cContext> pSetState, cCapability pCapability)
+                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, bool pUTF8Enabled, Action<eState, cTrace.cContext> pSetState, cCapability pCapability)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mConnectedAccountId = pConnectedAccountId ?? throw new ArgumentNullException(nameof(pConnectedAccountId));
-                    mCommandPartFactory = pCommandPartFactory;
+                    mUTF8Enabled = pUTF8Enabled;
                     mSetState = pSetState ?? throw new ArgumentNullException(nameof(pSetState));
                     mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
                 }
@@ -73,15 +74,62 @@ namespace work.bacome.imapclient
 
                 public int Sequence => mSequence;
 
-                public void ResetExists(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
+                public List<iMailboxHandle> List(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pPattern, pSequence);
-                    foreach (var lItem in mDictionary.Values) if (lItem.Exists != false && lItem.MailboxName != null && (lItem.ListFlags == null || lItem.ListFlags.Sequence < pSequence) && pPattern.Matches(lItem.MailboxName.Name)) lItem.ResetExists(lContext);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(List), pPattern, pSequence);
+
+                    List<iMailboxHandle> lHandles = new List<iMailboxHandle>();
+
+                    foreach (var lItem in mDictionary.Values)
+                        if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
+                        {
+                            if (lItem.ListFlags == null || lItem.ListFlags.Sequence < pSequence) lItem.ResetExists(lContext);
+                            else lHandles.Add(lItem);
+                            }
+
+                        }
+
+                    return lHandles;
                 }
 
-                public void ResetExists(iMailboxHandle pHandle, cTrace.cContext pParentContext)
+                public List<iMailboxHandle> LSub(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pHandle);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Mailboxes), pSubscribedOnly, pPattern, pSequence);
+
+                    List<iMailboxHandle> lHandles = new List<iMailboxHandle>();
+
+                    ;?; // wait. subscribed don't need to exist.
+
+
+                    foreach (var lItem in mDictionary.Values)
+                        if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
+                        {
+                            if (pSubscribedOnly)
+                            {
+                                if (lItem.LSubFlags == null || lItem.LSubFlags.Sequence < pSequence)
+                                {
+
+                                }
+                                else lHandles.Add(lItem);
+                            }
+                            else
+                            {
+
+                                if (lItem.ListFlags == null || lItem.ListFlags.Sequence < pSequence) lItem.ResetExists(lContext);
+                                else lHandles.Add(lItem);
+
+                            }
+
+                        }
+
+                    return lHandles;
+                }
+
+
+
+                public cMailboxStatus Status(string pEncodedMailboxName, int pSequence, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pEncodedMailboxName, pSequence);
                     if (!ReferenceEquals(pHandle.Cache, this)) throw new ArgumentOutOfRangeException(nameof(pHandle));
                     if (mSelectedMailbox != null && ReferenceEquals(mSelectedMailbox.Handle, pHandle)) return; // never expect a status response for the selected mailbox
                     if (!mDictionary.TryGetValue(pHandle.EncodedMailboxName, out var lItem)) throw new ArgumentOutOfRangeException(nameof(pHandle));

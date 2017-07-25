@@ -10,37 +10,33 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task<cBody> ZFetchBodyAsync(cMethodControl pMC, iMessageHandle pHandle, bool pBinary, cSection pSection, uint pOrigin, uint pLength, cTrace.cContext pParentContext)
+            private async Task<cBody> ZUIDFetchBodyAsync(cMethodControl pMC, iMailboxHandle pHandle, cUID pUID, bool pBinary, cSection pSection, uint pOrigin, uint pLength, cTrace.cContext pParentContext)
             {
                 // the caller must have checked that the binary option is compatible with the section (e.g. if binary is true the section can't specify a textpart)
                 //  the length must be greater than zero
 
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pHandle, pBinary, pSection, pOrigin, pLength);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchBodyAsync), pMC, pHandle, pUID, pBinary, pSection, pOrigin, pLength);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
+                if (_State != eState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                if (pUID == null) throw new ArgumentNullException(nameof(pUID));
                 if (pSection == null) throw new ArgumentNullException(nameof(pSection));
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pHandle);
+                    mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
-                    lCommand.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
-                    lCommand.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
+                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    // uidvalidity must be set before the handle is resolved
-                    lCommand.AddUIDValidity(lSelectedMailbox.MessageCache.UIDValidity);
-
-                    // resolve the MSN
-                    uint lMSN = lSelectedMailbox.GetMSN(pHandle);
-                    if (lMSN == 0) throw new InvalidOperationException(); // likely expunged
+                    // set uidvalidity
+                    lCommand.AddUIDValidity(pUID.UIDValidity);
 
                     // build command
 
-                    lCommand.Add(kFetchCommandPartFetchSpace, new cCommandPart(lMSN));
+                    lCommand.Add(kFetchCommandPartUIDFetchSpace, new cCommandPart(pUID.UID));
 
                     if (pBinary) lCommand.Add(kFetchCommandPartSpaceBinaryPeekLBracket);
                     else lCommand.Add(kFetchCommandPartSpaceBodyPeekLBracket);
@@ -48,7 +44,7 @@ namespace work.bacome.imapclient
                     lCommand.Add(pSection, pOrigin, pLength);
 
                     // hook
-                    var lHook = new cCommandHookFetchMSN(pBinary, pSection, pOrigin, lMSN);
+                    var lHook = new cCommandHookFetchUID(pBinary, pSection, pOrigin, pUID.UID);
                     lCommand.Add(lHook);
 
                     // go
@@ -57,12 +53,12 @@ namespace work.bacome.imapclient
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
-                        lContext.TraceInformation("fetch section success");
+                        lContext.TraceInformation("uid fetch section success");
                         if (lHook.Body == null) throw new cUnexpectedServerActionException(0, "body not received", lContext);
                         return lHook.Body;
                     }
 
-                    if (lHook.Body != null) lContext.TraceError("received body on a failed fetch section");
+                    if (lHook.Body != null) lContext.TraceError("received body on a failed uid fetch section");
 
                     fCapabilities lTryIgnoring;
                     if (pBinary) lTryIgnoring = fCapabilities.Binary;

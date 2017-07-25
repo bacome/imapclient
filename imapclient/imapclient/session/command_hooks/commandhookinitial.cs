@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kCapabilitySpace = new cBytes("CAPABILITY ");
                 private static readonly cBytes kReferralSpace = new cBytes("REFERRAL ");
 
-                private bool mHandleReferral;
+                private readonly bool mHandleReferral;
 
                 private cCapabilities mCapabilities = null;
                 private cCapabilities mAuthenticationMechanisms = null;

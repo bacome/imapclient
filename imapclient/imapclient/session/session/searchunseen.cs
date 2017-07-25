@@ -10,9 +10,9 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kStatusStatusCommandPart = new cCommandPart("STATUS ");
-            private static readonly cCommandPart kStatusSearchUnseenCommandPart = new cCommandPart("SEARCH UNSEEN");
-            private static readonly cCommandPart kStatusExtendedSearchUnseenCommandPart = new cCommandPart("SEARCH RETURN () UNSEEN");
+            //private static readonly cCommandPart kStatusStatusCommandPart = new cCommandPart("STATUS ");
+            //private static readonly cCommandPart kStatusSearchUnseenCommandPart = new cCommandPart("SEARCH UNSEEN");
+            //private static readonly cCommandPart kStatusExtendedSearchUnseenCommandPart = new cCommandPart("SEARCH RETURN () UNSEEN");
 
             // TODO
 

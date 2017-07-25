@@ -16,14 +16,16 @@ namespace work.bacome.imapclient
             private bool mDisposed = false;
 
             private eState _State = eState.notconnected;
+
             private readonly cConnection mConnection = new cConnection();
 
             private readonly cEventSynchroniser mEventSynchroniser;
-            private fCapabilities _IgnoreCapabilities;
+            private readonly fMailboxFlagSets mMailboxFlagSets;
             private readonly cResponseTextProcessor mResponseTextProcessor;
             private readonly cCommandPipeline mPipeline;
             private readonly cCapabilityDataProcessor mCapabilityDataProcessor;
 
+            private fCapabilities _IgnoreCapabilities;
             private cFetchSizer mFetchAttributesSizer;
             private cFetchSizer mFetchBodyReadSizer;
 
@@ -49,13 +51,12 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cEventSynchroniser pEventSynchroniser, fMailboxFlagSets pMailboxFlagSets, cIdleConfiguration pIdleConfiguration, fCapabilities pIgnoreCapabilities, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesConfiguration, pFetchBodyReadConfiguration);
 
                 mEventSynchroniser = pEventSynchroniser;
-
-                _IgnoreCapabilities = pIgnoreCapabilities;
+                mMailboxFlagSets = pMailboxFlagSets;
 
                 mResponseTextProcessor = new cResponseTextProcessor(mEventSynchroniser);
                 mPipeline = new cCommandPipeline(mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
@@ -63,6 +64,7 @@ namespace work.bacome.imapclient
                 mCapabilityDataProcessor = new cCapabilityDataProcessor(ZSetCapabilities);
                 mPipeline.Install(mCapabilityDataProcessor);
 
+                _IgnoreCapabilities = pIgnoreCapabilities;
                 mFetchAttributesSizer = new cFetchSizer(pFetchAttributesConfiguration);
                 mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
 
@@ -81,13 +83,17 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.authenticated) throw new InvalidOperationException("must be authenticated");
 
+                bool lUTF8Enabled;
+
                 if ((EnabledExtensions & fEnableableExtensions.utf8) != 0)
                 {
+                    lUTF8Enabled = true;
                     mCommandPartFactory = new cCommandPartFactory(true, null);
                     mEncodingPartFactory = mCommandPartFactory;
                 }
+                else lUTF8Enabled = false;
 
-                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mCommandPartFactory, ZSetState, _Capability);
+                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, lUTF8Enabled, ZSetState, _Capability);
 
                 mResponseTextProcessor.SetMailboxCache(mMailboxCache, lContext);
                 mPipeline.SetMailboxCache(mMailboxCache, lContext);

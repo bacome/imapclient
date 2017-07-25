@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
 
                 using (var lCommand = new cCommand())
                 {
-                    //  note the lack of locking - this is only called during connect
+                    //  note the lack of locking - this can only called during connect
 
                     lCommand.BeginList(eListBracketing.none);
                     lCommand.Add(kEnableCommandPartEnable);

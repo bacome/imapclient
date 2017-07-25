@@ -17,43 +17,20 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kListExtendedCommandPartRecursiveMatch = new cCommandPart("RECURSIVEMATCH");
             private static readonly cCommandPart kListExtendedCommandPartSubscribed = new cCommandPart("SUBSCRIBED");
             private static readonly cCommandPart kListExtendedCommandPartRemote = new cCommandPart("REMOTE");
-            private static readonly cCommandPart kListExtendedCommandPartSpecialUse = new cCommandPart("SPECIAL-USE");
             private static readonly cCommandPart kListExtendedCommandPartMailbox = new cCommandPart("\"\"");
             private static readonly cCommandPart kListExtendedCommandPartReturn = new cCommandPart("RETURN");
             private static readonly cCommandPart kListExtendedCommandPartChildren = new cCommandPart("CHILDREN");
+            private static readonly cCommandPart kListExtendedCommandPartSpecialUse = new cCommandPart("SPECIAL-USE");
             private static readonly cCommandPart kListExtendedCommandPartStatus = new cCommandPart("STATUS");
 
-            [Flags]
-            public enum fListExtendedSelect
+            public async Task<List<cMailbox>> ListExtendedAsync(cMethodControl pMC, bool pSubscribed, bool pRemote, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pStatus, cTrace.cContext pParentContext)
             {
-                recursivematch = 1 << 0, // mod-opt
-                subscribed = 1 << 1, // base-opt
-                remote = 1 << 2, // independent-opt
-                specialuse = 1 << 3 // independent-opt (!) [which means you can't ask for all special-use mailboxes no matter where they are?]
-            }
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListExtendedAsync), pMC, pSubscribed, pRemote, pListMailbox, pDelimiter, pPattern, pStatus);
 
-            [Flags]
-            public enum fListExtendedReturn
-            {
-                subscribed = 1 << 0,
-                children = 1 << 1,
-                status = 1 << 2,
-                specialuse = 1 << 3
-            }
-
-            public async Task<List<cMailbox>> ListExtendedAsync(cMethodControl pMC, fListExtendedSelect pSelect, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, fListExtendedReturn pReturn, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListExtendedAsync), pMC, pSelect, pListMailbox, pDelimiter, pPattern, pReturn);
+                // caller needs to determine if status is supported
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
-
-                // if a mod-opt is selected
-                if ((pSelect & fListExtendedSelect.recursivematch) != 0)
-                {
-                    // check that a base-opt is also selected
-                    if ((pSelect & fListExtendedSelect.subscribed) == 0) throw new ArgumentOutOfRangeException(nameof(pSelect));
-                }
 
                 if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
                 if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
@@ -65,9 +42,43 @@ namespace work.bacome.imapclient
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    ZListExtendedAddCommandParts(pSelect, lListMailboxCommandPart, pReturn, lCommand);
+                    lCommand.BeginList(eListBracketing.none);
 
-                    var lHook = new cListExtendedCommandHook(mMailboxCache, pSelect, pPattern, mMailboxCache.Sequence);
+                    lCommand.Add(kListExtendedCommandPartList);
+
+                    lCommand.BeginList(eListBracketing.ifany);
+
+                    if (pSubscribed)
+                    {
+                        lCommand.Add(kListExtendedCommandPartSubscribed);
+                        lCommand.Add(kListExtendedCommandPartRecursiveMatch);
+                    }
+
+                    if (pRemote) lCommand.Add(kListExtendedCommandPartRemote);
+
+                    lCommand.EndList();
+
+                    lCommand.Add(kListExtendedCommandPartMailbox);
+                    lCommand.Add(lListMailboxCommandPart);
+
+                    // return options
+
+                    lCommand.BeginList(eListBracketing.ifany, kListExtendedCommandPartReturn);
+
+                    if ((mMailboxFlagSets & fMailboxFlagSets.subscribed) != 0) lCommand.Add(kListExtendedCommandPartSubscribed);
+                    if ((mMailboxFlagSets & fMailboxFlagSets.children) != 0) lCommand.Add(kListExtendedCommandPartChildren);
+                    if ((mMailboxFlagSets & fMailboxFlagSets.specialuse) != 0 && _Capability.SpecialUse) lCommand.Add(kListExtendedCommandPartSpecialUse);
+
+                    if (pStatus)
+                    {
+                        lCommand.Add(kListExtendedCommandPartStatus);
+                        lCommand.AddStatusAttributes(_Capability);
+                    }
+
+                    lCommand.EndList();
+                    lCommand.EndList();
+
+                    var lHook = new cListExtendedCommandHook(mMailboxCache, pSubscribed, pPattern, mMailboxCache.Sequence);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -80,8 +91,8 @@ namespace work.bacome.imapclient
 
                     fCapabilities lTryIgnoring = 0;
 
-                    if ((pReturn & fListExtendedReturn.status) != 0) lTryIgnoring |= fCapabilities.ListStatus;
-                    if ((pSelect & fListExtendedSelect.specialuse) != 0 || (pReturn & fListExtendedReturn.specialuse) != 0) lTryIgnoring |= fCapabilities.SpecialUse;
+                    if (pStatus) lTryIgnoring |= fCapabilities.ListStatus;
+                    if ((mMailboxFlagSets & fMailboxFlagSets.specialuse) != 0) lTryIgnoring |= fCapabilities.SpecialUse;
                     if (lTryIgnoring == 0) lTryIgnoring |= fCapabilities.ListExtended;
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
@@ -89,61 +100,20 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private void ZListExtendedAddCommandParts(fListExtendedSelect pSelect, cCommandPart pListMailboxCommandPart, fListExtendedReturn pReturn, cCommand pCommand)
-            {
-                pCommand.BeginList(eListBracketing.none); // space separate each section
-
-                pCommand.Add(kListExtendedCommandPartList);
-
-                // select options
-
-                pCommand.BeginList(eListBracketing.ifany);
-                if ((pSelect & fListExtendedSelect.recursivematch) != 0) pCommand.Add(kListExtendedCommandPartRecursiveMatch);
-                if ((pSelect & fListExtendedSelect.subscribed) != 0) pCommand.Add(kListExtendedCommandPartSubscribed);
-                if ((pSelect & fListExtendedSelect.remote) != 0) pCommand.Add(kListExtendedCommandPartRemote);
-                if ((pSelect & fListExtendedSelect.specialuse) != 0) pCommand.Add(kListExtendedCommandPartSpecialUse);
-                pCommand.EndList();
-
-                // mailbox/ listmailbox
-
-                pCommand.Add(kListExtendedCommandPartMailbox);
-                pCommand.Add(pListMailboxCommandPart);
-
-                // return options
-
-                pCommand.BeginList(eListBracketing.ifany, kListExtendedCommandPartReturn);
-
-                if ((pReturn & fListExtendedReturn.subscribed) != 0) pCommand.Add(kListExtendedCommandPartSubscribed);
-                if ((pReturn & fListExtendedReturn.children) != 0) pCommand.Add(kListExtendedCommandPartChildren);
-
-                if ((pReturn & fListExtendedReturn.status) != 0)
-                {
-                    pCommand.Add(kListExtendedCommandPartStatus);
-                    pCommand.AddStatus(_Capability);
-                }
-
-                if ((pReturn & fListExtendedReturn.specialuse) != 0) pCommand.Add(kListExtendedCommandPartSpecialUse);
-
-                pCommand.EndList();
-
-                // done
-                pCommand.EndList();
-            }
-
 
 
 
             private class cListExtendedCommandHook : cCommandHook
             {
-                private cMailboxCache mCache;
-                private fListExtendedSelect mSelect;
-                private cMailboxNamePattern mPattern;
-                private int mSequence;
+                private readonly cMailboxCache mCache;
+                private readonly bool mSubscribed;
+                private readonly cMailboxNamePattern mPattern;
+                private readonly int mSequence;
 
-                public cListExtendedCommandHook(cMailboxCache pCache, fListExtendedSelect pSelect, cMailboxNamePattern pPattern, int pSequence)
+                public cListExtendedCommandHook(cMailboxCache pCache, bool pSubscribed, cMailboxNamePattern pPattern, int pSequence)
                 {
                     mCache = pCache;
-                    mSelect = pSelect;
+                    mSubscribed = pSubscribed;
                     mPattern = pPattern;
                     mSequence = pSequence;
                 }
@@ -151,7 +121,12 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cListExtendedCommandHook), nameof(CommandCompleted), pResult, pException);
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mCache.Reset(mSelect, mPattern, mSequence, lContext);
+
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok)
+                    {
+                        if (mSubscribed) ;?; // lsub processing
+                        else mCache.Reset(mSelect, mPattern, mSequence, lContext); // list processing
+                    }
                 }
             }
 

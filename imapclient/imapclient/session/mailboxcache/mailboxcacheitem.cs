@@ -13,12 +13,14 @@ namespace work.bacome.imapclient
                 private readonly object mCache;
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly string mEncodedMailboxName;
+
                 private bool? mExists = null;
                 private cListFlags mListFlags = null;
-                private cLSubFlags mLSubFlags = null;
                 private cStatus mStatus = null;
                 private cMailboxStatus mMailboxStatus = null;
                 private cMailboxSelectedProperties mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
+
+                private cLSubFlags mLSubFlags = null;
 
                 public cMailboxCacheItem(object pCache, cEventSynchroniser pEventSynchroniser, string pEncodedMailboxName)
                 {
@@ -46,7 +48,6 @@ namespace work.bacome.imapclient
 
                     mExists = false;
                     mListFlags = null;
-                    mLSubFlags = null;
                     mStatus = null;
                     mMailboxStatus = null;
                     mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
@@ -55,21 +56,17 @@ namespace work.bacome.imapclient
                 }
 
                 public cListFlags ListFlags => mListFlags;
-                public cLSubFlags LSubFlags => mLSubFlags;
 
-                public void SetFlags(cListFlags pListFlags, cLSubFlags pLSubFlags, cTrace.cContext pParentContext)
+                public void Listed(cListFlags pListFlags, cLSubFlags pLSubFlags, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetFlags), pListFlags, pLSubFlags);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(Listed), pListFlags, pLSubFlags);
 
-                    fMailboxProperties lDifferences = ZSetExists();
+                    if (pListFlags == null) throw new ArgumentNullException(nameof(pListFlags));
 
-                    if (pListFlags != null)
-                    {
-                        lDifferences |= cListFlags.Differences(mListFlags, pListFlags);
-                        mListFlags = pListFlags;
-                    }
+                    fMailboxProperties lDifferences = ZSetExists() | cListFlags.Differences(mListFlags, pListFlags);
 
-                    if (pLSubFlags != null)
+                    ;?;
+                    if (pLSubFlags != null) // must be list-extended
                     {
                         lDifferences |= cLSubFlags.Differences(mLSubFlags, pLSubFlags);
                         mLSubFlags = pLSubFlags;
@@ -107,6 +104,16 @@ namespace work.bacome.imapclient
                 }
 
                 public cMailboxSelectedProperties SelectedProperties => mSelectedProperties;
+
+
+
+
+
+
+                public cLSubFlags LSubFlags => mLSubFlags;
+
+
+
 
                 public void Select(cMessageFlags pMessageFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags, cTrace.cContext pParentContext)
                 {

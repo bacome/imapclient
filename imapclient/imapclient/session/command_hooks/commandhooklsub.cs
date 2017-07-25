@@ -9,15 +9,15 @@ namespace work.bacome.imapclient
         {
             private class cCommandHookLSub : cCommandHook
             {
-                private cMailboxCache mCache;
-                private cMailboxNamePattern mPattern;
-                private int mSequence;
+                private readonly cMailboxCache mCache;
+                private readonly cMailboxNamePattern mPattern;
+                private readonly int mSequence;
 
-                public cCommandHookLSub(cMailboxCache pCache, cMailboxNamePattern pPattern, int pSequence)
+                public cCommandHookLSub(cMailboxCache pCache, cMailboxNamePattern pPattern)
                 {
                     mCache = pCache;
                     mPattern = pPattern;
-                    mSequence = pSequence;
+                    mSequence = pCache.Sequence;
                 }
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)

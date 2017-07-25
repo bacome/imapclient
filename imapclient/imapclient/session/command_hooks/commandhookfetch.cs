@@ -12,9 +12,9 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kFetchSpace = new cBytes("FETCH ");
 
-                private bool mBinary;
-                private cSection mSection;
-                private uint mOrigin;
+                private readonly bool mBinary;
+                private readonly cSection mSection;
+                private readonly uint mOrigin;
                 private uint mTo = 0;
 
                 public cCommandHookFetchBase(bool pBinary, cSection pSection, uint pOrigin)

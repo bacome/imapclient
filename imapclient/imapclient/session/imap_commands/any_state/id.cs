@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(IdAsync), pMC, pClientDictionary);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
+                if (_State != eState.notauthenticated && _State != eState.authenticated && _State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
 
                 // install the permanant response data processor
                 if (mIdResponseDataProcessor == null)
@@ -35,9 +35,8 @@ namespace work.bacome.imapclient
 
                 using (var lCommand = new cCommand())
                 {
-                    ;?; // may not be
-
-                    //  note the lack of locking - this is only called during connect
+                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lCommand.Add(kIdCommandPart);
 
@@ -48,9 +47,8 @@ namespace work.bacome.imapclient
 
                         foreach (var lFieldValuePair in pClientDictionary)
                         {
-                            ;?; // this won't work
-                            lCommand.Add(mStringFactory.AsString(lFieldValuePair.Key));
-                            lCommand.Add(mStringFactory.AsNString(lFieldValuePair.Value));
+                            lCommand.Add(mCommandPartFactory.AsString(lFieldValuePair.Key));
+                            lCommand.Add(mCommandPartFactory.AsNString(lFieldValuePair.Value));
                         }
 
                         lCommand.EndList();

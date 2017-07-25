@@ -1,7 +1,6 @@
 ﻿using System;
-using work.bacome.imapclient.support;
 
-namespace work.bacome.imapclient
+namespace work.bacome.imapclient.support
 {
     public class cLSubFlags
     {

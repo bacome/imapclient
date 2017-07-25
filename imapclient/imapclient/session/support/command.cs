@@ -215,8 +215,8 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartGreaterThan = new cCommandPart(">");
 
                 // status
-                private static readonly cCommandPart kCommandPartrfc3501Attributes = new cCommandPart("(MESSAGES RECENT UIDNEXT UIDVALIDITY UNSEEN");
-                private static readonly cCommandPart kCommandPartHighestModSeq = new cCommandPart(" HIGHESTMODSEQ");
+                private static readonly cCommandPart kCommandPartStatusBase = new cCommandPart("(MESSAGES RECENT UIDNEXT UIDVALIDITY UNSEEN)");
+                private static readonly cCommandPart kCommandPartStatusCondStore = new cCommandPart("(MESSAGES RECENT UIDNEXT UIDVALIDITY HIGHESTMODSEQ)");
 
                 private bool mDisposed = false;
                 private bool mDisposeOnCommandCompletion = false;
@@ -256,7 +256,8 @@ namespace work.bacome.imapclient
 
                 public void AddStatusAttributes(cCapability pCapability)
                 {
-
+                    if (pCapability.CondStore) Add(kCommandPartStatusCondStore);
+                    else Add(kCommandPartStatusBase);
                 }
 
                 public void Add(cFilter pFilter, bool pCharsetMandatory, bool pUTF8Enabled, Encoding pEncoding)
