@@ -17,13 +17,13 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(LoginAsync), pMC, pAccountId);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_State != eState.notauthenticated) throw new InvalidOperationException();
 
                 using (var lCommand = new cCommand())
                 {
                     //  note the lack of locking - this is only called during connect
 
-                    var lFactory = new cCommandPart.cFactory();
-                    lCommand.Add(kLoginCommandPartLogin, lFactory.AsLiteral(pLogin.UserId), cCommandPart.Space, lFactory.AsLiteral(pLogin.Password));
+                    lCommand.Add(kLoginCommandPartLogin, cCommandPartFactory.AsLiteral(pLogin.UserId), cCommandPart.Space, lFactory.AsLiteral(pLogin.Password));
 
                     var lHook = new cCommandHookInitial(_Capability.LoginReferrals);
                     lCommand.Add(lHook);

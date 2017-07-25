@@ -14,6 +14,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(PollAsync), pMC);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
 
                 using (var lBlock = await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false))
                 {

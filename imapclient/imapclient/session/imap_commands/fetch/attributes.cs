@@ -15,6 +15,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributesAsync), pMC, pHandles, pAttributes);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
                 if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
                 if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
                 if (pAttributes == 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));

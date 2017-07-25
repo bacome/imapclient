@@ -19,6 +19,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(AuthenticateAsync), pMC, pAccountId, pSASL.MechanismName);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_State != eState.notauthenticated) throw new InvalidOperationException();
 
                 using (var lCommand = new cCommand())
                 {

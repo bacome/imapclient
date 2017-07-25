@@ -17,6 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SortAsync), pMC, pHandle, pFilter, pSort);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_State != eState.selected) throw new InvalidOperationException();
                 if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
                 using (var lCommand = new cCommand())

@@ -27,8 +27,8 @@ namespace work.bacome.imapclient
             private cFetchSizer mFetchAttributesSizer;
             private cFetchSizer mFetchBodyReadSizer;
 
-            private cCommandPartFactory mStringFactory;
-            private cCommandPartFactory mEncodedStringFactory;
+            private cCommandPartFactory mCommandPartFactory;
+            private cCommandPartFactory mEncodingPartFactory;
 
             // properties
             private cCapabilities _Capabilities = null;
@@ -37,9 +37,7 @@ namespace work.bacome.imapclient
             private cURL _HomeServerReferral = null;
             private cAccountId _ConnectedAccountId = null;
 
-            // post enable processing sets these
-            private bool mEnableDone = false;
-            private bool mUTF8Enabled = false;
+            // set once initialised
             private cMailboxCache mMailboxCache = null;
 
             // locks
@@ -68,25 +66,33 @@ namespace work.bacome.imapclient
                 mFetchAttributesSizer = new cFetchSizer(pFetchAttributesConfiguration);
                 mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
 
-                mStringFactory = new cCommandPartFactory(false, null);
-                mEncodedStringFactory = new cCommandPartFactory(false, pEncoding);
+                mCommandPartFactory = new cCommandPartFactory(false, null);
+
+                if (pEncoding == null) mEncodingPartFactory = mCommandPartFactory;
+                else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
             }
 
-            public void EnableDone(cTrace.cContext pParentContext)
+            public bool TLSInstalled => mConnection.TLSInstalled;
+
+            public void Go(cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(EnableDone));
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(Go));
 
-                if (mEnableDone) throw new InvalidOperationException();
-                mEnableDone = true;
+                if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_State != eState.authenticated) throw new InvalidOperationException("must be authenticated");
 
-                mUTF8Enabled = (EnabledExtensions & fEnableableExtensions.utf8) != 0;
+                if ((EnabledExtensions & fEnableableExtensions.utf8) != 0)
+                {
+                    mCommandPartFactory = new cCommandPartFactory(true, null);
+                    mEncodingPartFactory = mCommandPartFactory;
+                }
 
-                if (mUTF8Enabled) mStringFactory = new cCommandPartFactory(true, null);
-
-                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mStringFactory, ZSetState, _Capability);
+                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mCommandPartFactory, ZSetState, _Capability);
 
                 mResponseTextProcessor.SetMailboxCache(mMailboxCache, lContext);
                 mPipeline.SetMailboxCache(mMailboxCache, lContext);
+
+                ZSetState(eState.notselected, lContext);
             }
 
             public void SetIgnoreCapabilities(fCapabilities pIgnoreCapabilities, cTrace.cContext pParentContext)
@@ -119,12 +125,13 @@ namespace work.bacome.imapclient
             public void SetEncoding(Encoding pEncoding, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetEncoding), pEncoding.WebName);
-                mEncodedStringFactory = new cCommandPartFactory(mUTF8Enabled, pEncoding);
+                if ((EnabledExtensions & fEnableableExtensions.utf8) != 0 || pEncoding == null) mEncodingPartFactory = mCommandPartFactory;
+                else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
             }
 
             public eState State => _State;
             public bool IsUnconnected => _State == eState.notconnected || _State == eState.disconnected;
-            public bool IsConnected => _State == eState.authenticated || _State == eState.selected;
+            public bool IsConnected => _State == eState.notselected || _State == eState.selected;
 
             private void ZSetState(eState pState, cTrace.cContext pParentContext)
             {

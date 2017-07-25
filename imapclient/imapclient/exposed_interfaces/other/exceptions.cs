@@ -164,6 +164,12 @@ namespace work.bacome.imapclient
         public cAuthenticationException(cTrace.cContext pContext) => pContext.TraceError(nameof(cAuthenticationException));
     }
 
+    // thrown to indicate that the inability to connect may be related to the TLS state of the connection stopping authentication methods from being tried
+    public class cAuthenticationTLSException : cAuthenticationException
+    {
+        public cAuthenticationTLSException(cTrace.cContext pContext) : base(pContext) { }
+    }
+
     // thrown when SASL encoding or decoding fails
     public class cSASLSecurityException : cIMAPException
     {
@@ -183,12 +189,12 @@ namespace work.bacome.imapclient
         public cPipelineStoppedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineStoppedException));
     }
 
-    // thrown when the stream reader is stopped
-    public class cStreamReaderStoppedException : cIMAPException
+    // thrown when the stream is closed
+    public class cStreamClosedException : cIMAPException
     {
-        public cStreamReaderStoppedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cStreamReaderStoppedException));
-        public cStreamReaderStoppedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cStreamReaderStoppedException), pMessage);
-        public cStreamReaderStoppedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamReaderStoppedException), pMessage, pInner);
+        public cStreamClosedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cStreamClosedException));
+        public cStreamClosedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cStreamClosedException), pMessage);
+        public cStreamClosedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamClosedException), pMessage, pInner);
     }
 
     // thrown when the UIDValidity changes

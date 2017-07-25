@@ -36,12 +36,12 @@ namespace work.bacome.imapclient
 
         public static readonly cCredentials None = new cCredentials(eAccountType.none, null);
 
-        public static cCredentials Anonymous(string pTrace, bool pRequireTLS, bool pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised = false)
+        public static cCredentials Anonymous(string pTrace, eTLSRequirement pTLSRequirement, bool pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised = false)
         {
             if (string.IsNullOrEmpty(pTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
 
-            cLogin.TryConstruct("anonymous", pTrace, pRequireTLS, out var lLogin);
-            cSASLAnonymous.TryConstruct(pTrace, pRequireTLS, out var lSASL);
+            cLogin.TryConstruct("anonymous", pTrace, pTLSRequirement, out var lLogin);
+            cSASLAnonymous.TryConstruct(pTrace, pTLSRequirement, out var lSASL);
             if (lLogin == null && lSASL == null) throw new ArgumentOutOfRangeException(nameof(pTrace));
 
             var lCredentials = new cCredentials(eAccountType.anonymous, lLogin, pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised);

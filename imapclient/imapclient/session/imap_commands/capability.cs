@@ -17,14 +17,14 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(CapabilityAsync), pMC);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-
-                // note that the permanent capability response data processor was installed when the session was constructed
+                if (_State != eState.notauthenticated && _State != eState.authenticated && _State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
 
                 object lCapability = _Capability;
 
                 using (var lCommand = new cCommand())
                 {
-                    // note the lack of locking - this is only called during connect
+                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lCommand.Add(kCapabilityCommandPart);
 

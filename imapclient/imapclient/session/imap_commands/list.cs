@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
@@ -12,14 +13,16 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kListCommandPart = new cCommandPart("LIST \"\" ");
 
-            public async Task ListAsync(cMethodControl pMC, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, cTrace.cContext pParentContext)
+            public async Task<List<cMailbox>> ListAsync(cMethodControl pMC, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListAsync), pMC, pListMailbox, pDelimiter, pPattern);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
+                if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
                 if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
 
-                if (!mStringFactory.TryAsListMailbox(pListMailbox, pDelimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pListMailbox));
+                if (!mCommandPartFactory.TryAsListMailbox(pListMailbox, pDelimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pListMailbox));
 
                 using (var lCommand = new cCommand())
                 {
@@ -36,7 +39,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("list success");
-                        return;
+                        return mMailboxCache.List(pPattern);
                     }
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);

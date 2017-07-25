@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            ;?; // do not expose this
+            public fEnableableExtensions EnabledExtensions { get; private set; } = fEnableableExtensions.none;
 
             private static readonly cCommandPart kEnableCommandPartEnable = new cCommandPart("ENABLE");
             private static readonly cBytes kEnableExtensionUTF8 = new cBytes("UTF8=ACCEPT");
@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(EnableAsync), pMC, pExtensions);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (mEnableDone) throw new InvalidOperationException();            
+                if (_State != eState.authenticated) throw new InvalidOperationException();
 
                 using (var lCommand = new cCommand())
                 {

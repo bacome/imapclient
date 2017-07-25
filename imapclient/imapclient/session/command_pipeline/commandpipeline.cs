@@ -68,7 +68,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetState), pState);
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
-                    bool lIdleAllowed = (pState == eState.authenticated || pState == eState.selected);
+                    bool lIdleAllowed = (pState == eState.notselected || pState == eState.selected);
                     if (lIdleAllowed == mIdleAllowed) return;
                     mIdleAllowed = lIdleAllowed;
                     mBackgroundReleaser.Release(lContext);

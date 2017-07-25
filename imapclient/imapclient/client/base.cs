@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
         public static Version Version = new Version(0, 2);
         public static DateTime ReleaseDate = new DateTime(2017, 7, 18);
 
-        public enum eState { notconnected, connecting, notauthenticated, authenticated, selected, disconnecting, disconnected }
+        public enum eState { notconnected, connecting, notauthenticated, authenticated, notselected, selected, disconnecting, disconnected }
 
         public const string TraceSourceName = "work.bacome.cIMAPClient";
         private static readonly cTrace mTrace = new cTrace(TraceSourceName);

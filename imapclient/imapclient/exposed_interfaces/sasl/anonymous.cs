@@ -12,26 +12,26 @@ namespace work.bacome.imapclient
         private const string kName = "ANONYMOUS";
 
         private readonly string mTrace;
-        private readonly bool mRequireTLS;
+        private readonly eTLSRequirement mTLSRequirement;
 
-        private cSASLAnonymous(string pTrace, bool pRequireTLS, bool pPrechecked)
+        private cSASLAnonymous(string pTrace, eTLSRequirement pTLSRequirement, bool pPrechecked)
         {
             mTrace = pTrace;
-            mRequireTLS = pRequireTLS;
+            mTLSRequirement = pTLSRequirement;
         }
 
-        public cSASLAnonymous(string pTrace, bool pRequireTLS)
+        public cSASLAnonymous(string pTrace, eTLSRequirement pTLSRequirement)
         {
             if (!ZIsValid(pTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
             mTrace = pTrace;
-            mRequireTLS = pRequireTLS;
+            mTLSRequirement = pTLSRequirement;
         }
 
-        public static bool TryConstruct(string pTrace, bool pRequireTLS, out cSASLAnonymous rAnonymous)
+        public static bool TryConstruct(string pTrace, eTLSRequirement pTLSRequirement, out cSASLAnonymous rAnonymous)
         {
             if (ZIsValid(pTrace))
             {
-                rAnonymous = new cSASLAnonymous(pTrace, pRequireTLS, true);
+                rAnonymous = new cSASLAnonymous(pTrace, pTLSRequirement, true);
                 return true;
             }
 
@@ -57,7 +57,7 @@ namespace work.bacome.imapclient
         }
 
         public override string MechanismName => kName;
-        public override bool RequireTLS => mRequireTLS;
+        public override eTLSRequirement TLSRequirement => mTLSRequirement;
         public override cSASLAuthentication GetAuthentication() => new cAuth(mTrace);
 
         private class cAuth : cSASLAuthentication

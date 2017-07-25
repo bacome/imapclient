@@ -17,8 +17,8 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StartTLSAsync), pMC);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-
-                if (mConnection.tlsinstalled) throw new InvalidOperationException();
+                if (_State != eState.notauthenticated) throw new InvalidOperationException("must be not authenticated");
+                if (mConnection.TLSInstalled) throw new InvalidOperationException("tls already installed");
 
                 using (var lCommand = new cCommand())
                 {
@@ -26,16 +26,31 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(kStartTLSCommandPart);
 
+                    var lHook = new cStartTLSCommandHook(mConnection);
+                    lCommand.Add(lHook);
+
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceVerbose("starttls success");
-                        mConnection.installtls();
                         return;
                     }
 
                     throw new cProtocolErrorException(lResult, 0, lContext);
+                }
+            }
+
+            private class cStartTLSCommandHook : cCommandHook
+            {
+                private cConnection mConnection;
+
+                public cStartTLSCommandHook(cConnection pConnection) { mConnection = pConnection; }
+
+                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookList), nameof(CommandCompleted), pResult, pException);
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mConnection.InstallTLS(lContext);
                 }
             }
         }

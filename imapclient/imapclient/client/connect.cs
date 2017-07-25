@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.trace;
@@ -50,7 +51,7 @@ namespace work.bacome.imapclient
 
                 if (lSession.Capability == null) await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
 
-                if (!lServer.SSL && lSession.Capability.StartTLS)
+                if (lSession.State == eState.notauthenticated && !lSession.TLSInstalled && lSession.Capability.StartTLS)
                 {
                     await lSession.StartTLSAsync(lMC, lContext).ConfigureAwait(false);
                     await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
@@ -61,21 +62,25 @@ namespace work.bacome.imapclient
 
                 if (lSession.State == eState.notauthenticated)
                 {
+                    bool lTLSIssue = false;
                     bool lTriedCredentials = false;
                     Exception lAuthenticateException = null;
 
                     cAccountId lAccountId = new cAccountId(lServer.Host, lCredentials.Type, lCredentials.UserId);
 
+                    bool lTLSInstalled = lSession.TLSInstalled;
+
                     if (Credentials.TryAllSASLs)
                     {
                         foreach (var lSASL in Credentials.SASLs)
                         {
-                            ;?; // check the require tls
-
-
-                            lTriedCredentials = true;
-                            lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
-                            if (lSession.State != eState.notauthenticated || lAuthenticateException != null) break;
+                            if ((lSASL.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lSASL.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
+                            else
+                            {
+                                lTriedCredentials = true;
+                                lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
+                                if (lSession.State != eState.notauthenticated || lAuthenticateException != null) break;
+                            }
                         }
                     }
                     else
@@ -84,20 +89,25 @@ namespace work.bacome.imapclient
                         {
                             if (lCurrentCapability.SupportsAuthenticationMechanism(lSASL.MechanismName))
                             {
-                                ;?; // check the require tls
-
-                                lTriedCredentials = true;
-                                lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
-                                if (lSession.State != eState.notauthenticated || lAuthenticateException != null) break;
+                                if ((lSASL.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lSASL.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
+                                else
+                                {
+                                    lTriedCredentials = true;
+                                    lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
+                                    if (lSession.State != eState.notauthenticated || lAuthenticateException != null) break;
+                                }
                             }
                         }
                     }
 
                     if (lSession.State == eState.notauthenticated && lAuthenticateException == null && !lCurrentCapability.LoginDisabled && Credentials.Login != null)
                     {
-                        ;?; // check require tls
-                        lTriedCredentials = true;
-                        lAuthenticateException = await lSession.LoginAsync(lMC, lAccountId, Credentials.Login, lContext).ConfigureAwait(false);
+                        if ((Credentials.Login.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (Credentials.Login.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
+                        else
+                        {
+                            lTriedCredentials = true;
+                            lAuthenticateException = await lSession.LoginAsync(lMC, lAccountId, Credentials.Login, lContext).ConfigureAwait(false);
+                        }
                     }
 
                     if (lSession.State != eState.authenticated)
@@ -113,7 +123,8 @@ namespace work.bacome.imapclient
                             if (lAuthenticateException != null) throw lAuthenticateException;
                             throw new cCredentialsException(lContext);
                         }
-
+                        
+                        if (lTLSIssue) throw new cAuthenticationTLSException(lContext); // we didn't try some mechanisms because of the TLS state
                         throw new cAuthenticationException(lContext); // the server has no mechanisms that we can try
                     }
 
@@ -129,84 +140,24 @@ namespace work.bacome.imapclient
                     if (lExtensions != fEnableableExtensions.none) await lSession.EnableAsync(lMC, lExtensions, lContext).ConfigureAwait(false);
                 }
 
-                ;?; // call post enable initialisation
+                // enable the session
+                lSession.Go(lContext);
 
+                Task lIdTask;
 
-
-                ;?; // id goes here
-
-                // start an id using the ASCII dictionary (we don't know if the server supports UTF8 yet and even if we did we can't turn UTF8 on until we are authenticated)
-                if (lCurrentCapability.Id) lIdTask = lSession.IdAsync(lMC, mClientId?.ASCIIDictionary, lContext);
-
-
-
-
-                if (lIdTask == null && 
-
-                        ;?; // do this after enable done
-
-                        // if we just enabled UTF8 redo the id incase 1) we have UTF8 in our id OR 2) the server has UTF8 in its id (that it couldn't send before)
-                        if ((lSession.EnabledExtensions & fEnableableExtensions.utf8) != 0 && lCurrentCapability.Id)
-                        {
-                            if (lIdTask != null) await cTerminator.AwaitAll(lMC, lIdTask).ConfigureAwait(false);
-                            lIdTask = lSession.IdAsync(lMC, mClientId?.Dictionary, lContext);
-                        }
-                    }
-                }
-                else
+                if (lCurrentCapability.Id)
                 {
-                    // if we haven't done an id yet, now do one
-                    if (lIdTask == null && lCurrentCapability.Id) lIdTask = lSession.IdAsync(lMC, mClientId?.ASCIIDictionary, lContext);
+                    cIdReadOnlyDictionary lDictionary;
+
+                    if ((lSession.EnabledExtensions & fEnableableExtensions.utf8) == 0) lDictionary = mClientId?.ASCIIDictionary;
+                    else lDictionary = mClientId?.Dictionary;
+
+                    lIdTask = lSession.IdAsync(lMC, lDictionary, lContext);
                 }
+                else lIdTask = null;
 
-
-
-
-
-                if (lCurrentCapability.Enable)
-                {
-                    fEnableableExtensions lExtensions = fEnableableExtensions.none;
-
-                    if (lCurrentCapability.UTF8Accept || lCurrentCapability.UTF8Only) lExtensions = lExtensions | fEnableableExtensions.utf8;
-
-                    if (lExtensions != fEnableableExtensions.none)
-                    {
-                        await lSession.EnableAsync(lMC, lExtensions, lContext).ConfigureAwait(false);
-
-                        ;?; // do this after enable done
-
-                        // if we just enabled UTF8 redo the id incase 1) we have UTF8 in our id OR 2) the server has UTF8 in its id (that it couldn't send before)
-                        if ((lSession.EnabledExtensions & fEnableableExtensions.utf8) != 0 && lCurrentCapability.Id) 
-                        {
-                            if (lIdTask != null) await cTerminator.AwaitAll(lMC, lIdTask).ConfigureAwait(false);
-                            lIdTask = lSession.IdAsync(lMC, mClientId?.Dictionary, lContext);
-                        }
-                    }
-                }
-                else
-                {
-                    // if we haven't done an id yet, now do one
-                    if (lIdTask == null && lCurrentCapability.Id) lIdTask = lSession.IdAsync(lMC, mClientId?.ASCIIDictionary, lContext);
-                }
-
-
-
-
-
-                // further initialise the session
-                lSession.EnableDone(lContext);
-
-
-
-
-                if (
-
-
-
-
-                // do a namespace (or list) now ... AFTER possibly enabling UTF8 (namespace processing depends on UTF8)
                 Task lNamespaceTask;
-                Task<cMailboxList> lListTask;
+                Task<List<cMailbox>> lListTask;
 
                 if (lCurrentCapability.Namespace)
                 {
@@ -216,7 +167,7 @@ namespace work.bacome.imapclient
                 else
                 {
                     lNamespaceTask = null;
-                    lListTask = lSession.ListAsync(lMC, new cListPattern(string.Empty, null, new cMailboxNamePattern(string.Empty, string.Empty, null)), lContext);
+                    lListTask = lSession.ListAsync(lMC, string.Empty, null, new cMailboxNamePattern(string.Empty, string.Empty, null), lContext);
                 }
 
                 // wait for everything to complete
@@ -228,7 +179,7 @@ namespace work.bacome.imapclient
                 {
                     var lMailboxes = lListTask.Result;
                     if (lMailboxes.Count != 1) throw new cUnexpectedServerActionException(0, "list special request failed", lContext);
-                    lSession.SetNamespaces(new cNamespaceList(lMailboxes.FirstItem().MailboxName.Delimiter), null, null, lContext);
+                    lSession.SetNamespaces(new cNamespaceList(lMailboxes[0].Handle.MailboxName.Delimiter), null, null, lContext);
                 }
 
                 // set the inbox property
@@ -241,7 +192,7 @@ namespace work.bacome.imapclient
 
                         if (lPattern.Matches(cMailboxName.InboxString))
                         {
-                            lSession.Inbox = new cMailbox(this, new cMailboxId(lSession.ConnectedAccountId, new cMailboxName(cMailboxName.InboxString, lNamespace.Delimiter)));
+                            lSession.Inbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lNamespace.Delimiter)));
                             break;
                         }
                     }

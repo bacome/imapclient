@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
             {
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cAccountId mConnectedAccountId;
-                private readonly cCommandPartFactory mStringFactory;
+                private readonly cCommandPartFactory mCommandPartFactory;
                 private readonly Action<eState, cTrace.cContext> mSetState;
                 private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
 
@@ -22,11 +22,11 @@ namespace work.bacome.imapclient
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, cCommandPartFactory pStringFactory, Action<eState, cTrace.cContext> pSetState, cCapability pCapability)
+                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, Action<eState, cTrace.cContext> pSetState, cCapability pCapability)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mConnectedAccountId = pConnectedAccountId ?? throw new ArgumentNullException(nameof(pConnectedAccountId));
-                    mStringFactory = pStringFactory;
+                    mCommandPartFactory = pCommandPartFactory;
                     mSetState = pSetState ?? throw new ArgumentNullException(nameof(pSetState));
                     mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
                 }
@@ -203,7 +203,7 @@ namespace work.bacome.imapclient
                     ;?;
 
 
-                    mSetState(eState.authenticated, lContext);
+                    mSetState(eState.notselected, lContext);
                 }
 
                 private cMailboxCacheItem ZItem(string pEncodedMailboxName) => mDictionary.GetOrAdd(pEncodedMailboxName, new cMailboxCacheItem(this, mEventSynchroniser, pEncodedMailboxName));

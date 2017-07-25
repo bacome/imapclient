@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,120 +12,48 @@ namespace work.bacome.imapclient
         {
             private partial class cConnection
             {
-                private sealed class cStreamReader : IDisposable
+                private sealed class cStreamReader
                 {
-                    private bool mStopped = false;
+                    const int kBufferSize = 1000;
+
+                    private bool mClosed = false;
                     private readonly Stream mStream;
 
                     public cStreamReader(Stream pStream, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewObject(nameof(cStreamReader));
-                        mStream = pStream;
+                        mStream = pStream ?? throw new ArgumentNullException(nameof(pStream)); ;
+                        mStream.ReadTimeout = System.Threading.Timeout.Infinite;
                     }
 
                     public async Task<byte[]> GetBufferAsync(CancellationToken pCancellationToken, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cStreamReader), nameof(GetBufferAsync));
 
-                        if (mStopped)
-                        {
-                            if (mBackgroundTaskException == null) throw new cStreamReaderStoppedException(lContext);
-                            else throw new cStreamReaderStoppedException("streamreader is stopped", mBackgroundTaskException, lContext);
-                        }
+                        if (mClosed) throw new cStreamClosedException(lContext);
 
-                        while (true)
-                        {
-                            if (mBuffers.TryDequeue(out byte[] lBuffer))
-                            {
-                                if (lBuffer == null)
-                                {
-                                    mStopped = true;
-                                    if (mBackgroundTaskException == null) throw new cStreamReaderStoppedException("stream was closed", lContext);
-                                    else new cStreamReaderStoppedException("streamreader is stopped", mBackgroundTaskException, lContext);
-                                }
-
-                                if (!lContext.ContextTraceDelay) lContext.TraceVerbose("read {0} bytes", lBuffer.Length);
-                                return lBuffer;
-                            }
-
-                            if (!lContext.ContextTraceDelay) lContext.TraceVerbose("waiting");
-                            await mSemaphore.WaitAsync(pCancellationToken).ConfigureAwait(false);
-                        }
-                    }
-
-                    private async Task ZBackgroundTaskAsync(cTrace.cContext pParentContext)
-                    {
-                        // SUPERVERBOSE
-                        var lContext = pParentContext.NewRootMethod(true, nameof(cStreamReader), nameof(ZBackgroundTaskAsync));
-
-                        const int kBufferSize = 1000;
                         byte[] lBuffer = new byte[kBufferSize];
-                        int lByteCount = 0;
 
-                        mStream.ReadTimeout = System.Threading.Timeout.Infinite;
+                        int lByteCount;
 
-                        try
-                        {
-                            while (true)
-                            {
-                                lByteCount = await mStream.ReadAsync(lBuffer, 0, kBufferSize, ).ConfigureAwait(false);
-
-                                if (lByteCount == 0)
-                                {
-                                    lContext.TraceInformation("stream closed");
-                                    mBuffers.Enqueue(null);
-                                    ZRelease(lContext);
-                                    return;
-                                }
-
-                                if (!lContext.ContextTraceDelay) lContext.TraceVerbose("read {0} bytes", lByteCount);
-
-                                byte[] lBytes = new byte[lByteCount];
-                                Array.Copy(lBuffer, lBytes, lByteCount);
-                                mBuffers.Enqueue(lBytes);
-
-                                ZRelease(lContext);
-                            }
-                        }
+                        try { lByteCount = await mStream.ReadAsync(lBuffer, 0, kBufferSize).ConfigureAwait(false); }
                         catch (Exception e)
                         {
-                            lContext.TraceException(TraceEventType.Information, "reader exiting", e);
-                            mBackgroundTaskException = e;
-                            mBuffers.Enqueue(null);
-                            ZRelease(lContext);
+                            lContext.TraceException(e);
+                            mClosed = true;
+                            throw;
                         }
-                    }
 
-                    private void ZRelease(cTrace.cContext pParentContext)
-                    {                        
-                        var lContext = pParentContext.NewMethod(nameof(cStreamReader), nameof(ZRelease));
-
-                        if (mSemaphore.CurrentCount == 0)
+                        if (lByteCount == 0)
                         {
-                            if (!lContext.ContextTraceDelay) lContext.TraceVerbose("releasing semaphore");                           
-                            mSemaphore.Release();
-                        }
-                    }
-
-                    public void Dispose()
-                    {
-                        if (mDisposed) return;
-
-                        if (mBackgroundTask != null)
-                        {
-                            try { mBackgroundTask.Wait(); }
-                            catch { }
-
-                            mBackgroundTask.Dispose();
+                            lContext.TraceInformation("stream closed");
+                            mClosed = true;
+                            throw new cStreamClosedException(lContext);
                         }
 
-                        if (mSemaphore != null)
-                        {
-                            try { mSemaphore.Dispose(); }
-                            catch { }
-                        }
+                        Array.Resize(ref lBuffer, lByteCount);
 
-                        mDisposed = true;
+                        return lBuffer;
                     }
                 }
             }

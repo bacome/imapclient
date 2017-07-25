@@ -66,6 +66,7 @@
     <Compile Include="exposed_interfaces\connection\credentials.cs" />
     <Compile Include="exposed_interfaces\connection\login.cs" />
     <Compile Include="exposed_interfaces\connection\server.cs" />
+    <Compile Include="exposed_interfaces\connection\tlsrequirement.cs" />
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
     <Compile Include="exposed_interfaces\mailbox\listflags.cs" />
@@ -87,7 +88,6 @@
     <Compile Include="session\mailboxcache\support_classes.cs" />
     <Compile Include="session\mailboxcache\mailboxcacheitem.cs" />
     <Compile Include="session\mailboxcache\processing.cs" />
-    <Compile Include="session\session\checkhandles.cs" />
     <Compile Include="session\session\searchunseen.cs" />
     <Compile Include="session\mailboxcache\mailboxcache.cs" />
     <Compile Include="exposed_interfaces\support\types\commandpartfactory.cs" />

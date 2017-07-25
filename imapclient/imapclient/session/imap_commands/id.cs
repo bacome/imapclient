@@ -24,6 +24,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(IdAsync), pMC, pClientDictionary);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
 
                 // install the permanant response data processor
                 if (mIdResponseDataProcessor == null)
@@ -34,6 +35,8 @@ namespace work.bacome.imapclient
 
                 using (var lCommand = new cCommand())
                 {
+                    ;?; // may not be
+
                     //  note the lack of locking - this is only called during connect
 
                     lCommand.Add(kIdCommandPart);

@@ -17,6 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(NoOpAsync), pMC);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_State != eState.notauthenticated && _State != eState.authenticated && _State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
 
                 using (var lCommand = new cCommand())
                 {
@@ -27,7 +28,7 @@ namespace work.bacome.imapclient
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType ==eCommandResultType.ok)
                     {
                         lContext.TraceVerbose("noop success");
                         return;

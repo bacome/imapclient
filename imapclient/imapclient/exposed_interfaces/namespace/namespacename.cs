@@ -22,9 +22,7 @@ namespace work.bacome.imapclient
             if (pPrefix == null) throw new ArgumentNullException(nameof(pPrefix));
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) throw new ArgumentOutOfRangeException(nameof(pDelimiter));
 
-            ;?; // can these not be utf8?
-            cCommandPart.cFactory lFactory = new cCommandPart.cFactory();
-            if (!lFactory.TryAsListMailbox(pPrefix, pDelimiter, out _)) throw new ArgumentOutOfRangeException(nameof(pPrefix));
+            if (!cCommandPartFactory.Validation.TryAsListMailbox(pPrefix, pDelimiter, out _)) throw new ArgumentOutOfRangeException(nameof(pPrefix));
 
             Prefix = pPrefix;
             Delimiter = pDelimiter;
@@ -35,8 +33,7 @@ namespace work.bacome.imapclient
             if (pPrefix == null) { rResult = null; return false; }
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
 
-            cCommandPart.cFactory lFactory = new cCommandPart.cFactory();
-            if (!lFactory.TryAsListMailbox(pPrefix, pDelimiter, out _)) { rResult = null; return false; }
+            if (!cCommandPartFactory.Validation.TryAsListMailbox(pPrefix, pDelimiter, out _)) { rResult = null; return false; }
 
             rResult = new cNamespaceName(pPrefix, pDelimiter, true);
             return true;

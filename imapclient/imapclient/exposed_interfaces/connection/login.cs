@@ -7,16 +7,16 @@ namespace work.bacome.imapclient
     {
         public readonly string UserId;
         public readonly string Password;
-        public readonly bool RequireTLS;
+        public readonly eTLSRequirement TLSRequirement;
 
-        private cLogin(string pUserId, string pPassword, bool pRequireTLS, bool pValidated)
+        private cLogin(string pUserId, string pPassword, eTLSRequirement pTLSRequirement, bool pValidated)
         {
             UserId = pUserId;
             Password = pPassword;
-            RequireTLS = pRequireTLS;
+            TLSRequirement = pTLSRequirement;
         }
 
-        public cLogin(string pUserId, string pPassword, bool pRequireTLS)
+        public cLogin(string pUserId, string pPassword, eTLSRequirement pTLSRequirement)
         {
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
             if (string.IsNullOrEmpty(pPassword)) throw new ArgumentOutOfRangeException(nameof(pPassword));
@@ -26,17 +26,17 @@ namespace work.bacome.imapclient
 
             UserId = pUserId;
             Password = pPassword;
-            RequireTLS = pRequireTLS;
+            TLSRequirement = pTLSRequirement;
         }
 
-        public static bool TryConstruct(string pUserId, string pPassword, bool pRequireTLS, out cLogin rLogin)
+        public static bool TryConstruct(string pUserId, string pPassword, eTLSRequirement pTLSRequirement, out cLogin rLogin)
         {
             if (string.IsNullOrEmpty(pUserId) || string.IsNullOrEmpty(pPassword)) { rLogin = null; return false; }
 
             if (!cCommandPartFactory.Validation.TryAsLiteral(pUserId, true, out _)) { rLogin = null; return false; }
             if (!cCommandPartFactory.Validation.TryAsLiteral(pPassword, true, out _)) { rLogin = null; return false; }
 
-            rLogin = new cLogin(pUserId, pPassword, pRequireTLS, true);
+            rLogin = new cLogin(pUserId, pPassword, pTLSRequirement, true);
             return true;
         }
     }

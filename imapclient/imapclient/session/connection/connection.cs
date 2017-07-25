@@ -17,6 +17,13 @@ namespace work.bacome.imapclient
         {
             private sealed partial class cConnection : IDisposable
             {
+                // state
+                private enum eState { notconnected, connecting, connected, disconnecting, disconnected }
+                private eState mState = eState.notconnected;
+
+                // host
+                private string mHost = null;
+
                 // network connections
                 private TcpClient mTCPClient = null;
                 private SslStream mSSLStream = null;
@@ -35,10 +42,6 @@ namespace work.bacome.imapclient
                 private byte[] mBuffer = null;
                 private int mBufferPosition;
 
-                // state
-                private enum eState { notconnected, connecting, connected, disconnecting, disconnected }
-                private eState mState = eState.notconnected;
-
                 // task that is getting the next response
                 private Task<cBytesLines> mBuildResponseTask = null;
 
@@ -51,12 +54,15 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ConnectAsync), pMC, pServer);
 
-                    if (mState != eState.notconnected) throw new InvalidOperationException("must be notconnected");
+                    if (mState != eState.notconnected) throw new InvalidOperationException();
+
+                    if (pServer == null) throw new ArgumentNullException(nameof(pServer));
+
+                    mState = eState.connecting;
+                    mHost = pServer.Host;
 
                     try
                     {
-                        mState = eState.connecting;
-
                         lContext.TraceVerbose("creating tcpclient");
 
                         mTCPClient = new TcpClient();
@@ -101,7 +107,7 @@ namespace work.bacome.imapclient
                 public void SetCapability(cCapability pCapability, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(SetCapability), pCapability.Binary);
-                    if (mState != eState.connected) throw new InvalidOperationException("must be connected");
+                    if (mState != eState.connected) throw new InvalidOperationException();
                     mBuilder.Binary = pCapability.Binary;
                 }
 
@@ -111,25 +117,13 @@ namespace work.bacome.imapclient
 
                     if (mState != eState.connected) throw new InvalidOperationException("must be connected");
                     if (mSSLStream != null) throw new InvalidOperationException("tls already installed");
+                    if (mBuildResponseTask != null) throw new InvalidOperationException("reading stream");
 
-                    lContext.TraceInformation("installing TLS");
+                    mSSLStream = new SslStream(mStream);
+                    mSSLStream.AuthenticateAsClient(mHost);
+                    mStream = mSSLStream;
 
-
-
-
-
-
-
-
-                    lContext.TraceInformation("installing security");
-
-
-
-
-
-
-
-                    ;?;
+                    mStreamReader = new cStreamReader(mStream, lContext);
                 }
 
                 public bool TLSInstalled => mSSLStream != null;
@@ -183,35 +177,6 @@ namespace work.bacome.imapclient
                     return lResult;
                 }
 
-                private void ZLogResponse(cBytesLines pResponse, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ZLogResponse));
-
-                    cByteList lLogBytes = new cByteList();
-
-                    foreach (var lLine in pResponse)
-                    {
-                        if (lLine.Literal) lLogBytes.Add(cASCII.LBRACE);
-                        else lLogBytes.Add(cASCII.LBRACKET);
-
-                        foreach (var lByte in lLine)
-                        {
-                            if (lLogBytes.Count == 60)
-                            {
-                                lContext.TraceVerbose($"received: {cTools.BytesToLoggableString(lLogBytes)}...");
-                                return;
-                            }
-
-                            lLogBytes.Add(lByte);
-                        }
-
-                        if (lLine.Literal) lLogBytes.Add(cASCII.RBRACE);
-                        else lLogBytes.Add(cASCII.RBRACKET);
-                    }
-
-                    lContext.TraceVerbose($"received: {cTools.BytesToLoggableString(lLogBytes)}");
-                }
-
                 public Task WriteAsync(cMethodControl pMC, byte[] pBuffer, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(WriteAsync), pMC);
@@ -240,6 +205,35 @@ namespace work.bacome.imapclient
                     mStream.WriteTimeout = pMC.Timeout;
 
                     return mStream.WriteAsync(lBuffer, 0, lBuffer.Length, pMC.CancellationToken);
+                }
+
+                private void ZLogResponse(cBytesLines pResponse, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ZLogResponse));
+
+                    cByteList lLogBytes = new cByteList();
+
+                    foreach (var lLine in pResponse)
+                    {
+                        if (lLine.Literal) lLogBytes.Add(cASCII.LBRACE);
+                        else lLogBytes.Add(cASCII.LBRACKET);
+
+                        foreach (var lByte in lLine)
+                        {
+                            if (lLogBytes.Count == 60)
+                            {
+                                lContext.TraceVerbose($"received: {cTools.BytesToLoggableString(lLogBytes)}...");
+                                return;
+                            }
+
+                            lLogBytes.Add(lByte);
+                        }
+
+                        if (lLine.Literal) lLogBytes.Add(cASCII.RBRACE);
+                        else lLogBytes.Add(cASCII.RBRACKET);
+                    }
+
+                    lContext.TraceVerbose($"received: {cTools.BytesToLoggableString(lLogBytes)}");
                 }
 
                 public async Task<cBytesLines> ZBuildResponseAsync(cTrace.cContext pParentContext)
@@ -333,15 +327,6 @@ namespace work.bacome.imapclient
                     if (mTCPClient != null)
                     {
                         try { mTCPClient.Close(); }
-                        catch { }
-                    }
-
-                    // has to be disposed after the connection is closed
-                    //  because the closing of the connection is what kills the background reader task
-                    //
-                    if (mStreamReader != null)
-                    {
-                        try { mStreamReader.Dispose(); }
                         catch { }
                     }
 

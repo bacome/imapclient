@@ -41,11 +41,12 @@ namespace work.bacome.imapclient
                 specialuse = 1 << 3
             }
 
-            public async Task ListExtendedAsync(cMethodControl pMC, fListExtendedSelect pSelect, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, fListExtendedReturn pReturn, cTrace.cContext pParentContext)
+            public async Task<List<cMailbox>> ListExtendedAsync(cMethodControl pMC, fListExtendedSelect pSelect, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, fListExtendedReturn pReturn, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListExtendedAsync), pMC, pSelect, pListMailbox, pDelimiter, pPattern, pReturn);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
 
                 // if a mod-opt is selected
                 if ((pSelect & fListExtendedSelect.recursivematch) != 0)
@@ -54,9 +55,10 @@ namespace work.bacome.imapclient
                     if ((pSelect & fListExtendedSelect.subscribed) == 0) throw new ArgumentOutOfRangeException(nameof(pSelect));
                 }
 
+                if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
                 if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
 
-                if (!mStringFactory.TryAsListMailbox(pListMailbox, pDelimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pListMailbox));
+                if (!mCommandPartFactory.TryAsListMailbox(pListMailbox, pDelimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pListMailbox));
 
                 using (var lCommand = new cCommand())
                 {
@@ -87,7 +89,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private static void ZListExtendedAddCommandParts(fListExtendedSelect pSelect, cCommandPart pListMailboxCommandPart, fListExtendedReturn pReturn, cCommand pCommand)
+            private void ZListExtendedAddCommandParts(fListExtendedSelect pSelect, cCommandPart pListMailboxCommandPart, fListExtendedReturn pReturn, cCommand pCommand)
             {
                 pCommand.BeginList(eListBracketing.none); // space separate each section
 
@@ -116,8 +118,8 @@ namespace work.bacome.imapclient
 
                 if ((pReturn & fListExtendedReturn.status) != 0)
                 {
-                    // status ()
-                    ;?;
+                    pCommand.Add(kListExtendedCommandPartStatus);
+                    pCommand.AddStatus(_Capability);
                 }
 
                 if ((pReturn & fListExtendedReturn.specialuse) != 0) pCommand.Add(kListExtendedCommandPartSpecialUse);

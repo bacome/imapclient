@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ConnectAsync), pMC, pServer);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.notconnected) throw new InvalidOperationException("must be notconnected");
+                if (_State != eState.notconnected) throw new InvalidOperationException();
 
                 try
                 {
