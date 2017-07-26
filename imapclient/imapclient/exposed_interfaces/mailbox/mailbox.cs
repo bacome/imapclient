@@ -96,7 +96,6 @@ namespace work.bacome.imapclient
         ;?; // this isn't right - it should be like the message ones and do the fetch if required
 
 
-        public cMailboxFlags MailboxFlags => Client.MailboxCacheItem(MailboxId).MailboxFlags;
         public bool CanHaveChildren => Client.MailboxCacheItem(MailboxId).MailboxFlags.CanHaveChildren;
         public bool CanSelect => Client.MailboxCacheItem(MailboxId).MailboxFlags.CanSelect;
         public bool? IsMarked => Client.MailboxCacheItem(MailboxId).MailboxFlags.IsMarked;
@@ -117,7 +116,7 @@ namespace work.bacome.imapclient
         public int MessageCount => Client.Status(MailboxId).MessageCount; // these should get values from the cache if they aren't too old
         public int RecentCount => Client.Status(MailboxId).RecentCount;
         public uint UIDNext => Client.Status(MailboxId).UIDNext;
-        public int NewUnknownUIDCount => Client.Status(MailboxId).NewUnknownUIDCount;
+        public int UIDNextUnknownCount => Client.Status(MailboxId).NewUnknownUIDCount;
         public uint UIDValidity => Client.Status(MailboxId).UIDValidity;
         public int UnseenCount => Client.Status(MailboxId).UnseenCount;
         public int UnseenUnknownCount => Client.Status(MailboxId).UnseenUnknownCount;

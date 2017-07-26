@@ -141,7 +141,7 @@ namespace work.bacome.imapclient
                 if ((pProperties & fMailboxProperties.messagecount) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.MessageCount)));
                 if ((pProperties & fMailboxProperties.recentcount) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.RecentCount)));
                 if ((pProperties & fMailboxProperties.uidnext) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UIDNext)));
-                if ((pProperties & fMailboxProperties.newunknownuidcount) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.NewUnknownUIDCount)));
+                if ((pProperties & fMailboxProperties.uidnextunknowncount) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UIDNextUnknownCount)));
                 if ((pProperties & fMailboxProperties.uidvalidity) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UIDValidity)));
                 if ((pProperties & fMailboxProperties.unseencount) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UnseenCount)));
                 if ((pProperties & fMailboxProperties.unseenunknowncount) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UnseenUnknownCount)));

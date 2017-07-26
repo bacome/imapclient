@@ -163,7 +163,6 @@ namespace work.bacome.imapclient
 
                     pItem.SetSelectedProperties(pFlags, pSelectedForUpdate, pPermanentFlags, lContext);
 
-                    // this will set the status
                     mSelectedMailbox = new cSelectedMailbox(mEventSynchroniser, pItem, pSelectedForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, lContext);
 
                     mSetState(eState.selected, lContext);

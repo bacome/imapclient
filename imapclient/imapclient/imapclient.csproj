@@ -87,6 +87,7 @@
     <Compile Include="session\mailboxcache\support_classes.cs" />
     <Compile Include="session\mailboxcache\mailboxcacheitem.cs" />
     <Compile Include="session\mailboxcache\processing.cs" />
+    <Compile Include="session\selected_mailbox\processing.cs" />
     <Compile Include="session\session\searchunseen.cs" />
     <Compile Include="session\mailboxcache\mailboxcache.cs" />
     <Compile Include="exposed_interfaces\support\types\commandpartfactory.cs" />
@@ -199,7 +200,7 @@
     <Compile Include="session\parsing\responsedatafetch.cs" />
     <Compile Include="zzz\responsedatastatus.cs" />
     <Compile Include="session\selected_mailbox\selectedmailbox.cs" />
-    <Compile Include="session\selected_mailbox\messagecache.cs" />
+    <Compile Include="session\selected_mailbox\selectedmailboxmessagecache.cs" />
     <Compile Include="session\session\base.cs" />
     <Compile Include="session\session\connect.cs" />
     <Compile Include="session\fetch\attributes.cs" />

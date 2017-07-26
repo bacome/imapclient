@@ -60,12 +60,12 @@ namespace work.bacome.imapclient.support
         messagecount = 1 << 17,
         recentcount = 1 << 18,
         uidnext = 1 << 19,
-        newunknownuidcount = 1 << 20,
+        uidnextunknowncount = 1 << 20,
         uidvalidity = 1 << 21,
         unseencount = 1 << 22,
         unseenunknowncount = 1 << 23,
         highestmodseq = 1 << 24,
-        allstatus = status | messagecount | recentcount | uidnext | newunknownuidcount | unseencount | unseenunknowncount | highestmodseq, // not uidvalidity
+        allstatus = status | messagecount | recentcount | uidnext | uidnextunknowncount | unseencount | unseenunknowncount | highestmodseq, // not uidvalidity
 
         selectedproperties = 1 << 25,
         hasbeenselected = 1 << 26,

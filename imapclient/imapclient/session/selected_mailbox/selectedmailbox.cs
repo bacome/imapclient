@@ -13,67 +13,33 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kUIDValiditySpace = new cBytes("UIDVALIDITY ");
                 private static readonly cBytes kReadWriteRBracketSpace = new cBytes("READ-WRITE] ");
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
-                ;?;
 
                 private readonly cEventSynchroniser mEventSynchroniser;
                 public readonly cMailboxCacheItem MailboxCacheItem;
                 private readonly bool mSelectedForUpdate;
 
                 private bool mAccessReadOnly = false; // can change
+                private cSelectedMailboxMessageCache mMessageCache = null;
 
-
-                private readonly bool mModSeqSupported;
-
-
-                ;?; no longer required
-                //private bool mHasBeenSetAsSelected = false;
-
-                public cSelectedMailbox(cEventSynchroniser pEventSynchoniser, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly)
+                public cSelectedMailbox(cEventSynchroniser pEventSynchoniser, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
+                    var lContext = pParentContext.NewObject(nameof(cSelectedMailbox), pMailboxCacheItem, pSelectedForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
                     mEventSynchroniser = pEventSynchoniser ?? throw new ArgumentNullException(nameof(pEventSynchoniser));
                     MailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
                     mSelectedForUpdate = pSelectedForUpdate;
-
-
-                    mHandle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
-                    mSelectedForUpdate = pSelectedForUpdate;
-                    mCondStoreRequested = pCondStoreRequested;
-
-                    mMessageCache = new cMessageCache(pMailboxCache, pHandle, 0, false, pEventSynchoniser, ); ???
+                    mAccessReadOnly = pAccessReadOnly;
+                    mMessageCache = new cSelectedMailboxMessageCache(pEventSynchoniser, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, lContext);
                 }
 
                 public iMailboxHandle Handle => MailboxCacheItem;
                 public bool SelectedForUpdate => mSelectedForUpdate;
                 public bool AccessReadOnly => mAccessReadOnly;
 
-                public bool ModSeqSupported => mModSeqSupported;
-                public iMessageCache MessageCache => mMessageCache;
-               
-
-                /*
-                public void SetAsSelected(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(SetAsSelected));
-                    if (mHasBeenSetAsSelected) throw new InvalidOperationException();
-                    mHasBeenSetAsSelected = true;
-                    mMessageCache.SetAsSelected(lContext);
-                    mMailboxCache.UpdateMailboxBeenSelected(mEncodedMailboxName, mMailboxId.MailboxName, mMessageFlags, mSelectedForUpdate, mPermanentFlags, lContext);
-                } */
-
-                public bool CondStoreEnabled => mCondStoreEnabled;
-
                 public iMessageHandle GetHandle(uint pMSN) => mMessageCache.GetHandle(pMSN); // this should only be called from a commandcompletion
                 public iMessageHandle GetHandle(cUID pUID) => mMessageCache.GetHandle(pUID);
                 public uint GetMSN(iMessageHandle pHandle) => mMessageCache.GetMSN(pHandle); // this should only be called when no msnunsafe commands are running
 
-                public int SetUnseenBegin(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(SetUnseenBegin));
-                    int lCount = mMessageCache.MessageCount;
-                    mMessageCache.SetUnseenCount = lCount;
-                    return lCount;
-                }
-
+                public void SetUnseenBegin(cTrace.cContext pParentContext) => mMessageCache.SetUnseenBegin(pParentContext);
                 public void SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext) => mMessageCache.SetUnseen(pMSNs, pParentContext); // this should only be called from a commandcompletion
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mMessageCache.ProcessData(pCursor, pParentContext);
