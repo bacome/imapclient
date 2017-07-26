@@ -53,12 +53,12 @@ namespace work.bacome.imapclient
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
-                        lContext.TraceInformation("uid fetch section success");
+                        lContext.TraceInformation("uid fetch body success");
                         if (lHook.Body == null) throw new cUnexpectedServerActionException(0, "body not received", lContext);
                         return lHook.Body;
                     }
 
-                    if (lHook.Body != null) lContext.TraceError("received body on a failed uid fetch section");
+                    if (lHook.Body != null) lContext.TraceError("received body on a failed uid fetch body");
 
                     fCapabilities lTryIgnoring;
                     if (pBinary) lTryIgnoring = fCapabilities.Binary;

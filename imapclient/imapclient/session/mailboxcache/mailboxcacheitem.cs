@@ -10,26 +10,26 @@ namespace work.bacome.imapclient
         {
             private class cMailboxCacheItem : iMailboxHandle
             {
-                private readonly object mCache;
                 private readonly cEventSynchroniser mEventSynchroniser;
+                private readonly cMailboxCache mMailboxCache;
                 private readonly string mEncodedMailboxName;
 
                 private bool? mExists = null;
                 private cListFlags mListFlags = null;
+                private cLSubFlags mLSubFlags = null;
                 private cStatus mStatus = null;
                 private cMailboxStatus mMailboxStatus = null;
                 private cMailboxSelectedProperties mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
 
-                private cLSubFlags mLSubFlags = null;
-
-                public cMailboxCacheItem(object pCache, cEventSynchroniser pEventSynchroniser, string pEncodedMailboxName)
+                public cMailboxCacheItem(cEventSynchroniser pEventSynchroniser, cMailboxCache pMailboxCache, string pEncodedMailboxName)
                 {
-                    mCache = pCache;
                     mEventSynchroniser = pEventSynchroniser;
+                    mMailboxCache = pMailboxCache;
                     mEncodedMailboxName = pEncodedMailboxName;
                 }
 
-                public object Cache => mCache;
+                public object Cache => mMailboxCache;
+                public cMailboxCache MailboxCache => mMailboxCache;
                 public string EncodedMailboxName => mEncodedMailboxName;
 
                 public cMailboxName MailboxName { get; set; }
@@ -56,16 +56,18 @@ namespace work.bacome.imapclient
                 }
 
                 public cListFlags ListFlags => mListFlags;
+                public cLSubFlags LSubFlags => mLSubFlags;
 
-                public void Listed(cListFlags pListFlags, cLSubFlags pLSubFlags, cTrace.cContext pParentContext)
+                public void SetFlags(cListFlags pListFlags, cLSubFlags pLSubFlags, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(Listed), pListFlags, pLSubFlags);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetFlags), pListFlags, pLSubFlags);
 
                     if (pListFlags == null) throw new ArgumentNullException(nameof(pListFlags));
 
                     fMailboxProperties lDifferences = ZSetExists() | cListFlags.Differences(mListFlags, pListFlags);
 
-                    ;?;
+                    mListFlags = pListFlags;
+
                     if (pLSubFlags != null) // must be list-extended
                     {
                         lDifferences |= cLSubFlags.Differences(mLSubFlags, pLSubFlags);
@@ -73,6 +75,24 @@ namespace work.bacome.imapclient
                     }
 
                     mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
+                }
+
+                public void SetFlags(cLSubFlags pLSubFlags, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetFlags), pLSubFlags);
+
+                    fMailboxProperties lDifferences = cLSubFlags.Differences(mLSubFlags, pLSubFlags);
+                    mLSubFlags = pLSubFlags;
+
+                    mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
+                }
+
+                public cStatus Status => mStatus;
+
+                public void ClearStatus(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(ClearStatus));
+                    mStatus = null;
                 }
 
                 public void UpdateStatus(cStatus pStatus, cTrace.cContext pParentContext)
@@ -87,38 +107,40 @@ namespace work.bacome.imapclient
                 public void UpdateMailboxStatus(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(UpdateMailboxStatus));
-                    if (mStatus == null) throw new InvalidOperationException();
-                    cMailboxStatus lMailboxStatus = new cMailboxStatus(mStatus.Messages ?? 0, mStatus.Recent ?? 0, mStatus.UIDNext ?? 0, mStatus.UIDValidity ?? 0, mStatus.Unseen ?? 0, mStatus.HighestModSeq ?? 0);
-                    fMailboxProperties lDifferences = ZSetExists() | cMailboxStatus.Differences(mMailboxStatus, lMailboxStatus);
-                    mMailboxStatus = lMailboxStatus;
+
+                    if (mStatus == null && mMailboxStatus == null) return;
+
+                    fMailboxProperties lDifferences;
+
+                    if (mStatus == null)
+                    {
+                        lDifferences = fMailboxProperties.allstatus;
+                        mMailboxStatus = null;
+                    }
+                    else
+                    {
+                        cMailboxStatus lMailboxStatus = new cMailboxStatus(mStatus.Messages ?? 0, mStatus.Recent ?? 0, mStatus.UIDNext ?? 0, mStatus.UIDValidity ?? 0, mStatus.Unseen ?? 0, mStatus.HighestModSeq ?? 0);
+                        lDifferences = ZSetExists() | cMailboxStatus.Differences(mMailboxStatus, lMailboxStatus);
+                        mMailboxStatus = lMailboxStatus;
+                    }
+
                     mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 
-                public void SetMailboxStatus(cMailboxStatus pStatus, cTrace.cContext pParentContext)
+                public void SetMailboxStatus(cMailboxStatus pMailboxStatus, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetMailboxStatus), pStatus);
-                    if (pStatus == null) throw new ArgumentNullException(nameof(pStatus));
-                    fMailboxProperties lDifferences = ZSetExists() | cMailboxStatus.Differences(mMailboxStatus, pStatus);
-                    mMailboxStatus = pStatus;
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetMailboxStatus), pMailboxStatus);
+                    if (pMailboxStatus == null) throw new ArgumentNullException(nameof(pMailboxStatus));
+                    fMailboxProperties lDifferences = ZSetExists() | cMailboxStatus.Differences(mMailboxStatus, pMailboxStatus);
+                    mMailboxStatus = pMailboxStatus;
                     mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 
                 public cMailboxSelectedProperties SelectedProperties => mSelectedProperties;
 
-
-
-
-
-
-                public cLSubFlags LSubFlags => mLSubFlags;
-
-
-
-
-                public void Select(cMessageFlags pMessageFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags, cTrace.cContext pParentContext)
+                public void SetSelectedProperties(cMessageFlags pMessageFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags, cTrace.cContext pParentContext)
                 {
-                    ;?; // this should fire the events for selected, selro, ...
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetSelectedProperties), pMessageFlags, pSelectedForUpdate, pPermanentFlags);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetMessageFlags), pMessageFlags, pSelectedForUpdate, pPermanentFlags);
                     if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
                     ZSetSelectedProperties(new cMailboxSelectedProperties(mSelectedProperties, pMessageFlags, pSelectedForUpdate, pPermanentFlags), lContext);
                 }
@@ -151,6 +173,8 @@ namespace work.bacome.imapclient
                     mExists = true;
                     return fMailboxProperties.exists;
                 }
+
+                public override string ToString() => $"{nameof(cMailboxCacheItem)}({mEncodedMailboxName})";
             }
         }
     }

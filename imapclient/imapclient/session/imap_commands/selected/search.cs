@@ -51,7 +51,7 @@ namespace work.bacome.imapclient
 
             private class cSearchCommandHook : cCommandHookBaseSearch
             {
-                private cSelectedMailbox mSelectedMailbox;
+                private readonly cSelectedMailbox mSelectedMailbox;
 
                 public cSearchCommandHook(cSelectedMailbox pSelectedMailbox)
                 {

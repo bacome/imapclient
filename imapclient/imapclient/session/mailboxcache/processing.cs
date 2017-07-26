@@ -62,7 +62,7 @@ namespace work.bacome.imapclient
                             !pCursor.GetAString(out IList<byte> lEncodedMailboxName) ||
                             !ZProcessDataListExtendedItems(pCursor, out var lExtendedItems) ||
                             !pCursor.Position.AtEnd ||
-                            !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mUTF8Enabled, out var lMailboxName))
+                            !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mCommandPartFactory.UTF8Enabled, out var lMailboxName))
                         {
                             lContext.TraceWarning("likely malformed list response");
                             return eProcessDataResult.notprocessed;
@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
                             !pCursor.SkipByte(cASCII.SPACE) ||
                             !pCursor.GetAString(out IList<byte> lEncodedMailboxName) ||
                             !pCursor.Position.AtEnd ||
-                            !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mUTF8Enabled, out var lMailboxName))
+                            !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mCommandPartFactory.UTF8Enabled, out var lMailboxName))
                         {
                             lContext.TraceWarning("likely malformed lsub response");
                             return eProcessDataResult.notprocessed;
@@ -93,7 +93,7 @@ namespace work.bacome.imapclient
                         ZProcessDataLSubMailboxFlags(lFlags, out var lLSubFlags);
 
                         var lItem = ZItem(lMailboxName);
-                        lItem.SetFlags(null, lLSubFlags, lContext);
+                        lItem.SetFlags(lLSubFlags, lContext);
 
                         return eProcessDataResult.processed;
                     }
@@ -112,7 +112,7 @@ namespace work.bacome.imapclient
 
                         var lItem = ZItem(lEncodedMailboxName);
                         lItem.UpdateStatus(lStatus, lContext);
-                        if (mSelectedMailbox == null || !ReferenceEquals(mSelectedMailbox.MailboxCacheItem, lItem)) lItem.UpdateMailboxStatus(lContext);
+                        if (!ReferenceEquals(mSelectedMailbox?.MailboxCacheItem, lItem)) lItem.UpdateMailboxStatus(lContext);
 
                         return eProcessDataResult.processed;
                     }

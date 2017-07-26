@@ -4,6 +4,8 @@ namespace work.bacome.imapclient.support
 {
     public class cLSubFlags
     {
+        private static readonly cLSubFlags kNull = new cLSubFlags(-1, 0);
+
         public readonly int Sequence;
         public readonly fLSubFlags Flags;
 
@@ -20,15 +22,15 @@ namespace work.bacome.imapclient.support
 
         public static fMailboxProperties Differences(cLSubFlags pOld, cLSubFlags pNew)
         {
-            if (pNew == null) throw new ArgumentNullException(nameof(pNew));
+            cLSubFlags lOld = pOld ?? kNull;
+            cLSubFlags lNew = pNew ?? kNull;
 
-            if (pOld == null) return 0;
-            if (pOld.Flags == pNew.Flags) return 0;
+            if (lOld.Flags == lNew.Flags) return 0;
 
-            fMailboxProperties lProperties = fMailboxProperties.lsubflags;
+            fMailboxProperties lProperties = 0;
 
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fLSubFlags.subscribed, fMailboxProperties.issubscribed);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fLSubFlags.hassubscribedchildren, fMailboxProperties.hassubscribedchildren);
+            lProperties |= ZPropertyIfDifferent(lOld, lNew, fLSubFlags.subscribed, fMailboxProperties.issubscribed);
+            lProperties |= ZPropertyIfDifferent(lOld, lNew, fLSubFlags.hassubscribedchildren, fMailboxProperties.hassubscribedchildren);
 
             return lProperties;
         }

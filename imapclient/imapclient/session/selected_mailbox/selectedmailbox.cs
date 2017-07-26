@@ -15,31 +15,34 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
                 ;?;
 
-                public readonly cMailboxCacheItem MailboxCacheItem;
-
-                private readonly bool mSelectedForUpdate;
-                private readonly bool mModSeqSupported;
                 private readonly cEventSynchroniser mEventSynchroniser;
+                public readonly cMailboxCacheItem MailboxCacheItem;
+                private readonly bool mSelectedForUpdate;
 
-                private cMessageCache mMessageCache;
+                private bool mAccessReadOnly = false; // can change
 
-                private bool mAccessReadOnly = false;
+
+                private readonly bool mModSeqSupported;
+
 
                 ;?; no longer required
                 //private bool mHasBeenSetAsSelected = false;
 
-                public cSelectedMailbox(cMailboxCacheItem pCacheItem, cEventSynchroniser pEventSynchoniser)
+                public cSelectedMailbox(cEventSynchroniser pEventSynchoniser, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly)
                 {
-                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
+                    mEventSynchroniser = pEventSynchoniser ?? throw new ArgumentNullException(nameof(pEventSynchoniser));
+                    MailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
+                    mSelectedForUpdate = pSelectedForUpdate;
+
+
                     mHandle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
                     mSelectedForUpdate = pSelectedForUpdate;
                     mCondStoreRequested = pCondStoreRequested;
-                    mEventSynchroniser = pEventSynchoniser ?? throw new ArgumentNullException(nameof(pEventSynchoniser));
 
                     mMessageCache = new cMessageCache(pMailboxCache, pHandle, 0, false, pEventSynchoniser, ); ???
                 }
 
-                public iMailboxHandle Handle => mHandle;
+                public iMailboxHandle Handle => MailboxCacheItem;
                 public bool SelectedForUpdate => mSelectedForUpdate;
                 public bool AccessReadOnly => mAccessReadOnly;
 

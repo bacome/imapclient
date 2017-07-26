@@ -65,6 +65,7 @@ namespace work.bacome.imapclient.support
         unseencount = 1 << 22,
         unseenunknowncount = 1 << 23,
         highestmodseq = 1 << 24,
+        allstatus = status | messagecount | recentcount | uidnext | newunknownuidcount | unseencount | unseenunknowncount | highestmodseq, // not uidvalidity
 
         selectedproperties = 1 << 25,
         hasbeenselected = 1 << 26,
@@ -74,10 +75,9 @@ namespace work.bacome.imapclient.support
         forupdatepermanentflags = 1 << 30,
         readonlypermanentflags = 1 << 31,
 
-        selected = 1 << 32,
-        isselected = 1 << 33,
-        isselectedforupdate = 1 << 34,
-        isaccessreadonly = 1 << 35
+        isselected = 1 << 32,
+        isselectedforupdate = 1 << 33,
+        isaccessreadonly = 1 << 34
     }
 
 }

@@ -10,19 +10,19 @@ namespace work.bacome.imapclient.support
 
         private static readonly cBytes UTC = new cBytes("+0000");
 
-        private bool mUTF8Enabled;
-        private Encoding mEncoding;
+        public readonly bool UTF8Enabled;
+        public readonly Encoding Encoding;
 
         public cCommandPartFactory(bool pUTF8Enabled, Encoding pEncoding)
         {
-            mUTF8Enabled = pUTF8Enabled;
-            if (!pUTF8Enabled) mEncoding = pEncoding;
+            UTF8Enabled = pUTF8Enabled;
+            if (!pUTF8Enabled) Encoding = pEncoding;
         }
 
         public bool TryAsLiteral(string pString, bool pSecret, out cCommandPart rResult)
         {
             if (ZTryAsASCIILiteral(pString, pSecret, out rResult)) return true;
-            if (mEncoding == null) { rResult = null; return false; }
+            if (Encoding == null) { rResult = null; return false; }
             return ZTryAsEncodedLiteral(pString, pSecret, out rResult);
         }
 
@@ -36,12 +36,12 @@ namespace work.bacome.imapclient.support
         {
             if (pString == null) { rResult = null; return false; }
 
-            if (mUTF8Enabled)
+            if (UTF8Enabled)
             {
                 if (ZTryAsQuotedUTF8(pString, pSecret, out rResult)) return true;
                 return (ZTryAsUTF8Literal(pString, pSecret, out rResult));
             }
-            else if (mEncoding == null)
+            else if (Encoding == null)
             {
                 if (ZTryAsQuotedASCII(pString, pSecret, out rResult)) return true;
                 return (ZTryAsASCIILiteral(pString, pSecret, out rResult));
@@ -49,7 +49,7 @@ namespace work.bacome.imapclient.support
             else
             {
                 if (ZTryAsQuotedASCII(pString, pSecret, out rResult)) return true;
-                var lBytes = mEncoding.GetBytes(pString);
+                var lBytes = Encoding.GetBytes(pString);
                 if (ZTryAsQuotedASCII(lBytes, true, pSecret, out rResult)) return true;
                 return (ZTryAsLiteral(lBytes, true, pSecret, out rResult));
             }
@@ -67,9 +67,9 @@ namespace work.bacome.imapclient.support
 
             if (ZTryAsBytesInCharset(pString, cCharset.AString, pSecret, out rResult)) return true;
 
-            if (mEncoding == null) return TryAsString(pString, pSecret, out rResult);
+            if (Encoding == null) return TryAsString(pString, pSecret, out rResult);
 
-            var lBytes = mEncoding.GetBytes(pString);
+            var lBytes = Encoding.GetBytes(pString);
             if (ZTryAsBytesInCharset(lBytes, cCharset.AString, true, pSecret, out rResult)) return true;
             if (ZTryAsQuotedASCII(lBytes, true, pSecret, out rResult)) return true;
             return (ZTryAsLiteral(lBytes, true, pSecret, out rResult));
@@ -151,7 +151,7 @@ namespace work.bacome.imapclient.support
                 return true;
             }
 
-            if (mUTF8Enabled)
+            if (UTF8Enabled)
             {
                 if (ZTryAsQuotedUTF8(pString, false, out rCommandPart) || ZTryAsUTF8Literal(pString, false, out rCommandPart))
                 {
@@ -197,7 +197,7 @@ namespace work.bacome.imapclient.support
         private bool ZTryAsEncodedLiteral(string pString, bool pSecret, out cCommandPart rResult)
         {
             if (pString == null) { rResult = null; return false; }
-            var lBytes = mEncoding.GetBytes(pString);
+            var lBytes = Encoding.GetBytes(pString);
             foreach (byte lByte in lBytes) if (lByte == cASCII.NUL) { rResult = null; return false; }
             rResult = new cCommandPart(lBytes, eCommandPartType.literal, pSecret, true);
             return true;

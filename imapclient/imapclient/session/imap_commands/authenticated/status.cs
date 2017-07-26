@@ -20,7 +20,7 @@ namespace work.bacome.imapclient
                 if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-                mMailboxCache.CheckHandle(pHandle);
+                var lMailboxCacheItem = mMailboxCache.CheckHandle(pHandle);
 
                 using (var lCommand = new cCommand())
                 {
@@ -31,12 +31,13 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // status is msnunsafe
 
-                    ;?; // space these
+                    lCommand.BeginList(eListBracketing.none);
                     lCommand.Add(kStatusCommandPart);
-                    lCommand.Add(lHandle.CommandPart);
+                    lCommand.Add(lMailboxCacheItem.CommandPart);
                     lCommand.AddStatusAttributes(_Capability);
+                    lCommand.EndList();
 
-                    var lHook = new cStatusCommandHook(mMailboxCache, lHandle.EncodedMailboxName);
+                    var lHook = new cStatusCommandHook(lMailboxCacheItem);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -44,17 +45,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("status success");
-
-
-                        var lStatus = lHook.Status;
-
-                        if (lStatus == null || lStatus.Messages == null || lStatus.Recent == null || lStatus.Unseen == null) throw new cUnexpectedServerActionException(0, "status not received", lContext);
-
-                        cMailboxStatus lMailboxStatus = new cMailboxStatus(lStatus.Messages.Value, lStatus.Recent.Value, lStatus.UIDNext ?? 0, 0, lStatus.UIDValidity ?? 0, lStatus.Unseen.Value, 0, lStatus.HighestModSeq ?? 0);
-
-                        mMailboxCache.SetStatus(pMailboxId.MailboxName, lMailboxStatus);
-
-                        return lMailboxStatus;
+                        return lMailboxCacheItem.MailboxStatus;
                     }
 
                     fCapabilities lTryIgnoring;
@@ -68,23 +59,22 @@ namespace work.bacome.imapclient
 
             private class cStatusCommandHook : cCommandHook
             {
-                private cMailboxCache mCache;
-                private string mEncodedMailboxName;
-                private int mSequence;
+                private readonly cMailboxCacheItem mMailboxCacheItem;
+                private readonly int mSequence;
 
-                public cStatusCommandHook(cMailboxCache pCache, string pEncodedMailboxName)
+                public cStatusCommandHook(cMailboxCacheItem pMailboxCacheItem)
                 {
-                    mCache = pCache;
-                    mEncodedMailboxName = pEncodedMailboxName;
-                    mSequence = mCache.Sequence;
+                    mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
+                    mSequence = pMailboxCacheItem.MailboxCache.Sequence;
                 }
-
-                ;?; // get status
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cStatusCommandHook), nameof(CommandCompleted), pResult, pException);
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mCache.ResetExists(mEncodedMailboxName, mSequence, lContext);
+
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok)
+                        if (mMailboxCacheItem.Exists != false && (mMailboxCacheItem.Status == null || mMailboxCacheItem.Status.Sequence < mSequence))
+                            mMailboxCacheItem.ResetExists(lContext);
                 }
             }
         }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
@@ -23,9 +21,9 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kListExtendedCommandPartSpecialUse = new cCommandPart("SPECIAL-USE");
             private static readonly cCommandPart kListExtendedCommandPartStatus = new cCommandPart("STATUS");
 
-            public async Task<List<cMailbox>> ListExtendedAsync(cMethodControl pMC, bool pSubscribed, bool pRemote, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pStatus, cTrace.cContext pParentContext)
+            public async Task<List<iMailboxHandle>> ListExtendedAsync(cMethodControl pMC, bool pSubscribedOnly, bool pRemote, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pStatus, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListExtendedAsync), pMC, pSubscribed, pRemote, pListMailbox, pDelimiter, pPattern, pStatus);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListExtendedAsync), pMC, pSubscribedOnly, pRemote, pListMailbox, pDelimiter, pPattern, pStatus);
 
                 // caller needs to determine if status is supported
 
@@ -48,7 +46,7 @@ namespace work.bacome.imapclient
 
                     lCommand.BeginList(eListBracketing.ifany);
 
-                    if (pSubscribed)
+                    if (pSubscribedOnly)
                     {
                         lCommand.Add(kListExtendedCommandPartSubscribed);
                         lCommand.Add(kListExtendedCommandPartRecursiveMatch);
@@ -78,7 +76,7 @@ namespace work.bacome.imapclient
                     lCommand.EndList();
                     lCommand.EndList();
 
-                    var lHook = new cListExtendedCommandHook(mMailboxCache, pSubscribed, pPattern, mMailboxCache.Sequence);
+                    var lHook = new cListExtendedCommandHook(mMailboxCache, pSubscribedOnly, pPattern, pStatus);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -86,7 +84,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("listextended success");
-                        return;
+                        return lHook.Handles;
                     }
 
                     fCapabilities lTryIgnoring = 0;
@@ -100,23 +98,24 @@ namespace work.bacome.imapclient
                 }
             }
 
-
-
-
             private class cListExtendedCommandHook : cCommandHook
             {
                 private readonly cMailboxCache mCache;
-                private readonly bool mSubscribed;
+                private readonly bool mSubscribedOnly;
                 private readonly cMailboxNamePattern mPattern;
+                private readonly bool mStatus;
                 private readonly int mSequence;
 
-                public cListExtendedCommandHook(cMailboxCache pCache, bool pSubscribed, cMailboxNamePattern pPattern, int pSequence)
+                public cListExtendedCommandHook(cMailboxCache pCache, bool pSubscribedOnly, cMailboxNamePattern pPattern, bool pStatus)
                 {
                     mCache = pCache;
-                    mSubscribed = pSubscribed;
+                    mSubscribedOnly = pSubscribedOnly;
                     mPattern = pPattern;
-                    mSequence = pSequence;
+                    mStatus = pStatus;
+                    mSequence = pCache.Sequence;
                 }
+
+                public List<iMailboxHandle> Handles { get; private set; } = null;
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
@@ -124,48 +123,9 @@ namespace work.bacome.imapclient
 
                     if (pResult != null && pResult.ResultType == eCommandResultType.ok)
                     {
-                        if (mSubscribed) ;?; // lsub processing
-                        else mCache.Reset(mSelect, mPattern, mSequence, lContext); // list processing
+                        if (mSubscribedOnly) Handles = mCache.LSub(mPattern, mStatus, mSequence, lContext);
+                        else Handles = mCache.List(mPattern, mStatus, mSequence, lContext);
                     }
-                }
-            }
-
-
-
-
-
-
-
-            [Conditional("DEBUG")]
-            private static void _Tests_ListExtendedCommandParts(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession),nameof(_Tests_ListExtendedCommandParts));
-
-                cListPatterns lPatterns;
-
-                lPatterns = new cListPatterns();
-                lPatterns.Add(new cListPattern("fred%", null, new cMailboxNamePattern("fred", "%", null)));
-
-                if (LListExtendedCommandPartsTestsString(0, lPatterns, 0, 0) != "LIST \"\" fred%") throw new cTestsException("list extended command 1", lContext);
-                if (LListExtendedCommandPartsTestsString(fListExtendedSelect.remote, lPatterns, 0, 0) != "LIST (REMOTE) \"\" fred%") throw new cTestsException("list extended command 2", lContext);
-                if (LListExtendedCommandPartsTestsString(fListExtendedSelect.remote | fListExtendedSelect.subscribed, lPatterns, 0, 0) != "LIST (SUBSCRIBED REMOTE) \"\" fred%") throw new cTestsException("list extended command 3", lContext);
-
-                lPatterns.Add(new cListPattern("angus%", null, new cMailboxNamePattern("angus", "%", null)));
-
-                if (LListExtendedCommandPartsTestsString(0, lPatterns, 0, 0) != "LIST \"\" (fred% angus%)") throw new cTestsException("list extended command 4", lContext);
-
-                if (LListExtendedCommandPartsTestsString(0, lPatterns, fListExtendedReturn.subscribed, 0) != "LIST \"\" (fred% angus%) RETURN (SUBSCRIBED)") throw new cTestsException("list extended command 5", lContext);
-                if (LListExtendedCommandPartsTestsString(0, lPatterns, fListExtendedReturn.subscribed | fListExtendedReturn.children, 0) != "LIST \"\" (fred% angus%) RETURN (SUBSCRIBED CHILDREN)") throw new cTestsException("list extended command 6", lContext);
-                if (LListExtendedCommandPartsTestsString(0, lPatterns, 0, fStatusAttributes.recent) != "LIST \"\" (fred% angus%) RETURN (STATUS (RECENT))") throw new cTestsException("list extended command 7", lContext);
-                if (LListExtendedCommandPartsTestsString(0, lPatterns, fListExtendedReturn.children, fStatusAttributes.recent) != "LIST \"\" (fred% angus%) RETURN (CHILDREN STATUS (RECENT))") throw new cTestsException("list extended command 8", lContext);
-
-                string LListExtendedCommandPartsTestsString(fListExtendedSelect pSelect, cListPatterns pPatterns, fListExtendedReturn pReturn, fStatusAttributes pStatus)
-                {
-                    StringBuilder lBuilder = new StringBuilder();
-                    var lCommand = new cCommand();
-                    ZListExtendedAddCommandParts(pSelect, pPatterns, pReturn, pStatus, 0, lCommand);
-                    foreach (var lPart in lCommand.Parts) lBuilder.Append(cTools.ASCIIBytesToString(lPart.Bytes));
-                    return lBuilder.ToString();
                 }
             }
         }

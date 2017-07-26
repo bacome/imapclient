@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
 
             private class cStartTLSCommandHook : cCommandHook
             {
-                private cConnection mConnection;
+                private readonly cConnection mConnection;
 
                 public cStartTLSCommandHook(cConnection pConnection) { mConnection = pConnection; }
 

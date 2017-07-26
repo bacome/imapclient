@@ -81,7 +81,7 @@ namespace work.bacome.imapclient
 
             private class cCommandHookFetchMSN : cCommandHookFetchBase
             {
-                private uint mMSN;
+                private readonly uint mMSN;
 
                 public cCommandHookFetchMSN(bool pBinary, cSection pSection, uint pOrigin, uint pMSN) : base (pBinary, pSection, pOrigin)
                 {
@@ -93,7 +93,7 @@ namespace work.bacome.imapclient
 
             private class cCommandHookFetchUID : cCommandHookFetchBase
             {
-                private uint mUID;
+                private readonly uint mUID;
 
                 public cCommandHookFetchUID(bool pBinary, cSection pSection, uint pOrigin, uint pUID) : base (pBinary, pSection, pOrigin)
                 {

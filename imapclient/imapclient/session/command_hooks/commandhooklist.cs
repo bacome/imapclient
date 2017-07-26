@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -21,16 +22,12 @@ namespace work.bacome.imapclient
                     mSequence = pCache.Sequence;
                 }
 
-                public List<cMailbox> Mailboxes { get; private set; } = null;
+                public List<iMailboxHandle> Handles { get; private set; } = null;
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookList), nameof(CommandCompleted), pResult, pException);
-
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok)
-                    {
-                        Mailboxes = mCache.ResetExists(mPattern, mSequence, lContext);
-                    }
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) Handles = mCache.List(mPattern, false, mSequence, lContext);
                 }
             }
         }

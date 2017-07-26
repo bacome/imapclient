@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
             {
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cAccountId mConnectedAccountId;
-                private readonly bool mUTF8Enabled;
+                private readonly cCommandPartFactory mCommandPartFactory;
                 private readonly Action<eState, cTrace.cContext> mSetState;
                 private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
 
@@ -23,11 +23,11 @@ namespace work.bacome.imapclient
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, bool pUTF8Enabled, Action<eState, cTrace.cContext> pSetState, cCapability pCapability)
+                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, Action<eState, cTrace.cContext> pSetState, cCapability pCapability)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mConnectedAccountId = pConnectedAccountId ?? throw new ArgumentNullException(nameof(pConnectedAccountId));
-                    mUTF8Enabled = pUTF8Enabled;
+                    mCommandPartFactory = pCommandPartFactory ?? throw new ArgumentNullException(nameof(pCommandPartFactory));
                     mSetState = pSetState ?? throw new ArgumentNullException(nameof(pSetState));
                     mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
                 }
@@ -40,12 +40,12 @@ namespace work.bacome.imapclient
 
                 public iMailboxHandle GetHandle(cMailboxName pMailboxName) => ZItem(pMailboxName);
 
-                public void CheckHandle(iMailboxHandle pHandle)
+                public cMailboxCacheItem CheckHandle(iMailboxHandle pHandle)
                 {
                     if (!ReferenceEquals(pHandle.Cache, this)) throw new ArgumentOutOfRangeException(nameof(pHandle));
                     if (!mDictionary.TryGetValue(pHandle.EncodedMailboxName, out var lItem)) throw new ArgumentOutOfRangeException(nameof(pHandle));
                     if (!ReferenceEquals(lItem, pHandle)) throw new ArgumentOutOfRangeException(nameof(pHandle));
-                    //return lItem;
+                    return lItem;
                 }
 
                 public cSelectedMailbox SelectedMailbox => mSelectedMailbox;
@@ -74,9 +74,14 @@ namespace work.bacome.imapclient
 
                 public int Sequence => mSequence;
 
-                public List<iMailboxHandle> List(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
+                public List<iMailboxHandle> List(cMailboxNamePattern pPattern, bool pStatus, int pSequence, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(List), pPattern, pSequence);
+
+                    cMailboxCacheItem lSelectedMailboxCacheItem;
+
+                    if (pStatus) lSelectedMailboxCacheItem = mSelectedMailbox?.MailboxCacheItem;
+                    else lSelectedMailboxCacheItem = null;
 
                     List<iMailboxHandle> lHandles = new List<iMailboxHandle>();
 
@@ -84,183 +89,99 @@ namespace work.bacome.imapclient
                         if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
                         {
                             if (lItem.ListFlags == null || lItem.ListFlags.Sequence < pSequence) lItem.ResetExists(lContext);
-                            else lHandles.Add(lItem);
-                            }
+                            else
+                            {
+                                lHandles.Add(lItem);
 
+                                if (pStatus && lItem.Status != null && lItem.Status.Sequence < pSequence)
+                                {
+                                    lItem.ClearStatus(lContext);
+                                    if (!ReferenceEquals(lSelectedMailboxCacheItem, lItem)) lItem.UpdateMailboxStatus(lContext);
+                                }
+                            }
                         }
 
                     return lHandles;
                 }
 
-                public List<iMailboxHandle> LSub(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
+                public List<iMailboxHandle> LSub(cMailboxNamePattern pPattern, bool pStatus, int pSequence, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Mailboxes), pSubscribedOnly, pPattern, pSequence);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(LSub), pPattern, pSequence);
+
+                    cMailboxCacheItem lSelectedMailboxCacheItem;
+
+                    if (pStatus) lSelectedMailboxCacheItem = mSelectedMailbox?.MailboxCacheItem;
+                    else lSelectedMailboxCacheItem = null;
 
                     List<iMailboxHandle> lHandles = new List<iMailboxHandle>();
 
-                    ;?; // wait. subscribed don't need to exist.
-
-
                     foreach (var lItem in mDictionary.Values)
-                        if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
+                        if (lItem.LSubFlags != null && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
                         {
-                            if (pSubscribedOnly)
-                            {
-                                if (lItem.LSubFlags == null || lItem.LSubFlags.Sequence < pSequence)
-                                {
-
-                                }
-                                else lHandles.Add(lItem);
-                            }
+                            if (lItem.LSubFlags.Sequence < pSequence) lItem.SetFlags(null, lContext);
                             else
                             {
+                                lHandles.Add(lItem);
 
-                                if (lItem.ListFlags == null || lItem.ListFlags.Sequence < pSequence) lItem.ResetExists(lContext);
-                                else lHandles.Add(lItem);
-
+                                if (pStatus && lItem.Status != null && lItem.Status.Sequence < pSequence)
+                                {
+                                    lItem.ClearStatus(lContext);
+                                    if (!ReferenceEquals(lSelectedMailboxCacheItem, lItem)) lItem.UpdateMailboxStatus(lContext);
+                                }
                             }
-
                         }
 
                     return lHandles;
                 }
 
-
-
-                public cMailboxStatus Status(string pEncodedMailboxName, int pSequence, cTrace.cContext pParentContext)
+                public void Deselect(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pEncodedMailboxName, pSequence);
-                    if (!ReferenceEquals(pHandle.Cache, this)) throw new ArgumentOutOfRangeException(nameof(pHandle));
-                    if (mSelectedMailbox != null && ReferenceEquals(mSelectedMailbox.Handle, pHandle)) return; // never expect a status response for the selected mailbox
-                    if (!mDictionary.TryGetValue(pHandle.EncodedMailboxName, out var lItem)) throw new ArgumentOutOfRangeException(nameof(pHandle));
-                    if (!ReferenceEquals(lItem, pHandle)) throw new ArgumentOutOfRangeException(nameof(pHandle));
-                    lItem.ResetExists(lContext);
-                }
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Deselect));
 
-                public void ResetLSubFlags(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetLSubFlags), pPattern, pSequence);
+                    if (mSelectedMailbox == null) return;
 
-                    cLSubFlags lFlags = null;
+                    var lHandle = mSelectedMailbox.Handle;
 
-                    foreach (var lItem in mDictionary.Values)
-                    {
-                        if (lItem.Exists != false && lItem.MailboxName != null && (lItem.LSubFlags == null || lItem.LSubFlags.Sequence < pSequence) && pPattern.Matches(lItem.MailboxName.Name))
-                        {
-                            if (lFlags == null) lFlags = new cLSubFlags(mSequence++, 0);
-                            lItem.SetFlags(null, lFlags, lContext);
-                        }
-                    }
-                }
+                    fMailboxProperties lProperties = fMailboxProperties.isselected;
+                    if (mSelectedMailbox.SelectedForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
+                    if (mSelectedMailbox.AccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
 
+                    mSelectedMailbox = null;
 
-
-
-                /*
-                public void ResetExists(string pEncodedMailboxName, int pMailboxStatusSequence, cTrace.cContext pParentContext)
-                {
-
-
-                    // this must not be called for the selected mailbox
-
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pEncodedMailboxName, pMailboxStatusSequence);
-
-                    if (mDictionary.TryGetValue(pEncodedMailboxName, out var lItem))
-                    {
-                        var lProperties = lItem.ResetExists(pMailboxStatusSequence);
-                        if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(lItem, lProperties, lContext);
-                    }
-                } */
-
-                // these now done direct from the processing of the responses
-                /*
-                public void SetMailboxFlags(string pEncodedMailboxName, cMailboxName pMailboxName, cMailboxFlags pMailboxFlags, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(SetMailboxFlags), pEncodedMailboxName, pMailboxName, pMailboxFlags);
-
-                    if (pEncodedMailboxName == null) throw new ArgumentNullException(nameof(pEncodedMailboxName));
-                    if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
-                    if (pMailboxFlags == null) throw new ArgumentNullException(nameof(pMailboxFlags));
-
-                    var lProperties = ZItem(pEncodedMailboxName, pMailboxName).SetMailboxFlags(pMailboxFlags);
-                    if (lProperties != 0) ZMailboxPropertiesChanged(pMailboxName, lProperties, lContext);
-                }
-
-                public void SetLSubFlags(string pEncodedMailboxName, cLSubFlags pLSubFlags, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(SetLSubFlags), pEncodedMailboxName, pLSubFlags);
-
-                    if (pEncodedMailboxName == null) throw new ArgumentNullException(nameof(pEncodedMailboxName));
-                    if (pLSubFlags == null) throw new ArgumentNullException(nameof(pLSubFlags));
-
-                    var lItem = ZItem(pEncodedMailboxName, null);
-                    var lProperties = lItem.SetLSubFlags(pLSubFlags);
-                    if (lProperties != 0) ZMailboxPropertiesChanged(lItem.MailboxName, lProperties, lContext);
-                } */
-
-                public void ClearLSubFlags(cMailboxNamePattern pPattern, int pLSubFlagsSequence, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pPattern, pLSubFlagsSequence);
-
-                    foreach (var lItem in mDictionary.Values)
-                    {
-                        var lProperties = lItem.ClearLSubFlags(pPattern, pLSubFlagsSequence);
-                        if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
-                    }
-                }
-
-                /*
-                public void UpdateMailboxStatus(string pEncodedMailboxName, cStatus pStatus, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(UpdateMailboxStatus), pEncodedMailboxName, pStatus);
-
-                    var lItem = ZItem(pEncodedMailboxName, null);
-                    cStatus lStatus = cStatus.Combine(lItem.Status, pStatus);
-                    lItem.Status = lStatus;
-
-                    if (SelectedMailbox?.EncodedMailboxName == pEncodedMailboxName) return; // the status is currently coming from the selected mailbox
-
-                    cMailboxStatus lMailboxStatus = new cMailboxStatus(lStatus.Messages ?? 0, lStatus.Recent ?? 0, lStatus.UIDNext ?? 0, 0, lStatus.UIDValidity ?? 0, lStatus.Unseen ?? 0, 0, lStatus.HighestModSeq ?? 0);
-
-                    var lProperties = lItem.SetMailboxStatus(lMailboxStatus);
-                    if (lProperties != 0) ZMailboxPropertiesChanged(lItem.MailboxName, lProperties, lContext);
-                } */
-
-                public void Select(string pEncodedMailboxName, cMailboxName pMailboxName, bool pSelectedForUpdate, cMailboxStatus pStatus, cMessageFlags pFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags, cTrace.cContext pParentContext)
-                {
-                    // should only be called just before the mailbox is selected
-
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(UpdateMailboxSelectedProperties), pHandle, pFlags, pSelectedForUpdate, pPermanentFlags);
-
-                    if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-                    if (pStatus == null) throw new ArgumentNullException(nameof(pStatus));
-                    if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
-
-                    var lItem = pHandle as cItem;
-                    if (lItem == null) throw new ArgumentOutOfRangeException(nameof(pHandle));
-
-                    var lProperties = lItem.UpdateMailboxSelectedProperties(pStatus, pFlags, pSelectedForUpdate, pPermanentFlags);
-                    if (lProperties != 0) mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
-
-
-                    mSetState(eState.selected, lContext);
-                }
-
-                public void Deselect()
-                {
-                    ;?;
-
-
+                    mEventSynchroniser.FireMailboxPropertiesChanged(lHandle, lProperties, lContext);
                     mSetState(eState.notselected, lContext);
                 }
 
-                private cMailboxCacheItem ZItem(string pEncodedMailboxName) => mDictionary.GetOrAdd(pEncodedMailboxName, new cMailboxCacheItem(this, mEventSynchroniser, pEncodedMailboxName));
+                public void Select(cMailboxCacheItem pItem, bool pSelectedForUpdate, bool pAccessReadOnly, cMessageFlags pFlags, cMessageFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pItem, pSelectedForUpdate, pAccessReadOnly, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
+
+                    if (mSelectedMailbox != null) throw new InvalidOperationException();
+
+                    if (pItem == null) throw new ArgumentNullException(nameof(pItem));
+                    if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
+
+                    pItem.SetSelectedProperties(pFlags, pSelectedForUpdate, pPermanentFlags, lContext);
+
+                    // this will set the status
+                    mSelectedMailbox = new cSelectedMailbox(mEventSynchroniser, pItem, pSelectedForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, lContext);
+
+                    mSetState(eState.selected, lContext);
+
+                    fMailboxProperties lProperties = fMailboxProperties.isselected;
+                    if (pSelectedForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
+                    if (pAccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
+
+                    mEventSynchroniser.FireMailboxPropertiesChanged(pItem, lProperties, lContext);
+                }
+
+                private cMailboxCacheItem ZItem(string pEncodedMailboxName) => mDictionary.GetOrAdd(pEncodedMailboxName, new cMailboxCacheItem(mEventSynchroniser, this, pEncodedMailboxName));
 
                 private cMailboxCacheItem ZItem(cMailboxName pMailboxName)
                 {
                     if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
-                    if (!mFactory.TryAsMailbox(pMailboxName, out var lCommandPart, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
-                    var lItem = mDictionary.GetOrAdd(lEncodedMailboxName, new cMailboxCacheItem(this, mEventSynchroniser, lEncodedMailboxName));
+                    if (!mCommandPartFactory.TryAsMailbox(pMailboxName, out var lCommandPart, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
+                    var lItem = mDictionary.GetOrAdd(lEncodedMailboxName, new cMailboxCacheItem(mEventSynchroniser, this, lEncodedMailboxName));
                     lItem.MailboxName = pMailboxName;
                     lItem.CommandPart = lCommandPart;
                     return lItem;

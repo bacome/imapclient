@@ -20,11 +20,9 @@ namespace work.bacome.imapclient
                     private static readonly cBytes kExpunge = new cBytes("EXPUNGE");
                     private static readonly cBytes kFetchSpace = new cBytes("FETCH ");
 
-                    private readonly cMailboxId mMailboxId;
                     private readonly cEventSynchroniser mEventSynchroniser;
-                    private readonly cMailboxCache mMailboxCache;
+                    private readonly cMailboxCacheItem mMailboxCacheItem;
                     private readonly uint mUIDValidity;
-                    private bool mHasBeenSetAsSelected;
                     private int mCacheSequence = 0;
                     private List<cItem> mItems = new List<cItem>();
                     private SortedDictionary<cUID, iMessageHandle> mUIDIndex = new SortedDictionary<cUID, iMessageHandle>();
@@ -35,11 +33,10 @@ namespace work.bacome.imapclient
                     private int mUnseenUnknownCount = 0; // number of message with unseen = null 
                     private ulong mHighestModSeq = 0; // still to do everything for this ...
 
-                    public cMessageCache(cMailboxId pMailboxId, cEventSynchroniser pEventSynchroniser, cMailboxCache pMailboxCache)
+                    public cMessageCache(cEventSynchroniser pEventSynchroniser, cMailboxCacheItem pMailboxCacheItem, stuff)
                     {
-                        mMailboxId = pMailboxId ?? throw new ArgumentNullException(nameof(pMailboxId));
                         mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
-                        mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
+                        mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
                         mUIDValidity = 0;
                         mHasBeenSetAsSelected = false;
                     }
@@ -275,6 +272,9 @@ namespace work.bacome.imapclient
 
                         if ((lAttributesSet & fFetchAttributes.uid) != 0 && lFetchedItem.UID != null) mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
 
+                        ;?; // only store the modseq if the selectedmailbox has modseq enabled 
+
+
                         // events
                         //
                         if (mHasBeenSetAsSelected)
@@ -293,6 +293,8 @@ namespace work.bacome.imapclient
                                 if ((lFlagsSet & fKnownFlags.forwarded) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsForwarded), lContext);
                                 if ((lFlagsSet & fKnownFlags.submitpending) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsSubmitPending), lContext);
                                 if ((lFlagsSet & fKnownFlags.submitted) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsSubmitted), lContext);
+
+                                ;?; // modseq can change also
 
                                 mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.Flags), lContext);
                             }
@@ -384,7 +386,7 @@ namespace work.bacome.imapclient
 
 
 
-                    public override string ToString() => $"{nameof(cMessageCache)}({mMailboxId},{mUIDValidity})";
+                    public override string ToString() => $"{nameof(cMessageCache)}({mMailboxCacheItem},{mUIDValidity})";
 
                     private class cItem : cMessageCacheItem, IComparable<cItem>
                     {

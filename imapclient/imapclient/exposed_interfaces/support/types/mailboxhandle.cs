@@ -6,8 +6,6 @@ namespace work.bacome.imapclient.support
     {
         object Cache { get; }
         string EncodedMailboxName { get; }
-        cCommandPart CommandPart { get; }
-        cMailboxName MailboxName { get; }
         bool? Exists { get; }
         cListFlags ListFlags { get; }
         cLSubFlags LSubFlags { get; } 

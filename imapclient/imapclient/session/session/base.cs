@@ -83,17 +83,13 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.authenticated) throw new InvalidOperationException("must be authenticated");
 
-                bool lUTF8Enabled;
-
                 if ((EnabledExtensions & fEnableableExtensions.utf8) != 0)
                 {
-                    lUTF8Enabled = true;
                     mCommandPartFactory = new cCommandPartFactory(true, null);
                     mEncodingPartFactory = mCommandPartFactory;
                 }
-                else lUTF8Enabled = false;
 
-                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, lUTF8Enabled, ZSetState, _Capability);
+                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mCommandPartFactory, ZSetState, _Capability);
 
                 mResponseTextProcessor.SetMailboxCache(mMailboxCache, lContext);
                 mPipeline.SetMailboxCache(mMailboxCache, lContext);

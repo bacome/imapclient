@@ -57,12 +57,12 @@ namespace work.bacome.imapclient
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
-                        lContext.TraceInformation("fetch section success");
+                        lContext.TraceInformation("fetch body success");
                         if (lHook.Body == null) throw new cUnexpectedServerActionException(0, "body not received", lContext);
                         return lHook.Body;
                     }
 
-                    if (lHook.Body != null) lContext.TraceError("received body on a failed fetch section");
+                    if (lHook.Body != null) lContext.TraceError("received body on a failed fetch body");
 
                     fCapabilities lTryIgnoring;
                     if (pBinary) lTryIgnoring = fCapabilities.Binary;
