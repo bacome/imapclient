@@ -257,7 +257,9 @@ namespace work.bacome.imapclient
                             {
                                 lItem.SetStarted(lContext); // mark the command as started
 
-                                if (lItem.UIDValidity != null && lItem.UIDValidity != SelectedMailbox?.UIDValidity) // don't run the command if it requires a specific uidvalidity and that isn't the current one
+                                
+
+                                if (lItem.UIDValidity != null && lItem.UIDValidity != mMailboxCache?.SelectedMailbox?.UIDValidity) // don't run the command if it requires a specific uidvalidity and that isn't the current one
                                 {
                                     lItem.SetException(new cUIDValidityChangedException(lContext), lContext);
                                 }
@@ -466,7 +468,7 @@ namespace work.bacome.imapclient
                     {
                         while (true)
                         {
-                            if (mSelected)
+                            if (mMailboxCache?.SelectedMailbox != null)
                             {
                                 await ZIdlePollCommandAsync(kCheck, lContext).ConfigureAwait(false);
 
@@ -772,7 +774,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZProcessCommandCompletion), pItem);
                     var lResult = ZProcessCommandCompletion(pCursor, pItem.Tag, pItem, lContext);
                     if (lResult == null) return false;
-                    pItem.SetResult(lResult, SelectedMailbox?.UIDValidity, lContext);
+                    pItem.SetResult(lResult, mMailboxCache?.SelectedMailbox?.UIDValidity, lContext);
                     return true;
                 }
 

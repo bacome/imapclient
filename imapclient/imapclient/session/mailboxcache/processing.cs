@@ -11,8 +11,6 @@ namespace work.bacome.imapclient
         {
             private partial class cMailboxCache
             {
-                private static readonly cBytes kFlagsSpace = new cBytes("FLAGS ");
-
                 private static readonly cBytes kListSpace = new cBytes("LIST ");
                 private static readonly cBytes kLSubSpace = new cBytes("LSUB ");
 
@@ -24,8 +22,6 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kUnseenSpace = new cBytes("UNSEEN ");
                 private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
 
-                private static readonly cBytes kPermanentFlagsSpace = new cBytes("PERMANENTFLAGS ");
-
                 private enum eProcessStatusAttributeResult { notprocessed, processed, error }
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
@@ -34,19 +30,6 @@ namespace work.bacome.imapclient
 
                     if (mSelectedMailbox != null)
                     {
-                        if (pCursor.SkipBytes(kFlagsSpace))
-                        {
-                            if (pCursor.GetFlags(out var lFlags) && pCursor.Position.AtEnd)
-                            {
-                                lContext.TraceVerbose("got flags: {0}", lFlags);
-                                mSelectedMailbox.MailboxCacheItem.SetMessageFlags(new cMessageFlags(lFlags), lContext);
-                                return eProcessDataResult.processed;
-                            }
-
-                            lContext.TraceWarning("likely malformed flags response");
-                            return eProcessDataResult.notprocessed;
-                        }
-
                         var lBookmark = pCursor.Position;
                         var lResult = mSelectedMailbox.ProcessData(pCursor, lContext);
                         if (lResult != eProcessDataResult.notprocessed) return lResult;
@@ -132,23 +115,10 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ProcessTextCode));
 
-                    if (mSelectedMailbox != null)
+                    if (mSelectedMailbox != null) return mSelectedMailbox.ProcessTextCode(pCursor, lContext);
+                    return false;
+
                     {
-                        // permanent flags
-
-                        ;?;
-                        if (pCursor.SkipBytes(kFlagsSpace))
-                        {
-                            if (pCursor.GetFlags(out var lFlags) && pCursor.Position.AtEnd)
-                            {
-                                lContext.TraceVerbose("got flags: {0}", lFlags);
-                                mSelectedMailbox.MailboxCacheItem.SetMessageFlags(new cMessageFlags(lFlags), lContext);
-                                return eProcessDataResult.processed;
-                            }
-
-                            lContext.TraceWarning("likely malformed flags response");
-                            return eProcessDataResult.notprocessed;
-                        }
 
                         ;?;
                         var lBookmark = pCursor.Position;
@@ -156,8 +126,8 @@ namespace work.bacome.imapclient
                         if (lResult != eProcessDataResult.notprocessed) return lResult;
                         pCursor.Position = lBookmark;
                     }
-                    ;?;
 
+                    return false;
                 }
 
                 private bool ZProcessDataListExtendedItems(cBytesCursor pCursor, out cExtendedItems rItems)

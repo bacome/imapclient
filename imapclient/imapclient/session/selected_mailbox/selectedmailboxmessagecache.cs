@@ -40,9 +40,9 @@ namespace work.bacome.imapclient
 
                 private int mSetUnseenCount;
 
-                public cMessageCache(cEventSynchroniser pEventSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailboxMessageCache(cEventSynchroniser pEventSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewObject(nameof(cMessageCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
+                    var lContext = pParentContext.NewObject(nameof(cSelectedMailboxMessageCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
 
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
@@ -68,21 +68,21 @@ namespace work.bacome.imapclient
                     ZSetMailboxStatus(lContext);
                 }
 
-                public cMessageCache(cMessageCache pOldMessageCache, uint pUIDValidity, cTrace.cContext pParentContext)
+                public cSelectedMailboxMessageCache(cSelectedMailboxMessageCache pOldCache, uint pUIDValidity, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewObject(nameof(cMessageCache), pOldMessageCache, pUIDValidity);
+                    var lContext = pParentContext.NewObject(nameof(cSelectedMailboxMessageCache), pOldCache, pUIDValidity);
 
-                    mEventSynchroniser = pOldMessageCache.mEventSynchroniser;
-                    mMailboxCacheItem = pOldMessageCache.mMailboxCacheItem;
+                    mEventSynchroniser = pOldCache.mEventSynchroniser;
+                    mMailboxCacheItem = pOldCache.mMailboxCacheItem;
                     mUIDValidity = pUIDValidity;
-                    mNoModSeq = pOldMessageCache.mNoModSeq;
+                    mNoModSeq = pOldCache.mNoModSeq;
 
-                    int lMessageCount = pOldMessageCache.mItems.Count;
+                    int lMessageCount = pOldCache.mItems.Count;
 
                     mItems = new List<cItem>(lMessageCount);
                     for (int i = 0; i < lMessageCount; i++) mItems.Add(new cItem(this, mCacheSequence++));
 
-                    mRecentCount = pOldMessageCache.mRecentCount;
+                    mRecentCount = pOldCache.mRecentCount;
 
                     mUIDNext = 0;
                     mUIDNextMessageCount = 0;
@@ -93,7 +93,7 @@ namespace work.bacome.imapclient
 
                     mHighestModSeq = 0;
 
-                    mSetUnseenCount = pOldMessageCache.mSetUnseenCount;
+                    mSetUnseenCount = pOldCache.mSetUnseenCount;
 
                     ZSetMailboxStatus(lContext);
                 }
@@ -120,13 +120,13 @@ namespace work.bacome.imapclient
 
                 public void SetUnseenBegin(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(SetUnseenBegin));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(SetUnseenBegin));
                     mSetUnseenCount = mItems.Count;
                 }
 
                 public void SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(SetUnseen), pMSNs);
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(SetUnseen), pMSNs);
 
                     int lMaxIndex = mSetUnseenCount - 1;
                     bool lUnseenUpdated = false;
@@ -165,7 +165,7 @@ namespace work.bacome.imapclient
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(ProcessData));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ProcessData));
 
                     bool lUnseenUpdated = false;
                     cResponseDataFetch lFetch;
@@ -420,13 +420,13 @@ namespace work.bacome.imapclient
 
 
 
-                public override string ToString() => $"{nameof(cMessageCache)}({mMailboxCacheItem},{mUIDValidity})";
+                public override string ToString() => $"{nameof(cSelectedMailboxMessageCache)}({mMailboxCacheItem},{mUIDValidity})";
 
                 private class cItem : cMessageCacheItem, IComparable<cItem>
                 {
                     public bool? Unseen = null; // is this message unseen (null = don't know)
 
-                    public cItem(cMessageCache pCache, int pCacheSequence) : base(pCache, pCacheSequence) { }
+                    public cItem(cSelectedMailboxMessageCache pCache, int pCacheSequence) : base(pCache, pCacheSequence) { }
 
                     public int CompareTo(cItem pOther)
                     {
