@@ -17,8 +17,11 @@ namespace work.bacome.imapclient
 
         public string Prefix => NamespaceName.Prefix;
 
-        public List<cMailboxListItem> Mailboxes(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault, fStatusAttributes pStatusAttributes = fStatusAttributes.clientdefault) => Client.Mailboxes(NamespaceId, pTypes, pFlagSets, pStatusAttributes);
-        public Task<List<cMailboxListItem>> MailboxesAsync(fMailboxTypes pTypes = fMailboxTypes.clientdefault, fMailboxFlagSets pFlagSets = fMailboxFlagSets.clientdefault, fStatusAttributes pStatusAttributes = fStatusAttributes.clientdefault) => Client.MailboxesAsync(NamespaceId, pTypes, pFlagSets, pStatusAttributes);
+        public List<cMailbox> Mailboxes(bool pStatus = false) => Client.Mailboxes(NamespaceName, pStatus);
+        public Task<List<cMailbox>> MailboxesAsync(bool pStatus = false) => Client.MailboxesAsync(NamespaceName, pStatus);
+
+        public List<cMailbox> SubscribedMailboxes(bool pStatus = false) => Client.SubscribedMailboxes(NamespaceName, pStatus);
+        public Task<List<cMailbox>> SubscribedMailboxesAsync(bool pStatus = false) => Client.SubscribedMailboxesAsync(NamespaceName, pStatus);
 
         public override string ToString() => $"{nameof(cMailbox)}({NamespaceName})";
     }

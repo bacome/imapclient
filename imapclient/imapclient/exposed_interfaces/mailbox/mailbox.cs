@@ -217,8 +217,22 @@ namespace work.bacome.imapclient
         }
 
         ;?;
-        // convert these to properties
-        public cMessage UIDFetch(cUID pUID, fFetchAttributes pAttributes) => Client.UIDFetch(MailboxId, pUID, pAttributes);
+
+
+        public cMessage Message(iMessageHandle pHandle, fMessageProperties pProperties = fMessageProperties.clientdefault)
+        {
+            ;?;
+        }
+
+        public List<cMessage> Messages(IList<iMessageHandle> pHandles, fMessageProperties pProperties = fMessageProperties.clientdefault)
+        {
+            ;?; // nononono
+            List<cMessage> lMessages = new List<cMessage>();
+            foreach (var lHandle in pHandles) lMessages.Add(new cMessage(Client, MailboxId, lHandle));
+            return lMessages;
+        }
+
+        public cMessage Message(cUID pUID, fFetchAttributes pAttributes) => Client.UIDFetch(MailboxId, pUID, pAttributes);
         public Task<cMessage> UIDFetchAsync(cUID pUID, fFetchAttributes pAttributes) => Client.UIDFetchAsync(MailboxId, pUID, pAttributes);
         public List<cMessage> UIDFetch(IList<cUID> pUIDs, fFetchAttributes pAttributes, cFetchControl pFC = null) => Client.UIDFetch(MailboxId, pUIDs, pAttributes, pFC);
         public Task<List<cMessage>> UIDFetchAsync(IList<cUID> pUIDs, fFetchAttributes pAttributes, cFetchControl pFC = null) => Client.UIDFetchAsync(MailboxId, pUIDs, pAttributes, pFC);
@@ -236,13 +250,6 @@ namespace work.bacome.imapclient
         ;?; // and async
 
         // helpers
-
-        public List<cMessage> Messages(IList<iMessageHandle> pHandles)
-        {
-            List<cMessage> lMessages = new List<cMessage>();
-            foreach (var lHandle in pHandles) lMessages.Add(new cMessage(Client, MailboxId, lHandle));
-            return lMessages;
-        }
 
         // blah
         public override string ToString() => $"{nameof(cMailbox)}({MailboxId})";

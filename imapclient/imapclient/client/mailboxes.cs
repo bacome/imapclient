@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using work.bacome.async;
+using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -10,21 +11,21 @@ namespace work.bacome.imapclient
     {
         // single mailbox
 
-        public cMailbox Mailbox(cMailboxName pMailboxName, fMailboxProperties pProperties = fMailboxProperties.clientdefault)
+        public cMailbox Mailbox(cMailboxName pMailboxName, bool pStatus)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailbox));
-            var lTask = ZMailboxAsync(pMailboxName, pProperties, lContext);
+            var lTask = ZMailboxAsync(pMailboxName, pStatus, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<cMailbox> MailboxAsync(cMailboxName pMailboxName, fMailboxProperties pProperties = fMailboxProperties.clientdefault)
+        public Task<cMailbox> MailboxAsync(cMailboxName pMailboxName, bool pStatus)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxAsync));
-            return ZMailboxAsync(pMailboxName, pProperties, lContext);
+            return ZMailboxAsync(pMailboxName, pStatus, lContext);
         }
 
-        private Task<cMailbox> ZMailboxAsync(cMailboxName pMailboxName, fMailboxProperties pProperties, cTrace.cContext pParentContext)
+        private Task<cMailbox> ZMailboxAsync(cMailboxName pMailboxName, bool pStatus, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMailboxAsync), pMailboxName, pProperties);
 
@@ -33,10 +34,8 @@ namespace work.bacome.imapclient
             string lListMailbox = pMailboxName.Name.Replace('*', '%');
             cMailboxNamePattern lPattern = new cMailboxNamePattern(pMailboxName.Name, string.Empty, pMailboxName.Delimiter);
 
-            ;?;
-            await ZZMailboxesAsync(lSession, lListMailbox, pMailboxName.Delimiter, lPattern, pProperties, lContext).ConfigureAwait(false);
-
-            // now ask the 
+            ;?; // has to get the result then check it and return null if 0, a value if 1 and throw if multiple
+            return ZZMailboxesAsync(lListMailbox, pMailboxName.Delimiter, lPattern, pStatus, lContext);
         }
 
 
@@ -154,9 +153,9 @@ namespace work.bacome.imapclient
 
         // common processing
 
-        private async Task<List<cMailbox>> ZZMailboxesAsync(string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, fMailboxProperties pProperties, cTrace.cContext pParentContext)
+        private async Task<List<cMailbox>> ZZMailboxesAsync(string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pStatus, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZMailboxesAsync), pListMailbox, pDelimiter, pPattern, pProperties);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZMailboxesAsync), pListMailbox, pDelimiter, pPattern, pStatus);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -166,15 +165,8 @@ namespace work.bacome.imapclient
             if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
             if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
 
-            fMailboxProperties lProperties;
-            if ((pProperties & fMailboxProperties.clientdefault) != 0) lProperties = pProperties | mDefaultMailboxProperties;
-            else lProperties = pProperties;
-
             var lCapability = lSession.Capability;
-
-
-
-
+            List<iMailboxHandle> lHandles;
 
             mAsyncCounter.Increment(lContext);
 
@@ -184,7 +176,12 @@ namespace work.bacome.imapclient
 
                 if (lCapability.ListExtended)
                 {
+                    bool lStatus = pStatus && lCapability.ListStatus;
 
+                    lHandles = await lSession.ListExtendedAsync(lMC, false, mMailboxReferrals, pListMailbox, pDelimiter, pPattern, lStatus, lContext).ConfigureAwait(false);
+
+                    if (pStatus && !lStatus) lSession.StatusAsync()
+    
                 }
                 else
                 {
@@ -202,6 +199,8 @@ namespace work.bacome.imapclient
 
                     //  if the lsub task is something, zero (not null) the non-refreshed ones
                 }
+
+                ;?; // now do status if required (common with lsub)
             }
             finally { mAsyncCounter.Decrement(lContext); }
 
