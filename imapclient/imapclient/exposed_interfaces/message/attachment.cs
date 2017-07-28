@@ -39,6 +39,8 @@ namespace work.bacome.imapclient
         public void Fetch(Stream pStream, cFetchControl pFC = null) => Client.Fetch(MailboxId, Handle, Part.Section, Part.DecodingRequired, pStream, pFC);
         public Task FetchAsync(Stream pStream, cFetchControl pFC = null) => Client.FetchAsync(MailboxId, Handle, Part.Section, Part.DecodingRequired, pStream, pFC);
 
+        ;?; // saveas methods
+
         // debugging
         public override string ToString() => $"{nameof(cAttachment)}({MailboxId},{Handle},{Part.Section})";
     }

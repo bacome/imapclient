@@ -31,15 +31,15 @@ namespace work.bacome.imapclient
 
                 if ((pAttributes & (fFetchAttributes.flags | fFetchAttributes.modseq)) == 0) return pAttributes;
 
-                bool lModSeqSupported = mMailboxCache.SelectedMailbox?.ModSeqSupported ?? false;
+                bool lNoModSeq = mMailboxCache.SelectedMailbox?.NoModSeq ?? true;
 
                 if ((pAttributes & fFetchAttributes.modseq) != 0)
                 {
-                    if (!lModSeqSupported) throw new cUnsupportedByMailboxException(fCapabilities.CondStore, lContext);
+                    if (lNoModSeq) throw new cUnsupportedByMailboxException(fCapabilities.CondStore, lContext);
                     return pAttributes | fFetchAttributes.flags;
                 }
 
-                if (lModSeqSupported) return pAttributes | fFetchAttributes.modseq;
+                if (!lNoModSeq) return pAttributes | fFetchAttributes.modseq;
 
                 return pAttributes;
             }

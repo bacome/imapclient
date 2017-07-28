@@ -112,8 +112,7 @@ namespace work.bacome.imapclient
         public bool ContainsSent => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsSent;
         public bool ContainsTrash => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsTrash;
 
-        public cMailboxStatus Status => Client.Status(MailboxId); // this should do a status command regardless
-        public int MessageCount => Client.Status(MailboxId).MessageCount; // these should get values from the cache if they aren't too old
+        public int MessageCount => Client.Status(MailboxId).MessageCount;
         public int RecentCount => Client.Status(MailboxId).RecentCount;
         public uint UIDNext => Client.Status(MailboxId).UIDNext;
         public int UIDNextUnknownCount => Client.Status(MailboxId).NewUnknownUIDCount;
@@ -174,11 +173,17 @@ namespace work.bacome.imapclient
 
         // talk to server
 
-        public void Update(fMailboxProperties pProperties) => Client.MailboxHandleUpdate(MailboxId, Handle, pProperties, true);
-        public Task UpdateAsync(fMailboxProperties pProperties) => Client.MailboxHandleUpdateAsync(MailboxId, Handle, pProperties, true);
+        public cMailboxStatus Status() => Client.Status(MailboxId); // this should do a status command regardless
+        public cMailboxStatus StatusAsync() => Client.Statusxxx(MailboxId); // this should do a status command regardless
 
-        public List<cMailbox> Mailboxes(fMailboxProperties pProperties = fMailboxProperties.clientdefault) => Client.Mailboxes(MailboxId, pProperties);
-        public Task<List<cMailbox>> MailboxesAsync(fMailboxProperties pProperties = fMailboxProperties.clientdefault) => Client.MailboxesAsync(MailboxId, pProperties);
+        public void Update(bool pStatus) => Client.MailboxHandleUpdate(MailboxId, Handle, pProperties, true);
+        public Task UpdateAsync(bool pStatus) => Client.MailboxHandleUpdateAsync(MailboxId, Handle, pProperties, true);
+
+        public List<cMailbox> Mailboxes(bool pStatus) => Client.Mailboxes(MailboxId, pProperties);
+        public Task<List<cMailbox>> MailboxesAsync(bool pStatus) => Client.MailboxesAsync(MailboxId, pProperties);
+
+        public List<cMailbox> SubscribedMailboxes(fMailboxProperties pProperties = fMailboxProperties.clientdefault) => Client.Mailboxes(MailboxId, pProperties);
+        public Task<List<cMailbox>> SubscribedMailboxesAsync(fMailboxProperties pProperties = fMailboxProperties.clientdefault) => Client.MailboxesAsync(MailboxId, pProperties);
 
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Messages(MailboxId, pFilter, pSort, pAttributes);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fFetchAttributes pAttributes = fFetchAttributes.clientdefault) => Client.MessagesAsync(MailboxId, pFilter, pSort, pAttributes);
@@ -193,13 +198,6 @@ namespace work.bacome.imapclient
         {
             await Client.FetchAsync(MailboxId, pHandles, pAttributes, pFC).ConfigureAwait(false);
             return Messages(pHandles);
-        }
-
-        public List<cMessage> Messages(IList<iMessageHandle> pHandles)
-        {
-            List<cMessage> lMessages = new List<cMessage>();
-            foreach (var lHandle in pHandles) lMessages.Add(new cMessage(Client, MailboxId, lHandle));
-            return lMessages;
         }
 
         public void Fetch(IList<cMessage> pMessages, fFetchAttributes pAttributes, cFetchControl pFC = null) => Client.Fetch(MailboxId, ZHandles(pMessages), pAttributes, pFC);
@@ -231,8 +229,20 @@ namespace work.bacome.imapclient
 
         // mailbox actions
 
-        public void Select(fSelectOptions pOptions) => Client.Select(MailboxId, pOptions);
-        public Task SelectAsync(fSelectOptions pOptions) => Client.SelectAsync(MailboxId, pOptions);
+        public void Select(bool pForUpdate) => Client.Select(MailboxId, pOptions);
+        public Task SelectAsync(bool pForUpdate) => Client.SelectAsync(MailboxId, pOptions);
+
+        public void SetUnseen() => Client.setunseen();
+        ;?; // and async
+
+        // helpers
+
+        public List<cMessage> Messages(IList<iMessageHandle> pHandles)
+        {
+            List<cMessage> lMessages = new List<cMessage>();
+            foreach (var lHandle in pHandles) lMessages.Add(new cMessage(Client, MailboxId, lHandle));
+            return lMessages;
+        }
 
         // blah
         public override string ToString() => $"{nameof(cMailbox)}({MailboxId})";

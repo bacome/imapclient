@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
         public readonly int MessageCount;
         public readonly int RecentCount;
         public readonly uint UIDNext;
-        public readonly int UIDNextUnknownUIDCount; // the number of messages in the mailbox for which we don't know the UID (indicates the inaccuracy of UIDNext)
+        public readonly int UIDNextUnknownCount; // the number of messages in the mailbox for which we don't know the UID (indicates the inaccuracy of UIDNext)
         public readonly uint UIDValidity;
         public readonly int UnseenCount;
         public readonly int UnseenUnknownCount; // the number of messages in the mailbox for which we don't know the unseen (indicates the inaccuracy of Unseen)
@@ -19,26 +19,26 @@ namespace work.bacome.imapclient
             MessageCount = (int)pMessages;
             RecentCount = (int)pRecent;
             UIDNext = pUIDNext;
-            UIDNextUnknownUIDCount = 0;
+            UIDNextUnknownCount = 0;
             UIDValidity = pUIDValidity;
             UnseenCount = (int)pUnseen;
             UnseenUnknownCount = 0;
             HighestModSeq = pHighestModSeq;
         }
 
-        public cMailboxStatus(int pMessageCount, int pRecentCount, uint pUIDNext, int pUIDNextUnknownUIDCount, uint pUIDValidity, int pUnseenCount, int pUnseenUnknownCount, ulong pHighestModSeq)
+        public cMailboxStatus(int pMessageCount, int pRecentCount, uint pUIDNext, int pUIDNextUnknownCount, uint pUIDValidity, int pUnseenCount, int pUnseenUnknownCount, ulong pHighestModSeq)
         {
             MessageCount = pMessageCount;
             RecentCount = pRecentCount;
             UIDNext = pUIDNext;
-            UIDNextUnknownUIDCount = pUIDNextUnknownUIDCount;
+            UIDNextUnknownCount = pUIDNextUnknownCount;
             UIDValidity = pUIDValidity;
             UnseenCount = pUnseenCount;
             UnseenUnknownCount = pUnseenUnknownCount;
             HighestModSeq = pHighestModSeq;
         }
 
-        public override string ToString() => $"{nameof(cMailboxStatus)}({MessageCount},{RecentCount},{UIDNext},{UIDNextUnknownUIDCount},{UIDValidity},{UnseenCount},{UnseenUnknownCount},{HighestModSeq})";
+        public override string ToString() => $"{nameof(cMailboxStatus)}({MessageCount},{RecentCount},{UIDNext},{UIDNextUnknownCount},{UIDValidity},{UnseenCount},{UnseenUnknownCount},{HighestModSeq})";
 
         public static fMailboxProperties Differences(cMailboxStatus pOld, cMailboxStatus pNew)
         {

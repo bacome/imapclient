@@ -11,13 +11,6 @@ namespace work.bacome.imapclient
         {
             private partial class cSelectedMailboxMessageCache : iMessageCache
             {
-                private static readonly cBytes kExists = new cBytes("EXISTS");
-                private static readonly cBytes kRecent = new cBytes("RECENT");
-                private static readonly cBytes kUIDNextSpace = new cBytes("UIDNEXT ");
-                private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
-                private static readonly cBytes kExpunge = new cBytes("EXPUNGE");
-                private static readonly cBytes kFetchSpace = new cBytes("FETCH ");
-
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
                 private readonly uint mUIDValidity;
@@ -37,6 +30,7 @@ namespace work.bacome.imapclient
                 private int mUnseenUnknownCount;
 
                 private ulong mHighestModSeq;
+                private ulong mPendingHighestModSeq = 0;
 
                 private int mSetUnseenCount;
 
@@ -55,8 +49,17 @@ namespace work.bacome.imapclient
                     mRecentCount = pRecentCount;
 
                     mUIDNext = pUIDNext;
-                    mUIDNextMessageCount = pMessageCount;
-                    mUIDNextUnknownCount = 0;
+
+                    if (mUIDNext == 0)
+                    {
+                        mUIDNextMessageCount = 0;
+                        mUIDNextUnknownCount = pMessageCount;
+                    }
+                    else
+                    {
+                        mUIDNextMessageCount = pMessageCount;
+                        mUIDNextUnknownCount = 0;
+                    }
 
                     mUnseenCount = 0;
                     mUnseenUnknownCount = pMessageCount;
@@ -98,6 +101,25 @@ namespace work.bacome.imapclient
                     ZSetMailboxStatus(lContext);
                 }
 
+                public iMailboxHandle MailboxHandle => mMailboxCacheItem;
+                public uint UIDValidity => mUIDValidity;
+                public bool NoModSeq => mNoModSeq;
+
+                public void UpdateHighestModSeq(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(UpdateHighestModSeq));
+
+                    if (mNoModSeq) throw new InvalidOperationException();
+
+                    if (mPendingHighestModSeq > mHighestModSeq)
+                    {
+                        mHighestModSeq = mPendingHighestModSeq;
+                        ZSetMailboxStatus(lContext);
+                    }
+
+                    mPendingHighestModSeq = 0;
+                }
+
                 public iMessageHandle GetHandle(uint pMSN) => mItems[(int)pMSN - 1];
 
                 public iMessageHandle GetHandle(cUID pUID)
@@ -112,7 +134,7 @@ namespace work.bacome.imapclient
                     //  zero return means that the message isn't cached
 
                     if (!(pHandle is cItem lItem)) return 0;
-                    if (!ReferenceEquals(lItem.MessageCache, this)) return 0;
+                    if (!ReferenceEquals(lItem.Cache, this)) return 0;
                     int lIndex = mItems.BinarySearch(lItem);
                     if (lIndex < 0) return 0;
                     return (uint)lIndex + 1;
@@ -120,16 +142,19 @@ namespace work.bacome.imapclient
 
                 public void SetUnseenBegin(cTrace.cContext pParentContext)
                 {
+                    ;?;
+                    // should be called from command begin
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(SetUnseenBegin));
                     mSetUnseenCount = mItems.Count;
                 }
 
                 public void SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext)
                 {
+                    ;?; // should be called from command end
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(SetUnseen), pMSNs);
 
                     int lMaxIndex = mSetUnseenCount - 1;
-                    bool lUnseenUpdated = false;
+                    bool lSetMailboxStatus = false;
 
                     foreach (uint lMSN in pMSNs)
                     {
@@ -144,7 +169,7 @@ namespace work.bacome.imapclient
                             lItem.Unseen = true;
                             mUnseenUnknownCount--;
                             mUnseenCount++;
-                            lUnseenUpdated = true;
+                            lSetMailboxStatus = true;
                         }
                     }
 
@@ -156,135 +181,95 @@ namespace work.bacome.imapclient
                         {
                             lItem.Unseen = false;
                             mUnseenUnknownCount--;
-                            lUnseenUpdated = true;
+                            lSetMailboxStatus = true;
                         }
                     }
 
-                    if (lUnseenUpdated) ZSetMailboxStatus(lContext);
+                    if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
                 }
 
-                public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                private void ZExists(int pMessageCount, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ProcessData));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ZExists), pMessageCount);
 
-                    bool lUnseenUpdated = false;
-                    cResponseDataFetch lFetch;
+                    if (pMessageCount < mItems.Count) throw new cUnexpectedServerActionException(0, "count should only go up", lContext);
 
-                    if (pCursor.Parsed)
+                    int lToAdd = pMessageCount - mItems.Count;
+
+                    cMessageHandleList lHandles = new cMessageHandleList();
+
+                    for (int i = 0; i < lToAdd; i++)
                     {
-                        lFetch = pCursor.ParsedAs as cResponseDataFetch;
-                        if (lFetch == null) return eProcessDataResult.notprocessed;
-                    }
-                    else
-                    {
-                        ;?; // review this
-                        if (pCursor.GetNumber(out _, out var lNumber) && pCursor.SkipByte(cASCII.SPACE))
-                        {
-                            if (pCursor.SkipBytes(kExists))
-                            {
-                                if (pCursor.Position.AtEnd) IncreaseCount((int)lNumber, lContext);
-                                {
-                                    ; ?;
-
-
-
-                                    return eProcessDataResult.processed;
-                                }
-                            }
-                            else if (pCursor.SkipBytes(kRecent))
-                            {
-                                if (pCursor.Position.AtEnd)
-                                {
-                                    lContext.TraceVerbose("got recent: {0}", lNumber);
-                                    mRecentCount = (int)lNumber;
-                                    if (mHasBeenSetAsSelected) ZUpdateMailboxStatus(lContext);
-                                    return eProcessDataResult.processed;
-                                }
-                            }
-                            else if (pCursor.SkipBytes(kExpunge))
-                            {
-                                if (!pCursor.Position.AtEnd)
-                                {
-                                    lContext.TraceWarning("likely malformed expunge response");
-                                    return eProcessDataResult.notprocessed;
-                                }
-
-                                // processing
-
-                                int lIndex = (int)lMSN - 1;
-                                var lExpungedItem = mItems[lIndex];
-                                mItems.RemoveAt(lIndex);
-
-                                lExpungedItem.SetExpunged();
-
-                                if (lExpungedItem.Unseen == null)
-                                {
-                                    mUnseenUnknownCount--;
-                                    lUnseenUpdated = true;
-                                }
-                                else if (lExpungedItem.Unseen.Value)
-                                {
-                                    mUnseenCount--;
-                                    lUnseenUpdated = true;
-                                }
-
-                                if (lIndex < SetUnseenCount) SetUnseenCount--;
-
-                                if (mHasBeenSetAsSelected)
-                                {
-                                    mEventSynchroniser.MessagePropertyChanged(mMailboxId, lExpungedItem, nameof(cMessage.IsExpunged), lContext);
-                                    if (lUnseenUpdated) mEventSynchroniser.MailboxPropertyChanged(mMailboxId, nameof(iMailboxProperties.Unseen), lContext);
-                                    mEventSynchroniser.MailboxPropertyChanged(mMailboxId, nameof(iMailboxProperties.Messages), lContext);
-                                }
-
-                                // done
-                                return eProcessDataResult.processed;
-                            }
-                            elese // fetch
-
-                            ;?; // number followed by what?
-                        }
-
-
-
-
-                        if (!pCursor.GetNZNumber(out _, out var lMSN) || !pCursor.SkipByte(cASCII.SPACE)) return eProcessDataResult.notprocessed;
-
-                        if (pCursor.SkipBytes(kExpunge))
-                        {
-                        }
-
-                        if (!pCursor.SkipBytes(kFetchSpace)) return eProcessDataResult.notprocessed;
-
-                        if (!cResponseDataFetch.Process(pCursor, lMSN, mGetCapability(), out lFetch, lContext))
-                        {
-                            lContext.TraceWarning("likely malformed fetch response");
-                            return eProcessDataResult.notprocessed;
-                        }
+                        cItem lItem = new cItem(this, mCacheSequence++);
+                        mItems.Add(lItem);
+                        lHandles.Add(lItem);
                     }
 
-                    // fetch processing
+                    mUIDNextUnknownCount += lToAdd;
+                    mUnseenUnknownCount += lToAdd;
 
-                    var lFetchedItem = mItems[(int)lFetch.MSN - 1];
+                    mEventSynchroniser.FireMailboxMessageDelivery(mMailboxCacheItem, lHandles, lContext);
+                    ZSetMailboxStatus(lContext);
+                }
 
-                    lFetchedItem.Update(mUIDValidity, lFetch, out var lAttributesSet, out var lKnownMessageFlagsSet);
+                private void ZRecent(int pRecentCount, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ZRecent), pRecentCount);
+                    mRecentCount = pRecentCount;
+                    ZSetMailboxStatus(lContext);
+                }
+
+                private void ZExpunge(int pMSN, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ZExpunge), pMSN);
+                    
+                    int lIndex = pMSN - 1;
+                    var lExpungedItem = mItems[lIndex];
+                    mItems.RemoveAt(lIndex);
+
+                    lExpungedItem.SetExpunged();
+
+                    if (lExpungedItem.Unseen == null) mUnseenUnknownCount--;
+                    else if (lExpungedItem.Unseen == true) mUnseenCount--;
+
+                    if (pMSN > mUIDNextMessageCount)
+                    {
+                        if (lExpungedItem.UID == null) mUIDNextUnknownCount--;
+                    }
+                    else mUIDNextMessageCount--;
+
+                    if (lIndex < mSetUnseenCount) mSetUnseenCount--;
+
+                    mEventSynchroniser.FireMessagePropertiesChanged(lExpungedItem, fMessageProperties.isexpunged, lContext);
+                    ZSetMailboxStatus(lContext);
+                }
+
+                private void ZFetch(cResponseDataFetch pFetch, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ZFetch));
+
+                    var lFetchedItem = mItems[(int)pFetch.MSN - 1];
+
+                    lFetchedItem.Update(mUIDValidity, mNoModSeq, pFetch, out var lAttributesSet, out var lKnownMessageFlagsSet, out var lProperties);
+
+                    bool lSetMailboxStatus = false;
 
                     if ((lAttributesSet & fFetchAttributes.flags) != 0)
                     {
-                        if ((lFetch.Flags.KnownMessageFlags & fKnownMessageFlags.seen) == 0)
+                        if ((pFetch.Flags.KnownMessageFlags & fKnownMessageFlags.seen) == 0)
                         {
                             if (lFetchedItem.Unseen == null)
                             {
                                 lFetchedItem.Unseen = true;
                                 mUnseenUnknownCount--;
                                 mUnseenCount++;
-                                lUnseenUpdated = true;
+                                lSetMailboxStatus = true;
                             }
                             else if (!lFetchedItem.Unseen.Value)
                             {
                                 lFetchedItem.Unseen = true;
                                 mUnseenCount++;
-                                lUnseenUpdated = true;
+                                lSetMailboxStatus = true;
                             }
                         }
                         else
@@ -293,132 +278,57 @@ namespace work.bacome.imapclient
                             {
                                 lFetchedItem.Unseen = false;
                                 mUnseenUnknownCount--;
-                                lUnseenUpdated = true;
+                                lSetMailboxStatus = true;
                             }
                             else if (lFetchedItem.Unseen.Value)
                             {
                                 lFetchedItem.Unseen = false;
                                 mUnseenCount--;
-                                lUnseenUpdated = true;
+                                lSetMailboxStatus = true;
                             }
                         }
                     }
 
-                    if ((lAttributesSet & fFetchAttributes.uid) != 0 && lFetchedItem.UID != null) mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
-
-                    ;?; // only store the modseq if the selectedmailbox has modseq enabled 
-
-
-                    // events
-                    //
-                    if (mHasBeenSetAsSelected)
+                    if ((lAttributesSet & fFetchAttributes.uid) != 0 && lFetchedItem.UID != null)
                     {
-                        if (lFlagsSet != 0)
+                        mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
+
+                        if (pFetch.MSN > mUIDNextMessageCount)
                         {
-                            if ((lFlagsSet & fKnownFlags.answered) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsAnswered), lContext);
-                            if ((lFlagsSet & fKnownFlags.flagged) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsFlagged), lContext);
-                            if ((lFlagsSet & fKnownFlags.deleted) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsDeleted), lContext);
-                            if ((lFlagsSet & fKnownFlags.seen) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsSeen), lContext);
-                            if ((lFlagsSet & fKnownFlags.draft) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsDraft), lContext);
-
-                            if ((lFlagsSet & fKnownFlags.recent) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsRecent), lContext);
-
-                            if ((lFlagsSet & fKnownFlags.mdnsent) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsMDNSent), lContext);
-                            if ((lFlagsSet & fKnownFlags.forwarded) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsForwarded), lContext);
-                            if ((lFlagsSet & fKnownFlags.submitpending) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsSubmitPending), lContext);
-                            if ((lFlagsSet & fKnownFlags.submitted) != 0) mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.IsSubmitted), lContext);
-
-                            ;?; // modseq can change also
-
-                            mEventSynchroniser.MessagePropertyChanged(mMailboxId, lFetchedItem, nameof(cMessage.Flags), lContext);
+                            mUIDNextUnknownCount--;
+                            if (lFetchedItem.UID.UID + 1 > mUIDNext) mUIDNext = lFetchedItem.UID.UID + 1;
+                            lSetMailboxStatus = true;
                         }
-
-                        if (lUnseenUpdated) mEventSynchroniser.MailboxPropertyChanged(mMailboxId, nameof(iMailboxProperties.Unseen), lContext);
                     }
 
-                    // done
-                    return eProcessDataResult.observed;
+                    if (lFetchedItem.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeq.Value;
+
+                    mEventSynchroniser.FireMessagePropertiesChanged(lFetchedItem, lProperties, lContext);
+                    if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
                 }
 
-                public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                private void ZUIDNext(uint pUIDNext, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(ProcessTextCode));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ZUIDNext), pUIDNext);
 
-                    if (pCursor.SkipBytes(kUIDNextSpace))
-                    {
-                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
-                        {
-                            lContext.TraceVerbose("got uidnext: {0}", lNumber);
+                    mUIDNext = pUIDNext;
+                    mUIDNextMessageCount = mItems.Count;
+                    mUIDNextUnknownCount = 0;
 
-                            mUIDNext = lNumber;
-
-                            if (mHasBeenSetAsSelected)
-                            {
-                                mNewUnknownUIDCount = 0;
-                                ZUpdateMailboxStatus(lContext);
-                            }
-
-                            return true;
-                        }
-
-                        ;?; // consider the maintenance of the newunknown and the uidnext
-
-                        lContext.TraceWarning("likely malformed uidnext response");
-                    }
-
-
+                    ZSetMailboxStatus(lContext);
                 }
 
-                public void IncreaseCount(int pNewMessageCount, cTrace.cContext pParentContext)
+                private void ZHighestModSeq(uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
-                    ;?; // put htis back above
-                    var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(IncreaseCount), pNewMessageCount);
-
-                    if (pNewMessageCount < mItems.Count) throw new cUnexpectedServerActionException(0, "count should only go up", lContext);
-
-                    int lToAdd = pNewMessageCount - mItems.Count;
-
-                    cHandleList lHandles;
-                    if (mHasBeenSetAsSelected) lHandles = new cHandleList();
-                    else lHandles = null;
-
-                    for (int i = 0; i < lToAdd; i++)
-                    {
-                        cItem lItem = new cItem(this, mCacheSequence++);
-                        mItems.Add(lItem);
-                        if (mHasBeenSetAsSelected) lHandles.Add(lItem);
-                    }
-
-                    if (mHasBeenSetAsSelected) mNewUnknownUIDCount += lToAdd;
-                    mUnseenUnknownCount += lToAdd;
-
-                    ;?; // if the uidvalidity changes on a large mailbox this will be all the messages and that is probably not what is wanted
-                    if (mHasBeenSetAsSelected)
-                    {
-                        ZUpdateMailboxStatus(lContext);
-                        mEventSynchroniser.MailboxMessageDelivery(mMailboxId, lHandles, lContext);
-                    }
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ZHighestModSeq), pHighestModSeq);
+                    mPendingHighestModSeq = pHighestModSeq;
                 }
 
-
-
-
-
-
-
-
-                private void ZUpdateMailboxStatus(cTrace.cContext pParentContext)
+                private void ZSetMailboxStatus(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMessageCache), nameof(ZUpdateMailboxStatus));
-                    if (!mHasBeenSetAsSelected) throw new InvalidOperationException();
-                    mMailboxCache.SetMailboxStatus(new cMailboxStatus(mItems.Count, mRecentCount, mUIDNext, mNewUnknownUIDCount, mUIDValidity, mUnseenCount, mUnseenUnknownCount, mHighestModSeq), lContext);
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ZSetMailboxStatus));
+                    mMailboxCacheItem.SetMailboxStatus(new cMailboxStatus(mItems.Count, mRecentCount, mUIDNext, mUIDNextUnknownCount, mUIDValidity, mUnseenCount, mUnseenUnknownCount, mHighestModSeq), lContext);
                 }
-
-
-
-
-
-
 
                 public override string ToString() => $"{nameof(cSelectedMailboxMessageCache)}({mMailboxCacheItem},{mUIDValidity})";
 

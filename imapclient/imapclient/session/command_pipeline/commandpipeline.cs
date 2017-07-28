@@ -257,9 +257,7 @@ namespace work.bacome.imapclient
                             {
                                 lItem.SetStarted(lContext); // mark the command as started
 
-                                
-
-                                if (lItem.UIDValidity != null && lItem.UIDValidity != mMailboxCache?.SelectedMailbox?.UIDValidity) // don't run the command if it requires a specific uidvalidity and that isn't the current one
+                                if (lItem.UIDValidity != null && lItem.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity) // don't run the command if it requires a specific uidvalidity and that isn't the current one
                                 {
                                     lItem.SetException(new cUIDValidityChangedException(lContext), lContext);
                                 }
@@ -289,8 +287,8 @@ namespace work.bacome.imapclient
 
                     var lPart = mCurrentItem.CurrentPart;
 
-                    if (lPart.Literal8) mSendBuffer.Add(cASCII.TILDA);
-                    else if (!lPart.Literal) return false;
+                    if (lPart.Type == eCommandPartType.literal8) mSendBuffer.Add(cASCII.TILDA);
+                    else if (lPart.Type != eCommandPartType.literal) return false;
 
                     mSendBuffer.Add(cASCII.LBRACE);
                     mSendBuffer.AddRange(lPart.LiteralLengthBytes);
@@ -468,7 +466,7 @@ namespace work.bacome.imapclient
                     {
                         while (true)
                         {
-                            if (mMailboxCache?.SelectedMailbox != null)
+                            if (mMailboxCache?.SelectedMailboxDetails != null)
                             {
                                 await ZIdlePollCommandAsync(kCheck, lContext).ConfigureAwait(false);
 
@@ -774,7 +772,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZProcessCommandCompletion), pItem);
                     var lResult = ZProcessCommandCompletion(pCursor, pItem.Tag, pItem, lContext);
                     if (lResult == null) return false;
-                    pItem.SetResult(lResult, mMailboxCache?.SelectedMailbox?.UIDValidity, lContext);
+                    pItem.SetResult(lResult, mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity, lContext);
                     return true;
                 }
 

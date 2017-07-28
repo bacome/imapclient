@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
                         if (pCursor.GetFlags(out var lFlags) && pCursor.Position.AtEnd)
                         {
                             lContext.TraceVerbose("got flags: {0}", lFlags);
-                            MailboxCacheItem.SetMessageFlags(new cMessageFlags(lFlags), lContext);
+                            mMailboxCacheItem.SetMessageFlags(new cMessageFlags(lFlags), lContext);
                             return eProcessDataResult.processed;
                         }
 
@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
                         return eProcessDataResult.notprocessed;
                     }
 
-                    return mMessageCache.ProcessData(pCursor, lContext);
+                    return mCache.ProcessData(pCursor, lContext);
                 }
 
                 public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
                         if (pCursor.GetFlags(out var lFlags) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                         {
                             lContext.TraceVerbose("got permanentflags: {0}", lFlags);
-                            MailboxCacheItem.SetPermanentFlags(mSelectedForUpdate, new cMessageFlags(lFlags), lContext);
+                            mMailboxCacheItem.SetPermanentFlags(mSelectedForUpdate, new cMessageFlags(lFlags), lContext);
                             return true;
                         }
 
@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
                         if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                         {
                             lContext.TraceVerbose("got uidvalidity: {0}", lNumber);
-                            mMessageCache = new cSelectedMailboxMessageCache(mMessageCache, lNumber, lContext);
+                            mCache = new cSelectedMailboxMessageCache(mCache, lNumber, lContext);
                             return true;
                         }
 
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
                         if (mAccessReadOnly)
                         {
                             mAccessReadOnly = false;
-                            mEventSynchroniser.FireMailboxPropertiesChanged(MailboxCacheItem, fMailboxProperties.isaccessreadonly, lContext);
+                            mEventSynchroniser.FireMailboxPropertiesChanged(mMailboxCacheItem, fMailboxProperties.isaccessreadonly, lContext);
                         }
 
                         return true;
@@ -87,23 +87,126 @@ namespace work.bacome.imapclient
                         if (!mAccessReadOnly)
                         {
                             mAccessReadOnly = true;
-                            mEventSynchroniser.FireMailboxPropertiesChanged(MailboxCacheItem, fMailboxProperties.isaccessreadonly, lContext);
+                            mEventSynchroniser.FireMailboxPropertiesChanged(mMailboxCacheItem, fMailboxProperties.isaccessreadonly, lContext);
                         }
 
                         return true;
                     }
 
-                    return mMessageCache.ProcessTextCode(pCursor, lContext);
+                    return mCache.ProcessTextCode(pCursor, lContext);
                 }
             }
 
             private partial class cSelectedMailboxMessageCache
             {
+                private static readonly cBytes kExists = new cBytes("EXISTS");
+                private static readonly cBytes kRecent = new cBytes("RECENT");
+                private static readonly cBytes kExpunge = new cBytes("EXPUNGE");
+                private static readonly cBytes kFetchSpace = new cBytes("FETCH ");
                 private static readonly cBytes kUIDNextSpace = new cBytes("UIDNEXT ");
                 private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
 
+                public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ProcessData));
 
+                    if (pCursor.Parsed)
+                    {
+                        cResponseDataFetch lFetch = pCursor.ParsedAs as cResponseDataFetch;
+                        if (lFetch == null) return eProcessDataResult.notprocessed;
+                        ZFetch(lFetch, lContext);
+                        return eProcessDataResult.processed;
+                    }
 
+                    if (pCursor.GetNumber(out _, out var lNumber) && pCursor.SkipByte(cASCII.SPACE))
+                    {
+                        if (pCursor.SkipBytes(kExists))
+                        {
+                            if (pCursor.Position.AtEnd) 
+                            {
+                                lContext.TraceVerbose("got exists: {0}", lNumber);
+                                ZExists((int)lNumber, lContext);
+                                return eProcessDataResult.processed;
+                            }
+
+                            lContext.TraceWarning("likely malformed exists response");
+                            return eProcessDataResult.notprocessed;
+                        }
+
+                        if (pCursor.SkipBytes(kRecent))
+                        {
+                            if (pCursor.Position.AtEnd)
+                            {
+                                lContext.TraceVerbose("got recent: {0}", lNumber);
+                                ZRecent((int)lNumber, lContext);
+                                return eProcessDataResult.processed;
+                            }
+
+                            lContext.TraceWarning("likely malformed recent response");
+                            return eProcessDataResult.notprocessed;
+                        }
+
+                        if (pCursor.SkipBytes(kExpunge))
+                        {
+                            if (pCursor.Position.AtEnd && lNumber > 0)
+                            {
+                                lContext.TraceVerbose("got expunge: {0}", lNumber);
+                                ZExpunge((int)lNumber, lContext);
+                                return eProcessDataResult.processed;
+                            }
+
+                            lContext.TraceWarning("likely malformed expunge response");
+                            return eProcessDataResult.notprocessed;
+                        }
+
+                        if (pCursor.SkipBytes(kFetchSpace))
+                        {
+                            if (lNumber == 0 || !cResponseDataFetch.Process(pCursor, lNumber, out var lFetch, lContext))
+                            {
+                                lContext.TraceWarning("likely malformed fetch response");
+                                return eProcessDataResult.notprocessed;
+                            }
+
+                            ZFetch(lFetch, lContext);
+                            return eProcessDataResult.observed;
+                        }
+                    }
+
+                    return eProcessDataResult.notprocessed;
+                }
+
+                public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ProcessTextCode));
+
+                    if (pCursor.SkipBytes(kUIDNextSpace))
+                    {
+                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                        {
+                            lContext.TraceVerbose("got uidnext: {0}", lNumber);
+                            ZUIDNext(lNumber, lContext);
+                            return true;
+                        }
+
+                        lContext.TraceWarning("likely malformed uidnext response");
+                        return false;
+                    }
+
+                    if (pCursor.SkipBytes(kHighestModSeqSpace))
+                    {
+                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                        {
+                            lContext.TraceVerbose("got highestmodseq: {0}", lNumber);
+                            ZHighestModSeq(lNumber, lContext);
+                            return true;
+                        }
+
+                        lContext.TraceWarning("likely malformed highestmodseq response");
+                        return false;
+                    }
+
+                    return false;
+                }
             }
         }
     }

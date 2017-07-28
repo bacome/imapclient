@@ -56,28 +56,26 @@ namespace work.bacome.imapclient.support
         issubscribed = 1 << 14,
         hassubscribedchildren = 1 << 15,
 
-        status = 1 << 16,
-        messagecount = 1 << 17,
-        recentcount = 1 << 18,
-        uidnext = 1 << 19,
-        uidnextunknowncount = 1 << 20,
-        uidvalidity = 1 << 21,
-        unseencount = 1 << 22,
-        unseenunknowncount = 1 << 23,
-        highestmodseq = 1 << 24,
-        allstatus = status | messagecount | recentcount | uidnext | uidnextunknowncount | unseencount | unseenunknowncount | highestmodseq, // not uidvalidity
+        messagecount = 1 << 16,
+        recentcount = 1 << 17,
+        uidnext = 1 << 18,
+        uidnextunknowncount = 1 << 19,
+        uidvalidity = 1 << 20,
+        unseencount = 1 << 21,
+        unseenunknowncount = 1 << 22,
+        highestmodseq = 1 << 23,
+        allstatus = messagecount | recentcount | uidnext | uidnextunknowncount | unseencount | unseenunknowncount | highestmodseq, // not uidvalidity because it is likely to have some heavy processing attached to it if it is monitored
 
-        selectedproperties = 1 << 25,
-        hasbeenselected = 1 << 26,
-        hasbeenselectedforupdate = 1 << 27,
-        hasbeenselectedreadonly = 1 << 28,
-        messageflags = 1 << 29,
-        forupdatepermanentflags = 1 << 30,
-        readonlypermanentflags = 1 << 31,
+        hasbeenselected = 1 << 24,
+        hasbeenselectedforupdate = 1 << 25,
+        hasbeenselectedreadonly = 1 << 26,
+        messageflags = 1 << 27,
+        forupdatepermanentflags = 1 << 28,
+        readonlypermanentflags = 1 << 29,
 
-        isselected = 1 << 32,
-        isselectedforupdate = 1 << 33,
-        isaccessreadonly = 1 << 34
+        isselected = 1 << 30,
+        isselectedforupdate = 1 << 31,
+        isaccessreadonly = 1 << 32
     }
 
 }

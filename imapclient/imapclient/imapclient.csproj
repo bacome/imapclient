@@ -48,7 +48,6 @@
     <Compile Include="client\fetchcontrol.cs" />
     <Compile Include="client\fetchproperties.cs" />
     <Compile Include="client\fetchbody.cs" />
-    <Compile Include="client\requiredmailboxproperties.cs" />
     <Compile Include="client\tools.cs" />
     <Compile Include="client\uidfetchbody.cs" />
     <Compile Include="client\mailboxes.cs" />

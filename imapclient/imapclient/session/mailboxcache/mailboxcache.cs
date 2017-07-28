@@ -48,7 +48,15 @@ namespace work.bacome.imapclient
                     return lItem;
                 }
 
-                public cSelectedMailbox SelectedMailbox => mSelectedMailbox;
+                public void CommandCompletion(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(CommandCompletion));
+                    if (mSelectedMailbox == null) return;
+                    if (mSelectedMailbox.NoModSeq) return;
+                    mSelectedMailbox.updatehighestmodseq(lContext);
+                }
+
+                public iSelectedMailboxDetails SelectedMailboxDetails => mSelectedMailbox;
 
                 public cSelectedMailbox CheckIsSelectedMailbox(iMailboxHandle pHandle)
                 {
@@ -60,7 +68,7 @@ namespace work.bacome.imapclient
                 public cSelectedMailbox CheckInSelectedMailbox(iMessageHandle pHandle)
                 {
                     if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-                    if (mSelectedMailbox == null || !ReferenceEquals(pHandle.Cache, mSelectedMailbox.MessageCache)) throw new InvalidOperationException();
+                    if (mSelectedMailbox == null || !ReferenceEquals(pHandle.Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException();
                     return mSelectedMailbox;
                 }
 
@@ -68,7 +76,7 @@ namespace work.bacome.imapclient
                 {
                     if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
                     if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
-                    if (mSelectedMailbox == null || !ReferenceEquals(pHandles[0].Cache, mSelectedMailbox.MessageCache)) throw new InvalidOperationException();
+                    if (mSelectedMailbox == null || !ReferenceEquals(pHandles[0].Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException();
                     return mSelectedMailbox;
                 }
 
@@ -78,10 +86,10 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(List), pPattern, pSequence);
 
-                    cMailboxCacheItem lSelectedMailboxCacheItem;
+                    iMailboxHandle lSelectedMailboxHandle;
 
-                    if (pStatus) lSelectedMailboxCacheItem = mSelectedMailbox?.MailboxCacheItem;
-                    else lSelectedMailboxCacheItem = null;
+                    if (pStatus) lSelectedMailboxHandle = mSelectedMailbox?.Handle;
+                    else lSelectedMailboxHandle = null;
 
                     List<iMailboxHandle> lHandles = new List<iMailboxHandle>();
 
@@ -96,7 +104,7 @@ namespace work.bacome.imapclient
                                 if (pStatus && lItem.Status != null && lItem.Status.Sequence < pSequence)
                                 {
                                     lItem.ClearStatus(lContext);
-                                    if (!ReferenceEquals(lSelectedMailboxCacheItem, lItem)) lItem.UpdateMailboxStatus(lContext);
+                                    if (!ReferenceEquals(lSelectedMailboxHandle, lItem)) lItem.UpdateMailboxStatus(lContext);
                                 }
                             }
                         }
@@ -108,10 +116,10 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(LSub), pPattern, pSequence);
 
-                    cMailboxCacheItem lSelectedMailboxCacheItem;
+                    iMailboxHandle lSelectedMailboxHandle;
 
-                    if (pStatus) lSelectedMailboxCacheItem = mSelectedMailbox?.MailboxCacheItem;
-                    else lSelectedMailboxCacheItem = null;
+                    if (pStatus) lSelectedMailboxHandle = mSelectedMailbox?.Handle;
+                    else lSelectedMailboxHandle = null;
 
                     List<iMailboxHandle> lHandles = new List<iMailboxHandle>();
 
@@ -126,7 +134,7 @@ namespace work.bacome.imapclient
                                 if (pStatus && lItem.Status != null && lItem.Status.Sequence < pSequence)
                                 {
                                     lItem.ClearStatus(lContext);
-                                    if (!ReferenceEquals(lSelectedMailboxCacheItem, lItem)) lItem.UpdateMailboxStatus(lContext);
+                                    if (!ReferenceEquals(lSelectedMailboxHandle, lItem)) lItem.UpdateMailboxStatus(lContext);
                                 }
                             }
                         }

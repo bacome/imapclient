@@ -307,7 +307,7 @@ namespace work.bacome.imapclient
             if (pOld == null) return 0;
             if (pOld == pNew) return 0;
 
-            fMessageProperties lProperties = fMessageProperties.messageflags;
+            fMessageProperties lProperties = fMessageProperties.flags;
 
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.answered, fMessageProperties.isanswered);
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.flagged, fMessageProperties.isflagged);

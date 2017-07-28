@@ -120,15 +120,12 @@ namespace work.bacome.imapclient
 
                 if ((pProperties & fMailboxProperties.exists) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.Exists)));
 
-                if ((pProperties & fMailboxProperties.flags) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.Flags)));
                 if ((pProperties & fMailboxProperties.canhavechildren) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.CanHaveChildren)));
                 if ((pProperties & fMailboxProperties.canselect) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.CanSelect)));
                 if ((pProperties & fMailboxProperties.ismarked) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsMarked)));
                 if ((pProperties & fMailboxProperties.nonexistent) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.NonExistent)));
-                if ((pProperties & fMailboxProperties.issubscribed) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsSubscribed)));
                 if ((pProperties & fMailboxProperties.isremote) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsRemote)));
                 if ((pProperties & fMailboxProperties.haschildren) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasChildren)));
-                if ((pProperties & fMailboxProperties.hassubscribedchildren) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasSubscribedChildren)));
                 if ((pProperties & fMailboxProperties.containsall) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsAll)));
                 if ((pProperties & fMailboxProperties.isarchive) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsArchive)));
                 if ((pProperties & fMailboxProperties.containsdrafts) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsDrafts)));
@@ -136,6 +133,9 @@ namespace work.bacome.imapclient
                 if ((pProperties & fMailboxProperties.containsjunk) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsJunk)));
                 if ((pProperties & fMailboxProperties.containssent) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsSent)));
                 if ((pProperties & fMailboxProperties.containstrash) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsTrash)));
+
+                if ((pProperties & fMailboxProperties.issubscribed) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsSubscribed)));
+                if ((pProperties & fMailboxProperties.hassubscribedchildren) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasSubscribedChildren)));
 
                 if ((pProperties & fMailboxProperties.status) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.Status)));
                 if ((pProperties & fMailboxProperties.messagecount) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.MessageCount)));
@@ -155,7 +155,6 @@ namespace work.bacome.imapclient
                 if ((pProperties & fMailboxProperties.forupdatepermanentflags) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ForUpdatePermanentFlags)));
                 if ((pProperties & fMailboxProperties.readonlypermanentflags) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ReadOnlyPermanentFlags)));
 
-                if ((pProperties & fMailboxProperties.selected) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.Selected)));
                 if ((pProperties & fMailboxProperties.isselected) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsSelected)));
                 if ((pProperties & fMailboxProperties.isselectedforupdate) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsSelectedForUpdate)));
                 if ((pProperties & fMailboxProperties.isaccessreadonly) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsAccessReadOnly)));
