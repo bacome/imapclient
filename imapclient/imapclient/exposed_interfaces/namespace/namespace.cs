@@ -20,8 +20,8 @@ namespace work.bacome.imapclient
         public List<cMailbox> Mailboxes(bool pStatus = false) => Client.Mailboxes(NamespaceName, pStatus);
         public Task<List<cMailbox>> MailboxesAsync(bool pStatus = false) => Client.MailboxesAsync(NamespaceName, pStatus);
 
-        public List<cMailbox> SubscribedMailboxes(bool pStatus = false) => Client.SubscribedMailboxes(NamespaceName, pStatus);
-        public Task<List<cMailbox>> SubscribedMailboxesAsync(bool pStatus = false) => Client.SubscribedMailboxesAsync(NamespaceName, pStatus);
+        public List<cMailbox> SubscribedMailboxes() => Client.SubscribedMailboxes(NamespaceName);
+        public Task<List<cMailbox>> SubscribedMailboxesAsync() => Client.SubscribedMailboxesAsync(NamespaceName);
 
         public override string ToString() => $"{nameof(cMailbox)}({NamespaceName})";
     }

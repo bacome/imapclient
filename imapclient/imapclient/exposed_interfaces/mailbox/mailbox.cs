@@ -182,9 +182,6 @@ namespace work.bacome.imapclient
         public List<cMailbox> Mailboxes(bool pStatus) => Client.Mailboxes(MailboxId, pProperties);
         public Task<List<cMailbox>> MailboxesAsync(bool pStatus) => Client.MailboxesAsync(MailboxId, pProperties);
 
-        public List<cMailbox> SubscribedMailboxes(fMailboxProperties pProperties = fMailboxProperties.clientdefault) => Client.Mailboxes(MailboxId, pProperties);
-        public Task<List<cMailbox>> SubscribedMailboxesAsync(fMailboxProperties pProperties = fMailboxProperties.clientdefault) => Client.MailboxesAsync(MailboxId, pProperties);
-
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Messages(MailboxId, pFilter, pSort, pAttributes);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fFetchAttributes pAttributes = fFetchAttributes.clientdefault) => Client.MessagesAsync(MailboxId, pFilter, pSort, pAttributes);
 
