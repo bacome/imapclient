@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using work.bacome.async;
+using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -38,7 +39,7 @@ namespace work.bacome.imapclient
                 mSession.Dispose();
             }
 
-            mSession = new cSession(mEventSynchroniser, mMailboxFlagSets, mIgnoreCapabilities, mIdleConfiguration, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
+            mSession = new cSession(mEventSynchroniser, mMailboxFlagSets, mIdleConfiguration, mIgnoreCapabilities, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
             mAsyncCounter.Increment(lContext);
@@ -157,7 +158,7 @@ namespace work.bacome.imapclient
                 else lIdTask = null;
 
                 Task lNamespaceTask;
-                Task<List<cMailbox>> lListTask;
+                Task<List<iMailboxHandle>> lListTask;
 
                 if (lCurrentCapability.Namespace)
                 {
@@ -177,9 +178,9 @@ namespace work.bacome.imapclient
                 //
                 if (!lCurrentCapability.Namespace)
                 {
-                    var lMailboxes = lListTask.Result;
-                    if (lMailboxes.Count != 1) throw new cUnexpectedServerActionException(0, "list special request failed", lContext);
-                    lSession.SetNamespaces(new cNamespaceList(lMailboxes[0].Handle.MailboxName.Delimiter), null, null, lContext);
+                    var lHandles = lListTask.Result;
+                    if (lHandles.Count != 1) throw new cUnexpectedServerActionException(0, "list special request failed", lContext);
+                    lSession.SetNamespaces(new cNamespaceList(lHandles[0].MailboxName.Delimiter), null, null, lContext);
                 }
 
                 // set the inbox property

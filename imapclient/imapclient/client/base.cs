@@ -195,8 +195,8 @@ namespace work.bacome.imapclient
         }
 
         public void SetNoCredentials() => Credentials = cCredentials.None;
-        public void SetAnonymousCredentials(string pTrace, bool pRequireTLS, bool pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pRequireTLS, pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised);
-        public void SetPlainCredentials(string pUserId, string pPassword, bool pRequireTLS, bool pTryAuthenticateEvenIfAuthPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pRequireTLS, pTryAuthenticateEvenIfAuthPlainIsntAdvertised);
+        public void SetAnonymousCredentials(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTLSRequirement, pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised);
+        public void SetPlainCredentials(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfAuthPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfAuthPlainIsntAdvertised);
 
         // if the caller can handle mailbox referrals
         //
@@ -339,24 +339,6 @@ namespace work.bacome.imapclient
                 if (lDetails == null) return null;
                 return new cMailbox(this, lDetails.Handle);
             }
-        }
-
-        public cMailbox GetMailbox(cMailboxName pMailboxName, fMailboxProperties pProperties)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(GetMailbox), pMailboxName, pProperties);
-
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-
-            var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
-
-            if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
-
-            var lHandle = lSession.GetMailboxHandle(pMailboxName);
-            // get the properties
-            ;?;
-
-            return new cMailbox(this, lHandle);
         }
 
         public void Dispose()

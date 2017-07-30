@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kSelectCommandPart = new cCommandPart("SELECT ");
             private static readonly cCommandPart kSelectCommandPartCondStore = new cCommandPart(" (CONDSTORE)");
 
-            private async Task ZSelectAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
+            public async Task SelectAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SelectAsync), pMC, pHandle);
 
@@ -21,16 +21,17 @@ namespace work.bacome.imapclient
                 if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-                var lMailboxCacheItem = mMailboxCache.CheckHandle(pHandle);
+                mMailboxCache.CheckHandle(pHandle);
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false));
+                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lCommand.Add(kSelectCommandPart, lMailboxCacheItem.CommandPart);
-                    if (_Capability.CondStore) lCommand.Add(kExamineCommandPartCondStore);
+                    lCommand.Add(kSelectCommandPart, pHandle.MailboxNameCommandPart);
+                    if (_Capability.CondStore) lCommand.Add(kSelectCommandPartCondStore);
 
-                    var lHook = new cCommandHookSelect(true, _Capability, lMailboxCacheItem);
+                    var lHook = new cCommandHookSelect(mMailboxCache, _Capability, pHandle, true);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);

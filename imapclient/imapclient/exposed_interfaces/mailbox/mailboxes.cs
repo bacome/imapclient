@@ -6,9 +6,7 @@ namespace work.bacome.imapclient
 {
     public interface iMailboxes
     {
-        List<cMailbox> Mailboxes(bool pStatus);
-        Task<List<cMailbox>> MailboxesAsync(bool pStatus);
-        List<cMailbox> SubscribedMailboxes(bool pStatus);
-        Task<List<cMailbox>> SubscribedMailboxesAsync(bool pStatus);
+        List<cMailbox> Mailboxes(bool pStatus = false);
+        Task<List<cMailbox>> MailboxesAsync(bool pStatus = false);
     }
 }

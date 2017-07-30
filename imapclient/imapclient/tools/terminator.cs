@@ -81,15 +81,15 @@ namespace work.bacome.async
             return lResult;
         }
 
-        public static async Task AwaitAll(cMethodControl pMC, params Task[] pTasks)
+        public static Task AwaitAll(cMethodControl pMC, params Task[] pTasks) => ZAwaitAll(pMC, pTasks);
+        public static Task AwaitAll(cMethodControl pMC, IEnumerable<Task> pTasks) => ZAwaitAll(pMC, pTasks);
+
+        private static async Task ZAwaitAll(cMethodControl pMC, IEnumerable<Task> pTasks)
         {
-            int lTaskCount = 0;
-            for (int i = 0; i < pTasks.Length; i++) if (pTasks[i] != null) lTaskCount++;
+            List<Task> lTasks = new List<Task>();
+            foreach (var lTask in pTasks) if (lTask != null) lTasks.Add(lTask);
 
-            if (lTaskCount == 0) return;
-
-            Task[] lTasks = new Task[lTaskCount];
-            for (int i = 0, j = 0; i < pTasks.Length; i++) if (pTasks[i] != null) lTasks[j++] = pTasks[i];
+            if (lTasks.Count == 0) return;
 
             using (var lTerminator = new cTerminator(pMC))
             {

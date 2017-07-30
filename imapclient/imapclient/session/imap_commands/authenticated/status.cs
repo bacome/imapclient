@@ -20,24 +20,24 @@ namespace work.bacome.imapclient
                 if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-                var lMailboxCacheItem = mMailboxCache.CheckHandle(pHandle);
+                mMailboxCache.CheckHandle(pHandle);
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    var lHandle = mMailboxCache.SelectedMailbox?.Handle;
+                    var lHandle = mMailboxCache.SelectedMailboxDetails?.Handle;
                     if (ReferenceEquals(pHandle, lHandle)) return lHandle.MailboxStatus;
 
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // status is msnunsafe
 
                     lCommand.BeginList(eListBracketing.none);
                     lCommand.Add(kStatusCommandPart);
-                    lCommand.Add(lMailboxCacheItem.CommandPart);
+                    lCommand.Add(pHandle.MailboxNameCommandPart);
                     lCommand.AddStatusAttributes(_Capability);
                     lCommand.EndList();
 
-                    var lHook = new cStatusCommandHook(lMailboxCacheItem);
+                    var lHook = new cStatusCommandHook(pHandle, mMailboxCache.Sequence);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -45,8 +45,11 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("status success");
-                        return lMailboxCacheItem.MailboxStatus;
+                        if (lHook.MailboxStatus == null) throw new cUnexpectedServerActionException(0, "result not received on a successful status", lContext); ?;
+                        return lHook.MailboxStatus;
                     }
+
+                    if (lHook.MailboxStatus != null) lContext.TraceError("result received on a failed status");
 
                     fCapabilities lTryIgnoring;
                     if (_Capability.CondStore) lTryIgnoring = fCapabilities.CondStore;
@@ -59,22 +62,21 @@ namespace work.bacome.imapclient
 
             private class cStatusCommandHook : cCommandHook
             {
-                private readonly cMailboxCacheItem mMailboxCacheItem;
+                private readonly iMailboxHandle mHandle;
                 private readonly int mSequence;
 
-                public cStatusCommandHook(cMailboxCacheItem pMailboxCacheItem)
+                public cStatusCommandHook(iMailboxHandle pHandle, int pSequence)
                 {
-                    mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
-                    mSequence = pMailboxCacheItem.MailboxCache.Sequence;
+                    mHandle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+                    mSequence = pSequence;
                 }
+
+                public cMailboxStatus MailboxStatus { get; private set; } = null;
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cStatusCommandHook), nameof(CommandCompleted), pResult, pException);
-
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok)
-                        if (mMailboxCacheItem.Exists != false && (mMailboxCacheItem.Status == null || mMailboxCacheItem.Status.Sequence < mSequence))
-                            mMailboxCacheItem.ResetExists(lContext);
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mHandle.Exists == true && mHandle.Status != null && mHandle.Status.Sequence >= mSequence) MailboxStatus = mHandle.MailboxStatus;
                 }
             }
         }

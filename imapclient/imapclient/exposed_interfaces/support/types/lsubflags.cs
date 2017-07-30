@@ -4,8 +4,6 @@ namespace work.bacome.imapclient.support
 {
     public class cLSubFlags
     {
-        private static readonly cLSubFlags kNull = new cLSubFlags(-1, 0);
-
         public readonly int Sequence;
         public readonly fLSubFlags Flags;
 
@@ -22,6 +20,7 @@ namespace work.bacome.imapclient.support
 
         public static fMailboxProperties Differences(cLSubFlags pOld, cLSubFlags pNew)
         {
+            ;?;
             cLSubFlags lOld = pOld ?? kNull;
             cLSubFlags lNew = pNew ?? kNull;
 

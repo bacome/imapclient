@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
 
         public static readonly cCredentials None = new cCredentials(eAccountType.none, null);
 
-        public static cCredentials Anonymous(string pTrace, eTLSRequirement pTLSRequirement, bool pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised = false)
+        public static cCredentials Anonymous(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised = false)
         {
             if (string.IsNullOrEmpty(pTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
 
@@ -49,13 +49,13 @@ namespace work.bacome.imapclient
             return lCredentials;
         }
 
-        public static cCredentials Plain(string pUserId, string pPassword, bool pRequireTLS, bool pTryAuthenticateEvenIfAuthPlainIsntAdvertised = false)
+        public static cCredentials Plain(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfAuthPlainIsntAdvertised = false)
         {
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
             if (string.IsNullOrEmpty(pPassword)) throw new ArgumentOutOfRangeException(nameof(pPassword));
 
-            cLogin.TryConstruct(pUserId, pPassword, pRequireTLS, out var lLogin);
-            cSASLPlain.TryConstruct(pUserId, pPassword, pRequireTLS, out var lPlain);
+            cLogin.TryConstruct(pUserId, pPassword, pTLSRequirement, out var lLogin);
+            cSASLPlain.TryConstruct(pUserId, pPassword, pTLSRequirement, out var lPlain);
             if (lLogin == null && lPlain == null) throw new ArgumentOutOfRangeException(); // argument_s_outofrange
 
             var lCredentials = new cCredentials(pUserId, lLogin, pTryAuthenticateEvenIfAuthPlainIsntAdvertised);

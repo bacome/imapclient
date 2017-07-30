@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
                 public string EncodedMailboxName => mEncodedMailboxName;
 
                 public cMailboxName MailboxName { get; set; }
-                public cCommandPart CommandPart { get; set; }
+                public cCommandPart MailboxNameCommandPart { get; set; }
 
                 public bool? Exists => mExists;
 

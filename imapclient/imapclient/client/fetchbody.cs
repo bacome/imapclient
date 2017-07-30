@@ -37,6 +37,7 @@ namespace work.bacome.imapclient
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
             if (pStream == null) throw new ArgumentNullException(nameof(pStream));
+
             if (!pStream.CanWrite) throw new ArgumentOutOfRangeException(nameof(pStream));
 
             mAsyncCounter.Increment(lContext);

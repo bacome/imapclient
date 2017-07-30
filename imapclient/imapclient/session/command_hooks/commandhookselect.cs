@@ -24,11 +24,13 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kReadWriteRBracketSpace = new cBytes("READ-WRITE] ");
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
 
-                private readonly bool mSelectedForUpdate;
+                private readonly cMailboxCache mMailboxCache;
                 private readonly cCapability mCapability;
-                private readonly cMailboxCacheItem mMailboxCacheItem;
+                private readonly iMailboxHandle mHandle;
+                private readonly bool mForUpdate;
 
                 private bool mDeselectDone = false;
+
                 private cMessageFlags mFlags = null;
                 private int mExists = 0;
                 private int mRecent = 0;
@@ -38,11 +40,12 @@ namespace work.bacome.imapclient
                 private uint mHighestModSeq = 0;
                 private bool mAccessReadOnly = false;
 
-                public cCommandHookSelect(bool pSelectedForUpdate, cCapability pCapability, cMailboxCacheItem pMailboxCacheItem)
+                public cCommandHookSelect(cMailboxCache pMailboxCache, cCapability pCapability, iMailboxHandle pHandle, bool pForUpdate)
                 {
-                    mSelectedForUpdate = pSelectedForUpdate;
+                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
-                    mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
+                    mHandle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+                    mForUpdate = pForUpdate;
                 }
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
@@ -52,7 +55,7 @@ namespace work.bacome.imapclient
                     if (!mCapability.QResync)
                     {
                         mDeselectDone = true;
-                        mMailboxCacheItem.MailboxCache.Deselect(lContext);
+                        mMailboxCache.Deselect(lContext);
                     }
                 }
 
@@ -117,7 +120,7 @@ namespace work.bacome.imapclient
                         {
                             lContext.TraceVerbose("got closed");
                             mDeselectDone = true;
-                            mMailboxCacheItem.MailboxCache.Deselect(lContext);
+                            mMailboxCache.Deselect(lContext);
                             return true;
                         }
 
@@ -218,9 +221,7 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandCompleted), pResult);
-
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok)
-                        mMailboxCacheItem.Select(mSelectedForUpdate, mAccessReadOnly, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mMailboxCache.Select(mHandle, mForUpdate, mAccessReadOnly, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
                 }
             }
         }

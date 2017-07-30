@@ -13,25 +13,25 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kExamineCommandPart = new cCommandPart("EXAMINE ");
             private static readonly cCommandPart kExamineCommandPartCondStore = new cCommandPart(" (CONDSTORE)");
 
-            private async Task ZExamineAsync(cMethodControl pMC, cMailboxId pMailboxId, cTrace.cContext pParentContext)
+            public async Task ExamineAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ExamineAsync), pMC, pMailboxId);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ExamineAsync), pMC, pHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
+                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-                if (pMailboxId.AccountId != _ConnectedAccountId) throw new cAccountNotConnectedException(lContext);
-
-                if (!mStringFactory.TryAsMailbox(pMailboxId.MailboxName, out var lMailboxCommandPart, out _)) throw new ArgumentOutOfRangeException(nameof(pMailboxId));
+                mMailboxCache.CheckHandle(pHandle);
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false));
+                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lCommand.Add(kExamineCommandPart, lMailboxCommandPart);
+                    lCommand.Add(kExamineCommandPart, pHandle.MailboxNameCommandPart);
                     if (_Capability.CondStore) lCommand.Add(kExamineCommandPartCondStore);
 
-                    var lHook = new cCommandHookSelect(_SelectedMailbox != null, _Capability, new cSelectedMailbox(pMailboxId, false, mEventSynchroniser, ZGetCapability), ZSetSelectedMailbox);
+                    var lHook = new cCommandHookSelect(mMailboxCache, _Capability, pHandle, false);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);

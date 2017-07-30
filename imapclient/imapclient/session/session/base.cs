@@ -232,7 +232,7 @@ namespace work.bacome.imapclient
 
             public cMailbox Inbox { get; set; } = null;
 
-            public iSelectedMailboxDetails SelectedMailboxDetails => mMailboxCache?.selectedmailbox;
+            public iSelectedMailboxDetails SelectedMailboxDetails => mMailboxCache?.SelectedMailboxDetails;
 
             public iMailboxHandle GetMailboxHandle(cMailboxName pMailboxName) => mMailboxCache.GetHandle(pMailboxName);
 

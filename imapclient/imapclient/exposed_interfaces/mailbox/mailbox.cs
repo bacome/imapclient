@@ -22,6 +22,7 @@ namespace work.bacome.imapclient
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+            if (pHandle.MailboxName == null) throw new cInvalidHandleException();
         }
 
         // events
@@ -88,8 +89,17 @@ namespace work.bacome.imapclient
         {
             get
             {
-                Client.MailboxHandleUpdate(MailboxId, Handle, fMailboxProperties.exists, false);
+                if (Handle.Exists == null) Client.List(Handle);
                 return Handle.Exists.Value;
+            }
+        }
+
+        public bool CanHaveChildren
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.List(Handle);
+                return Handle.ListFlags.CanHaveChildren;
             }
         }
 
@@ -112,6 +122,7 @@ namespace work.bacome.imapclient
         public bool ContainsSent => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsSent;
         public bool ContainsTrash => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsTrash;
 
+        // status could be null (for unselectable mailbox) => these may throw
         public int MessageCount => Client.Status(MailboxId).MessageCount;
         public int RecentCount => Client.Status(MailboxId).RecentCount;
         public uint UIDNext => Client.Status(MailboxId).UIDNext;
@@ -120,8 +131,6 @@ namespace work.bacome.imapclient
         public int UnseenCount => Client.Status(MailboxId).UnseenCount;
         public int UnseenUnknownCount => Client.Status(MailboxId).UnseenUnknownCount;
         public ulong HighestModSeq => Client.Status(MailboxId).HighestModSeq;
-
-        public Task<cMailboxStatus> GetStatusAsync() => Client.StatusAsync(MailboxId, pAgeMax); ;?;
 
         public cMailboxSelectedProperties SelectedProperties => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected;
         public bool HasBeenSelected => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.HasBeenSelected;
@@ -179,8 +188,8 @@ namespace work.bacome.imapclient
         public void Update(bool pStatus) => Client.MailboxHandleUpdate(MailboxId, Handle, pProperties, true);
         public Task UpdateAsync(bool pStatus) => Client.MailboxHandleUpdateAsync(MailboxId, Handle, pProperties, true);
 
-        public List<cMailbox> Mailboxes(bool pStatus) => Client.Mailboxes(MailboxId, pProperties);
-        public Task<List<cMailbox>> MailboxesAsync(bool pStatus) => Client.MailboxesAsync(MailboxId, pProperties);
+        public List<cMailbox> Mailboxes(bool pStatus = false) => Client.Mailboxes(MailboxId, pProperties);
+        public Task<List<cMailbox>> MailboxesAsync(bool pStatus = false) => Client.MailboxesAsync(MailboxId, pProperties);
 
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Messages(MailboxId, pFilter, pSort, pAttributes);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fFetchAttributes pAttributes = fFetchAttributes.clientdefault) => Client.MessagesAsync(MailboxId, pFilter, pSort, pAttributes);

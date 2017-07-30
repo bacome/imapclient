@@ -40,12 +40,11 @@ namespace work.bacome.imapclient
 
                 public iMailboxHandle GetHandle(cMailboxName pMailboxName) => ZItem(pMailboxName);
 
-                public cMailboxCacheItem CheckHandle(iMailboxHandle pHandle)
+                public void CheckHandle(iMailboxHandle pHandle)
                 {
                     if (!ReferenceEquals(pHandle.Cache, this)) throw new ArgumentOutOfRangeException(nameof(pHandle));
                     if (!mDictionary.TryGetValue(pHandle.EncodedMailboxName, out var lItem)) throw new ArgumentOutOfRangeException(nameof(pHandle));
                     if (!ReferenceEquals(lItem, pHandle)) throw new ArgumentOutOfRangeException(nameof(pHandle));
-                    return lItem;
                 }
 
                 public void CommandCompletion(cTrace.cContext pParentContext)
@@ -58,26 +57,23 @@ namespace work.bacome.imapclient
 
                 public iSelectedMailboxDetails SelectedMailboxDetails => mSelectedMailbox;
 
-                public cSelectedMailbox CheckIsSelectedMailbox(iMailboxHandle pHandle)
+                public void CheckIsSelectedMailbox(iMailboxHandle pHandle)
                 {
                     if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                     if (mSelectedMailbox == null || !ReferenceEquals(pHandle, mSelectedMailbox.Handle)) throw new InvalidOperationException();
-                    return mSelectedMailbox;
                 }
 
-                public cSelectedMailbox CheckInSelectedMailbox(iMessageHandle pHandle)
+                public void CheckInSelectedMailbox(iMessageHandle pHandle)
                 {
                     if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                     if (mSelectedMailbox == null || !ReferenceEquals(pHandle.Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException();
-                    return mSelectedMailbox;
                 }
 
-                public cSelectedMailbox CheckInSelectedMailbox(cMessageHandleList pHandles)
+                public void CheckInSelectedMailbox(cMessageHandleList pHandles)
                 {
                     if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
                     if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
                     if (mSelectedMailbox == null || !ReferenceEquals(pHandles[0].Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException();
-                    return mSelectedMailbox;
                 }
 
                 public int Sequence => mSequence;
@@ -150,36 +146,44 @@ namespace work.bacome.imapclient
 
                     var lHandle = mSelectedMailbox.Handle;
 
+                    mSelectedMailbox = null;
+
                     fMailboxProperties lProperties = fMailboxProperties.isselected;
                     if (mSelectedMailbox.SelectedForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
                     if (mSelectedMailbox.AccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
 
-                    mSelectedMailbox = null;
-
                     mEventSynchroniser.FireMailboxPropertiesChanged(lHandle, lProperties, lContext);
+
                     mSetState(eState.notselected, lContext);
                 }
 
-                public void Select(cMailboxCacheItem pItem, bool pSelectedForUpdate, bool pAccessReadOnly, cMessageFlags pFlags, cMessageFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public void Select(iMailboxHandle pHandle, bool pForUpdate, bool pAccessReadOnly, cMessageFlags pFlags, cMessageFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pItem, pSelectedForUpdate, pAccessReadOnly, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pHandle, pForUpdate, pAccessReadOnly, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
 
                     if (mSelectedMailbox != null) throw new InvalidOperationException();
 
-                    if (pItem == null) throw new ArgumentNullException(nameof(pItem));
+                    if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                     if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
-                    pItem.SetSelectedProperties(pFlags, pSelectedForUpdate, pPermanentFlags, lContext);
+                    if (!ReferenceEquals(pHandle.Cache, this)) throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    if (!mDictionary.TryGetValue(pHandle.EncodedMailboxName, out var lItem)) throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    if (!ReferenceEquals(lItem, pHandle)) throw new ArgumentOutOfRangeException(nameof(pHandle));
 
-                    mSelectedMailbox = new cSelectedMailbox(mEventSynchroniser, pItem, pSelectedForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, lContext);
+                    if (pExists < 0) throw new ArgumentOutOfRangeException(nameof(pExists));
+                    if (pRecent < 0) throw new ArgumentOutOfRangeException(nameof(pRecent));
 
-                    mSetState(eState.selected, lContext);
+                    mSelectedMailbox = new cSelectedMailbox(mEventSynchroniser, lItem, pForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, lContext);
+
+                    lItem.SetSelectedProperties(pFlags, pForUpdate, pPermanentFlags, lContext);
 
                     fMailboxProperties lProperties = fMailboxProperties.isselected;
-                    if (pSelectedForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
+                    if (pForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
                     if (pAccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
 
-                    mEventSynchroniser.FireMailboxPropertiesChanged(pItem, lProperties, lContext);
+                    mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
+
+                    mSetState(eState.selected, lContext);
                 }
 
                 private cMailboxCacheItem ZItem(string pEncodedMailboxName) => mDictionary.GetOrAdd(pEncodedMailboxName, new cMailboxCacheItem(mEventSynchroniser, this, pEncodedMailboxName));
@@ -190,7 +194,7 @@ namespace work.bacome.imapclient
                     if (!mCommandPartFactory.TryAsMailbox(pMailboxName, out var lCommandPart, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
                     var lItem = mDictionary.GetOrAdd(lEncodedMailboxName, new cMailboxCacheItem(mEventSynchroniser, this, lEncodedMailboxName));
                     lItem.MailboxName = pMailboxName;
-                    lItem.CommandPart = lCommandPart;
+                    lItem.MailboxNameCommandPart = lCommandPart;
                     return lItem;
                 }
             }

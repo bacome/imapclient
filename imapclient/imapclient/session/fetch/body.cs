@@ -16,9 +16,10 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pMC, pHandle, pSection, pDecoding);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                var lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pHandle); // to be repeated inside the select lock
 
-                if (pHandle.UID == null) return ZFetchBodyAsync(pMC, lSelectedMailbox.Handle, pHandle.UID, null, pSection, pDecoding, pStream, lContext);
+                mMailboxCache.CheckInSelectedMailbox(pHandle); // to be repeated inside the select lock
+
+                if (pHandle.UID == null) return ZFetchBodyAsync(pMC, pHandle.Cache.MailboxHandle, pHandle.UID, null, pSection, pDecoding, pStream, lContext);
                 else return ZFetchBodyAsync(pMC, null, null, pHandle, pSection, pDecoding, pStream, lContext);
             }
 
@@ -27,6 +28,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBodyAsync), pMC, pHandle, pUID, pSection, pDecoding);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+
                 mMailboxCache.CheckIsSelectedMailbox(pHandle); // to be repeated inside the select lock
 
                 return ZFetchBodyAsync(pMC, pHandle, pUID, null, pSection, pDecoding, pStream, lContext);
@@ -36,11 +38,8 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
 
-                // capture the capability
-                var lCapability = _Capability;
-
                 // work out if binary can/should be used or not
-                bool lBinary = lCapability.Binary && pSection.TextPart == eSectionPart.all && pDecoding != eDecodingRequired.none;
+                bool lBinary = _Capability.Binary && pSection.TextPart == eSectionPart.all && pDecoding != eDecodingRequired.none;
 
                 cDecoder lDecoder;
 
@@ -58,8 +57,8 @@ namespace work.bacome.imapclient
                     Stopwatch lStopwatch = Stopwatch.StartNew();
 
                     cBody lBody;
-                    if (pUID == null) lBody = await ZFetchBodyAsync(pMC, pMessageHandle, lCapability, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
-                    else lBody = await ZUIDFetchBodyAsync(pMC, pMailboxHandle, pUID, lCapability, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
+                    if (pUID == null) lBody = await ZFetchBodyAsync(pMC, pMessageHandle, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
+                    else lBody = await ZUIDFetchBodyAsync(pMC, pMailboxHandle, pUID, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
 
                     lStopwatch.Stop();
 
