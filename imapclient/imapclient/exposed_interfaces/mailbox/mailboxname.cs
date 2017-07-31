@@ -33,8 +33,7 @@ namespace work.bacome.imapclient
                 return;
             }
                 
-            cCommandPart.cFactory lFactory = new cCommandPart.cFactory();
-            if (!lFactory.TryAsListMailbox(pName, pDelimiter, out _)) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cCommandPartFactory.Validation.TryAsListMailbox(pName, pDelimiter, out _)) throw new ArgumentOutOfRangeException(nameof(pName));
 
             Name = pName;
             Delimiter = pDelimiter;
@@ -51,8 +50,7 @@ namespace work.bacome.imapclient
                 return true;
             }
 
-            cCommandPart.cFactory lFactory = new cCommandPart.cFactory();
-            if (!lFactory.TryAsListMailbox(pName, pDelimiter, out _)) { rResult = null; return false; }
+            if (!cCommandPartFactory.Validation.TryAsListMailbox(pName, pDelimiter, out _)) { rResult = null; return false; }
 
             rResult = new cMailboxName(pName, pDelimiter, true);
             return true;

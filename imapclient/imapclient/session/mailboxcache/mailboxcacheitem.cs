@@ -58,9 +58,9 @@ namespace work.bacome.imapclient
                 public cListFlags ListFlags => mListFlags;
                 public cLSubFlags LSubFlags => mLSubFlags;
 
-                public void SetFlags(cListFlags pListFlags, cLSubFlags pLSubFlags, cTrace.cContext pParentContext)
+                public void SetListFlags(cListFlags pListFlags, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetFlags), pListFlags, pLSubFlags);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetListFlags), pListFlags);
 
                     if (pListFlags == null) throw new ArgumentNullException(nameof(pListFlags));
 
@@ -68,20 +68,17 @@ namespace work.bacome.imapclient
 
                     mListFlags = pListFlags;
 
-                    if (pLSubFlags != null) // must be list-extended
-                    {
-                        lDifferences |= cLSubFlags.Differences(mLSubFlags, pLSubFlags);
-                        mLSubFlags = pLSubFlags;
-                    }
-
                     mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 
-                public void SetFlags(cLSubFlags pLSubFlags, cTrace.cContext pParentContext)
+                public void SetLSubFlags(cLSubFlags pLSubFlags, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetFlags), pLSubFlags);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetLSubFlags), pLSubFlags);
+
+                    if (pLSubFlags == null) throw new ArgumentNullException(nameof(pLSubFlags));
 
                     fMailboxProperties lDifferences = cLSubFlags.Differences(mLSubFlags, pLSubFlags);
+
                     mLSubFlags = pLSubFlags;
 
                     mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);

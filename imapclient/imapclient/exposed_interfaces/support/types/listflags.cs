@@ -58,7 +58,7 @@ namespace work.bacome.imapclient.support
             if (pOld == null) return 0;
             if (pOld.Flags == pNew.Flags) return 0;
 
-            fMailboxProperties lProperties = fMailboxProperties.listflags;
+            fMailboxProperties lProperties = 0;
 
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fListFlags.noinferiors, fMailboxProperties.canhavechildren);
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fListFlags.noselect, fMailboxProperties.canselect);

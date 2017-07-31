@@ -21,11 +21,16 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kListExtendedCommandPartSpecialUse = new cCommandPart("SPECIAL-USE");
             private static readonly cCommandPart kListExtendedCommandPartStatus = new cCommandPart("STATUS");
 
-            public async Task<List<iMailboxHandle>> ListExtendedAsync(cMethodControl pMC, bool pSubscribedOnly, bool pRemote, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pStatus, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListExtendedAsync), pMC, pSubscribedOnly, pRemote, pListMailbox, pDelimiter, pPattern, pStatus);
+            public enum eListExtendedSelect { exists, subscribed, subscribedrecursive }
+            // existing = mailboxes that exist
+            // subscribed = subscribed mailboxes (some of which may not exist)
+            // subscribedrecursive = subscribed + mailboxes that aren't subscribed but do have subscribed child mailboxes
 
-                // caller needs to determine if status is supported
+            public async Task<List<iMailboxHandle>> ListExtendedAsync(cMethodControl pMC, eListExtendedSelect pSelect, bool pRemote, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pStatus, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListExtendedAsync), pMC, pSelect, pRemote, pListMailbox, pDelimiter, pPattern, pStatus);
+
+                // caller needs to determine if list status is supported
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
@@ -46,7 +51,8 @@ namespace work.bacome.imapclient
 
                     lCommand.BeginList(eListBracketing.ifany);
 
-                    if (pSubscribedOnly)
+                    if (pSelect == eListExtendedSelect.subscribed) lCommand.Add(kListExtendedCommandPartSubscribed);
+                    else if (pSelect == eListExtendedSelect.subscribedrecursive)
                     {
                         lCommand.Add(kListExtendedCommandPartSubscribed);
                         lCommand.Add(kListExtendedCommandPartRecursiveMatch);
@@ -76,7 +82,7 @@ namespace work.bacome.imapclient
                     lCommand.EndList();
                     lCommand.EndList();
 
-                    var lHook = new cListExtendedCommandHook(mMailboxCache, pSubscribedOnly, pPattern, pStatus);
+                    var lHook = new cListExtendedCommandHook(mMailboxCache, pSelect, pPattern, pStatus);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -100,26 +106,92 @@ namespace work.bacome.imapclient
 
             private class cListExtendedCommandHook : cCommandHook
             {
+                private static readonly cBytes kListSpace = new cBytes("LIST ");
+
                 private readonly cMailboxCache mCache;
-                private readonly bool mSubscribedOnly;
+                private readonly bool mUTF8Enabled;
+                private readonly eListExtendedSelect mSelect;
                 private readonly cMailboxNamePattern mPattern;
                 private readonly bool mStatus;
                 private readonly int mSequence;
 
-                public cListExtendedCommandHook(cMailboxCache pCache, bool pSubscribedOnly, cMailboxNamePattern pPattern, bool pStatus)
+                private readonly Dictionary<cMailboxName, iMailboxHandle> mHandles = new Dictionary<cMailboxName, iMailboxHandle>();
+
+                public cListExtendedCommandHook(cMailboxCache pCache, bool pUTF8Enabled, eListExtendedSelect pSelect, cMailboxNamePattern pPattern, bool pStatus)
                 {
                     mCache = pCache;
-                    mSubscribedOnly = pSubscribedOnly;
+                    mUTF8Enabled = pUTF8Enabled;
+                    mSelect = pSelect;
                     mPattern = pPattern;
                     mStatus = pStatus;
                     mSequence = pCache.Sequence;
                 }
 
-                public List<iMailboxHandle> Handles { get; private set; } = null;
+                public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessData));
+
+                    cResponseDataList lList;
+
+                    if (pCursor.Parsed)
+                    {
+                        lList = pCursor.ParsedAs as cResponseDataList;
+                        if (lList == null) return eProcessDataResult.notprocessed;
+                    }
+                    else if (!pCursor.SkipBytes(kListSpace) || !cResponseDataList.Process(pCursor, mUTF8Enabled, out lList, lContext)) return eProcessDataResult.notprocessed;
+
+                    if (mHandles.ContainsKey(lList.MailboxName)) return eProcessDataResult.notprocessed;
+
+                    if (!mPattern.Matches(lList.MailboxName.Name)) return eProcessDataResult.notprocessed;
+
+                    if (mSelect == eListExtendedSelect.exists)
+                    {
+                        if (lList.Flags.Has(@"\NonExistent")) return eProcessDataResult.notprocessed;
+                        ZAdd();
+                        return eProcessDataResult.observed;
+                    }
+
+                    if (mSelect == eListExtendedSelect.subscribed)
+                    {
+                        if (lList.Flags.Has(@"\Subscribed"))
+                        {
+                            ZAdd();
+                            return eProcessDataResult.observed;
+                        }
+
+                        return eProcessDataResult.notprocessed;
+                    }
+
+                    if (mSelect == eListExtendedSelect.subscribedrecursive)
+                    {
+                        if (lList.Flags.Has(@"\Subscribed"))
+                        {
+                            ZAdd();
+                            return eProcessDataResult.observed;
+                        }
+
+                        if (lList.ExtendedItems == null) return eProcessDataResult.notprocessed;
+
+                        foreach (var lItem in lList.ExtendedItems)
+                        {
+                            if (lItem.Tag.Equals("childinfo", StringComparison.InvariantCultureIgnoreCase) && lItem.Value.Contains("subscribed", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                ZAdd();
+                                return eProcessDataResult.observed;
+                            }
+                        }
+
+                        return eProcessDataResult.notprocessed;
+                    }
+
+                    return eProcessDataResult.notprocessed;
+                }
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cListExtendedCommandHook), nameof(CommandCompleted), pResult, pException);
+
+                    ;?; // the tidy up still needs to be done ...
 
                     if (pResult != null && pResult.ResultType == eCommandResultType.ok)
                     {

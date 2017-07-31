@@ -24,6 +24,9 @@ namespace work.bacome.imapclient
 
                 public List<iMailboxHandle> Handles { get; private set; } = null;
 
+
+                ;?; // this will need more - must capture the list on the way through to get the subscribed children if one level descent 
+
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookLSub), nameof(CommandCompleted), pResult, pException);

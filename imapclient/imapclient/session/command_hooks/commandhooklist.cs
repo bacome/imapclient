@@ -28,6 +28,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookList), nameof(CommandCompleted), pResult, pException);
                     if (pResult != null && pResult.ResultType == eCommandResultType.ok) Handles = mCache.List(mPattern, false, mSequence, lContext);
+                    ;?; // this will need to be revised
                 }
             }
         }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -36,49 +35,39 @@ namespace work.bacome.imapclient
                         pCursor.Position = lBookmark;
                     }
 
-                    if (pCursor.SkipBytes(kListSpace))
+                    if (pCursor.Parsed)
                     {
-                        if (!pCursor.GetFlags(out var lFlags) ||
-                            !pCursor.SkipByte(cASCII.SPACE) ||
-                            !pCursor.GetMailboxDelimiter(out var lDelimiter) ||
-                            !pCursor.SkipByte(cASCII.SPACE) ||
-                            !pCursor.GetAString(out IList<byte> lEncodedMailboxName) ||
-                            !ZProcessDataListExtendedItems(pCursor, out var lExtendedItems) ||
-                            !pCursor.Position.AtEnd ||
-                            !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mCommandPartFactory.UTF8Enabled, out var lMailboxName))
+                        cResponseDataList lList = pCursor.ParsedAs as cResponseDataList;
+
+                        if (lList != null)
                         {
-                            lContext.TraceWarning("likely malformed list response");
-                            return eProcessDataResult.notprocessed;
+                            ZProcessList(lList, lContext);
+                            return eProcessDataResult.observed;
                         }
 
-                        ZProcessDataListMailboxFlags(lFlags, lExtendedItems, out var lListFlags, out var lLSubFlags);
+                        cResponseDataLSub lLSub = pCursor.ParsedAs as cResponseDataLSub;
 
-                        var lItem = ZItem(lMailboxName);
-                        lItem.SetFlags(lListFlags, lLSubFlags, lContext);
+                        if (lLSub != null)
+                        { 
+                            ZProcessLSub(lLSub, lContext);
+                            return eProcessDataResult.observed;
+                        }
 
-                        return eProcessDataResult.processed;
+                        return eProcessDataResult.notprocessed;
+                    }
+
+                    if (pCursor.SkipBytes(kListSpace))
+                    {
+                        if (!cResponseDataList.Process(pCursor, mCommandPartFactory.UTF8Enabled, out var lList, lContext)) return eProcessDataResult.notprocessed;
+                        ZProcessList(lList, lContext);
+                        return eProcessDataResult.observed;
                     }
 
                     if (pCursor.SkipBytes(kLSubSpace))
                     {
-                        if (!pCursor.GetFlags(out var lFlags) ||
-                            !pCursor.SkipByte(cASCII.SPACE) ||
-                            !pCursor.GetMailboxDelimiter(out var lDelimiter) ||
-                            !pCursor.SkipByte(cASCII.SPACE) ||
-                            !pCursor.GetAString(out IList<byte> lEncodedMailboxName) ||
-                            !pCursor.Position.AtEnd ||
-                            !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mCommandPartFactory.UTF8Enabled, out var lMailboxName))
-                        {
-                            lContext.TraceWarning("likely malformed lsub response");
-                            return eProcessDataResult.notprocessed;
-                        }
-
-                        ZProcessDataLSubMailboxFlags(lFlags, out var lLSubFlags);
-
-                        var lItem = ZItem(lMailboxName);
-                        lItem.SetFlags(lLSubFlags, lContext);
-
-                        return eProcessDataResult.processed;
+                        if (!cResponseDataLSub.Process(pCursor, mCommandPartFactory.UTF8Enabled, out var lLSub, lContext)) return eProcessDataResult.notprocessed;
+                        ZProcessLSub(lLSub, lContext);
+                        return eProcessDataResult.observed;
                     }
 
                     if (pCursor.SkipBytes(kStatusSpace))
@@ -100,125 +89,72 @@ namespace work.bacome.imapclient
                         return eProcessDataResult.processed;
                     }
 
-                    ;?;
-
-
-
-
-
-
-
                     return eProcessDataResult.notprocessed;
                 }
 
                 public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ProcessTextCode));
-
                     if (mSelectedMailbox != null) return mSelectedMailbox.ProcessTextCode(pCursor, lContext);
                     return false;
-
-                    {
-
-                        ;?;
-                        var lBookmark = pCursor.Position;
-                        var lResult = mSelectedMailbox.ProcessData(pCursor, lContext);
-                        if (lResult != eProcessDataResult.notprocessed) return lResult;
-                        pCursor.Position = lBookmark;
-                    }
-
-                    return false;
                 }
 
-                private bool ZProcessDataListExtendedItems(cBytesCursor pCursor, out cExtendedItems rItems)
+                private void ZProcessList(cResponseDataList pList, cTrace.cContext pParentContext)
                 {
-                    rItems = new cExtendedItems();
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessList));
 
-                    if (!pCursor.SkipByte(cASCII.SPACE)) return true;
-                    if (!pCursor.SkipByte(cASCII.LPAREN)) return false;
+                    var lItem = ZItem(pList.MailboxName);
 
-                    while (true)
-                    {
-                        if (!pCursor.GetAString(out string lTag)) break;
-                        if (!pCursor.SkipByte(cASCII.SPACE)) return false;
-                        if (!pCursor.ProcessExtendedValue(out var lValue)) return false;
-                        rItems.Add(new cExtendedItem(lTag, lValue));
-                        if (!pCursor.SkipByte(cASCII.SPACE)) break;
-                    }
+                    // list
 
-                    if (!pCursor.SkipByte(cASCII.RPAREN)) return false;
+                    fListFlags lFlags = 0;
 
-                    return true;
-                }
-
-                private void ZProcessDataListMailboxFlags(cFlags pFlags, cExtendedItems pExtendedItems, out cListFlags rListFlags, out cLSubFlags rLSubFlags)
-                {
-                    fListFlags lListFlags = 0;
-                    fLSubFlags lLSubFlags = 0;
-
-                    if (pFlags.Has(@"\Noinferiors")) lListFlags |= fListFlags.noinferiors | fListFlags.hasnochildren;
-                    if (pFlags.Has(@"\Noselect")) lListFlags |= fListFlags.noselect;
-                    if (pFlags.Has(@"\Marked")) lListFlags |= fListFlags.marked;
-                    if (pFlags.Has(@"\Unmarked")) lListFlags |= fListFlags.unmarked;
+                    if (pList.Flags.Has(@"\Noinferiors")) lFlags |= fListFlags.noinferiors | fListFlags.hasnochildren;
+                    if (pList.Flags.Has(@"\Noselect")) lFlags |= fListFlags.noselect;
+                    if (pList.Flags.Has(@"\Marked")) lFlags |= fListFlags.marked;
+                    if (pList.Flags.Has(@"\Unmarked")) lFlags |= fListFlags.unmarked;
 
                     if (mCapability.ListExtended)
                     {
-                        if (pFlags.Has(@"\NonExistent")) lListFlags |= fListFlags.noselect | fListFlags.nonexistent;
-                        if (pFlags.Has(@"\Subscribed")) lLSubFlags |= fLSubFlags.subscribed;
-                        if (pFlags.Has(@"\Remote")) lListFlags |= fListFlags.remote;
+                        if (pList.Flags.Has(@"\NonExistent")) lFlags |= fListFlags.noselect | fListFlags.nonexistent;
+                        if (pList.Flags.Has(@"\Remote")) lFlags |= fListFlags.remote;
                     }
 
                     if (mCapability.Children || mCapability.ListExtended)
                     {
-                        if (pFlags.Has(@"\HasChildren")) lListFlags |= fListFlags.haschildren;
-                        if (pFlags.Has(@"\HasNoChildren")) lListFlags |= fListFlags.hasnochildren;
-                    }
-
-                    if (mCapability.ListExtended && pExtendedItems != null)
-                    {
-                        foreach (var lItem in pExtendedItems)
-                        {
-                            if (lItem.Tag.Equals("childinfo", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                lListFlags |= fListFlags.haschildren;
-
-                                if (lItem.Value.Contains("subscribed", StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    lLSubFlags |= fLSubFlags.hassubscribedchildren;
-                                    break;
-                                }
-                            }
-                        }
+                        if (pList.Flags.Has(@"\HasChildren")) lFlags |= fListFlags.haschildren;
+                        if (pList.Flags.Has(@"\HasNoChildren")) lFlags |= fListFlags.hasnochildren;
                     }
 
                     // the special-use capability is to do with support by list-extended, not to do with the return of the attributes
-                    if (pFlags.Has(@"\All")) lListFlags |= fListFlags.all;
-                    if (pFlags.Has(@"\Archive")) lListFlags |= fListFlags.archive;
-                    if (pFlags.Has(@"\Drafts")) lListFlags |= fListFlags.drafts;
-                    if (pFlags.Has(@"\Flagged")) lListFlags |= fListFlags.flagged;
-                    if (pFlags.Has(@"\Junk")) lListFlags |= fListFlags.junk;
-                    if (pFlags.Has(@"\Sent")) lListFlags |= fListFlags.sent;
-                    if (pFlags.Has(@"\Trash")) lListFlags |= fListFlags.trash;
+                    if (pList.Flags.Has(@"\All")) lFlags |= fListFlags.all;
+                    if (pList.Flags.Has(@"\Archive")) lFlags |= fListFlags.archive;
+                    if (pList.Flags.Has(@"\Drafts")) lFlags |= fListFlags.drafts;
+                    if (pList.Flags.Has(@"\Flagged")) lFlags |= fListFlags.flagged;
+                    if (pList.Flags.Has(@"\Junk")) lFlags |= fListFlags.junk;
+                    if (pList.Flags.Has(@"\Sent")) lFlags |= fListFlags.sent;
+                    if (pList.Flags.Has(@"\Trash")) lFlags |= fListFlags.trash;
 
-                    rListFlags = new cListFlags(mSequence++, lListFlags);
+                    lItem.SetListFlags(new cListFlags(mSequence++, lFlags), lContext);
 
-                    if (mCapability.ListExtended) rLSubFlags = new cLSubFlags(mSequence++, lLSubFlags);
-                    else rLSubFlags = null;
+                    // extended list also sets the subscribed flag
+
+                    if (mCapability.ListExtended)
+                    {
+                        lItem.SetLSubFlags(new cLSubFlags(mSequence++, pList.Flags.Has(@"\Subscribed")), lContext);
+                    }
                 }
 
-                private void ZProcessDataLSubMailboxFlags(cFlags pFlags, out cLSubFlags rLSubFlags)
+                private void ZProcessLSub(cResponseDataLSub pLSub, cTrace.cContext pParentContext)
                 {
-                    fLSubFlags lLSubFlags;
-
-                    if (pFlags.Has(@"\Noselect")) lLSubFlags = fLSubFlags.hassubscribedchildren;
-                    else lLSubFlags = fLSubFlags.subscribed;
-
-                    rLSubFlags = new cLSubFlags(mSequence++, lLSubFlags);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessLSub));
+                    var lItem = ZItem(pLSub.MailboxName);
+                    lItem.SetLSubFlags(new cLSubFlags(mSequence++, !pLSub.Flags.Has(@"\Noselect")), lContext);
                 }
 
                 private bool ZProcessDataStatusAttributes(cBytesCursor pCursor,  out cStatus rStatus, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessStatusAttributes));
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessDataStatusAttributes));
 
                     uint? lMessages = null;
                     uint? lRecent = null;
@@ -231,25 +167,25 @@ namespace work.bacome.imapclient
                     {
                         eProcessStatusAttributeResult lResult;
 
-                        lResult = ZProcessStatusAttribute(pCursor, kMessagesSpace, ref lMessages, lContext);
+                        lResult = ZProcessDataStatusAttribute(pCursor, kMessagesSpace, ref lMessages, lContext);
 
                         if (lResult == eProcessStatusAttributeResult.notprocessed)
                         {
-                            lResult = ZProcessStatusAttribute(pCursor, kRecentSpace, ref lRecent, lContext);
+                            lResult = ZProcessDataStatusAttribute(pCursor, kRecentSpace, ref lRecent, lContext);
 
                             if (lResult == eProcessStatusAttributeResult.notprocessed)
                             {
-                                lResult = ZProcessStatusAttribute(pCursor, kUIDNextSpace, ref lUIDNext, lContext);
+                                lResult = ZProcessDataStatusAttribute(pCursor, kUIDNextSpace, ref lUIDNext, lContext);
 
                                 if (lResult == eProcessStatusAttributeResult.notprocessed)
                                 {
-                                    lResult = ZProcessStatusAttribute(pCursor, kUIDValiditySpace, ref lUIDValidity, lContext);
+                                    lResult = ZProcessDataStatusAttribute(pCursor, kUIDValiditySpace, ref lUIDValidity, lContext);
 
                                     if (lResult == eProcessStatusAttributeResult.notprocessed)
                                     {
-                                        lResult = ZProcessStatusAttribute(pCursor, kUnseenSpace, ref lUnseen, lContext);
+                                        lResult = ZProcessDataStatusAttribute(pCursor, kUnseenSpace, ref lUnseen, lContext);
 
-                                        if (lResult == eProcessStatusAttributeResult.notprocessed) lResult = ZProcessStatusAttribute(pCursor, kHighestModSeqSpace, ref lHighestModSeq, lContext);
+                                        if (lResult == eProcessStatusAttributeResult.notprocessed) lResult = ZProcessDataStatusAttribute(pCursor, kHighestModSeqSpace, ref lHighestModSeq, lContext);
                                     }
                                 }
                             }
@@ -272,7 +208,7 @@ namespace work.bacome.imapclient
 
                 private static eProcessStatusAttributeResult ZProcessDataStatusAttribute(cBytesCursor pCursor, cBytes pAttributeSpace, ref uint? rNumber, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessStatusAttribute), pAttributeSpace);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessDataStatusAttribute), pAttributeSpace);
 
                     if (!pCursor.SkipBytes(pAttributeSpace)) return eProcessStatusAttributeResult.notprocessed;
 
@@ -289,7 +225,7 @@ namespace work.bacome.imapclient
 
                 private static eProcessStatusAttributeResult ZProcessDataStatusAttribute(cBytesCursor pCursor, cBytes pAttributeSpace, ref ulong? rNumber, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessStatusAttribute));
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessDataStatusAttribute));
 
                     if (!pCursor.SkipBytes(pAttributeSpace)) return eProcessStatusAttributeResult.notprocessed;
 
@@ -303,7 +239,6 @@ namespace work.bacome.imapclient
                     lContext.TraceWarning("likely malformed status-att-list-item: no number?");
                     return eProcessStatusAttributeResult.error;
                 }
-
             }
         }
     }

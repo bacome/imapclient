@@ -80,6 +80,7 @@ namespace work.bacome.imapclient
 
                 public List<iMailboxHandle> List(cMailboxNamePattern pPattern, bool pStatus, int pSequence, cTrace.cContext pParentContext)
                 {
+                    ;?; // shoul dnot return anything
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(List), pPattern, pSequence);
 
                     iMailboxHandle lSelectedMailboxHandle;
@@ -110,6 +111,7 @@ namespace work.bacome.imapclient
 
                 public List<iMailboxHandle> LSub(cMailboxNamePattern pPattern, bool pStatus, int pSequence, cTrace.cContext pParentContext)
                 {
+                    ;?; // shoul dnot return anything
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(LSub), pPattern, pSequence);
 
                     iMailboxHandle lSelectedMailboxHandle;
@@ -120,7 +122,7 @@ namespace work.bacome.imapclient
                     List<iMailboxHandle> lHandles = new List<iMailboxHandle>();
 
                     foreach (var lItem in mDictionary.Values)
-                        if (lItem.LSubFlags != null && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
+                        if (lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
                         {
                             if (lItem.LSubFlags.Sequence < pSequence) lItem.SetFlags(null, lContext);
                             else
