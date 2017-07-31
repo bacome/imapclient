@@ -146,6 +146,8 @@ namespace work.bacome.imapclient
 
                     if (mSelect == eListExtendedSelect.exists)
                     {
+                        ;?;
+                        // if it has children then it should be returned - this begins to imply that the flags should be interpreted before we get ehre
                         if (lList.Flags.Has(@"\NonExistent")) return eProcessDataResult.notprocessed;
                         ZAdd();
                         return eProcessDataResult.observed;
