@@ -99,10 +99,11 @@ namespace work.bacome.imapclient
 
             private partial class cSelectedMailboxMessageCache
             {
+                /*
                 private static readonly cBytes kExists = new cBytes("EXISTS");
-                private static readonly cBytes kRecent = new cBytes("RECENT");
+                private static readonly cBytes kRecent = new cBytes("RECENT"); */
+
                 private static readonly cBytes kExpunge = new cBytes("EXPUNGE");
-                private static readonly cBytes kFetchSpace = new cBytes("FETCH ");
                 private static readonly cBytes kUIDNextSpace = new cBytes("UIDNEXT ");
                 private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
 

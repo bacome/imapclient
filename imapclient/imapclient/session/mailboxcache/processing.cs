@@ -10,9 +10,6 @@ namespace work.bacome.imapclient
         {
             private partial class cMailboxCache
             {
-                private static readonly cBytes kListSpace = new cBytes("LIST ");
-                private static readonly cBytes kLSubSpace = new cBytes("LSUB ");
-
                 private static readonly cBytes kStatusSpace = new cBytes("STATUS ");
                 private static readonly cBytes kMessagesSpace = new cBytes("MESSAGES ");
                 private static readonly cBytes kRecentSpace = new cBytes("RECENT ");
@@ -22,6 +19,12 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
 
                 private enum eProcessStatusAttributeResult { notprocessed, processed, error }
+
+                public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
+                {
+                    ;?;
+                }
+
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
@@ -107,33 +110,6 @@ namespace work.bacome.imapclient
 
                     // list
 
-                    fListFlags lFlags = 0;
-
-                    if (pList.Flags.Has(@"\Noinferiors")) lFlags |= fListFlags.noinferiors | fListFlags.hasnochildren;
-                    if (pList.Flags.Has(@"\Noselect")) lFlags |= fListFlags.noselect;
-                    if (pList.Flags.Has(@"\Marked")) lFlags |= fListFlags.marked;
-                    if (pList.Flags.Has(@"\Unmarked")) lFlags |= fListFlags.unmarked;
-
-                    if (mCapability.ListExtended)
-                    {
-                        if (pList.Flags.Has(@"\NonExistent")) lFlags |= fListFlags.noselect | fListFlags.nonexistent;
-                        if (pList.Flags.Has(@"\Remote")) lFlags |= fListFlags.remote;
-                    }
-
-                    if (mCapability.Children || mCapability.ListExtended)
-                    {
-                        if (pList.Flags.Has(@"\HasChildren")) lFlags |= fListFlags.haschildren;
-                        if (pList.Flags.Has(@"\HasNoChildren")) lFlags |= fListFlags.hasnochildren;
-                    }
-
-                    // the special-use capability is to do with support by list-extended, not to do with the return of the attributes
-                    if (pList.Flags.Has(@"\All")) lFlags |= fListFlags.all;
-                    if (pList.Flags.Has(@"\Archive")) lFlags |= fListFlags.archive;
-                    if (pList.Flags.Has(@"\Drafts")) lFlags |= fListFlags.drafts;
-                    if (pList.Flags.Has(@"\Flagged")) lFlags |= fListFlags.flagged;
-                    if (pList.Flags.Has(@"\Junk")) lFlags |= fListFlags.junk;
-                    if (pList.Flags.Has(@"\Sent")) lFlags |= fListFlags.sent;
-                    if (pList.Flags.Has(@"\Trash")) lFlags |= fListFlags.trash;
 
                     lItem.SetListFlags(new cListFlags(mSequence++, lFlags), lContext);
 

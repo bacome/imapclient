@@ -10,17 +10,13 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private class cResponseDataESearch
+            private class cResponseDataESearch : cResponseData
             {
-                private static readonly cBytes kSpaceLParenTAGSpace = new cBytes(" (TAG ");
-                private static readonly cBytes kSpaceUID = new cBytes(" UID");
-                private static readonly cBytes kAll = new cBytes("ALL");
-
                 public readonly IList<byte> Tag;
                 public readonly bool UID;
                 public readonly cSequenceSet SequenceSet;
 
-                private cResponseDataESearch(IList<byte> pTag, bool pUID, cSequenceSet pSequenceSet)
+                public cResponseDataESearch(IList<byte> pTag, bool pUID, cSequenceSet pSequenceSet)
                 {
                     Tag = pTag;
                     UID = pUID;
@@ -28,17 +24,27 @@ namespace work.bacome.imapclient
                 }
 
                 public override string ToString() => $"{nameof(cResponseDataESearch)}({Tag},{UID},{SequenceSet})";
+            }
 
-                public static bool Process(cBytesCursor pCursor, out cResponseDataESearch rResponseData, cTrace.cContext pParentContext)
+            private class cResponseDataParserESearch : cResponseDataParser
+            {
+                private static readonly cBytes kESearch = new cBytes("ESEARCH");
+
+                private static readonly cBytes kSpaceLParenTAGSpace = new cBytes(" (TAG ");
+                private static readonly cBytes kSpaceUID = new cBytes(" UID");
+                private static readonly cBytes kAll = new cBytes("ALL");
+
+                public cResponseDataParserESearch() { }
+
+                public override bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
                 {
-                    //  NOTE: this routine does not return the cursor to its original position if it fails
+                    var lContext = pParentContext.NewMethod(nameof(cResponseDataParserESearch), nameof(Process));
 
-                    var lContext = pParentContext.NewMethod(nameof(cResponseDataESearch), nameof(Process));
+                    if (!pCursor.SkipBytes(kESearch)) { rResponseData = null; return false; }
 
                     if (pCursor.Position.AtEnd)
                     {
                         rResponseData = new cResponseDataESearch(null, false, null);
-                        pCursor.ParsedAs = rResponseData;
                         return true;
                     }
 
@@ -51,8 +57,7 @@ namespace work.bacome.imapclient
                         if (!pCursor.GetString(out lTag) || !pCursor.SkipByte(cASCII.RPAREN))
                         {
                             rResponseData = null;
-                            pCursor.ParsedAs = null;
-                            return false;
+                            return true;
                         }
 
                         lSetParsedAs = true;
@@ -82,8 +87,7 @@ namespace work.bacome.imapclient
                            )
                         {
                             rResponseData = null;
-                            pCursor.ParsedAs = null;
-                            return false;
+                            return true;
                         }
 
                         if (cASCII.Compare(lName, kAll, false) && lValue is cExtendedValue.cSequenceSetEV lSequenceSetEV) lSequenceSet = lSequenceSetEV.SequenceSet;
@@ -92,12 +96,10 @@ namespace work.bacome.imapclient
                     if (!pCursor.Position.AtEnd)
                     {
                         rResponseData = null;
-                        if (lSetParsedAs) pCursor.ParsedAs = null;
-                        return false;
+                        return lSetParsedAs;
                     }
 
                     rResponseData = new cResponseDataESearch(lTag, lUID, lSequenceSet);
-                    pCursor.ParsedAs = rResponseData;
                     return true;
                 }
 

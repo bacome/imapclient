@@ -9,24 +9,36 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private class cResponseDataLSub
+            private class cResponseDataLSub : cResponseData
             {
                 public readonly cMailboxName MailboxName;
-                public readonly cFlags Flags;
+                public readonly bool NoSelect;
 
-                private cResponseDataLSub(cMailboxName pMailboxName, cFlags pFlags)
+                public cResponseDataLSub(cMailboxName pMailboxName, bool pNoSelect)
                 {
                     MailboxName = pMailboxName;
-                    Flags = pFlags;
+                    NoSelect = pNoSelect;
                 }
 
-                public override string ToString() => $"{nameof(cResponseDataESearch)}({MailboxName},{Flags})";
+                public override string ToString() => $"{nameof(cResponseDataLSub)}({MailboxName},{NoSelect})";
+            }
 
-                public static bool Process(cBytesCursor pCursor, bool pUTF8Enabled, out cResponseDataLSub rResponseData, cTrace.cContext pParentContext)
+            private class cResponseDataParserLSub : cResponseDataParser
+            {
+                private static readonly cBytes kLSubSpace = new cBytes("LSUB ");
+
+                private bool mUTF8Enabled;
+
+                public cResponseDataParserLSub(bool pUTF8Enabled)
                 {
-                    //  NOTE: this routine does not return the cursor to its original position if it fails
+                    mUTF8Enabled = pUTF8Enabled;
+                }
 
-                    var lContext = pParentContext.NewMethod(nameof(cResponseDataLSub), nameof(Process));
+                public override bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cResponseDataParserLSub), nameof(Process));
+
+                    if (!pCursor.SkipBytes(kLSubSpace)) { rResponseData = null; return false; }
 
                     if (!pCursor.GetFlags(out var lFlags) ||
                         !pCursor.SkipByte(cASCII.SPACE) ||
@@ -34,16 +46,14 @@ namespace work.bacome.imapclient
                         !pCursor.SkipByte(cASCII.SPACE) ||
                         !pCursor.GetAString(out IList<byte> lEncodedMailboxName) ||
                         !pCursor.Position.AtEnd ||
-                        !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, pUTF8Enabled, out var lMailboxName))
+                        !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mUTF8Enabled, out var lMailboxName))
                     {
                         lContext.TraceWarning("likely malformed lsub response");
                         rResponseData = null;
-                        pCursor.ParsedAs = null;
-                        return false;
+                        return true;
                     }
 
-                    rResponseData = new cResponseDataLSub(lMailboxName, lFlags);
-                    pCursor.ParsedAs = rResponseData;
+                    rResponseData = new cResponseDataLSub(lMailboxName, lFlags.Has(@"\Noselect"));
                     return true;
                 }
             }

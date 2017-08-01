@@ -11,8 +11,6 @@ namespace work.bacome.imapclient
     {
         private sealed partial class cSession : IDisposable
         {
-            // this class implements the methods in rfc3501 and extensions pretty much directly
-
             private bool mDisposed = false;
 
             private eState _State = eState.notconnected;
@@ -23,9 +21,7 @@ namespace work.bacome.imapclient
             private readonly fMailboxFlagSets mMailboxFlagSets;
             private readonly cResponseTextProcessor mResponseTextProcessor;
             private readonly cCommandPipeline mPipeline;
-            private readonly cCapabilityDataProcessor mCapabilityDataProcessor;
 
-            private fCapabilities _IgnoreCapabilities;
             private cFetchSizer mFetchAttributesSizer;
             private cFetchSizer mFetchBodyReadSizer;
 
@@ -33,6 +29,7 @@ namespace work.bacome.imapclient
             private cCommandPartFactory mEncodingPartFactory;
 
             // properties
+            private fCapabilities _IgnoreCapabilities;
             private cCapabilities _Capabilities = null;
             private cCapabilities _AuthenticationMechanisms = null;
             private cCapability _Capability = null;
@@ -57,12 +54,11 @@ namespace work.bacome.imapclient
 
                 mEventSynchroniser = pEventSynchroniser;
                 mMailboxFlagSets = pMailboxFlagSets;
-
                 mResponseTextProcessor = new cResponseTextProcessor(mEventSynchroniser);
-                mPipeline = new cCommandPipeline(mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
 
-                mCapabilityDataProcessor = new cCapabilityDataProcessor(ZSetCapabilities);
-                mPipeline.Install(mCapabilityDataProcessor);
+                mPipeline = new cCommandPipeline(mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
+                mPipeline.Install(new cResponseDataParserFetch());
+                if (_Capability.ESearch || _Capability.ESort) mPipeline.Install(new cResponseDataParserESearch());
 
                 _IgnoreCapabilities = pIgnoreCapabilities;
                 mFetchAttributesSizer = new cFetchSizer(pFetchAttributesConfiguration);
@@ -83,16 +79,20 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.authenticated) throw new InvalidOperationException("must be authenticated");
 
-                if ((EnabledExtensions & fEnableableExtensions.utf8) != 0)
+                bool lUTF8Enabled = (EnabledExtensions & fEnableableExtensions.utf8) != 0;
+
+                if (lUTF8Enabled)
                 {
                     mCommandPartFactory = new cCommandPartFactory(true, null);
                     mEncodingPartFactory = mCommandPartFactory;
                 }
 
-                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mCommandPartFactory, ZSetState, _Capability);
+                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mCommandPartFactory, ZSetState);
+                mResponseTextProcessor.Go(mMailboxCache, lContext);
 
-                mResponseTextProcessor.SetMailboxCache(mMailboxCache, lContext);
-                mPipeline.SetMailboxCache(mMailboxCache, lContext);
+                mPipeline.Install(new cResponseDataParserList(lUTF8Enabled));
+                mPipeline.Install(new cResponseDataParserLSub(lUTF8Enabled));
+                mPipeline.Go(mMailboxCache, _Capability, lContext);
 
                 ZSetState(eState.notselected, lContext);
             }
@@ -140,7 +140,6 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetState), pState);
                 if (pState == _State) return;
                 _State = pState;
-                mPipeline.SetState(pState, lContext);
                 mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.State), lContext);
             }
 
@@ -157,16 +156,8 @@ namespace work.bacome.imapclient
             private void ZSetCapability(cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetCapability));
-
                 if (_Capabilities == null) return;
-
                 _Capability = new cCapability(_Capabilities, _AuthenticationMechanisms, _IgnoreCapabilities);
-
-                mConnection.SetCapability(_Capability, lContext);
-                mPipeline.SetCapability(_Capability, lContext);
-                if (mMailboxCache != null) mMailboxCache.SetCapability(_Capability, lContext);
-
-                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Capability), lContext);
             }
 
             public cURL HomeServerReferral => _HomeServerReferral;
@@ -187,7 +178,7 @@ namespace work.bacome.imapclient
                 ZSetState(eState.authenticated, lContext);
             }
 
-            public bool SecurityInstalled => mConnection?.SecurityInstalled ?? false;
+            public bool SASLSecurityInstalled => mConnection?.SASLSecurityInstalled ?? false;
 
             public ReadOnlyCollection<cNamespaceName> PersonalNamespaces { get; private set; } = null;
             public ReadOnlyCollection<cNamespaceName> OtherUsersNamespaces { get; private set; } = null;

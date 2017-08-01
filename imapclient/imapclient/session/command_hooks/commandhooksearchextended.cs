@@ -11,7 +11,6 @@ namespace work.bacome.imapclient
         {
             private abstract class cCommandHookBaseSearchExtended : cCommandHook
             {
-                private static readonly cBytes kESearch = new cBytes("ESEARCH");
 
                 private readonly cCommandTag mCommandTag;
                 protected readonly cSelectedMailbox mSelectedMailbox;

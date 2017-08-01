@@ -70,24 +70,22 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cNamespaceDataProcessor), nameof(ProcessData));
 
-                    if (pCursor.SkipBytes(kNamespaceSpace))
-                    {
-                        if (ZProcessData(pCursor, out var lPersonal, lContext) &&
-                            pCursor.SkipByte(cASCII.SPACE) &&
-                            ZProcessData(pCursor, out var lOtherUsers, lContext) &&
-                            pCursor.SkipByte(cASCII.SPACE) &&
-                            ZProcessData(pCursor, out var lShared, lContext) &&
-                            pCursor.Position.AtEnd
-                           )
-                        {
-                            lContext.TraceVerbose("got namespaces: {0} {1} {2}", lPersonal, lOtherUsers, lShared);
-                            mSetNamespaces(lPersonal, lOtherUsers, lShared, lContext);
-                            return eProcessDataResult.processed;
-                        }
+                    if (!pCursor.SkipBytes(kNamespaceSpace)) return eProcessDataResult.notprocessed;
 
-                        lContext.TraceWarning("likely malformed namespace response");
+                    if (ZProcessData(pCursor, out var lPersonal, lContext) &&
+                        pCursor.SkipByte(cASCII.SPACE) &&
+                        ZProcessData(pCursor, out var lOtherUsers, lContext) &&
+                        pCursor.SkipByte(cASCII.SPACE) &&
+                        ZProcessData(pCursor, out var lShared, lContext) &&
+                        pCursor.Position.AtEnd
+                        )
+                    {
+                        lContext.TraceVerbose("got namespaces: {0} {1} {2}", lPersonal, lOtherUsers, lShared);
+                        mSetNamespaces(lPersonal, lOtherUsers, lShared, lContext);
+                        return eProcessDataResult.processed;
                     }
 
+                    lContext.TraceWarning("likely malformed namespace");
                     return eProcessDataResult.notprocessed;
                 }
 

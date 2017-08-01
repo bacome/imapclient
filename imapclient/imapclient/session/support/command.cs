@@ -633,6 +633,12 @@ namespace work.bacome.imapclient
                     if (mHook != null) mHook.CommandStarted(pParentContext);
                 }
 
+                public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
+                {
+                    if (mHook == null) return eProcessDataResult.notprocessed;
+                    return mHook.ProcessData(pData, pParentContext);
+                }
+
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
                     if (mHook == null) return eProcessDataResult.notprocessed;

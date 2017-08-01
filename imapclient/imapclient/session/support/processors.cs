@@ -15,9 +15,10 @@ namespace work.bacome.imapclient
                 bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext);
             }
 
-            private interface iUnsolicitedDataProcessor
+            private class cUnsolicitedDataProcessor
             {
-                eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext);
+                public virtual eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext) => eProcessDataResult.notprocessed;
+                public virtual eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => eProcessDataResult.notprocessed;
             }
         }
     }

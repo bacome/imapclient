@@ -55,9 +55,9 @@ namespace work.bacome.imapclient
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                 }
 
-                public void SetMailboxCache(cMailboxCache pMailboxCache, cTrace.cContext pParentContext)
+                public void Go(cMailboxCache pMailboxCache, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(SetMailboxCache));
+                    var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(Go));
                     if (mMailboxCache != null) throw new InvalidOperationException();
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                 }

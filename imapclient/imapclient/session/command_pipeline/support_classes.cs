@@ -112,6 +112,7 @@ namespace work.bacome.imapclient
                     public cCommandTag Tag => mCommand.Tag;
                     public uint? UIDValidity => mCommand.UIDValidity;
                     public cSASLAuthentication Authentication => mCommand.Authentication;
+                    public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext) => mCommand.ProcessData(pData, pParentContext);
                     public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCommand.ProcessData(pCursor, pParentContext);
                     public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCommand.ProcessTextCode(pCursor, pParentContext);
 

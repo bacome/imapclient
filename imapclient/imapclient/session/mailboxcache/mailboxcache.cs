@@ -18,24 +18,16 @@ namespace work.bacome.imapclient
                 private readonly Action<eState, cTrace.cContext> mSetState;
                 private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
 
-                private cCapability mCapability;
 
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, Action<eState, cTrace.cContext> pSetState, cCapability pCapability)
+                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, Action<eState, cTrace.cContext> pSetState)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mConnectedAccountId = pConnectedAccountId ?? throw new ArgumentNullException(nameof(pConnectedAccountId));
                     mCommandPartFactory = pCommandPartFactory ?? throw new ArgumentNullException(nameof(pCommandPartFactory));
                     mSetState = pSetState ?? throw new ArgumentNullException(nameof(pSetState));
-                    mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
-                }
-
-                public void SetCapability(cCapability pCapability, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(SetCapability), pCapability);
-                    mCapability = pCapability;
                 }
 
                 public iMailboxHandle GetHandle(cMailboxName pMailboxName) => ZItem(pMailboxName);

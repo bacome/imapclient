@@ -11,25 +11,8 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private class cResponseDataFetch
+            private class cResponseDataFetch : cResponseData
             {
-                private const string kReferences = "REFERENCES";
-
-                private static readonly cBytes kFlagsSpace = new cBytes("FLAGS ");
-                private static readonly cBytes kEnvelopeSpace = new cBytes("ENVELOPE ");
-                private static readonly cBytes kInternalDateSpace = new cBytes("INTERNALDATE ");
-                private static readonly cBytes kRFC822Space = new cBytes("RFC822 ");
-                private static readonly cBytes kRFC822HeaderSpace = new cBytes("RFC822.HEADER ");
-                private static readonly cBytes kRFC822TextSpace = new cBytes("RFC822.TEXT ");
-                private static readonly cBytes kRFC822SizeSpace = new cBytes("RFC822.SIZE ");
-                private static readonly cBytes kBodySpace = new cBytes("BODY ");
-                private static readonly cBytes kBodyStructureSpace = new cBytes("BODYSTRUCTURE ");
-                private static readonly cBytes kBodyLBracket = new cBytes("BODY[");
-                private static readonly cBytes kUIDSpace = new cBytes("UID ");
-                private static readonly cBytes kBinaryLBracket = new cBytes("BINARY[");
-                private static readonly cBytes kBinarySizeLBracket = new cBytes("BINARY.SIZE[");
-                private static readonly cBytes kModSeqSpace = new cBytes("MODSEQ ");
-
                 public readonly uint MSN;
                 public readonly fFetchAttributes Attributes;
                 public readonly cMessageFlags Flags;
@@ -47,7 +30,7 @@ namespace work.bacome.imapclient
                 public readonly cBinarySizes BinarySizes;
                 public readonly ulong? ModSeq;
 
-                private cResponseDataFetch(uint pMSN, fFetchAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cStrings pReferences, cBinarySizes pBinarySizes, ulong? pModSeq)
+                public cResponseDataFetch(uint pMSN, fFetchAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cStrings pReferences, cBinarySizes pBinarySizes, ulong? pModSeq)
                 {
                     MSN = pMSN;
                     Attributes = pAttributes;
@@ -94,14 +77,43 @@ namespace work.bacome.imapclient
 
                     return lBuilder.ToString();
                 }
+            }
 
-                public static bool Process(cBytesCursor pCursor, uint pMSN, out cResponseDataFetch rResponseData, cTrace.cContext pParentContext)
+            private class cResponseDataParserFetch : cResponseDataParser
+            {
+                private static readonly cBytes kFetchSpace = new cBytes("FETCH ");
+
+                private static readonly cBytes kFlagsSpace = new cBytes("FLAGS ");
+                private static readonly cBytes kEnvelopeSpace = new cBytes("ENVELOPE ");
+                private static readonly cBytes kInternalDateSpace = new cBytes("INTERNALDATE ");
+                private static readonly cBytes kRFC822Space = new cBytes("RFC822 ");
+                private static readonly cBytes kRFC822HeaderSpace = new cBytes("RFC822.HEADER ");
+                private static readonly cBytes kRFC822TextSpace = new cBytes("RFC822.TEXT ");
+                private static readonly cBytes kRFC822SizeSpace = new cBytes("RFC822.SIZE ");
+                private static readonly cBytes kBodySpace = new cBytes("BODY ");
+                private static readonly cBytes kBodyStructureSpace = new cBytes("BODYSTRUCTURE ");
+                private static readonly cBytes kBodyLBracket = new cBytes("BODY[");
+                private static readonly cBytes kUIDSpace = new cBytes("UID ");
+                private static readonly cBytes kBinaryLBracket = new cBytes("BINARY[");
+                private static readonly cBytes kBinarySizeLBracket = new cBytes("BINARY.SIZE[");
+                private static readonly cBytes kModSeqSpace = new cBytes("MODSEQ ");
+
+                private const string kReferences = "REFERENCES";
+
+                public cResponseDataParserFetch() { }
+
+                public override bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
                 {
-                    //  NOTE: this routine does not return the cursor to its original position if it fails
+                    var lContext = pParentContext.NewMethod(nameof(cResponseDataParserFetch), nameof(Process));
 
-                    var lContext = pParentContext.NewMethod(nameof(cResponseDataFetch), nameof(Process), pMSN);
+                    if (!pCursor.GetNZNumber(out _, out var lMSN) || !pCursor.SkipByte(cASCII.SPACE) || !pCursor.SkipBytes(kFetchSpace)) { rResponseData = null; return false; }
 
-                    if (!pCursor.SkipByte(cASCII.LPAREN)) { rResponseData = null; pCursor.ParsedAs = null; return false; }
+                    if (!pCursor.SkipByte(cASCII.LPAREN))
+                    {
+                        lContext.TraceWarning("likely malformed fetch response");
+                        rResponseData = null;
+                        return true;
+                    }
 
                     fFetchAttributes lAttributes = 0;
                     cMessageFlags lFlags = null;
@@ -235,17 +247,20 @@ namespace work.bacome.imapclient
                         {
                             lContext.TraceWarning("likely malformed fetch response");
                             rResponseData = null;
-                            pCursor.ParsedAs = null;
-                            return false;
+                            return true;
                         }
 
                         if (!pCursor.SkipByte(cASCII.SPACE)) break;
                     }
 
-                    if (!pCursor.SkipByte(cASCII.RPAREN) || !pCursor.Position.AtEnd) { rResponseData = null; pCursor.ParsedAs = null; return false; }
+                    if (!pCursor.SkipByte(cASCII.RPAREN) || !pCursor.Position.AtEnd)
+                    { 
+                        lContext.TraceWarning("likely malformed fetch response");
+                        rResponseData = null;
+                        return true;
+                    }
 
-                    rResponseData = new cResponseDataFetch(pMSN, lAttributes, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lReferences, lBinarySizesBuilder.AsBinarySizes(), lModSeq);
-                    pCursor.ParsedAs = rResponseData;
+                    rResponseData = new cResponseDataFetch(lMSN, lAttributes, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lReferences, lBinarySizesBuilder.AsBinarySizes(), lModSeq);
                     return true;
                 }
 

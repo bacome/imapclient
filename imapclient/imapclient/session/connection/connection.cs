@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
                 private cStreamReader mStreamReader = null;
 
                 // security
-                private cSASLSecurity mSecurity = null;
+                private cSASLSecurity mSASLSecurity = null;
 
                 // builder
                 private readonly cResponseBuilder mBuilder = new cResponseBuilder();
@@ -104,20 +104,15 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public void SetCapability(cCapability pCapability, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(SetCapability), pCapability.Binary);
-                    if (mState != eState.connected) throw new InvalidOperationException();
-                    mBuilder.Binary = pCapability.Binary;
-                }
-
                 public void InstallTLS(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(InstallSecurity));
+                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(InstallTLS));
 
                     if (mState != eState.connected) throw new InvalidOperationException("must be connected");
                     if (mSSLStream != null) throw new InvalidOperationException("tls already installed");
                     if (mBuildResponseTask != null) throw new InvalidOperationException("reading stream");
+
+                    lContext.TraceInformation("installing tls");
 
                     mSSLStream = new SslStream(mStream);
                     mSSLStream.AuthenticateAsClient(mHost);
@@ -128,16 +123,16 @@ namespace work.bacome.imapclient
 
                 public bool TLSInstalled => mSSLStream != null;
 
-                public void InstallSecurity(cSASLSecurity pSecurity, cTrace.cContext pParentContext)
+                public void InstallSASLSecurity(cSASLSecurity pSASLSecurity, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(InstallSecurity));
+                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(InstallSASLSecurity));
 
                     if (mState != eState.connected) throw new InvalidOperationException("must be connected");
-                    if (mSecurity != null) throw new InvalidOperationException("security already installed");
+                    if (mSASLSecurity != null) throw new InvalidOperationException("sasl security already installed");
 
-                    lContext.TraceInformation("installing security");
+                    lContext.TraceInformation("installing sasl security");
 
-                    mSecurity = pSecurity ?? throw new ArgumentNullException(nameof(pSecurity));
+                    mSASLSecurity = pSASLSecurity ?? throw new ArgumentNullException(nameof(pSASLSecurity));
 
                     if (mBuffer != null && mBufferPosition < mBuffer.Length)
                     {
@@ -148,7 +143,7 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public bool SecurityInstalled => mSecurity != null;
+                public bool SASLSecurityInstalled => mSASLSecurity != null;
 
                 public Task GetAwaitResponseTask(cTrace.cContext pParentContext)
                 {
@@ -185,10 +180,10 @@ namespace work.bacome.imapclient
 
                     byte[] lBuffer;
 
-                    if (mSecurity == null) lBuffer = pBuffer;
+                    if (mSASLSecurity == null) lBuffer = pBuffer;
                     else
                     {
-                        try { lBuffer = mSecurity.Encode(pBuffer); }
+                        try { lBuffer = mSASLSecurity.Encode(pBuffer); }
                         catch (Exception e)
                         {
                             Disconnect(lContext);
@@ -258,12 +253,12 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ZNewBuffer));
 
-                    if (mSecurity == null) mBuffer = pBuffer;
+                    if (mSASLSecurity == null) mBuffer = pBuffer;
                     else
                     {
                         try
                         {
-                            var lDecodedBuffer = mSecurity.Decode(pBuffer);
+                            var lDecodedBuffer = mSASLSecurity.Decode(pBuffer);
                             if (lDecodedBuffer == null) mBuffer = null;
                             else mBuffer = lDecodedBuffer;
                         }
@@ -306,9 +301,9 @@ namespace work.bacome.imapclient
                         catch { }
                     }
 
-                    if (mSecurity != null)
+                    if (mSASLSecurity != null)
                     {
-                        try { mSecurity.Dispose(); }
+                        try { mSASLSecurity.Dispose(); }
                         catch { }
                     }
 

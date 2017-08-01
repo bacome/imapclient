@@ -18,7 +18,6 @@ namespace work.bacome.imapclient.support
 
         private cBytesLines mLines;
         public sPosition Position;
-        private object _ParsedAs;
 
         public cBytesCursor(cBytesLines pLines)
         {
@@ -48,19 +47,6 @@ namespace work.bacome.imapclient.support
             Position.AtEnd = false;
 
             ZAdvance(ref Position);
-        }
-
-        public bool Parsed { get; private set; } = false;
-
-        public object ParsedAs
-        {
-            get => _ParsedAs;
-
-            set
-            {
-                Parsed = true;
-                _ParsedAs = value;
-            }
         }
 
         public bool SkipByte(byte pByte, bool pCaseSensitive = false)

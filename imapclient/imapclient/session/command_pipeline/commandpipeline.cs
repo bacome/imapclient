@@ -21,12 +21,12 @@ namespace work.bacome.imapclient
                 private readonly cResponseTextProcessor mResponseTextProcessor;
                 private cIdleConfiguration mIdleConfiguration;
                 private readonly Action<cTrace.cContext> mDisconnect;
-                private readonly List<iUnsolicitedDataProcessor> mUnsolicitedDataProcessors = new List<iUnsolicitedDataProcessor>();
+                private readonly List<cResponseDataParser> mResponseDataParsers = new List<cResponseDataParser>();
+                private readonly List<cUnsolicitedDataProcessor> mUnsolicitedDataProcessors = new List<cUnsolicitedDataProcessor>();
                 private cMailboxCache mMailboxCache = null;
-                private bool mIdleAllowed = false; // based on state
-                private bool mIdleCommandSupported = false; // based on capability
                 private bool mLiteralPlus = false; // based on capability
                 private bool mLiteralMinus = false; // based on capability
+                private bool mIdleCommandSupported = false; // based on capability
                 private readonly object mCommandQueueLock = new object();
                 private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource(); // for use when stopping the background task
                 private readonly cExclusiveAccess mIdleBlock = new cExclusiveAccess("idleblock", 100);
@@ -55,23 +55,22 @@ namespace work.bacome.imapclient
                     mBackgroundTask = ZBackgroundTaskAsync(lContext);
                 }
 
-                public void Install(iUnsolicitedDataProcessor pResponseDataProcessor) => mUnsolicitedDataProcessors.Add(pResponseDataProcessor);
+                public void Install(cResponseDataParser pResponseDataParser) => mResponseDataParsers.Add(pResponseDataParser);
+                public void Install(cUnsolicitedDataProcessor pUnsolicitedDataProcessor) => mUnsolicitedDataProcessors.Add(pUnsolicitedDataProcessor);
 
-                public void SetMailboxCache(cMailboxCache pMailboxCache, cTrace.cContext pParentContext)
+                public void Go(cMailboxCache pMailboxCache, cCapability pCapability, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetMailboxCache));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(Go));
+
                     if (mMailboxCache != null) throw new InvalidOperationException();
-                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
-                }
 
-                public void SetState(eState pState, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetState), pState);
-                    if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
-                    bool lIdleAllowed = (pState == eState.notselected || pState == eState.selected);
-                    if (lIdleAllowed == mIdleAllowed) return;
-                    mIdleAllowed = lIdleAllowed;
-                    mBackgroundReleaser.Release(lContext);
+                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
+
+                    mLiteralPlus = pCapability.LiteralPlus;
+                    mLiteralMinus = pCapability.LiteralMinus;
+                    mIdleCommandSupported = pCapability.Idle;
+
+                    mBackgroundReleaser.Release(lContext); // to allow idle to start
                 }
 
                 public void SetIdleConfiguration(cIdleConfiguration pConfiguration, cTrace.cContext pParentContext)
@@ -80,22 +79,6 @@ namespace work.bacome.imapclient
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
                     mIdleConfiguration = pConfiguration;
                     mBackgroundReleaser.Release(lContext);
-                }
-
-                public void SetCapability(cCapability pCapability, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetCapability), pCapability);
-
-                    if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
-
-                    if (mIdleCommandSupported != pCapability.Idle)
-                    {
-                        mIdleCommandSupported = pCapability.Idle;
-                        mBackgroundReleaser.Release(lContext);
-                    }
-
-                    mLiteralPlus = pCapability.LiteralPlus;
-                    mLiteralMinus = pCapability.LiteralMinus;
                 }
 
                 public async Task<cExclusiveAccess.cToken> GetIdleBlockTokenAsync(cMethodControl pMC, cTrace.cContext pParentContext)
@@ -150,7 +133,7 @@ namespace work.bacome.imapclient
 
                                 cExclusiveAccess.cBlock lIdleBlockBlock = null;
 
-                                if (mIdleAllowed && lIdleConfiguration != null) lIdleBlockBlock = mIdleBlock.TryGetBlock(lContext);
+                                if (mMailboxCache != null && lIdleConfiguration != null) lIdleBlockBlock = mIdleBlock.TryGetBlock(lContext);
 
                                 if (lIdleBlockBlock != null)
                                 {
@@ -650,23 +633,40 @@ namespace work.bacome.imapclient
 
                     var lBookmark = pCursor.Position;
 
+                    bool lParsed = false;
+                    cResponseData lData = null;
+
+                    foreach (var lParser in mResponseDataParsers)
+                    {
+                        if (lParser.Process(pCursor, out lData, lContext))
+                        {
+                            lParsed = true;
+                            break;
+                        }
+
+                        pCursor.Position = lBookmark;
+                    }
+
                     var lResult = eProcessDataResult.notprocessed;
 
                     if (mMailboxCache != null)
                     {
-                        ZProcessDataWorker(ref lResult, mMailboxCache.ProcessData(pCursor, lContext), lContext);
+                        if (lParsed) ZProcessDataWorker(ref lResult, mMailboxCache.ProcessData(lData, lContext), lContext);
+                        else ZProcessDataWorker(ref lResult, mMailboxCache.ProcessData(pCursor, lContext), lContext);
                         pCursor.Position = lBookmark;
                     }
 
                     foreach (var lItem in mActiveItems)
                     {
-                        ZProcessDataWorker(ref lResult, lItem.ProcessData(pCursor, lContext), lContext);
+                        if (lParsed) ZProcessDataWorker(ref lResult, lItem.ProcessData(lData, lContext), lContext);
+                        else ZProcessDataWorker(ref lResult, lItem.ProcessData(pCursor, lContext), lContext);
                         pCursor.Position = lBookmark;
                     }
 
                     foreach (var lDataProcessor in mUnsolicitedDataProcessors)
                     {
-                        ZProcessDataWorker(ref lResult, lDataProcessor.ProcessData(pCursor, lContext), lContext);
+                        if (lParsed) ZProcessDataWorker(ref lResult, lDataProcessor.ProcessData(lData, lContext), lContext);
+                        else ZProcessDataWorker(ref lResult, lDataProcessor.ProcessData(pCursor, lContext), lContext);
                         pCursor.Position = lBookmark;
                     }
 

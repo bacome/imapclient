@@ -11,6 +11,28 @@ namespace work.bacome.imapclient.support
         {
             Sequence = pSequence;
             Flags = pFlags;
+
+
+
+
+
+
+
+
+            if (mCapability.ListExtended)
+            {
+                if (pList.Flags.Has(@"\NonExistent")) lFlags |= fListFlags.noselect | fListFlags.nonexistent;
+                if (pList.Flags.Has(@"\Remote")) lFlags |= fListFlags.remote;
+            }
+
+            if (mCapability.Children || mCapability.ListExtended)
+            {
+                if (pList.Flags.Has(@"\HasChildren")) lFlags |= fListFlags.haschildren;
+                if (pList.Flags.Has(@"\HasNoChildren")) lFlags |= fListFlags.hasnochildren;
+            }
+
+
+
         }
 
         public bool CanHaveChildren => (Flags & fListFlags.noinferiors) == 0;
@@ -36,6 +58,7 @@ namespace work.bacome.imapclient.support
             {
                 fListFlags lFlags = Flags & (fListFlags.haschildren | fListFlags.hasnochildren);
                 if (lFlags == fListFlags.haschildren) return true;
+                ;?; // couls/should check with the cache to see if any have appeared
                 if (lFlags == fListFlags.hasnochildren) return false;
                 return null;
             }

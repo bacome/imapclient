@@ -9,26 +9,38 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private class cResponseDataList
+            private class cResponseDataList : cResponseData
             {
                 public readonly cMailboxName MailboxName;
-                public readonly cFlags Flags;
+                public readonly fListFlags Flags;
                 public readonly cListExtendedItems ExtendedItems;
 
-                private cResponseDataList(cMailboxName pMailboxName, cFlags pFlags, cListExtendedItems pExtendedItems)
+                public cResponseDataList(cMailboxName pMailboxName, fListFlags pFlags, cListExtendedItems pExtendedItems)
                 {
                     MailboxName = pMailboxName;
                     Flags = pFlags;
                     ExtendedItems = pExtendedItems;
                 }
 
-                public override string ToString() => $"{nameof(cResponseDataESearch)}({MailboxName},{Flags},{ExtendedItems})";
+                public override string ToString() => $"{nameof(cResponseDataList)}({MailboxName},{Flags},{ExtendedItems})";
+            }
 
-                public static bool Process(cBytesCursor pCursor, bool pUTF8Enabled, out cResponseDataList rResponseData, cTrace.cContext pParentContext)
+            private class cResponseDataParserList : cResponseDataParser
+            {
+                private static readonly cBytes kListSpace = new cBytes("LIST ");
+
+                private bool mUTF8Enabled;
+
+                public cResponseDataParserList(bool pUTF8Enabled)
                 {
-                    //  NOTE: this routine does not return the cursor to its original position if it fails
+                    mUTF8Enabled = pUTF8Enabled;
+                }
 
-                    var lContext = pParentContext.NewMethod(nameof(cResponseDataList), nameof(Process));
+                public override bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cResponseDataParserList), nameof(Process));
+
+                    if (!pCursor.SkipBytes(kListSpace)) { rResponseData = null; return false; }
 
                     if (!pCursor.GetFlags(out var lFlags) ||
                         !pCursor.SkipByte(cASCII.SPACE) ||
@@ -37,16 +49,35 @@ namespace work.bacome.imapclient
                         !pCursor.GetAString(out IList<byte> lEncodedMailboxName) ||
                         !ZProcessExtendedItems(pCursor, out var lExtendedItems) ||
                         !pCursor.Position.AtEnd ||
-                        !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, pUTF8Enabled, out var lMailboxName))
+                        !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mUTF8Enabled, out var lMailboxName))
                     {
                         lContext.TraceWarning("likely malformed list response");
                         rResponseData = null;
-                        pCursor.ParsedAs = null;
-                        return false;
+                        return true;
                     }
 
-                    rResponseData = new cResponseDataList(lMailboxName, lFlags, lExtendedItems);
-                    pCursor.ParsedAs = rResponseData;
+                    fListFlags lListFlags = 0;
+
+                    if (lFlags.Has(@"\Noinferiors")) lListFlags |= fListFlags.noinferiors | fListFlags.hasnochildren;
+                    if (lFlags.Has(@"\Noselect")) lListFlags |= fListFlags.noselect;
+                    if (lFlags.Has(@"\Marked")) lListFlags |= fListFlags.marked;
+                    if (lFlags.Has(@"\Unmarked")) lListFlags |= fListFlags.unmarked;
+
+                    if (lFlags.Has(@"\NonExistent")) lListFlags |= fListFlags.noselect | fListFlags.nonexistent;
+                    if (lFlags.Has(@"\Subscribed")) lListFlags |= fListFlags.noselect | fListFlags.subscribed;
+                    if (lFlags.Has(@"\Remote")) lListFlags |= fListFlags.remote;
+                    if (lFlags.Has(@"\HasChildren")) lListFlags |= fListFlags.haschildren;
+                    if (lFlags.Has(@"\HasNoChildren")) lListFlags |= fListFlags.hasnochildren;
+
+                    if (lFlags.Has(@"\All")) lListFlags |= fListFlags.all;
+                    if (lFlags.Has(@"\Archive")) lListFlags |= fListFlags.archive;
+                    if (lFlags.Has(@"\Drafts")) lListFlags |= fListFlags.drafts;
+                    if (lFlags.Has(@"\Flagged")) lListFlags |= fListFlags.flagged;
+                    if (lFlags.Has(@"\Junk")) lListFlags |= fListFlags.junk;
+                    if (lFlags.Has(@"\Sent")) lListFlags |= fListFlags.sent;
+                    if (lFlags.Has(@"\Trash")) lListFlags |= fListFlags.trash;
+
+                    rResponseData = new cResponseDataList(lMailboxName, lListFlags, lExtendedItems);
                     return true;
                 }
 

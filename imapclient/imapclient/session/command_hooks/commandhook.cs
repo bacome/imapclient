@@ -13,11 +13,11 @@ namespace work.bacome.imapclient
                 public cCommandHook() { }
 
                 // called before process routines BUT will not be called at all if the command times out before being submitted
-                //  this is here specially for select
                 //
                 public virtual void CommandStarted(cTrace.cContext pParentContext) { }
 
                 // process responses while the command is running
+                public virtual eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext) { return eProcessDataResult.notprocessed; }
                 public virtual eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) { return eProcessDataResult.notprocessed; }
                 public virtual bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext) { return false; }
 

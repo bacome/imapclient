@@ -22,8 +22,6 @@ namespace work.bacome.imapclient
 
                     public cResponseBuilder() { }
 
-                    public bool Binary { get; set; } = false;
-
                     public cBytesLines BuildFromBuffer(byte[] pBuffer, ref int pBufferPosition, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cResponseBuilder), nameof(BuildFromBuffer));
@@ -116,7 +114,7 @@ namespace work.bacome.imapclient
                             for (int i = lBytePosition + 1; i < mBytes.Count - 1; i++) mBytesToGo = mBytesToGo * 10 + mBytes[i] - cASCII.ZERO;
                         }
 
-                        if (Binary && lBytePosition != 0 && mBytes[lBytePosition - 1] == cASCII.TILDA) lBytePosition--;
+                        if (lBytePosition != 0 && mBytes[lBytePosition - 1] == cASCII.TILDA) lBytePosition--;
 
                         mBytes.RemoveRange(lBytePosition, mBytes.Count - lBytePosition);
                         ZAddWholeLine(false, lContext);
@@ -294,7 +292,6 @@ namespace work.bacome.imapclient
                         // test literal8
 
                         lBuilder = new cResponseBuilder();
-                        lBuilder.Binary = true;
                         lBytes = LMakeBuffer("fred~{0}\r\n~{00}\r\n\r\n");
                         lBufferPosition = 0;
 

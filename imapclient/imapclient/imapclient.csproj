@@ -68,11 +68,12 @@
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxflagsets.cs" />
+    <Compile Include="exposed_interfaces\support\enums\listflags.cs" />
     <Compile Include="exposed_interfaces\support\types\listflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxes.cs" />
     <Compile Include="exposed_interfaces\message\messageproperties.cs" />
-    <Compile Include="exposed_interfaces\support\enums\mailbox.cs" />
+    <Compile Include="exposed_interfaces\support\enums\mailboxpropertiies.cs" />
     <Compile Include="exposed_interfaces\support\types\lsubflags.cs" />
     <Compile Include="exposed_interfaces\support\types\messagecache.cs" />
     <Compile Include="exposed_interfaces\support\types\selectedmailboxdetails.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
     <Compile Include="session\imap_commands\authenticated\rlist.cs" />
     <Compile Include="session\imap_commands\not_authenticated\starttls.cs" />
+    <Compile Include="session\parsing\responsedata.cs" />
     <Compile Include="session\support\listextendeddataitems.cs" />
     <Compile Include="session\mailboxcache\mailboxcacheitem.cs" />
     <Compile Include="session\mailboxcache\processing.cs" />
@@ -91,7 +93,6 @@
     <Compile Include="session\session\searchunseen.cs" />
     <Compile Include="session\mailboxcache\mailboxcache.cs" />
     <Compile Include="exposed_interfaces\support\types\commandpartfactory.cs" />
-    <Compile Include="session\unsoliciteddataprocessors\capability.cs" />
     <Compile Include="zzz\mailboxflagsets.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxname.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxpropertychangedeventargs.cs" />

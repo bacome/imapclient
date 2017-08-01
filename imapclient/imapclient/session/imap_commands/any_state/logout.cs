@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
 
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cLogoutCommandHook), nameof(ProcessTextCode));
+                    var lContext = pParentContext.NewMethod(nameof(cLogoutCommandHook), nameof(ProcessData));
 
                     if (pCursor.SkipBytes(kByeSpace))
                     {
