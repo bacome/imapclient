@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
                 public override string ToString() => $"{nameof(cResponseDataESearch)}({Tag},{UID},{SequenceSet})";
             }
 
-            private class cResponseDataParserESearch : cResponseDataParser
+            private class cResponseDataParserESearch : iResponseDataParser
             {
                 private static readonly cBytes kESearch = new cBytes("ESEARCH");
 
@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
 
                 public cResponseDataParserESearch() { }
 
-                public override bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
+                public bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cResponseDataParserESearch), nameof(Process));
 

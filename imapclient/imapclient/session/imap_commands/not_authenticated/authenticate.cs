@@ -25,14 +25,12 @@ namespace work.bacome.imapclient
                 {
                     //  note the lack of locking - this is only called during connect
 
-                    var lCapability = _Capability;
-
                     lCommand.Add(kAuthenticateCommandPartAuthenticate);
                     lCommand.Add(new cCommandPart(pSASL.MechanismName));
 
                     var lAuthentication = pSASL.GetAuthentication();
 
-                    if (lCapability.SASL_IR)
+                    if (mCapability.SASL_IR)
                     {
                         IList<byte> lAuthenticationResponse;
 
@@ -47,26 +45,23 @@ namespace work.bacome.imapclient
                         {
                             lCommand.Add(cCommandPart.Space);
                             if (lAuthenticationResponse.Count == 0) lCommand.Add(kAuthenticateCommandPartEqual); // special case where the initial response is an empty string
-                            else lCommand.Add(new cCommandPart(cBase64.Encode(lAuthenticationResponse), true));
+                            else lCommand.Add(new cCommandPart(cBase64.Encode(lAuthenticationResponse), eCommandPartType.text, true));
                         }
                     }
 
                     lCommand.Add(lAuthentication);
 
-                    var lHook = new cCommandHookInitial(lCapability.LoginReferrals);
+                    var lHook = new cCommandHookAuthenticate(mConnection, lAuthentication, mCapability.LoginReferrals);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("authenticate success");
 
-                        var lSecurity = lAuthentication.GetSecurity();
-                        if (lSecurity != null) mConnection.InstallSecurity(lSecurity, lContext);
-
-                        if (lHook.Capabilities != null) ZSetCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, lContext);
-                        if (lHook.HomeServerReferral != null) ZSetHomeServerReferral(new cURL(lHook.HomeServerReferral), lContext);
+                        if (lHook.Capabilities != null) mCapability = new cCapability(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                        if (lHook.HomeServerReferral != null) mHomeServerReferral = new cURL(lHook.HomeServerReferral);
                         ZSetConnectedAccountId(pAccountId, lContext);
 
                         return null;
@@ -74,15 +69,14 @@ namespace work.bacome.imapclient
 
                     if (lHook.Capabilities != null) lContext.TraceError("received capability on a failed authenticate");
 
-                    if (lResult.Result == cCommandResult.eResult.no)
+                    if (lResult.ResultType == eCommandResultType.no)
                     {
                         lContext.TraceInformation("authenticate failed: {0}", lResult.ResponseText);
 
                         if (lHook.HomeServerReferral != null)
                         {
-                            cURL lURL = new cURL(lHook.HomeServerReferral);
-                            ZSetHomeServerReferral(lURL, lContext);
-                            return new cHomeServerReferralException(lURL, lResult.ResponseText, lContext);
+                            mHomeServerReferral = new cURL(lHook.HomeServerReferral);
+                            return new cHomeServerReferralException(mHomeServerReferral, lResult.ResponseText, lContext);
                         }
 
                         if (lResult.ResponseText.Code == eResponseTextCode.authenticationfailed || lResult.ResponseText.Code == eResponseTextCode.authorizationfailed || lResult.ResponseText.Code == eResponseTextCode.expired)
@@ -92,9 +86,33 @@ namespace work.bacome.imapclient
                     }
 
                     lContext.TraceInformation("authenticate cancelled");
+
                     if (lHook.HomeServerReferral != null) lContext.TraceError("received a referral on a cancelled authenticate");
 
                     return null;
+                }
+            }
+
+            private class cCommandHookAuthenticate : cCommandHookInitial
+            {
+                private readonly cConnection mConnection;
+                private readonly cSASLAuthentication mAuthentication;
+
+                public cCommandHookAuthenticate(cConnection pConnection, cSASLAuthentication pAuthentication, bool pHandleReferral) : base(pHandleReferral)
+                {
+                    mConnection = pConnection;
+                    mAuthentication = pAuthentication;
+                }
+
+                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookAuthenticate), nameof(CommandCompleted), pResult, pException);
+
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok)
+                    {
+                        var lSecurity = mAuthentication.GetSecurity();
+                        if (lSecurity != null) mConnection.InstallSASLSecurity(lSecurity, lContext);
+                    }
                 }
             }
         }

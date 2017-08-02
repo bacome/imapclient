@@ -19,6 +19,7 @@ namespace work.bacome.imapclient
                 // process responses while the command is running
                 public virtual eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext) { return eProcessDataResult.notprocessed; }
                 public virtual eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) { return eProcessDataResult.notprocessed; }
+                public virtual void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext) { }
                 public virtual bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext) { return false; }
 
                 // called last, but may be called at any time

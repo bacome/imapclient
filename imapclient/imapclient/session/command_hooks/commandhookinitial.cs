@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 

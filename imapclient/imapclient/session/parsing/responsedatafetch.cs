@@ -79,7 +79,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private class cResponseDataParserFetch : cResponseDataParser
+            private class cResponseDataParserFetch : iResponseDataParser
             {
                 private static readonly cBytes kFetchSpace = new cBytes("FETCH ");
 
@@ -102,7 +102,7 @@ namespace work.bacome.imapclient
 
                 public cResponseDataParserFetch() { }
 
-                public override bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
+                public bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cResponseDataParserFetch), nameof(Process));
 

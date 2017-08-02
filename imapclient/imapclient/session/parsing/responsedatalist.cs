@@ -13,19 +13,19 @@ namespace work.bacome.imapclient
             {
                 public readonly cMailboxName MailboxName;
                 public readonly fListFlags Flags;
-                public readonly cListExtendedItems ExtendedItems;
+                public readonly bool HasSubscribedChildren;
 
-                public cResponseDataList(cMailboxName pMailboxName, fListFlags pFlags, cListExtendedItems pExtendedItems)
+                public cResponseDataList(cMailboxName pMailboxName, fListFlags pFlags, bool pHasSubscribedChildren)
                 {
                     MailboxName = pMailboxName;
                     Flags = pFlags;
-                    ExtendedItems = pExtendedItems;
+                    HasSubscribedChildren = pHasSubscribedChildren;
                 }
 
-                public override string ToString() => $"{nameof(cResponseDataList)}({MailboxName},{Flags},{ExtendedItems})";
+                public override string ToString() => $"{nameof(cResponseDataList)}({MailboxName},{Flags},{HasSubscribedChildren})";
             }
 
-            private class cResponseDataParserList : cResponseDataParser
+            private class cResponseDataParserList : iResponseDataParser
             {
                 private static readonly cBytes kListSpace = new cBytes("LIST ");
 
@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
                     mUTF8Enabled = pUTF8Enabled;
                 }
 
-                public override bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
+                public bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cResponseDataParserList), nameof(Process));
 
@@ -64,7 +64,7 @@ namespace work.bacome.imapclient
                     if (lFlags.Has(@"\Unmarked")) lListFlags |= fListFlags.unmarked;
 
                     if (lFlags.Has(@"\NonExistent")) lListFlags |= fListFlags.noselect | fListFlags.nonexistent;
-                    if (lFlags.Has(@"\Subscribed")) lListFlags |= fListFlags.noselect | fListFlags.subscribed;
+                    if (lFlags.Has(@"\Subscribed")) lListFlags |= fListFlags.subscribed;
                     if (lFlags.Has(@"\Remote")) lListFlags |= fListFlags.remote;
                     if (lFlags.Has(@"\HasChildren")) lListFlags |= fListFlags.haschildren;
                     if (lFlags.Has(@"\HasNoChildren")) lListFlags |= fListFlags.hasnochildren;
@@ -77,7 +77,18 @@ namespace work.bacome.imapclient
                     if (lFlags.Has(@"\Sent")) lListFlags |= fListFlags.sent;
                     if (lFlags.Has(@"\Trash")) lListFlags |= fListFlags.trash;
 
-                    rResponseData = new cResponseDataList(lMailboxName, lListFlags, lExtendedItems);
+                    bool lHasSubscribedChildren = false;
+
+                    foreach (var lItem in lExtendedItems)
+                    {
+                        if (lItem.Tag.Equals("childinfo", StringComparison.InvariantCultureIgnoreCase) && lItem.Value.Contains("subscribed", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            lHasSubscribedChildren = true;
+                            break;
+                        }
+                    }
+
+                    rResponseData = new cResponseDataList(lMailboxName, lListFlags, lHasSubscribedChildren);
                     return true;
                 }
 

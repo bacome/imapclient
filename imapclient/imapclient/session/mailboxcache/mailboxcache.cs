@@ -13,24 +13,47 @@ namespace work.bacome.imapclient
             private partial class cMailboxCache
             {
                 private readonly cEventSynchroniser mEventSynchroniser;
+                private readonly fMailboxFlagSets mMailboxFlagSets;
                 private readonly cAccountId mConnectedAccountId;
                 private readonly cCommandPartFactory mCommandPartFactory;
+                private readonly cCapability mCapability;
                 private readonly Action<eState, cTrace.cContext> mSetState;
                 private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
-
 
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cEventSynchroniser pEventSynchroniser, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, Action<eState, cTrace.cContext> pSetState)
+                public cMailboxCache(cEventSynchroniser pEventSynchroniser, fMailboxFlagSets pMailboxFlagSets, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, cCapability pCapability, Action<eState, cTrace.cContext> pSetState)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
+                    mMailboxFlagSets = pMailboxFlagSets;
                     mConnectedAccountId = pConnectedAccountId ?? throw new ArgumentNullException(nameof(pConnectedAccountId));
                     mCommandPartFactory = pCommandPartFactory ?? throw new ArgumentNullException(nameof(pCommandPartFactory));
+                    mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
                     mSetState = pSetState ?? throw new ArgumentNullException(nameof(pSetState));
                 }
 
                 public iMailboxHandle GetHandle(cMailboxName pMailboxName) => ZItem(pMailboxName);
+
+                public List<iMailboxHandle> GetHandles(List<cMailboxName> pMailboxNames)
+                {
+                    if (pMailboxNames == null) return null;
+
+                    List<iMailboxHandle> lHandles = new List<iMailboxHandle>();
+
+                    pMailboxNames.Sort();
+
+                    cMailboxName lLastMailboxName = null;
+
+                    foreach (var lMailboxName in pMailboxNames)
+                        if (lMailboxName != lLastMailboxName)
+                        {
+                            lHandles.Add(ZItem(lMailboxName));
+                            lLastMailboxName = lMailboxName;
+                        }
+
+                    return lHandles;
+                }
 
                 public void CheckHandle(iMailboxHandle pHandle)
                 {
@@ -70,66 +93,44 @@ namespace work.bacome.imapclient
 
                 public int Sequence => mSequence;
 
-                public List<iMailboxHandle> List(cMailboxNamePattern pPattern, bool pStatus, int pSequence, cTrace.cContext pParentContext)
+                public void ResetListFlags(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
-                    ;?; // shoul dnot return anything
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(List), pPattern, pSequence);
-
-                    iMailboxHandle lSelectedMailboxHandle;
-
-                    if (pStatus) lSelectedMailboxHandle = mSelectedMailbox?.Handle;
-                    else lSelectedMailboxHandle = null;
-
-                    List<iMailboxHandle> lHandles = new List<iMailboxHandle>();
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetListFlags), pPattern, pSequence);
 
                     foreach (var lItem in mDictionary.Values)
                         if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
-                        {
-                            if (lItem.ListFlags == null || lItem.ListFlags.Sequence < pSequence) lItem.ResetExists(lContext);
-                            else
-                            {
-                                lHandles.Add(lItem);
-
-                                if (pStatus && lItem.Status != null && lItem.Status.Sequence < pSequence)
-                                {
-                                    lItem.ClearStatus(lContext);
-                                    if (!ReferenceEquals(lSelectedMailboxHandle, lItem)) lItem.UpdateMailboxStatus(lContext);
-                                }
-                            }
-                        }
-
-                    return lHandles;
+                            if (lItem.ListFlags == null || lItem.ListFlags.Sequence < pSequence)
+                                lItem.ResetExists(lContext);
                 }
 
-                public List<iMailboxHandle> LSub(cMailboxNamePattern pPattern, bool pStatus, int pSequence, cTrace.cContext pParentContext)
+                public void ResetLSubFlags(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
-                    ;?; // shoul dnot return anything
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(LSub), pPattern, pSequence);
+                    // called after an LSub with subscribed = true
+                    //  called after a list-extended/subscribed with subscribed = true
 
-                    iMailboxHandle lSelectedMailboxHandle;
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetLSubFlags), pPattern, pSequence);
 
-                    if (pStatus) lSelectedMailboxHandle = mSelectedMailbox?.Handle;
-                    else lSelectedMailboxHandle = null;
-
-                    List<iMailboxHandle> lHandles = new List<iMailboxHandle>();
+                    cLSubFlags lNotSubscribed = new cLSubFlags(mSequence++, false);
 
                     foreach (var lItem in mDictionary.Values)
                         if (lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
-                        {
-                            if (lItem.LSubFlags.Sequence < pSequence) lItem.SetFlags(null, lContext);
-                            else
+                            if (lItem.LSubFlags == null || lItem.LSubFlags.Sequence < pSequence)
+                                lItem.SetLSubFlags(lNotSubscribed, lContext);
+                }
+
+                public void ResetStatus(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetStatus), pPattern, pSequence);
+
+                    iMailboxHandle lSelectedMailboxHandle  = mSelectedMailbox?.Handle;
+
+                    foreach (var lItem in mDictionary.Values)
+                        if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
+                            if (lItem.Status != null && lItem.Status.Sequence < pSequence)
                             {
-                                lHandles.Add(lItem);
-
-                                if (pStatus && lItem.Status != null && lItem.Status.Sequence < pSequence)
-                                {
-                                    lItem.ClearStatus(lContext);
-                                    if (!ReferenceEquals(lSelectedMailboxHandle, lItem)) lItem.UpdateMailboxStatus(lContext);
-                                }
+                                lItem.ClearStatus(lContext);
+                                if (!ReferenceEquals(lSelectedMailboxHandle, lItem)) lItem.UpdateMailboxStatus(lContext);
                             }
-                        }
-
-                    return lHandles;
                 }
 
                 public void Deselect(cTrace.cContext pParentContext)

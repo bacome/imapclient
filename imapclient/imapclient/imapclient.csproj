@@ -68,6 +68,7 @@
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxflagsets.cs" />
+    <Compile Include="exposed_interfaces\other\networkactivity.cs" />
     <Compile Include="exposed_interfaces\support\enums\listflags.cs" />
     <Compile Include="exposed_interfaces\support\types\listflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
@@ -79,12 +80,15 @@
     <Compile Include="exposed_interfaces\support\types\selectedmailboxdetails.cs" />
     <Compile Include="exposed_interfaces\support\types\mailboxhandle.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxbeenselected.cs" />
+    <Compile Include="session\command_hooks\commandhookinitial.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
     <Compile Include="session\imap_commands\authenticated\rlist.cs" />
     <Compile Include="session\imap_commands\not_authenticated\starttls.cs" />
-    <Compile Include="session\parsing\responsedata.cs" />
-    <Compile Include="session\support\listextendeddataitems.cs" />
+    <Compile Include="session\parsing\repsonsedataselect.cs" />
+    <Compile Include="session\parsing\responseparser.cs" />
+    <Compile Include="session\parsing\responsetextcodeselect.cs" />
+    <Compile Include="session\support\listextendeditems.cs" />
     <Compile Include="session\mailboxcache\mailboxcacheitem.cs" />
     <Compile Include="session\mailboxcache\processing.cs" />
     <Compile Include="session\parsing\responsedatalist.cs" />
@@ -161,7 +165,6 @@
     <Compile Include="session\command_hooks\commandhook.cs" />
     <Compile Include="session\command_hooks\commandhookbasesearch.cs" />
     <Compile Include="session\command_hooks\commandhookfetch.cs" />
-    <Compile Include="session\command_hooks\commandhookinitial.cs" />
     <Compile Include="zzz\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooksearchextended.cs" />
     <Compile Include="session\command_hooks\commandhookselect.cs" />

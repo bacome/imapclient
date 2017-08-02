@@ -48,12 +48,15 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kUnknownCTERBracketSpace = new cBytes("UNKNOWN-CTE] ");
 
                 private readonly cEventSynchroniser mEventSynchroniser;
+                private readonly List<iResponseTextCodeParser> mResponseTextCodeParsers = new List<iResponseTextCodeParser>();
                 private cMailboxCache mMailboxCache = null;
 
                 public cResponseTextProcessor(cEventSynchroniser pEventSynchroniser)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                 }
+
+                ;?;
 
                 public void Go(cMailboxCache pMailboxCache, cTrace.cContext pParentContext)
                 {
@@ -139,11 +142,10 @@ namespace work.bacome.imapclient
                         lContext.TraceWarning("likely badly formed badcharset: {0}", pCursor);
                         pCursor.Position = lBookmarkAfterLBRACET;
                     }
-
-                    if (pCursor.SkipBytes(kReferralSpace))
+                    else if (pCursor.SkipBytes(kReferralSpace))
                     {
                         List<string> lURIs = new List<string>();
-                        
+
                         while (true)
                         {
                             if (!pCursor.GetURI(out _, out var lURI, lContext)) break;
@@ -165,31 +167,47 @@ namespace work.bacome.imapclient
                         lContext.TraceWarning("likely badly formed referral: {0}", pCursor);
                         pCursor.Position = lBookmarkAfterLBRACET;
                     }
-
-                    if (mMailboxCache != null)
+                    else
                     {
-                        if (mMailboxCache.ProcessTextCode(pCursor, lContext))
+                        foreach (var lParser in mResponseTextCodeParsers)
                         {
-                            lResponseText = new cResponseText(pCursor.GetRestAsString());
-                            lContext.TraceVerbose("response text received: {0}", lResponseText);
-                            mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
-                            return lResponseText;
+                            if (lParser.Process(pCursor, out var lResponseData, lContext))
+                            {
+                                if (mMailboxCache != null) mMailboxCache.ProcessTextCode(lResponseData, lContext);
+                                if (pTextCodeProcessor != null) pTextCodeProcessor.ProcessTextCode(lResponseData, lContext);
+
+                                lResponseText = new cResponseText(pCursor.GetRestAsString());
+                                lContext.TraceVerbose("response text received: {0}", lResponseText);
+                                mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
+                                return lResponseText;
+                            }
                         }
 
-                        pCursor.Position = lBookmarkAfterLBRACET;
-                    }
-
-                    if (pTextCodeProcessor != null)
-                    {
-                        if (pTextCodeProcessor.ProcessTextCode(pCursor, lContext))
+                        if (mMailboxCache != null)
                         {
-                            lResponseText = new cResponseText(pCursor.GetRestAsString());
-                            lContext.TraceVerbose("response text received: {0}", lResponseText);
-                            mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
-                            return lResponseText;
+                            if (mMailboxCache.ProcessTextCode(pCursor, lContext))
+                            {
+                                lResponseText = new cResponseText(pCursor.GetRestAsString());
+                                lContext.TraceVerbose("response text received: {0}", lResponseText);
+                                mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
+                                return lResponseText;
+                            }
+
+                            pCursor.Position = lBookmarkAfterLBRACET;
                         }
 
-                        pCursor.Position = lBookmarkAfterLBRACET;
+                        if (pTextCodeProcessor != null)
+                        {
+                            if (pTextCodeProcessor.ProcessTextCode(pCursor, lContext))
+                            {
+                                lResponseText = new cResponseText(pCursor.GetRestAsString());
+                                lContext.TraceVerbose("response text received: {0}", lResponseText);
+                                mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
+                                return lResponseText;
+                            }
+
+                            pCursor.Position = lBookmarkAfterLBRACET;
+                        }
                     }
 
                     if (pCursor.GetToken(cCharset.Atom, null, null, out string lUnknownCodeAtom))

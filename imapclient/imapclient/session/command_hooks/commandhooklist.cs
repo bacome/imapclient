@@ -13,6 +13,7 @@ namespace work.bacome.imapclient
             {
                 private readonly cMailboxCache mCache;
                 private readonly cMailboxNamePattern mPattern;
+                private readonly List<cMailboxName> mMailboxes = new List<cMailboxName>();
                 private readonly int mSequence;
 
                 public cCommandHookList(cMailboxCache pCache, cMailboxNamePattern pPattern)
@@ -24,11 +25,28 @@ namespace work.bacome.imapclient
 
                 public List<iMailboxHandle> Handles { get; private set; } = null;
 
+                public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookList), nameof(ProcessData));
+
+                    var lList = pData as cResponseDataList;
+                    if (lList == null) return eProcessDataResult.notprocessed;
+
+                    if (!mPattern.Matches(lList.MailboxName.Name)) return eProcessDataResult.notprocessed;
+
+                    mMailboxes.Add(lList.MailboxName);
+                    return eProcessDataResult.observed;
+                }
+
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookList), nameof(CommandCompleted), pResult, pException);
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) Handles = mCache.List(mPattern, false, mSequence, lContext);
-                    ;?; // this will need to be revised
+
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok)
+                    {
+                        mCache.ResetListFlags(mPattern, mSequence, lContext);
+                        Handles = mCache.GetHandles(mMailboxes);
+                    }
                 }
             }
         }

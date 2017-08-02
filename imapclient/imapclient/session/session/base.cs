@@ -19,6 +19,7 @@ namespace work.bacome.imapclient
 
             private readonly cEventSynchroniser mEventSynchroniser;
             private readonly fMailboxFlagSets mMailboxFlagSets;
+            private readonly fCapabilities mIgnoreCapabilities;
             private readonly cResponseTextProcessor mResponseTextProcessor;
             private readonly cCommandPipeline mPipeline;
 
@@ -29,11 +30,8 @@ namespace work.bacome.imapclient
             private cCommandPartFactory mEncodingPartFactory;
 
             // properties
-            private fCapabilities _IgnoreCapabilities;
-            private cCapabilities _Capabilities = null;
-            private cCapabilities _AuthenticationMechanisms = null;
-            private cCapability _Capability = null;
-            private cURL _HomeServerReferral = null;
+            private cCapability mCapability = null;
+            private cURL mHomeServerReferral = null;
             private cAccountId _ConnectedAccountId = null;
 
             // set once initialised
@@ -48,19 +46,17 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cEventSynchroniser pEventSynchroniser, fMailboxFlagSets pMailboxFlagSets, cIdleConfiguration pIdleConfiguration, fCapabilities pIgnoreCapabilities, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, fMailboxFlagSets pMailboxFlagSets, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesConfiguration, pFetchBodyReadConfiguration);
 
                 mEventSynchroniser = pEventSynchroniser;
+                mIgnoreCapabilities = pIgnoreCapabilities;
                 mMailboxFlagSets = pMailboxFlagSets;
                 mResponseTextProcessor = new cResponseTextProcessor(mEventSynchroniser);
 
                 mPipeline = new cCommandPipeline(mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
-                mPipeline.Install(new cResponseDataParserFetch());
-                if (_Capability.ESearch || _Capability.ESort) mPipeline.Install(new cResponseDataParserESearch());
 
-                _IgnoreCapabilities = pIgnoreCapabilities;
                 mFetchAttributesSizer = new cFetchSizer(pFetchAttributesConfiguration);
                 mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
 
@@ -87,21 +83,18 @@ namespace work.bacome.imapclient
                     mEncodingPartFactory = mCommandPartFactory;
                 }
 
-                mMailboxCache = new cMailboxCache(mEventSynchroniser, _ConnectedAccountId, mCommandPartFactory, ZSetState);
+                mMailboxCache = new cMailboxCache(mEventSynchroniser, mMailboxFlagSets, _ConnectedAccountId, mCommandPartFactory, mCapability, ZSetState);
                 mResponseTextProcessor.Go(mMailboxCache, lContext);
 
+                mPipeline.Install(new cResponseDataParserSelect());
+                mPipeline.Install(new cResponseDataParserFetch());
                 mPipeline.Install(new cResponseDataParserList(lUTF8Enabled));
                 mPipeline.Install(new cResponseDataParserLSub(lUTF8Enabled));
-                mPipeline.Go(mMailboxCache, _Capability, lContext);
+                if (mCapability.ESearch || mCapability.ESort) mPipeline.Install(new cResponseDataParserESearch());
+
+                mPipeline.Go(mMailboxCache, mCapability, , lContext);
 
                 ZSetState(eState.notselected, lContext);
-            }
-
-            public void SetIgnoreCapabilities(fCapabilities pIgnoreCapabilities, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetIgnoreCapabilities), pIgnoreCapabilities);
-                _IgnoreCapabilities = pIgnoreCapabilities;
-                ZSetCapability(lContext);
             }
 
             public void SetIdleConfiguration(cIdleConfiguration pConfiguration, cTrace.cContext pParentContext)
@@ -143,30 +136,9 @@ namespace work.bacome.imapclient
                 mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.State), lContext);
             }
 
-            private void ZSetCapabilities(cCapabilities pCapabilities, cCapabilities pAuthenticationMechanisms, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetCapabilities), pCapabilities, pAuthenticationMechanisms);
-                _Capabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
-                _AuthenticationMechanisms = pAuthenticationMechanisms ?? throw new ArgumentNullException(nameof(pAuthenticationMechanisms));
-                ZSetCapability(lContext);
-            }
+            public cCapability Capability => mCapability;
 
-            public cCapability Capability => _Capability;
-
-            private void ZSetCapability(cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetCapability));
-                if (_Capabilities == null) return;
-                _Capability = new cCapability(_Capabilities, _AuthenticationMechanisms, _IgnoreCapabilities);
-            }
-
-            public cURL HomeServerReferral => _HomeServerReferral;
-
-            private void ZSetHomeServerReferral(cURL pReferral, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetHomeServerReferral), pReferral);
-                _HomeServerReferral = pReferral ?? throw new ArgumentNullException(nameof(pReferral));
-            }
+            public cURL HomeServerReferral => mHomeServerReferral;
 
             public cAccountId ConnectedAccountId => _ConnectedAccountId;
 

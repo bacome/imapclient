@@ -11,28 +11,6 @@ namespace work.bacome.imapclient.support
         {
             Sequence = pSequence;
             Flags = pFlags;
-
-
-
-
-
-
-
-
-            if (mCapability.ListExtended)
-            {
-                if (pList.Flags.Has(@"\NonExistent")) lFlags |= fListFlags.noselect | fListFlags.nonexistent;
-                if (pList.Flags.Has(@"\Remote")) lFlags |= fListFlags.remote;
-            }
-
-            if (mCapability.Children || mCapability.ListExtended)
-            {
-                if (pList.Flags.Has(@"\HasChildren")) lFlags |= fListFlags.haschildren;
-                if (pList.Flags.Has(@"\HasNoChildren")) lFlags |= fListFlags.hasnochildren;
-            }
-
-
-
         }
 
         public bool CanHaveChildren => (Flags & fListFlags.noinferiors) == 0;

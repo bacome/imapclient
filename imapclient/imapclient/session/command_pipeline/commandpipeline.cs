@@ -21,8 +21,8 @@ namespace work.bacome.imapclient
                 private readonly cResponseTextProcessor mResponseTextProcessor;
                 private cIdleConfiguration mIdleConfiguration;
                 private readonly Action<cTrace.cContext> mDisconnect;
-                private readonly List<cResponseDataParser> mResponseDataParsers = new List<cResponseDataParser>();
-                private readonly List<cUnsolicitedDataProcessor> mUnsolicitedDataProcessors = new List<cUnsolicitedDataProcessor>();
+                private readonly List<iResponseDataParser> mResponseDataParsers = new List<iResponseDataParser>();
+                private readonly List<iUnsolicitedDataProcessor> mUnsolicitedDataProcessors = new List<iUnsolicitedDataProcessor>();
                 private cMailboxCache mMailboxCache = null;
                 private bool mLiteralPlus = false; // based on capability
                 private bool mLiteralMinus = false; // based on capability
@@ -55,8 +55,8 @@ namespace work.bacome.imapclient
                     mBackgroundTask = ZBackgroundTaskAsync(lContext);
                 }
 
-                public void Install(cResponseDataParser pResponseDataParser) => mResponseDataParsers.Add(pResponseDataParser);
-                public void Install(cUnsolicitedDataProcessor pUnsolicitedDataProcessor) => mUnsolicitedDataProcessors.Add(pUnsolicitedDataProcessor);
+                public void Install(iResponseDataParser pResponseDataParser) => mResponseDataParsers.Add(pResponseDataParser);
+                public void Install(iUnsolicitedDataProcessor pUnsolicitedDataProcessor) => mUnsolicitedDataProcessors.Add(pUnsolicitedDataProcessor);
 
                 public void Go(cMailboxCache pMailboxCache, cCapability pCapability, cTrace.cContext pParentContext)
                 {
@@ -186,6 +186,7 @@ namespace work.bacome.imapclient
                     else
                     {
                         lContext.TraceVerbose("sending {0}", mTraceBuffer);
+                        mevent;
                         await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
                     }
                 }
@@ -314,6 +315,7 @@ namespace work.bacome.imapclient
                         if (!ReferenceEquals(lCompleted, lAwaitResponseTask)) return lCompleted;
 
                         var lLines = mConnection.GetResponse(lContext);
+                        mevent;
                         var lCursor = new cBytesCursor(lLines);
 
                         if (mCurrentItem != null)
@@ -409,6 +411,7 @@ namespace work.bacome.imapclient
                             mSendBuffer.Add(cASCII.LF);
 
                             lContext.TraceVerbose("sending {0}", mSendBuffer);
+                            mevent;
                             await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                             // wait for continuation
@@ -426,6 +429,7 @@ namespace work.bacome.imapclient
                             mSendBuffer.Add(cASCII.LF);
 
                             lContext.TraceVerbose("sending {0}", mSendBuffer);
+                            mevent;
                             await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                             // process responses until the command completion is received
@@ -499,6 +503,7 @@ namespace work.bacome.imapclient
                     mSendBuffer.Add(cASCII.LF);
 
                     lContext.TraceVerbose("sending {0}", mSendBuffer);
+                    mevent;
                     await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                     await ZIdleProcessResponsesAsync(lTag, false, lContext).ConfigureAwait(false);
@@ -517,6 +522,7 @@ namespace work.bacome.imapclient
                         if (!ReferenceEquals(lCompleted, lAwaitResponseTask)) return lCompleted;
 
                         var lLines = mConnection.GetResponse(lContext);
+                        mevent;
                         var lCursor = new cBytesCursor(lLines);
 
                         if (pExpectContinuation && ZResponseIsContinuation(lCursor, null, lContext)) return null;
@@ -591,6 +597,7 @@ namespace work.bacome.imapclient
                         lBuffer = lBytes.ToArray();
                     }
 
+                    mevent;
                     await mConnection.WriteAsync(mBackgroundMC, lBuffer, lContext).ConfigureAwait(false);
 
                     return true;

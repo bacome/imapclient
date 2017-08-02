@@ -37,6 +37,7 @@ namespace work.bacome.imapclient
                             await lTerminator.WhenAny(mConnection.GetAwaitResponseTask(lContext)).ConfigureAwait(false);
 
                             var lLines = mConnection.GetResponse(lContext);
+                            mEventSynchroniser.FireIncre;
                             var lCursor = new cBytesCursor(lLines);
 
                             if (lCursor.SkipBytes(kConnectAsteriskSpaceOKSpace))

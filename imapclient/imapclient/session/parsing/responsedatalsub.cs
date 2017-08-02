@@ -12,18 +12,18 @@ namespace work.bacome.imapclient
             private class cResponseDataLSub : cResponseData
             {
                 public readonly cMailboxName MailboxName;
-                public readonly bool NoSelect;
+                public readonly bool Subscribed;
 
-                public cResponseDataLSub(cMailboxName pMailboxName, bool pNoSelect)
+                public cResponseDataLSub(cMailboxName pMailboxName, bool pSubscribed)
                 {
                     MailboxName = pMailboxName;
-                    NoSelect = pNoSelect;
+                    Subscribed = pSubscribed;
                 }
 
-                public override string ToString() => $"{nameof(cResponseDataLSub)}({MailboxName},{NoSelect})";
+                public override string ToString() => $"{nameof(cResponseDataLSub)}({MailboxName},{Subscribed})";
             }
 
-            private class cResponseDataParserLSub : cResponseDataParser
+            private class cResponseDataParserLSub : iResponseDataParser
             {
                 private static readonly cBytes kLSubSpace = new cBytes("LSUB ");
 
@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
                     mUTF8Enabled = pUTF8Enabled;
                 }
 
-                public override bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
+                public bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cResponseDataParserLSub), nameof(Process));
 
@@ -53,7 +53,7 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    rResponseData = new cResponseDataLSub(lMailboxName, lFlags.Has(@"\Noselect"));
+                    rResponseData = new cResponseDataLSub(lMailboxName, !lFlags.Has(@"\Noselect"));
                     return true;
                 }
             }

@@ -69,7 +69,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private class cIdDataProcessor : iUnsolicitedDataProcessor
+            private class cIdDataProcessor : cUnsolicitedDataProcessor
             {
                 private static readonly cBytes kIdSpace = new cBytes("ID ");
 
@@ -83,7 +83,7 @@ namespace work.bacome.imapclient
 
                 public cIdReadOnlyDictionary Dictionary => mDictionary;
 
-                public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cIdDataProcessor), nameof(ProcessData));
 

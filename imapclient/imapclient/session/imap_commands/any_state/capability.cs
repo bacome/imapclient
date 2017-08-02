@@ -21,8 +21,7 @@ namespace work.bacome.imapclient
 
                 using (var lCommand = new cCommand())
                 {
-                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
-                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
+                    //  note the lack of locking - this is only called during connect
 
                     lCommand.Add(kCapabilityCommandPart);
 
@@ -35,7 +34,7 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceInformation("capability success");
 
-                        if (lHook.Capabilities != null) ZSetCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, lContext);
+                        if (lHook.Capabilities != null) mCapability = new cCapability(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
                         else throw new cUnexpectedServerActionException(0, "capability not received", lContext);
 
                         return;

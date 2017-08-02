@@ -154,7 +154,7 @@ namespace work.bacome.imapclient
                 if (lCapability.ListExtended)
                 {
                     bool lListStatus = pStatus && lCapability.ListStatus;
-                    lHandles = await lSession.ListExtendedAsync(lMC, false, mMailboxReferrals, pListMailbox, pDelimiter, pPattern, lListStatus, lContext).ConfigureAwait(false);
+                    lHandles = await lSession.ListExtendedAsync(lMC, eListExtendedSelect.exists, mMailboxReferrals, pListMailbox, pDelimiter, pPattern, lListStatus, lContext).ConfigureAwait(false);
                     if (pStatus && !lListStatus) await ZZMailboxesStatusAsync(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
                 }
                 else
@@ -165,8 +165,8 @@ namespace work.bacome.imapclient
 
                     Task lLSubTask;
                     if ((mMailboxFlagSets & fMailboxFlagSets.subscribed) == 0) lLSubTask = null;
-                    else if (mMailboxReferrals && lCapability.MailboxReferrals) lLSubTask = lSession.RLSubAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
-                    else lLSubTask = lSession.LSubAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
+                    else if (mMailboxReferrals && lCapability.MailboxReferrals) lLSubTask = lSession.RLSubAsync(lMC, pListMailbox, pDelimiter, pPattern, false, lContext);
+                    else lLSubTask = lSession.LSubAsync(lMC, pListMailbox, pDelimiter, pPattern, false, lContext);
 
                     lHandles = await lListTask.ConfigureAwait(false);
 

@@ -102,6 +102,12 @@ namespace work.bacome.imapclient
             remove { mEventSynchroniser.ResponseText -= value; }
         }
 
+        public event EventHandler<cActivityEventArgs> Activity
+        {
+            add { mEventSynchroniser.Activity += value; }
+            remove { mEventSynchroniser.Activity -= value; }
+        }
+
         public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged
         {
             add { mEventSynchroniser.MailboxPropertyChanged += value; }
@@ -155,10 +161,9 @@ namespace work.bacome.imapclient
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(IgnoreCapabilities), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
                 mIgnoreCapabilities = value;
-                mSession?.SetIgnoreCapabilities(mIgnoreCapabilities, lContext);
             }
         } 
 

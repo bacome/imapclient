@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
                 mSession.Dispose();
             }
 
-            mSession = new cSession(mEventSynchroniser, mMailboxFlagSets, mIdleConfiguration, mIgnoreCapabilities, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
+            mSession = new cSession(mEventSynchroniser, mIgnoreCapabilities, mMailboxFlagSets, mIdleConfiguration, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
             mAsyncCounter.Increment(lContext);
@@ -130,7 +130,7 @@ namespace work.bacome.imapclient
                     }
 
                     // re-get the capabilities if we didn't get new ones as part of the authentication/ login OR if a security layer was installed (SASL requires this)
-                    if (ReferenceEquals(lOriginalCapability, lSession.Capability) || lSession.SecurityInstalled) await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
+                    if (ReferenceEquals(lOriginalCapability, lSession.Capability) || lSession.SASLSecurityInstalled) await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
                     lCurrentCapability = lSession.Capability;
                 }
 

@@ -23,19 +23,19 @@ namespace work.bacome.imapclient
                 {
                     //  note the lack of locking - this is only called during connect
 
-                    lCommand.Add(kLoginCommandPartLogin, cCommandPartFactory.AsLiteral(pLogin.UserId), cCommandPart.Space, lFactory.AsLiteral(pLogin.Password));
+                    lCommand.Add(kLoginCommandPartLogin, mCommandPartFactory.AsLiteral(pLogin.UserId), cCommandPart.Space, mCommandPartFactory.AsLiteral(pLogin.Password));
 
-                    var lHook = new cCommandHookInitial(_Capability.LoginReferrals);
+                    var lHook = new cCommandHookInitial(mCapability.LoginReferrals);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
-                    if (lResult.Result == cCommandResult.eResult.ok)
+                    if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("login success");
 
-                        if (lHook.Capabilities != null) ZSetCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, lContext);
-                        if (lHook.HomeServerReferral != null) ZSetHomeServerReferral(new cURL(lHook.HomeServerReferral), lContext);
+                        if (lHook.Capabilities != null) mCapability = new cCapability(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                        if (lHook.HomeServerReferral != null) mHomeServerReferral = new cURL(lHook.HomeServerReferral);
                         ZSetConnectedAccountId(pAccountId, lContext);
 
                         return null;
@@ -43,15 +43,14 @@ namespace work.bacome.imapclient
 
                     if (lHook.Capabilities != null) lContext.TraceError("received capability on a failed login");
 
-                    if (lResult.Result == cCommandResult.eResult.no)
+                    if (lResult.ResultType == eCommandResultType.no)
                     {
                         lContext.TraceInformation("login failed: {0}", lResult.ResponseText);
 
                         if (lHook.HomeServerReferral != null)
                         {
-                            cURL lURL = new cURL(lHook.HomeServerReferral);
-                            ZSetHomeServerReferral(lURL, lContext);
-                            return new cHomeServerReferralException(lURL, lResult.ResponseText, lContext);
+                            mHomeServerReferral = new cURL(lHook.HomeServerReferral);
+                            return new cHomeServerReferralException(mHomeServerReferral, lResult.ResponseText, lContext);
                         }
 
                         if (lResult.ResponseText.Code == eResponseTextCode.authenticationfailed || lResult.ResponseText.Code == eResponseTextCode.authorizationfailed || lResult.ResponseText.Code == eResponseTextCode.expired)

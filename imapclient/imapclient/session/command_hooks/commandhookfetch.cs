@@ -10,8 +10,6 @@ namespace work.bacome.imapclient
         {
             private abstract class cCommandHookFetchBase : cCommandHook
             {
-                private static readonly cBytes kFetchSpace = new cBytes("FETCH ");
-
                 private readonly bool mBinary;
                 private readonly cSection mSection;
                 private readonly uint mOrigin;
@@ -26,27 +24,12 @@ namespace work.bacome.imapclient
 
                 public cBody Body { get; private set; } = null; // note that this body may start before the origin position requested and may be longer or shorter than requested
 
-                public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookFetchBase), nameof(ProcessData));
 
-                    cResponseDataFetch lFetch;
-
-                    if (pCursor.Parsed)
-                    {
-                        lFetch = pCursor.ParsedAs as cResponseDataFetch;
-                        if (lFetch == null) return eProcessDataResult.notprocessed;
-                    }
-                    else
-                    {
-                        if (!pCursor.GetNZNumber(out _, out var lMSN) || !pCursor.SkipByte(cASCII.SPACE) || !pCursor.SkipBytes(kFetchSpace)) return eProcessDataResult.notprocessed;
-
-                        if (!cResponseDataFetch.Process(pCursor, lMSN, out lFetch, lContext))
-                        {
-                            lContext.TraceWarning("likely malformed fetch response");
-                            return eProcessDataResult.notprocessed;
-                        }
-                    }
+                    var lFetch = pData as cResponseDataFetch;
+                    if (lFetch == null) return eProcessDataResult.notprocessed;
 
                     if (!IsThisTheMessageThatIAmInterestedIn(lFetch)) return eProcessDataResult.notprocessed;
 

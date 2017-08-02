@@ -13,24 +13,44 @@ namespace work.bacome.imapclient
             {
                 private readonly cMailboxCache mCache;
                 private readonly cMailboxNamePattern mPattern;
+                private readonly bool mDescend;
+                private readonly List<cMailboxName> mMailboxes = new List<cMailboxName>();
                 private readonly int mSequence;
 
-                public cCommandHookLSub(cMailboxCache pCache, cMailboxNamePattern pPattern)
+                public cCommandHookLSub(cMailboxCache pCache, cMailboxNamePattern pPattern, bool pDescend)
                 {
                     mCache = pCache;
                     mPattern = pPattern;
+                    mDescend = pDescend;
                     mSequence = pCache.Sequence;
                 }
 
                 public List<iMailboxHandle> Handles { get; private set; } = null;
 
+                public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookLSub), nameof(ProcessData));
 
-                ;?; // this will need more - must capture the list on the way through to get the subscribed children if one level descent 
+                    var lLSub = pData as cResponseDataLSub;
+                    if (lLSub == null) return eProcessDataResult.notprocessed;
+
+                    if (!mPattern.Matches(lLSub.MailboxName.Name)) return eProcessDataResult.notprocessed;
+
+                    if (lLSub.Subscribed) mMailboxes.Add(lLSub.MailboxName);
+                    else if (!mDescend) mMailboxes.Add(lLSub.MailboxName);
+
+                    return eProcessDataResult.observed;
+                }
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookLSub), nameof(CommandCompleted), pResult, pException);
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) Handles = mCache.LSub(mPattern, false, mSequence, lContext);
+
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok)
+                    {
+                        mCache.ResetLSubFlags(mPattern, mSequence, lContext);
+                        Handles = mCache.GetHandles(mMailboxes);
+                    }
                 }
             }
         }

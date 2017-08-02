@@ -16,6 +16,7 @@ namespace work.bacome.imapclient
         {
             public event PropertyChangedEventHandler PropertyChanged;
             public event EventHandler<cResponseTextEventArgs> ResponseText;
+            public event EventHandler<cNetworkActivityEventArgs> NetworkActivity;
             public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged;
             public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery;
             public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged;
@@ -102,6 +103,15 @@ namespace work.bacome.imapclient
             }
 
             public void FireResponseText(eResponseTextType pTextType, cResponseText pResponseText, cTrace.cContext pParentContext)
+            {
+                if (ResponseText == null) return; // pre-check for efficiency only
+                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(FireResponseText), pTextType, pResponseText);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
+                ZFireAndForget(new cResponseTextEventArgs(pTextType, pResponseText), lContext);
+                // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
+            }
+
+            public void FireNetworkActivity(eNetworkActivityDirection pDirection, string pText, cTrace.cContext pParentContext)
             {
                 if (ResponseText == null) return; // pre-check for efficiency only
                 var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(FireResponseText), pTextType, pResponseText);

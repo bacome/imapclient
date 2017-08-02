@@ -12,13 +12,14 @@ namespace work.bacome.imapclient
 
             private interface iTextCodeProcessor
             {
+                void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext);
                 bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext);
             }
 
-            private class cUnsolicitedDataProcessor
+            private interface iUnsolicitedDataProcessor
             {
-                public virtual eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext) => eProcessDataResult.notprocessed;
-                public virtual eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => eProcessDataResult.notprocessed;
+                eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext);
+                eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext);
             }
         }
     }

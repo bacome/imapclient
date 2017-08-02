@@ -11,7 +11,6 @@ namespace work.bacome.imapclient
         {
             private abstract class cCommandHookBaseSearchExtended : cCommandHook
             {
-
                 private readonly cCommandTag mCommandTag;
                 protected readonly cSelectedMailbox mSelectedMailbox;
                 protected cSequenceSets mSequenceSets = null;
@@ -22,27 +21,12 @@ namespace work.bacome.imapclient
                     mSelectedMailbox = pSelectedMailbox ?? throw new ArgumentNullException(nameof(pSelectedMailbox));
                 }
 
-                public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookBaseSearchExtended), nameof(ProcessData));
 
-                    cResponseDataESearch lESearch;
-
-                    if (pCursor.Parsed)
-                    {
-                        lESearch = pCursor.ParsedAs as cResponseDataESearch;
-                        if (lESearch == null) return eProcessDataResult.notprocessed;
-                    }
-                    else
-                    {
-                        if (!pCursor.SkipBytes(kESearch)) return eProcessDataResult.notprocessed;
-
-                        if (!cResponseDataESearch.Process(pCursor, out lESearch, lContext))
-                        {
-                            lContext.TraceWarning("likely malformed esearch response");
-                            return eProcessDataResult.notprocessed;
-                        }
-                    }
+                    var lESearch = pData as cResponseDataESearch;
+                    if (lESearch == null) return eProcessDataResult.notprocessed;
 
                     if (!cASCII.Compare(mCommandTag, lESearch.Tag, true)) return eProcessDataResult.notprocessed;
 
@@ -62,17 +46,17 @@ namespace work.bacome.imapclient
                     mSort = pSort;
                 }
 
-                public cHandleList Handles { get; private set; } = null;
+                public cMessageHandleList Handles { get; private set; } = null;
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSearchExtended), nameof(CommandCompleted), pResult, pException);
 
-                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok && mSequenceSets != null)
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mSequenceSets != null)
                     {
                         var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Messages);
                         if (!mSort) lMSNs = lMSNs.ToSortedUniqueList();
-                        cHandleList lHandles = new cHandleList();
+                        var lHandles = new cMessageHandleList();
                         foreach (var lMSN in lMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
                         Handles = lHandles;
                     }

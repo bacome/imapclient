@@ -22,9 +22,31 @@ namespace work.bacome.imapclient
 
                 public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    ;?;
-                }
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ProcessData));
 
+                    if (mSelectedMailbox != null)
+                    {
+                        var lResult = mSelectedMailbox.ProcessData(pData, lContext);
+                        if (lResult != eProcessDataResult.notprocessed) return lResult;
+                    }
+
+                    switch (pData)
+                    {
+                        case cResponseDataList lList:
+
+                            ZProcessList(lList, lContext);
+                            return eProcessDataResult.observed;
+
+                        case cResponseDataLSub lLSub:
+
+                            ZProcessLSub(lLSub, lContext);
+                            return eProcessDataResult.observed;
+
+                        default:
+
+                            return eProcessDataResult.notprocessed;
+                    }
+                }
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
@@ -36,41 +58,6 @@ namespace work.bacome.imapclient
                         var lResult = mSelectedMailbox.ProcessData(pCursor, lContext);
                         if (lResult != eProcessDataResult.notprocessed) return lResult;
                         pCursor.Position = lBookmark;
-                    }
-
-                    if (pCursor.Parsed)
-                    {
-                        cResponseDataList lList = pCursor.ParsedAs as cResponseDataList;
-
-                        if (lList != null)
-                        {
-                            ZProcessList(lList, lContext);
-                            return eProcessDataResult.observed;
-                        }
-
-                        cResponseDataLSub lLSub = pCursor.ParsedAs as cResponseDataLSub;
-
-                        if (lLSub != null)
-                        { 
-                            ZProcessLSub(lLSub, lContext);
-                            return eProcessDataResult.observed;
-                        }
-
-                        return eProcessDataResult.notprocessed;
-                    }
-
-                    if (pCursor.SkipBytes(kListSpace))
-                    {
-                        if (!cResponseDataList.Process(pCursor, mCommandPartFactory.UTF8Enabled, out var lList, lContext)) return eProcessDataResult.notprocessed;
-                        ZProcessList(lList, lContext);
-                        return eProcessDataResult.observed;
-                    }
-
-                    if (pCursor.SkipBytes(kLSubSpace))
-                    {
-                        if (!cResponseDataLSub.Process(pCursor, mCommandPartFactory.UTF8Enabled, out var lLSub, lContext)) return eProcessDataResult.notprocessed;
-                        ZProcessLSub(lLSub, lContext);
-                        return eProcessDataResult.observed;
                     }
 
                     if (pCursor.SkipBytes(kStatusSpace))
@@ -95,6 +82,12 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
+                public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ProcessTextCode));
+                    if (mSelectedMailbox != null) mSelectedMailbox.ProcessTextCode(pData, lContext);
+                }
+
                 public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ProcessTextCode));
@@ -107,17 +100,12 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessList));
 
                     var lItem = ZItem(pList.MailboxName);
-
-                    // list
-
-
-                    lItem.SetListFlags(new cListFlags(mSequence++, lFlags), lContext);
-
-                    // extended list also sets the subscribed flag
+                    lItem.SetListFlags(new cListFlags(mSequence++, pList.Flags), lContext);
 
                     if (mCapability.ListExtended)
                     {
-                        lItem.SetLSubFlags(new cLSubFlags(mSequence++, pList.Flags.Has(@"\Subscribed")), lContext);
+                        if ((mMailboxFlagSets & fMailboxFlagSets.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, (pList.Flags & fListFlags.subscribed) != 0), lContext);
+                        else if ((pList.Flags & fListFlags.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, true), lContext);
                     }
                 }
 
@@ -125,7 +113,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessLSub));
                     var lItem = ZItem(pLSub.MailboxName);
-                    lItem.SetLSubFlags(new cLSubFlags(mSequence++, !pLSub.Flags.Has(@"\Noselect")), lContext);
+                    lItem.SetLSubFlags(new cLSubFlags(mSequence++, pLSub.Subscribed), lContext);
                 }
 
                 private bool ZProcessDataStatusAttributes(cBytesCursor pCursor,  out cStatus rStatus, cTrace.cContext pParentContext)
@@ -161,7 +149,10 @@ namespace work.bacome.imapclient
                                     {
                                         lResult = ZProcessDataStatusAttribute(pCursor, kUnseenSpace, ref lUnseen, lContext);
 
-                                        if (lResult == eProcessStatusAttributeResult.notprocessed) lResult = ZProcessDataStatusAttribute(pCursor, kHighestModSeqSpace, ref lHighestModSeq, lContext);
+                                        if (lResult == eProcessStatusAttributeResult.notprocessed)
+                                        {
+                                            lResult = ZProcessDataStatusAttribute(pCursor, kHighestModSeqSpace, ref lHighestModSeq, lContext);
+                                        }
                                     }
                                 }
                             }
