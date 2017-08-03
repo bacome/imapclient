@@ -55,11 +55,11 @@ namespace work.bacome.imapclient
                     return lHandles;
                 }
 
-                public void CheckHandle(iMailboxHandle pHandle)
+                public cMailboxCacheItem CheckHandle(iMailboxHandle pHandle)
                 {
-                    if (!ReferenceEquals(pHandle.Cache, this)) throw new ArgumentOutOfRangeException(nameof(pHandle));
-                    if (!mDictionary.TryGetValue(pHandle.EncodedMailboxName, out var lItem)) throw new ArgumentOutOfRangeException(nameof(pHandle));
-                    if (!ReferenceEquals(lItem, pHandle)) throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    if (!(pHandle is cMailboxCacheItem lItem)) throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    if (!ReferenceEquals(lItem.MailboxCache, this)) throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    return lItem;
                 }
 
                 public void CommandCompletion(cTrace.cContext pParentContext)
@@ -122,7 +122,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetStatus), pPattern, pSequence);
 
-                    iMailboxHandle lSelectedMailboxHandle  = mSelectedMailbox?.Handle;
+                    iMailboxHandle lSelectedMailboxHandle = mSelectedMailbox?.Handle;
 
                     foreach (var lItem in mDictionary.Values)
                         if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
@@ -161,9 +161,7 @@ namespace work.bacome.imapclient
                     if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                     if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
-                    if (!ReferenceEquals(pHandle.Cache, this)) throw new ArgumentOutOfRangeException(nameof(pHandle));
-                    if (!mDictionary.TryGetValue(pHandle.EncodedMailboxName, out var lItem)) throw new ArgumentOutOfRangeException(nameof(pHandle));
-                    if (!ReferenceEquals(lItem, pHandle)) throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    var lItem = CheckHandle(pHandle);
 
                     if (pExists < 0) throw new ArgumentOutOfRangeException(nameof(pExists));
                     if (pRecent < 0) throw new ArgumentOutOfRangeException(nameof(pRecent));
@@ -179,6 +177,21 @@ namespace work.bacome.imapclient
                     mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
 
                     mSetState(eState.selected, lContext);
+                }
+
+                public bool HasChildren(iMailboxHandle pHandle)
+                {
+                    CheckHandle(pHandle);
+
+                    if (pHandle.MailboxName.Delimiter == null) return false;
+
+                    cMailboxNamePattern lPattern = new cMailboxNamePattern(pHandle.MailboxName.Name + pHandle.MailboxName.Delimiter, "*", pHandle.MailboxName.Delimiter);
+
+                    foreach (var lItem in mDictionary.Values)
+                        if (lItem.Exists == true && lItem.MailboxName != null && lPattern.Matches(lItem.MailboxName.Name))
+                            return true;
+
+                    return false;
                 }
 
                 private cMailboxCacheItem ZItem(string pEncodedMailboxName) => mDictionary.GetOrAdd(pEncodedMailboxName, new cMailboxCacheItem(mEventSynchroniser, this, pEncodedMailboxName));

@@ -27,7 +27,6 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public bool NonExistent => (Flags & fListFlags.nonexistent) != 0;
         public bool IsRemote => (Flags & fListFlags.remote) != 0;
 
         public bool? HasChildren
@@ -36,7 +35,6 @@ namespace work.bacome.imapclient.support
             {
                 fListFlags lFlags = Flags & (fListFlags.haschildren | fListFlags.hasnochildren);
                 if (lFlags == fListFlags.haschildren) return true;
-                ;?; // couls/should check with the cache to see if any have appeared
                 if (lFlags == fListFlags.hasnochildren) return false;
                 return null;
             }

@@ -102,10 +102,10 @@ namespace work.bacome.imapclient
             remove { mEventSynchroniser.ResponseText -= value; }
         }
 
-        public event EventHandler<cActivityEventArgs> Activity
+        public event EventHandler<cNetworkActivityEventArgs> NetworkActivity
         {
-            add { mEventSynchroniser.Activity += value; }
-            remove { mEventSynchroniser.Activity -= value; }
+            add { mEventSynchroniser.NetworkActivity += value; }
+            remove { mEventSynchroniser.NetworkActivity -= value; }
         }
 
         public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged
@@ -345,6 +345,22 @@ namespace work.bacome.imapclient
                 return new cMailbox(this, lDetails.Handle);
             }
         }
+
+        public cMailbox GetMailbox(cMailboxName pMailboxName)
+        {
+            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+
+            var lSession = mSession;
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+
+            if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
+
+            var lHandle = mSession.GetMailboxHandle(pMailboxName);
+
+            return new cMailbox(this, lHandle);
+        }
+
+        public bool? HasCachedChildren(iMailboxHandle pHandle) => mSession?.HasCachedChildren(pHandle);
 
         public void Dispose()
         {

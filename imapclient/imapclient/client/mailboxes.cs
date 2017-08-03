@@ -9,43 +9,6 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        // single mailbox
-
-        public cMailbox Mailbox(cMailboxName pMailboxName, bool pStatus)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailbox));
-            var lTask = ZMailboxAsync(pMailboxName, pStatus, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
-            return lTask.Result;
-        }
-
-        public Task<cMailbox> MailboxAsync(cMailboxName pMailboxName, bool pStatus)
-        {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxAsync));
-            return ZMailboxAsync(pMailboxName, pStatus, lContext);
-        }
-
-        private async Task<cMailbox> ZMailboxAsync(cMailboxName pMailboxName, bool pStatus, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMailboxAsync), pMailboxName, pStatus);
-
-            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-
-            var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
-
-            if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
-
-            var lHandle = mSession.GetMailboxHandle(pMailboxName);
-
-            string lListMailbox = pMailboxName.Name.Replace('*', '%');
-            cMailboxNamePattern lPattern = new cMailboxNamePattern(pMailboxName.Name, string.Empty, pMailboxName.Delimiter);
-
-            await ZZMailboxesAsync(lListMailbox, pMailboxName.Delimiter, lPattern, pStatus, lContext).ConfigureAwait(false);
-
-            return new cMailbox(this, lHandle);
-        }
-
         // manual list
 
         public List<cMailbox> Mailboxes(string pListMailbox, char? pDelimiter, bool pStatus = false)
@@ -155,7 +118,7 @@ namespace work.bacome.imapclient
                 {
                     bool lListStatus = pStatus && lCapability.ListStatus;
                     lHandles = await lSession.ListExtendedAsync(lMC, eListExtendedSelect.exists, mMailboxReferrals, pListMailbox, pDelimiter, pPattern, lListStatus, lContext).ConfigureAwait(false);
-                    if (pStatus && !lListStatus) await ZZMailboxesStatusAsync(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
+                    if (pStatus && !lListStatus) await ZGetStatuses(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
                 }
                 else
                 {
@@ -170,7 +133,7 @@ namespace work.bacome.imapclient
 
                     lHandles = await lListTask.ConfigureAwait(false);
 
-                    if (pStatus) await ZZMailboxesStatusAsync(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
+                    if (pStatus) await ZGetStatuses(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
 
                     if (lLSubTask != null) await lLSubTask.ConfigureAwait(false);
                 }
@@ -180,14 +143,6 @@ namespace work.bacome.imapclient
             List<cMailbox> lMailboxes = new List<cMailbox>();
             foreach (var lHandle in lHandles) lMailboxes.Add(new cMailbox(this, lHandle));
             return lMailboxes;
-        }
-
-        private Task ZZMailboxesStatusAsync(cMethodControl pMC, cSession pSession, List<iMailboxHandle> pHandles, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZMailboxesStatusAsync), pMC);
-            List<Task> lStatuses = new List<Task>();
-            foreach (var lHandle in pHandles) if (lHandle.ListFlags?.CanSelect == true) lStatuses.Add(pSession.StatusAsync(pMC, lHandle, lContext));
-            return cTerminator.AwaitAll(pMC, lStatuses);
         }
     }
 }

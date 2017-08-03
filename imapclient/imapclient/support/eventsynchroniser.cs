@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -111,12 +112,59 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void FireNetworkActivity(eNetworkActivityDirection pDirection, string pText, cTrace.cContext pParentContext)
+            private const int kNetworkActivityMaxLength = 40;
+
+            public void FireNetworkActivity(cBytesLines pResponse, cTrace.cContext pParentContext)
             {
-                if (ResponseText == null) return; // pre-check for efficiency only
-                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(FireResponseText), pTextType, pResponseText);
+                if (NetworkActivity == null) return; // pre-check for efficiency only
+
+                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(FireNetworkActivity));
+
                 if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
-                ZFireAndForget(new cResponseTextEventArgs(pTextType, pResponseText), lContext);
+
+                if (pResponse == null) throw new ArgumentNullException(nameof(pResponse));
+                if (pResponse.Count == 0) throw new ArgumentOutOfRangeException(nameof(pResponse));
+
+                char[] lChars = new char[kNetworkActivityMaxLength + 3];
+                int lCharCount = 0;
+
+                foreach (var lByte in pResponse[0])
+                {
+                    if (lByte < cASCII.SPACE || lByte > cASCII.TILDA) break;
+                    lChars[lCharCount++] = (char)lByte;
+                    if (lCharCount == kNetworkActivityMaxLength) break;
+                }
+
+                if (pResponse.Count > 1 || lCharCount < pResponse[0].Count) for (int i = 0; i < 3; i++) lChars[lCharCount++] = '.';
+
+                ZFireAndForget(new cNetworkActivityEventArgs(eNetworkActivitySource.Server, new string(lChars)), lContext);
+                // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
+            }
+
+            public void FireNetworkActivity(IList<byte> pSending, cTrace.cContext pParentContext)
+            {
+                if (NetworkActivity == null) return; // pre-check for efficiency only
+
+                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(FireNetworkActivity));
+
+                if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
+
+                if (pSending == null) throw new ArgumentNullException(nameof(pSending));
+                if (pSending.Count == 0) throw new ArgumentOutOfRangeException(nameof(pSending));
+
+                char[] lChars = new char[kNetworkActivityMaxLength + 3];
+                int lCharCount = 0;
+
+                foreach (var lByte in pSending)
+                {
+                    if (lByte < cASCII.SPACE || lByte > cASCII.TILDA) break;
+                    lChars[lCharCount++] = (char)lByte;
+                    if (lCharCount == kNetworkActivityMaxLength) break;
+                }
+
+                if (lCharCount < pSending.Count) for (int i = 0; i < 3; i++) lChars[lCharCount++] = '.';
+
+                ZFireAndForget(new cNetworkActivityEventArgs(eNetworkActivitySource.Client, new string(lChars)), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
@@ -133,7 +181,6 @@ namespace work.bacome.imapclient
                 if ((pProperties & fMailboxProperties.canhavechildren) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.CanHaveChildren)));
                 if ((pProperties & fMailboxProperties.canselect) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.CanSelect)));
                 if ((pProperties & fMailboxProperties.ismarked) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsMarked)));
-                if ((pProperties & fMailboxProperties.nonexistent) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.NonExistent)));
                 if ((pProperties & fMailboxProperties.isremote) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsRemote)));
                 if ((pProperties & fMailboxProperties.haschildren) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasChildren)));
                 if ((pProperties & fMailboxProperties.containsall) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsAll)));
@@ -145,9 +192,7 @@ namespace work.bacome.imapclient
                 if ((pProperties & fMailboxProperties.containstrash) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsTrash)));
 
                 if ((pProperties & fMailboxProperties.issubscribed) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsSubscribed)));
-                if ((pProperties & fMailboxProperties.hassubscribedchildren) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasSubscribedChildren)));
 
-                if ((pProperties & fMailboxProperties.status) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.Status)));
                 if ((pProperties & fMailboxProperties.messagecount) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.MessageCount)));
                 if ((pProperties & fMailboxProperties.recentcount) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.RecentCount)));
                 if ((pProperties & fMailboxProperties.uidnext) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UIDNext)));
@@ -157,7 +202,6 @@ namespace work.bacome.imapclient
                 if ((pProperties & fMailboxProperties.unseenunknowncount) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UnseenUnknownCount)));
                 if ((pProperties & fMailboxProperties.highestmodseq) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HighestModSeq)));
 
-                if ((pProperties & fMailboxProperties.selectedproperties) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.SelectedProperties)));
                 if ((pProperties & fMailboxProperties.hasbeenselected) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasBeenSelected)));
                 if ((pProperties & fMailboxProperties.hasbeenselectedforupdate) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasBeenSelectedForUpdate)));
                 if ((pProperties & fMailboxProperties.hasbeenselectedreadonly) != 0) ZFireAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasBeenSelectedReadOnly)));
@@ -316,6 +360,11 @@ namespace work.bacome.imapclient
                             case cResponseTextEventArgs lEventArgs:
 
                                 ResponseText?.Invoke(mSender, lEventArgs);
+                                break;
+
+                            case cNetworkActivityEventArgs lEventArgs:
+
+                                NetworkActivity?.Invoke(mSender, lEventArgs);
                                 break;
 
                             case cMailboxMessageDeliveryEventArgs lEventArgs:

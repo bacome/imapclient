@@ -1,5 +1,4 @@
 ﻿using System;
-using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -8,11 +7,11 @@ namespace work.bacome.imapclient
     public class cNetworkActivityEventArgs : EventArgs
     {
         public readonly eNetworkActivitySource Source;
-        public readonly string Message;
+        public readonly string Text;
 
-        public cNetworkActivityEventArgs(eResponseTextType pTextType, cResponseText pText)
+        public cNetworkActivityEventArgs(eNetworkActivitySource pSource, string pText)
         {
-            TextType = pTextType;
+            Source = pSource;
             Text = pText;
         }
 

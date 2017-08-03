@@ -13,9 +13,9 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kRLSubCommandPart = new cCommandPart("RLSUB \"\" ");
 
-            public async Task<List<iMailboxHandle>> RLSubAsync(cMethodControl pMC, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pDescend, cTrace.cContext pParentContext)
+            public async Task<List<iMailboxHandle>> RLSubAsync(cMethodControl pMC, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pHasSubscribedChildren, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(RLSubAsync), pMC, pListMailbox, pDelimiter, pPattern, pDescend);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(RLSubAsync), pMC, pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(kRLSubCommandPart, lListMailboxCommandPart);
 
-                    var lHook = new cCommandHookLSub(mMailboxCache, pPattern, pDescend);
+                    var lHook = new cCommandHookLSub(mMailboxCache, pPattern, pHasSubscribedChildren);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);

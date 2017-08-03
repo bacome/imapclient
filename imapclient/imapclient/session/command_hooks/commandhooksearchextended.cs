@@ -25,9 +25,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookBaseSearchExtended), nameof(ProcessData));
 
-                    var lESearch = pData as cResponseDataESearch;
-                    if (lESearch == null) return eProcessDataResult.notprocessed;
-
+                    if (!(pData is cResponseDataESearch lESearch)) return eProcessDataResult.notprocessed;
                     if (!cASCII.Compare(mCommandTag, lESearch.Tag, true)) return eProcessDataResult.notprocessed;
 
                     if (mSequenceSets == null) mSequenceSets = new cSequenceSets();

@@ -106,8 +106,6 @@ namespace work.bacome.imapclient
 
             private class cListExtendedCommandHook : cCommandHook
             {
-                private static readonly cBytes kListSpace = new cBytes("LIST ");
-
                 private readonly cMailboxCache mCache;
                 private readonly eListExtendedSelect mSelect;
                 private readonly cMailboxNamePattern mPattern;
@@ -132,16 +130,14 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cListExtendedCommandHook), nameof(ProcessData));
 
-                    var lList = pData as cResponseDataList;
-                    if (lList == null) return eProcessDataResult.notprocessed;
-
+                    if (!(pData is cResponseDataList lList)) return eProcessDataResult.notprocessed;
                     if (!mPattern.Matches(lList.MailboxName.Name)) return eProcessDataResult.notprocessed;
 
                     switch (mSelect)
                     {
                         case eListExtendedSelect.exists:
 
-                            if ((lList.Flags & fListFlags.nonexistent) == 0 || (lList.Flags & fListFlags.haschildren) != 0)
+                            if ((lList.Flags & fListFlags.nonexistent) == 0 || (lList.Flags & fListFlags.subscribed) == 0)
                             {
                                 mMailboxes.Add(lList.MailboxName);
                                 return eProcessDataResult.observed;
@@ -181,23 +177,9 @@ namespace work.bacome.imapclient
 
                     if (pResult == null || pResult.ResultType != eCommandResultType.ok) return;
 
-                    switch (mSelect)
-                    {
-                        case eListExtendedSelect.exists:
-
-                            mCache.ResetListFlags(mPattern, mSequence, lContext);
-                            break;
-
-                        case eListExtendedSelect.subscribed:
-                        case eListExtendedSelect.subscribedrecursive:
-
-                            mCache.ResetLSubFlags(mPattern, mSequence, lContext);
-                            break;
-
-                        default:
-
-                            throw new cInternalErrorException(lContext);
-                    }
+                    if (mSelect == eListExtendedSelect.exists) mCache.ResetListFlags(mPattern, mSequence, lContext);
+                    if (mSelect == eListExtendedSelect.subscribed || mSelect == eListExtendedSelect.subscribedrecursive) mCache.ResetLSubFlags(mPattern, mSequence, lContext);
+                    if (mStatus) mCache.ResetStatus(mPattern, mSequence, lContext);
 
                     Handles = mCache.GetHandles(mMailboxes);
                 }

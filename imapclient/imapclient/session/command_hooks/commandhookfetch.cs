@@ -28,9 +28,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookFetchBase), nameof(ProcessData));
 
-                    var lFetch = pData as cResponseDataFetch;
-                    if (lFetch == null) return eProcessDataResult.notprocessed;
-
+                    if (!(pData is cResponseDataFetch lFetch)) return eProcessDataResult.notprocessed;
                     if (!IsThisTheMessageThatIAmInterestedIn(lFetch)) return eProcessDataResult.notprocessed;
 
                     eProcessDataResult lResult = eProcessDataResult.notprocessed;

@@ -23,9 +23,9 @@ namespace work.bacome.imapclient
 
                 public cMailboxCacheItem(cEventSynchroniser pEventSynchroniser, cMailboxCache pMailboxCache, string pEncodedMailboxName)
                 {
-                    mEventSynchroniser = pEventSynchroniser;
-                    mMailboxCache = pMailboxCache;
-                    mEncodedMailboxName = pEncodedMailboxName;
+                    mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
+                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
+                    mEncodedMailboxName = pEncodedMailboxName ?? throw new ArgumentNullException(nameof(pEncodedMailboxName));
                 }
 
                 public object Cache => mMailboxCache;
@@ -64,7 +64,7 @@ namespace work.bacome.imapclient
 
                     if (pListFlags == null) throw new ArgumentNullException(nameof(pListFlags));
 
-                    fMailboxProperties lDifferences = ZSetExists() | cListFlags.Differences(mListFlags, pListFlags);
+                    fMailboxProperties lDifferences = ZSetExists((pListFlags.Flags & fListFlags.nonexistent) == 0) | cListFlags.Differences(mListFlags, pListFlags);
 
                     mListFlags = pListFlags;
 
@@ -117,7 +117,7 @@ namespace work.bacome.imapclient
                     else
                     {
                         cMailboxStatus lMailboxStatus = new cMailboxStatus(mStatus.Messages ?? 0, mStatus.Recent ?? 0, mStatus.UIDNext ?? 0, mStatus.UIDValidity ?? 0, mStatus.Unseen ?? 0, mStatus.HighestModSeq ?? 0);
-                        lDifferences = ZSetExists() | cMailboxStatus.Differences(mMailboxStatus, lMailboxStatus);
+                        lDifferences = ZSetExists(true) | cMailboxStatus.Differences(mMailboxStatus, lMailboxStatus);
                         mMailboxStatus = lMailboxStatus;
                     }
 
@@ -128,7 +128,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetMailboxStatus), pMailboxStatus);
                     if (pMailboxStatus == null) throw new ArgumentNullException(nameof(pMailboxStatus));
-                    fMailboxProperties lDifferences = ZSetExists() | cMailboxStatus.Differences(mMailboxStatus, pMailboxStatus);
+                    fMailboxProperties lDifferences = ZSetExists(true) | cMailboxStatus.Differences(mMailboxStatus, pMailboxStatus);
                     mMailboxStatus = pMailboxStatus;
                     mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
@@ -159,15 +159,15 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(ZSetSelectedProperties), pSelectedProperties);
                     if (pSelectedProperties == null) throw new ArgumentNullException(nameof(pSelectedProperties));
-                    fMailboxProperties lDifferences = ZSetExists() | cMailboxSelectedProperties.Differences(mSelectedProperties, pSelectedProperties);
+                    fMailboxProperties lDifferences = ZSetExists(true) | cMailboxSelectedProperties.Differences(mSelectedProperties, pSelectedProperties);
                     mSelectedProperties = pSelectedProperties;
                     mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 
-                private fMailboxProperties ZSetExists()
+                private fMailboxProperties ZSetExists(bool pExists)
                 {
-                    if (mExists == true) return 0;
-                    mExists = true;
+                    if (mExists == pExists) return 0;
+                    mExists = pExists;
                     return fMailboxProperties.exists;
                 }
 

@@ -88,13 +88,6 @@ namespace work.bacome.imapclient
                     if (mSelectedMailbox != null) mSelectedMailbox.ProcessTextCode(pData, lContext);
                 }
 
-                public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ProcessTextCode));
-                    if (mSelectedMailbox != null) return mSelectedMailbox.ProcessTextCode(pCursor, lContext);
-                    return false;
-                }
-
                 private void ZProcessList(cResponseDataList pList, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessList));

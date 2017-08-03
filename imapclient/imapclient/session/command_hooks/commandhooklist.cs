@@ -29,9 +29,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookList), nameof(ProcessData));
 
-                    var lList = pData as cResponseDataList;
-                    if (lList == null) return eProcessDataResult.notprocessed;
-
+                    if (!(pData is cResponseDataList lList)) return eProcessDataResult.notprocessed;
                     if (!mPattern.Matches(lList.MailboxName.Name)) return eProcessDataResult.notprocessed;
 
                     mMailboxes.Add(lList.MailboxName);

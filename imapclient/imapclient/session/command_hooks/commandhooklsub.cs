@@ -13,15 +13,15 @@ namespace work.bacome.imapclient
             {
                 private readonly cMailboxCache mCache;
                 private readonly cMailboxNamePattern mPattern;
-                private readonly bool mDescend;
+                private readonly bool mHasSubscribedChildren;
                 private readonly List<cMailboxName> mMailboxes = new List<cMailboxName>();
                 private readonly int mSequence;
 
-                public cCommandHookLSub(cMailboxCache pCache, cMailboxNamePattern pPattern, bool pDescend)
+                public cCommandHookLSub(cMailboxCache pCache, cMailboxNamePattern pPattern, bool pHasSubscribedChildren)
                 {
                     mCache = pCache;
                     mPattern = pPattern;
-                    mDescend = pDescend;
+                    mHasSubscribedChildren = pHasSubscribedChildren;
                     mSequence = pCache.Sequence;
                 }
 
@@ -31,13 +31,11 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookLSub), nameof(ProcessData));
 
-                    var lLSub = pData as cResponseDataLSub;
-                    if (lLSub == null) return eProcessDataResult.notprocessed;
-
+                    if (!(pData is cResponseDataLSub lLSub)) return eProcessDataResult.notprocessed;
                     if (!mPattern.Matches(lLSub.MailboxName.Name)) return eProcessDataResult.notprocessed;
 
                     if (lLSub.Subscribed) mMailboxes.Add(lLSub.MailboxName);
-                    else if (!mDescend) mMailboxes.Add(lLSub.MailboxName);
+                    else if (mHasSubscribedChildren) mMailboxes.Add(lLSub.MailboxName);
 
                     return eProcessDataResult.observed;
                 }

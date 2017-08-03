@@ -22,7 +22,6 @@ namespace work.bacome.imapclient
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
-            if (pHandle.MailboxName == null) throw new cInvalidHandleException();
         }
 
         // events
@@ -89,7 +88,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.Exists == null) Client.List(Handle);
+                if (Handle.Exists == null) Client.GetFlags(Handle);
                 return Handle.Exists.Value;
             }
         }
@@ -98,29 +97,179 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.List(Handle);
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.CanHaveChildren;
             }
         }
 
+        public bool CanSelect
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.ListFlags.CanSelect;
+            }
+        }
+
+        public bool? IsMarked
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.ListFlags.IsMarked;
+            }
+        }
+
+        public bool IsRemote
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.ListFlags.IsRemote;
+            }
+        }
+
+        public bool? HasChildren
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                bool? lHasChildren = Handle.ListFlags.HasChildren;
+                if (lHasChildren == true) return true;
+                if (Client.HasCachedChildren(Handle) == true) return true;
+                return lHasChildren;
+            }
+        }
+
+        public bool ContainsAll
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.ListFlags.ContainsAll;
+            }
+        }
+
+        public bool IsArchive
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.ListFlags.IsArchive;
+            }
+        }
+
+        public bool ContainsDrafts
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.ListFlags.ContainsDrafts;
+            }
+        }
+
+        public bool ContainsFlagged
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.ListFlags.ContainsFlagged;
+            }
+        }
+
+        public bool ContainsJunk
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.ListFlags.ContainsJunk;
+            }
+        }
+
+        public bool ContainsSent
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.ListFlags.ContainsSent;
+            }
+        }
+
+        public bool ContainsTrash
+        {
+            get
+            {
+                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.ListFlags.ContainsTrash;
+            }
+        }
+
+        public bool IsSubscribed
+        {
+            get
+            {
+                if (Handle.LSubFlags == null) Client.GetSubscribed(Handle);
+                return Handle.LSubFlags.Subscribed;
+            }
+        }
+
+        public int MessageCount
+        {
+            get
+            {
+                if (Handle.MailboxStatus == null) Client.GetStatus(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.MailboxStatus.MessageCount;
+            }
+        }
+
+        public int MessageCount
+        {
+            get
+            {
+                if (Handle.MailboxStatus == null) Client.GetStatus(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.MailboxStatus.MessageCount;
+            }
+        }
+
+        public int MessageCount
+        {
+            get
+            {
+                if (Handle.MailboxStatus == null) Client.GetStatus(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.MailboxStatus.MessageCount;
+            }
+        }
+
+        public int MessageCount
+        {
+            get
+            {
+                if (Handle.MailboxStatus == null) Client.GetStatus(Handle);
+                if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+                return Handle.MailboxStatus.MessageCount;
+            }
+        }
+
+
         ;?; // this isn't right - it should be like the message ones and do the fetch if required
 
 
-        public bool CanHaveChildren => Client.MailboxCacheItem(MailboxId).MailboxFlags.CanHaveChildren;
-        public bool CanSelect => Client.MailboxCacheItem(MailboxId).MailboxFlags.CanSelect;
-        public bool? IsMarked => Client.MailboxCacheItem(MailboxId).MailboxFlags.IsMarked;
-        public bool NonExistent => Client.MailboxCacheItem(MailboxId).MailboxFlags.NonExistent;
-        public bool IsSubscribed => Client.MailboxCacheItem(MailboxId).MailboxFlags.IsSubscribed;
-        public bool IsRemote => Client.MailboxCacheItem(MailboxId).MailboxFlags.IsRemote;
-        public bool? HasChildren => Client.MailboxCacheItem(MailboxId).MailboxFlags.HasChildren;
-        public bool HasSubscribedChildren => Client.MailboxCacheItem(MailboxId).MailboxFlags.HasSubscribedChildren;
-        public bool ContainsAll => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsAll;
-        public bool IsArchive => Client.MailboxCacheItem(MailboxId).MailboxFlags.IsArchive;
-        public bool ContainsDrafts => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsDrafts;
-        public bool ContainsFlagged => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsFlagged;
-        public bool ContainsJunk => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsJunk;
-        public bool ContainsSent => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsSent;
-        public bool ContainsTrash => Client.MailboxCacheItem(MailboxId).MailboxFlags.ContainsTrash;
+
 
         // status could be null (for unselectable mailbox) => these may throw
         public int MessageCount => Client.Status(MailboxId).MessageCount;
@@ -132,7 +281,6 @@ namespace work.bacome.imapclient
         public int UnseenUnknownCount => Client.Status(MailboxId).UnseenUnknownCount;
         public ulong HighestModSeq => Client.Status(MailboxId).HighestModSeq;
 
-        public cMailboxSelectedProperties SelectedProperties => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected;
         public bool HasBeenSelected => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.HasBeenSelected;
         public bool HasBeenSelectedForUpdate => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.HasBeenSelectedForUpdate;
         public bool HasBeenSelectedReadOnly => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.HasBeenSelectedReadOnly;
@@ -140,22 +288,12 @@ namespace work.bacome.imapclient
         public cMessageFlags ForUpdatePermanentFlags => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.ForUpdatePermanentFlags;
         public cMessageFlags ReadOnlyPermanentFlags => Client.MailboxCacheItem(MailboxId).MailboxBeenSelected.ReadOnlyPermanentFlags;
 
-        public cMailboxSelected Selected
-        {
-            get
-            {
-                var lDetails = Client.SelectedMailboxDetails;
-                if (lDetails == null | lDetails.MailboxId != MailboxId) return new cMailboxSelected();
-                return new cMailboxSelected(lDetails.SelectedForUpdate, lDetails.AccessReadOnly);
-            }
-        }
-
         public bool IsSelected
         {
             get
             {
                 var lDetails = Client.SelectedMailboxDetails;
-                if (lDetails == null | lDetails.MailboxId != MailboxId) return false;
+                if (lDetails == null | lDetails.Handle != Handle) return false;
                 return true;
             }
         }
@@ -165,7 +303,7 @@ namespace work.bacome.imapclient
             get
             {
                 var lDetails = Client.SelectedMailboxDetails;
-                if (lDetails == null | lDetails.MailboxId != MailboxId) return false;
+                if (lDetails == null | lDetails.Handle != Handle) return false;
                 return lDetails.SelectedForUpdate;
             }
         }
@@ -175,7 +313,7 @@ namespace work.bacome.imapclient
             get
             {
                 var lDetails = Client.SelectedMailboxDetails;
-                if (lDetails == null | lDetails.MailboxId != MailboxId) return false;
+                if (lDetails == null | lDetails.Handle != Handle) return false;
                 return lDetails.AccessReadOnly;
             }
         }
@@ -190,6 +328,8 @@ namespace work.bacome.imapclient
 
         public List<cMailbox> Mailboxes(bool pStatus = false) => Client.Mailboxes(MailboxId, pProperties);
         public Task<List<cMailbox>> MailboxesAsync(bool pStatus = false) => Client.MailboxesAsync(MailboxId, pProperties);
+
+        ;?; // note subscription parameter is descend and the client api takes hassubscribedchildren
 
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Messages(MailboxId, pFilter, pSort, pAttributes);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fFetchAttributes pAttributes = fFetchAttributes.clientdefault) => Client.MessagesAsync(MailboxId, pFilter, pSort, pAttributes);
@@ -252,7 +392,7 @@ namespace work.bacome.imapclient
         public void Select(bool pForUpdate) => Client.Select(MailboxId, pOptions);
         public Task SelectAsync(bool pForUpdate) => Client.SelectAsync(MailboxId, pOptions);
 
-        public void SetUnseen() => Client.setunseen();
+        public List<cMessage> UnseenMessages Unseen() => Client.setunseen();
         ;?; // and async
 
         // helpers

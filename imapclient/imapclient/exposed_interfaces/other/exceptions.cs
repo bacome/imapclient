@@ -197,7 +197,7 @@ namespace work.bacome.imapclient
         public cStreamClosedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamClosedException), pMessage, pInner);
     }
 
-    // thrown when the UIDValidity changes
+    // thrown when the UIDValidity changed while doing something that depended on it not changing
     public class cUIDValidityChangedException : cIMAPException
     {
         public cUIDValidityChangedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityChangedException));
@@ -210,17 +210,16 @@ namespace work.bacome.imapclient
         public cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
     }
 
-    /*
-    // thrown when an invalid handle is detected
-    public class cInvalidMessageHandleException : cIMAPException
-    {
-        public cInvalidMessageHandleException() { }
-    } */
-
     // thrown when a fetch of an attribute didn't return it
     public class cFetchFailedException : cIMAPException
     {
         public cFetchFailedException() { }
+    }
+
+    // thrown when a fetch of an attribute didn't return it
+    public class cMailboxDoesNotExistException : cIMAPException
+    {
+        public cMailboxDoesNotExistException() { }
     }
 
     // thrown when a required capability for the call isn't available on the server

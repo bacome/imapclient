@@ -16,7 +16,8 @@ namespace work.bacome.imapclient
             private sealed partial class cCommandPipeline : IDisposable
             {
                 private bool mDisposed = false;
-                
+
+                private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cConnection mConnection;
                 private readonly cResponseTextProcessor mResponseTextProcessor;
                 private cIdleConfiguration mIdleConfiguration;
@@ -41,9 +42,10 @@ namespace work.bacome.imapclient
                 private cCurrentItem mCurrentItem = null;
                 private cActiveItems mActiveItems = new cActiveItems();
 
-                public cCommandPipeline(cConnection pConnection, cResponseTextProcessor pResponseTextProcessor, cIdleConfiguration pIdleConfiguration, Action<cTrace.cContext> pDisconnect, cTrace.cContext pParentContext)
+                public cCommandPipeline(cEventSynchroniser pEventSynchroniser, cConnection pConnection, cResponseTextProcessor pResponseTextProcessor, cIdleConfiguration pIdleConfiguration, Action<cTrace.cContext> pDisconnect, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cCommandPipeline), pIdleConfiguration);
+                    mEventSynchroniser = pEventSynchroniser;
                     mConnection = pConnection;
                     mResponseTextProcessor = pResponseTextProcessor;
                     mIdleConfiguration = pIdleConfiguration;
@@ -186,7 +188,7 @@ namespace work.bacome.imapclient
                     else
                     {
                         lContext.TraceVerbose("sending {0}", mTraceBuffer);
-                        mevent;
+                        mEventSynchroniser.FireNetworkActivity(mTraceBuffer, lContext);
                         await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
                     }
                 }
@@ -315,7 +317,7 @@ namespace work.bacome.imapclient
                         if (!ReferenceEquals(lCompleted, lAwaitResponseTask)) return lCompleted;
 
                         var lLines = mConnection.GetResponse(lContext);
-                        mevent;
+                        mEventSynchroniser.FireNetworkActivity(lLines, lContext);
                         var lCursor = new cBytesCursor(lLines);
 
                         if (mCurrentItem != null)
@@ -411,7 +413,7 @@ namespace work.bacome.imapclient
                             mSendBuffer.Add(cASCII.LF);
 
                             lContext.TraceVerbose("sending {0}", mSendBuffer);
-                            mevent;
+                            mEventSynchroniser.FireNetworkActivity(mSendBuffer, lContext);
                             await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                             // wait for continuation
@@ -429,7 +431,7 @@ namespace work.bacome.imapclient
                             mSendBuffer.Add(cASCII.LF);
 
                             lContext.TraceVerbose("sending {0}", mSendBuffer);
-                            mevent;
+                            mEventSynchroniser.FireNetworkActivity(mSendBuffer, lContext);
                             await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                             // process responses until the command completion is received
@@ -503,7 +505,7 @@ namespace work.bacome.imapclient
                     mSendBuffer.Add(cASCII.LF);
 
                     lContext.TraceVerbose("sending {0}", mSendBuffer);
-                    mevent;
+                    mEventSynchroniser.FireNetworkActivity(mSendBuffer, lContext);
                     await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                     await ZIdleProcessResponsesAsync(lTag, false, lContext).ConfigureAwait(false);
@@ -522,7 +524,7 @@ namespace work.bacome.imapclient
                         if (!ReferenceEquals(lCompleted, lAwaitResponseTask)) return lCompleted;
 
                         var lLines = mConnection.GetResponse(lContext);
-                        mevent;
+                        mEventSynchroniser.FireNetworkActivity(lLines, lContext);
                         var lCursor = new cBytesCursor(lLines);
 
                         if (pExpectContinuation && ZResponseIsContinuation(lCursor, null, lContext)) return null;
@@ -552,6 +554,9 @@ namespace work.bacome.imapclient
                     mResponseTextProcessor.Process(pCursor, eResponseTextType.continuerequest, pTextCodeProcessor, lContext);
                     return true;
                 }
+
+                private static readonly cBytes kAsterisk = new cBytes("*");
+                private static readonly cBytes kSASLAuthenticationResponse = new cBytes("<SASL authentication response>");
 
                 private async Task<bool> ZResponseIsChallengeAsync(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
@@ -587,6 +592,7 @@ namespace work.bacome.imapclient
                         lContext.TraceVerbose("sending cancellation");
                         lBuffer = new byte[] { cASCII.ASTERISK, cASCII.CR, cASCII.LF };
                         mAuthenticateState.CancelSent = true;
+                        mEventSynchroniser.FireNetworkActivity(kAsterisk, lContext);
                     }
                     else
                     {
@@ -595,9 +601,9 @@ namespace work.bacome.imapclient
                         lBytes.Add(cASCII.CR);
                         lBytes.Add(cASCII.LF);
                         lBuffer = lBytes.ToArray();
+                        mEventSynchroniser.FireNetworkActivity(kSASLAuthenticationResponse, lContext);
                     }
 
-                    mevent;
                     await mConnection.WriteAsync(mBackgroundMC, lBuffer, lContext).ConfigureAwait(false);
 
                     return true;

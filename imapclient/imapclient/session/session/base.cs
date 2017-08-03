@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
                 mMailboxFlagSets = pMailboxFlagSets;
                 mResponseTextProcessor = new cResponseTextProcessor(mEventSynchroniser);
 
-                mPipeline = new cCommandPipeline(mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
+                mPipeline = new cCommandPipeline(pEventSynchroniser, mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
 
                 mFetchAttributesSizer = new cFetchSizer(pFetchAttributesConfiguration);
                 mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
@@ -197,7 +197,13 @@ namespace work.bacome.imapclient
 
             public iSelectedMailboxDetails SelectedMailboxDetails => mMailboxCache?.SelectedMailboxDetails;
 
-            public iMailboxHandle GetMailboxHandle(cMailboxName pMailboxName) => mMailboxCache.GetHandle(pMailboxName);
+            public iMailboxHandle GetMailboxHandle(cMailboxName pMailboxName)
+            {
+                if (mMailboxCache == null) throw new InvalidOperationException();
+                return mMailboxCache.GetHandle(pMailboxName);
+            }
+
+            public bool? HasCachedChildren(iMailboxHandle pHandle) => mMailboxCache?.HasChildren(pHandle);
 
             public void Disconnect(cTrace.cContext pParentContext)
             {
