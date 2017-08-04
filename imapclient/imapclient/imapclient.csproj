@@ -72,7 +72,7 @@
     <Compile Include="exposed_interfaces\support\enums\listflags.cs" />
     <Compile Include="exposed_interfaces\support\types\listflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
-    <Compile Include="exposed_interfaces\other\mailboxes.cs" />
+    <Compile Include="exposed_interfaces\other\childmailboxes.cs" />
     <Compile Include="exposed_interfaces\message\messageproperties.cs" />
     <Compile Include="exposed_interfaces\support\enums\mailboxpropertiies.cs" />
     <Compile Include="exposed_interfaces\support\types\lsubflags.cs" />

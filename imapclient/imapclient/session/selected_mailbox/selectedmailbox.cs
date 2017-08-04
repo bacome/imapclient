@@ -30,7 +30,6 @@ namespace work.bacome.imapclient
                 public iMailboxHandle Handle => mMailboxCacheItem;
                 public bool SelectedForUpdate => mSelectedForUpdate;
                 public bool AccessReadOnly => mAccessReadOnly;
-                public bool NoModSeq => mCache.NoModSeq;
                 public iMessageCache Cache => mCache;
 
                 public void UpdateHighestModSeq(cTrace.cContext pParentContext) => mCache.UpdateHighestModSeq(pParentContext);

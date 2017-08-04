@@ -7,7 +7,6 @@ namespace work.bacome.imapclient.support
         iMailboxHandle Handle { get; }
         bool SelectedForUpdate { get; }
         bool AccessReadOnly { get; }
-        bool NoModSeq { get; }
         iMessageCache Cache { get; }
     }
 }

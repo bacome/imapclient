@@ -102,8 +102,15 @@ namespace work.bacome.imapclient
                 }
 
                 public iMailboxHandle MailboxHandle => mMailboxCacheItem;
-                public uint UIDValidity => mUIDValidity;
                 public bool NoModSeq => mNoModSeq;
+                public int MessageCount => mItems.Count;
+                public int RecentCount => mRecentCount;
+                public uint UIDNext => mUIDNext;
+                public int UIDNextUnknownCount => mUIDNextUnknownCount;
+                public uint UIDValidity => mUIDValidity;
+                public int UnseenCount => mUnseenCount;
+                public int UnseenUnknownCount => mUnseenUnknownCount;
+                public ulong HighestModSeq => mHighestModSeq;
 
                 public void UpdateHighestModSeq(cTrace.cContext pParentContext)
                 {

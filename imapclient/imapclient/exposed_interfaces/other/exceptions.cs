@@ -216,18 +216,6 @@ namespace work.bacome.imapclient
         public cFetchFailedException() { }
     }
 
-    // thrown when a property is accessed that requires that the mailbox exists and it doesn't
-    public class cMailboxDoesNotExistException : cIMAPException
-    {
-        public cMailboxDoesNotExistException() { }
-    }
-
-    // thrown when a property is accessed that requires that the mailbox cache hasn't been asked to store
-    public class cMailboxCacheDataException : cIMAPException
-    {
-        public cMailboxCacheDataException() { }
-    }
-
     // thrown when a required capability for the call isn't available on the server
     public class cUnsupportedByServerException : cIMAPException
     {
@@ -250,12 +238,6 @@ namespace work.bacome.imapclient
             Required = pRequired;
             pContext.TraceError("{0}: {1}", nameof(cUnsupportedByMailboxException), pRequired);
         }
-    }
-
-    // thrown when accessing a property that can't be known until the mailbox has been selected
-    public class cNeverBeenSelectedException : cIMAPException
-    {
-        public cNeverBeenSelectedException() { }
     }
 
     public class cTestsException : Exception

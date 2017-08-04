@@ -125,7 +125,11 @@ namespace work.bacome.imapclient
 
                     lListTask = lSession.ListExtendedAsync(lMC, eListExtendedSelect.exists, mMailboxReferrals, pListMailbox, pDelimiter, pPattern, lListStatus, lContext);
 
-                    if (lLSub) x;
+                    if (lLSub)
+                    {
+                        if (mMailboxReferrals) lLSubTask = lSession.ListExtendedAsync(lMC, eListExtendedSelect.subscribed, true, pListMailbox, pDelimiter, pPattern, false, lContext);
+                        else lLSubTask = lSession.LSubAsync(lMC, pListMailbox, pDelimiter, pPattern, false, lContext);
+                    }
                     else lLSubTask = null;
 
                     lHandles = await lListTask.ConfigureAwait(false);
@@ -136,7 +140,6 @@ namespace work.bacome.imapclient
                 {
                     if (mMailboxReferrals && lCapability.MailboxReferrals) lListTask = lSession.RListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
                     else lListTask = lSession.ListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
-
 
                     if (lLSub)
                     {

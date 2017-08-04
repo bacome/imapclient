@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
 
                 if ((pAttributes & (fFetchAttributes.flags | fFetchAttributes.modseq)) == 0) return pAttributes;
 
-                bool lNoModSeq = mMailboxCache.SelectedMailbox?.NoModSeq ?? true;
+                bool lNoModSeq = mMailboxCache.SelectedMailboxDetails?.Cache.NoModSeq ?? true;
 
                 if ((pAttributes & fFetchAttributes.modseq) != 0)
                 {
