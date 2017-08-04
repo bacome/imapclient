@@ -22,6 +22,8 @@ namespace work.bacome.imapclient
 
                 var lItem = mMailboxCache.CheckHandle(pHandle);
 
+                if (mStatusAttributes == 0) return;
+
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
@@ -34,7 +36,7 @@ namespace work.bacome.imapclient
                     lCommand.BeginList(eListBracketing.none);
                     lCommand.Add(kStatusCommandPart);
                     lCommand.Add(lItem.MailboxNameCommandPart);
-                    lCommand.AddStatusAttributes(mCapability);
+                    lCommand.AddStatusAttributes(mStatusAttributes);
                     lCommand.EndList();
 
                     var lHook = new cStatusCommandHook(lItem);

@@ -215,8 +215,12 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartGreaterThan = new cCommandPart(">");
 
                 // status
-                private static readonly cCommandPart kCommandPartStatusBase = new cCommandPart("(MESSAGES RECENT UIDNEXT UIDVALIDITY UNSEEN)");
-                private static readonly cCommandPart kCommandPartStatusCondStore = new cCommandPart("(MESSAGES RECENT UIDNEXT UIDVALIDITY HIGHESTMODSEQ)");
+                private static readonly cCommandPart kCommandPartMessages = new cCommandPart("MESSAGES");
+                //private static readonly cCommandPart kCommandPartRecent = new cCommandPart("RECENT");
+                private static readonly cCommandPart kCommandPartUIDNext = new cCommandPart("UIDNEXT");
+                private static readonly cCommandPart kCommandPartUIDValidity = new cCommandPart("UIDVALIDITY");
+                //private static readonly cCommandPart kCommandPartUnseen = new cCommandPart("UNSEEN");
+                private static readonly cCommandPart kCommandPartHighestModSeq = new cCommandPart("HIGHESTMODSEQ");
 
                 private bool mDisposed = false;
                 private bool mDisposeOnCommandCompletion = false;
@@ -254,10 +258,16 @@ namespace work.bacome.imapclient
                     EndList();
                 }
 
-                public void AddStatusAttributes(cCapability pCapability)
+                public void AddStatusAttributes(fMailboxCacheData pAttributes)
                 {
-                    if (pCapability.CondStore) Add(kCommandPartStatusCondStore);
-                    else Add(kCommandPartStatusBase);
+                    BeginList(eListBracketing.bracketed);
+                    if ((pAttributes & fMailboxCacheData.messagecount) != 0) Add(kCommandPartMessages);
+                    if ((pAttributes & fMailboxCacheData.recentcount) != 0) Add(kCommandPartRecent);
+                    if ((pAttributes & fMailboxCacheData.uidnext) != 0) Add(kCommandPartUIDNext);
+                    if ((pAttributes & fMailboxCacheData.uidvalidity) != 0) Add(kCommandPartUIDValidity);
+                    if ((pAttributes & fMailboxCacheData.unseencount) != 0) Add(kCommandPartUnseen);
+                    if ((pAttributes & fMailboxCacheData.highestmodseq) != 0) Add(kCommandPartHighestModSeq);
+                    EndList();
                 }
 
                 public void Add(cFilter pFilter, bool pCharsetMandatory, bool pUTF8Enabled, Encoding pEncoding)

@@ -111,7 +111,7 @@ namespace work.bacome.imapclient
 
                     if (mStatus == null)
                     {
-                        lDifferences = fMailboxProperties.allstatus;
+                        lDifferences = fMailboxProperties.messagecount | fMailboxProperties.recentcount | fMailboxProperties.uidnext | fMailboxProperties.unseencount | fMailboxProperties.highestmodseq; // not uidvalidity because it is likely to have some heavy processing attached to it if it is monitored
                         mMailboxStatus = null;
                     }
                     else

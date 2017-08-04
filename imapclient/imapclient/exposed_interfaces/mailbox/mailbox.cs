@@ -88,7 +88,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.Exists == null) Client.GetFlags(Handle);
+                if (Handle.Exists == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 return Handle.Exists.Value;
             }
         }
@@ -97,7 +97,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.CanHaveChildren;
             }
@@ -107,7 +107,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.CanSelect;
             }
@@ -117,7 +117,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.IsMarked;
             }
@@ -127,7 +127,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.IsRemote;
             }
@@ -137,7 +137,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if ((Client.MailboxCacheData & fMailboxCacheData.children) == 0) throw new cMailboxCacheDataException();
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 bool? lHasChildren = Handle.ListFlags.HasChildren;
                 if (lHasChildren == true) return true;
@@ -150,7 +151,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new cMailboxCacheDataException();
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.ContainsAll;
             }
@@ -160,7 +162,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new cMailboxCacheDataException();
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.IsArchive;
             }
@@ -170,7 +173,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new cMailboxCacheDataException();
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.ContainsDrafts;
             }
@@ -180,7 +184,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new cMailboxCacheDataException();
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.ContainsFlagged;
             }
@@ -190,7 +195,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new cMailboxCacheDataException();
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.ContainsJunk;
             }
@@ -200,7 +206,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new cMailboxCacheDataException();
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.ContainsSent;
             }
@@ -210,7 +217,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetFlags(Handle);
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new cMailboxCacheDataException();
+                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
                 if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
                 return Handle.ListFlags.ContainsTrash;
             }
@@ -220,7 +228,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.LSubFlags == null) Client.GetSubscribed(Handle);
+                if (Handle.LSubFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.lsub);
                 return Handle.LSubFlags.Subscribed;
             }
         }
@@ -320,8 +328,19 @@ namespace work.bacome.imapclient
 
         // talk to server
 
-        public cMailboxStatus Status() => Client.Status(MailboxId); // this should do a status command regardless
-        public cMailboxStatus StatusAsync() => Client.Statusxxx(MailboxId); // this should do a status command regardless
+        ;?; // get flags, get sunscribed
+
+        public void GetStatus()
+        {
+            Client.GetStatus(Handle);
+            if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+        }
+
+        public async Task GetStatusAsync()
+        {
+            await Client.GetStatusAsync(Handle).ConfigureAwait(false);
+            if (Handle.Exists != true) throw new cMailboxDoesNotExistException();
+        }
 
         public void Update(bool pStatus) => Client.MailboxHandleUpdate(MailboxId, Handle, pProperties, true);
         public Task UpdateAsync(bool pStatus) => Client.MailboxHandleUpdateAsync(MailboxId, Handle, pProperties, true);

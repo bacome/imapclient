@@ -216,10 +216,16 @@ namespace work.bacome.imapclient
         public cFetchFailedException() { }
     }
 
-    // thrown when a fetch of an attribute didn't return it
+    // thrown when a property is accessed that requires that the mailbox exists and it doesn't
     public class cMailboxDoesNotExistException : cIMAPException
     {
         public cMailboxDoesNotExistException() { }
+    }
+
+    // thrown when a property is accessed that requires that the mailbox cache hasn't been asked to store
+    public class cMailboxCacheDataException : cIMAPException
+    {
+        public cMailboxCacheDataException() { }
     }
 
     // thrown when a required capability for the call isn't available on the server

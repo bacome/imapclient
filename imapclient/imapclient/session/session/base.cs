@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
             private readonly cConnection mConnection = new cConnection();
 
             private readonly cEventSynchroniser mEventSynchroniser;
-            private readonly fMailboxFlagSets mMailboxFlagSets;
+            private readonly fMailboxCacheData mMailboxCacheData;
             private readonly fCapabilities mIgnoreCapabilities;
             private readonly cResponseTextProcessor mResponseTextProcessor;
             private readonly cCommandPipeline mPipeline;
@@ -35,6 +35,7 @@ namespace work.bacome.imapclient
             private cAccountId _ConnectedAccountId = null;
 
             // set once initialised
+            private fMailboxCacheData mStatusAttributes = 0;
             private cMailboxCache mMailboxCache = null;
 
             // locks
@@ -46,13 +47,13 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, fMailboxFlagSets pMailboxFlagSets, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesConfiguration, pFetchBodyReadConfiguration);
 
                 mEventSynchroniser = pEventSynchroniser;
                 mIgnoreCapabilities = pIgnoreCapabilities;
-                mMailboxFlagSets = pMailboxFlagSets;
+                mMailboxCacheData = pMailboxCacheData;
                 mResponseTextProcessor = new cResponseTextProcessor(mEventSynchroniser);
 
                 mPipeline = new cCommandPipeline(pEventSynchroniser, mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
@@ -83,7 +84,10 @@ namespace work.bacome.imapclient
                     mEncodingPartFactory = mCommandPartFactory;
                 }
 
-                mMailboxCache = new cMailboxCache(mEventSynchroniser, mMailboxFlagSets, _ConnectedAccountId, mCommandPartFactory, mCapability, ZSetState);
+                mStatusAttributes = mMailboxCacheData & fMailboxCacheData.allstatus;
+                if (!mCapability.CondStore) mStatusAttributes &= ~fMailboxCacheData.highestmodseq;
+
+                mMailboxCache = new cMailboxCache(mEventSynchroniser, mMailboxCacheData, _ConnectedAccountId, mCommandPartFactory, mCapability, ZSetState);
                 mResponseTextProcessor.Go(mMailboxCache, lContext);
 
                 mPipeline.Install(new cResponseDataParserSelect());

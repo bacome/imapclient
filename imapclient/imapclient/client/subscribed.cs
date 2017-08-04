@@ -11,47 +11,47 @@ namespace work.bacome.imapclient
     {
         // manual list
 
-        public List<cMailbox> Subscribed(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren = true, bool pStatus = false)
+        public List<cMailbox> Subscribed(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
-            var lTask = ZSubscribedAsync(pListMailbox, pDelimiter, pHasSubscribedChildren, pStatus, lContext);
+            var lTask = ZSubscribedAsync(pListMailbox, pDelimiter, pHasSubscribedChildren, pDataSets, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<List<cMailbox>> SubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren = true, bool pStatus = false)
+        public Task<List<cMailbox>> SubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));
-            return ZSubscribedAsync(pListMailbox, pDelimiter, pHasSubscribedChildren, pStatus, lContext);
+            return ZSubscribedAsync(pListMailbox, pDelimiter, pHasSubscribedChildren, pDataSets, lContext);
         }
 
-        private Task<List<cMailbox>> ZSubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, bool pStatus, cTrace.cContext pParentContext)
+        private Task<List<cMailbox>> ZSubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSubscribedAsync), pListMailbox, pDelimiter, pHasSubscribedChildren, pStatus);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSubscribedAsync), pListMailbox, pDelimiter, pHasSubscribedChildren, pDataSets);
             if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
             cMailboxNamePattern lPattern = new cMailboxNamePattern(string.Empty, pListMailbox, pDelimiter);
-            return ZZSubscribedAsync(pListMailbox, pDelimiter, lPattern, pHasSubscribedChildren, pStatus, lContext);
+            return ZZSubscribedAsync(pListMailbox, pDelimiter, lPattern, pHasSubscribedChildren, pDataSets, lContext);
         }
 
         // mailbox sub-mailbox list
 
-        public List<cMailbox> Subscribed(iMailboxHandle pHandle, bool pDescend, bool pStatus)
+        public List<cMailbox> Subscribed(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
-            var lTask = ZSubscribedAsync(pHandle, pDescend, pStatus, lContext);
+            var lTask = ZSubscribedAsync(pHandle, pDescend, pDataSets, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<List<cMailbox>> SubscribedAsync(iMailboxHandle pHandle, bool pDescend, bool pStatus)
+        public Task<List<cMailbox>> SubscribedAsync(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));
-            return ZSubscribedAsync(pHandle, pDescend, pStatus, lContext);
+            return ZSubscribedAsync(pHandle, pDescend, pDataSets, lContext);
         }
 
-        private async Task<List<cMailbox>> ZSubscribedAsync(iMailboxHandle pHandle, bool pDescend, bool pStatus, cTrace.cContext pParentContext)
+        private async Task<List<cMailbox>> ZSubscribedAsync(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSubscribedAsync), pHandle, pDescend, pStatus);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSubscribedAsync), pHandle, pDescend, pDataSets);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pHandle.MailboxName.Delimiter == null) return new List<cMailbox>();
@@ -63,28 +63,28 @@ namespace work.bacome.imapclient
             string lListMailbox = pHandle.MailboxName.Name.Replace('*', '%') + pHandle.MailboxName.Delimiter + lWildcard;
             cMailboxNamePattern lPattern = new cMailboxNamePattern(pHandle.MailboxName.Name + pHandle.MailboxName.Delimiter, lWildcard, pHandle.MailboxName.Delimiter);
 
-            return await ZZSubscribedAsync(lListMailbox, pHandle.MailboxName.Delimiter, lPattern, !pDescend, pStatus, lContext).ConfigureAwait(false);
+            return await ZZSubscribedAsync(lListMailbox, pHandle.MailboxName.Delimiter, lPattern, !pDescend, pDataSets, lContext).ConfigureAwait(false);
         }
 
         // namespace sub-mailbox list
 
-        public List<cMailbox> Subscribed(cNamespaceName pNamespaceName, bool pDescend, bool pStatus)
+        public List<cMailbox> Subscribed(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
-            var lTask = ZSubscribedAsync(pNamespaceName, pDescend, pStatus, lContext);
+            var lTask = ZSubscribedAsync(pNamespaceName, pDescend, pDataSets, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<List<cMailbox>> SubscribedAsync(cNamespaceName pNamespaceName, bool pDescend, bool pStatus)
+        public Task<List<cMailbox>> SubscribedAsync(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));
-            return ZSubscribedAsync(pNamespaceName, pDescend, pStatus, lContext);
+            return ZSubscribedAsync(pNamespaceName, pDescend, pDataSets, lContext);
         }
 
-        private Task<List<cMailbox>> ZSubscribedAsync(cNamespaceName pNamespaceName, bool pDescend, bool pStatus, cTrace.cContext pParentContext)
+        private Task<List<cMailbox>> ZSubscribedAsync(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSubscribedAsync), pNamespaceName, pDescend, pStatus);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSubscribedAsync), pNamespaceName, pDescend, pDataSets);
 
             if (pNamespaceName == null) throw new ArgumentNullException(nameof(pNamespaceName));
 
@@ -95,14 +95,14 @@ namespace work.bacome.imapclient
             string lListMailbox = pNamespaceName.Prefix.Replace('*', '%') + lWildcard;
             cMailboxNamePattern lPattern = new cMailboxNamePattern(pNamespaceName.Prefix, lWildcard, pNamespaceName.Delimiter);
 
-            return ZZSubscribedAsync(lListMailbox, pNamespaceName.Delimiter, lPattern, !pDescend, pStatus, lContext);
+            return ZZSubscribedAsync(lListMailbox, pNamespaceName.Delimiter, lPattern, !pDescend, pDataSets, lContext);
         }
 
         // common processing
 
-        private async Task<List<cMailbox>> ZZSubscribedAsync(string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pHasSubscribedChildren, bool pStatus, cTrace.cContext pParentContext)
+        private async Task<List<cMailbox>> ZZSubscribedAsync(string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZSubscribedAsync), pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, pStatus);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZSubscribedAsync), pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, pDataSets);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -121,9 +121,11 @@ namespace work.bacome.imapclient
                 var lMC = new cMethodControl(mTimeout, CancellationToken);
 
                 var lCapability = lSession.Capability;
-                bool lListStatus = pStatus && lCapability.ListStatus;
+                bool lList = (pDataSets & fMailboxCacheDataSets.list) != 0;
+                bool lStatus = (pDataSets & fMailboxCacheDataSets.status) != 0;
+                bool lListStatus = lStatus && lCapability.ListStatus;
 
-                if (lCapability.ListExtended && (mMailboxReferrals || lListStatus))
+                if (lCapability.ListExtended && (mMailboxReferrals || lList || lListStatus))
                 {
                     eListExtendedSelect lSelect;
                     if (pHasSubscribedChildren) lSelect = eListExtendedSelect.subscribedrecursive;
@@ -131,14 +133,28 @@ namespace work.bacome.imapclient
 
                     lHandles = await lSession.ListExtendedAsync(lMC, lSelect, mMailboxReferrals, pListMailbox, pDelimiter, pPattern, lListStatus, lContext).ConfigureAwait(false);
 
-                    if (pStatus && !lListStatus) await ZGetStatuses(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
+                    if (lStatus && !lListStatus) await ZGetStatuses(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
                 }
                 else
                 {
-                    if (mMailboxReferrals && lCapability.MailboxReferrals) lHandles = await lSession.RLSubAsync(lMC, pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, lContext).ConfigureAwait(false);
-                    else lHandles = await lSession.LSubAsync(lMC, pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, lContext).ConfigureAwait(false);
+                    Task<List<iMailboxHandle>> lLSubTask;
+                    if (mMailboxReferrals && lCapability.MailboxReferrals) lLSubTask = lSession.RLSubAsync(lMC, pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, lContext);
+                    else lLSubTask = lSession.LSubAsync(lMC, pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, lContext);
 
-                    if (pStatus) await x;
+                    Task lListTask;
+
+                    if (lList)
+                    {
+                        if (mMailboxReferrals && lCapability.MailboxReferrals) lListTask = lSession.RListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
+                        else lListTask = lSession.ListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
+                    }
+                    else lListTask = null;
+
+                    lHandles = await lLSubTask.ConfigureAwait(false);
+
+                    if (lStatus) await ZGetStatuses(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
+
+                    if (lListTask != null) await lListTask.ConfigureAwait(false);
                 }
             }
             finally { mAsyncCounter.Decrement(lContext); }

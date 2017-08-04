@@ -30,7 +30,6 @@ namespace work.bacome.imapclient.support
         unseencount = 1 << 19,
         unseenunknowncount = 1 << 20,
         highestmodseq = 1 << 21,
-        allstatus = messagecount | recentcount | uidnext | uidnextunknowncount | unseencount | unseenunknowncount | highestmodseq, // not uidvalidity because it is likely to have some heavy processing attached to it if it is monitored
 
         hasbeenselected = 1 << 22,
         hasbeenselectedforupdate = 1 << 23,

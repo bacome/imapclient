@@ -67,7 +67,7 @@
     <Compile Include="exposed_interfaces\connection\tlsrequirement.cs" />
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
-    <Compile Include="exposed_interfaces\mailbox\mailboxflagsets.cs" />
+    <Compile Include="exposed_interfaces\enums\mailboxcachedata.cs" />
     <Compile Include="exposed_interfaces\other\networkactivity.cs" />
     <Compile Include="exposed_interfaces\support\enums\listflags.cs" />
     <Compile Include="exposed_interfaces\support\types\listflags.cs" />

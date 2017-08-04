@@ -66,7 +66,7 @@ namespace work.bacome.imapclient
         private cServer mServer = null;
         private cCredentials mCredentials = null;
         private bool mMailboxReferrals = false;
-        private fMailboxFlagSets mMailboxFlagSets = 0;
+        private fMailboxCacheData mMailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
         private cFetchSizeConfiguration mFetchAttributesConfiguration = new cFetchSizeConfiguration(1, 1000, 10000, 1);
         private cFetchSizeConfiguration mFetchBodyReadConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
@@ -219,15 +219,15 @@ namespace work.bacome.imapclient
 
         // the properties required when listing mailboxes
         //
-        public fMailboxFlagSets MailboxFlagSets
+        public fMailboxCacheData MailboxCacheData
         {
-            get => mMailboxFlagSets;
+            get => mMailboxCacheData;
 
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
-                mMailboxFlagSets = value;
+                mMailboxCacheData = value;
             }
         }
 
