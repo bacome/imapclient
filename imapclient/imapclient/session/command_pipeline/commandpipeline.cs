@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
                 private cIdleConfiguration mIdleConfiguration;
                 private readonly Action<cTrace.cContext> mDisconnect;
                 private readonly List<iResponseDataParser> mResponseDataParsers = new List<iResponseDataParser>();
-                private readonly List<iUnsolicitedDataProcessor> mUnsolicitedDataProcessors = new List<iUnsolicitedDataProcessor>();
+                private readonly List<cUnsolicitedDataProcessor> mUnsolicitedDataProcessors = new List<cUnsolicitedDataProcessor>();
                 private cMailboxCache mMailboxCache = null;
                 private bool mLiteralPlus = false; // based on capability
                 private bool mLiteralMinus = false; // based on capability
@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
                 }
 
                 public void Install(iResponseDataParser pResponseDataParser) => mResponseDataParsers.Add(pResponseDataParser);
-                public void Install(iUnsolicitedDataProcessor pUnsolicitedDataProcessor) => mUnsolicitedDataProcessors.Add(pUnsolicitedDataProcessor);
+                public void Install(cUnsolicitedDataProcessor pUnsolicitedDataProcessor) => mUnsolicitedDataProcessors.Add(pUnsolicitedDataProcessor);
 
                 public void Go(cMailboxCache pMailboxCache, cCapability pCapability, cTrace.cContext pParentContext)
                 {

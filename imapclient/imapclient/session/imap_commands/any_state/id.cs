@@ -26,6 +26,8 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.notauthenticated && _State != eState.authenticated && _State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
 
+                ;?; // check the state checks (new state: enabed)
+
                 // install the permanant response data processor
                 if (mIdResponseDataProcessor == null)
                 {

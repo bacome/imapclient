@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using work.bacome.async;
@@ -23,11 +24,11 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(NamespaceAsync), pMC);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
+                if (_State != eState.enabled && _State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
 
                 if (mNamespaceDataProcessor == null)
                 {
-                    mNamespaceDataProcessor = new cNamespaceDataProcessor((EnabledExtensions & fEnableableExtensions.utf8) != 0, SetNamespaces);
+                    mNamespaceDataProcessor = new cNamespaceDataProcessor(mEventSynchroniser, (EnabledExtensions & fEnableableExtensions.utf8) != 0);
                     mPipeline.Install(mNamespaceDataProcessor);
                 }
 
@@ -53,20 +54,24 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private class cNamespaceDataProcessor : iUnsolicitedDataProcessor
+            private class cNamespaceDataProcessor : cUnsolicitedDataProcessor
             {
                 private static readonly cBytes kNamespaceSpace = new cBytes("NAMESPACE ");
 
+                private cEventSynchroniser mEventSynchroniser;
                 private bool mUTF8Enabled;
-                private readonly Action<cNamespaceList, cNamespaceList, cNamespaceList, cTrace.cContext> mSetNamespaces;
 
-                public cNamespaceDataProcessor(bool pUTF8Enabled, Action<cNamespaceList, cNamespaceList, cNamespaceList, cTrace.cContext> pSetNamespaces)
+                public cNamespaceDataProcessor(cEventSynchroniser pEventSynchroniser, bool pUTF8Enabled)
                 {
+                    mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mUTF8Enabled = pUTF8Enabled;
-                    mSetNamespaces = pSetNamespaces ?? throw new ArgumentNullException(nameof(pSetNamespaces));
                 }
 
-                public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public ReadOnlyCollection<cNamespaceName> Personal { get; private set; } = null;
+                public ReadOnlyCollection<cNamespaceName> OtherUsers { get; private set; } = null;
+                public ReadOnlyCollection<cNamespaceName> Shared { get; private set; } = null;
+
+                public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cNamespaceDataProcessor), nameof(ProcessData));
 
@@ -81,7 +86,13 @@ namespace work.bacome.imapclient
                         )
                     {
                         lContext.TraceVerbose("got namespaces: {0} {1} {2}", lPersonal, lOtherUsers, lShared);
-                        mSetNamespaces(lPersonal, lOtherUsers, lShared, lContext);
+
+                        Personal = lPersonal.AsReadOnly();
+                        OtherUsers = lOtherUsers.AsReadOnly();
+                        Shared = lShared.AsReadOnly();
+
+                        mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Namespaces), lContext);
+
                         return eProcessDataResult.processed;
                     }
 
@@ -89,19 +100,19 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                private bool ZProcessData(cBytesCursor pCursor, out cNamespaceList rNamespaceList, cTrace.cContext pParentContext)
+                private bool ZProcessData(cBytesCursor pCursor, out cNamespaceNameList rNames, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cNamespaceDataProcessor), nameof(ZProcessData));
 
                     if (pCursor.SkipBytes(cBytesCursor.Nil))
                     {
-                        rNamespaceList = null;
+                        rNames = null;
                         return true;
                     }
 
-                    if (!pCursor.SkipByte(cASCII.LPAREN)) { rNamespaceList = null; return false; }
+                    if (!pCursor.SkipByte(cASCII.LPAREN)) { rNames = null; return false; }
 
-                    rNamespaceList = new cNamespaceList();
+                    rNames = new cNamespaceNameList();
 
                     while (true)
                     {
@@ -113,17 +124,17 @@ namespace work.bacome.imapclient
                             !pCursor.SkipByte(cASCII.RPAREN)
                            )
                         {
-                            rNamespaceList = null;
+                            rNames = null;
                             return false;
                         }
 
                         if (!cNamespaceName.TryConstruct(lPrefix, lDelimiter, mUTF8Enabled, out var lNamespaceName))
                         {
-                            rNamespaceList = null;
+                            rNames = null;
                             return false;
                         }
 
-                        rNamespaceList.Add(lNamespaceName);
+                        rNames.Add(lNamespaceName);
 
                         if (pCursor.SkipByte(cASCII.RPAREN)) return true;
                     }
@@ -151,6 +162,18 @@ namespace work.bacome.imapclient
                         }
 
                         if (!pCursor.SkipByte(cASCII.RPAREN)) return false;
+                    }
+                }
+
+                private class cNamespaceNameList : List<cNamespaceName>
+                {
+                    public cNamespaceNameList() { }
+
+                    public override string ToString()
+                    {
+                        cListBuilder lBuilder = new cListBuilder(nameof(cNamespaceNameList));
+                        foreach (var lNamespace in this) lBuilder.Append(lNamespace);
+                        return lBuilder.ToString();
                     }
                 }
 

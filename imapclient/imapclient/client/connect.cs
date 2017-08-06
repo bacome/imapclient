@@ -141,8 +141,8 @@ namespace work.bacome.imapclient
                     if (lExtensions != fEnableableExtensions.none) await lSession.EnableAsync(lMC, lExtensions, lContext).ConfigureAwait(false);
                 }
 
-                // enable the session
-                lSession.Go(lContext);
+                // enabled (lock the capabilities and enabled extensions)
+                lSession.Enabled(lContext);
 
                 Task lIdTask;
 
@@ -158,6 +158,29 @@ namespace work.bacome.imapclient
                 else lIdTask = null;
 
                 Task lNamespaceTask;
+
+                ;?; // do the namespace if it is allowed
+
+                ;?; // check the personal namespace, looking for the one with the inbox in it : this is so we can find the delimiter.
+                ;?; // if there isn't one , do the special list to find the delimiter
+                ;?; // store the delimiter as a property so that when the inbox is requested we can make it
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                 Task<List<iMailboxHandle>> lListTask;
 
                 if (lCurrentCapability.Namespace)
@@ -198,6 +221,9 @@ namespace work.bacome.imapclient
                         }
                     }
                 }
+
+                // ready for action
+                lSession.Initialised(lContext);
             }
             catch when (lSession.State != eState.disconnected)
             {

@@ -69,7 +69,7 @@ namespace work.bacome.imapclient
 
             public bool TLSInstalled => mConnection.TLSInstalled;
 
-            public void Go(cTrace.cContext pParentContext)
+            public void Enabled(cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(Go));
 
@@ -96,9 +96,15 @@ namespace work.bacome.imapclient
                 mPipeline.Install(new cResponseDataParserLSub(lUTF8Enabled));
                 if (mCapability.ESearch || mCapability.ESort) mPipeline.Install(new cResponseDataParserESearch());
 
-                mPipeline.Go(mMailboxCache, mCapability, , lContext);
+                mPipeline.Go(mMailboxCache, mCapability, lContext);
 
-                ZSetState(eState.notselected, lContext);
+                ZSetState(eState.enabled, lContext);
+            }
+
+            public void Go()
+            {
+                ;?; // may pass in the delimiter for use in namespace ...
+
             }
 
             public void SetIdleConfiguration(cIdleConfiguration pConfiguration, cTrace.cContext pParentContext)
@@ -156,13 +162,16 @@ namespace work.bacome.imapclient
 
             public bool SASLSecurityInstalled => mConnection?.SASLSecurityInstalled ?? false;
 
-            public ReadOnlyCollection<cNamespaceName> PersonalNamespaces { get; private set; } = null;
-            public ReadOnlyCollection<cNamespaceName> OtherUsersNamespaces { get; private set; } = null;
-            public ReadOnlyCollection<cNamespaceName> SharedNamespaces { get; private set; } = null;
+            public ReadOnlyCollection<cNamespaceName> PersonalNamespaces => mNamespaceDataProcessor?.Personal;
+            public ReadOnlyCollection<cNamespaceName> OtherUsersNamespaces => mNamespaceDataProcessor?.OtherUsers;
+            public ReadOnlyCollection<cNamespaceName> SharedNamespaces => mNamespaceDataProcessor?.Shared;
 
+            ;?; // this
             public void SetNamespaces(cNamespaceList pPersonal, cNamespaceList pOtherUsers, cNamespaceList pShared, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetNamespaces), pPersonal, pOtherUsers, pShared);
+
+                ;?;
 
                 // this code to make sure that the INBOX will always be found by examining the personal namespaces
 
@@ -196,8 +205,6 @@ namespace work.bacome.imapclient
 
                 mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Namespaces), lContext);
             }
-
-            public cMailbox Inbox { get; set; } = null;
 
             public iSelectedMailboxDetails SelectedMailboxDetails => mMailboxCache?.SelectedMailboxDetails;
 

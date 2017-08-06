@@ -66,7 +66,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(CommandCompletion));
                     if (mSelectedMailbox == null) return;
-                    if (mSelectedMailbox.NoModSeq) return;
+                    if (mSelectedMailbox.Cache.NoModSeq) return;
                     mSelectedMailbox.UpdateHighestModSeq(lContext);
                 }
 
