@@ -74,6 +74,9 @@ namespace work.bacome.imapclient
         private Encoding mEncoding = Encoding.UTF8;
         private cId mClientId = new cId(new cIdReadOnlyDictionary(cIdDictionary.CreateDefaultClientIdDictionary()));
 
+        private cNamespaces mNamespaces = null;
+        private cMailbox mInbox = null;
+
         public cIMAPClient(string pInstanceName = TraceSourceName)
         {
             mRootContext = mTrace.NewRoot(pInstanceName);
@@ -325,15 +328,14 @@ namespace work.bacome.imapclient
         {
             get
             {
+                if (mNamespaces != null) return mNamespaces;
                 var lSession = mSession;
                 if (lSession == null) return null;
-                ;?; // state check
-                if (lSession.ConnectedAccountId == null) return null;
-                return new cNamespaces(this, lSession.ConnectedAccountId, lSession.PersonalNamespaces, lSession.OtherUsersNamespaces, lSession.SharedNamespaces);
+                return new cNamespaces(this, lSession.PersonalNamespaces, lSession.OtherUsersNamespaces, lSession.SharedNamespaces);
             }
         }
 
-        public cMailbox Inbox => mSession?.Inbox;
+        public cMailbox Inbox => mInbox;
 
         public iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
 
@@ -347,7 +349,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        public cMailbox GetMailbox(cMailboxName pMailboxName)
+        public cMailbox Mailbox(cMailboxName pMailboxName)
         {
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 

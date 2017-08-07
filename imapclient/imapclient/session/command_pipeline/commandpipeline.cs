@@ -60,9 +60,9 @@ namespace work.bacome.imapclient
                 public void Install(iResponseDataParser pResponseDataParser) => mResponseDataParsers.Add(pResponseDataParser);
                 public void Install(cUnsolicitedDataProcessor pUnsolicitedDataProcessor) => mUnsolicitedDataProcessors.Add(pUnsolicitedDataProcessor);
 
-                public void Go(cMailboxCache pMailboxCache, cCapability pCapability, cTrace.cContext pParentContext)
+                public void Enable(cMailboxCache pMailboxCache, cCapability pCapability, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(Go));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(Enable));
 
                     if (mMailboxCache != null) throw new InvalidOperationException();
 

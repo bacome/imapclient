@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
             private cURL mHomeServerReferral = null;
             private cAccountId _ConnectedAccountId = null;
 
-            // set once initialised
+            // set once enabled
             private fMailboxCacheData mStatusAttributes = 0;
             private cMailboxCache mMailboxCache = null;
 
@@ -69,9 +69,9 @@ namespace work.bacome.imapclient
 
             public bool TLSInstalled => mConnection.TLSInstalled;
 
-            public void Enabled(cTrace.cContext pParentContext)
+            public void SetEnabled(cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(Go));
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetEnabled));
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.authenticated) throw new InvalidOperationException("must be authenticated");
@@ -88,7 +88,8 @@ namespace work.bacome.imapclient
                 if (!mCapability.CondStore) mStatusAttributes &= ~fMailboxCacheData.highestmodseq;
 
                 mMailboxCache = new cMailboxCache(mEventSynchroniser, mMailboxCacheData, _ConnectedAccountId, mCommandPartFactory, mCapability, ZSetState);
-                mResponseTextProcessor.Go(mMailboxCache, lContext);
+
+                mResponseTextProcessor.Enable(mMailboxCache, lContext);
 
                 mPipeline.Install(new cResponseDataParserSelect());
                 mPipeline.Install(new cResponseDataParserFetch());
@@ -96,15 +97,19 @@ namespace work.bacome.imapclient
                 mPipeline.Install(new cResponseDataParserLSub(lUTF8Enabled));
                 if (mCapability.ESearch || mCapability.ESort) mPipeline.Install(new cResponseDataParserESearch());
 
-                mPipeline.Go(mMailboxCache, mCapability, lContext);
+                mPipeline.Enable(mMailboxCache, mCapability, lContext);
 
                 ZSetState(eState.enabled, lContext);
             }
 
-            public void Go()
+            public void SetInitialised(cTrace.cContext pParentContext)
             {
-                ;?; // may pass in the delimiter for use in namespace ...
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetInitialised));
 
+                if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_State != eState.enabled) throw new InvalidOperationException("must be enabled");
+
+                ZSetState(eState.notselected, lContext);
             }
 
             public void SetIdleConfiguration(cIdleConfiguration pConfiguration, cTrace.cContext pParentContext)
@@ -162,9 +167,9 @@ namespace work.bacome.imapclient
 
             public bool SASLSecurityInstalled => mConnection?.SASLSecurityInstalled ?? false;
 
-            public ReadOnlyCollection<cNamespaceName> PersonalNamespaces => mNamespaceDataProcessor?.Personal;
-            public ReadOnlyCollection<cNamespaceName> OtherUsersNamespaces => mNamespaceDataProcessor?.OtherUsers;
-            public ReadOnlyCollection<cNamespaceName> SharedNamespaces => mNamespaceDataProcessor?.Shared;
+            public ReadOnlyCollection<cNamespaceName> PersonalNamespaces => mNamespaceDataProcessor.Personal;
+            public ReadOnlyCollection<cNamespaceName> OtherUsersNamespaces => mNamespaceDataProcessor.OtherUsers;
+            public ReadOnlyCollection<cNamespaceName> SharedNamespaces => mNamespaceDataProcessor.Shared;
 
             ;?; // this
             public void SetNamespaces(cNamespaceList pPersonal, cNamespaceList pOtherUsers, cNamespaceList pShared, cTrace.cContext pParentContext)

@@ -270,23 +270,13 @@ namespace work.bacome.imapclient
                     EndList();
                 }
 
-                public void Add(cFilter pFilter, bool pCharsetMandatory, bool pUTF8Enabled, Encoding pEncoding)
+                public void Add(cFilter pFilter, bool pCharsetMandatory, cCommandPartFactory pFactory)
                 {
                     if (pFilter?.UIDValidity != null) AddUIDValidity(pFilter.UIDValidity.Value);
 
-                    cCommandPart.cFactory lFactory;
+                    var lFilterParts = ZFilterParts(pFilter, eListBracketing.none, pFactory);
 
-                    ;?;
-                    if (pUTF8Enabled) lFactory = new cCommandPart.cFactory(true);
-                    else
-                    {
-                        if (pEncoding != null) lFactory = new cCommandPart.cFactory(pEncoding);
-                        else lFactory = new cCommandPart.cFactory();
-                    }
-
-                    var lFilterParts = ZFilterParts(pFilter, eListBracketing.none, lFactory);
-
-                    if (pUTF8Enabled)
+                    if (pFactory.UTF8Enabled)
                     {
                         // rfc 6855 explicitly disallows charset on search when utf8 is enabled
                         if (pCharsetMandatory) Add(kCommandPartUTF8Space); // but for sort and thread it is mandatory
@@ -307,7 +297,7 @@ namespace work.bacome.imapclient
                         if (lEncodedParts)
                         {
                             if (!pCharsetMandatory) Add(kCommandPartCharsetSpace);
-                            Add(cCommandPart.AsCharsetName(pEncoding.WebName));
+                            Add(pFactory.CharsetName);
                             Add(cCommandPart.Space);
                         }
                         else if (pCharsetMandatory) Add(kCommandPartUSASCIISpace); // have to put something for sort and thread
@@ -316,7 +306,7 @@ namespace work.bacome.imapclient
                     Add(lFilterParts.Parts);
                 }
 
-                private static cCommandParts ZFilterParts(cFilter pFilter, eListBracketing pBracketing, cCommandPart.cFactory pFactory)
+                private static cCommandParts ZFilterParts(cFilter pFilter, eListBracketing pBracketing, cCommandPartFactory pFactory)
                 {
                     var lParts = new cCommandParts();
 
@@ -412,12 +402,12 @@ namespace work.bacome.imapclient
                                 else lParts.Add(kCommandPartSentSinceSpace);
                             }
 
-                            lParts.Add(cCommandPart.AsDate(lDateCompare.WithDate));
+                            lParts.Add(cCommandPartFactory.AsDate(lDateCompare.WithDate));
                             return lParts;
 
                         case cFilter.cHeaderFieldContains lHeaderFieldContains:
 
-                            lParts.Add(kCommandPartHeaderSpace, cCommandPart.AsRFC822HeaderField(lHeaderFieldContains.HeaderField), cCommandPart.Space, pFactory.AsAString(lHeaderFieldContains.Contains));
+                            lParts.Add(kCommandPartHeaderSpace, cCommandPartFactory.AsRFC822HeaderField(lHeaderFieldContains.HeaderField), cCommandPart.Space, pFactory.AsAString(lHeaderFieldContains.Contains));
                             return lParts;
 
                         case cFilter.cSizeCompare lSizeCompare:
@@ -544,7 +534,7 @@ namespace work.bacome.imapclient
                 {
                     if (pSection.Part != null)
                     {
-                        Add(cCommandPart.AsAtom(pSection.Part));
+                        Add(cCommandPartFactory.AsAtom(pSection.Part));
                         if (pSection.TextPart != eSectionPart.all) Add(cCommandPart.Dot);
                     }
 

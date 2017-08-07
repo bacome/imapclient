@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
                 mSession.Dispose();
             }
 
-            mSession = new cSession(mEventSynchroniser, mIgnoreCapabilities, mMailboxFlagSets, mIdleConfiguration, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
+            mSession = new cSession(mEventSynchroniser, mIgnoreCapabilities, mMailboxCacheData, mIdleConfiguration, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
             mAsyncCounter.Increment(lContext);
@@ -141,8 +141,8 @@ namespace work.bacome.imapclient
                     if (lExtensions != fEnableableExtensions.none) await lSession.EnableAsync(lMC, lExtensions, lContext).ConfigureAwait(false);
                 }
 
-                // enabled (lock the capabilities and enabled extensions)
-                lSession.Enabled(lContext);
+                // enabled (lock in the capabilities and enabled extensions)
+                lSession.SetEnabled(lContext);
 
                 Task lIdTask;
 
@@ -157,73 +157,42 @@ namespace work.bacome.imapclient
                 }
                 else lIdTask = null;
 
-                Task lNamespaceTask;
-
-                ;?; // do the namespace if it is allowed
-
-                ;?; // check the personal namespace, looking for the one with the inbox in it : this is so we can find the delimiter.
-                ;?; // if there isn't one , do the special list to find the delimiter
-                ;?; // store the delimiter as a property so that when the inbox is requested we can make it
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                Task<List<iMailboxHandle>> lListTask;
+                mNamespaces = null;
+                mInbox = null;
 
                 if (lCurrentCapability.Namespace)
                 {
-                    lNamespaceTask = lSession.NamespaceAsync(lMC, lContext);
-                    lListTask = null;
-                }
-                else
-                {
-                    lNamespaceTask = null;
-                    lListTask = lSession.ListAsync(lMC, string.Empty, null, new cMailboxNamePattern(string.Empty, string.Empty, null), lContext);
-                }
+                    await lSession.NamespaceAsync(lMC, lContext).ConfigureAwait(false);
 
-                // wait for everything to complete
-                await cTerminator.AwaitAll(lMC, lIdTask, lNamespaceTask, lListTask).ConfigureAwait(false);
-
-                // set the namespace property
-                //
-                if (!lCurrentCapability.Namespace)
-                {
-                    var lHandles = lListTask.Result;
-                    if (lHandles.Count != 1) throw new cUnexpectedServerActionException(0, "list special request failed", lContext);
-                    lSession.SetNamespaces(new cNamespaceList(lHandles[0].MailboxName.Delimiter), null, null, lContext);
-                }
-
-                // set the inbox property
-                //
-                if (lSession.PersonalNamespaces != null)
-                {
-                    foreach (var lNamespace in lSession.PersonalNamespaces)
+                    if (lSession.PersonalNamespaces != null)
                     {
-                        cMailboxNamePattern lPattern = new cMailboxNamePattern(lNamespace.Prefix, "%", lNamespace.Delimiter);
-
-                        if (lPattern.Matches(cMailboxName.InboxString))
+                        foreach (var lName in lSession.PersonalNamespaces)
                         {
-                            lSession.Inbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lNamespace.Delimiter)));
-                            break;
+                            cMailboxNamePattern lPattern = new cMailboxNamePattern(lName.Prefix, "%", lName.Delimiter);
+
+                            if (lPattern.Matches(cMailboxName.InboxString))
+                            {
+                                mInbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lName.Delimiter)));
+                                break;
+                            }
                         }
                     }
                 }
 
-                // ready for action
-                lSession.Initialised(lContext);
+                if (mInbox == null)
+                {
+                    var lHandles = await lSession.ListAsync(lMC, string.Empty, null, new cMailboxNamePattern(string.Empty, string.Empty, null), lContext).ConfigureAwait(false);
+                    if (lHandles.Count != 1) throw new cUnexpectedServerActionException(0, "list special request failed", lContext);
+                    var lDelimiter = lHandles[0].MailboxName.Delimiter;
+                    if (!lCurrentCapability.Namespace) mNamespaces = new cNamespaces(this, new cNamespaceName[] { new cNamespaceName("", lDelimiter) }, null, null);
+                    mInbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lDelimiter)));
+                }
+
+                // wait for id to complete
+                await cTerminator.AwaitAll(lMC, lIdTask).ConfigureAwait(false);
+
+                // initialised (namespaces set, inbox available, id available (if server supports it); user may now issue commands)
+                lSession.SetInitialised(lContext);
             }
             catch when (lSession.State != eState.disconnected)
             {

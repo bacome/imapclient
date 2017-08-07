@@ -664,25 +664,6 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        private class cRFC822HeaderField : cCharset
-        {
-            public override bool Contains(byte pByte)
-            {
-                if (ZIsCTL(pByte)) return false;
-                if (pByte == cASCII.SPACE) return false;
-                if (pByte == cASCII.COLON) return false;
-                return true;
-            }
-
-            public override bool Contains(char pChar)
-            {
-                if (ZIsCTL(pChar)) return false;
-                if (pChar == ' ') return false;
-                if (pChar == ':') return false;
-                return true;
-            }
-        }
-
         // instances
 
         public static readonly cCharset Alpha = new cAlpha();
@@ -708,7 +689,6 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset All = new cAll();
         public static readonly cCharset Base64 = new cBase64();
         public static readonly cCharset QEncoding = new cQEncoding();
-        public static readonly cCharset RFC822HeaderField = new cRFC822HeaderField();
     }
 
     public static class cASCIIMonth

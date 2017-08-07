@@ -23,12 +23,14 @@ namespace work.bacome.imapclient
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    cSelectedMailbox lSelectedMailbox = ZCheckHandle(pHandle);
+                    mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
                     lCommand.Add(await mSearchExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // search commands must be single threaded (so we can tell which result is which)
 
                     lCommand.Add(kSearchCommandPart);
-                    lCommand.Add(pFilter, false, EnabledExtensions, mEncoding); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
+                    lCommand.Add(pFilter, false, mEncodingPartFactory); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
+
+                    ;?; // analyse the filter to see if is is searchunseen capable
 
                     var lHook = new cSearchCommandHook(lSelectedMailbox);
                     lCommand.Add(lHook);

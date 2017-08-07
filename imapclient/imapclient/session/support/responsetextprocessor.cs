@@ -56,11 +56,9 @@ namespace work.bacome.imapclient
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                 }
 
-                ;?;
-
-                public void Go(cMailboxCache pMailboxCache, cTrace.cContext pParentContext)
+                public void Enable(cMailboxCache pMailboxCache, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(Go));
+                    var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(Enable));
                     if (mMailboxCache != null) throw new InvalidOperationException();
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                 }
@@ -181,19 +179,6 @@ namespace work.bacome.imapclient
                                 mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
                                 return lResponseText;
                             }
-                        }
-
-                        if (mMailboxCache != null)
-                        {
-                            if (mMailboxCache.ProcessTextCode(pCursor, lContext))
-                            {
-                                lResponseText = new cResponseText(pCursor.GetRestAsString());
-                                lContext.TraceVerbose("response text received: {0}", lResponseText);
-                                mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
-                                return lResponseText;
-                            }
-
-                            pCursor.Position = lBookmarkAfterLBRACET;
                         }
 
                         if (pTextCodeProcessor != null)
