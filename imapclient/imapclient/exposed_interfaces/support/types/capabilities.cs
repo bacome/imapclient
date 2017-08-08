@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
+    ;?; // rename
     public class cCapabilities
     {
         private readonly Dictionary<string, bool> mDictionary = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);

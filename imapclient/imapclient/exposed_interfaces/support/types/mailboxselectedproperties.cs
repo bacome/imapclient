@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace work.bacome.imapclient
+namespace work.bacome.imapclient.support
 {
     public class cMailboxSelectedProperties
     {
@@ -107,8 +107,6 @@ namespace work.bacome.imapclient
             if (pOld.mMessageFlags != pNew.mMessageFlags) lProperties |= fMailboxProperties.messageflags;
             if (pOld.ForUpdatePermanentFlags != pNew.ForUpdatePermanentFlags) lProperties |= fMailboxProperties.forupdatepermanentflags;
             if (pOld.ReadOnlyPermanentFlags != pNew.ReadOnlyPermanentFlags) lProperties |= fMailboxProperties.readonlypermanentflags;
-
-            if (lProperties != 0) lProperties |= fMailboxProperties.selectedproperties;
 
             return lProperties;
         }

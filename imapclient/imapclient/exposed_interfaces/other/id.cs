@@ -6,12 +6,14 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public class cId
+    public class cClientId
     {
         public readonly cIdReadOnlyDictionary Dictionary;
         public readonly cIdReadOnlyDictionary ASCIIDictionary;
 
-        public cId(ReadOnlyDictionary<string, string> pDictionary, ReadOnlyDictionary<string, string> pASCIIDictionary = null)
+        ;?;
+
+        public cClientId(ReadOnlyDictionary<string, string> pDictionary, ReadOnlyDictionary<string, string> pASCIIDictionary = null)
         {
             if (pDictionary == null) throw new ArgumentNullException(nameof(pDictionary));
 
@@ -48,13 +50,27 @@ namespace work.bacome.imapclient
 
         public override string ToString()
         {
-            if (ReferenceEquals(Dictionary, ASCIIDictionary)) return $"{nameof(cId)}({Dictionary})";
-            return $"{nameof(cId)}({Dictionary},{ASCIIDictionary})";
+            if (ReferenceEquals(Dictionary, ASCIIDictionary)) return $"{nameof(cClientId)}({Dictionary})";
+            return $"{nameof(cClientId)}({Dictionary},{ASCIIDictionary})";
         }
     }
 
     public class cIdDictionary : Dictionary<string, string>
     {
+        private const string kName = "name";
+        private const string kVersion = "version";
+        private const string kOS = "os";
+        private const string kOSVersion = "os-version";
+        private const string kVendor = "vendor";
+        private const string kSupportURL = "support-url";
+        private const string kAddress = "address";
+        private const string kDate = "date";
+        private const string kCommand = "command";
+        private const string kArguments = "arguments";
+        private const string kEnvironment = "environment";
+
+        ;?; // hide dictionary and validate as adding
+
         public cIdDictionary() : base(StringComparer.InvariantCultureIgnoreCase) { }
         public cIdDictionary(IDictionary<string, string> pDictionary) : base(pDictionary, StringComparer.InvariantCultureIgnoreCase) { }
 
@@ -98,14 +114,14 @@ namespace work.bacome.imapclient
 
         public string Name
         {
-            get => ZGetValue(cIdFieldNames.Name);
-            set => this[cIdFieldNames.Name] = value;
+            get => ZGetValue(kName);
+            set => this[kName] = value;
         }
 
         public string Version
         {
-            get => ZGetValue(cIdFieldNames.Version);
-            set => this[cIdFieldNames.Version] = value;
+            get => ZGetValue(kVersion);
+            set => this[kVersion] = value;
         }
 
         public string OS
@@ -139,7 +155,7 @@ namespace work.bacome.imapclient
         }
 
         public string Date => ZGetValue(cIdFieldNames.Date);
-        public void SetDate(DateTime pDate) => this[cIdFieldNames.Date] = cTools.UTF8BytesToString(cCommandPart.AsDate(pDate).Bytes);
+        public void SetDate(DateTime pDate) => this[cIdFieldNames.Date] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(pDate).Bytes);
 
         public string Command
         {
@@ -162,6 +178,36 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cIdDictionary));
+            foreach (var lFieldValue in this) lBuilder.Append(lFieldValue.Key, lFieldValue.Value);
+            return lBuilder.ToString();
+        }
+    }
+
+    public class cIdReadOnlyDictionary : ReadOnlyDictionary<string, string>
+    {
+        public cIdReadOnlyDictionary(cIdDictionary pDictionary) : base(pDictionary) { }
+
+        private string ZGetValue(string pIdFieldName)
+        {
+            if (TryGetValue(pIdFieldName, out string lValue)) return lValue;
+            return null;
+        }
+
+        public string Name => ZGetValue(cIdFieldNames.Name);
+        public string Version => ZGetValue(cIdFieldNames.Version);
+        public string OS => ZGetValue(cIdFieldNames.OS);
+        public string OSVersion => ZGetValue(cIdFieldNames.OSVersion);
+        public string Vendor => ZGetValue(cIdFieldNames.Vendor);
+        public string SupportURL => ZGetValue(cIdFieldNames.SupportURL);
+        public string Address => ZGetValue(cIdFieldNames.Address);
+        public string Date => ZGetValue(cIdFieldNames.Date);
+        public string Command => ZGetValue(cIdFieldNames.Command);
+        public string Arguments => ZGetValue(cIdFieldNames.Arguments);
+        public string Environment => ZGetValue(cIdFieldNames.Environment);
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cIdReadOnlyDictionary));
             foreach (var lFieldValue in this) lBuilder.Append(lFieldValue.Key, lFieldValue.Value);
             return lBuilder.ToString();
         }

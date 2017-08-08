@@ -6,38 +6,38 @@ namespace work.bacome.imapclient
 {
     public class cSortItem
     {
-        public enum eType { received, cc, sent, from, size, subject, to, displayfrom, displayto }
+        public static readonly cSortItem Received = new cSortItem(fMessageProperties.received, false, false);
+        public static readonly cSortItem CC = new cSortItem(fMessageProperties.cc, false, false);
+        public static readonly cSortItem Sent = new cSortItem(fMessageProperties.sent, false, false);
+        public static readonly cSortItem From = new cSortItem(fMessageProperties.from, false, false);
+        public static readonly cSortItem Size = new cSortItem(fMessageProperties.size, false, false);
+        public static readonly cSortItem Subject = new cSortItem(fMessageProperties.subject, false, false);
+        public static readonly cSortItem To = new cSortItem(fMessageProperties.to, false, false);
+        public static readonly cSortItem DisplayFrom = new cSortItem(fMessageProperties.from, true, false);
+        public static readonly cSortItem DisplayTo = new cSortItem(fMessageProperties.to, true, false);
 
-        public static readonly cSortItem Received = new cSortItem(eType.received, false);
-        public static readonly cSortItem CC = new cSortItem(eType.cc, false);
-        public static readonly cSortItem Sent = new cSortItem(eType.sent, false);
-        public static readonly cSortItem From = new cSortItem(eType.from, false);
-        public static readonly cSortItem Size = new cSortItem(eType.size, false);
-        public static readonly cSortItem Subject = new cSortItem(eType.subject, false);
-        public static readonly cSortItem To = new cSortItem(eType.to, false);
-        public static readonly cSortItem DisplayFrom = new cSortItem(eType.displayfrom, false);
-        public static readonly cSortItem DisplayTo = new cSortItem(eType.displayto, false);
+        public static readonly cSortItem ReceivedDesc = new cSortItem(fMessageProperties.received, false, true);
+        public static readonly cSortItem CCDesc = new cSortItem(fMessageProperties.cc, false, true);
+        public static readonly cSortItem SentDesc = new cSortItem(fMessageProperties.sent, false, true);
+        public static readonly cSortItem FromDesc = new cSortItem(fMessageProperties.from, false, true);
+        public static readonly cSortItem SizeDesc = new cSortItem(fMessageProperties.size, false, true);
+        public static readonly cSortItem SubjectDesc = new cSortItem(fMessageProperties.subject, false, true);
+        public static readonly cSortItem ToDesc = new cSortItem(fMessageProperties.to, false, true);
+        public static readonly cSortItem DisplayFromDesc = new cSortItem(fMessageProperties.from, true, true);
+        public static readonly cSortItem DisplayToDesc = new cSortItem(fMessageProperties.to, true, true);
 
-        public static readonly cSortItem ReceivedDesc = new cSortItem(eType.received, true);
-        public static readonly cSortItem CCDesc = new cSortItem(eType.cc, true);
-        public static readonly cSortItem SentDesc = new cSortItem(eType.sent, true);
-        public static readonly cSortItem FromDesc = new cSortItem(eType.from, true);
-        public static readonly cSortItem SizeDesc = new cSortItem(eType.size, true);
-        public static readonly cSortItem SubjectDesc = new cSortItem(eType.subject, true);
-        public static readonly cSortItem ToDesc = new cSortItem(eType.to, true);
-        public static readonly cSortItem DisplayFromDesc = new cSortItem(eType.displayfrom, true);
-        public static readonly cSortItem DisplayToDesc = new cSortItem(eType.displayto, true);
-
-        public readonly eType Type;
+        public readonly fMessageProperties Property;
+        public readonly bool Display;
         public readonly bool Desc;
 
-        private cSortItem(eType pType, bool pDesc)
+        private cSortItem(fMessageProperties pProperty, bool pDisplay, bool pDesc)
         {
-            Type = pType;
+            Property = pProperty;
+            Display = pDisplay;
             Desc = pDesc;
         }
 
-        public override string ToString() => $"{nameof(cSortItem)}({Type},{Desc})";
+        public override string ToString() => $"{nameof(cSortItem)}({Property},{Display},{Desc})";
     }
 
     public class cSort
@@ -70,52 +70,44 @@ namespace work.bacome.imapclient
             {
                 int lCompareTo;
 
-                switch (lItem.Type)
+                switch (lItem.Property)
                 {
-                    case cSortItem.eType.received:
+                    case fMessageProperties.received:
 
                         lCompareTo = ZCompareTo(pX.Received, pY.Received);
                         break;
 
-                    case cSortItem.eType.cc:
+                    case fMessageProperties.cc:
 
                         lCompareTo = ZCompareTo(pX.Envelope?.CC?.SortString, pY.Envelope?.CC?.SortString);
                         break;
 
-                    case cSortItem.eType.sent:
+                    case fMessageProperties.sent:
 
                         // rfc 5256 says to use the internal date if the sent date is null
                         lCompareTo = ZCompareTo(pX.Envelope?.Sent ?? pX.Received, pY.Envelope?.Sent ?? pY.Received);
                         break;
 
-                    case cSortItem.eType.from:
+                    case fMessageProperties.from:
 
-                        lCompareTo = ZCompareTo(pX.Envelope?.From?.SortString, pY.Envelope?.From?.SortString);
+                        if (lItem.Display) lCompareTo = ZCompareTo(pX.Envelope?.From?.DisplaySortString, pY.Envelope?.From?.DisplaySortString);
+                        else lCompareTo = ZCompareTo(pX.Envelope?.From?.SortString, pY.Envelope?.From?.SortString);
                         break;
 
-                    case cSortItem.eType.size:
+                    case fMessageProperties.size:
 
                         lCompareTo = ZCompareTo(pX.Size, pY.Size);
                         break;
 
-                    case cSortItem.eType.subject:
+                    case fMessageProperties.subject:
 
                         lCompareTo = ZCompareTo(pX.Envelope?.BaseSubject, pY.Envelope?.BaseSubject);
                         break;
 
-                    case cSortItem.eType.to:
+                    case fMessageProperties.to:
 
-                        lCompareTo = ZCompareTo(pX.Envelope?.To?.SortString, pY.Envelope?.To?.SortString);
-                        break;
-
-                    case cSortItem.eType.displayfrom:
-
-                        lCompareTo = ZCompareTo(pX.Envelope?.From?.DisplaySortString, pY.Envelope?.From?.DisplaySortString);
-                        break;
-
-                    case cSortItem.eType.displayto:
-
-                        lCompareTo = ZCompareTo(pX.Envelope?.To?.DisplaySortString, pY.Envelope?.To?.DisplaySortString);
+                        if (lItem.Display) lCompareTo = ZCompareTo(pX.Envelope?.To?.DisplaySortString, pY.Envelope?.To?.DisplaySortString);
+                        else lCompareTo = ZCompareTo(pX.Envelope?.To?.SortString, pY.Envelope?.To?.SortString);
                         break;
 
                     default:
@@ -136,59 +128,25 @@ namespace work.bacome.imapclient
 
         public int Comparison(cMessage pX, cMessage pY)
         {
-            var lAttributes = Attributes(out _);
-            pX.Fetch(lAttributes);
-            pY.Fetch(lAttributes);
+            var lProperties = Properties(out _);
+            pX.Fetch(lProperties);
+            pY.Fetch(lProperties);
             return Comparison(pX.Handle, pY.Handle);
         }
 
-        public fFetchAttributes Attributes(out bool rSortDisplay)
+        public fMessageProperties Properties(out bool rDisplay)
         {
-            rSortDisplay = false;
+            rDisplay = false;
 
-            fFetchAttributes lAttributes = 0;
+            fMessageProperties lProperties = 0;
 
             foreach (var lItem in Items)
             {
-                switch (lItem.Type)
-                {
-                    case cSortItem.eType.received:
-
-                        lAttributes |= fFetchAttributes.received;
-                        break;
-
-                    case cSortItem.eType.cc:
-                    case cSortItem.eType.from:
-                    case cSortItem.eType.subject:
-                    case cSortItem.eType.to:
-
-                        lAttributes |= fFetchAttributes.envelope;
-                        break;
-
-                    case cSortItem.eType.sent:
-
-                        lAttributes |= fFetchAttributes.envelope | fFetchAttributes.received;
-                        break;
-
-                    case cSortItem.eType.size:
-
-                        lAttributes |= fFetchAttributes.size;
-                        break;
-
-                    case cSortItem.eType.displayfrom:
-                    case cSortItem.eType.displayto:
-
-                        lAttributes |= fFetchAttributes.envelope;
-                        rSortDisplay = true;
-                        break;
-
-                    default:
-
-                        throw new cInternalErrorException();
-                }
+                lProperties |= lItem.Property;
+                if (lItem.Display) rDisplay = true;
             }
 
-            return lAttributes;
+            return lProperties;
         }
 
         private int ZCompareTo(uint? pX, uint? pY)

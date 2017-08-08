@@ -72,10 +72,11 @@ namespace work.bacome.imapclient
 
                 public iSelectedMailboxDetails SelectedMailboxDetails => mSelectedMailbox;
 
-                public void CheckIsSelectedMailbox(iMailboxHandle pHandle)
+                public cSelectedMailbox CheckIsSelectedMailbox(iMailboxHandle pHandle)
                 {
                     if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                     if (mSelectedMailbox == null || !ReferenceEquals(pHandle, mSelectedMailbox.Handle)) throw new InvalidOperationException();
+                    return mSelectedMailbox;
                 }
 
                 public void CheckInSelectedMailbox(iMessageHandle pHandle)

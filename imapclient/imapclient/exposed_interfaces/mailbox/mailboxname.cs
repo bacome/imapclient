@@ -121,20 +121,20 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cMailboxName), nameof(_Tests_MailboxName), pMailboxName);
 
-            cCommandPart.cFactory lFactory;
+            cCommandPartFactory lFactory;
             cCommandPart lCommandPart;
             cBytesCursor lCursor;
             IList<byte> lEncodedMailboxName;
             cMailboxName lMailboxName;
 
-            lFactory = new cCommandPart.cFactory(false);
+            lFactory = new cCommandPartFactory(false, null);
             lFactory.TryAsMailbox(new cMailboxName(pMailboxName, '/'), out lCommandPart, out _);
             lCursor = new cBytesCursor(lCommandPart.Bytes);
             lCursor.GetAString(out lEncodedMailboxName);
             cMailboxName.TryConstruct(lEncodedMailboxName, cASCII.SLASH, false, out lMailboxName);
             if (lMailboxName.Name != pMailboxName) throw new cTestsException($"mailboxname conversion failed on '{pMailboxName}' -> {lCommandPart.Bytes} -> '{lMailboxName}'", lContext);
 
-            lFactory = new cCommandPart.cFactory(true);
+            lFactory = new cCommandPartFactory(true, null);
             lFactory.TryAsMailbox(new cMailboxName(pMailboxName, '/'), out lCommandPart, out _);
             lCursor = new cBytesCursor(lCommandPart.Bytes);
             lCursor.GetAString(out lEncodedMailboxName);

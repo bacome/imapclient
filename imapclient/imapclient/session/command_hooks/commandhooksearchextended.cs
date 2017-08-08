@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -52,7 +51,7 @@ namespace work.bacome.imapclient
 
                     if (pResult != null && pResult.ResultType == eCommandResultType.ok && mSequenceSets != null)
                     {
-                        var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Messages);
+                        var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.MessageCount);
                         if (!mSort) lMSNs = lMSNs.ToSortedUniqueList();
                         var lHandles = new cMessageHandleList();
                         foreach (var lMSN in lMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));

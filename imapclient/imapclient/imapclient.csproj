@@ -49,6 +49,7 @@
     <Compile Include="client\fetchproperties.cs" />
     <Compile Include="client\fetchbody.cs" />
     <Compile Include="client\getmailboxdata.cs" />
+    <Compile Include="client\setunseen.cs" />
     <Compile Include="client\subscribed.cs" />
     <Compile Include="client\uidfetchbody.cs" />
     <Compile Include="client\mailboxes.cs" />
@@ -79,7 +80,7 @@
     <Compile Include="exposed_interfaces\support\types\messagecache.cs" />
     <Compile Include="exposed_interfaces\support\types\selectedmailboxdetails.cs" />
     <Compile Include="exposed_interfaces\support\types\mailboxhandle.cs" />
-    <Compile Include="exposed_interfaces\mailbox\mailboxbeenselected.cs" />
+    <Compile Include="exposed_interfaces\support\types\mailboxselectedproperties.cs" />
     <Compile Include="session\command_hooks\commandhookinitial.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
@@ -88,19 +89,20 @@
     <Compile Include="session\parsing\responsedataselect.cs" />
     <Compile Include="session\parsing\responseparser.cs" />
     <Compile Include="session\parsing\responsetextcodeselect.cs" />
+    <Compile Include="session\imap_commands\selected\setunseenextended.cs" />
     <Compile Include="session\support\listextendeditems.cs" />
     <Compile Include="session\mailboxcache\mailboxcacheitem.cs" />
     <Compile Include="session\mailboxcache\processing.cs" />
     <Compile Include="session\parsing\responsedatalist.cs" />
     <Compile Include="session\parsing\responsedatalsub.cs" />
     <Compile Include="session\selected_mailbox\processing.cs" />
-    <Compile Include="session\session\searchunseen.cs" />
+    <Compile Include="session\imap_commands\selected\setunseen.cs" />
     <Compile Include="session\mailboxcache\mailboxcache.cs" />
     <Compile Include="exposed_interfaces\support\types\commandpartfactory.cs" />
     <Compile Include="zzz\mailboxflagsets.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxname.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxpropertychangedeventargs.cs" />
-    <Compile Include="exposed_interfaces\mailbox\mailboxstatus.cs" />
+    <Compile Include="exposed_interfaces\support\types\mailboxstatus.cs" />
     <Compile Include="exposed_interfaces\mailbox\messagedeliveryeventargs.cs" />
     <Compile Include="exposed_interfaces\message\address.cs" />
     <Compile Include="exposed_interfaces\message\attachment.cs" />
@@ -149,7 +151,6 @@
     <Compile Include="exposed_interfaces\support\collections\uintlist.cs" />
     <Compile Include="exposed_interfaces\support\encoding\base64.cs" />
     <Compile Include="exposed_interfaces\support\encoding\modifiedutf7.cs" />
-    <Compile Include="exposed_interfaces\support\enums\idfieldnames.cs" />
     <Compile Include="exposed_interfaces\support\parsing\charactersets.cs" />
     <Compile Include="exposed_interfaces\support\parsing\uriparts.cs" />
     <Compile Include="exposed_interfaces\support\parsing\urlparts.cs" />

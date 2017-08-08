@@ -23,10 +23,10 @@ namespace work.bacome.imapclient
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    cSelectedMailbox lSelectedMailbox = ZCheckHandle(pHandle);
+                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
                     lCommand.Add(kSearchExtendedCommandPart);
-                    lCommand.Add(pFilter, false, EnabledExtensions, mEncoding); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
+                    lCommand.Add(pFilter, false, mEncodingPartFactory); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
 
                     var lHook = new cCommandHookSearchExtended(lCommand.Tag, lSelectedMailbox, false);
                     lCommand.Add(lHook);

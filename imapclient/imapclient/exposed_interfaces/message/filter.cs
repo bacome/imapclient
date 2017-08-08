@@ -160,7 +160,7 @@ namespace work.bacome.imapclient
             public cHeaderFieldContains(string pHeaderField, string pContains) : base(null)
             {
                 HeaderField = pHeaderField ?? throw new ArgumentNullException(nameof(HeaderField));
-                if (!cCommandPart.TryAsRFC822HeaderField(HeaderField, out _)) throw new ArgumentOutOfRangeException(nameof(HeaderField));
+                if (!cCommandPartFactory.TryAsASCIIAString(HeaderField, out _)) throw new ArgumentOutOfRangeException(nameof(HeaderField));
                 Contains = pContains ?? throw new ArgumentNullException(nameof(pContains));
             }
 

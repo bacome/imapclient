@@ -10,11 +10,11 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kSearchCommandPart = new cCommandPart("SEARCH ");
+            private static readonly cCommandPart kSetUnseenCommandPart = new cCommandPart("SEARCH UNSEEN");
 
-            public async Task<cMessageHandleList> SearchAsync(cMethodControl pMC, iMailboxHandle pHandle, cFilter pFilter, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> SetUnseenAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SearchAsync), pMC, pHandle, pFilter);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetUnseenAsync), pMC, pHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.selected) throw new InvalidOperationException();
@@ -27,44 +27,37 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(await mSearchExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // search commands must be single threaded (so we can tell which result is which)
 
-                    lCommand.Add(kSearchCommandPart);
-                    lCommand.Add(pFilter, false, mEncodingPartFactory); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
+                    lCommand.Add(kSetUnseenCommandPart);
 
-                    var lHook = new cSearchCommandHook(lSelectedMailbox);
+                    var lHook = new cSetUnseenCommandHook(lSelectedMailbox);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
-                        lContext.TraceInformation("search success");
-                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(0, "results not received on a successful search", lContext);
+                        lContext.TraceInformation("setunseen success");
+                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(0, "results not received on a successful setunseen", lContext);
                         return lHook.Handles;
                     }
 
-                    if (lHook.Handles != null) lContext.TraceError("results received on a failed search");
+                    if (lHook.Handles != null) lContext.TraceError("results received on a failed setunseen");
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
                     throw new cProtocolErrorException(lResult, 0, lContext);
                 }
             }
 
-            private class cSearchCommandHook : cCommandHookBaseSearch
+            private class cSetUnseenCommandHook : cCommandHookBaseSearch
             {
-                public cSearchCommandHook(cSelectedMailbox pSelectedMailbox) : base(pSelectedMailbox) { }
+                public cSetUnseenCommandHook(cSelectedMailbox pSelectedMailbox) : base(pSelectedMailbox) { }
 
                 public cMessageHandleList Handles { get; private set; } = null;
 
                 public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSearchCommandHook), nameof(CommandCompleted), pResult, pException);
-
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mMSNs != null)
-                    {
-                        cMessageHandleList lHandles = new cMessageHandleList();
-                        foreach (var lMSN in mMSNs.ToSortedUniqueList()) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
-                        Handles = lHandles;
-                    }
+                    var lContext = pParentContext.NewMethod(nameof(cSetUnseenCommandHook), nameof(CommandCompleted), pResult, pException);
+                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mMSNs != null) Handles = mSelectedMailbox.SetUnseen(mMSNs, lContext);
                 }
             }
         }

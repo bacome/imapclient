@@ -1,7 +1,6 @@
 ﻿using System;
-using work.bacome.imapclient.support;
 
-namespace work.bacome.imapclient
+namespace work.bacome.imapclient.support
 {
     public class cMailboxStatus
     {
@@ -56,8 +55,6 @@ namespace work.bacome.imapclient
             if (pOld.UnseenCount != pNew.UnseenCount) lProperties |= fMailboxProperties.unseencount;
             if (pOld.UnseenUnknownCount != pNew.UnseenUnknownCount) lProperties |= fMailboxProperties.unseenunknowncount;
             if (pOld.HighestModSeq != pNew.HighestModSeq) lProperties |= fMailboxProperties.highestmodseq;
-
-            if (lProperties != 0) lProperties |= fMailboxProperties.status;
 
             return lProperties;
         }

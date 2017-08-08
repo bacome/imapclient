@@ -393,18 +393,14 @@ namespace work.bacome.imapclient
         public List<cMailbox> Mailboxes(fMailboxCacheDataSets pDataSets = 0) => Client.Mailboxes(Handle, pDataSets);
         public Task<List<cMailbox>> MailboxesAsync(fMailboxCacheDataSets pDataSets = 0) => Client.MailboxesAsync(Handle, pDataSets);
 
-        public List<cMailbox> Subscribed(fMailboxCacheDataSets pDataSets = 0) => Client.Subscribed(Handle, false, pDataSets);
-        public Task<List<cMailbox>> SubscribedAsync(fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(Handle, false, pDataSets);
+        public List<cMailbox> Subscribed(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0) => Client.Subscribed(Handle, pDescend, pDataSets);
+        public Task<List<cMailbox>> SubscribedAsync(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(Handle, pDescend, pDataSets);
 
         public void Select(bool pForUpdate = false) => Client.Select(Handle, pForUpdate);
         public Task SelectAsync(bool pForUpdate = false) => Client.SelectAsync(Handle, pForUpdate);
 
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Messages(Handle, pFilter, pSort, pProperties);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.MessagesAsync(Handle, pFilter, pSort, pProperties);
-
-        ;?; // maybe ... any search where the filter is everything or just unseen should do .. the problem might be thread; but have a look => don't need a specail API
-        public List<cMessage> UnseenMessages() => Client.setunseenmessages(Handle);
-        ;?; // async
 
         public List<cMessage> Messages(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC = null)
         {
@@ -424,6 +420,9 @@ namespace work.bacome.imapclient
             foreach (var lHandle in pHandles) lMessages.Add(new cMessage(Client, lHandle));
             return lMessages;
         }
+
+        public cMessageHandleList SetUnseen() => Client.SetUnseen(Handle);
+        public Task<cMessageHandleList> SetUnseenAsync() => Client.SetUnseenAsync(Handle);
 
         public cMessage Message(cUID pUID, fMessageProperties pProperties) => Client.Message(Handle, pUID, pProperties);
         public Task<cMessage> MessageAsync(cUID pUID, fMessageProperties pProperties) => Client.MessageAsync(Handle, pUID, pProperties);

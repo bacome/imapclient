@@ -32,8 +32,6 @@ namespace work.bacome.imapclient
                 private ulong mHighestModSeq;
                 private ulong mPendingHighestModSeq = 0;
 
-                private int mSetUnseenCount;
-
                 public cSelectedMailboxMessageCache(cEventSynchroniser pEventSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxMessageCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
@@ -66,8 +64,6 @@ namespace work.bacome.imapclient
 
                     mHighestModSeq = pHighestModSeq;
 
-                    mSetUnseenCount = 0;
-
                     ZSetMailboxStatus(lContext);
                 }
 
@@ -95,8 +91,6 @@ namespace work.bacome.imapclient
                     mUnseenUnknownCount = lMessageCount;
 
                     mHighestModSeq = 0;
-
-                    mSetUnseenCount = pOldCache.mSetUnseenCount;
 
                     ZSetMailboxStatus(lContext);
                 }
@@ -147,52 +141,28 @@ namespace work.bacome.imapclient
                     return (uint)lIndex + 1;
                 }
 
-                public void SetUnseenBegin(cTrace.cContext pParentContext)
+                public cMessageHandleList SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext)
                 {
-                    ;?;
-                    // should be called from command begin
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(SetUnseenBegin));
-                    mSetUnseenCount = mItems.Count;
-                }
-
-                public void SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext)
-                {
-                    ;?; // should be called from command end
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(SetUnseen), pMSNs);
 
-                    int lMaxIndex = mSetUnseenCount - 1;
-                    bool lSetMailboxStatus = false;
+                    cMessageHandleList lHandles = new cMessageHandleList();
 
-                    foreach (uint lMSN in pMSNs)
+                    foreach (var lMSN in pMSNs)
                     {
-                        int lIndex = (int)lMSN - 1;
-
-                        if (lIndex > lMaxIndex) lMaxIndex = lIndex;
-
-                        var lItem = mItems[lIndex];
-
-                        if (lItem.Unseen == null)
-                        {
-                            lItem.Unseen = true;
-                            mUnseenUnknownCount--;
-                            mUnseenCount++;
-                            lSetMailboxStatus = true;
-                        }
+                        var lItem = mItems[(int)lMSN - 1];
+                        lItem.Unseen = true;
+                        lHandles.Add(lItem);
                     }
 
-                    for (int i = 0; i <= lMaxIndex; i++)
+                    if (mUnseenUnknownCount > 0)
                     {
-                        var lItem = mItems[i];
-
-                        if (lItem.Unseen == null)
-                        {
-                            lItem.Unseen = false;
-                            mUnseenUnknownCount--;
-                            lSetMailboxStatus = true;
-                        }
+                        foreach (var lItem in mItems) if (lItem.Unseen == null) lItem.Unseen = false;
+                        mUnseenUnknownCount = 0;
+                        mUnseenCount = pMSNs.Count;
+                        ZSetMailboxStatus(lContext);
                     }
 
-                    if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
+                    return lHandles;
                 }
 
                 private void ZExists(int pMessageCount, cTrace.cContext pParentContext)
@@ -244,8 +214,6 @@ namespace work.bacome.imapclient
                         if (lExpungedItem.UID == null) mUIDNextUnknownCount--;
                     }
                     else mUIDNextMessageCount--;
-
-                    if (lIndex < mSetUnseenCount) mSetUnseenCount--;
 
                     mEventSynchroniser.FireMessagePropertiesChanged(lExpungedItem, fMessageProperties.isexpunged, lContext);
                     ZSetMailboxStatus(lContext);

@@ -23,7 +23,7 @@ namespace work.bacome.imapclient.support
             {
                 Encoding = pEncoding;
                 if (pEncoding == null) CharsetName = null;
-                else if (!TryAsAtom(pEncoding.WebName, out CharsetName) && !ZTryAsQuotedASCII(pEncoding.WebName, false, out CharsetName)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
+                else if (!TryAsCharsetName(pEncoding.WebName, out CharsetName)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
             }
         }
 
@@ -276,17 +276,20 @@ namespace work.bacome.imapclient.support
             throw new ArgumentOutOfRangeException(nameof(pString));
         }
 
-        ;?;
-        // <<header is an astring without the option to encode>> => as asciiastring
-        public static bool TryAsRFC822HeaderField(string pString, out cCommandPart rResult) => ZTryAsBytesInCharset(pString, cCharset.RFC822HeaderField, false, out rResult);
-
-        public static cCommandPart AsRFC822HeaderField(string pString)
+        public static bool TryAsASCIIAString(string pString, out cCommandPart rResult)
         {
-            if (ZTryAsBytesInCharset(pString, cCharset.RFC822HeaderField, false, out var lResult)) return lResult;
+            if (pString == null) { rResult = null; return false; }
+            if (ZTryAsBytesInCharset(pString, cCharset.AString, false, out rResult)) return true;
+            if (ZTryAsQuotedASCII(pString, false, out rResult)) return true;
+            return (ZTryAsASCIILiteral(pString, false, out rResult));
+        }
+
+        public static cCommandPart AsASCIIAString(string pString)
+        {
+            if (TryAsASCIIAString(pString, out var lResult)) return lResult;
             throw new ArgumentOutOfRangeException(nameof(pString));
         }
 
-        /*
         public static bool TryAsCharsetName(string pString, out cCommandPart rResult)
         {
             // rfc 3501 says a charset can be an astring; rfc 5256 says a charset can be an atom or a quoted string
@@ -301,7 +304,7 @@ namespace work.bacome.imapclient.support
         {
             if (TryAsCharsetName(pString, out var lResult)) return lResult;
             throw new ArgumentOutOfRangeException(nameof(pString));
-        } */
+        }
 
         private static cByteList ZIntToBytes(int pNumber, int pMinLength)
         {

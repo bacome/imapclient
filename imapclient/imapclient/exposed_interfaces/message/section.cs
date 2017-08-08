@@ -44,14 +44,12 @@ namespace work.bacome.imapclient
             if (pHeaderFields == null) throw new ArgumentNullException(nameof(pHeaderFields));
             if (pHeaderFields.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHeaderFields));
 
-            cCommandPart.cFactory lFactory = new cCommandPart.cFactory();
-
             List<string> lHeaderFields = new List<string>();
 
             foreach (string lHeaderField in pHeaderFields)
             {
                 if (lHeaderField == null) throw new ArgumentOutOfRangeException(nameof(pHeaderFields));
-                if (!lFactory.TryAsAString(lHeaderField, false, out _)) throw new ArgumentOutOfRangeException(nameof(pHeaderFields));
+                if (!cCommandPartFactory.TryAsASCIIAString(lHeaderField, out _)) throw new ArgumentOutOfRangeException(nameof(pHeaderFields));
                 lHeaderFields.Add(lHeaderField.ToUpperInvariant());
             }
 

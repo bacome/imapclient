@@ -407,7 +407,7 @@ namespace work.bacome.imapclient
 
                         case cFilter.cHeaderFieldContains lHeaderFieldContains:
 
-                            lParts.Add(kCommandPartHeaderSpace, cCommandPartFactory.AsRFC822HeaderField(lHeaderFieldContains.HeaderField), cCommandPart.Space, pFactory.AsAString(lHeaderFieldContains.Contains));
+                            lParts.Add(kCommandPartHeaderSpace, cCommandPartFactory.AsASCIIAString(lHeaderFieldContains.HeaderField), cCommandPart.Space, pFactory.AsAString(lHeaderFieldContains.Contains));
                             return lParts;
 
                         case cFilter.cSizeCompare lSizeCompare:
@@ -582,9 +582,8 @@ namespace work.bacome.imapclient
 
                     void LAdd(cStrings pStrings)
                     {
-                        ;?;
                         BeginList(eListBracketing.none);
-                        foreach (var lString in pStrings) Add(m.AsAString(lString));
+                        foreach (var lString in pStrings) Add(cCommandPartFactory.AsASCIIAString(lString));
                         EndList();
                     }
                 }
@@ -801,11 +800,12 @@ namespace work.bacome.imapclient
                     {
                         StringBuilder lBuilder = new StringBuilder();
                         var lCommand = new cCommand();
-                        lCommand.Add(pFilter, pCharsetMandatory, pUTF8Enabled, pEncoding);
+                        cCommandPartFactory lFactory = new cCommandPartFactory(pUTF8Enabled, pEncoding);
+                        lCommand.Add(pFilter, pCharsetMandatory, lFactory);
 
                         foreach (var lPart in lCommand.Parts)
                         {
-                            if (lPart.Literal)
+                            if (lPart.Type == eCommandPartType.literal)
                             {
                                 lBuilder.Append("{");
                                 lBuilder.Append(cTools.ASCIIBytesToString(lPart.LiteralLengthBytes));

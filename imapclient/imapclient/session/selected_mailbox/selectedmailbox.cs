@@ -38,8 +38,7 @@ namespace work.bacome.imapclient
                 public iMessageHandle GetHandle(cUID pUID) => mCache.GetHandle(pUID);
                 public uint GetMSN(iMessageHandle pHandle) => mCache.GetMSN(pHandle); // this should only be called when no msnunsafe commands are running
 
-                public void SetUnseenBegin(cTrace.cContext pParentContext) => mCache.SetUnseenBegin(pParentContext);
-                public void SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext) => mCache.SetUnseen(pMSNs, pParentContext); // this should only be called from a commandcompletion
+                public cMessageHandleList SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext) => mCache.SetUnseen(pMSNs, pParentContext); // this should only be called from a commandcompletion
 
                 public override string ToString() => $"{nameof(cSelectedMailbox)}({mMailboxCacheItem},{mSelectedForUpdate},{mAccessReadOnly})";
             }

@@ -40,7 +40,6 @@ namespace work.bacome.imapclient
 
             // locks
             private readonly cExclusiveAccess mSelectExclusiveAccess = new cExclusiveAccess("select", 1);
-            private readonly cExclusiveAccess mSetUnseenExclusiveAccess = new cExclusiveAccess("setunseen", 40);
             private readonly cExclusiveAccess mSearchExclusiveAccess = new cExclusiveAccess("search", 50);
             private readonly cExclusiveAccess mSortExclusiveAccess = new cExclusiveAccess("sort", 50);
             // note that 100 is the idle block in the command pipeline
@@ -252,12 +251,6 @@ namespace work.bacome.imapclient
                 if (mSelectExclusiveAccess != null)
                 {
                     try { mSelectExclusiveAccess.Dispose(); }
-                    catch { }
-                }
-
-                if (mSetUnseenExclusiveAccess != null)
-                {
-                    try { mSetUnseenExclusiveAccess.Dispose(); }
                     catch { }
                 }
 

@@ -1,20 +1,19 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     public class cAttachment
     {
         public readonly cIMAPClient Client;
-        public readonly cMailboxId MailboxId;
         public readonly iMessageHandle Handle;
         public readonly cSinglePartBody Part;
 
-        public cAttachment(cIMAPClient pClient, cMailboxId pMailboxId, iMessageHandle pHandle, cSinglePartBody pPart)
+        public cAttachment(cIMAPClient pClient, iMessageHandle pHandle, cSinglePartBody pPart)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            MailboxId = pMailboxId ?? throw new ArgumentNullException(nameof(pMailboxId));
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
             Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
         }
@@ -36,12 +35,26 @@ namespace work.bacome.imapclient
         public uint? Size => Part.Disposition?.Size;
         public cStrings Languages => Part.ExtensionData?.Languages;
 
-        public void Fetch(Stream pStream, cFetchControl pFC = null) => Client.Fetch(MailboxId, Handle, Part.Section, Part.DecodingRequired, pStream, pFC);
-        public Task FetchAsync(Stream pStream, cFetchControl pFC = null) => Client.FetchAsync(MailboxId, Handle, Part.Section, Part.DecodingRequired, pStream, pFC);
+        public void SaveAs(string pPath, cFetchControl pFC = null)
+        {
+            using (FileStream lStream = new FileStream(pPath, FileMode.Create))
+            {
+                Client.Fetch(Handle, Part.Section, Part.DecodingRequired, lStream, pFC);
+            }
+        }
 
-        ;?; // saveas methods
+        public async Task SaveAsAsync(string pPath, cFetchControl pFC = null)
+        {
+            using (FileStream lStream = new FileStream(pPath, FileMode.Create))
+            {
+                await Client.FetchAsync(Handle, Part.Section, Part.DecodingRequired, lStream, pFC).ConfigureAwait(false);
+            }
+        }
+
+        public void Fetch(Stream pStream, cFetchControl pFC = null) => Client.Fetch(Handle, Part.Section, Part.DecodingRequired, pStream, pFC);
+        public Task FetchAsync(Stream pStream, cFetchControl pFC = null) => Client.FetchAsync(Handle, Part.Section, Part.DecodingRequired, pStream, pFC);
 
         // debugging
-        public override string ToString() => $"{nameof(cAttachment)}({MailboxId},{Handle},{Part.Section})";
+        public override string ToString() => $"{nameof(cAttachment)}({Handle},{Part.Section})";
     }
 }

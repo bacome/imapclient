@@ -155,7 +155,7 @@ namespace work.bacome.imapclient
             if (pFlag[0] == '\\') lFlag = pFlag.Remove(0, 1);
             else lFlag = pFlag;
 
-            return cCommandPart.TryAsAtom(lFlag, out _);
+            return cCommandPartFactory.TryAsAtom(lFlag, out _);
         }
 
         private bool ZContain(IEnumerable<string> pFlags)
