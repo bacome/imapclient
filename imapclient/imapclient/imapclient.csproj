@@ -44,6 +44,7 @@
     <Compile Include="client\connect.cs" />
     <Compile Include="client\defaultmessageproperties.cs" />
     <Compile Include="client\disconnect.cs" />
+    <Compile Include="client\expunge.cs" />
     <Compile Include="client\fetchattributes.cs" />
     <Compile Include="client\fetchcontrol.cs" />
     <Compile Include="client\fetchproperties.cs" />
@@ -56,9 +57,7 @@
     <Compile Include="client\poll.cs" />
     <Compile Include="client\messages.cs" />
     <Compile Include="client\select.cs" />
-    <Compile Include="exposed_interfaces\collections\addresses.cs" />
     <Compile Include="exposed_interfaces\collections\messagehandlelist.cs" />
-    <Compile Include="exposed_interfaces\collections\idreadonlydictionary.cs" />
     <Compile Include="exposed_interfaces\collections\strings.cs" />
     <Compile Include="exposed_interfaces\connection\accountid.cs" />
     <Compile Include="exposed_interfaces\connection\capability.cs" />
@@ -86,6 +85,7 @@
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
     <Compile Include="session\imap_commands\authenticated\rlist.cs" />
     <Compile Include="session\imap_commands\not_authenticated\starttls.cs" />
+    <Compile Include="session\imap_commands\selected\expunge.cs" />
     <Compile Include="session\parsing\responsedataselect.cs" />
     <Compile Include="session\parsing\responseparser.cs" />
     <Compile Include="session\parsing\responsetextcodeselect.cs" />
@@ -99,7 +99,6 @@
     <Compile Include="session\imap_commands\selected\setunseen.cs" />
     <Compile Include="session\mailboxcache\mailboxcache.cs" />
     <Compile Include="exposed_interfaces\support\types\commandpartfactory.cs" />
-    <Compile Include="zzz\mailboxflagsets.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxname.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxpropertychangedeventargs.cs" />
     <Compile Include="exposed_interfaces\support\types\mailboxstatus.cs" />
@@ -155,7 +154,7 @@
     <Compile Include="exposed_interfaces\support\parsing\uriparts.cs" />
     <Compile Include="exposed_interfaces\support\parsing\urlparts.cs" />
     <Compile Include="exposed_interfaces\support\tools\binarysizesbuilder.cs" />
-    <Compile Include="exposed_interfaces\support\types\capabilities.cs" />
+    <Compile Include="exposed_interfaces\support\collections\atomlist.cs" />
     <Compile Include="exposed_interfaces\support\tools\listbuilder.cs" />
     <Compile Include="exposed_interfaces\support\tools\tools.cs" />
     <Compile Include="exposed_interfaces\support\types\commandpart.cs" />
@@ -211,7 +210,6 @@
     <Compile Include="session\fetch\attributes.cs" />
     <Compile Include="session\fetch\body.cs" />
     <Compile Include="session\fetch\uidattributes.cs" />
-    <Compile Include="session\session\poll.cs" />
     <Compile Include="session\support\command.cs" />
     <Compile Include="session\support\commandtag.cs" />
     <Compile Include="support\fetchsizer.cs" />

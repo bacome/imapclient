@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-            var lCapability = lSession.Capability;
+            var lCapabilities = lSession.Capabilities;
 
             mAsyncCounter.Increment(lContext);
 
@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
             {
                 var lMC = new cMethodControl(mTimeout, CancellationToken);
                 cMessageHandleList lHandles;
-                if (lCapability.ESearch) lHandles = await lSession.SetUnseenExtendedAsync(lMC, pHandle, lContext).ConfigureAwait(false);
+                if (lCapabilities.ESearch) lHandles = await lSession.SetUnseenExtendedAsync(lMC, pHandle, lContext).ConfigureAwait(false);
                 else lHandles = await lSession.SetUnseenAsync(lMC, pHandle, lContext).ConfigureAwait(false);
                 return lHandles;
             }

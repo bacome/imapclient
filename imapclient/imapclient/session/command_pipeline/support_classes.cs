@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
         {
             private partial class cCommandPipeline
             {
-                private sealed class cItem : IDisposable, iTextCodeProcessor
+                private sealed class cItem : iTextCodeProcessor, IDisposable
                 {
                     private readonly cCommand mCommand;
                     private readonly object mCommandQueueLock;
@@ -114,6 +114,7 @@ namespace work.bacome.imapclient
                     public cSASLAuthentication Authentication => mCommand.Authentication;
                     public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext) => mCommand.ProcessData(pData, pParentContext);
                     public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCommand.ProcessData(pCursor, pParentContext);
+                    public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext) => mCommand.ProcessTextCode(pData, pParentContext);
                     public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCommand.ProcessTextCode(pCursor, pParentContext);
 
                     public override string ToString() => $"{nameof(cItem)}({mCommand.Tag},{mResult},{mException},{mStarted},{WaitOver})";
@@ -148,6 +149,12 @@ namespace work.bacome.imapclient
                     public cItem this[int pIndex] => mItems[pIndex];
                     public void Add(cItem pHandle) => mItems.Add(pHandle);
                     public void RemoveAt(int pIndex) => mItems.RemoveAt(pIndex);
+
+                    public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
+                    {
+                        var lContext = pParentContext.NewMethod(nameof(cActiveItems), nameof(ProcessTextCode));
+                        foreach (var lItem in mItems) lItem.ProcessTextCode(pData, lContext);
+                    }
 
                     public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
                     {

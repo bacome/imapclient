@@ -17,11 +17,11 @@ namespace work.bacome.imapclient
 
             private cIdDataProcessor mIdResponseDataProcessor;
 
-            public cIdReadOnlyDictionary ServerId => mIdResponseDataProcessor?.Dictionary;
+            public cIdDictionary ServerId => mIdResponseDataProcessor?.ServerId;
 
-            public async Task IdAsync(cMethodControl pMC, cIdReadOnlyDictionary pClientDictionary, cTrace.cContext pParentContext)
+            public async Task IdAsync(cMethodControl pMC, cIdDictionary pClientId, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(IdAsync), pMC, pClientDictionary);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(IdAsync), pMC, pClientId);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State < eState.notauthenticated || _State > eState.selected) throw new InvalidOperationException();
@@ -40,28 +40,25 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(kIdCommandPart);
 
-                    if (pClientDictionary == null) lCommand.Add(cCommandPart.Nil);
+                    if (pClientId == null) lCommand.Add(cCommandPart.Nil);
                     else
                     {
                         lCommand.BeginList(eListBracketing.bracketed);
 
-                        foreach (var lFieldValuePair in pClientDictionary)
+                        foreach (var lPair in pClientId)
                         {
-                            lCommand.Add(mCommandPartFactory.AsString(lFieldValuePair.Key));
-                            lCommand.Add(mCommandPartFactory.AsNString(lFieldValuePair.Value));
+                            lCommand.Add(mCommandPartFactory.AsString(lPair.Key));
+                            lCommand.Add(mCommandPartFactory.AsNString(lPair.Value));
                         }
 
                         lCommand.EndList();
                     }
-
-                    object lDictionary = mIdResponseDataProcessor.Dictionary;
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("id success");
-                        if (ReferenceEquals(mIdResponseDataProcessor.Dictionary, lDictionary)) throw new cUnexpectedServerActionException(fCapabilities.Id, "id not received", lContext);
                         return;
                     }
 
@@ -74,14 +71,14 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kIdSpace = new cBytes("ID ");
 
                 private readonly cEventSynchroniser mEventSynchroniser;
-                private cIdReadOnlyDictionary mDictionary = null;
+                private cIdDictionary mServerId = null;
 
                 public cIdDataProcessor(cEventSynchroniser pEventSynchroniser)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                 }
 
-                public cIdReadOnlyDictionary Dictionary => mDictionary;
+                public cIdDictionary ServerId => new cIdDictionary(mServerId);
 
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
@@ -89,9 +86,10 @@ namespace work.bacome.imapclient
 
                     if (pCursor.SkipBytes(kIdSpace))
                     {
-                        if (ZGetId(pCursor, out mDictionary, lContext) && pCursor.Position.AtEnd)
+                        if (ZGetId(pCursor, out var lServerId, lContext) && pCursor.Position.AtEnd)
                         {
-                            lContext.TraceVerbose("got id: {0}", mDictionary);
+                            lContext.TraceVerbose("got id: {0}", lServerId);
+                            mServerId = lServerId;
                             mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.ServerId), lContext);
                             return eProcessDataResult.processed;
                         }
@@ -102,15 +100,15 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                private static bool ZGetId(cBytesCursor pCursor, out cIdReadOnlyDictionary rDictionary, cTrace.cContext pParentContext)
+                private static bool ZGetId(cBytesCursor pCursor, out cIdDictionary rServerId, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cIdDataProcessor), nameof(ZGetId));
 
-                    if (pCursor.SkipBytes(cBytesCursor.Nil)) { rDictionary = null; return true; }
+                    if (pCursor.SkipBytes(cBytesCursor.Nil)) { rServerId = null; return true; }
 
-                    if (!pCursor.SkipByte(cASCII.LPAREN)) { rDictionary = null; return false; }
+                    if (!pCursor.SkipByte(cASCII.LPAREN)) { rServerId = null; return false; }
 
-                    cIdDictionary lDictionary = new cIdDictionary();
+                    rServerId = new cIdDictionary();
 
                     try
                     {
@@ -118,24 +116,22 @@ namespace work.bacome.imapclient
 
                         while (true)
                         {
-                            if (pCursor.SkipByte(cASCII.RPAREN)) { rDictionary = new cIdReadOnlyDictionary(lDictionary); return true; }
+                            if (pCursor.SkipByte(cASCII.RPAREN)) return true;
 
                             if (lFirst) lFirst = false;
-                            else if (!pCursor.SkipByte(cASCII.SPACE)) { rDictionary = null; return false; }
+                            else if (!pCursor.SkipByte(cASCII.SPACE)) return false;
 
-                            if (!pCursor.GetString(out string lField) || !pCursor.SkipByte(cASCII.SPACE)) { rDictionary = null; return false; }
-                            if (!pCursor.GetNString(out string lValue)) { rDictionary = null; return false; }
+                            if (!pCursor.GetString(out string lField) || !pCursor.SkipByte(cASCII.SPACE)) return false;
+                            if (!pCursor.GetNString(out string lValue)) return false;
 
-                            lDictionary.Add(lField, lValue);
+                            rServerId.Add(lField, lValue);
                         }
                     }
                     catch (Exception e)
                     {
                         lContext.TraceException("error when constructing the id dictionary", e);
+                        return false;
                     }
-
-                    rDictionary = null;
-                    return false;
                 }
 
                 [Conditional("DEBUG")]
@@ -143,7 +139,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cIdDataProcessor), nameof(_Tests));
 
-                    cIdReadOnlyDictionary lId;
+                    cIdDictionary lId;
                     cBytesCursor lCursor;
 
                     cBytesCursor.TryConstruct("(\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")", out lCursor);

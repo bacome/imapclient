@@ -644,6 +644,12 @@ namespace work.bacome.imapclient
                     return mHook.ProcessData(pCursor, pParentContext);
                 }
 
+                public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
+                {
+                    if (mHook == null) return false;
+                    mHook.ProcessTextCode(pData, pParentContext);
+                }
+
                 public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
                     if (mHook == null) return false;

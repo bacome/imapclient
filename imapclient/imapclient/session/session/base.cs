@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
 
             private readonly cEventSynchroniser mEventSynchroniser;
             private readonly fMailboxCacheData mMailboxCacheData;
-            private readonly fCapabilities mIgnoreCapabilities;
+            private readonly fKnownCapabilities mIgnoreCapabilities;
             private readonly cResponseTextProcessor mResponseTextProcessor;
             private readonly cCommandPipeline mPipeline;
 
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
             private cCommandPartFactory mEncodingPartFactory;
 
             // properties
-            private cCapability mCapability = null;
+            private cCapabilities mCapabilities = null;
             private cURL mHomeServerReferral = null;
             private cAccountId _ConnectedAccountId = null;
 
@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cEventSynchroniser pEventSynchroniser, fCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cEventSynchroniser pEventSynchroniser, fKnownCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesConfiguration, pFetchBodyReadConfiguration);
 
@@ -84,9 +84,9 @@ namespace work.bacome.imapclient
                 }
 
                 mStatusAttributes = mMailboxCacheData & fMailboxCacheData.allstatus;
-                if (!mCapability.CondStore) mStatusAttributes &= ~fMailboxCacheData.highestmodseq;
+                if (!mCapabilities.CondStore) mStatusAttributes &= ~fMailboxCacheData.highestmodseq;
 
-                mMailboxCache = new cMailboxCache(mEventSynchroniser, mMailboxCacheData, _ConnectedAccountId, mCommandPartFactory, mCapability, ZSetState);
+                mMailboxCache = new cMailboxCache(mEventSynchroniser, mMailboxCacheData, _ConnectedAccountId, mCommandPartFactory, mCapabilities, ZSetState);
 
                 mResponseTextProcessor.Enable(mMailboxCache, lContext);
 
@@ -94,9 +94,9 @@ namespace work.bacome.imapclient
                 mPipeline.Install(new cResponseDataParserFetch());
                 mPipeline.Install(new cResponseDataParserList(lUTF8Enabled));
                 mPipeline.Install(new cResponseDataParserLSub(lUTF8Enabled));
-                if (mCapability.ESearch || mCapability.ESort) mPipeline.Install(new cResponseDataParserESearch());
+                if (mCapabilities.ESearch || mCapabilities.ESort) mPipeline.Install(new cResponseDataParserESearch());
 
-                mPipeline.Enable(mMailboxCache, mCapability, lContext);
+                mPipeline.Enable(mMailboxCache, mCapabilities, lContext);
 
                 ZSetState(eState.enabled, lContext);
             }
@@ -150,7 +150,7 @@ namespace work.bacome.imapclient
                 mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.State), lContext);
             }
 
-            public cCapability Capability => mCapability;
+            public cCapabilities Capabilities => mCapabilities;
 
             public cURL HomeServerReferral => mHomeServerReferral;
 
@@ -169,46 +169,6 @@ namespace work.bacome.imapclient
             public ReadOnlyCollection<cNamespaceName> PersonalNamespaces => mNamespaceDataProcessor.Personal;
             public ReadOnlyCollection<cNamespaceName> OtherUsersNamespaces => mNamespaceDataProcessor.OtherUsers;
             public ReadOnlyCollection<cNamespaceName> SharedNamespaces => mNamespaceDataProcessor.Shared;
-
-            ;?; // this
-            public void SetNamespaces(cNamespaceList pPersonal, cNamespaceList pOtherUsers, cNamespaceList pShared, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetNamespaces), pPersonal, pOtherUsers, pShared);
-
-                ;?;
-
-                // this code to make sure that the INBOX will always be found by examining the personal namespaces
-
-                bool lAddInbox = true;
-                cNamespaceList lPersonal;
-
-                if (pPersonal == null) lPersonal = new cNamespaceList();
-                else
-                {
-                    lPersonal = pPersonal;
-
-                    foreach (var lNamespace in pPersonal)
-                    {
-                        cMailboxNamePattern lPattern = new cMailboxNamePattern(lNamespace.Prefix, "%", lNamespace.Delimiter);
-
-                        if (lPattern.Matches(cMailboxName.InboxString))
-                        {
-                            lAddInbox = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (lAddInbox) lPersonal.Add(new cNamespaceName(cMailboxName.InboxString, null));
-
-                // now I know that there is at least one personal namespace that matches the INBOX
-
-                PersonalNamespaces = lPersonal.AsReadOnly();
-                OtherUsersNamespaces = pOtherUsers == null ? null : pOtherUsers.AsReadOnly();
-                SharedNamespaces = pShared == null ? null : pShared.AsReadOnly();
-
-                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Namespaces), lContext);
-            }
 
             public iSelectedMailboxDetails SelectedMailboxDetails => mMailboxCache?.SelectedMailboxDetails;
 

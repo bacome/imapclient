@@ -18,6 +18,7 @@ namespace work.bacome.imapclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.selected) throw new InvalidOperationException();
+                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
                 using (var lCommand = new cCommand())
                 {

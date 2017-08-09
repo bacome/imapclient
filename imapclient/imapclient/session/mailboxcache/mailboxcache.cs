@@ -16,20 +16,20 @@ namespace work.bacome.imapclient
                 private readonly fMailboxCacheData mMailboxCacheData;
                 private readonly cAccountId mConnectedAccountId;
                 private readonly cCommandPartFactory mCommandPartFactory;
-                private readonly cCapability mCapability;
+                private readonly cCapabilities mCapabilities;
                 private readonly Action<eState, cTrace.cContext> mSetState;
                 private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
 
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cEventSynchroniser pEventSynchroniser, fMailboxCacheData pMailboxCacheData, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, cCapability pCapability, Action<eState, cTrace.cContext> pSetState)
+                public cMailboxCache(cEventSynchroniser pEventSynchroniser, fMailboxCacheData pMailboxCacheData, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, cCapabilities pCapabilities, Action<eState, cTrace.cContext> pSetState)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mMailboxCacheData = pMailboxCacheData;
                     mConnectedAccountId = pConnectedAccountId ?? throw new ArgumentNullException(nameof(pConnectedAccountId));
                     mCommandPartFactory = pCommandPartFactory ?? throw new ArgumentNullException(nameof(pCommandPartFactory));
-                    mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
+                    mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
                     mSetState = pSetState ?? throw new ArgumentNullException(nameof(pSetState));
                 }
 

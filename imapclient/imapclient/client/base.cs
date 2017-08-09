@@ -62,7 +62,7 @@ namespace work.bacome.imapclient
 
         // property backing storage
         private int mTimeout = -1;
-        private fCapabilities mIgnoreCapabilities = 0;
+        private fKnownCapabilities mIgnoreCapabilities = 0;
         private cServer mServer = null;
         private cCredentials mCredentials = null;
         private bool mMailboxReferrals = false;
@@ -72,7 +72,8 @@ namespace work.bacome.imapclient
         private cFetchSizeConfiguration mFetchBodyReadConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
         private cFetchSizeConfiguration mFetchBodyWriteConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
-        private cId mClientId = new cId(new cIdReadOnlyDictionary(cIdDictionary.CreateDefaultClientIdDictionary()));
+        private cIdDictionary mClientId = cIdDictionary.CreateDefaultClientIdDictionary();
+        private cIdDictionary mClientIdUTF8 = cIdDictionary.CreateDefaultClientIdDictionary();
 
         private cNamespaces mNamespaces = null;
         private cMailbox mInbox = null;
@@ -147,7 +148,7 @@ namespace work.bacome.imapclient
         // state
 
         public eState State => mSession?.State ?? eState.notconnected;
-        public cCapability Capability => mSession?.Capability;
+        public cCapabilities Capabilities => mSession?.Capabilities;
         public fEnableableExtensions EnabledExtensions => mSession?.EnabledExtensions ?? fEnableableExtensions.none;
         public cAccountId ConnectedAccountId => mSession?.ConnectedAccountId;
 
@@ -158,7 +159,7 @@ namespace work.bacome.imapclient
         public int AsyncCount => mAsyncCounter.Count;
 
         // capabilities to ignore
-        public fCapabilities IgnoreCapabilities
+        public fKnownCapabilities IgnoreCapabilities
         {
             get => mIgnoreCapabilities;
 
@@ -166,6 +167,7 @@ namespace work.bacome.imapclient
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                if ((value & fKnownCapabilities.LoginDisabled) != 0) throw new ArgumentOutOfRangeException();
                 mIgnoreCapabilities = value;
             }
         } 
@@ -306,21 +308,65 @@ namespace work.bacome.imapclient
             }
         }
 
-        // id command (rfc 2971): a way of identifying the client and server software versions
+        // id command (rfc 2971)
         
-        public cId ClientId
+        public cIdDictionary ClientId
         {
-            get => mClientId;
+            get => new cIdDictionary(mClientId);
 
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
-                mClientId = value;
+
+                if (value.Count > 30) throw new ArgumentException("there must not be more than 30 field-value pairs");
+
+                foreach (var lPair in value)
+                {
+                    if (lPair.Key.Length > 30) throw new ArgumentException("field names must not be longer than 30 octets");
+                    if (cCommandPartFactory.TryAsASCIIString(lPair.Key, out _)) throw new ArgumentException("field names must be ascii");
+
+                    if (lPair.Value != null)
+                    {
+                        if (lPair.Value.Length > 1024) throw new ArgumentException("values must not be longer than 1024 octets");
+                        if (cCommandPartFactory.TryAsASCIIString(lPair.Value, out _)) throw new ArgumentException("values must be ascii");
+                    }
+                }
+
+                // copy the dictionary
+                mClientId = new cIdDictionary(value);
             }
         }
 
-        public cIdReadOnlyDictionary ServerId => mSession?.ServerId;
+        public cIdDictionary ClientIdUTF8
+        {
+            get => new cIdDictionary(mClientIdUTF8);
+
+            set
+            {
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+
+                if (value.Count > 30) throw new ArgumentException("there must not be more than 30 field-value pairs");
+
+                foreach (var lPair in value)
+                {
+                    if (Encoding.UTF8.GetByteCount(lPair.Key) > 30) throw new ArgumentException("field names must not be longer than 30 bytes");
+                    if (cCommandPartFactory.TryAsUTF8String(lPair.Key, out _)) throw new ArgumentException("field names must be utf8");
+
+                    if (lPair.Value != null)
+                    {
+                        if (Encoding.UTF8.GetByteCount(lPair.Value) > 1024) throw new ArgumentException("values must not be longer than 1024 bytes");
+                        if (cCommandPartFactory.TryAsUTF8String(lPair.Value, out _)) throw new ArgumentException("values must be utf8");
+                    }
+                }
+
+                // copy the dictionary
+                mClientIdUTF8 = new cIdDictionary(value);
+            }
+        }
+
+        public cIdDictionary ServerId => mSession?.ServerId;
 
         // rfc 2342 namespaces (if the server doesn't support namespaces then this will still work - there will be one personal namespace retrieved using LIST)
         //

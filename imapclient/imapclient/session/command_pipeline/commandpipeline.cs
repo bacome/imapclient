@@ -25,9 +25,9 @@ namespace work.bacome.imapclient
                 private readonly List<iResponseDataParser> mResponseDataParsers = new List<iResponseDataParser>();
                 private readonly List<cUnsolicitedDataProcessor> mUnsolicitedDataProcessors = new List<cUnsolicitedDataProcessor>();
                 private cMailboxCache mMailboxCache = null;
-                private bool mLiteralPlus = false; // based on capability
-                private bool mLiteralMinus = false; // based on capability
-                private bool mIdleCommandSupported = false; // based on capability
+                private bool mLiteralPlus = false;
+                private bool mLiteralMinus = false;
+                private bool mIdleCommandSupported = false;
                 private readonly object mCommandQueueLock = new object();
                 private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource(); // for use when stopping the background task
                 private readonly cExclusiveAccess mIdleBlock = new cExclusiveAccess("idleblock", 100);
@@ -60,17 +60,20 @@ namespace work.bacome.imapclient
                 public void Install(iResponseDataParser pResponseDataParser) => mResponseDataParsers.Add(pResponseDataParser);
                 public void Install(cUnsolicitedDataProcessor pUnsolicitedDataProcessor) => mUnsolicitedDataProcessors.Add(pUnsolicitedDataProcessor);
 
-                public void Enable(cMailboxCache pMailboxCache, cCapability pCapability, cTrace.cContext pParentContext)
+                public void Enable(cMailboxCache pMailboxCache, cCapabilities pCapabilities, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(Enable));
 
                     if (mMailboxCache != null) throw new InvalidOperationException();
 
-                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
+                    if (pMailboxCache == null) throw new ArgumentNullException(nameof(pMailboxCache));
+                    if (pCapabilities == null) throw new ArgumentNullException(nameof(pCapabilities));
 
-                    mLiteralPlus = pCapability.LiteralPlus;
-                    mLiteralMinus = pCapability.LiteralMinus;
-                    mIdleCommandSupported = pCapability.Idle;
+                    mMailboxCache = pMailboxCache;
+
+                    mLiteralPlus = pCapabilities.LiteralPlus;
+                    mLiteralMinus = pCapabilities.LiteralMinus;
+                    mIdleCommandSupported = pCapabilities.Idle;
 
                     mBackgroundReleaser.Release(lContext); // to allow idle to start
                 }
@@ -422,7 +425,7 @@ namespace work.bacome.imapclient
                             // process responses until (normally) the countdown or backgroundreleaser are signalled
                             Task lCompleted = await ZIdleProcessResponsesAsync(lTag, false, lContext, lCountdownTask, mBackgroundReleaser.GetAwaitReleaseTask(lContext)).ConfigureAwait(false);
 
-                            if (lCompleted == null) throw new cUnexpectedServerActionException(fCapabilities.Idle, "idle completed before done sent", lContext);
+                            if (lCompleted == null) throw new cUnexpectedServerActionException(fKnownCapabilities.Idle, "idle completed before done sent", lContext);
 
                             mSendBuffer.Clear();
 
@@ -535,8 +538,8 @@ namespace work.bacome.imapclient
 
                         if (lResult != null)
                         {
-                            if (lResult.ResultType != eCommandResultType.ok) throw new cProtocolErrorException(lResult, fCapabilities.Idle, lContext);
-                            if (pExpectContinuation) throw new cUnexpectedServerActionException(fCapabilities.Idle, "idle command completed before continuation received", lContext);
+                            if (lResult.ResultType != eCommandResultType.ok) throw new cProtocolErrorException(lResult, fKnownCapabilities.Idle, lContext);
+                            if (pExpectContinuation) throw new cUnexpectedServerActionException(fKnownCapabilities.Idle, "idle command completed before continuation received", lContext);
                             return null;
                         }
 

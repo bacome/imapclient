@@ -33,7 +33,9 @@ namespace work.bacome.imapclient
             try
             {
                 var lMC = new cMethodControl(mTimeout, CancellationToken);
-                await lSession.PollAsync(lMC, lContext).ConfigureAwait(false);
+                var lCheck = lSession.CheckAsync(lMC, lContext);
+                var lNoOp = lSession.NoOpAsync(lMC, lContext);
+                await Task.WhenAll(lCheck, lNoOp).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
         }

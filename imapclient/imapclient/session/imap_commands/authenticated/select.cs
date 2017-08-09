@@ -21,17 +21,17 @@ namespace work.bacome.imapclient
                 if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-                mMailboxCache.CheckHandle(pHandle);
+                var lItem = mMailboxCache.CheckHandle(pHandle);
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false));
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lCommand.Add(kSelectCommandPart, pHandle.MailboxNameCommandPart);
-                    if (_Capability.CondStore) lCommand.Add(kSelectCommandPartCondStore);
+                    lCommand.Add(kSelectCommandPart, lItem.MailboxNameCommandPart);
+                    if (mCapability.CondStore) lCommand.Add(kSelectCommandPartCondStore);
 
-                    var lHook = new cCommandHookSelect(mMailboxCache, _Capability, pHandle, true);
+                    var lHook = new cCommandHookSelect(mMailboxCache, mCapability, pHandle, true);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
                     }
 
                     fCapabilities lTryIgnoring;
-                    if (_Capability.CondStore) lTryIgnoring = fCapabilities.CondStore;
+                    if (mCapability.CondStore) lTryIgnoring = fCapabilities.CondStore;
                     else lTryIgnoring = 0;
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);

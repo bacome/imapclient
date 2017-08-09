@@ -5,6 +5,7 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient.zzz
 {
+    /*
     public partial class cIMAPClient
     {
         private partial class cSession
@@ -48,5 +49,5 @@ namespace work.bacome.imapclient.zzz
                 }
             }
         }
-    }
+    }*/
 }

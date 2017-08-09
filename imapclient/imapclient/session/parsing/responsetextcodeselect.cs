@@ -47,11 +47,11 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kReadWriteRBracketSpace = new cBytes("READ-WRITE] ");
                 private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
 
-                private cCapability mCapability;
+                private cCapabilities mCapabilities;
 
-                public cResponseTextCodeParserSelect(cCapability pCapability)
+                public cResponseTextCodeParserSelect(cCapabilities pCapabilities)
                 {
-                    mCapability = pCapability;
+                    mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
                 }
 
                 public bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
@@ -92,7 +92,7 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    if (mCapability.CondStore)
+                    if (mCapabilities.CondStore)
                     {
                         if (pCursor.SkipBytes(kHighestModSeqSpace))
                         {

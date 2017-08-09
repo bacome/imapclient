@@ -15,9 +15,9 @@ namespace work.bacome.imapclient
     public class cUnsuccessfulCompletionException : cIMAPException
     {
         public readonly cResponseText ResponseText;
-        public readonly fCapabilities TryIgnoring;
+        public readonly fKnownCapabilities TryIgnoring;
 
-        public cUnsuccessfulCompletionException(cResponseText pResponseText, fCapabilities pTryIgnoring, cTrace.cContext pContext)
+        public cUnsuccessfulCompletionException(cResponseText pResponseText, fKnownCapabilities pTryIgnoring, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
             TryIgnoring = pTryIgnoring;
@@ -38,9 +38,9 @@ namespace work.bacome.imapclient
     public class cProtocolErrorException : cIMAPException
     {
         public readonly cCommandResult CommandResult;
-        public readonly fCapabilities TryIgnoring;
+        public readonly fKnownCapabilities TryIgnoring;
 
-        public cProtocolErrorException(cCommandResult pCommandResult, fCapabilities pTryIgnoring, cTrace.cContext pContext)
+        public cProtocolErrorException(cCommandResult pCommandResult, fKnownCapabilities pTryIgnoring, cTrace.cContext pContext)
         {
             CommandResult = pCommandResult;
             TryIgnoring = pTryIgnoring;
@@ -60,9 +60,9 @@ namespace work.bacome.imapclient
     // thrown when something happens that shouldn't (according to my reading of the rfcs)
     public class cUnexpectedServerActionException : cIMAPException
     {
-        public readonly fCapabilities TryIgnoring;
+        public readonly fKnownCapabilities TryIgnoring;
 
-        public cUnexpectedServerActionException(fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
+        public cUnexpectedServerActionException(fKnownCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
         {
             TryIgnoring = pTryIgnoring;
             pContext.TraceError("{0}: {1}", nameof(cUnexpectedServerActionException), pMessage);
@@ -219,9 +219,9 @@ namespace work.bacome.imapclient
     // thrown when a required capability for the call isn't available on the server
     public class cUnsupportedByServerException : cIMAPException
     {
-        public readonly fCapabilities Required;
+        public readonly fKnownCapabilities Required;
 
-        public cUnsupportedByServerException(fCapabilities pRequired, cTrace.cContext pContext)
+        public cUnsupportedByServerException(fKnownCapabilities pRequired, cTrace.cContext pContext)
         {
             Required = pRequired;
             pContext.TraceError("{0}: {1}", nameof(cUnsupportedByServerException), pRequired);
@@ -231,9 +231,9 @@ namespace work.bacome.imapclient
     // thrown when a required capability for the call isn't available for the mailbox
     public class cUnsupportedByMailboxException : cIMAPException
     {
-        public readonly fCapabilities Required;
+        public readonly fKnownCapabilities Required;
 
-        public cUnsupportedByMailboxException(fCapabilities pRequired, cTrace.cContext pContext)
+        public cUnsupportedByMailboxException(fKnownCapabilities pRequired, cTrace.cContext pContext)
         {
             Required = pRequired;
             pContext.TraceError("{0}: {1}", nameof(cUnsupportedByMailboxException), pRequired);

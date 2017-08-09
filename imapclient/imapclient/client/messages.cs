@@ -97,7 +97,7 @@ namespace work.bacome.imapclient
             if (pSort == null) lSort = DefaultMessageSort;
             else lSort = pSort;
 
-            var lCapability = lSession.Capability;
+            var lCapabilities = lSession.Capabilities;
 
             cMessageHandleList lHandles;
 
@@ -117,26 +117,26 @@ namespace work.bacome.imapclient
                     // may have to add to the attributes to get the data we need to do the sort if we are doing the sort
                     if (ReferenceEquals(lSort, cSort.OrderedSubject))
                     {
-                        if (lCapability.ThreadOrderedSubject) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.orderedsubject, pFilter, pProperties, lContext).ConfigureAwait(false);
+                        if (lCapabilities.ThreadOrderedSubject) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.orderedsubject, pFilter, pProperties, lContext).ConfigureAwait(false);
                         lProperties = pProperties | fMessageProperties.basesubject | fMessageProperties.received;
                     }
                     else if (ReferenceEquals(lSort, cSort.References))
                     {
-                        if (lCapability.ThreadReferences) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.references, pFilter, pProperties, lContext).ConfigureAwait(false);
+                        if (lCapabilities.ThreadReferences) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.references, pFilter, pProperties, lContext).ConfigureAwait(false);
                         lProperties = pProperties | fMessageProperties.subject | fMessageProperties.received | fMessageProperties.references;
                     }
                     else if (ReferenceEquals(lSort, cSort.Refs))
                     {
-                        if (lCapability.ThreadRefs) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.refs, pFilter, pProperties, lContext).ConfigureAwait(false);
+                        if (lCapabilities.ThreadRefs) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.refs, pFilter, pProperties, lContext).ConfigureAwait(false);
                         lProperties = pProperties | fMessageProperties.subject | fMessageProperties.received | fMessageProperties.references;
                     }
                     else if (lSort.Items != null && lSort.Items.Count > 0)
                     {
                         var lSortProperties = lSort.Properties(out var lSortDisplay);
 
-                        if (!lSortDisplay && lCapability.Sort || lSortDisplay && lCapability.SortDisplay)
+                        if (!lSortDisplay && lCapabilities.Sort || lSortDisplay && lCapabilities.SortDisplay)
                         {
-                            if (lCapability.ESort) lHandles = await lSession.SortExtendedAsync(lMC, pHandle, pFilter, lSort, lContext).ConfigureAwait(false);
+                            if (lCapabilities.ESort) lHandles = await lSession.SortExtendedAsync(lMC, pHandle, pFilter, lSort, lContext).ConfigureAwait(false);
                             else lHandles = await lSession.SortAsync(lMC, pHandle, pFilter, lSort, lContext).ConfigureAwait(false);
 
                             await ZMessagesFetchAsync(lMC, lSession, lHandles, pProperties, lContext).ConfigureAwait(false);
@@ -149,7 +149,7 @@ namespace work.bacome.imapclient
                     else throw new cInternalErrorException(lContext);
                 }
 
-                if (lCapability.ESearch) lHandles = await lSession.SearchExtendedAsync(lMC, pHandle, pFilter, lContext).ConfigureAwait(false);
+                if (lCapabilities.ESearch) lHandles = await lSession.SearchExtendedAsync(lMC, pHandle, pFilter, lContext).ConfigureAwait(false);
                 else lHandles = await lSession.SearchAsync(lMC, pHandle, pFilter, lContext).ConfigureAwait(false);
 
                 await ZMessagesFetchAsync(lMC, lSession, lHandles, lProperties, lContext).ConfigureAwait(false);

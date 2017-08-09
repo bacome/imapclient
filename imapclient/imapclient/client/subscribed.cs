@@ -120,12 +120,12 @@ namespace work.bacome.imapclient
             {
                 var lMC = new cMethodControl(mTimeout, CancellationToken);
 
-                var lCapability = lSession.Capability;
+                var lCapabilities = lSession.Capabilities;
                 bool lList = (pDataSets & fMailboxCacheDataSets.list) != 0;
                 bool lStatus = (pDataSets & fMailboxCacheDataSets.status) != 0;
-                bool lListStatus = lStatus && lCapability.ListStatus;
+                bool lListStatus = lStatus && lCapabilities.ListStatus;
 
-                if (lCapability.ListExtended && (mMailboxReferrals || lList || lListStatus))
+                if (lCapabilities.ListExtended && (lList || mMailboxReferrals || lListStatus))
                 {
                     eListExtendedSelect lSelect;
                     if (pHasSubscribedChildren) lSelect = eListExtendedSelect.subscribedrecursive;
@@ -138,14 +138,14 @@ namespace work.bacome.imapclient
                 else
                 {
                     Task<List<iMailboxHandle>> lLSubTask;
-                    if (mMailboxReferrals && lCapability.MailboxReferrals) lLSubTask = lSession.RLSubAsync(lMC, pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, lContext);
+                    if (mMailboxReferrals && lCapabilities.MailboxReferrals) lLSubTask = lSession.RLSubAsync(lMC, pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, lContext);
                     else lLSubTask = lSession.LSubAsync(lMC, pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, lContext);
 
                     Task lListTask;
 
                     if (lList)
                     {
-                        if (mMailboxReferrals && lCapability.MailboxReferrals) lListTask = lSession.RListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
+                        if (mMailboxReferrals && lCapabilities.MailboxReferrals) lListTask = lSession.RListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
                         else lListTask = lSession.ListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
                     }
                     else lListTask = null;

@@ -89,6 +89,7 @@ namespace work.bacome.imapclient
             get
             {
                 if (Handle.Exists == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                ;?;
                 return Handle.Exists == true;
             }
         }
@@ -398,6 +399,9 @@ namespace work.bacome.imapclient
 
         public void Select(bool pForUpdate = false) => Client.Select(Handle, pForUpdate);
         public Task SelectAsync(bool pForUpdate = false) => Client.SelectAsync(Handle, pForUpdate);
+
+        public void Expunge(bool pAndClose = false) => Client.Expunge(Handle, pAndClose);
+        public void ExpungeAsync(bool pAndClose = false) => Client.ExpungeAsync(Handle, pAndClose);
 
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Messages(Handle, pFilter, pSort, pProperties);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.MessagesAsync(Handle, pFilter, pSort, pProperties);

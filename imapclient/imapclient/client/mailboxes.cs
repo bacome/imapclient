@@ -112,16 +112,16 @@ namespace work.bacome.imapclient
             {
                 var lMC = new cMethodControl(mTimeout, CancellationToken);
 
-                var lCapability = lSession.Capability;
+                var lCapabilities = lSession.Capabilities;
                 bool lLSub = (pDataSets & fMailboxCacheDataSets.lsub) != 0;
                 bool lStatus = (pDataSets & fMailboxCacheDataSets.status) != 0;
 
                 Task<List<iMailboxHandle>> lListTask;
                 Task lLSubTask;
 
-                if (lCapability.ListExtended)
+                if (lCapabilities.ListExtended)
                 {
-                    bool lListStatus = lStatus && lCapability.ListStatus;
+                    bool lListStatus = lStatus && lCapabilities.ListStatus;
 
                     lListTask = lSession.ListExtendedAsync(lMC, eListExtendedSelect.exists, mMailboxReferrals, pListMailbox, pDelimiter, pPattern, lListStatus, lContext);
 
@@ -138,12 +138,12 @@ namespace work.bacome.imapclient
                 }
                 else
                 {
-                    if (mMailboxReferrals && lCapability.MailboxReferrals) lListTask = lSession.RListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
+                    if (mMailboxReferrals && lCapabilities.MailboxReferrals) lListTask = lSession.RListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
                     else lListTask = lSession.ListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
 
                     if (lLSub)
                     {
-                        if (mMailboxReferrals && lCapability.MailboxReferrals) lLSubTask = lSession.RLSubAsync(lMC, pListMailbox, pDelimiter, pPattern, false, lContext);
+                        if (mMailboxReferrals && lCapabilities.MailboxReferrals) lLSubTask = lSession.RLSubAsync(lMC, pListMailbox, pDelimiter, pPattern, false, lContext);
                         else lLSubTask = lSession.LSubAsync(lMC, pListMailbox, pDelimiter, pPattern, false, lContext);
                     }
                     else lLSubTask = null;

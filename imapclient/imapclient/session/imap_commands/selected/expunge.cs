@@ -10,11 +10,11 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kCloseCommandPart = new cCommandPart("CLOSE");
+            private static readonly cCommandPart kExpungeCommandPart = new cCommandPart("EXPUNGE");
 
-            public async Task CloseAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
+            public async Task ExpungeAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(CloseAsync), pMC);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ExpungeAsync), pMC);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_State != eState.selected) throw new InvalidOperationException();
@@ -28,36 +28,17 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lCommand.Add(kCloseCommandPart);
-
-                    var lHook = new cCloseCommandHook(mMailboxCache);
-                    lCommand.Add(lHook);
+                    lCommand.Add(kExpungeCommandPart);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
-                        lContext.TraceInformation("close success");
+                        lContext.TraceInformation("expunge success");
                         return;
                     }
 
                     throw new cProtocolErrorException(lResult, 0, lContext);
-                }
-            }
-
-            private class cCloseCommandHook : cCommandHook
-            {
-                private readonly cMailboxCache mMailboxCache;
-
-                public cCloseCommandHook(cMailboxCache pMailboxCache)
-                {
-                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
-                }
-
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cCloseCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mMailboxCache.Deselect(lContext);
                 }
             }
         }

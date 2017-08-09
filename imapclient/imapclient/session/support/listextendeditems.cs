@@ -4,7 +4,7 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    private partial class cIMAPClient
+    public partial class cIMAPClient
     {
         private partial class cSession
         {

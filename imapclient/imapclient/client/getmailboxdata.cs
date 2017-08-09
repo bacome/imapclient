@@ -51,23 +51,22 @@ namespace work.bacome.imapclient
                 string lListMailbox = pHandle.MailboxName.Name.Replace('*', '%');
                 cMailboxNamePattern lPattern = new cMailboxNamePattern(pHandle.MailboxName.Name, string.Empty, pHandle.MailboxName.Delimiter);
 
-                var lCapability = lSession.Capability;
+                var lCapabilities = lSession.Capabilities;
                 bool lList = (pDataSets & fMailboxCacheDataSets.list) != 0;
                 bool lLSub = (pDataSets & fMailboxCacheDataSets.lsub) != 0;
                 bool lStatus = (pDataSets & fMailboxCacheDataSets.status) != 0;
-                bool lListStatus = lStatus && lCapability.ListStatus;
+                bool lListStatus = lStatus && lCapabilities.ListStatus;
 
                 List<Task> lTasks = new List<Task>();
 
-                if (lCapability.ListExtended && (mMailboxReferrals || lList || lListStatus))
+                if (lCapabilities.ListExtended && (lList || (lLSub && (mMailboxReferrals || lListStatus))))
                 {
                     if (lList)
                     {
                         lTasks.Add(lSession.ListExtendedAsync(lMC, eListExtendedSelect.exists, mMailboxReferrals, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, lListStatus, lContext));
-                        lListStatus = false;
+                        if (lLSub) lTasks.Add(lSession.ListExtendedAsync(lMC, eListExtendedSelect.subscribed, mMailboxReferrals, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, false, lContext));
                     }
-
-                    if (lLSub) lTasks.Add(lSession.ListExtendedAsync(lMC, eListExtendedSelect.subscribed, mMailboxReferrals, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, false, lContext));
+                    else if (lLSub) lTasks.Add(lSession.ListExtendedAsync(lMC, eListExtendedSelect.subscribed, mMailboxReferrals, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, lListStatus, lContext));
 
                     if (lStatus && !lListStatus) lTasks.Add(lSession.StatusAsync(lMC, pHandle, lContext));
                 }
@@ -75,20 +74,20 @@ namespace work.bacome.imapclient
                 {
                     if (lList)
                     {
-                        if (mMailboxReferrals && lCapability.MailboxReferrals) lTasks.Add(lSession.RListAsync(lMC, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, lContext));
+                        if (mMailboxReferrals && lCapabilities.MailboxReferrals) lTasks.Add(lSession.RListAsync(lMC, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, lContext));
                         else lTasks.Add(lSession.ListAsync(lMC, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, lContext));
                     }
 
                     if (lLSub)
                     {
-                        if (mMailboxReferrals && lCapability.MailboxReferrals) lTasks.Add(lSession.RLSubAsync(lMC, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, false, lContext));
+                        if (mMailboxReferrals && lCapabilities.MailboxReferrals) lTasks.Add(lSession.RLSubAsync(lMC, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, false, lContext));
                         else lTasks.Add(lSession.LSubAsync(lMC, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, false, lContext));
                     }
 
                     if (lStatus) lTasks.Add(lSession.StatusAsync(lMC, pHandle, lContext));
                 }
 
-                await cTerminator.AwaitAll(lMC, lTasks).ConfigureAwait(false);
+                await Task.WhenAll(lTasks).ConfigureAwait(false);
             }
             finally { mAsyncCounter.Decrement(lContext); }
         }
@@ -96,9 +95,9 @@ namespace work.bacome.imapclient
         private Task ZGetStatuses(cMethodControl pMC, cSession pSession, List<iMailboxHandle> pHandles, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetStatuses), pMC);
-            List<Task> lStatuses = new List<Task>();
-            foreach (var lHandle in pHandles) if (lHandle.ListFlags?.CanSelect == true) lStatuses.Add(pSession.StatusAsync(pMC, lHandle, lContext));
-            return cTerminator.AwaitAll(pMC, lStatuses);
+            List<Task> lTasks = new List<Task>();
+            foreach (var lHandle in pHandles) if (lHandle.ListFlags?.CanSelect == true) lTasks.Add(pSession.StatusAsync(pMC, lHandle, lContext));
+            return Task.WhenAll(lTasks);
         }
     }
 }

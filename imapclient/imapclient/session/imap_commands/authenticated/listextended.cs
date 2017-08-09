@@ -71,7 +71,7 @@ namespace work.bacome.imapclient
 
                     if ((mMailboxFlagSets & fMailboxFlagSets.subscribed) != 0) lCommand.Add(kListExtendedCommandPartSubscribed);
                     if ((mMailboxFlagSets & fMailboxFlagSets.children) != 0) lCommand.Add(kListExtendedCommandPartChildren);
-                    if ((mMailboxFlagSets & fMailboxFlagSets.specialuse) != 0 && mCapability.SpecialUse) lCommand.Add(kListExtendedCommandPartSpecialUse);
+                    if ((mMailboxFlagSets & fMailboxFlagSets.specialuse) != 0 && mCapabilities.SpecialUse) lCommand.Add(kListExtendedCommandPartSpecialUse);
 
                     if (pStatus)
                     {
@@ -137,7 +137,8 @@ namespace work.bacome.imapclient
                     {
                         case eListExtendedSelect.exists:
 
-                            if ((lList.Flags & fListFlags.nonexistent) == 0 || (lList.Flags & fListFlags.subscribed) == 0)
+                            // if it is non-existent it may be being reported because it has children
+                            if ((lList.Flags & fListFlags.nonexistent) == 0 || (lList.Flags & fListFlags.subscribed) == 0 || (lList.Flags & fListFlags.haschildren) != 0)
                             {
                                 mMailboxes.Add(lList.MailboxName);
                                 return eProcessDataResult.observed;

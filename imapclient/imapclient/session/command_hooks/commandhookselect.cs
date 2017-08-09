@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kNoModSeqRBracketSpace = new cBytes("NOMODSEQ] ");
 
                 private readonly cMailboxCache mMailboxCache;
-                private readonly cCapability mCapability;
+                private readonly cCapabilities mCapabilities;
                 private readonly iMailboxHandle mHandle;
                 private readonly bool mForUpdate;
 
@@ -30,10 +30,10 @@ namespace work.bacome.imapclient
                 private uint mHighestModSeq = 0;
                 private bool mAccessReadOnly = false;
 
-                public cCommandHookSelect(cMailboxCache pMailboxCache, cCapability pCapability, iMailboxHandle pHandle, bool pForUpdate)
+                public cCommandHookSelect(cMailboxCache pMailboxCache, cCapabilities pCapabilities, iMailboxHandle pHandle, bool pForUpdate)
                 {
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
-                    mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
+                    mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
                     mHandle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
                     mForUpdate = pForUpdate;
                 }
@@ -42,7 +42,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandStarted));
 
-                    if (!mCapability.QResync)
+                    if (!mCapabilities.QResync)
                     {
                         mMailboxCache.Deselect(lContext);
                         mDeselectDone = true;
@@ -89,24 +89,24 @@ namespace work.bacome.imapclient
                             mPermanentFlags = lFlags.Flags;
                             return;
 
-                        case cResponseTextCodeUIDNext lUIDNext:
+                        case cResponseDataUIDNext lUIDNext:
 
                             mUIDNext = lUIDNext.UIDNext;
                             return;
 
-                        case cResponseTextCodeUIDValidity lUIDValidity:
+                        case cResponseDataUIDValidity lUIDValidity:
 
                             mUIDValidity = lUIDValidity.UIDValidity;
                             return;
 
-                        case cResponseTextCodeHighestModSeq lHighestModSeq:
+                        case cResponseDataHighestModSeq lHighestModSeq:
 
                             mHighestModSeq = lHighestModSeq.HighestModSeq;
                             return;
 
-                        case cResponseTextCodeRead lRead:
+                        case cResponseDataAccess lAccess:
 
-                            mAccessReadOnly = lRead.ReadOnly;
+                            mAccessReadOnly = lAccess.ReadOnly;
                             return;
                     }
                 }

@@ -8,15 +8,15 @@ namespace work.bacome.imapclient.support
     {
         private static readonly cBytes kCapabilityAuthEquals = new cBytes("AUTH=");
 
-        public bool ProcessCapability(out cCapabilities rCapabilities, out cCapabilities rAuthenticationMechanisms, cTrace.cContext pParentContext)
+        public bool ProcessCapability(out cUniqueIgnoreCaseStringList rCapabilities, out cUniqueIgnoreCaseStringList rAuthenticationMechanisms, cTrace.cContext pParentContext)
         {
             // NOTE: this routine does not return the cursor to its original position if it fails
             //  (that is why it is called PROCESScapablity not GETcapability)
 
             var lContext = pParentContext.NewMethod(nameof(cBytesCursor), nameof(ProcessCapability));
 
-            rCapabilities = new cCapabilities();
-            rAuthenticationMechanisms = new cCapabilities();
+            rCapabilities = new cUniqueIgnoreCaseStringList();
+            rAuthenticationMechanisms = new cUniqueIgnoreCaseStringList();
 
             while (true)
             {
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient.support
                         return false;
                     }
 
-                    rAuthenticationMechanisms.Set(lAtom);
+                    rAuthenticationMechanisms.Add(lAtom);
                 }
                 else
                 {
@@ -42,13 +42,13 @@ namespace work.bacome.imapclient.support
                         return false;
                     }
 
-                    rCapabilities.Set(lAtom);
+                    rCapabilities.Add(lAtom);
                 }
 
                 if (!SkipByte(cASCII.SPACE)) break;
             }
 
-            if (!rCapabilities.Has("IMAP4rev1"))
+            if (!rCapabilities.Contains("IMAP4rev1"))
             {
                 lContext.TraceWarning("likely malformed capability: not imap4rev1?");
                 rCapabilities = null;
@@ -65,32 +65,32 @@ namespace work.bacome.imapclient.support
             var lContext = pParentContext.NewMethod(nameof(cBytesCursor), nameof(_Tests_Capability));
 
             cBytesCursor lCursor;
-            cCapability lCapability;
             cCapabilities lCapabilities;
-            cCapabilities lAuthenticationMechanisms;
+            cUniqueIgnoreCaseStringList lCapabilityList;
+            cUniqueIgnoreCaseStringList lAuthenticationMechanisms;
 
             lCursor = new cBytesCursor(new cBytes("auth=angus auth=fred charlie bob"));
             if (lCursor.ProcessCapability(out _, out _, lContext)) throw new cTestsException("should have failed", lContext);
             if (!lCursor.Position.AtEnd) throw new cTestsException("should have read entire response", lContext);
 
             lCursor = new cBytesCursor(new cBytes("auth=angus auth=fred imap4rev1 charlie bob"));
-            if (!lCursor.ProcessCapability(out lCapabilities, out lAuthenticationMechanisms, lContext)) throw new cTestsException("should have succeeded", lContext);
+            if (!lCursor.ProcessCapability(out lCapabilityList, out lAuthenticationMechanisms, lContext)) throw new cTestsException("should have succeeded", lContext);
             if (!lCursor.Position.AtEnd) throw new cTestsException("should have read entire response", lContext);
-            if (lAuthenticationMechanisms.Count != 2 || !lAuthenticationMechanisms.Has("aNgUs") || !lAuthenticationMechanisms.Has("fred")) throw new cTestsException("authenticatemechanismnames not as expected", lContext);
-            if (lCapabilities.Count != 3) throw new cTestsException("capabilities not as expected", lContext);
+            if (lAuthenticationMechanisms.Count != 2 || !lAuthenticationMechanisms.Contains("aNgUs") || !lAuthenticationMechanisms.Contains("fred")) throw new cTestsException("authenticatemechanismnames not as expected", lContext);
+            if (lCapabilityList.Count != 3) throw new cTestsException("capabilities not as expected", lContext);
 
             lCursor = new cBytesCursor(new cBytes("auth=angus idle auth=fred literal- imap4rev1 charlie utf8=accept bob"));
-            if (!lCursor.ProcessCapability(out lCapabilities, out lAuthenticationMechanisms, lContext)) throw new cTestsException("should have succeeded", lContext);
+            if (!lCursor.ProcessCapability(out lCapabilityList, out lAuthenticationMechanisms, lContext)) throw new cTestsException("should have succeeded", lContext);
             if (!lCursor.Position.AtEnd) throw new cTestsException("should have read entire response", lContext);
-            if (lAuthenticationMechanisms.Count != 2 || !lAuthenticationMechanisms.Has("anGus") || !lAuthenticationMechanisms.Has("freD")) throw new cTestsException("authenticatemechanismnames not as expected", lContext);
-            if (lCapabilities.Count != 6) throw new cTestsException("capabilities not as expected", lContext);
+            if (lAuthenticationMechanisms.Count != 2 || !lAuthenticationMechanisms.Contains("anGus") || !lAuthenticationMechanisms.Contains("freD")) throw new cTestsException("authenticatemechanismnames not as expected", lContext);
+            if (lCapabilityList.Count != 6) throw new cTestsException("capabilities not as expected", lContext);
 
-            lCapability = new cCapability(lCapabilities, lAuthenticationMechanisms, 0);
-            if (lCapability.LoginDisabled || !lCapability.Idle || lCapability.LiteralPlus || !lCapability.LiteralMinus || lCapability.Enable || !lCapability.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
-            if (!lCapability.SupportsAuthenticationMechanism("ANGUS") || !lCapability.SupportsAuthenticationMechanism("FRED") || lCapability.SupportsAuthenticationMechanism("fr€d")) throw new cTestsException("properties not as expected", lContext);
+            lCapabilities = new cCapabilities(lCapabilityList, lAuthenticationMechanisms, 0);
+            if (lCapabilities.LoginDisabled || !lCapabilities.Idle || lCapabilities.LiteralPlus || !lCapabilities.LiteralMinus || lCapabilities.Enable || !lCapabilities.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
+            if (!lAuthenticationMechanisms.Contains("ANGUS") || !lAuthenticationMechanisms.Contains("FRED") || lAuthenticationMechanisms.Contains("fr€d")) throw new cTestsException("properties not as expected", lContext);
 
-            lCapability = new cCapability(lCapabilities, lAuthenticationMechanisms, fCapabilities.Idle | fCapabilities.LiteralMinus);
-            if (lCapability.LoginDisabled || lCapability.Idle || lCapability.LiteralPlus || lCapability.LiteralMinus || lCapability.Enable || !lCapability.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
+            lCapabilities = new cCapabilities(lCapabilityList, lAuthenticationMechanisms, fKnownCapabilities.Idle | fKnownCapabilities.LiteralMinus);
+            if (lCapabilities.LoginDisabled || lCapabilities.Idle || lCapabilities.LiteralPlus || lCapabilities.LiteralMinus || lCapabilities.Enable || !lCapabilities.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
 
             lCursor = new cBytesCursor(new cBytes("auth=angus idle auth=(fred literal- imap4rev1 charlie utf8=accept bob"));
             if (lCursor.ProcessCapability(out _, out _, lContext)) throw new cTestsException("should have failed", lContext);

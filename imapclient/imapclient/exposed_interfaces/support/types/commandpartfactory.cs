@@ -276,6 +276,32 @@ namespace work.bacome.imapclient.support
             throw new ArgumentOutOfRangeException(nameof(pString));
         }
 
+        public static bool TryAsASCIIString(string pString, out cCommandPart rResult)
+        {
+            if (pString == null) { rResult = null; return false; }
+            if (ZTryAsQuotedASCII(pString, false, out rResult)) return true;
+            return (ZTryAsASCIILiteral(pString, false, out rResult));
+        }
+
+        public static cCommandPart AsASCIIString(string pString)
+        {
+            if (TryAsASCIIString(pString, out var lResult)) return lResult;
+            throw new ArgumentOutOfRangeException(nameof(pString));
+        }
+
+        public static bool TryAsUTF8String(string pString, out cCommandPart rResult)
+        {
+            if (pString == null) { rResult = null; return false; }
+            if (ZTryAsQuotedUTF8(pString, false, out rResult)) return true;
+            return (ZTryAsUTF8Literal(pString, false, out rResult));
+        }
+
+        public static cCommandPart AsUTF8String(string pString)
+        {
+            if (TryAsUTF8String(pString, out var lResult)) return lResult;
+            throw new ArgumentOutOfRangeException(nameof(pString));
+        }
+
         public static bool TryAsASCIIAString(string pString, out cCommandPart rResult)
         {
             if (pString == null) { rResult = null; return false; }
