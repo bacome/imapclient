@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceInformation("capability success");
 
-                        if (lHook.Capabilities != null) mCapability = new cCapability(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                        if (lHook.Capabilities != null) mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
                         else throw new cUnexpectedServerActionException(0, "capability not received", lContext);
 
                         return;
@@ -50,13 +50,10 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kCapabilitySpace = new cBytes("CAPABILITY ");
 
-                private cCapabilities mCapabilities = null;
-                private cCapabilities mAuthenticationMechanisms = null;
-
                 public cCapabilityCommandHook() { }
 
-                public cCapabilities Capabilities => mCapabilities;
-                public cCapabilities AuthenticationMechanisms => mAuthenticationMechanisms;
+                public cUniqueIgnoreCaseStringList Capabilities { get; private set; } = null;
+                public cUniqueIgnoreCaseStringList AuthenticationMechanisms { get; private set; } = null;
 
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
@@ -64,9 +61,11 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipBytes(kCapabilitySpace)) return eProcessDataResult.notprocessed;
 
-                    if (pCursor.ProcessCapability(out mCapabilities, out mAuthenticationMechanisms, lContext) && pCursor.Position.AtEnd)
+                    if (pCursor.ProcessCapability(out var lCapabilities, out var lAuthenticationMechanisms, lContext) && pCursor.Position.AtEnd)
                     {
-                        lContext.TraceVerbose("got capabilities: {0} {1}", mCapabilities, mAuthenticationMechanisms);
+                        lContext.TraceVerbose("got capabilities: {0} {1}", lCapabilities, lAuthenticationMechanisms);
+                        Capabilities = lCapabilities;
+                        AuthenticationMechanisms = lAuthenticationMechanisms;
                         return eProcessDataResult.processed;
                     }
 

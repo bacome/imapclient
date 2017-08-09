@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(kLoginCommandPartLogin, mCommandPartFactory.AsLiteral(pLogin.UserId), cCommandPart.Space, mCommandPartFactory.AsLiteral(pLogin.Password));
 
-                    var lHook = new cCommandHookInitial(mCapability.LoginReferrals);
+                    var lHook = new cCommandHookInitial(mCapabilities.LoginReferrals);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceInformation("login success");
 
-                        if (lHook.Capabilities != null) mCapability = new cCapability(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                        if (lHook.Capabilities != null) mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
                         if (lHook.HomeServerReferral != null) mHomeServerReferral = new cURL(lHook.HomeServerReferral);
                         ZSetConnectedAccountId(pAccountId, lContext);
 

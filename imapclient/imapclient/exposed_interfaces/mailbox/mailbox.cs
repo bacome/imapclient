@@ -89,7 +89,6 @@ namespace work.bacome.imapclient
             get
             {
                 if (Handle.Exists == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
-                ;?;
                 return Handle.Exists == true;
             }
         }

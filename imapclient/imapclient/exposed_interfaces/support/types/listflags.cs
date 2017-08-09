@@ -62,7 +62,7 @@ namespace work.bacome.imapclient.support
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fListFlags.noinferiors, fMailboxProperties.canhavechildren);
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fListFlags.noselect, fMailboxProperties.canselect);
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fListFlags.marked | fListFlags.unmarked, fMailboxProperties.ismarked);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fListFlags.nonexistent, fMailboxProperties.exists); ??????????????????????????????????????????;
+            lProperties |= ZPropertyIfDifferent(pOld, pNew, fListFlags.nonexistent, fMailboxProperties.exists); 
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fListFlags.remote, fMailboxProperties.isremote);
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fListFlags.haschildren | fListFlags.hasnochildren, fMailboxProperties.haschildren);
             lProperties |= ZPropertyIfDifferent(pOld, pNew, fListFlags.all, fMailboxProperties.containsall);

@@ -21,17 +21,17 @@ namespace work.bacome.imapclient
                 if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-                mMailboxCache.CheckHandle(pHandle);
+                var lItem = mMailboxCache.CheckHandle(pHandle);
 
                 using (var lCommand = new cCommand())
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false));
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lCommand.Add(kExamineCommandPart, pHandle.MailboxNameCommandPart);
-                    if (mCapability.CondStore) lCommand.Add(kExamineCommandPartCondStore);
+                    lCommand.Add(kExamineCommandPart, lItem.MailboxNameCommandPart);
+                    if (mCapabilities.CondStore) lCommand.Add(kExamineCommandPartCondStore);
 
-                    var lHook = new cCommandHookSelect(mMailboxCache, mCapability, pHandle, false);
+                    var lHook = new cCommandHookSelect(mMailboxCache, mCapabilities, pHandle, false);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -42,9 +42,9 @@ namespace work.bacome.imapclient
                         return;
                     }
 
-                    fCapabilities lTryIgnoring;
-                    if (mCapability.CondStore) lTryIgnoring = fCapabilities.CondStore;
-                    if (mCapability.QResync) lTryIgnoring = fCapabilities.QResync;
+                    fKnownCapabilities lTryIgnoring;
+                    if (mCapabilities.CondStore) lTryIgnoring = fKnownCapabilities.CondStore;
+                    if (mCapabilities.QResync) lTryIgnoring = fKnownCapabilities.QResync;
                     else lTryIgnoring = 0;
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);

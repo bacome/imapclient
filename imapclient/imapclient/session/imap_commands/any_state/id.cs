@@ -62,7 +62,7 @@ namespace work.bacome.imapclient
                         return;
                     }
 
-                    throw new cProtocolErrorException(lResult, fCapabilities.Id, lContext);
+                    throw new cProtocolErrorException(lResult, fKnownCapabilities.Id, lContext);
                 }
             }
 

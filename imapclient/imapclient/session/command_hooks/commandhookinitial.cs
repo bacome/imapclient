@@ -16,18 +16,14 @@ namespace work.bacome.imapclient
 
                 private readonly bool mHandleReferral;
 
-                private cCapabilities mCapabilities = null;
-                private cCapabilities mAuthenticationMechanisms = null;
-
-                public string HomeServerReferral { get; private set; } = null;
-
                 public cCommandHookInitial(bool pHandleReferral)
                 {
                     mHandleReferral = pHandleReferral;
                 }
 
-                public cCapabilities Capabilities => mCapabilities;
-                public cCapabilities AuthenticationMechanisms => mAuthenticationMechanisms;
+                public cUniqueIgnoreCaseStringList Capabilities { get; private set; } = null;
+                public cUniqueIgnoreCaseStringList AuthenticationMechanisms { get; private set; } = null;
+                public string HomeServerReferral { get; private set; } = null;
 
                 public override bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
@@ -35,9 +31,11 @@ namespace work.bacome.imapclient
 
                     if (pCursor.SkipBytes(kCapabilitySpace))
                     {
-                        if (pCursor.ProcessCapability(out mCapabilities, out mAuthenticationMechanisms, lContext) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                        if (pCursor.ProcessCapability(out var lCapabilities, out var lAuthenticationMechanisms, lContext) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                         {
-                            lContext.TraceVerbose("received capabilities: {0} {1}", mCapabilities, mAuthenticationMechanisms);
+                            lContext.TraceVerbose("received capabilities: {0} {1}", lCapabilities, lAuthenticationMechanisms);
+                            Capabilities = lCapabilities;
+                            AuthenticationMechanisms = lAuthenticationMechanisms;
                             return true;
                         }
 

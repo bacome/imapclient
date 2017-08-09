@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
 
                 // work out if binary can/should be used or not
-                bool lBinary = _Capability.Binary && pSection.TextPart == eSectionPart.all && pDecoding != eDecodingRequired.none;
+                bool lBinary = mCapabilities.Binary && pSection.TextPart == eSectionPart.all && pDecoding != eDecodingRequired.none;
 
                 cDecoder lDecoder;
 

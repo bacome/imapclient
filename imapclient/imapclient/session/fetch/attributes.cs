@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
 
                 if ((pAttributes & fFetchAttributes.modseq) != 0)
                 {
-                    if (lNoModSeq) throw new cUnsupportedByMailboxException(fCapabilities.CondStore, lContext);
+                    if (lNoModSeq) throw new cUnsupportedByMailboxException(fKnownCapabilities.CondStore, lContext);
                     return pAttributes | fFetchAttributes.flags;
                 }
 

@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchAttributesAsync), pMC, pHandle, pUIDs, pAttributes);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                ZCheckHandle(pHandle); // to be repeated inside the select locks
+                mMailboxCache.CheckIsSelectedMailbox(pHandle); // to be repeated inside the select lock
 
                 // always get the flags and modseq together
                 var lAttributes = ZFetchAttributes(pAttributes, lContext);
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
                 //
                 using (var lBlock = await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false))
                 {
-                    cSelectedMailbox lSelectedMailbox = ZCheckHandle(pHandle);
+                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
                     foreach (var lUID in pUIDs)
                     {
@@ -62,7 +62,7 @@ namespace work.bacome.imapclient
                     //
                     using (var lBlock = await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false))
                     {
-                        cSelectedMailbox lSelectedMailbox = ZCheckHandle(pHandle);
+                        cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
                         foreach (var lUID in lUIDs)
                         {

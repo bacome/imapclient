@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
 
                     var lAuthentication = pSASL.GetAuthentication();
 
-                    if (mCapability.SASL_IR)
+                    if (mCapabilities.SASL_IR)
                     {
                         IList<byte> lAuthenticationResponse;
 
@@ -51,7 +51,7 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(lAuthentication);
 
-                    var lHook = new cCommandHookAuthenticate(mConnection, lAuthentication, mCapability.LoginReferrals);
+                    var lHook = new cCommandHookAuthenticate(mConnection, lAuthentication, mCapabilities.LoginReferrals);
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceInformation("authenticate success");
 
-                        if (lHook.Capabilities != null) mCapability = new cCapability(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                        if (lHook.Capabilities != null) mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
                         if (lHook.HomeServerReferral != null) mHomeServerReferral = new cURL(lHook.HomeServerReferral);
                         ZSetConnectedAccountId(pAccountId, lContext);
 
