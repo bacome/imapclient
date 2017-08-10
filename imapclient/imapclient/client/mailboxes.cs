@@ -134,7 +134,7 @@ namespace work.bacome.imapclient
 
                     lHandles = await lListTask.ConfigureAwait(false);
 
-                    if (lStatus && !lListStatus) await ZGetStatuses(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
+                    if (lStatus && !lListStatus) await ZFetchStatus(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
                 }
                 else
                 {
@@ -150,7 +150,7 @@ namespace work.bacome.imapclient
 
                     lHandles = await lListTask.ConfigureAwait(false);
 
-                    if (lStatus) await ZGetStatuses(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
+                    if (lStatus) await ZFetchStatus(lMC, lSession, lHandles, lContext).ConfigureAwait(false);
                 }
 
                 if (lLSubTask != null) await lLSubTask.ConfigureAwait(false);

@@ -32,7 +32,7 @@ namespace work.bacome.imapclient.support
 
         public cSequenceSet ToSequenceSet()
         {
-            List<cSequenceSet.cItem> lItems = new List<cSequenceSet.cItem>();
+            List<cSequenceSetItem> lItems = new List<cSequenceSetItem>();
 
             cUIntList lWork = ToSortedUniqueList();
 
@@ -66,8 +66,8 @@ namespace work.bacome.imapclient.support
 
             void LAddItem()
             {
-                if (lFrom == lTo) lItems.Add(new cSequenceSet.cItem.cNumber(lFrom));
-                else lItems.Add(new cSequenceSet.cItem.cRange(lFrom, lTo));
+                if (lFrom == lTo) lItems.Add(new cSequenceSetNumber(lFrom));
+                else lItems.Add(new cSequenceSetRange(lFrom, lTo));
             }
         }
 
@@ -96,34 +96,34 @@ namespace work.bacome.imapclient.support
 
             foreach (var lItem in pSequenceSet)
             {
-                if (lItem == cSequenceSet.cItem.Asterisk)
+                if (lItem == cSequenceSetItem.Asterisk)
                 {
                     lResult.Add(pAsterisk);
                     continue;
                 }
 
-                if (lItem is cSequenceSet.cItem.cNumber lNumber)
+                if (lItem is cSequenceSetNumber lNumber)
                 {
                     lResult.Add(lNumber.Number);
                     continue;
                 }
 
-                if (!(lItem is cSequenceSet.cItem.cRange lRange)) throw new ArgumentException("invalid form 1", nameof(pSequenceSet));
+                if (!(lItem is cSequenceSetRange lRange)) throw new ArgumentException("invalid form 1", nameof(pSequenceSet));
 
-                if (lRange.From == cSequenceSet.cItem.Asterisk)
+                if (lRange.From == cSequenceSetItem.Asterisk)
                 {
                     lResult.Add(pAsterisk);
                     continue;
                 }
 
-                if (!(lRange.From is cSequenceSet.cItem.cNumber lFrom)) throw new ArgumentException("invalid form 2", nameof(pSequenceSet));
+                if (!(lRange.From is cSequenceSetNumber lFrom)) throw new ArgumentException("invalid form 2", nameof(pSequenceSet));
 
                 uint lTo;
 
-                if (lRange.To == cSequenceSet.cItem.Asterisk) lTo = pAsterisk;
+                if (lRange.To == cSequenceSetItem.Asterisk) lTo = pAsterisk;
                 else
                 {
-                    if (!(lRange.To is cSequenceSet.cItem.cNumber lRangeTo)) throw new ArgumentException("invalid form 3", nameof(pSequenceSet));
+                    if (!(lRange.To is cSequenceSetNumber lRangeTo)) throw new ArgumentException("invalid form 3", nameof(pSequenceSet));
                     lTo = lRangeTo.Number;
                 }
 

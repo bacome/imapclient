@@ -7,6 +7,8 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
+    public enum eConnectionState { notconnected, connecting, notauthenticated, authenticated, enabled, notselected, selected, disconnecting, disconnected }
+
     public sealed partial class cIMAPClient : IDisposable // sealed so the disposable implementation is simpler
     {
         // code checks
@@ -45,8 +47,6 @@ namespace work.bacome.imapclient
         // version and release date of this class
         public static Version Version = new Version(0, 2);
         public static DateTime ReleaseDate = new DateTime(2017, 7, 18);
-
-        public enum eState { notconnected, connecting, notauthenticated, authenticated, enabled, notselected, selected, disconnecting, disconnected }
 
         public const string TraceSourceName = "work.bacome.cIMAPClient";
         private static readonly cTrace mTrace = new cTrace(TraceSourceName);
@@ -147,7 +147,9 @@ namespace work.bacome.imapclient
 
         // state
 
-        public eState State => mSession?.State ?? eState.notconnected;
+        public eConnectionState ConnectionState => mSession?.ConnectionState ?? eConnectionState.notconnected;
+        public bool IsUnconnected => mSession == null || mSession.IsUnconnected;
+
         public cCapabilities Capabilities => mSession?.Capabilities;
         public fEnableableExtensions EnabledExtensions => mSession?.EnabledExtensions ?? fEnableableExtensions.none;
         public cAccountId ConnectedAccountId => mSession?.ConnectedAccountId;
@@ -166,8 +168,8 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
-                if ((value & fKnownCapabilities.LoginDisabled) != 0) throw new ArgumentOutOfRangeException();
+                if (!IsUnconnected) throw new InvalidOperationException();
+                if ((value & fKnownCapabilities.logindisabled) != 0) throw new ArgumentOutOfRangeException();
                 mIgnoreCapabilities = value;
             }
         } 
@@ -181,7 +183,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException();
                 mServer = value;
             }
         } 
@@ -199,7 +201,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException();
                 mCredentials = value;
             }
         }
@@ -217,7 +219,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException();
                 mMailboxReferrals = value;
             }
         }
@@ -231,7 +233,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException();
                 mMailboxCacheData = value;
             }
         }
@@ -317,7 +319,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException();
 
                 if (value.Count > 30) throw new ArgumentException("there must not be more than 30 field-value pairs");
 
@@ -345,7 +347,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException();
 
                 if (value.Count > 30) throw new ArgumentException("there must not be more than 30 field-value pairs");
 

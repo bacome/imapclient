@@ -88,7 +88,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.Exists == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.Exists == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 return Handle.Exists == true;
             }
         }
@@ -97,7 +97,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.ListFlags.CanHaveChildren;
             }
@@ -107,7 +107,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.ListFlags.CanSelect;
             }
@@ -117,7 +117,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.ListFlags.IsMarked;
             }
@@ -127,7 +127,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.ListFlags.IsRemote;
             }
@@ -138,7 +138,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Client.MailboxCacheData & fMailboxCacheData.children) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 bool? lHasChildren = Handle.ListFlags.HasChildren;
                 if (lHasChildren == true) return true;
@@ -152,7 +152,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.ListFlags.ContainsAll;
             }
@@ -163,7 +163,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.ListFlags.IsArchive;
             }
@@ -174,7 +174,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.ListFlags.ContainsDrafts;
             }
@@ -185,7 +185,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.ListFlags.ContainsFlagged;
             }
@@ -196,7 +196,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.ListFlags.ContainsJunk;
             }
@@ -207,7 +207,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.ListFlags.ContainsSent;
             }
@@ -218,7 +218,7 @@ namespace work.bacome.imapclient
             get
             {
                 if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.ListFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.list);
+                if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.ListFlags.ContainsTrash;
             }
@@ -228,7 +228,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (Handle.LSubFlags == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.lsub);
+                if (Handle.LSubFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.lsub);
                 if (Handle.LSubFlags == null) throw new cInternalErrorException();
                 return Handle.LSubFlags.Subscribed;
             }
@@ -241,7 +241,7 @@ namespace work.bacome.imapclient
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.MessageCount;
                 if ((Client.MailboxCacheData & fMailboxCacheData.messagecount) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.MailboxStatus == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.status);
+                if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
                 if (Handle.MailboxStatus == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.MailboxStatus.MessageCount;
             }
@@ -254,7 +254,7 @@ namespace work.bacome.imapclient
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.RecentCount;
                 if ((Client.MailboxCacheData & fMailboxCacheData.recentcount) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.MailboxStatus == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.status);
+                if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
                 if (Handle.MailboxStatus == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.MailboxStatus.RecentCount;
             }
@@ -267,7 +267,7 @@ namespace work.bacome.imapclient
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.UIDNext;
                 if ((Client.MailboxCacheData & fMailboxCacheData.uidnext) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.MailboxStatus == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.status);
+                if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
                 if (Handle.MailboxStatus == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.MailboxStatus.UIDNext;
             }
@@ -290,7 +290,7 @@ namespace work.bacome.imapclient
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.UIDValidity;
                 if ((Client.MailboxCacheData & fMailboxCacheData.uidvalidity) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.MailboxStatus == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.status);
+                if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
                 if (Handle.MailboxStatus == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.MailboxStatus.UIDValidity;
             }
@@ -303,7 +303,7 @@ namespace work.bacome.imapclient
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.UnseenCount;
                 if ((Client.MailboxCacheData & fMailboxCacheData.unseencount) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.MailboxStatus == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.status);
+                if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
                 if (Handle.MailboxStatus == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.MailboxStatus.UnseenCount;
             }
@@ -326,7 +326,7 @@ namespace work.bacome.imapclient
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.HighestModSeq;
                 if ((Client.MailboxCacheData & fMailboxCacheData.highestmodseq) == 0) throw new InvalidOperationException("mailbox not caching this data");
-                if (Handle.MailboxStatus == null) Client.GetMailboxData(Handle, fMailboxCacheDataSets.status);
+                if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
                 if (Handle.MailboxStatus == null) throw new InvalidOperationException("mailbox doesn't exist");
                 return Handle.MailboxStatus.HighestModSeq;
             }
@@ -432,8 +432,8 @@ namespace work.bacome.imapclient
         public List<cMessage> Messages(IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC = null) => Client.Messages(Handle, pUIDs, pProperties, pFC);
         public Task<List<cMessage>> MessagesAsync(IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC = null) => Client.MessagesAsync(Handle, pUIDs, pProperties, pFC);
 
-        public void GetMailboxData(fMailboxCacheDataSets pDataSets) => Client.GetMailboxData(Handle, pDataSets);
-        public Task GetMailboxDataAsync(fMailboxCacheDataSets pDataSets) => Client.GetMailboxDataAsync(Handle, pDataSets);
+        public void Fetch(fMailboxCacheDataSets pDataSets) => Client.Fetch(Handle, pDataSets);
+        public Task FetchAsync(fMailboxCacheDataSets pDataSets) => Client.FetchAsync(Handle, pDataSets);
 
         public void Fetch(IList<cMessage> pMessages, fMessageProperties pProperties, cFetchControl pFC = null) => Client.Fetch(ZHandles(pMessages), pProperties, pFC);
         public Task FetchAsync(IList<cMessage> pMessages, fMessageProperties pProperties, cFetchControl pFC = null) => Client.FetchAsync(ZHandles(pMessages), pProperties, pFC);

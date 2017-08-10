@@ -4,9 +4,9 @@ using System.Collections.ObjectModel;
 
 namespace work.bacome.imapclient.support
 {
-    public class cSequenceSet : ReadOnlyCollection<cSequenceSet.cItem>
+    public class cSequenceSet : ReadOnlyCollection<cSequenceSetItem>
     {
-        public cSequenceSet(IList<cItem> pItems) : base(pItems) { }
+        public cSequenceSet(IList<cSequenceSetItem> pItems) : base(pItems) { }
 
         public cSequenceSet(uint pNumber) : base(ZFromNumber(pNumber)) { }
 
@@ -19,96 +19,96 @@ namespace work.bacome.imapclient.support
             return lBuilder.ToString();
         }
 
-        private static cItem[] ZFromNumber(uint pNumber)
+        private static cSequenceSetItem[] ZFromNumber(uint pNumber)
         {
             if (pNumber == 0) throw new ArgumentOutOfRangeException(nameof(pNumber));
 
-            cItem[] lItems = new cItem[1];
+            cSequenceSetItem[] lItems = new cSequenceSetItem[1];
 
-            if (pNumber == uint.MaxValue) lItems[0] = cItem.Asterisk;
-            else lItems[0] = new cItem.cNumber(pNumber);
+            if (pNumber == uint.MaxValue) lItems[0] = cSequenceSetItem.Asterisk;
+            else lItems[0] = new cSequenceSetNumber(pNumber);
 
             return lItems;
         }
 
-        private static cItem[] ZFromRange(uint pFrom, uint pTo)
+        private static cSequenceSetItem[] ZFromRange(uint pFrom, uint pTo)
         {
             if (pFrom == 0) throw new ArgumentOutOfRangeException(nameof(pFrom));
             if (pFrom > pTo) throw new ArgumentOutOfRangeException(nameof(pTo));
 
-            cItem[] lItems = new cItem[1];
+            cSequenceSetItem[] lItems = new cSequenceSetItem[1];
 
-            if (pTo == uint.MaxValue) lItems[0] = new cItem.cRange(new cItem.cNumber(pFrom), cItem.Asterisk);
-            else lItems[0] = new cItem.cRange(new cItem.cNumber(pFrom), new cItem.cNumber(pTo));
+            if (pTo == uint.MaxValue) lItems[0] = new cSequenceSetRange(new cSequenceSetNumber(pFrom), cSequenceSetItem.Asterisk);
+            else lItems[0] = new cSequenceSetRange(new cSequenceSetNumber(pFrom), new cSequenceSetNumber(pTo));
 
             return lItems;
         }
+    }
 
-        public abstract class cItem
+    public abstract class cSequenceSetItem
+    {
+        public static readonly cSequenceSetRangePart Asterisk = new cAsterisk();
+
+        private class cAsterisk : cSequenceSetRangePart
         {
-            public static readonly cRangePart Asterisk = new cAsterisk();
+            public cAsterisk() { }
 
-            public abstract class cRangePart : cItem, IComparable<cRangePart>
+            public override int CompareTo(cSequenceSetRangePart pOther)
             {
-                public abstract int CompareTo(cRangePart pOther);
+                if (pOther == null) throw new ArgumentOutOfRangeException(nameof(pOther));
+                if (pOther == Asterisk) return 0;
+                return 1;
             }
 
-            private class cAsterisk : cRangePart
-            {
-                public cAsterisk() { }
-
-                public override int CompareTo(cRangePart pOther)
-                {
-                    if (pOther == null) throw new ArgumentOutOfRangeException(nameof(pOther));
-                    if (pOther == Asterisk) return 0;
-                    return 1;
-                }
-
-                public override string ToString() => $"{nameof(cAsterisk)}()";
-            }
-
-            public class cNumber : cRangePart
-            {
-                public readonly uint Number;
-
-                public cNumber(uint pNumber)
-                {
-                    if (pNumber == 0) throw new ArgumentOutOfRangeException(nameof(pNumber));
-                    Number = pNumber;
-                }
-
-                public override int CompareTo(cRangePart pOther)
-                {
-                    if (pOther == Asterisk) return -1;
-                    if (!(pOther is cNumber lOther)) throw new ArgumentOutOfRangeException(nameof(pOther));
-                    return Number.CompareTo(lOther.Number);
-                }
-
-                public override string ToString() => $"{nameof(cNumber)}({Number})";
-            }
-
-            public class cRange : cItem
-            {
-                public readonly cRangePart From;
-                public readonly cRangePart To;
-
-                public cRange(cRangePart pLeft, cRangePart pRight)
-                {
-                    if (pLeft == null) throw new ArgumentNullException(nameof(pLeft));
-                    if (pRight == null) throw new ArgumentNullException(nameof(pRight));
-                    if (pLeft.CompareTo(pRight) == 1) { From = pRight; To = pLeft; }
-                    else { From = pLeft; To = pRight; }
-                }
-
-                public cRange(uint pFrom, uint pTo)
-                {
-                    if (pTo <= pFrom) throw new ArgumentOutOfRangeException(nameof(pTo));
-                    From = new cNumber(pFrom);
-                    To = new cNumber(pTo);
-                }
-
-                public override string ToString() => $"{nameof(cRange)}({From},{To})";
-            }
+            public override string ToString() => $"{nameof(cAsterisk)}()";
         }
+    }
+
+    public abstract class cSequenceSetRangePart : cSequenceSetItem, IComparable<cSequenceSetRangePart>
+    {
+        public abstract int CompareTo(cSequenceSetRangePart pOther);
+    }
+
+    public class cSequenceSetNumber : cSequenceSetRangePart
+    {
+        public readonly uint Number;
+
+        public cSequenceSetNumber(uint pNumber)
+        {
+            if (pNumber == 0) throw new ArgumentOutOfRangeException(nameof(pNumber));
+            Number = pNumber;
+        }
+
+        public override int CompareTo(cSequenceSetRangePart pOther)
+        {
+            if (pOther == Asterisk) return -1;
+            if (!(pOther is cSequenceSetNumber lOther)) throw new ArgumentOutOfRangeException(nameof(pOther));
+            return Number.CompareTo(lOther.Number);
+        }
+
+        public override string ToString() => $"{nameof(cSequenceSetNumber)}({Number})";
+    }
+
+    public class cSequenceSetRange : cSequenceSetItem
+    {
+        public readonly cSequenceSetRangePart From;
+        public readonly cSequenceSetRangePart To;
+
+        public cSequenceSetRange(cSequenceSetRangePart pLeft, cSequenceSetRangePart pRight)
+        {
+            if (pLeft == null) throw new ArgumentNullException(nameof(pLeft));
+            if (pRight == null) throw new ArgumentNullException(nameof(pRight));
+            if (pLeft.CompareTo(pRight) == 1) { From = pRight; To = pLeft; }
+            else { From = pLeft; To = pRight; }
+        }
+
+        public cSequenceSetRange(uint pFrom, uint pTo)
+        {
+            if (pTo <= pFrom) throw new ArgumentOutOfRangeException(nameof(pTo));
+            From = new cSequenceSetNumber(pFrom);
+            To = new cSequenceSetNumber(pTo);
+        }
+
+        public override string ToString() => $"{nameof(cSequenceSetRange)}({From},{To})";
     }
 }

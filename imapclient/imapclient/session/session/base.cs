@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         {
             private bool mDisposed = false;
 
-            private eState _State = eState.notconnected;
+            private eConnectionState _ConnectionState = eConnectionState.notconnected;
 
             private readonly cConnection mConnection = new cConnection();
 
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
 
             // properties
             private cCapabilities mCapabilities = null;
-            private cURL mHomeServerReferral = null;
+            private cURL _HomeServerReferral = null;
             private cAccountId _ConnectedAccountId = null;
 
             // set once enabled
@@ -73,7 +73,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetEnabled));
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.authenticated) throw new InvalidOperationException("must be authenticated");
+                if (_ConnectionState != eConnectionState.authenticated) throw new InvalidOperationException("must be authenticated");
 
                 bool lUTF8Enabled = (EnabledExtensions & fEnableableExtensions.utf8) != 0;
 
@@ -98,7 +98,7 @@ namespace work.bacome.imapclient
 
                 mPipeline.Enable(mMailboxCache, mCapabilities, lContext);
 
-                ZSetState(eState.enabled, lContext);
+                ZSetState(eConnectionState.enabled, lContext);
             }
 
             public void SetInitialised(cTrace.cContext pParentContext)
@@ -106,9 +106,9 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetInitialised));
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.enabled) throw new InvalidOperationException("must be enabled");
+                if (_ConnectionState != eConnectionState.enabled) throw new InvalidOperationException("must be enabled");
 
-                ZSetState(eState.notselected, lContext);
+                ZSetState(eConnectionState.notselected, lContext);
             }
 
             public void SetIdleConfiguration(cIdleConfiguration pConfiguration, cTrace.cContext pParentContext)
@@ -138,21 +138,28 @@ namespace work.bacome.imapclient
                 else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
             }
 
-            public eState State => _State;
-            public bool IsUnconnected => _State == eState.notconnected || _State == eState.disconnected;
-            public bool IsConnected => _State == eState.notselected || _State == eState.selected;
+            public eConnectionState ConnectionState => _ConnectionState;
+            public bool IsUnconnected => _ConnectionState == eConnectionState.notconnected || _ConnectionState == eConnectionState.disconnected;
+            public bool IsConnected => _ConnectionState == eConnectionState.notselected || _ConnectionState == eConnectionState.selected;
 
-            private void ZSetState(eState pState, cTrace.cContext pParentContext)
+            private void ZSetState(eConnectionState pConnectionState, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetState), pState);
-                if (pState == _State) return;
-                _State = pState;
-                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.State), lContext);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetState), pConnectionState);
+                if (pConnectionState == _ConnectionState) return;
+                _ConnectionState = pConnectionState;
+                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.ConnectionState), lContext);
             }
 
             public cCapabilities Capabilities => mCapabilities;
 
-            public cURL HomeServerReferral => mHomeServerReferral;
+            public cURL HomeServerReferral => _HomeServerReferral;
+
+            private bool ZSetHomeServerReferral(cResponseText pResponseText)
+            {
+                if (pResponseText.Code != eResponseTextCode.referral || pResponseText.Strings == null || pResponseText.Strings.Count != 1) return false;
+                string lReferral = pResponseText.Strings[0];
+                return cURL.TryParse(lReferral, out _HomeServerReferral);
+            }
 
             public cAccountId ConnectedAccountId => _ConnectedAccountId;
 
@@ -161,7 +168,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetConnectedAccountId), pAccountId);
                 if (_ConnectedAccountId != null) throw new InvalidOperationException(); // can only be set once
                 _ConnectedAccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId));
-                ZSetState(eState.authenticated, lContext);
+                ZSetState(eConnectionState.authenticated, lContext);
             }
 
             public bool SASLSecurityInstalled => mConnection?.SASLSecurityInstalled ?? false;
@@ -185,9 +192,9 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(Disconnect));
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State >= eState.disconnecting) return;
+                if (_ConnectionState >= eConnectionState.disconnecting) return;
 
-                ZSetState(eState.disconnecting, lContext);
+                ZSetState(eConnectionState.disconnecting, lContext);
 
                 if (mPipeline != null)
                 {
@@ -201,7 +208,7 @@ namespace work.bacome.imapclient
                     catch { }
                 }
 
-                ZSetState(eState.disconnected, lContext);
+                ZSetState(eConnectionState.disconnected, lContext);
             }
 
             public void Dispose()

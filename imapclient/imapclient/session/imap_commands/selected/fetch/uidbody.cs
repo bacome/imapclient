@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchBodyAsync), pMC, pHandle, pUID, pBinary, pSection, pOrigin, pLength);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pUID == null) throw new ArgumentNullException(nameof(pUID));
                 if (pSection == null) throw new ArgumentNullException(nameof(pSection));
@@ -60,8 +60,8 @@ namespace work.bacome.imapclient
 
                     if (lHook.Body != null) lContext.TraceError("received body on a failed uid fetch body");
 
-                    fCapabilities lTryIgnoring;
-                    if (pBinary) lTryIgnoring = fCapabilities.Binary;
+                    fKnownCapabilities lTryIgnoring;
+                    if (pBinary) lTryIgnoring = fKnownCapabilities.binary;
                     else lTryIgnoring = 0;
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);

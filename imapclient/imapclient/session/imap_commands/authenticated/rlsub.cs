@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(RLSubAsync), pMC, pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
                 if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
                 if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
 
@@ -42,8 +42,8 @@ namespace work.bacome.imapclient
                         return lHook.Handles;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.MailboxReferrals, lContext);
-                    throw new cProtocolErrorException(lResult, fCapabilities.MailboxReferrals, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fKnownCapabilities.mailboxreferrals, lContext);
+                    throw new cProtocolErrorException(lResult, fKnownCapabilities.mailboxreferrals, lContext);
                 }
             }
         }

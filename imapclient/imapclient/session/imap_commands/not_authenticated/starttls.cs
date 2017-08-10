@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StartTLSAsync), pMC);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.notauthenticated) throw new InvalidOperationException("must be not authenticated");
+                if (_ConnectionState != eConnectionState.notauthenticated) throw new InvalidOperationException("must be not authenticated");
                 if (mConnection.TLSInstalled) throw new InvalidOperationException("tls already installed");
 
                 using (var lCommand = new cCommand())

@@ -9,22 +9,22 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void GetMailboxData(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
+        public void Fetch(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(GetMailboxData));
-            var lTask = ZGetMailboxDataAsync(pHandle, pDataSets, lContext);
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
+            var lTask = ZFetchAsync(pHandle, pDataSets, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task GetMailboxDataAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
+        public Task FetchAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(GetMailboxDataAsync));
-            return ZGetMailboxDataAsync(pHandle, pDataSets, lContext);
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
+            return ZFetchAsync(pHandle, pDataSets, lContext);
         }
 
-        private async Task ZGetMailboxDataAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
+        private async Task ZFetchAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetMailboxDataAsync), pHandle, pDataSets);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAsync), pHandle, pDataSets);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -92,9 +92,9 @@ namespace work.bacome.imapclient
             finally { mAsyncCounter.Decrement(lContext); }
         }
 
-        private Task ZGetStatuses(cMethodControl pMC, cSession pSession, List<iMailboxHandle> pHandles, cTrace.cContext pParentContext)
+        private Task ZFetchStatus(cMethodControl pMC, cSession pSession, List<iMailboxHandle> pHandles, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZGetStatuses), pMC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchStatus), pMC);
             List<Task> lTasks = new List<Task>();
             foreach (var lHandle in pHandles) if (lHandle.ListFlags?.CanSelect == true) lTasks.Add(pSession.StatusAsync(pMC, lHandle, lContext));
             return Task.WhenAll(lTasks);

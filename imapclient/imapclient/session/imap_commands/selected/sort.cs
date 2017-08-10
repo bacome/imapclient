@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SortAsync), pMC, pHandle, pFilter, pSort);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
@@ -25,14 +25,14 @@ namespace work.bacome.imapclient
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    cSelectedMailbox lSelectedMailbox = ZCheckHandle(pHandle);
+                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
                     lCommand.Add(await mSortExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // sort commands must be single threaded (so we can tell which result is which)
 
                     lCommand.Add(kSortCommandPart);
                     lCommand.Add(pSort);
                     lCommand.Add(cCommandPart.Space);
-                    lCommand.Add(pFilter, true, EnabledExtensions, mEncoding); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
+                    lCommand.Add(pFilter, true, mEncodingPartFactory); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
 
                     var lHook = new cSortCommandHook(lSelectedMailbox);
                     lCommand.Add(lHook);
@@ -42,14 +42,14 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("sort success");
-                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.Sort, "results not received on a successful sort", lContext);
+                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fKnownCapabilities.sort, "results not received on a successful sort", lContext);
                         return lHook.Handles;
                     }
 
                     if (lHook.Handles != null) lContext.TraceError("results received on a failed sort");
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.Sort, lContext);
-                    throw new cProtocolErrorException(lResult, fCapabilities.Sort, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fKnownCapabilities.sort, lContext);
+                    throw new cProtocolErrorException(lResult, fKnownCapabilities.sort, lContext);
                 }
             }
 

@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(EnableAsync), pMC, pExtensions);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.authenticated) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.authenticated) throw new InvalidOperationException();
 
                 using (var lCommand = new cCommand())
                 {
@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
 
                     if (lHook.EnabledExtensions != fEnableableExtensions.none) lContext.TraceError("received enabled on a failed enable");
 
-                    throw new cProtocolErrorException(lResult, fCapabilities.Enable, lContext);
+                    throw new cProtocolErrorException(lResult, fKnownCapabilities.enable, lContext);
                 }
             }
 

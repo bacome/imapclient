@@ -108,31 +108,34 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cResponseDataESearch), nameof(_Tests));
 
-                    cResponseDataESearch lRD;
+                    cResponseDataParserESearch lRDP = new cResponseDataParserESearch();
+                    cResponseDataESearch lRDES;
 
-                    LTest("", "1", out lRD, lContext);
-                    if (lRD.Tag != null || lRD.UID || lRD.SequenceSet != null) throw new cTestsException($"{nameof(cResponseDataESearch)}.1.v");
+                    LTest("", "1");
+                    if (lRDES.Tag != null || lRDES.UID || lRDES.SequenceSet != null) throw new cTestsException($"{nameof(cResponseDataESearch)}.1.v");
 
-                    LTest(" (TAG \"A282\") MIN 2 COUNT 3", "4731.1", out lRD, lContext);
-                    if (!cASCII.Compare(lRD.Tag, new cBytes("A282"), true) || lRD.UID || lRD.SequenceSet != null) throw new cTestsException($"{nameof(cResponseDataESearch)}.4731.1.v");
+                    LTest(" (TAG \"A282\") MIN 2 COUNT 3", "4731.1");
+                    if (!cASCII.Compare(lRDES.Tag, new cBytes("A282"), true) || lRDES.UID || lRDES.SequenceSet != null) throw new cTestsException($"{nameof(cResponseDataESearch)}.4731.1.v");
 
-                    LTest(" (TAG \"A283\") ALL 2,10:11", "4731.2", out lRD, lContext);
-                    if (!cASCII.Compare(lRD.Tag, new cBytes("A283"), true) || lRD.UID || lRD.SequenceSet == null || lRD.SequenceSet.ToString() == "cNumber(2),cRange(cNumber(10),cNumber(11))") throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.2.v");
+                    LTest(" (TAG \"A283\") ALL 2,10:11", "4731.2");
+                    if (!cASCII.Compare(lRDES.Tag, new cBytes("A283"), true) || lRDES.UID || lRDES.SequenceSet == null || lRDES.SequenceSet.ToString() == "cNumber(2),cRange(cNumber(10),cNumber(11))") throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.2.v");
 
-                    LTest(" (TAG \"A284\") MIN 4", "4731.3", out lRD, lContext);
-                    if (!cASCII.Compare(lRD.Tag, new cBytes("A284"), true) || lRD.UID || lRD.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.3.v");
+                    LTest(" (TAG \"A284\") MIN 4", "4731.3");
+                    if (!cASCII.Compare(lRDES.Tag, new cBytes("A284"), true) || lRDES.UID || lRDES.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.3.v");
 
-                    LTest(" (TAG \"A285\") UID MIN 7 MAX 3800", "4731.4", out lRD, lContext);
-                    if (!cASCII.Compare(lRD.Tag, new cBytes("A285"), true) || !lRD.UID || lRD.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.4.v");
+                    LTest(" (TAG \"A285\") UID MIN 7 MAX 3800", "4731.4");
+                    if (!cASCII.Compare(lRDES.Tag, new cBytes("A285"), true) || !lRDES.UID || lRDES.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.4.v");
 
-                    LTest(" (TAG \"A286\") COUNT 15", "4731.5", out lRD, lContext);
-                    if (!cASCII.Compare(lRD.Tag, new cBytes("A286"), true) || lRD.UID || lRD.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.5.v");
+                    LTest(" (TAG \"A286\") COUNT 15", "4731.5");
+                    if (!cASCII.Compare(lRDES.Tag, new cBytes("A286"), true) || lRDES.UID || lRDES.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.5.v");
 
-                    void LTest(string pResponse, string pTest, out cResponseDataESearch rResponseData, cTrace.cContext pContext)
+                    void LTest(string pResponse, string pTest)
                     {
                         if (!cBytesCursor.TryConstruct(pResponse, out var lCursor)) throw new cTestsException($"{nameof(cResponseDataESearch)}.{pTest}.c1");
-                        if (!Process(lCursor, out rResponseData, pContext)) throw new cTestsException($"{nameof(cResponseDataESearch)}.{pTest}.c2");
+                        if (!lRDP.Process(lCursor, out var lRD, lContext)) throw new cTestsException($"{nameof(cResponseDataESearch)}.{pTest}.c2");
                         if (!lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataESearch)}.{pTest}.c3");
+                        lRDES = lRD as cResponseDataESearch;
+                        if (lRDES == null) throw new cTestsException($"{nameof(cResponseDataESearch)}.{pTest}.c4");
                     }
                 }
             }

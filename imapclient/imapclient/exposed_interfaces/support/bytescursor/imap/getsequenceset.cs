@@ -11,7 +11,7 @@ namespace work.bacome.imapclient.support
         {
             var lBookmark = Position;
 
-            List<cSequenceSet.cItem> lItems = new List<cSequenceSet.cItem>();
+            List<cSequenceSetItem> lItems = new List<cSequenceSetItem>();
 
             while (true)
             {
@@ -32,16 +32,16 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        private bool ZGetSequenceSetItem(out cSequenceSet.cItem rItem)
+        private bool ZGetSequenceSetItem(out cSequenceSetItem rItem)
         {
             uint lNumber;
-            cSequenceSet.cItem.cRangePart lItem;
+            cSequenceSetRangePart lItem;
 
-            if (SkipByte(cASCII.ASTERISK)) lItem = cSequenceSet.cItem.Asterisk;
+            if (SkipByte(cASCII.ASTERISK)) lItem = cSequenceSetItem.Asterisk;
             else
             {
                 if (!GetNZNumber(out _, out lNumber)) { rItem = null; return false; }
-                lItem = new cSequenceSet.cItem.cNumber(lNumber);
+                lItem = new cSequenceSetNumber(lNumber);
             }
 
             var lBookmark = Position;
@@ -54,11 +54,11 @@ namespace work.bacome.imapclient.support
 
             if (SkipByte(cASCII.ASTERISK))
             {
-                rItem = new cSequenceSet.cItem.cRange(lItem, cSequenceSet.cItem.Asterisk);
+                rItem = new cSequenceSetRange(lItem, cSequenceSetItem.Asterisk);
                 return true;
             }
 
-            if (GetNZNumber(out _, out lNumber)) rItem = new cSequenceSet.cItem.cRange(lItem, new cSequenceSet.cItem.cNumber(lNumber));
+            if (GetNZNumber(out _, out lNumber)) rItem = new cSequenceSetRange(lItem, new cSequenceSetNumber(lNumber));
             else
             {
                 Position = lBookmark;

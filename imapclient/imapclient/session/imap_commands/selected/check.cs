@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    if (_State != eState.selected) return;
+                    if (_ConnectionState != eConnectionState.selected) return;
 
                     lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 

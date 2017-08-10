@@ -44,7 +44,6 @@ namespace work.bacome.imapclient
     {
         public static readonly cSort OrderedSubject = new cSort("orderedsubject");
         public static readonly cSort References = new cSort("references");
-        public static readonly cSort Refs = new cSort("refs");
 
         private readonly string mName;
         public readonly ReadOnlyCollection<cSortItem> Items;

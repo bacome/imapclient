@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
                 var lMC = new cMethodControl(mTimeout, CancellationToken);
                 await lSession.LogoutAsync(lMC, lContext).ConfigureAwait(false);
             }
-            catch when (lSession.State != eState.disconnected)
+            catch when (lSession.ConnectionState != eConnectionState.disconnected)
             {           
                 lSession.Disconnect(lContext);
                 throw;

@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
                 // caller needs to determine if list status is supported
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
 
                 if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
                 if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
@@ -69,14 +69,14 @@ namespace work.bacome.imapclient
 
                     lCommand.BeginList(eListBracketing.ifany, kListExtendedCommandPartReturn);
 
-                    if ((mMailboxFlagSets & fMailboxFlagSets.subscribed) != 0) lCommand.Add(kListExtendedCommandPartSubscribed);
-                    if ((mMailboxFlagSets & fMailboxFlagSets.children) != 0) lCommand.Add(kListExtendedCommandPartChildren);
-                    if ((mMailboxFlagSets & fMailboxFlagSets.specialuse) != 0 && mCapabilities.SpecialUse) lCommand.Add(kListExtendedCommandPartSpecialUse);
+                    if ((mMailboxCacheData & fMailboxCacheData.subscribed) != 0) lCommand.Add(kListExtendedCommandPartSubscribed);
+                    if ((mMailboxCacheData & fMailboxCacheData.children) != 0) lCommand.Add(kListExtendedCommandPartChildren);
+                    if ((mMailboxCacheData & fMailboxCacheData.specialuse) != 0 && mCapabilities.SpecialUse) lCommand.Add(kListExtendedCommandPartSpecialUse);
 
                     if (pStatus)
                     {
                         lCommand.Add(kListExtendedCommandPartStatus);
-                        lCommand.AddStatusAttributes(mCapability);
+                        lCommand.AddStatusAttributes(mStatusAttributes);
                     }
 
                     lCommand.EndList();
@@ -93,11 +93,11 @@ namespace work.bacome.imapclient
                         return lHook.Handles;
                     }
 
-                    fCapabilities lTryIgnoring = 0;
+                    fKnownCapabilities lTryIgnoring = 0;
 
-                    if (pStatus) lTryIgnoring |= fCapabilities.ListStatus;
-                    if ((mMailboxFlagSets & fMailboxFlagSets.specialuse) != 0) lTryIgnoring |= fCapabilities.SpecialUse;
-                    if (lTryIgnoring == 0) lTryIgnoring |= fCapabilities.ListExtended;
+                    if ((mMailboxCacheData & fMailboxCacheData.specialuse) != 0 && mCapabilities.SpecialUse) lTryIgnoring |= fKnownCapabilities.specialuse;
+                    if (pStatus) lTryIgnoring |= fKnownCapabilities.liststatus;
+                    if (lTryIgnoring == 0) lTryIgnoring |= fKnownCapabilities.listextended;
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
                     throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);

@@ -1141,14 +1141,17 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cResponseDataFetch), nameof(_Tests));
 
                     cBytesCursor lCursor;
-                    cCapabilities lCapabilities = new cCapabilities();
-                    lCapabilities.Set("binary");
+
+                    cResponseDataParserFetch lRDPF = new cResponseDataParserFetch();
+
+                    cResponseData lRD;
                     cResponseDataFetch lData;
+
                     cEmailAddress lEmailAddress;
                     cTextBodyPart lTextPart;
 
                     if (!cBytesCursor.TryConstruct(
-                            @"(FLAGS (\Seen) INTERNALDATE ""17-Jul-1996 02:44:25 -0700"" " +
+                            @"12 FETCH (FLAGS (\Seen) INTERNALDATE ""17-Jul-1996 02:44:25 -0700"" " +
                             @"RFC822.SIZE 4286 ENVELOPE (""Wed, 17 Jul 1996 02:23:25 -0700 (PDT)"" " +
                             @"""IMAP4rev1 WG mtg summary and minutes"" " +
                             @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
@@ -1160,7 +1163,9 @@ namespace work.bacome.imapclient
                             @"""<B27397-0100000@cac.washington.edu>"") " +
                             @"BODY (""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 3028 92))", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.0");
 
-                    if (!Process(lCursor, 12, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1");
+                    if (!lRDPF.Process(lCursor, out lRD, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1");
+                    lData = lRD as cResponseDataFetch;
+                    if (lData == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1.1");
 
                     if (lData.Flags.Count != 1 || !lData.Flags.ContainsSeen) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
                     if (lData.Received != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
@@ -1195,7 +1200,7 @@ namespace work.bacome.imapclient
                     cBody lBody;
 
                     lCursor = MakeCursor(
-                        "(BODY[HEADER] ",
+                        "12 FETCH (BODY[HEADER] ",
                         "{Date: Wed, 17 Jul 1996 02:23:25 -0700 (PDT)\r\n" +
                             "From: Terry Gray <gray@cac.washington.edu>\r\n" +
                             "Subject: IMAP4rev1 WG mtg summary and minutes\r\n" +
@@ -1207,7 +1212,9 @@ namespace work.bacome.imapclient
                             "\r\n",
                         ")");
 
-                    if (!Process(lCursor, 12, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.0");
+                    if (!lRDPF.Process(lCursor, out lRD, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.0");
+                    lData = lRD as cResponseDataFetch;
+                    if (lData == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.0.1");
 
                     if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.1");
                     lBody = lData.Bodies[0];
@@ -1215,7 +1222,7 @@ namespace work.bacome.imapclient
 
 
                     lCursor = MakeCursor(
-                        "(BODY[HEADER]<0> ",
+                        "12 FETCH (BODY[HEADER]<0> ",
                         "{Date: Wed, 17 Jul 1996 02:23:25 -0700 (PDT)\r\n" +
                             "From: Terry Gray <gray@cac.washington.edu>\r\n" +
                             "Subject: IMAP4rev1 WG mtg summary and minutes\r\n" +
@@ -1227,7 +1234,9 @@ namespace work.bacome.imapclient
                             "\r\n",
                         ")");
 
-                    if (!Process(lCursor, 12, out lData, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.0");
+                    if (!lRDPF.Process(lCursor, out lRD, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.0");
+                    lData = lRD as cResponseDataFetch;
+                    if (lData == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.0.1");
 
                     if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.1");
                     lBody = lData.Bodies[0];

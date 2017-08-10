@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SearchExtendedAsync), pMC, pHandle, pFilter);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
                 using (var lCommand = new cCommand())
@@ -37,14 +37,14 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("extended search success");
-                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.ESearch, "results not received on a successful extended search", lContext);
+                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fKnownCapabilities.esearch, "results not received on a successful extended search", lContext);
                         return lHook.Handles;
                     }
 
                     if (lHook.Handles != null) lContext.TraceError("results received on a failed extended search");
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.ESearch, lContext);
-                    throw new cProtocolErrorException(lResult, fCapabilities.ESearch, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fKnownCapabilities.esearch, lContext);
+                    throw new cProtocolErrorException(lResult, fKnownCapabilities.esearch, lContext);
                 }
             }
         }

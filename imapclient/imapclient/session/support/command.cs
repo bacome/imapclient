@@ -317,12 +317,12 @@ namespace work.bacome.imapclient
                             lParts.Add(kCommandPartAll);
                             return lParts;
 
-                        case cFilter.cUIDIn lUIDIn:
+                        case cFilterUIDIn lUIDIn:
 
                             lParts.Add(kCommandPartUIDSpace, new cCommandPart(lUIDIn.SequenceSet));
                             return lParts;
 
-                        case cFilter.cFlagsContain lFlagsContain:
+                        case cFilterFlagsContain lFlagsContain:
 
                             lParts.BeginList(pBracketing);
 
@@ -340,41 +340,41 @@ namespace work.bacome.imapclient
                             lParts.EndList();
                             return lParts;
 
-                        case cFilter.cPartContains lPartContains:
+                        case cFilterPartContains lPartContains:
 
                             switch (lPartContains.Part)
                             {
-                                case cFilter.ePart.bcc:
+                                case eFilterPart.bcc:
 
                                     lParts.Add(kCommandPartBCCSpace);
                                     break;
 
-                                case cFilter.ePart.body:
+                                case eFilterPart.body:
 
                                     lParts.Add(kCommandPartBodySpace);
                                     break;
 
-                                case cFilter.ePart.cc:
+                                case eFilterPart.cc:
 
                                     lParts.Add(kCommandPartCCSpace);
                                     break;
 
-                                case cFilter.ePart.from:
+                                case eFilterPart.from:
 
                                     lParts.Add(kCommandPartFromSpace);
                                     break;
 
-                                case cFilter.ePart.subject:
+                                case eFilterPart.subject:
 
                                     lParts.Add(kCommandPartSubjectSpace);
                                     break;
 
-                                case cFilter.ePart.text:
+                                case eFilterPart.text:
 
                                     lParts.Add(kCommandPartTextSpace);
                                     break;
 
-                                case cFilter.ePart.to:
+                                case eFilterPart.to:
 
                                     lParts.Add(kCommandPartToSpace);
                                     break;
@@ -387,45 +387,45 @@ namespace work.bacome.imapclient
                             lParts.Add(pFactory.AsAString(lPartContains.Contains));
                             return lParts;
 
-                        case cFilter.cDateCompare lDateCompare:
+                        case cFilterDateCompare lDateCompare:
 
-                            if (lDateCompare.Date == cFilter.eDate.arrival)
+                            if (lDateCompare.Date == eFilterDate.arrival)
                             {
-                                if (lDateCompare.Compare == cFilter.eDateCompare.before) lParts.Add(kCommandPartBeforeSpace);
-                                else if (lDateCompare.Compare == cFilter.eDateCompare.on) lParts.Add(kCommandPartOnSpace);
+                                if (lDateCompare.Compare == eFilterDateCompare.before) lParts.Add(kCommandPartBeforeSpace);
+                                else if (lDateCompare.Compare == eFilterDateCompare.on) lParts.Add(kCommandPartOnSpace);
                                 else lParts.Add(kCommandPartSinceSpace);
                             }
                             else
                             {
-                                if (lDateCompare.Compare == cFilter.eDateCompare.before) lParts.Add(kCommandPartSentBeforeSpace);
-                                else if (lDateCompare.Compare == cFilter.eDateCompare.on) lParts.Add(kCommandPartSentOnSpace);
+                                if (lDateCompare.Compare == eFilterDateCompare.before) lParts.Add(kCommandPartSentBeforeSpace);
+                                else if (lDateCompare.Compare == eFilterDateCompare.on) lParts.Add(kCommandPartSentOnSpace);
                                 else lParts.Add(kCommandPartSentSinceSpace);
                             }
 
                             lParts.Add(cCommandPartFactory.AsDate(lDateCompare.WithDate));
                             return lParts;
 
-                        case cFilter.cHeaderFieldContains lHeaderFieldContains:
+                        case cFilterHeaderFieldContains lHeaderFieldContains:
 
                             lParts.Add(kCommandPartHeaderSpace, cCommandPartFactory.AsASCIIAString(lHeaderFieldContains.HeaderField), cCommandPart.Space, pFactory.AsAString(lHeaderFieldContains.Contains));
                             return lParts;
 
-                        case cFilter.cSizeCompare lSizeCompare:
+                        case cFilterSizeCompare lSizeCompare:
 
-                            if (lSizeCompare.Compare == cFilter.eSizeCompare.larger) lParts.Add(kCommandPartLargerSpace);
+                            if (lSizeCompare.Compare == eFilterSizeCompare.larger) lParts.Add(kCommandPartLargerSpace);
                             else lParts.Add(kCommandPartSmallerSpace);
 
                             lParts.Add(new cCommandPart(lSizeCompare.WithSize));
                             return lParts;
 
-                        case cFilter.cAnd lAnd:
+                        case cFilterAnd lAnd:
 
                             lParts.BeginList(pBracketing);
                             foreach (var lTerm in lAnd.Terms) lParts.Add(ZFilterParts(lTerm, eListBracketing.none, pFactory).Parts);
                             lParts.EndList();
                             return lParts;
 
-                        case cFilter.cOr lOr:
+                        case cFilterOr lOr:
 
                             lParts.Add(kCommandPartOrSpace);
                             lParts.Add(ZFilterParts(lOr.A, eListBracketing.ifmorethanone, pFactory).Parts);
@@ -433,9 +433,9 @@ namespace work.bacome.imapclient
                             lParts.Add(ZFilterParts(lOr.B, eListBracketing.ifmorethanone, pFactory).Parts);
                             return lParts;
 
-                        case cFilter.cNot lNot:
+                        case cFilterNot lNot:
 
-                            if (lNot.Not is cFilter.cFlagsContain lFlagsUncontain)
+                            if (lNot.Not is cFilterFlagsContain lFlagsUncontain)
                             {
                                 lParts.BeginList(pBracketing);
 
@@ -474,51 +474,43 @@ namespace work.bacome.imapclient
                     {
                         if (lItem.Desc) Add(kCommandPartReverse);
 
-                        switch (lItem.Type)
+                        switch (lItem.Property)
                         {
-                            case cSortItem.eType.received:
+                            case fMessageProperties.received:
 
                                 Add(kCommandPartArrival);
                                 break;
 
-                            case cSortItem.eType.cc:
+                            case fMessageProperties.cc:
 
                                 Add(kCommandPartCC);
                                 break;
 
-                            case cSortItem.eType.sent:
+                            case fMessageProperties.sent:
 
                                 Add(kCommandPartDate);
                                 break;
 
-                            case cSortItem.eType.from:
+                            case fMessageProperties.from:
 
-                                Add(kCommandPartFrom);
+                                if (lItem.Display) Add(kCommandPartDisplayFrom);
+                                else Add(kCommandPartFrom);
                                 break;
 
-                            case cSortItem.eType.size:
+                            case fMessageProperties.size:
 
                                 Add(kCommandPartSize);
                                 break;
 
-                            case cSortItem.eType.subject:
+                            case fMessageProperties.subject:
 
                                 Add(kCommandPartSubject);
                                 break;
 
-                            case cSortItem.eType.to:
+                            case fMessageProperties.to:
 
-                                Add(kCommandPartTo);
-                                break;
-
-                            case cSortItem.eType.displayfrom:
-
-                                Add(kCommandPartDisplayFrom);
-                                break;
-
-                            case cSortItem.eType.displayto:
-
-                                Add(kCommandPartDisplayTo);
+                                if (lItem.Display) Add(kCommandPartDisplayTo);
+                                else Add(kCommandPartTo);
                                 break;
 
                             default:
@@ -646,7 +638,7 @@ namespace work.bacome.imapclient
 
                 public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    if (mHook == null) return false;
+                    if (mHook == null) return;
                     mHook.ProcessTextCode(pData, pParentContext);
                 }
 

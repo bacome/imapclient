@@ -425,7 +425,7 @@ namespace work.bacome.imapclient
                             // process responses until (normally) the countdown or backgroundreleaser are signalled
                             Task lCompleted = await ZIdleProcessResponsesAsync(lTag, false, lContext, lCountdownTask, mBackgroundReleaser.GetAwaitReleaseTask(lContext)).ConfigureAwait(false);
 
-                            if (lCompleted == null) throw new cUnexpectedServerActionException(fKnownCapabilities.Idle, "idle completed before done sent", lContext);
+                            if (lCompleted == null) throw new cUnexpectedServerActionException(fKnownCapabilities.idle, "idle completed before done sent", lContext);
 
                             mSendBuffer.Clear();
 
@@ -538,8 +538,8 @@ namespace work.bacome.imapclient
 
                         if (lResult != null)
                         {
-                            if (lResult.ResultType != eCommandResultType.ok) throw new cProtocolErrorException(lResult, fKnownCapabilities.Idle, lContext);
-                            if (pExpectContinuation) throw new cUnexpectedServerActionException(fKnownCapabilities.Idle, "idle command completed before continuation received", lContext);
+                            if (lResult.ResultType != eCommandResultType.ok) throw new cProtocolErrorException(lResult, fKnownCapabilities.idle, lContext);
+                            if (pExpectContinuation) throw new cUnexpectedServerActionException(fKnownCapabilities.idle, "idle command completed before continuation received", lContext);
                             return null;
                         }
 
@@ -694,7 +694,7 @@ namespace work.bacome.imapclient
                             cResponseText lResponseText = mResponseTextProcessor.Process(pCursor, eResponseTextType.bye, null, lContext);
                             mConnection.Disconnect(lContext);
                             mDisconnect(lContext);
-                            throw new cByeException(lResponseText, lContext);
+                            throw new cUnilateralByeException(lResponseText, lContext);
                         }
 
                         lContext.TraceWarning("unrecognised data response: {0}", pCursor);

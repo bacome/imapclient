@@ -19,15 +19,15 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ConnectAsync), pMC, pServer);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.notconnected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.notconnected) throw new InvalidOperationException();
 
                 try
                 {
-                    ZSetState(eState.connecting, lContext);
+                    ZSetState(eConnectionState.connecting, lContext);
 
                     await mConnection.ConnectAsync(pMC, pServer, lContext).ConfigureAwait(false);
 
-                    var lCommandHook = new cCommandHookInitial(true);
+                    var lHook = new cCommandHookInitial();
 
                     using (cTerminator lTerminator = new cTerminator(pMC))
                     {
@@ -37,30 +37,29 @@ namespace work.bacome.imapclient
                             await lTerminator.WhenAny(mConnection.GetAwaitResponseTask(lContext)).ConfigureAwait(false);
 
                             var lLines = mConnection.GetResponse(lContext);
-                            mEventSynchroniser.FireIncre;
+                            mEventSynchroniser.FireNetworkActivity(lLines, lContext);
                             var lCursor = new cBytesCursor(lLines);
 
                             if (lCursor.SkipBytes(kConnectAsteriskSpaceOKSpace))
                             {
-                                cResponseText lResponseText = mResponseTextProcessor.Process(lCursor, eResponseTextType.greeting, lCommandHook, lContext);
+                                cResponseText lResponseText = mResponseTextProcessor.Process(lCursor, eResponseTextType.greeting, lHook, lContext);
 
                                 lContext.TraceVerbose("got ok: {0}", lResponseText);
 
-                                if (lCommandHook.Capabilities != null) ZSetCapabilities(lCommandHook.Capabilities, lCommandHook.AuthenticationMechanisms, lContext);
-                                if (lCommandHook.HomeServerReferral != null) lContext.TraceError("received a referral on an ok greeting");
-                                ZSetState(eState.notauthenticated, lContext);
+                                if (lHook.Capabilities != null) mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                                ZSetState(eConnectionState.notauthenticated, lContext);
 
                                 return;
                             }
                             
                             if (lCursor.SkipBytes(kConnectAsteriskSpacePreAuthSpace))
                             {
-                                cResponseText lResponseText = mResponseTextProcessor.Process(lCursor, eResponseTextType.greeting, lCommandHook, lContext);
+                                cResponseText lResponseText = mResponseTextProcessor.Process(lCursor, eResponseTextType.greeting, lHook, lContext);
 
                                 lContext.TraceVerbose("got preauth: {0}", lResponseText);
 
-                                if (lCommandHook.Capabilities != null) ZSetCapabilities(lCommandHook.Capabilities, lCommandHook.AuthenticationMechanisms, lContext);
-                                if (lCommandHook.HomeServerReferral != null) ZSetHomeServerReferral(new cURL(lCommandHook.HomeServerReferral), lContext);
+                                if (lHook.Capabilities != null) mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                                ZSetHomeServerReferral(lResponseText);
                                 ZSetConnectedAccountId(new cAccountId(pServer.Host, eAccountType.none), lContext);
 
                                 return;
@@ -68,29 +67,23 @@ namespace work.bacome.imapclient
 
                             if (lCursor.SkipBytes(kConnectAsteriskSpaceBYESpace))
                             {
-                                cResponseText lResponseText = mResponseTextProcessor.Process(lCursor, eResponseTextType.greeting, lCommandHook, lContext);
+                                cResponseText lResponseText = mResponseTextProcessor.Process(lCursor, eResponseTextType.greeting, lHook, lContext);
 
                                 lContext.TraceError("got bye: {0}", lResponseText);
 
-                                if (lCommandHook.Capabilities != null) lContext.TraceError("received capability on a bye greeting");
+                                if (lHook.Capabilities != null) lContext.TraceError("received capability on a bye greeting");
 
                                 Disconnect(lContext);
 
-                                if (lCommandHook.HomeServerReferral != null)
-                                {
-                                    cURL lURL = new cURL(lCommandHook.HomeServerReferral);
-                                    ZSetHomeServerReferral(lURL, lContext);
-                                    throw new cHomeServerReferralException(lURL, lResponseText, lContext);
-                                }
-
-                                throw new cByeException(lResponseText, lContext);
+                                if (ZSetHomeServerReferral(lResponseText)) throw new cHomeServerReferralException(lResponseText, lContext);
+                                throw new cConnectByeException(lResponseText, lContext);
                             }
 
                             lContext.TraceError("unrecognised response: {0}", lLines);
                         }
                     }
                 }
-                catch when (_State != eState.disconnected)
+                catch when (_ConnectionState != eConnectionState.disconnected)
                 {
                     Disconnect(lContext);
                     throw;

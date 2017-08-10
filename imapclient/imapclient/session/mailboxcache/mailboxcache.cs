@@ -17,13 +17,13 @@ namespace work.bacome.imapclient
                 private readonly cAccountId mConnectedAccountId;
                 private readonly cCommandPartFactory mCommandPartFactory;
                 private readonly cCapabilities mCapabilities;
-                private readonly Action<eState, cTrace.cContext> mSetState;
+                private readonly Action<eConnectionState, cTrace.cContext> mSetState;
                 private readonly ConcurrentDictionary<string, cMailboxCacheItem> mDictionary = new ConcurrentDictionary<string, cMailboxCacheItem>();
 
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cEventSynchroniser pEventSynchroniser, fMailboxCacheData pMailboxCacheData, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, cCapabilities pCapabilities, Action<eState, cTrace.cContext> pSetState)
+                public cMailboxCache(cEventSynchroniser pEventSynchroniser, fMailboxCacheData pMailboxCacheData, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, cCapabilities pCapabilities, Action<eConnectionState, cTrace.cContext> pSetState)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mMailboxCacheData = pMailboxCacheData;
@@ -79,17 +79,19 @@ namespace work.bacome.imapclient
                     return mSelectedMailbox;
                 }
 
-                public void CheckInSelectedMailbox(iMessageHandle pHandle)
+                public cSelectedMailbox CheckInSelectedMailbox(iMessageHandle pHandle)
                 {
                     if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                     if (mSelectedMailbox == null || !ReferenceEquals(pHandle.Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException();
+                    return mSelectedMailbox;
                 }
 
-                public void CheckInSelectedMailbox(cMessageHandleList pHandles)
+                public cSelectedMailbox CheckInSelectedMailbox(cMessageHandleList pHandles)
                 {
                     if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
                     if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
                     if (mSelectedMailbox == null || !ReferenceEquals(pHandles[0].Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException();
+                    return mSelectedMailbox;
                 }
 
                 public int Sequence => mSequence;
@@ -150,7 +152,7 @@ namespace work.bacome.imapclient
 
                     mEventSynchroniser.FireMailboxPropertiesChanged(lHandle, lProperties, lContext);
 
-                    mSetState(eState.notselected, lContext);
+                    mSetState(eConnectionState.notselected, lContext);
                 }
 
                 public void Select(iMailboxHandle pHandle, bool pForUpdate, bool pAccessReadOnly, cMessageFlags pFlags, cMessageFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
@@ -177,7 +179,7 @@ namespace work.bacome.imapclient
 
                     mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
 
-                    mSetState(eState.selected, lContext);
+                    mSetState(eConnectionState.selected, lContext);
                 }
 
                 public bool HasChildren(iMailboxHandle pHandle)

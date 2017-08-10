@@ -95,9 +95,9 @@ namespace work.bacome.imapclient
                     var lItem = ZItem(pList.MailboxName);
                     lItem.SetListFlags(new cListFlags(mSequence++, pList.Flags), lContext);
 
-                    if (mCapability.ListExtended)
+                    if (mCapabilities.ListExtended)
                     {
-                        if ((mMailboxFlagSets & fMailboxFlagSets.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, (pList.Flags & fListFlags.subscribed) != 0), lContext);
+                        if ((mMailboxCacheData & fMailboxCacheData.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, (pList.Flags & fListFlags.subscribed) != 0), lContext);
                         else if ((pList.Flags & fListFlags.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, true), lContext);
                     }
                 }
@@ -159,7 +159,7 @@ namespace work.bacome.imapclient
 
                         if (!pCursor.SkipByte(cASCII.SPACE))
                         {
-                            if (!mCapability.CondStore) lHighestModSeq = 0;
+                            if (!mCapabilities.CondStore) lHighestModSeq = 0;
                             rStatus = new cStatus(mSequence++, lMessages, lRecent, lUIDNext, lUIDValidity, lUnseen, lHighestModSeq);
                             return true;
                         }

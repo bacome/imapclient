@@ -86,60 +86,50 @@ namespace work.bacome.imapclient
         public cInternalErrorException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cInternalErrorException), pMessage, pInner);
     }
 
-    // thrown to indicate that the inablility to connect came with a referral
-    public class cHomeServerReferralException : cIMAPException
+    // server said bye at connect
+    public class cConnectByeException : cIMAPException
     {
-        public readonly cURL URL;
         public readonly cResponseText ResponseText;
 
-        public cHomeServerReferralException(cURL pURL, cResponseText pResponseText, cTrace.cContext pContext)
+        public cConnectByeException(cResponseText pResponseText, cTrace.cContext pContext)
         {
-            URL = pURL;
             ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}: {2}", nameof(cHomeServerReferralException), pURL, pResponseText);
+            pContext.TraceError("{0}: {1}", nameof(cConnectByeException), pResponseText);
+        }
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cConnectByeException));
+            lBuilder.Append(ResponseText);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
+    }
+
+    // server declined connection suggesting that we try a different server
+    public class cHomeServerReferralException : cIMAPException
+    {
+        public readonly cResponseText ResponseText;
+
+        public cHomeServerReferralException(cResponseText pResponseText, cTrace.cContext pContext)
+        {
+            ResponseText = pResponseText;
+            pContext.TraceError("{0}: {1}", nameof(cHomeServerReferralException), pResponseText);
         }
 
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cHomeServerReferralException));
-            lBuilder.Append(URL);
             lBuilder.Append(ResponseText);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
         }
     }
 
-    // thrown to indicate that a server initiated 'BYE' occurred
-    public class cByeException : cIMAPException
-    {
-        public readonly cResponseText ResponseText;
-
-        public cByeException(cResponseText pResponseText, cTrace.cContext pContext)
-        {
-            ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}", nameof(cByeException), pResponseText);
-        }
-
-        public override string ToString()
-        {
-            var lBuilder = new cListBuilder(nameof(cByeException));
-            lBuilder.Append(ResponseText);
-            lBuilder.Append(base.ToString());
-            return lBuilder.ToString();
-        }
-    }
-
-    // thrown to indicate that the inability to connect is related to the credentials
+    // server didn't accept the credentials we provided: if there was an explicit rejection then the response text will be filled in
     public class cCredentialsException : cIMAPException
     {
-        public readonly cResponseText ResponseText; // filled in only if we have confirmation from the server that there is something wrong with the credentials
-        // just because it is null doesn't mean that they are valid though
-
-        public cCredentialsException(cResponseText pResponseText, cTrace.cContext pContext)
-        {
-            ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}", nameof(cCredentialsException), pResponseText);
-        }
+        public readonly cResponseText ResponseText;
 
         public cCredentialsException(cTrace.cContext pContext)
         {
@@ -147,27 +137,59 @@ namespace work.bacome.imapclient
             pContext.TraceError(nameof(cCredentialsException));
         }
 
+        public cCredentialsException(cResponseText pResponseText, cTrace.cContext pContext)
+        {
+            ResponseText = pResponseText;
+            pContext.TraceError("{0}: {1}", nameof(cCredentialsException), pResponseText);
+        }
+
         public override string ToString()
         {
-            if (ResponseText == null) return base.ToString();
-
             var lBuilder = new cListBuilder(nameof(cCredentialsException));
-            lBuilder.Append(ResponseText);
+            if (ResponseText != null) lBuilder.Append(ResponseText);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
         }
     }
 
-    // thrown to indicate that the inability to connect is related to the lack of authentication mechanisms offered by the server
-    public class cAuthenticationException : cIMAPException
+    // thrown to indicate that the inability to connect is related to the lack of usable authentication mechanisms offered by the server
+    public class cAuthenticationMechanismsException : cIMAPException
     {
-        public cAuthenticationException(cTrace.cContext pContext) => pContext.TraceError(nameof(cAuthenticationException));
+        public readonly bool TLSIssue;
+
+        public cAuthenticationMechanismsException(bool pTLSIssue, cTrace.cContext pContext)
+        {
+            TLSIssue = pTLSIssue;
+            pContext.TraceError("{0}: {1}", nameof(cAuthenticationMechanismsException), pTLSIssue);
+        }
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cAuthenticationMechanismsException));
+            lBuilder.Append(TLSIssue);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
     }
 
-    // thrown to indicate that the inability to connect may be related to the TLS state of the connection stopping authentication methods from being tried
-    public class cAuthenticationTLSException : cAuthenticationException
+    // thrown to indicate that a server initiated 'BYE' occurred
+    public class cUnilateralByeException : cIMAPException
     {
-        public cAuthenticationTLSException(cTrace.cContext pContext) : base(pContext) { }
+        public readonly cResponseText ResponseText;
+
+        public cUnilateralByeException(cResponseText pResponseText, cTrace.cContext pContext)
+        {
+            ResponseText = pResponseText;
+            pContext.TraceError("{0}: {1}", nameof(cUnilateralByeException), pResponseText);
+        }
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cUnilateralByeException));
+            lBuilder.Append(ResponseText);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
     }
 
     // thrown when SASL encoding or decoding fails

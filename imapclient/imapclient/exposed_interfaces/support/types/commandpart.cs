@@ -86,13 +86,13 @@ namespace work.bacome.imapclient.support
                 if (lFirst) lFirst = false;
                 else lBytes.Add(cASCII.COMMA);
 
-                if (lItem == cSequenceSet.cItem.Asterisk)
+                if (lItem == cSequenceSetItem.Asterisk)
                 {
                     lBytes.Add(cASCII.ASTERISK);
                     continue;
                 }
 
-                if (lItem is cSequenceSet.cItem.cNumber lNumber)
+                if (lItem is cSequenceSetNumber lNumber)
                 {
                     lTemp = cTools.UIntToBytesReverse(lNumber.Number);
                     lTemp.Reverse();
@@ -100,15 +100,15 @@ namespace work.bacome.imapclient.support
                     continue;
                 }
 
-                if (!(lItem is cSequenceSet.cItem.cRange lRange)) throw new ArgumentException("invalid form 1", nameof(pSequenceSet));
+                if (!(lItem is cSequenceSetRange lRange)) throw new ArgumentException("invalid form 1", nameof(pSequenceSet));
 
-                if (lRange.From == cSequenceSet.cItem.Asterisk)
+                if (lRange.From == cSequenceSetItem.Asterisk)
                 {
                     lBytes.Add(cASCII.ASTERISK);
                     continue;
                 }
 
-                if (!(lRange.From is cSequenceSet.cItem.cNumber lFrom)) throw new ArgumentException("invalid form 2", nameof(pSequenceSet));
+                if (!(lRange.From is cSequenceSetNumber lFrom)) throw new ArgumentException("invalid form 2", nameof(pSequenceSet));
 
                 lTemp = cTools.UIntToBytesReverse(lFrom.Number);
                 lTemp.Reverse();
@@ -116,13 +116,13 @@ namespace work.bacome.imapclient.support
 
                 lBytes.Add(cASCII.COLON);
 
-                if (lRange.To == cSequenceSet.cItem.Asterisk)
+                if (lRange.To == cSequenceSetItem.Asterisk)
                 {
                     lBytes.Add(cASCII.ASTERISK);
                     continue;
                 }
 
-                if (!(lRange.To is cSequenceSet.cItem.cNumber lTo)) throw new ArgumentException("invalid form 3", nameof(pSequenceSet));
+                if (!(lRange.To is cSequenceSetNumber lTo)) throw new ArgumentException("invalid form 3", nameof(pSequenceSet));
 
                 lTemp = cTools.UIntToBytesReverse(lTo.Number);
                 lTemp.Reverse();

@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(LoginAsync), pMC, pAccountId);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.notauthenticated) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.notauthenticated) throw new InvalidOperationException();
 
                 using (var lCommand = new cCommand())
                 {
@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
 
                     lCommand.Add(kLoginCommandPartLogin, mCommandPartFactory.AsLiteral(pLogin.UserId), cCommandPart.Space, mCommandPartFactory.AsLiteral(pLogin.Password));
 
-                    var lHook = new cCommandHookInitial(mCapabilities.LoginReferrals);
+                    var lHook = new cCommandHookInitial();
                     lCommand.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
                         lContext.TraceInformation("login success");
 
                         if (lHook.Capabilities != null) mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
-                        if (lHook.HomeServerReferral != null) mHomeServerReferral = new cURL(lHook.HomeServerReferral);
+                        ZSetHomeServerReferral(lResult.ResponseText);
                         ZSetConnectedAccountId(pAccountId, lContext);
 
                         return null;
@@ -47,19 +47,13 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceInformation("login failed: {0}", lResult.ResponseText);
 
-                        if (lHook.HomeServerReferral != null)
-                        {
-                            mHomeServerReferral = new cURL(lHook.HomeServerReferral);
-                            return new cHomeServerReferralException(mHomeServerReferral, lResult.ResponseText, lContext);
-                        }
+                        if (ZSetHomeServerReferral(lResult.ResponseText)) return new cHomeServerReferralException(lResult.ResponseText, lContext);
 
                         if (lResult.ResponseText.Code == eResponseTextCode.authenticationfailed || lResult.ResponseText.Code == eResponseTextCode.authorizationfailed || lResult.ResponseText.Code == eResponseTextCode.expired)
                             return new cCredentialsException(lResult.ResponseText, lContext);
 
                         return null;
                     }
-
-                    if (lHook.HomeServerReferral != null) lContext.TraceError("received a referral on an unrecognised login");
 
                     throw new cProtocolErrorException(lResult, 0, lContext);
                 }

@@ -2,7 +2,7 @@
 
 namespace work.bacome.imapclient
 {
-    public enum eNetworkActivitySource { Client, Server }
+    public enum eNetworkActivitySource { client, server }
 
     public class cNetworkActivityEventArgs : EventArgs
     {

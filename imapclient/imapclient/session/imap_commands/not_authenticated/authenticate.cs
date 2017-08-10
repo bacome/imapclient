@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(AuthenticateAsync), pMC, pAccountId, pSASL.MechanismName);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.notauthenticated) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.notauthenticated) throw new InvalidOperationException();
 
                 using (var lCommand = new cCommand())
                 {
@@ -61,7 +61,7 @@ namespace work.bacome.imapclient
                         lContext.TraceInformation("authenticate success");
 
                         if (lHook.Capabilities != null) mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
-                        if (lHook.HomeServerReferral != null) mHomeServerReferral = new cURL(lHook.HomeServerReferral);
+                        ZSetHomeServerReferral(lResult.ResponseText);
                         ZSetConnectedAccountId(pAccountId, lContext);
 
                         return null;
@@ -73,11 +73,7 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceInformation("authenticate failed: {0}", lResult.ResponseText);
 
-                        if (lHook.HomeServerReferral != null)
-                        {
-                            mHomeServerReferral = new cURL(lHook.HomeServerReferral);
-                            return new cHomeServerReferralException(mHomeServerReferral, lResult.ResponseText, lContext);
-                        }
+                        if (ZSetHomeServerReferral(lResult.ResponseText)) return new cHomeServerReferralException(lResult.ResponseText, lContext);
 
                         if (lResult.ResponseText.Code == eResponseTextCode.authenticationfailed || lResult.ResponseText.Code == eResponseTextCode.authorizationfailed || lResult.ResponseText.Code == eResponseTextCode.expired)
                             return new cCredentialsException(lResult.ResponseText, lContext);
@@ -86,8 +82,6 @@ namespace work.bacome.imapclient
                     }
 
                     lContext.TraceInformation("authenticate cancelled");
-
-                    if (lHook.HomeServerReferral != null) lContext.TraceError("received a referral on a cancelled authenticate");
 
                     return null;
                 }
@@ -98,7 +92,7 @@ namespace work.bacome.imapclient
                 private readonly cConnection mConnection;
                 private readonly cSASLAuthentication mAuthentication;
 
-                public cCommandHookAuthenticate(cConnection pConnection, cSASLAuthentication pAuthentication, bool pHandleReferral) : base(pHandleReferral)
+                public cCommandHookAuthenticate(cConnection pConnection, cSASLAuthentication pAuthentication, bool pHandleReferral)
                 {
                     mConnection = pConnection;
                     mAuthentication = pAuthentication;

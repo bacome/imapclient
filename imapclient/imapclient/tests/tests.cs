@@ -34,12 +34,12 @@ namespace work.bacome.imapclient
                 cConnection._Tests(lContext);
                 cIdDataProcessor._Tests(lContext);
                 cNamespaceDataProcessor._Tests(lContext);
-                cCommandHookList._Tests(lContext);
-                cCommandHookLSub._Tests(lContext);
-                cListExtendedCommandHook._Tests(lContext);
-                cResponseDataFetch._Tests(lContext);
-                cResponseDataESearch._Tests(lContext);
-                _Tests_ListExtendedCommandParts(lContext);
+                //cCommandHookList._Tests(lContext);
+                //cCommandHookLSub._Tests(lContext);
+                //cListExtendedCommandHook._Tests(lContext);
+                cResponseDataParserFetch._Tests(lContext);
+                cResponseDataParserESearch._Tests(lContext);
+                //_Tests_ListExtendedCommandParts(lContext);
                 cCommand._Tests(lContext);
                 cQuotedPrintableDecoder._Tests(lContext);
             }

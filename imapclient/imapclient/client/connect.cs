@@ -52,7 +52,7 @@ namespace work.bacome.imapclient
 
                 if (lSession.Capabilities == null) await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
 
-                if (lSession.State == eState.notauthenticated && !lSession.TLSInstalled && lSession.Capabilities.StartTLS)
+                if (lSession.ConnectionState == eConnectionState.notauthenticated && !lSession.TLSInstalled && lSession.Capabilities.StartTLS)
                 {
                     await lSession.StartTLSAsync(lMC, lContext).ConfigureAwait(false);
                     await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
@@ -61,7 +61,7 @@ namespace work.bacome.imapclient
                 object lOriginalCapabilities = lSession.Capabilities;
                 cCapabilities lCurrentCapabilities = lSession.Capabilities;
 
-                if (lSession.State == eState.notauthenticated)
+                if (lSession.ConnectionState == eConnectionState.notauthenticated)
                 {
                     bool lTLSIssue = false;
                     bool lTriedCredentials = false;
@@ -80,7 +80,7 @@ namespace work.bacome.imapclient
                             {
                                 lTriedCredentials = true;
                                 lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
-                                if (lSession.State != eState.notauthenticated || lAuthenticateException != null) break;
+                                if (lSession.ConnectionState != eConnectionState.notauthenticated || lAuthenticateException != null) break;
                             }
                         }
                     }
@@ -95,13 +95,13 @@ namespace work.bacome.imapclient
                                 {
                                     lTriedCredentials = true;
                                     lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
-                                    if (lSession.State != eState.notauthenticated || lAuthenticateException != null) break;
+                                    if (lSession.ConnectionState != eConnectionState.notauthenticated || lAuthenticateException != null) break;
                                 }
                             }
                         }
                     }
 
-                    if (lSession.State == eState.notauthenticated && lAuthenticateException == null && !lCurrentCapabilities.LoginDisabled && Credentials.Login != null)
+                    if (lSession.ConnectionState == eConnectionState.notauthenticated && lAuthenticateException == null && !lCurrentCapabilities.LoginDisabled && Credentials.Login != null)
                     {
                         if ((Credentials.Login.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (Credentials.Login.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
                         else
@@ -111,7 +111,7 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    if (lSession.State != eState.authenticated)
+                    if (lSession.ConnectionState != eConnectionState.authenticated)
                     {
                         lContext.TraceError("could not authenticate");
 
@@ -119,14 +119,14 @@ namespace work.bacome.imapclient
                         await lSession.LogoutAsync(lMC, lContext).ConfigureAwait(false);
 
                         // throw an exception that indicates why we couldn't connect
+
                         if (lTriedCredentials)
                         {
                             if (lAuthenticateException != null) throw lAuthenticateException;
                             throw new cCredentialsException(lContext);
                         }
                         
-                        if (lTLSIssue) throw new cAuthenticationTLSException(lContext); // we didn't try some mechanisms because of the TLS state
-                        throw new cAuthenticationException(lContext); // the server has no mechanisms that we can try
+                        throw new cAuthenticationMechanismsException(lTLSIssue, lContext); // the server has no mechanisms that we can try
                     }
 
                     // re-get the capabilities if we didn't get new ones as part of the authentication/ login OR if a security layer was installed (SASL requires this)
@@ -194,7 +194,7 @@ namespace work.bacome.imapclient
                 // initialised (namespaces set, inbox available, id available (if server supports it); user may now issue commands)
                 lSession.SetInitialised(lContext);
             }
-            catch when (lSession.State != eState.disconnected)
+            catch when (lSession.ConnectionState != eConnectionState.disconnected)
             {
                 lSession.Disconnect(lContext);
                 throw;

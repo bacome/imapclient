@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ExamineAsync), pMC, pHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.notselected && _State != eState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
                 var lItem = mMailboxCache.CheckHandle(pHandle);
@@ -43,8 +43,8 @@ namespace work.bacome.imapclient
                     }
 
                     fKnownCapabilities lTryIgnoring;
-                    if (mCapabilities.CondStore) lTryIgnoring = fKnownCapabilities.CondStore;
-                    if (mCapabilities.QResync) lTryIgnoring = fKnownCapabilities.QResync;
+                    if (mCapabilities.CondStore) lTryIgnoring = fKnownCapabilities.condstore;
+                    if (mCapabilities.QResync) lTryIgnoring = fKnownCapabilities.qresync;
                     else lTryIgnoring = 0;
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);

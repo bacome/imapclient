@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SortExtendedAsync), pMC, pHandle, pFilter, pSort);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_State != eState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
@@ -25,12 +25,12 @@ namespace work.bacome.imapclient
                 {
                     lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    cSelectedMailbox lSelectedMailbox = ZCheckHandle(pHandle);
+                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
                     lCommand.Add(kSortExtendedCommandPart);
                     lCommand.Add(pSort);
                     lCommand.Add(cCommandPart.Space);
-                    lCommand.Add(pFilter, true, EnabledExtensions, mEncoding); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
+                    lCommand.Add(pFilter, true, mEncodingPartFactory); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
 
                     var lHook = new cCommandHookSearchExtended(lCommand.Tag, lSelectedMailbox, true);
                     lCommand.Add(lHook);
@@ -40,14 +40,14 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("extended sort success");
-                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.ESort, "results not received on a successful extended sort", lContext);
+                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fKnownCapabilities.esort, "results not received on a successful extended sort", lContext);
                         return lHook.Handles;
                     }
 
                     if (lHook.Handles != null) lContext.TraceError("results received on a failed extended sort");
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.ESort, lContext);
-                    throw new cProtocolErrorException(lResult, fCapabilities.ESort, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fKnownCapabilities.esort, lContext);
+                    throw new cProtocolErrorException(lResult, fKnownCapabilities.esort, lContext);
                 }
             }
         }

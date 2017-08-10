@@ -49,7 +49,7 @@
     <Compile Include="client\fetchcontrol.cs" />
     <Compile Include="client\fetchproperties.cs" />
     <Compile Include="client\fetchbody.cs" />
-    <Compile Include="client\getmailboxdata.cs" />
+    <Compile Include="client\fetchmailboxdata.cs" />
     <Compile Include="client\setunseen.cs" />
     <Compile Include="client\subscribed.cs" />
     <Compile Include="client\uidfetchbody.cs" />
@@ -60,7 +60,7 @@
     <Compile Include="exposed_interfaces\collections\messagehandlelist.cs" />
     <Compile Include="exposed_interfaces\collections\strings.cs" />
     <Compile Include="exposed_interfaces\connection\accountid.cs" />
-    <Compile Include="exposed_interfaces\connection\capability.cs" />
+    <Compile Include="exposed_interfaces\connection\capabilities.cs" />
     <Compile Include="exposed_interfaces\connection\credentials.cs" />
     <Compile Include="exposed_interfaces\connection\login.cs" />
     <Compile Include="exposed_interfaces\connection\server.cs" />

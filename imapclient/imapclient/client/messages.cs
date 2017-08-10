@@ -66,7 +66,7 @@ namespace work.bacome.imapclient
 
         public cSort DefaultMessageSort { get; set; } = null;
 
-        private enum eMessageThreadAlgorithm { orderedsubject, references, refs }
+        private enum eMessageThreadAlgorithm { orderedsubject, references }
 
         public List<cMessage> Messages(iMailboxHandle pHandle, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cFetchControl pFC = null)
         {
@@ -89,7 +89,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || lSession.State != eState.selected) throw new InvalidOperationException();
+            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
@@ -125,11 +125,6 @@ namespace work.bacome.imapclient
                         if (lCapabilities.ThreadReferences) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.references, pFilter, pProperties, lContext).ConfigureAwait(false);
                         lProperties = pProperties | fMessageProperties.subject | fMessageProperties.received | fMessageProperties.references;
                     }
-                    else if (ReferenceEquals(lSort, cSort.Refs))
-                    {
-                        if (lCapabilities.ThreadRefs) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.refs, pFilter, pProperties, lContext).ConfigureAwait(false);
-                        lProperties = pProperties | fMessageProperties.subject | fMessageProperties.received | fMessageProperties.references;
-                    }
                     else if (lSort.Items != null && lSort.Items.Count > 0)
                     {
                         var lSortProperties = lSort.Properties(out var lSortDisplay);
@@ -162,7 +157,6 @@ namespace work.bacome.imapclient
 
             if (ReferenceEquals(lSort, cSort.OrderedSubject)) return ZMessagesThreadOrderedSubject(lHandles, lContext);
             if (ReferenceEquals(lSort, cSort.References)) return ZMessagesThreadReferences(lHandles, lContext);
-            if (ReferenceEquals(lSort, cSort.Refs)) return ZMessagesThreadRefs(lHandles, lContext);
 
             lHandles.Sort(lSort);
             return ZMessagesFlatMessageList(lHandles, lContext);
@@ -281,14 +275,6 @@ namespace work.bacome.imapclient
         {
             // this routine is the client side implementation of the threading algorithm
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesThreadReferences), pHandles);
-            throw new NotImplementedException();
-            // TODO
-        }
-
-        private List<cMessage> ZMessagesThreadRefs(cMessageHandleList pHandles, cTrace.cContext pParentContext)
-        {
-            // this routine is the client side implementation of the threading algorithm
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesThreadRefs), pHandles);
             throw new NotImplementedException();
             // TODO
         }
