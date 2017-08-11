@@ -1648,7 +1648,7 @@ namespace testharness2
 
                 lClient.Connect();
 
-                if (lClient.Inbox.Selected || lClient.Inbox.Properties != null) throw new cTestsException("ZTestSearch1.1");
+                if (lClient.Inbox.IsSelected || lClient.Inbox.Properties != null) throw new cTestsException("ZTestSearch1.1");
 
                 lClient.Inbox.Select(true);
 

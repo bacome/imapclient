@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -16,44 +17,40 @@ namespace work.bacome.imapclient
         {
             private partial class cCommandPipeline
             {
-                private sealed class cItem : iTextCodeProcessor, IDisposable
+                private enum eCommandState { pending, active, complete, abandoned  }
+
+                private sealed class cPipelineCommand : iTextCodeProcessor, IDisposable
                 {
                     private readonly cCommand mCommand;
-                    private readonly object mCommandQueueLock;
+                    private readonly object mPipelineLock;
                     private readonly SemaphoreSlim mSemaphore = new SemaphoreSlim(0, 1);
+
+                    private eCommandState mState = eCommandState.pending;
                     private cCommandResult mResult = null;
                     private Exception mException = null;
-                    private bool mStarted = false; // command has gone past the point of no return: it will be or has been sent to the server
-                    public bool WaitOver { get; private set; } = false; // the submitter of the command is no longer waiting for the result
-                    public ReadOnlyCollection<cCommandPart> Parts;
 
-                    public cItem(cCommand pCommand, object pCommandQueueLock)
+                    public cPipelineCommand(cCommand pCommand, object pPipelineLock)
                     {
-                        mCommand = pCommand;
-                        mCommandQueueLock = pCommandQueueLock;
-                        Parts = new ReadOnlyCollection<cCommandPart>(mCommand.Parts);
+                        mCommand = pCommand ?? throw new ArgumentNullException(nameof(pCommand));
+                        mPipelineLock = pPipelineLock ?? throw new ArgumentNullException(nameof(pPipelineLock));
                     }
 
-                    public async Task<cCommandResult> WaitAsync(int pTimeout, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
+                    public async Task<cCommandResult> WaitAsync(cMethodControl pMC, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cItem), nameof(WaitAsync), mCommand.Tag);
+                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(WaitAsync), pMC, mCommand.Tag);
 
                         bool lEntered;
 
-                        lContext.TraceVerbose("waiting");
-
-                        try { lEntered = await mSemaphore.WaitAsync(pTimeout, pCancellationToken).ConfigureAwait(false); }
-                        catch (Exception e)
-                        {
-                            lContext.TraceException(TraceEventType.Verbose, "exception while waiting for command completion", e);
-                            throw;
-                        }
+                        try { lEntered = await mSemaphore.WaitAsync(pMC.Timeout, pMC.CancellationToken).ConfigureAwait(false); }
                         finally
                         {
-                            lock (mCommandQueueLock)
+                            lock (mPipelineLock)
                             {
-                                if (!mStarted) mCommand.CommandCompleted(mResult, mException, lContext);
-                                WaitOver = true;
+                                if (mState == eCommandState.pending)
+                                {
+                                    mCommand.Dispose(true);
+                                    mState = eCommandState.abandoned;
+                                }
                             }
                         }
 
@@ -68,25 +65,35 @@ namespace work.bacome.imapclient
                         return mResult;
                     }
 
-                    public void SetStarted(cTrace.cContext pParentContext)
+                    public eCommandState State => mState;
+
+                    public void SetActive(cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cItem), nameof(SetStarted), mCommand.Tag);
-                        if (mStarted) throw new InvalidOperationException();
-                        mStarted = true;
-                        mCommand.CommandStarted(lContext);
+                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(SetActive), mCommand.Tag);
+                        if (mState != eCommandState.pending) throw new InvalidOperationException();
+                        mCommand.Hook?.CommandStarted(lContext);
+                        mState = eCommandState.active;
                     }
 
-                    public void SetResult(cCommandResult pResult, uint? pUIDValidity, cTrace.cContext pParentContext)
-                    {
-                        var lContext = pParentContext.NewMethod(nameof(cItem), nameof(SetResult), mCommand.Tag, pResult);
+                    public cCommandTag Tag => mCommand.Tag;
+                    public ReadOnlyCollection<cCommandPart> Parts => mCommand.Parts;
+                    public uint? UIDValidity => mCommand.UIDValidity;
+                    public cSASLAuthentication SASLAuthentication => mCommand.SASLAuthentication;
+                    public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext) => mCommand.Hook?.ProcessData(pData, pParentContext) ?? eProcessDataResult.notprocessed;
+                    public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCommand.Hook?.ProcessData(pCursor, pParentContext) ?? eProcessDataResult.notprocessed;
+                    public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext) => mCommand.Hook?.ProcessTextCode(pData, pParentContext);
+                    public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCommand.Hook?.ProcessTextCode(pCursor, pParentContext) ?? false;
 
-                        if (mResult != null) throw new InvalidOperationException();
-                        if (mException != null) throw new InvalidOperationException();
+                    public void SetResult(cCommandResult pResult, cTrace.cContext pParentContext)
+                    {
+                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(SetResult), mCommand.Tag, pResult);
+
+                        if (mState != eCommandState.active) throw new InvalidOperationException();
 
                         mResult = pResult ?? throw new ArgumentNullException(nameof(pResult));
-                        if (mCommand.UIDValidity != null && mCommand.UIDValidity != pUIDValidity) mException = new cUIDValidityChangedException(lContext);
-
-                        mCommand.CommandCompleted(mResult, mException, lContext);
+                        mCommand.Hook?.CommandCompleted(mResult, lContext);
+                        mCommand.Dispose(true);
+                        mState = eCommandState.complete;
 
                         // may throw objectdisposed if the caller stopped waiting 
                         try { mSemaphore.Release(); }
@@ -95,29 +102,20 @@ namespace work.bacome.imapclient
 
                     public void SetException(Exception pException, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cItem), nameof(SetException), mCommand.Tag, pException);
+                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(SetException), mCommand.Tag, pException);
 
-                        if (mResult != null) throw new InvalidOperationException();
-                        if (mException != null) throw new InvalidOperationException();
+                        if (mState != eCommandState.pending && mState != eCommandState.active) throw new InvalidOperationException();
 
                         mException = pException ?? throw new ArgumentNullException(nameof(pException));
-
-                        mCommand.CommandCompleted(mResult, mException, lContext);
+                        mCommand.Dispose(true);
+                        mState = eCommandState.complete;
 
                         // may throw objectdisposed if the caller stopped waiting 
                         try { mSemaphore.Release(); }
                         catch { }
                     }
 
-                    public cCommandTag Tag => mCommand.Tag;
-                    public uint? UIDValidity => mCommand.UIDValidity;
-                    public cSASLAuthentication Authentication => mCommand.Authentication;
-                    public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext) => mCommand.ProcessData(pData, pParentContext);
-                    public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCommand.ProcessData(pCursor, pParentContext);
-                    public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext) => mCommand.ProcessTextCode(pData, pParentContext);
-                    public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCommand.ProcessTextCode(pCursor, pParentContext);
-
-                    public override string ToString() => $"{nameof(cItem)}({mCommand.Tag},{mResult},{mException},{mStarted},{WaitOver})";
+                    public override string ToString() => $"{nameof(cPipelineCommand)}({mCommand.Tag},{mState},{mResult},{mException})";
 
                     public void Dispose()
                     {
@@ -129,44 +127,49 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                private class cCurrentItem
+                private class cCurrentPipelineCommand : iTextCodeProcessor
                 {
-                    public readonly cItem Item;
+                    public readonly cPipelineCommand Command;
                     private int mCurrentPart = 0;
-                    public cCurrentItem(cItem pItem) { Item = pItem; }
-                    public cCommandPart CurrentPart => Item.Parts[mCurrentPart];
-                    public bool MoveNext() => ++mCurrentPart < Item.Parts.Count;
-                    public override string ToString() => $"{nameof(cCurrentItem)}({Item},{mCurrentPart})";
+                    public cCurrentPipelineCommand(cPipelineCommand pCommand) { Command = pCommand ?? throw new ArgumentNullException(nameof(pCommand)); }
+                    public cCommandTag Tag => Command.Tag;
+                    public cCommandPart CurrentPart => Command.Parts[mCurrentPart];
+                    public bool MoveNext() => ++mCurrentPart < Command.Parts.Count;
+                    public bool IsAuthentication => Command.SASLAuthentication != null;
+                    public IList<byte> GetResponse(cByteList pChallenge) => Command.SASLAuthentication.GetResponse(pChallenge);
+                    public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext) => Command.ProcessTextCode(pData, pParentContext);
+                    public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext) => Command.ProcessTextCode(pCursor, pParentContext);
+                    public override string ToString() => $"{nameof(cCurrentPipelineCommand)}({Command},{mCurrentPart})";
                 }
 
-                private class cActiveItems : iTextCodeProcessor, IEnumerable<cItem>
+                private class cActivePipelineCommands : iTextCodeProcessor, IEnumerable<cPipelineCommand>
                 {
-                    private readonly List<cItem> mItems = new List<cItem>();
+                    private readonly List<cPipelineCommand> mCommands = new List<cPipelineCommand>();
 
-                    public cActiveItems() { }
+                    public cActivePipelineCommands() { }
 
-                    public int Count => mItems.Count;
-                    public cItem this[int pIndex] => mItems[pIndex];
-                    public void Add(cItem pHandle) => mItems.Add(pHandle);
-                    public void RemoveAt(int pIndex) => mItems.RemoveAt(pIndex);
+                    public int Count => mCommands.Count;
+                    public cPipelineCommand this[int pIndex] => mCommands[pIndex];
+                    public void Add(cCurrentPipelineCommand pCommand) => mCommands.Add(pCommand.Command);
+                    public void RemoveAt(int pIndex) => mCommands.RemoveAt(pIndex);
 
                     public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cActiveItems), nameof(ProcessTextCode));
-                        foreach (var lItem in mItems) lItem.ProcessTextCode(pData, lContext);
+                        var lContext = pParentContext.NewMethod(nameof(cActivePipelineCommands), nameof(ProcessTextCode));
+                        foreach (var lCommand in mCommands) lCommand.ProcessTextCode(pData, lContext);
                     }
 
                     public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cActiveItems), nameof(ProcessTextCode));
+                        var lContext = pParentContext.NewMethod(nameof(cActivePipelineCommands), nameof(ProcessTextCode));
 
                         bool lProcessed = false;
                         var lBookmark = pCursor.Position;
                         var lPositionAtEnd = pCursor.Position;
 
-                        foreach (var lItem in mItems)
+                        foreach (var lCommand in mCommands)
                         {
-                            if (lItem.ProcessTextCode(pCursor, lContext) && !lProcessed)
+                            if (lCommand.ProcessTextCode(pCursor, lContext) && !lProcessed)
                             {
                                 lProcessed = true;
                                 lPositionAtEnd = pCursor.Position;
@@ -180,13 +183,13 @@ namespace work.bacome.imapclient
                         return lProcessed;
                     }
 
-                    public IEnumerator<cItem> GetEnumerator() => mItems.GetEnumerator();
+                    public IEnumerator<cPipelineCommand> GetEnumerator() => mCommands.GetEnumerator();
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
                     public override string ToString()
                     {
-                        var lBuilder = new cListBuilder(nameof(cActiveItems));
-                        foreach (var lItem in mItems) lBuilder.Append(lItem);
+                        var lBuilder = new cListBuilder(nameof(cActivePipelineCommands));
+                        foreach (var lCommand in mCommands) lBuilder.Append(lCommand);
                         return lBuilder.ToString();
                     }
                 }

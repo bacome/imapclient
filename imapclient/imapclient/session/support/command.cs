@@ -19,16 +19,20 @@ namespace work.bacome.imapclient
             {
                 private readonly Stack<cList> mLists = new Stack<cList>();
                 private cList mList = null; // the current list
+                private readonly List<cCommandPart> mParts = new List<cCommandPart>();
 
-                public readonly List<cCommandPart> Parts = new List<cCommandPart>();
+                public readonly ReadOnlyCollection<cCommandPart> Parts;
 
-                public cCommandParts() { }
+                public cCommandParts()
+                {
+                    Parts = mParts.AsReadOnly();
+                }
 
                 public void Add(cCommandPart pPart)
                 {
                     if (mList == null)
                     {
-                        Parts.Add(pPart);
+                        mParts.Add(pPart);
                         return;
                     }
 
@@ -39,7 +43,7 @@ namespace work.bacome.imapclient
                 {
                     if (mList == null)
                     {
-                        Parts.AddRange(pParts);
+                        mParts.AddRange(pParts);
                         return;
                     }
 
@@ -50,7 +54,7 @@ namespace work.bacome.imapclient
                 {
                     if (mList == null)
                     {
-                        Parts.AddRange(pParts);
+                        mParts.AddRange(pParts);
                         return;
                     }
 
@@ -141,7 +145,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private class cCommand : cCommandParts, IDisposable
+            private sealed class cCommand : cCommandParts, IDisposable
             {
                 // search
                 private static readonly cCommandPart kCommandPartCharsetSpace = new cCommandPart("CHARSET ");
@@ -216,14 +220,12 @@ namespace work.bacome.imapclient
 
                 // status
                 private static readonly cCommandPart kCommandPartMessages = new cCommandPart("MESSAGES");
-                //private static readonly cCommandPart kCommandPartRecent = new cCommandPart("RECENT");
                 private static readonly cCommandPart kCommandPartUIDNext = new cCommandPart("UIDNEXT");
                 private static readonly cCommandPart kCommandPartUIDValidity = new cCommandPart("UIDVALIDITY");
-                //private static readonly cCommandPart kCommandPartUnseen = new cCommandPart("UNSEEN");
                 private static readonly cCommandPart kCommandPartHighestModSeq = new cCommandPart("HIGHESTMODSEQ");
 
                 private bool mDisposed = false;
-                private bool mDisposeOnCommandCompletion = false;
+                private bool mManualDispose = false;
 
                 public readonly cCommandTag Tag = new cCommandTag();
 
@@ -236,9 +238,9 @@ namespace work.bacome.imapclient
                 private uint? mUIDValidity = null;
 
                 // authentication is disposable
-                private cSASLAuthentication mAuthentication = null;
+                private cSASLAuthentication mSASLAuthentication = null;
 
-                // hook, hidden because this object needs to route the commandcompete calls to it so the disposes are done last
+                // hook
                 private cCommandHook mHook = null;
 
                 public cCommand() { }
@@ -601,10 +603,10 @@ namespace work.bacome.imapclient
                     else if (pUIDValidity != mUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
                 }
 
-                public void Add(cSASLAuthentication pAuthentication)
+                public void Add(cSASLAuthentication pSASLAuthentication)
                 {
-                    if (mAuthentication != null) throw new InvalidOperationException();
-                    mAuthentication = pAuthentication ?? throw new ArgumentNullException(nameof(pAuthentication));
+                    if (mSASLAuthentication != null) throw new InvalidOperationException();
+                    mSASLAuthentication = pSASLAuthentication ?? throw new ArgumentNullException(nameof(pSASLAuthentication));
                 }
 
                 public void Add(cCommandHook pHook)
@@ -614,56 +616,17 @@ namespace work.bacome.imapclient
                 }
 
                 public uint? UIDValidity => mUIDValidity;
+                public cSASLAuthentication SASLAuthentication => mSASLAuthentication;
+                public cCommandHook Hook => mHook;
 
-                public cSASLAuthentication Authentication => mAuthentication;
+                public void SetManualDispose() => mManualDispose = true;
 
-                public void SetEnqueued() => mDisposeOnCommandCompletion = true;
+                public void Dispose() => Dispose(false);
 
-                public void CommandStarted(cTrace.cContext pParentContext)
-                {
-                    if (mHook != null) mHook.CommandStarted(pParentContext);
-                }
-
-                public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
-                {
-                    if (mHook == null) return eProcessDataResult.notprocessed;
-                    return mHook.ProcessData(pData, pParentContext);
-                }
-
-                public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
-                {
-                    if (mHook == null) return eProcessDataResult.notprocessed;
-                    return mHook.ProcessData(pCursor, pParentContext);
-                }
-
-                public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
-                {
-                    if (mHook == null) return;
-                    mHook.ProcessTextCode(pData, pParentContext);
-                }
-
-                public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
-                {
-                    if (mHook == null) return false;
-                    return mHook.ProcessTextCode(pCursor, pParentContext);
-                }
-
-                public void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(CommandCompleted), pResult, pException);
-                    if (mHook != null) mHook.CommandCompleted(pResult, pException, lContext);
-                    ZDispose();
-                }
-
-                public void Dispose()
-                {
-                    if (mDisposeOnCommandCompletion) return;
-                    ZDispose();
-                }
-
-                private void ZDispose()
+                public void Dispose(bool pManual)
                 {
                     if (mDisposed) return;
+                    if (mManualDispose && !pManual) return;
 
                     foreach (var lToken in mTokens)
                     {
@@ -677,9 +640,9 @@ namespace work.bacome.imapclient
                         catch { }
                     }
 
-                    if (mAuthentication != null)
+                    if (mSASLAuthentication != null)
                     {
-                        try { mAuthentication.Dispose(); }
+                        try { mSASLAuthentication.Dispose(); }
                         catch { }
                     }
 

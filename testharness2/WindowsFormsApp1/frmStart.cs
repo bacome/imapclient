@@ -24,5 +24,10 @@ namespace testharness2
             mTimer++;
             lblProofOfASync.Text = mTimer.ToString();
         }
+
+        private void cmdCreate_Click(object sender, EventArgs e)
+        {
+            // TODO
+        }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,41 +15,61 @@ namespace work.bacome.imapclient
             private sealed partial class cCommandPipeline : IDisposable
             {
                 private bool mDisposed = false;
+                private bool mStopped = false;
 
+                // stuff
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cConnection mConnection;
                 private readonly cResponseTextProcessor mResponseTextProcessor;
                 private cIdleConfiguration mIdleConfiguration;
                 private readonly Action<cTrace.cContext> mDisconnect;
+
+                // mechanics
+                private readonly cExclusiveAccess mIdleBlock = new cExclusiveAccess("idleblock", 100); // used to control idling
+                private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource(); // for use when stopping the background task
+
+                // installable components
                 private readonly List<iResponseDataParser> mResponseDataParsers = new List<iResponseDataParser>();
                 private readonly List<cUnsolicitedDataProcessor> mUnsolicitedDataProcessors = new List<cUnsolicitedDataProcessor>();
-                private cMailboxCache mMailboxCache = null;
-                private bool mLiteralPlus = false;
-                private bool mLiteralMinus = false;
-                private bool mIdleCommandSupported = false;
-                private readonly object mCommandQueueLock = new object();
-                private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource(); // for use when stopping the background task
-                private readonly cExclusiveAccess mIdleBlock = new cExclusiveAccess("idleblock", 100);
+
+                // background task objects
                 private readonly cMethodControl mBackgroundMC;
                 private readonly cReleaser mBackgroundReleaser;
                 private readonly cTerminator mBackgroundTerminator;
                 private readonly Task mBackgroundTask; // background task
-                private cAuthenticateState mAuthenticateState = null; // non-null when authenticating
-                private readonly ConcurrentQueue<cItem> mItemQueue = new ConcurrentQueue<cItem>();
+                private Exception mBackgroundTaskException = null;
+
+                // set on enable
+                private cMailboxCache mMailboxCache = null;
+                private bool mLiteralPlus = false;
+                private bool mLiteralMinus = false;
+                private bool mIdleCommandSupported = false;
+
+                // non-null when authenticating
+                private cAuthenticateState mAuthenticateState = null; 
+
+                // commands
+                private readonly object mPipelineLock = new object(); // access to commands is protected by locking this
+                private readonly Queue<cPipelineCommand> mQueuedCommands = new Queue<cPipelineCommand>();
+                private cCurrentPipelineCommand mCurrentCommand = null;
+                private readonly cActivePipelineCommands mActiveCommands = new cActivePipelineCommands();
+
+                // growable buffers
                 private cByteList mSendBuffer = new cByteList();
                 private cByteList mTraceBuffer = new cByteList();
-                private cCurrentItem mCurrentItem = null;
-                private cActiveItems mActiveItems = new cActiveItems();
 
                 public cCommandPipeline(cEventSynchroniser pEventSynchroniser, cConnection pConnection, cResponseTextProcessor pResponseTextProcessor, cIdleConfiguration pIdleConfiguration, Action<cTrace.cContext> pDisconnect, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cCommandPipeline), pIdleConfiguration);
+
                     mEventSynchroniser = pEventSynchroniser;
                     mConnection = pConnection;
                     mResponseTextProcessor = pResponseTextProcessor;
                     mIdleConfiguration = pIdleConfiguration;
                     mDisconnect = pDisconnect;
-                    mIdleBlock.Released += ZIdleBlockReleased;
+
+                    mIdleBlock.Released += mBackgroundReleaser.Release; // when the idle block is removed, kick the background process
+
                     mBackgroundMC = new cMethodControl(System.Threading.Timeout.Infinite, mCancellationTokenSource.Token);
                     mBackgroundReleaser = new cReleaser("commandpipeline_background", mCancellationTokenSource.Token);
                     mBackgroundTerminator = new cTerminator(mCancellationTokenSource.Token);
@@ -101,20 +120,19 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ExecuteAsync), pMC, pCommand);
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
-                    if (mCancellationTokenSource.IsCancellationRequested) throw new cPipelineStoppedException(lContext);
 
-                    using (var lItem = new cItem(pCommand, mCommandQueueLock))
+                    using (var lCommand = new cPipelineCommand(pCommand, mPipelineLock))
                     {
-                        pCommand.SetEnqueued();
-                        mItemQueue.Enqueue(lItem);
+                        lock (mPipelineLock)
+                        {
+                            if (mStopped) throw mBackgroundTaskException;
+                            pCommand.SetManualDispose();
+                            mQueuedCommands.Enqueue(lCommand);
+                        }
 
                         mBackgroundReleaser.Release(lContext);
 
-                        using (var lCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(pMC.CancellationToken, mCancellationTokenSource.Token))
-                        {
-                            try { return await lItem.WaitAsync(pMC.Timeout, lCancellationTokenSource.Token, lContext).ConfigureAwait(false); }
-                            catch (OperationCanceledException) when (mCancellationTokenSource.IsCancellationRequested) { throw new cPipelineStoppedException(lContext); }
-                        }
+                        return await lCommand.WaitAsync(pMC, lContext).ConfigureAwait(false);
                     }
                 }
 
@@ -130,8 +148,8 @@ namespace work.bacome.imapclient
 
                             await ZSendAsync(lContext).ConfigureAwait(false);
 
-                            if (mCurrentItem != null) await ZProcessResponsesAsync(lContext).ConfigureAwait(false);
-                            else if (mActiveItems.Count != 0) await ZProcessResponsesAsync(lContext, mBackgroundReleaser.GetAwaitReleaseTask(lContext)).ConfigureAwait(false);
+                            if (mCurrentCommand != null) await ZProcessResponsesAsync(lContext).ConfigureAwait(false);
+                            else if (mActiveCommands.Count != 0) await ZProcessResponsesAsync(lContext, mBackgroundReleaser.GetAwaitReleaseTask(lContext)).ConfigureAwait(false);
                             else
                             {
                                 var lIdleConfiguration = mIdleConfiguration;
@@ -153,11 +171,25 @@ namespace work.bacome.imapclient
                             }
                         }
                     }
-                    catch (Exception e) when (!mCancellationTokenSource.IsCancellationRequested)
+                    catch (cUnilateralByeException e)
                     {
-                        lContext.TraceException("the pipeline is stopping due to an exception", e);
-                        Stop(lContext);
+                        lContext.TraceInformation("the pipeline is stopping due to a unilateral bye");
+                        mBackgroundTaskException = e;
                     }
+                    catch (Exception e)
+                    {
+                        lContext.TraceException("the pipeline is stopping due to an unexpected exception", e);
+                        mBackgroundTaskException = new cPipelineStoppedException(e, lContext);
+                    }
+
+                    lock (mPipelineLock)
+                    {
+                        mStopped = true;
+                    }
+
+                    foreach (var lCommand in mActiveCommands) lCommand.SetException(mBackgroundTaskException, lContext);
+                    if (mCurrentCommand != null) mCurrentCommand.Command.SetException(mBackgroundTaskException, lContext);
+                    foreach (var lCommand in mQueuedCommands) lCommand.SetException(mBackgroundTaskException, lContext);
                 }
 
                 private async Task ZSendAsync(cTrace.cContext pParentContext)
@@ -167,14 +199,14 @@ namespace work.bacome.imapclient
                     mSendBuffer.Clear();
                     mTraceBuffer.Clear();
 
-                    if (mCurrentItem != null) ZSendAppendCurrentPartDataAndMoveNextPart();
+                    if (mCurrentCommand != null) ZSendAppendCurrentPartDataAndMoveNextPart();
 
                     while (true)
                     {
-                        if (mCurrentItem == null)
+                        if (mCurrentCommand == null)
                         {
                             ZSendMoveNextCommandAndAppendTag(lContext);
-                            if (mCurrentItem == null) break;
+                            if (mCurrentCommand == null) break;
                         }
 
                         if (ZSendAppendCurrentPartLiteralHeader()) break; // have to wait for continuation before sending the data
@@ -203,14 +235,14 @@ namespace work.bacome.imapclient
                     //   if this is authentication true is returned
                     //   else the command gets added to the active commands and the current command is nulled
 
-                    var lPart = mCurrentItem.CurrentPart;
+                    var lPart = mCurrentCommand.CurrentPart;
 
                     mSendBuffer.AddRange(lPart.Bytes);
 
                     if (lPart.Secret) mTraceBuffer.Add(cASCII.NUL);
                     else mTraceBuffer.AddRange(lPart.Bytes);
 
-                    if (mCurrentItem.MoveNext()) return false;
+                    if (mCurrentCommand.MoveNext()) return false;
 
                     mSendBuffer.Add(cASCII.CR);
                     mSendBuffer.Add(cASCII.LF);
@@ -218,13 +250,13 @@ namespace work.bacome.imapclient
                     mTraceBuffer.Add(cASCII.CR);
                     mTraceBuffer.Add(cASCII.LF);
 
-                    if (mCurrentItem.Item.Authentication != null) return true;
+                    if (mCurrentCommand.IsAuthentication) return true;
 
                     // the current command can be added to the list of active commands now
-                    lock (mCommandQueueLock)
+                    lock (mPipelineLock)
                     {
-                        mActiveItems.Add(mCurrentItem.Item);
-                        mCurrentItem = null;
+                        mActiveCommands.Add(mCurrentCommand);
+                        mCurrentCommand = null;
                     }
 
                     return false;
@@ -236,36 +268,31 @@ namespace work.bacome.imapclient
 
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZSendMoveNextCommandAndAppendTag));
 
-                    lock (mCommandQueueLock)
+                    lock (mPipelineLock)
                     {
-                        while (true)
+                        while (mQueuedCommands.Count > 0)
                         {
-                            if (!mItemQueue.TryDequeue(out var lItem)) break;
+                            var lCommand = mQueuedCommands.Dequeue();
 
-                            if (!lItem.WaitOver)
+                            if (lCommand.State == eCommandState.pending)
                             {
-                                lItem.SetStarted(lContext); // mark the command as started
-
-                                if (lItem.UIDValidity != null && lItem.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity) // don't run the command if it requires a specific uidvalidity and that isn't the current one
-                                {
-                                    lItem.SetException(new cUIDValidityChangedException(lContext), lContext);
-                                }
+                                if (lCommand.UIDValidity != null && lCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity) lCommand.SetException(new cUIDValidityChangedException(lContext), lContext);
                                 else
                                 {
-                                    // found a command to run
-                                    mCurrentItem = new cCurrentItem(lItem);
+                                    lCommand.SetActive(lContext);
+                                    mCurrentCommand = new cCurrentPipelineCommand(lCommand);
                                     break;
                                 }
                             }
                         }
                     }
 
-                    if (mCurrentItem == null) return;
+                    if (mCurrentCommand == null) return;
 
-                    mSendBuffer.AddRange(mCurrentItem.Item.Tag);
+                    mSendBuffer.AddRange(mCurrentCommand.Tag);
                     mSendBuffer.Add(cASCII.SPACE);
 
-                    mTraceBuffer.AddRange(mCurrentItem.Item.Tag);
+                    mTraceBuffer.AddRange(mCurrentCommand.Tag);
                     mTraceBuffer.Add(cASCII.SPACE);
                 }
 
@@ -274,7 +301,7 @@ namespace work.bacome.imapclient
                     // if the current part is a literal, appends the literal header
                     //  if the current part is a synchronising literal, returns true
 
-                    var lPart = mCurrentItem.CurrentPart;
+                    var lPart = mCurrentCommand.CurrentPart;
 
                     if (lPart.Type == eCommandPartType.literal8) mSendBuffer.Add(cASCII.TILDA);
                     else if (lPart.Type != eCommandPartType.literal) return false;
@@ -323,11 +350,11 @@ namespace work.bacome.imapclient
                         mEventSynchroniser.FireNetworkActivity(lLines, lContext);
                         var lCursor = new cBytesCursor(lLines);
 
-                        if (mCurrentItem != null)
+                        if (mCurrentCommand != null)
                         {
                             if (mAuthenticateState == null)
                             {
-                                if (ZResponseIsContinuation(lCursor, mCurrentItem.Item, lContext)) return null;
+                                if (ZResponseIsContinuation(lCursor, mCurrentCommand, lContext)) return null;
                             }
                             else
                             {
@@ -339,7 +366,7 @@ namespace work.bacome.imapclient
 
                         if (ZProcessActiveCommandCompletion(lCursor, lContext))
                         {
-                            if (mCurrentItem == null && mActiveItems.Count == 0)
+                            if (mCurrentCommand == null && mActiveCommands.Count == 0)
                             {
                                 lContext.TraceVerbose("there are no more commands to process responses for");
                                 return null;
@@ -348,12 +375,12 @@ namespace work.bacome.imapclient
                             continue;
                         }
 
-                        if (mCurrentItem != null)
+                        if (mCurrentCommand != null)
                         {
-                            if (ZProcessCommandCompletion(lCursor, mCurrentItem.Item, lContext))
+                            if (ZProcessCommandCompletion(lCursor, mCurrentCommand.Command, lContext))
                             {
                                 mAuthenticateState = null;
-                                mCurrentItem = null;
+                                mCurrentCommand = null;
                                 return null;
                             }
                         }
@@ -575,7 +602,7 @@ namespace work.bacome.imapclient
 
                     if (cBase64.TryDecode(pCursor.GetRestAsBytes(), out var lChallenge, out var lError))
                     {
-                        try { lResponse = mCurrentItem.Item.Authentication.GetResponse(lChallenge); }
+                        try { lResponse = mCurrentCommand.GetResponse(lChallenge); }
                         catch (Exception e)
                         {
                             lContext.TraceException("SASL authentication object threw", e);
@@ -629,21 +656,21 @@ namespace work.bacome.imapclient
                     if (pCursor.SkipBytes(kOKSpace))
                     {
                         lContext.TraceVerbose("got information");
-                        mResponseTextProcessor.Process(pCursor, eResponseTextType.information, mActiveItems, lContext);
+                        mResponseTextProcessor.Process(pCursor, eResponseTextType.information, mActiveCommands, lContext);
                         return true;
                     }
 
                     if (pCursor.SkipBytes(kNoSpace))
                     {
                         lContext.TraceVerbose("got a warning");
-                        mResponseTextProcessor.Process(pCursor, eResponseTextType.warning, mActiveItems, lContext);
+                        mResponseTextProcessor.Process(pCursor, eResponseTextType.warning, mActiveCommands, lContext);
                         return true;
                     }
 
                     if (pCursor.SkipBytes(kBadSpace))
                     {
                         lContext.TraceVerbose("got a protocol error");
-                        mResponseTextProcessor.Process(pCursor, eResponseTextType.protocolerror, mActiveItems, lContext);
+                        mResponseTextProcessor.Process(pCursor, eResponseTextType.protocolerror, mActiveCommands, lContext);
                         return true;
                     }
 
@@ -672,10 +699,10 @@ namespace work.bacome.imapclient
                         pCursor.Position = lBookmark;
                     }
 
-                    foreach (var lItem in mActiveItems)
+                    foreach (var lCommand in mActiveCommands)
                     {
-                        if (lParsed) ZProcessDataWorker(ref lResult, lItem.ProcessData(lData, lContext), lContext);
-                        else ZProcessDataWorker(ref lResult, lItem.ProcessData(pCursor, lContext), lContext);
+                        if (lParsed) ZProcessDataWorker(ref lResult, lCommand.ProcessData(lData, lContext), lContext);
+                        else ZProcessDataWorker(ref lResult, lCommand.ProcessData(pCursor, lContext), lContext);
                         pCursor.Position = lBookmark;
                     }
 
@@ -721,13 +748,13 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZProcessActiveCommandCompletion));
 
-                    for (int i = 0; i < mActiveItems.Count; i++)
+                    for (int i = 0; i < mActiveCommands.Count; i++)
                     {
-                        cItem lItem = mActiveItems[i];
+                        var lCommand = mActiveCommands[i];
 
-                        if (ZProcessCommandCompletion(pCursor, lItem, lContext))
+                        if (ZProcessCommandCompletion(pCursor, lCommand, lContext))
                         {
-                            mActiveItems.RemoveAt(i);
+                            mActiveCommands.RemoveAt(i);
                             return true;
                         }
                     }
@@ -783,24 +810,17 @@ namespace work.bacome.imapclient
                     return lResult;
                 }
 
-                private bool ZProcessCommandCompletion(cBytesCursor pCursor, cItem pItem, cTrace.cContext pParentContext)
+                private bool ZProcessCommandCompletion(cBytesCursor pCursor, cPipelineCommand pCommand, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZProcessCommandCompletion), pItem);
-                    var lResult = ZProcessCommandCompletion(pCursor, pItem.Tag, pItem, lContext);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZProcessCommandCompletion), pCommand);
+                    var lResult = ZProcessCommandCompletion(pCursor, pCommand.Tag, pCommand, lContext);
                     if (lResult == null) return false;
-                    pItem.SetResult(lResult, mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity, lContext);
+
+                    ;?; // uidvalidity check
+                    //mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity, 
+
+                    pCommand.SetResult(lResult, lContext);
                     return true;
-                }
-
-                public void Stop(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(Stop));
-
-                    if (!mCancellationTokenSource.IsCancellationRequested)
-                    {
-                        try { mCancellationTokenSource.Cancel(); }
-                        catch { }
-                    }
                 }
 
                 public void Dispose()
