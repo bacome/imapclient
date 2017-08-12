@@ -481,11 +481,11 @@ namespace work.bacome.imapclient
                     mHook = pHook ?? throw new ArgumentNullException(nameof(pHook));
                 }
 
-                public cCommand Emit()
+                public sCommandDetails CommandDetails()
                 {
                     if (mEmitted) throw new InvalidOperationException();
                     mEmitted = true;
-                    return new cCommand(Tag, mParts.Parts, mDisposables, mUIDValidity, mHook ?? cCommandHook.DoNothing);
+                    return new sCommandDetails(Tag, mParts.Parts, mDisposables, mUIDValidity, mHook ?? cCommandHook.DoNothing);
                 }
 
                 public void Dispose()
@@ -608,10 +608,9 @@ namespace work.bacome.imapclient
                         var lCommandBuilder = new cCommandBuilder();
                         cCommandPartFactory lFactory = new cCommandPartFactory(pUTF8Enabled, pEncoding);
                         lCommandBuilder.Add(pFilter, pCharsetMandatory, lFactory);
+                        var lDetails = lCommandBuilder.CommandDetails();
 
-                        ;?; // emit the command and inspect the parts
-
-                        foreach (var lPart in lCommand.Parts)
+                        foreach (var lPart in lDetails.Parts)
                         {
                             if (lPart.Type == eCommandPartType.literal)
                             {

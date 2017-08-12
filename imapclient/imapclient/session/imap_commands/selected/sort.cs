@@ -100,16 +100,15 @@ namespace work.bacome.imapclient
 
                 public cMessageHandleList Handles { get; private set; } = null;
 
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSortCommandHook), nameof(CommandCompleted), pResult, pException);
+                    var lContext = pParentContext.NewMethod(nameof(cSortCommandHook), nameof(CommandCompleted), pResult);
 
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mMSNs != null)
-                    {
-                        cMessageHandleList lHandles = new cMessageHandleList();
-                        foreach (var lMSN in mMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
-                        Handles = lHandles;
-                    }
+                    if (pResult.ResultType != eCommandResultType.ok || mMSNs == null) return;
+
+                    cMessageHandleList lHandles = new cMessageHandleList();
+                    foreach (var lMSN in mMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
+                    Handles = lHandles;
                 }
             }
         }

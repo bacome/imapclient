@@ -55,10 +55,10 @@ namespace work.bacome.imapclient
 
                 public cMessageHandleList Handles { get; private set; } = null;
 
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSetUnseenCommandHook), nameof(CommandCompleted), pResult, pException);
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mMSNs != null) Handles = mSelectedMailbox.SetUnseen(mMSNs, lContext);
+                    var lContext = pParentContext.NewMethod(nameof(cSetUnseenCommandHook), nameof(CommandCompleted), pResult);
+                    if (pResult.ResultType == eCommandResultType.ok && mMSNs != null) Handles = mSelectedMailbox.SetUnseen(mMSNs, lContext);
                 }
             }
         }

@@ -143,10 +143,11 @@ namespace work.bacome.imapclient
                     return false;
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandCompleted), pResult);
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mMailboxCache.Select(mHandle, mForUpdate, mAccessReadOnly, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
+                    if (pResult.ResultType != eCommandResultType.ok) return;
+                    mMailboxCache.Select(mHandle, mForUpdate, mAccessReadOnly, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
                 }
             }
         }

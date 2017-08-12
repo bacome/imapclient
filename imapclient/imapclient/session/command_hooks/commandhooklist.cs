@@ -40,11 +40,10 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookList), nameof(CommandCompleted), pResult);
 
-                    if (pResult.ResultType == eCommandResultType.ok)
-                    {
-                        mCache.ResetListFlags(mPattern, mSequence, lContext);
-                        Handles = mCache.GetHandles(mMailboxes);
-                    }
+                    if (pResult.ResultType != eCommandResultType.ok) return;
+                    
+                    mCache.ResetListFlags(mPattern, mSequence, lContext);
+                    Handles = mCache.GetHandles(mMailboxes);
                 }
             }
         }

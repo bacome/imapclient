@@ -172,11 +172,11 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cListExtendedCommandHook), nameof(CommandCompleted), pResult, pException);
+                    var lContext = pParentContext.NewMethod(nameof(cListExtendedCommandHook), nameof(CommandCompleted), pResult);
 
-                    if (pResult == null || pResult.ResultType != eCommandResultType.ok) return;
+                    if (pResult.ResultType != eCommandResultType.ok) return;
 
                     if (mSelect == eListExtendedSelect.exists) mCache.ResetListFlags(mPattern, mSequence, lContext);
                     if (mSelect == eListExtendedSelect.subscribed || mSelect == eListExtendedSelect.subscribedrecursive) mCache.ResetLSubFlags(mPattern, mSequence, lContext);

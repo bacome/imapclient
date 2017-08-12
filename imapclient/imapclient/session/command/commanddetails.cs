@@ -24,6 +24,8 @@ namespace work.bacome.imapclient
                     UIDValidity = pUIDValidity;
                     Hook = pHook ?? throw new ArgumentNullException(nameof(pHook));
                 }
+
+                public override string ToString() => $"{nameof(sCommandDetails)}({Tag},{UIDValidity})";
             }
         }
     }

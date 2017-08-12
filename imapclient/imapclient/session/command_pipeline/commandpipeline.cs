@@ -50,9 +50,9 @@ namespace work.bacome.imapclient
 
                 // commands
                 private readonly object mPipelineLock = new object(); // access to commands is protected by locking this
-                private readonly Queue<cPipelineCommand> mQueuedCommands = new Queue<cPipelineCommand>();
-                private cCurrentPipelineCommand mCurrentCommand = null;
-                private readonly cActivePipelineCommands mActiveCommands = new cActivePipelineCommands();
+                private readonly Queue<cCommand> mQueuedCommands = new Queue<cCommand>();
+                private cCommand mCurrentCommand = null;
+                private readonly cActiveCommands mActiveCommands = new cActiveCommands();
 
                 // growable buffers
                 private cByteList mSendBuffer = new cByteList();
@@ -115,48 +115,38 @@ namespace work.bacome.imapclient
 
                 private void ZIdleBlockReleased(cTrace.cContext pParentContext) => mBackgroundReleaser.Release(pParentContext);
 
-                public async Task<cCommandResult> ExecuteAsync(cMethodControl pMC, cCommand pCommand, cTrace.cContext pParentContext)
+                public async Task<cCommandResult> ExecuteAsync(cMethodControl pMC, sCommandDetails pCommandDetails, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ExecuteAsync), pMC, pCommand);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ExecuteAsync), pMC, pCommandDetails);
 
                     if (mDisposed)
                     {
-                        pCommand.Dispose();
+                        pCommandDetails.Disposables?.Dispose();
                         throw new ObjectDisposedException(nameof(cCommandPipeline));
                     }
 
-                    cPipelineCommand lPipelineCommand;
-
-                    try { lPipelineCommand = new cPipelineCommand(pCommand); }
-                    catch
-                    {
-                        pCommand.Dispose();
-                        throw;
-                    }
+                    cCommand lCommand;
 
                     lock (mPipelineLock)
                     {
                         if (mStopped)
                         {
-                            lPipelineCommand.Dispose();
+                            pCommandDetails.Disposables.Dispose();
                             throw mBackgroundTaskException;
                         }
 
-                        mQueuedCommands.Enqueue(lPipelineCommand);
+                        lCommand = new cCommand(pCommandDetails);
+                        mQueuedCommands.Enqueue(lCommand);
+
+                        mBackgroundReleaser.Release(lContext);
                     }
 
-                    mBackgroundReleaser.Release(lContext);
-
-                    try { return await lPipelineCommand.WaitAsync(pMC, lContext).ConfigureAwait(false); }
+                    try { return await lCommand.WaitAsync(pMC, lContext).ConfigureAwait(false); }
                     finally
                     {
                         lock (mPipelineLock)
                         {
-                            if (lPipelineCommand.State == eCommandState.pending)
-                            {
-                                lPipelineCommand.SetAbandoned(lContext);
-                                lPipelineCommand.Dispose(); ???; // should be done internally
-                            }
+                            if (lCommand.State == eCommandState.queued) lCommand.SetAbandoned(lContext);
                         }
                     }
                 }
@@ -213,7 +203,7 @@ namespace work.bacome.imapclient
                     }
 
                     foreach (var lCommand in mActiveCommands) lCommand.SetException(mBackgroundTaskException, lContext);
-                    if (mCurrentCommand != null) mCurrentCommand.Command.SetException(mBackgroundTaskException, lContext);
+                    if (mCurrentCommand != null) mCurrentCommand.SetException(mBackgroundTaskException, lContext);
                     foreach (var lCommand in mQueuedCommands) lCommand.SetException(mBackgroundTaskException, lContext);
                 }
 
@@ -224,7 +214,7 @@ namespace work.bacome.imapclient
                     mSendBuffer.Clear();
                     mTraceBuffer.Clear();
 
-                    if (mCurrentCommand != null) ZSendAppendCurrentPartDataAndMoveNextPart();
+                    if (mCurrentCommand != null) ZSendAppendCurrentPartDataAndMoveNextPart(lContext);
 
                     while (true)
                     {
@@ -236,7 +226,7 @@ namespace work.bacome.imapclient
 
                         if (ZSendAppendCurrentPartLiteralHeader()) break; // have to wait for continuation before sending the data
 
-                        if (ZSendAppendCurrentPartDataAndMoveNextPart())
+                        if (ZSendAppendCurrentPartDataAndMoveNextPart(lContext))
                         {
                             // this is authentication - have to wait for a challenge before sending more
                             mAuthenticateState = new cAuthenticateState();
@@ -253,14 +243,16 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                private bool ZSendAppendCurrentPartDataAndMoveNextPart()
+                private bool ZSendAppendCurrentPartDataAndMoveNextPart(cTrace.cContext pParentContext)
                 {
                     // appends the current part of the current command to the buffer to send
                     //  if that was the last part of the current command
                     //   if this is authentication true is returned
                     //   else the command gets added to the active commands and the current command is nulled
 
-                    var lPart = mCurrentCommand.CurrentPart;
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZSendAppendCurrentPartDataAndMoveNextPart));
+
+                    var lPart = mCurrentCommand.CurrentPart();
 
                     mSendBuffer.AddRange(lPart.Bytes);
 
@@ -280,6 +272,7 @@ namespace work.bacome.imapclient
                     // the current command can be added to the list of active commands now
                     lock (mPipelineLock)
                     {
+                        mCurrentCommand.SetActive(lContext);
                         mActiveCommands.Add(mCurrentCommand);
                         mCurrentCommand = null;
                     }
@@ -299,13 +292,13 @@ namespace work.bacome.imapclient
                         {
                             var lCommand = mQueuedCommands.Dequeue();
 
-                            if (lCommand.State == eCommandState.pending)
+                            if (lCommand.State == eCommandState.queued)
                             {
                                 if (lCommand.UIDValidity != null && lCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity) lCommand.SetException(new cUIDValidityChangedException(lContext), lContext);
                                 else
                                 {
-                                    lCommand.SetActive(lContext);
-                                    mCurrentCommand = new cCurrentPipelineCommand(lCommand);
+                                    lCommand.SetCurrent(lContext);
+                                    mCurrentCommand = lCommand;
                                     break;
                                 }
                             }
@@ -326,7 +319,7 @@ namespace work.bacome.imapclient
                     // if the current part is a literal, appends the literal header
                     //  if the current part is a synchronising literal, returns true
 
-                    var lPart = mCurrentCommand.CurrentPart;
+                    var lPart = mCurrentCommand.CurrentPart();
 
                     if (lPart.Type == eCommandPartType.literal8) mSendBuffer.Add(cASCII.TILDA);
                     else if (lPart.Type != eCommandPartType.literal) return false;
@@ -379,7 +372,7 @@ namespace work.bacome.imapclient
                         {
                             if (mAuthenticateState == null)
                             {
-                                if (ZResponseIsContinuation(lCursor, mCurrentCommand, lContext)) return null;
+                                if (ZResponseIsContinuation(lCursor, mCurrentCommand.Hook, lContext)) return null;
                             }
                             else
                             {
@@ -402,7 +395,7 @@ namespace work.bacome.imapclient
 
                         if (mCurrentCommand != null)
                         {
-                            if (ZProcessCommandCompletion(lCursor, mCurrentCommand.Command, lContext))
+                            if (ZProcessCommandCompletion(lCursor, mCurrentCommand, lContext))
                             {
                                 mAuthenticateState = null;
                                 mCurrentCommand = null;
@@ -627,7 +620,7 @@ namespace work.bacome.imapclient
 
                     if (cBase64.TryDecode(pCursor.GetRestAsBytes(), out var lChallenge, out var lError))
                     {
-                        try { lResponse = mCurrentCommand.GetResponse(lChallenge); }
+                        try { lResponse = mCurrentCommand.GetAuthenticationResponse(lChallenge); }
                         catch (Exception e)
                         {
                             lContext.TraceException("SASL authentication object threw", e);
@@ -726,8 +719,8 @@ namespace work.bacome.imapclient
 
                     foreach (var lCommand in mActiveCommands)
                     {
-                        if (lParsed) ZProcessDataWorker(ref lResult, lCommand.ProcessData(lData, lContext), lContext);
-                        else ZProcessDataWorker(ref lResult, lCommand.ProcessData(pCursor, lContext), lContext);
+                        if (lParsed) ZProcessDataWorker(ref lResult, lCommand.Hook.ProcessData(lData, lContext), lContext);
+                        else ZProcessDataWorker(ref lResult, lCommand.Hook.ProcessData(pCursor, lContext), lContext);
                         pCursor.Position = lBookmark;
                     }
 
@@ -835,16 +828,16 @@ namespace work.bacome.imapclient
                     return lResult;
                 }
 
-                private bool ZProcessCommandCompletion(cBytesCursor pCursor, cPipelineCommand pCommand, cTrace.cContext pParentContext)
+                private bool ZProcessCommandCompletion(cBytesCursor pCursor, cCommand pCommand, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZProcessCommandCompletion), pCommand);
-                    var lResult = ZProcessCommandCompletion(pCursor, pCommand.Tag, pCommand, lContext);
+
+                    var lResult = ZProcessCommandCompletion(pCursor, pCommand.Tag, pCommand.Hook, lContext);
                     if (lResult == null) return false;
 
-                    ;?; // uidvalidity check
-                    //mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity, 
+                    if (pCommand.UIDValidity != null && pCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity) pCommand.SetException(new cUIDValidityChangedException(lContext), lContext);
+                    else pCommand.SetResult(lResult, lContext);
 
-                    pCommand.SetResult(lResult, lContext);
                     return true;
                 }
 

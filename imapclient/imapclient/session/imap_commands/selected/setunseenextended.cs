@@ -53,16 +53,15 @@ namespace work.bacome.imapclient
 
                 public cMessageHandleList Handles { get; private set; } = null;
 
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSetUnseenExtendedCommandHook), nameof(CommandCompleted), pResult, pException);
+                    var lContext = pParentContext.NewMethod(nameof(cSetUnseenExtendedCommandHook), nameof(CommandCompleted), pResult);
 
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mSequenceSets != null)
-                    {
-                        var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.MessageCount);
-                        lMSNs = lMSNs.ToSortedUniqueList();
-                        Handles = mSelectedMailbox.SetUnseen(lMSNs, lContext);
-                    }
+                    if (pResult.ResultType != eCommandResultType.ok || mSequenceSets == null) return;
+
+                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.MessageCount);
+                    lMSNs = lMSNs.ToSortedUniqueList();
+                    Handles = mSelectedMailbox.SetUnseen(lMSNs, lContext);
                 }
             }
         }

@@ -98,15 +98,12 @@ namespace work.bacome.imapclient
                     mAuthentication = pAuthentication;
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookAuthenticate), nameof(CommandCompleted), pResult, pException);
-
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok)
-                    {
-                        var lSecurity = mAuthentication.GetSecurity();
-                        if (lSecurity != null) mConnection.InstallSASLSecurity(lSecurity, lContext);
-                    }
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookAuthenticate), nameof(CommandCompleted), pResult);
+                    if (pResult.ResultType != eCommandResultType.ok) return;
+                    var lSecurity = mAuthentication.GetSecurity();
+                    if (lSecurity != null) mConnection.InstallSASLSecurity(lSecurity, lContext);
                 }
             }
         }

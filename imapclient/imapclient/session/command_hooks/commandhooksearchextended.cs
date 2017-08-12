@@ -45,18 +45,17 @@ namespace work.bacome.imapclient
 
                 public cMessageHandleList Handles { get; private set; } = null;
 
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSearchExtended), nameof(CommandCompleted), pResult, pException);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSearchExtended), nameof(CommandCompleted), pResult);
 
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok && mSequenceSets != null)
-                    {
-                        var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.MessageCount);
-                        if (!mSort) lMSNs = lMSNs.ToSortedUniqueList();
-                        var lHandles = new cMessageHandleList();
-                        foreach (var lMSN in lMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
-                        Handles = lHandles;
-                    }
+                    if (pResult.ResultType != eCommandResultType.ok || mSequenceSets == null) return;
+
+                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.MessageCount);
+                    if (!mSort) lMSNs = lMSNs.ToSortedUniqueList();
+                    var lHandles = new cMessageHandleList();
+                    foreach (var lMSN in lMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
+                    Handles = lHandles;
                 }
             }
         }

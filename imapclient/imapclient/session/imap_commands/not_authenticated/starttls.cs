@@ -47,10 +47,10 @@ namespace work.bacome.imapclient
 
                 public cStartTLSCommandHook(cConnection pConnection) { mConnection = pConnection; }
 
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cStartTLSCommandHook), nameof(CommandCompleted), pResult, pException);
-                    if (pResult != null && pResult.ResultType == eCommandResultType.ok) mConnection.InstallTLS(lContext);
+                    var lContext = pParentContext.NewMethod(nameof(cStartTLSCommandHook), nameof(CommandCompleted), pResult);
+                    if (pResult.ResultType == eCommandResultType.ok) mConnection.InstallTLS(lContext);
                 }
             }
         }

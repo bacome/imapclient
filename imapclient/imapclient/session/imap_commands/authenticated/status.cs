@@ -75,13 +75,11 @@ namespace work.bacome.imapclient
                     mSequence = pItem.MailboxCache.Sequence;
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cStatusCommandHook), nameof(CommandCompleted), pResult, pException);
-
-                    if (pResult != null && pResult.ResultType != eCommandResultType.bad && mItem.Exists != false)
-                        if (mItem.Status == null || mItem.Status.Sequence < mSequence)
-                            mItem.ResetExists(lContext);
+                    var lContext = pParentContext.NewMethod(nameof(cStatusCommandHook), nameof(CommandCompleted), pResult);
+                    if (pResult.ResultType == eCommandResultType.bad || mItem.Exists == false) return;
+                    if (mItem.Status == null || mItem.Status.Sequence < mSequence) mItem.ResetExists(lContext);
                 }
             }
         }
