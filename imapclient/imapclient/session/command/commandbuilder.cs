@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
@@ -13,139 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private enum eListBracketing { none, bracketed, ifany, ifmorethanone }
-
-            private class cCommandParts
-            {
-                private readonly Stack<cList> mLists = new Stack<cList>();
-                private cList mList = null; // the current list
-                private readonly List<cCommandPart> mParts = new List<cCommandPart>();
-
-                public readonly ReadOnlyCollection<cCommandPart> Parts;
-
-                public cCommandParts()
-                {
-                    Parts = mParts.AsReadOnly();
-                }
-
-                public void Add(cCommandPart pPart)
-                {
-                    if (mList == null)
-                    {
-                        mParts.Add(pPart);
-                        return;
-                    }
-
-                    mList.Add(pPart);
-                }
-
-                public void Add(IList<cCommandPart> pParts)
-                {
-                    if (mList == null)
-                    {
-                        mParts.AddRange(pParts);
-                        return;
-                    }
-
-                    mList.Add(pParts);
-                }
-
-                public void Add(params cCommandPart[] pParts)
-                {
-                    if (mList == null)
-                    {
-                        mParts.AddRange(pParts);
-                        return;
-                    }
-
-                    mList.Add(pParts);
-                }
-
-                public void BeginList(eListBracketing pBracketing, cCommandPart pListName = null)
-                {
-                    if (mList != null) mLists.Push(mList);
-                    mList = new cList(pBracketing, pListName);
-                }
-
-                public void EndList()
-                {
-                    var lList = mList;
-
-                    if (mLists.Count == 0) mList = null;
-                    else mList = mLists.Pop();
-
-                    if (lList.Bracketing == eListBracketing.bracketed || (lList.Bracketing == eListBracketing.ifany && lList.AddCount > 0) || (lList.Bracketing == eListBracketing.ifmorethanone && lList.AddCount > 1))
-                    {
-                        List<cCommandPart> lParts = new List<cCommandPart>();
-
-                        if (lList.ListName != null)
-                        {
-                            lParts.Add(lList.ListName);
-                            lParts.Add(cCommandPart.Space);
-                        }
-
-                        lParts.Add(cCommandPart.LParen);
-                        lParts.AddRange(lList.Parts);
-                        lParts.Add(cCommandPart.RParen);
-                        Add(lParts);
-                    }
-                    else if (lList.Parts.Count > 0)
-                    {
-                        if (lList.ListName != null)
-                        {
-                            List<cCommandPart> lParts = new List<cCommandPart>();
-                            lParts.Add(lList.ListName);
-                            lParts.Add(cCommandPart.Space);
-                            lParts.AddRange(lList.Parts);
-                            Add(lParts);
-                        }
-                        else Add(lList.Parts);
-                    }
-                }
-
-                public override string ToString()
-                {
-                    var lBuilder = new cListBuilder(nameof(cCommandParts));
-                    foreach (var lPart in Parts) lBuilder.Append(lPart);
-                    return lBuilder.ToString();
-                }
-
-                private class cList
-                {
-                    public readonly eListBracketing Bracketing;
-                    public readonly cCommandPart ListName;
-                    private readonly List<cCommandPart> mParts;
-                    private int mAddCount;
-                    public readonly ReadOnlyCollection<cCommandPart> Parts;
-
-                    public cList(eListBracketing pBracketing, cCommandPart pListName)
-                    {
-                        Bracketing = pBracketing;
-                        ListName = pListName;
-                        mParts = new List<cCommandPart>();
-                        mAddCount = 0;
-                        Parts = new ReadOnlyCollection<cCommandPart>(mParts);
-                    }
-
-                    public void Add(cCommandPart pPart)
-                    {
-                        if (mAddCount != 0) mParts.Add(cCommandPart.Space);
-                        mParts.Add(pPart);
-                        mAddCount++;
-                    }
-
-                    public void Add(IList<cCommandPart> pParts)
-                    {
-                        if (mAddCount != 0) mParts.Add(cCommandPart.Space);
-                        mParts.AddRange(pParts);
-                        mAddCount++;
-                    }
-
-                    public int AddCount => mAddCount;
-                }
-            }
-
-            private sealed class cCommand : cCommandParts, IDisposable
+            private sealed class cCommandBuilder : IDisposable
             {
                 // search
                 private static readonly cCommandPart kCommandPartCharsetSpace = new cCommandPart("CHARSET ");
@@ -224,56 +91,51 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartUIDValidity = new cCommandPart("UIDVALIDITY");
                 private static readonly cCommandPart kCommandPartHighestModSeq = new cCommandPart("HIGHESTMODSEQ");
 
-                private bool mDisposed = false;
-                private bool mManualDispose = false;
-
+                // members
                 public readonly cCommandTag Tag = new cCommandTag();
-
-                // exclusive access tokens and blocks
-                private readonly List<cExclusiveAccess.cToken> mTokens = new List<cExclusiveAccess.cToken>();
-                private readonly List<cExclusiveAccess.cBlock> mBlocks = new List<cExclusiveAccess.cBlock>();
-                private int mExclusiveAccessSequence = -1;
-
-                // UIDValidity
+                private readonly cCommandPartsBuilder mParts = new cCommandPartsBuilder();
+                private readonly cCommandDisposables mDisposables = new cCommandDisposables();
                 private uint? mUIDValidity = null;
-
-                // authentication is disposable
-                private cSASLAuthentication mSASLAuthentication = null;
-
-                // hook
                 private cCommandHook mHook = null;
+                private bool mEmitted = false;
 
-                public cCommand() { }
+                public cCommandBuilder() { }
 
                 public void Add(fFetchAttributes pAttributes)
                 {
-                    BeginList(eListBracketing.ifmorethanone);
-                    if ((pAttributes & fFetchAttributes.flags) != 0) Add(kCommandPartFlags);
-                    if ((pAttributes & fFetchAttributes.envelope) != 0) Add(kCommandPartEnvelope);
-                    if ((pAttributes & fFetchAttributes.received) != 0) Add(kCommandPartInternalDate);
-                    if ((pAttributes & fFetchAttributes.size) != 0) Add(kCommandPartrfc822size);
-                    if ((pAttributes & fFetchAttributes.body) != 0) Add(kCommandPartBody);
-                    if ((pAttributes & fFetchAttributes.bodystructure) != 0) Add(kCommandPartBodyStructure);
-                    if ((pAttributes & fFetchAttributes.uid) != 0) Add(kCommandPartUID);
-                    if ((pAttributes & fFetchAttributes.references) != 0) Add(kCommandPartReferences);
-                    if ((pAttributes & fFetchAttributes.modseq) != 0) Add(kCommandPartModSeq);
-                    EndList();
+                    if (mEmitted) throw new InvalidOperationException();
+
+                    mParts.BeginList(eListBracketing.ifmorethanone);
+                    if ((pAttributes & fFetchAttributes.flags) != 0) mParts.Add(kCommandPartFlags);
+                    if ((pAttributes & fFetchAttributes.envelope) != 0) mParts.Add(kCommandPartEnvelope);
+                    if ((pAttributes & fFetchAttributes.received) != 0) mParts.Add(kCommandPartInternalDate);
+                    if ((pAttributes & fFetchAttributes.size) != 0) mParts.Add(kCommandPartrfc822size);
+                    if ((pAttributes & fFetchAttributes.body) != 0) mParts.Add(kCommandPartBody);
+                    if ((pAttributes & fFetchAttributes.bodystructure) != 0) mParts.Add(kCommandPartBodyStructure);
+                    if ((pAttributes & fFetchAttributes.uid) != 0) mParts.Add(kCommandPartUID);
+                    if ((pAttributes & fFetchAttributes.references) != 0) mParts.Add(kCommandPartReferences);
+                    if ((pAttributes & fFetchAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
+                    mParts.EndList();
                 }
 
                 public void AddStatusAttributes(fMailboxCacheData pAttributes)
                 {
-                    BeginList(eListBracketing.bracketed);
-                    if ((pAttributes & fMailboxCacheData.messagecount) != 0) Add(kCommandPartMessages);
-                    if ((pAttributes & fMailboxCacheData.recentcount) != 0) Add(kCommandPartRecent);
-                    if ((pAttributes & fMailboxCacheData.uidnext) != 0) Add(kCommandPartUIDNext);
-                    if ((pAttributes & fMailboxCacheData.uidvalidity) != 0) Add(kCommandPartUIDValidity);
-                    if ((pAttributes & fMailboxCacheData.unseencount) != 0) Add(kCommandPartUnseen);
-                    if ((pAttributes & fMailboxCacheData.highestmodseq) != 0) Add(kCommandPartHighestModSeq);
-                    EndList();
+                    if (mEmitted) throw new InvalidOperationException();
+
+                    mParts.BeginList(eListBracketing.bracketed);
+                    if ((pAttributes & fMailboxCacheData.messagecount) != 0) mParts.Add(kCommandPartMessages);
+                    if ((pAttributes & fMailboxCacheData.recentcount) != 0) mParts.Add(kCommandPartRecent);
+                    if ((pAttributes & fMailboxCacheData.uidnext) != 0) mParts.Add(kCommandPartUIDNext);
+                    if ((pAttributes & fMailboxCacheData.uidvalidity) != 0) mParts.Add(kCommandPartUIDValidity);
+                    if ((pAttributes & fMailboxCacheData.unseencount) != 0) mParts.Add(kCommandPartUnseen);
+                    if ((pAttributes & fMailboxCacheData.highestmodseq) != 0) mParts.Add(kCommandPartHighestModSeq);
+                    mParts.EndList();
                 }
 
                 public void Add(cFilter pFilter, bool pCharsetMandatory, cCommandPartFactory pFactory)
                 {
+                    if (mEmitted) throw new InvalidOperationException();
+
                     if (pFilter?.UIDValidity != null) AddUIDValidity(pFilter.UIDValidity.Value);
 
                     var lFilterParts = ZFilterParts(pFilter, eListBracketing.none, pFactory);
@@ -281,13 +143,13 @@ namespace work.bacome.imapclient
                     if (pFactory.UTF8Enabled)
                     {
                         // rfc 6855 explicitly disallows charset on search when utf8 is enabled
-                        if (pCharsetMandatory) Add(kCommandPartUTF8Space); // but for sort and thread it is mandatory
+                        if (pCharsetMandatory) mParts.Add(kCommandPartUTF8Space); // but for sort and thread it is mandatory
                     }
                     else
                     {
                         bool lEncodedParts = false;
 
-                        foreach (var lPart in lFilterParts.Parts)
+                        foreach (var lPart in lFilterParts)
                         {
                             if (lPart.Encoded)
                             {
@@ -298,31 +160,31 @@ namespace work.bacome.imapclient
 
                         if (lEncodedParts)
                         {
-                            if (!pCharsetMandatory) Add(kCommandPartCharsetSpace);
-                            Add(pFactory.CharsetName);
-                            Add(cCommandPart.Space);
+                            if (!pCharsetMandatory) mParts.Add(kCommandPartCharsetSpace);
+                            mParts.Add(pFactory.CharsetName);
+                            mParts.Add(cCommandPart.Space);
                         }
-                        else if (pCharsetMandatory) Add(kCommandPartUSASCIISpace); // have to put something for sort and thread
+                        else if (pCharsetMandatory) mParts.Add(kCommandPartUSASCIISpace); // have to put something for sort and thread
                     }
 
-                    Add(lFilterParts.Parts);
+                    mParts.Add(lFilterParts);
                 }
 
-                private static cCommandParts ZFilterParts(cFilter pFilter, eListBracketing pBracketing, cCommandPartFactory pFactory)
+                private static ReadOnlyCollection<cCommandPart> ZFilterParts(cFilter pFilter, eListBracketing pBracketing, cCommandPartFactory pFactory)
                 {
-                    var lParts = new cCommandParts();
+                    var lParts = new cCommandPartsBuilder();
 
                     switch (pFilter)
                     {
                         case null:
 
                             lParts.Add(kCommandPartAll);
-                            return lParts;
+                            return lParts.Parts;
 
                         case cFilterUIDIn lUIDIn:
 
                             lParts.Add(kCommandPartUIDSpace, new cCommandPart(lUIDIn.SequenceSet));
-                            return lParts;
+                            return lParts.Parts;
 
                         case cFilterFlagsContain lFlagsContain:
 
@@ -340,7 +202,7 @@ namespace work.bacome.imapclient
                             }
 
                             lParts.EndList();
-                            return lParts;
+                            return lParts.Parts;
 
                         case cFilterPartContains lPartContains:
 
@@ -387,7 +249,7 @@ namespace work.bacome.imapclient
                             }
 
                             lParts.Add(pFactory.AsAString(lPartContains.Contains));
-                            return lParts;
+                            return lParts.Parts;
 
                         case cFilterDateCompare lDateCompare:
 
@@ -405,12 +267,12 @@ namespace work.bacome.imapclient
                             }
 
                             lParts.Add(cCommandPartFactory.AsDate(lDateCompare.WithDate));
-                            return lParts;
+                            return lParts.Parts;
 
                         case cFilterHeaderFieldContains lHeaderFieldContains:
 
                             lParts.Add(kCommandPartHeaderSpace, cCommandPartFactory.AsASCIIAString(lHeaderFieldContains.HeaderField), cCommandPart.Space, pFactory.AsAString(lHeaderFieldContains.Contains));
-                            return lParts;
+                            return lParts.Parts;
 
                         case cFilterSizeCompare lSizeCompare:
 
@@ -418,22 +280,22 @@ namespace work.bacome.imapclient
                             else lParts.Add(kCommandPartSmallerSpace);
 
                             lParts.Add(new cCommandPart(lSizeCompare.WithSize));
-                            return lParts;
+                            return lParts.Parts;
 
                         case cFilterAnd lAnd:
 
                             lParts.BeginList(pBracketing);
-                            foreach (var lTerm in lAnd.Terms) lParts.Add(ZFilterParts(lTerm, eListBracketing.none, pFactory).Parts);
+                            foreach (var lTerm in lAnd.Terms) lParts.Add(ZFilterParts(lTerm, eListBracketing.none, pFactory));
                             lParts.EndList();
-                            return lParts;
+                            return lParts.Parts;
 
                         case cFilterOr lOr:
 
                             lParts.Add(kCommandPartOrSpace);
-                            lParts.Add(ZFilterParts(lOr.A, eListBracketing.ifmorethanone, pFactory).Parts);
+                            lParts.Add(ZFilterParts(lOr.A, eListBracketing.ifmorethanone, pFactory));
                             lParts.Add(cCommandPart.Space);
-                            lParts.Add(ZFilterParts(lOr.B, eListBracketing.ifmorethanone, pFactory).Parts);
-                            return lParts;
+                            lParts.Add(ZFilterParts(lOr.B, eListBracketing.ifmorethanone, pFactory));
+                            return lParts.Parts;
 
                         case cFilterNot lNot:
 
@@ -457,10 +319,10 @@ namespace work.bacome.imapclient
                             else
                             {
                                 lParts.Add(kCommandPartNotSpace);
-                                lParts.Add(ZFilterParts(lNot.Not, eListBracketing.ifmorethanone, pFactory).Parts);
+                                lParts.Add(ZFilterParts(lNot.Not, eListBracketing.ifmorethanone, pFactory));
                             }
 
-                            return lParts;
+                            return lParts.Parts;
 
                         default:
 
@@ -470,49 +332,51 @@ namespace work.bacome.imapclient
 
                 public void Add(cSort pSort)
                 {
-                    BeginList(eListBracketing.bracketed);
+                    if (mEmitted) throw new InvalidOperationException();
+
+                    mParts.BeginList(eListBracketing.bracketed);
 
                     foreach (var lItem in pSort.Items)
                     {
-                        if (lItem.Desc) Add(kCommandPartReverse);
+                        if (lItem.Desc) mParts.Add(kCommandPartReverse);
 
                         switch (lItem.Property)
                         {
                             case fMessageProperties.received:
 
-                                Add(kCommandPartArrival);
+                                mParts.Add(kCommandPartArrival);
                                 break;
 
                             case fMessageProperties.cc:
 
-                                Add(kCommandPartCC);
+                                mParts.Add(kCommandPartCC);
                                 break;
 
                             case fMessageProperties.sent:
 
-                                Add(kCommandPartDate);
+                                mParts.Add(kCommandPartDate);
                                 break;
 
                             case fMessageProperties.from:
 
-                                if (lItem.Display) Add(kCommandPartDisplayFrom);
-                                else Add(kCommandPartFrom);
+                                if (lItem.Display) mParts.Add(kCommandPartDisplayFrom);
+                                else mParts.Add(kCommandPartFrom);
                                 break;
 
                             case fMessageProperties.size:
 
-                                Add(kCommandPartSize);
+                                mParts.Add(kCommandPartSize);
                                 break;
 
                             case fMessageProperties.subject:
 
-                                Add(kCommandPartSubject);
+                                mParts.Add(kCommandPartSubject);
                                 break;
 
                             case fMessageProperties.to:
 
-                                if (lItem.Display) Add(kCommandPartDisplayTo);
-                                else Add(kCommandPartTo);
+                                if (lItem.Display) mParts.Add(kCommandPartDisplayTo);
+                                else mParts.Add(kCommandPartTo);
                                 break;
 
                             default:
@@ -521,15 +385,17 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    EndList();
+                    mParts.EndList();
                 }
 
                 public void Add(cSection pSection, uint pOrigin, uint pLength)
                 {
+                    if (mEmitted) throw new InvalidOperationException();
+
                     if (pSection.Part != null)
                     {
-                        Add(cCommandPartFactory.AsAtom(pSection.Part));
-                        if (pSection.TextPart != eSectionPart.all) Add(cCommandPart.Dot);
+                        mParts.Add(cCommandPartFactory.AsAtom(pSection.Part));
+                        if (pSection.TextPart != eSectionPart.all) mParts.Add(cCommandPart.Dot);
                     }
 
                     switch (pSection.TextPart)
@@ -540,31 +406,31 @@ namespace work.bacome.imapclient
 
                         case eSectionPart.header:
 
-                            Add(kCommandPartHeader);
+                            mParts.Add(kCommandPartHeader);
                             break;
 
                         case eSectionPart.headerfields:
 
-                            Add(kCommandPartHeaderFields);
+                            mParts.Add(kCommandPartHeaderFields);
                             LAdd(pSection.HeaderFields);
-                            Add(cCommandPart.RParen);
+                            mParts.Add(cCommandPart.RParen);
                             break;
 
                         case eSectionPart.headerfieldsnot:
 
-                            Add(kCommandPartHeaderFieldsNot);
+                            mParts.Add(kCommandPartHeaderFieldsNot);
                             LAdd(pSection.HeaderFields);
-                            Add(cCommandPart.RParen);
+                            mParts.Add(cCommandPart.RParen);
                             break;
 
                         case eSectionPart.text:
 
-                            Add(kCommandPartText);
+                            mParts.Add(kCommandPartText);
                             break;
 
                         case eSectionPart.mime:
 
-                            Add(kCommandPartMime);
+                            mParts.Add(kCommandPartMime);
                             break;
 
                         default:
@@ -572,89 +438,68 @@ namespace work.bacome.imapclient
                             throw new cInternalErrorException();
                     }
 
-                    Add(cCommandPart.RBracket, kCommandPartLessThan, new cCommandPart(pOrigin), cCommandPart.Dot, new cCommandPart(pLength), kCommandPartGreaterThan);
+                    mParts.Add(cCommandPart.RBracket, kCommandPartLessThan, new cCommandPart(pOrigin), cCommandPart.Dot, new cCommandPart(pLength), kCommandPartGreaterThan);
 
                     void LAdd(cStrings pStrings)
                     {
-                        BeginList(eListBracketing.none);
-                        foreach (var lString in pStrings) Add(cCommandPartFactory.AsASCIIAString(lString));
-                        EndList();
+                        mParts.BeginList(eListBracketing.none);
+                        foreach (var lString in pStrings) mParts.Add(cCommandPartFactory.AsASCIIAString(lString));
+                        mParts.EndList();
                     }
                 }
 
                 public void Add(cExclusiveAccess.cToken pToken)
                 {
-                    mTokens.Add(pToken);
-                    if (pToken.Sequence <= mExclusiveAccessSequence) throw new ArgumentOutOfRangeException();
-                    mExclusiveAccessSequence = pToken.Sequence;
+                    if (mEmitted) throw new InvalidOperationException();
+                    mDisposables.Add(pToken);
                 }
 
                 public void Add(cExclusiveAccess.cBlock pBlock)
                 {
-                    mBlocks.Add(pBlock);
-                    if (pBlock.Sequence <= mExclusiveAccessSequence) throw new ArgumentOutOfRangeException();
-                    mExclusiveAccessSequence = pBlock.Sequence;
+                    if (mEmitted) throw new InvalidOperationException();
+                    mDisposables.Add(pBlock);
+                }
+
+                public void Add(cSASLAuthentication pSASLAuthentication)
+                {
+                    if (mEmitted) throw new InvalidOperationException();
+                    mDisposables.Add(pSASLAuthentication);
                 }
 
                 public void AddUIDValidity(uint? pUIDValidity)
                 {
+                    if (mEmitted) throw new InvalidOperationException();
                     if (pUIDValidity == null) return;
                     if (mUIDValidity == null) mUIDValidity = pUIDValidity;
                     else if (pUIDValidity != mUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
                 }
 
-                public void Add(cSASLAuthentication pSASLAuthentication)
-                {
-                    if (mSASLAuthentication != null) throw new InvalidOperationException();
-                    mSASLAuthentication = pSASLAuthentication ?? throw new ArgumentNullException(nameof(pSASLAuthentication));
-                }
-
                 public void Add(cCommandHook pHook)
                 {
+                    if (mEmitted) throw new InvalidOperationException();
                     if (mHook != null) throw new InvalidOperationException();
                     mHook = pHook ?? throw new ArgumentNullException(nameof(pHook));
                 }
 
-                public uint? UIDValidity => mUIDValidity;
-                public cSASLAuthentication SASLAuthentication => mSASLAuthentication;
-                public cCommandHook Hook => mHook;
-
-                public void SetManualDispose() => mManualDispose = true;
-
-                public void Dispose() => Dispose(false);
-
-                public void Dispose(bool pManual)
+                public cCommand Emit()
                 {
-                    if (mDisposed) return;
-                    if (mManualDispose && !pManual) return;
-
-                    foreach (var lToken in mTokens)
-                    {
-                        try { lToken.Dispose(); }
-                        catch { }
-                    }
-
-                    foreach (var lBlock in mBlocks)
-                    {
-                        try { lBlock.Dispose(); }
-                        catch { }
-                    }
-
-                    if (mSASLAuthentication != null)
-                    {
-                        try { mSASLAuthentication.Dispose(); }
-                        catch { }
-                    }
-
-                    mDisposed = true;
+                    if (mEmitted) throw new InvalidOperationException();
+                    mEmitted = true;
+                    return new cCommand(Tag, mParts.Parts, mDisposables, mUIDValidity, mHook ?? cCommandHook.DoNothing);
                 }
 
-                public override string ToString() => $"{nameof(cCommand)}({Tag},{UIDValidity},{base.ToString()})";
+                public void Dispose()
+                {
+                    if (mEmitted) return;
+                    mDisposables.Dispose();
+                }
+
+                public override string ToString() => $"{nameof(cCommandBuilder)}({Tag},{mParts},{mUIDValidity},{mEmitted})";
 
                 [Conditional("DEBUG")]
                 public static void _Tests(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(_Tests));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandBuilder), nameof(_Tests));
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID < new cUID(1, 1000), false, false, null) != "UID 1:999") throw new cTestsException("ZMessageFilterCommandPartsTests UID.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID <= new cUID(1, 1000), false, false, null) != "UID 1:1000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.2", lContext);
@@ -760,9 +605,11 @@ namespace work.bacome.imapclient
                     string LMessageFilterCommandPartsTestsString(cFilter pFilter, bool pCharsetMandatory, bool pUTF8Enabled, Encoding pEncoding)
                     {
                         StringBuilder lBuilder = new StringBuilder();
-                        var lCommand = new cCommand();
+                        var lCommandBuilder = new cCommandBuilder();
                         cCommandPartFactory lFactory = new cCommandPartFactory(pUTF8Enabled, pEncoding);
-                        lCommand.Add(pFilter, pCharsetMandatory, lFactory);
+                        lCommandBuilder.Add(pFilter, pCharsetMandatory, lFactory);
+
+                        ;?; // emit the command and inspect the parts
 
                         foreach (var lPart in lCommand.Parts)
                         {

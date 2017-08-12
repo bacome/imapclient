@@ -80,6 +80,9 @@
     <Compile Include="exposed_interfaces\support\types\selectedmailboxdetails.cs" />
     <Compile Include="exposed_interfaces\support\types\mailboxhandle.cs" />
     <Compile Include="exposed_interfaces\support\types\mailboxselectedproperties.cs" />
+    <Compile Include="session\command\commanddetails.cs" />
+    <Compile Include="session\command\commanddisposables.cs" />
+    <Compile Include="session\command\commandpartsbuilder.cs" />
     <Compile Include="session\command_hooks\commandhookinitial.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
@@ -162,7 +165,7 @@
     <Compile Include="exposed_interfaces\support\types\sequenceset.cs" />
     <Compile Include="exposed_interfaces\support\types\uri.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="session\command_hooks\commandhook.cs" />
+    <Compile Include="session\command\commandhook.cs" />
     <Compile Include="session\command_hooks\commandhookbasesearch.cs" />
     <Compile Include="session\command_hooks\commandhookfetch.cs" />
     <Compile Include="zzz\commandhooklist.cs" />
@@ -210,8 +213,8 @@
     <Compile Include="session\fetch\attributes.cs" />
     <Compile Include="session\fetch\body.cs" />
     <Compile Include="session\fetch\uidattributes.cs" />
-    <Compile Include="session\support\command.cs" />
-    <Compile Include="session\support\commandtag.cs" />
+    <Compile Include="session\command\commandbuilder.cs" />
+    <Compile Include="session\command\commandtag.cs" />
     <Compile Include="support\fetchsizer.cs" />
     <Compile Include="session\support\messagecacheitem.cs" />
     <Compile Include="session\support\processors.cs" />

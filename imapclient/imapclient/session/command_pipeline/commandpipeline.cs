@@ -119,20 +119,45 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ExecuteAsync), pMC, pCommand);
 
-                    if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
+                    if (mDisposed)
+                    {
+                        pCommand.Dispose();
+                        throw new ObjectDisposedException(nameof(cCommandPipeline));
+                    }
 
-                    using (var lCommand = new cPipelineCommand(pCommand, mPipelineLock))
+                    cPipelineCommand lPipelineCommand;
+
+                    try { lPipelineCommand = new cPipelineCommand(pCommand); }
+                    catch
+                    {
+                        pCommand.Dispose();
+                        throw;
+                    }
+
+                    lock (mPipelineLock)
+                    {
+                        if (mStopped)
+                        {
+                            lPipelineCommand.Dispose();
+                            throw mBackgroundTaskException;
+                        }
+
+                        mQueuedCommands.Enqueue(lPipelineCommand);
+                    }
+
+                    mBackgroundReleaser.Release(lContext);
+
+                    try { return await lPipelineCommand.WaitAsync(pMC, lContext).ConfigureAwait(false); }
+                    finally
                     {
                         lock (mPipelineLock)
                         {
-                            if (mStopped) throw mBackgroundTaskException;
-                            pCommand.SetManualDispose();
-                            mQueuedCommands.Enqueue(lCommand);
+                            if (lPipelineCommand.State == eCommandState.pending)
+                            {
+                                lPipelineCommand.SetAbandoned(lContext);
+                                lPipelineCommand.Dispose(); ???; // should be done internally
+                            }
                         }
-
-                        mBackgroundReleaser.Release(lContext);
-
-                        return await lCommand.WaitAsync(pMC, lContext).ConfigureAwait(false);
                     }
                 }
 

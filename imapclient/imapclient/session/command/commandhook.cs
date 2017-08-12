@@ -8,9 +8,11 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private abstract class cCommandHook : iTextCodeProcessor
+            private class cCommandHook : iTextCodeProcessor
             {
-                public cCommandHook() { }
+                public static readonly cCommandHook DoNothing = new cCommandHook();
+
+                protected cCommandHook() { }
 
                 // called just before the command is submitted to the server
                 public virtual void CommandStarted(cTrace.cContext pParentContext) { }

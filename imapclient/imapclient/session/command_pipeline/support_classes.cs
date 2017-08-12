@@ -17,42 +17,43 @@ namespace work.bacome.imapclient
         {
             private partial class cCommandPipeline
             {
-                private enum eCommandState { pending, active, complete, abandoned  }
+                private enum eCommandState { pending, abandoned, current, active, complete }
+                // pending -> abandoned (and disposed) -> complete
+                // pending -> current -> complete (and disposed)
+                // pending -> current -> active -> complete (and disposed)
 
-                private sealed class cPipelineCommand : iTextCodeProcessor, IDisposable
+                private sealed class cPipelineCommand : IDisposable
                 {
-                    private readonly cCommand mCommand;
-                    private readonly object mPipelineLock;
+                    private bool mDisposed = false;
+
+                    public readonly cCommandTag Tag;
+                    private readonly ReadOnlyCollection<cCommandPart> mParts;
+                    private readonly cCommandDisposables mDisposables;
+                    private readonly cSASLAuthentication mSASLAuthentication;
+                    public readonly uint? UIDValidity;
+                    public readonly cCommandHook Hook;
                     private readonly SemaphoreSlim mSemaphore = new SemaphoreSlim(0, 1);
 
                     private eCommandState mState = eCommandState.pending;
+                    private int mCurrentPart = 0;
                     private cCommandResult mResult = null;
                     private Exception mException = null;
 
-                    public cPipelineCommand(cCommand pCommand, object pPipelineLock)
+                    public cPipelineCommand(sCommandDetails pCommandDetails)
                     {
-                        mCommand = pCommand ?? throw new ArgumentNullException(nameof(pCommand));
-                        mPipelineLock = pPipelineLock ?? throw new ArgumentNullException(nameof(pPipelineLock));
+                        Tag = pCommandDetails.Tag ?? throw new ArgumentOutOfRangeException(nameof(pCommandDetails));
+                        mParts = pCommandDetails.Parts ?? throw new ArgumentOutOfRangeException(nameof(pCommandDetails));
+                        mDisposables = pCommandDetails.Disposables ?? throw new ArgumentOutOfRangeException(nameof(pCommandDetails));
+                        mSASLAuthentication = mDisposables.SASLAuthentication;
+                        UIDValidity = pCommandDetails.UIDValidity;
+                        Hook = pCommandDetails.Hook ?? throw new ArgumentOutOfRangeException(nameof(pCommandDetails));
                     }
 
                     public async Task<cCommandResult> WaitAsync(cMethodControl pMC, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(WaitAsync), pMC, mCommand.Tag);
+                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(WaitAsync), pMC, Tag);
 
-                        bool lEntered;
-
-                        try { lEntered = await mSemaphore.WaitAsync(pMC.Timeout, pMC.CancellationToken).ConfigureAwait(false); }
-                        finally
-                        {
-                            lock (mPipelineLock)
-                            {
-                                if (mState == eCommandState.pending)
-                                {
-                                    mCommand.Dispose(true);
-                                    mState = eCommandState.abandoned;
-                                }
-                            }
-                        }
+                        bool lEntered = await mSemaphore.WaitAsync(pMC.Timeout, pMC.CancellationToken).ConfigureAwait(false);
 
                         if (!lEntered)
                         {
@@ -67,37 +68,66 @@ namespace work.bacome.imapclient
 
                     public eCommandState State => mState;
 
+                    public void SetAbandoned(cTrace.cContext pParentContext)
+                    {
+                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(SetAbandoned), Tag);
+                        if (mState != eCommandState.pending) throw new InvalidOperationException();
+                        mState = eCommandState.abandoned;
+                    }
+
+                    public void SetCurrent(cTrace.cContext pParentContext)
+                    {
+                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(SetActive), Tag);
+                        if (mState != eCommandState.pending) throw new InvalidOperationException();
+                        Hook.CommandStarted(lContext);
+                        mState = eCommandState.current;
+                    }
+
+                    public cCommandPart CurrentPart()
+                    {
+                        if (mState != eCommandState.current) throw new InvalidOperationException();
+                        return mParts[mCurrentPart];
+                    }
+
+                    public bool MoveNext()
+                    {
+                        if (mState != eCommandState.current) throw new InvalidOperationException();
+                        return ++mCurrentPart < mParts.Count;
+                    }
+
+                    public bool IsAuthentication => mSASLAuthentication != null;
+
+                    public IList<byte> GetAuthenticationResponse(cByteList pChallenge)
+                    {
+                        if (mState != eCommandState.current || mSASLAuthentication == null) throw new InvalidOperationException();
+                        return mSASLAuthentication.GetResponse(pChallenge);
+                    }
+
                     public void SetActive(cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(SetActive), mCommand.Tag);
-                        if (mState != eCommandState.pending) throw new InvalidOperationException();
-                        mCommand.Hook?.CommandStarted(lContext);
+                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(SetActive), Tag);
+                        if (mState != eCommandState.current) throw new InvalidOperationException();
                         mState = eCommandState.active;
                     }
 
-                    public cCommandTag Tag => mCommand.Tag;
-                    public ReadOnlyCollection<cCommandPart> Parts => mCommand.Parts;
-                    public uint? UIDValidity => mCommand.UIDValidity;
-                    public cSASLAuthentication SASLAuthentication => mCommand.SASLAuthentication;
-                    public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext) => mCommand.Hook?.ProcessData(pData, pParentContext) ?? eProcessDataResult.notprocessed;
-                    public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCommand.Hook?.ProcessData(pCursor, pParentContext) ?? eProcessDataResult.notprocessed;
-                    public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext) => mCommand.Hook?.ProcessTextCode(pData, pParentContext);
-                    public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCommand.Hook?.ProcessTextCode(pCursor, pParentContext) ?? false;
-
                     public void SetResult(cCommandResult pResult, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(SetResult), mCommand.Tag, pResult);
+                        var lContext = pParentContext.NewMethod(nameof(cPipelineCommand), nameof(SetResult), Tag, pResult);
 
-                        if (mState != eCommandState.active) throw new InvalidOperationException();
+                        if (mState != eCommandState.current && mState != eCommandState.active) throw new InvalidOperationException();
 
                         mResult = pResult ?? throw new ArgumentNullException(nameof(pResult));
-                        mCommand.Hook?.CommandCompleted(mResult, lContext);
-                        mCommand.Dispose(true);
+
+                        Hook.CommandCompleted(pResult, lContext);
                         mState = eCommandState.complete;
+
+                        ;?;
 
                         // may throw objectdisposed if the caller stopped waiting 
                         try { mSemaphore.Release(); }
                         catch { }
+
+
                     }
 
                     public void SetException(Exception pException, cTrace.cContext pParentContext)
@@ -125,21 +155,6 @@ namespace work.bacome.imapclient
                             catch { }
                         }
                     }
-                }
-
-                private class cCurrentPipelineCommand : iTextCodeProcessor
-                {
-                    public readonly cPipelineCommand Command;
-                    private int mCurrentPart = 0;
-                    public cCurrentPipelineCommand(cPipelineCommand pCommand) { Command = pCommand ?? throw new ArgumentNullException(nameof(pCommand)); }
-                    public cCommandTag Tag => Command.Tag;
-                    public cCommandPart CurrentPart => Command.Parts[mCurrentPart];
-                    public bool MoveNext() => ++mCurrentPart < Command.Parts.Count;
-                    public bool IsAuthentication => Command.SASLAuthentication != null;
-                    public IList<byte> GetResponse(cByteList pChallenge) => Command.SASLAuthentication.GetResponse(pChallenge);
-                    public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext) => Command.ProcessTextCode(pData, pParentContext);
-                    public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext) => Command.ProcessTextCode(pCursor, pParentContext);
-                    public override string ToString() => $"{nameof(cCurrentPipelineCommand)}({Command},{mCurrentPart})";
                 }
 
                 private class cActivePipelineCommands : iTextCodeProcessor, IEnumerable<cPipelineCommand>
