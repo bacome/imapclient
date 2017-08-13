@@ -19,17 +19,17 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState < eConnectionState.notauthenticated || _ConnectionState > eConnectionState.selected) throw new InvalidOperationException();
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
-                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
+                    lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lCommand.Add(kLogoutCommandPart);
+                    lBuilder.Add(kLogoutCommandPart);
 
                     var lHook = new cLogoutCommandHook(mResponseTextProcessor);
-                    lCommand.Add(lHook);
+                    lBuilder.Add(lHook);
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

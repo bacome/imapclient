@@ -19,16 +19,16 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.notauthenticated) throw new InvalidOperationException();
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
                     //  note the lack of locking - this is only called during connect
 
-                    lCommand.Add(kLoginCommandPartLogin, mCommandPartFactory.AsLiteral(pLogin.UserId), cCommandPart.Space, mCommandPartFactory.AsLiteral(pLogin.Password));
+                    lBuilder.Add(kLoginCommandPartLogin, mCommandPartFactory.AsLiteral(pLogin.UserId), cCommandPart.Space, mCommandPartFactory.AsLiteral(pLogin.Password));
 
                     var lHook = new cCommandHookInitial();
-                    lCommand.Add(lHook);
+                    lBuilder.Add(lHook);
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

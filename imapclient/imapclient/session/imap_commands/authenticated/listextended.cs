@@ -40,52 +40,52 @@ namespace work.bacome.imapclient
 
                 if (!mCommandPartFactory.TryAsListMailbox(pListMailbox, pDelimiter, out var lListMailboxCommandPart)) throw new ArgumentOutOfRangeException(nameof(pListMailbox));
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
-                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
+                    lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lCommand.BeginList(eListBracketing.none);
+                    lBuilder.BeginList(eListBracketing.none);
 
-                    lCommand.Add(kListExtendedCommandPartList);
+                    lBuilder.Add(kListExtendedCommandPartList);
 
-                    lCommand.BeginList(eListBracketing.ifany);
+                    lBuilder.BeginList(eListBracketing.ifany);
 
-                    if (pSelect == eListExtendedSelect.subscribed) lCommand.Add(kListExtendedCommandPartSubscribed);
+                    if (pSelect == eListExtendedSelect.subscribed) lBuilder.Add(kListExtendedCommandPartSubscribed);
                     else if (pSelect == eListExtendedSelect.subscribedrecursive)
                     {
-                        lCommand.Add(kListExtendedCommandPartSubscribed);
-                        lCommand.Add(kListExtendedCommandPartRecursiveMatch);
+                        lBuilder.Add(kListExtendedCommandPartSubscribed);
+                        lBuilder.Add(kListExtendedCommandPartRecursiveMatch);
                     }
 
-                    if (pRemote) lCommand.Add(kListExtendedCommandPartRemote);
+                    if (pRemote) lBuilder.Add(kListExtendedCommandPartRemote);
 
-                    lCommand.EndList();
+                    lBuilder.EndList();
 
-                    lCommand.Add(kListExtendedCommandPartMailbox);
-                    lCommand.Add(lListMailboxCommandPart);
+                    lBuilder.Add(kListExtendedCommandPartMailbox);
+                    lBuilder.Add(lListMailboxCommandPart);
 
                     // return options
 
-                    lCommand.BeginList(eListBracketing.ifany, kListExtendedCommandPartReturn);
+                    lBuilder.BeginList(eListBracketing.ifany, kListExtendedCommandPartReturn);
 
-                    if ((mMailboxCacheData & fMailboxCacheData.subscribed) != 0) lCommand.Add(kListExtendedCommandPartSubscribed);
-                    if ((mMailboxCacheData & fMailboxCacheData.children) != 0) lCommand.Add(kListExtendedCommandPartChildren);
-                    if ((mMailboxCacheData & fMailboxCacheData.specialuse) != 0 && mCapabilities.SpecialUse) lCommand.Add(kListExtendedCommandPartSpecialUse);
+                    if ((mMailboxCacheData & fMailboxCacheData.subscribed) != 0) lBuilder.Add(kListExtendedCommandPartSubscribed);
+                    if ((mMailboxCacheData & fMailboxCacheData.children) != 0) lBuilder.Add(kListExtendedCommandPartChildren);
+                    if ((mMailboxCacheData & fMailboxCacheData.specialuse) != 0 && mCapabilities.SpecialUse) lBuilder.Add(kListExtendedCommandPartSpecialUse);
 
                     if (pStatus)
                     {
-                        lCommand.Add(kListExtendedCommandPartStatus);
-                        lCommand.AddStatusAttributes(mStatusAttributes);
+                        lBuilder.Add(kListExtendedCommandPartStatus);
+                        lBuilder.AddStatusAttributes(mStatusAttributes);
                     }
 
-                    lCommand.EndList();
-                    lCommand.EndList();
+                    lBuilder.EndList();
+                    lBuilder.EndList();
 
                     var lHook = new cListExtendedCommandHook(mMailboxCache, pSelect, pPattern, pStatus);
-                    lCommand.Add(lHook);
+                    lBuilder.Add(lHook);
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

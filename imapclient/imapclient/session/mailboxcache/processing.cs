@@ -82,10 +82,11 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
+                public bool ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ProcessTextCode));
-                    if (mSelectedMailbox != null) mSelectedMailbox.ProcessTextCode(pData, lContext);
+                    if (mSelectedMailbox == null) return false;
+                    return mSelectedMailbox.ProcessTextCode(pData, lContext);
                 }
 
                 private void ZProcessList(cResponseDataList pList, cTrace.cContext pParentContext)

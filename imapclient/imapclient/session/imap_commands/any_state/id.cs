@@ -33,28 +33,28 @@ namespace work.bacome.imapclient
                     mPipeline.Install(mIdResponseDataProcessor);
                 }
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
-                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
+                    lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lCommand.Add(kIdCommandPart);
+                    lBuilder.Add(kIdCommandPart);
 
-                    if (pClientId == null) lCommand.Add(cCommandPart.Nil);
+                    if (pClientId == null) lBuilder.Add(cCommandPart.Nil);
                     else
                     {
-                        lCommand.BeginList(eListBracketing.bracketed);
+                        lBuilder.BeginList(eListBracketing.bracketed);
 
                         foreach (var lPair in pClientId)
                         {
-                            lCommand.Add(mCommandPartFactory.AsString(lPair.Key));
-                            lCommand.Add(mCommandPartFactory.AsNString(lPair.Value));
+                            lBuilder.Add(mCommandPartFactory.AsString(lPair.Key));
+                            lBuilder.Add(mCommandPartFactory.AsNString(lPair.Value));
                         }
 
-                        lCommand.EndList();
+                        lBuilder.EndList();
                     }
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

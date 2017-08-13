@@ -76,38 +76,42 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public override void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
+                public override bool ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode));
 
-                    if (!mDeselectDone) return;
+                    if (!mDeselectDone) return false;
 
                     switch (pData)
                     {
                         case cResponseDataPermanentFlags lFlags:
 
                             mPermanentFlags = lFlags.Flags;
-                            return;
+                            return true;
 
                         case cResponseDataUIDNext lUIDNext:
 
                             mUIDNext = lUIDNext.UIDNext;
-                            return;
+                            return true;
 
                         case cResponseDataUIDValidity lUIDValidity:
 
                             mUIDValidity = lUIDValidity.UIDValidity;
-                            return;
+                            return true;
 
                         case cResponseDataHighestModSeq lHighestModSeq:
 
                             mHighestModSeq = lHighestModSeq.HighestModSeq;
-                            return;
+                            return true;
 
                         case cResponseDataAccess lAccess:
 
                             mAccessReadOnly = lAccess.ReadOnly;
-                            return;
+                            return true;
+
+                        default:
+
+                            return false;
                     }
                 }
 

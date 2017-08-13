@@ -12,18 +12,21 @@ namespace work.bacome.imapclient
             {
                 public readonly cMessageFlags Flags;
                 public cResponseDataFlags(cFlags pFlags) { Flags = new cMessageFlags(pFlags); }
+                public override string ToString() => $"{nameof(cResponseDataFlags)}({Flags})";
             }
 
             private class cResponseDataExists : cResponseData
             {
                 public readonly int Exists;
                 public cResponseDataExists(uint pExists) { Exists = (int)pExists; }
+                public override string ToString() => $"{nameof(cResponseDataExists)}({Exists})";
             }
 
             private class cResponseDataRecent : cResponseData
             {
                 public readonly int Recent;
                 public cResponseDataRecent(uint pRecent) { Recent = (int)pRecent; }
+                public override string ToString() => $"{nameof(cResponseDataRecent)}({Recent})";
             }
 
             private class cResponseDataParserSelect : iResponseDataParser

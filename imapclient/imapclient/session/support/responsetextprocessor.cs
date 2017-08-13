@@ -169,16 +169,22 @@ namespace work.bacome.imapclient
                     {
                         foreach (var lParser in mResponseTextCodeParsers)
                         {
-                            if (lParser.Process(pCursor, out var lResponseData, lContext))
+                            if (lParser.Process(pCursor, out var lData, lContext))
                             {
-                                if (mMailboxCache != null) mMailboxCache.ProcessTextCode(lResponseData, lContext);
-                                if (pTextCodeProcessor != null) pTextCodeProcessor.ProcessTextCode(lResponseData, lContext);
+                                bool lProcessed = false;
+
+                                if (mMailboxCache != null) if (mMailboxCache.ProcessTextCode(lData, lContext)) lProcessed = true;
+                                if (pTextCodeProcessor != null) if (pTextCodeProcessor.ProcessTextCode(lData, lContext)) lProcessed = true;
+
+                                if (!lProcessed) lContext.TraceWarning("unprocessed response text code: {0}", lData);
 
                                 lResponseText = new cResponseText(pCursor.GetRestAsString());
                                 lContext.TraceVerbose("response text received: {0}", lResponseText);
                                 mEventSynchroniser.FireResponseText(pTextType, lResponseText, lContext);
                                 return lResponseText;
                             }
+
+                            pCursor.Position = lBookmarkAfterLBRACET;
                         }
 
                         if (pTextCodeProcessor != null)

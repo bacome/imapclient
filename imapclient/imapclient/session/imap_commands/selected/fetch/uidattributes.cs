@@ -24,20 +24,20 @@ namespace work.bacome.imapclient
                 if (pUIDs.Count == 0) throw new ArgumentOutOfRangeException(nameof(pUIDs));
                 if (pAttributes == 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
                     mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
-                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
+                    lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lCommand.Add(kFetchCommandPartUIDFetchSpace, new cCommandPart(pUIDs.ToSequenceSet()), cCommandPart.Space);
-                    lCommand.Add(pAttributes);
+                    lBuilder.Add(kFetchCommandPartUIDFetchSpace, new cCommandPart(pUIDs.ToSequenceSet()), cCommandPart.Space);
+                    lBuilder.Add(pAttributes);
 
-                    lCommand.AddUIDValidity(pUIDValidity); // the command is sensitive to UIDValidity changes
+                    lBuilder.AddUIDValidity(pUIDValidity); // the command is sensitive to UIDValidity changes
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

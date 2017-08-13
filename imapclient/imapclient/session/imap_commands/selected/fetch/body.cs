@@ -22,17 +22,17 @@ namespace work.bacome.imapclient
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pSection == null) throw new ArgumentNullException(nameof(pSection));
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
                     cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pHandle);
 
-                    lCommand.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
-                    lCommand.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
+                    lBuilder.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
+                    lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     // uidvalidity must be set before the handle is resolved
-                    lCommand.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
 
                     // resolve the MSN
                     uint lMSN = lSelectedMailbox.GetMSN(pHandle);
@@ -40,20 +40,20 @@ namespace work.bacome.imapclient
 
                     // build command
 
-                    lCommand.Add(kFetchCommandPartFetchSpace, new cCommandPart(lMSN));
+                    lBuilder.Add(kFetchCommandPartFetchSpace, new cCommandPart(lMSN));
 
-                    if (pBinary) lCommand.Add(kFetchCommandPartSpaceBinaryPeekLBracket);
-                    else lCommand.Add(kFetchCommandPartSpaceBodyPeekLBracket);
+                    if (pBinary) lBuilder.Add(kFetchCommandPartSpaceBinaryPeekLBracket);
+                    else lBuilder.Add(kFetchCommandPartSpaceBodyPeekLBracket);
 
-                    lCommand.Add(pSection, pOrigin, pLength);
+                    lBuilder.Add(pSection, pOrigin, pLength);
 
                     // hook
                     var lHook = new cCommandHookFetchMSN(pBinary, pSection, pOrigin, lMSN);
-                    lCommand.Add(lHook);
+                    lBuilder.Add(lHook);
 
                     // go
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

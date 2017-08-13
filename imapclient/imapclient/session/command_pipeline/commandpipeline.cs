@@ -146,7 +146,7 @@ namespace work.bacome.imapclient
                     {
                         lock (mPipelineLock)
                         {
-                            if (lCommand.State == eCommandState.queued) lCommand.SetAbandoned(lContext);
+                            if (lCommand.State == eCommandState.queued) lCommand.SetComplete(lContext);
                         }
                     }
                 }
@@ -693,41 +693,39 @@ namespace work.bacome.imapclient
                     }
 
                     var lBookmark = pCursor.Position;
-
-                    bool lParsed = false;
-                    cResponseData lData = null;
+                    var lResult = eProcessDataResult.notprocessed;
 
                     foreach (var lParser in mResponseDataParsers)
                     {
-                        if (lParser.Process(pCursor, out lData, lContext))
+                        if (lParser.Process(pCursor, out var lData, lContext))
                         {
-                            lParsed = true;
-                            break;
+                            if (mMailboxCache != null) ZProcessDataWorker(ref lResult, mMailboxCache.ProcessData(lData, lContext), lContext);
+                            foreach (var lCommand in mActiveCommands) ZProcessDataWorker(ref lResult, lCommand.Hook.ProcessData(lData, lContext), lContext);
+                            foreach (var lDataProcessor in mUnsolicitedDataProcessors) ZProcessDataWorker(ref lResult, lDataProcessor.ProcessData(lData, lContext), lContext);
+
+                            if (lResult == eProcessDataResult.notprocessed) lContext.TraceWarning("unprocessed data response: {0}", lData);
+
+                            return true;
                         }
 
                         pCursor.Position = lBookmark;
                     }
 
-                    var lResult = eProcessDataResult.notprocessed;
-
                     if (mMailboxCache != null)
                     {
-                        if (lParsed) ZProcessDataWorker(ref lResult, mMailboxCache.ProcessData(lData, lContext), lContext);
-                        else ZProcessDataWorker(ref lResult, mMailboxCache.ProcessData(pCursor, lContext), lContext);
+                        ZProcessDataWorker(ref lResult, mMailboxCache.ProcessData(pCursor, lContext), lContext);
                         pCursor.Position = lBookmark;
                     }
 
                     foreach (var lCommand in mActiveCommands)
                     {
-                        if (lParsed) ZProcessDataWorker(ref lResult, lCommand.Hook.ProcessData(lData, lContext), lContext);
-                        else ZProcessDataWorker(ref lResult, lCommand.Hook.ProcessData(pCursor, lContext), lContext);
+                        ZProcessDataWorker(ref lResult, lCommand.Hook.ProcessData(pCursor, lContext), lContext);
                         pCursor.Position = lBookmark;
                     }
 
                     foreach (var lDataProcessor in mUnsolicitedDataProcessors)
                     {
-                        if (lParsed) ZProcessDataWorker(ref lResult, lDataProcessor.ProcessData(lData, lContext), lContext);
-                        else ZProcessDataWorker(ref lResult, lDataProcessor.ProcessData(pCursor, lContext), lContext);
+                        ZProcessDataWorker(ref lResult, lDataProcessor.ProcessData(pCursor, lContext), lContext);
                         pCursor.Position = lBookmark;
                     }
 

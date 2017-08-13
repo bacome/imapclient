@@ -12,30 +12,35 @@ namespace work.bacome.imapclient
             {
                 public readonly cMessageFlags Flags;
                 public cResponseDataPermanentFlags(cFlags pFlags) { Flags = new cMessageFlags(pFlags); }
+                public override string ToString() => $"{nameof(cResponseDataPermanentFlags)}({Flags})";
             }
 
             private class cResponseDataUIDNext : cResponseData
             {
                 public readonly uint UIDNext;
                 public cResponseDataUIDNext(uint pUIDNext) { UIDNext = pUIDNext; }
+                public override string ToString() => $"{nameof(cResponseDataUIDNext)}({UIDNext})";
             }
 
             private class cResponseDataUIDValidity : cResponseData
             {
                 public readonly uint UIDValidity;
                 public cResponseDataUIDValidity(uint pUIDValidity) { UIDValidity = pUIDValidity; }
+                public override string ToString() => $"{nameof(cResponseDataUIDValidity)}({UIDValidity})";
             }
 
             private class cResponseDataHighestModSeq : cResponseData
             {
                 public readonly uint HighestModSeq;
                 public cResponseDataHighestModSeq(uint pHighestModSeq) { HighestModSeq = pHighestModSeq; }
+                public override string ToString() => $"{nameof(cResponseDataHighestModSeq)}({HighestModSeq})";
             }
 
             private class cResponseDataAccess : cResponseData
             {
                 public readonly bool ReadOnly;
                 public cResponseDataAccess(bool pReadOnly) { ReadOnly = pReadOnly; }
+                public override string ToString() => $"{nameof(cResponseDataAccess)}({ReadOnly})";
             }
 
             private class cResponseTextCodeParserSelect : iResponseTextCodeParser

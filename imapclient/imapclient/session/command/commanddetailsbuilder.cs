@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
@@ -12,7 +13,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private sealed class cCommandBuilder : IDisposable
+            private sealed class cCommandDetailsBuilder : IDisposable
             {
                 // search
                 private static readonly cCommandPart kCommandPartCharsetSpace = new cCommandPart("CHARSET ");
@@ -99,7 +100,14 @@ namespace work.bacome.imapclient
                 private cCommandHook mHook = null;
                 private bool mEmitted = false;
 
-                public cCommandBuilder() { }
+                public cCommandDetailsBuilder() { }
+
+                public void Add(cCommandPart pPart) => mParts.Add(pPart);
+                public void Add(IEnumerable<cCommandPart> pParts) => mParts.Add(pParts);
+                public void Add(params cCommandPart[] pParts) => mParts.Add(pParts);
+
+                public void BeginList(eListBracketing pBracketing, cCommandPart pListName = null) => mParts.BeginList(pBracketing, pListName);
+                public void EndList() => mParts.EndList();
 
                 public void Add(fFetchAttributes pAttributes)
                 {
@@ -481,7 +489,7 @@ namespace work.bacome.imapclient
                     mHook = pHook ?? throw new ArgumentNullException(nameof(pHook));
                 }
 
-                public sCommandDetails CommandDetails()
+                public sCommandDetails EmitCommandDetails()
                 {
                     if (mEmitted) throw new InvalidOperationException();
                     mEmitted = true;
@@ -494,12 +502,12 @@ namespace work.bacome.imapclient
                     mDisposables.Dispose();
                 }
 
-                public override string ToString() => $"{nameof(cCommandBuilder)}({Tag},{mParts},{mUIDValidity},{mEmitted})";
+                public override string ToString() => $"{nameof(cCommandDetailsBuilder)}({Tag},{mParts},{mUIDValidity},{mEmitted})";
 
                 [Conditional("DEBUG")]
                 public static void _Tests(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandBuilder), nameof(_Tests));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandDetailsBuilder), nameof(_Tests));
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID < new cUID(1, 1000), false, false, null) != "UID 1:999") throw new cTestsException("ZMessageFilterCommandPartsTests UID.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID <= new cUID(1, 1000), false, false, null) != "UID 1:1000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.2", lContext);
@@ -605,10 +613,10 @@ namespace work.bacome.imapclient
                     string LMessageFilterCommandPartsTestsString(cFilter pFilter, bool pCharsetMandatory, bool pUTF8Enabled, Encoding pEncoding)
                     {
                         StringBuilder lBuilder = new StringBuilder();
-                        var lCommandBuilder = new cCommandBuilder();
+                        var lCommandBuilder = new cCommandDetailsBuilder();
                         cCommandPartFactory lFactory = new cCommandPartFactory(pUTF8Enabled, pEncoding);
                         lCommandBuilder.Add(pFilter, pCharsetMandatory, lFactory);
-                        var lDetails = lCommandBuilder.CommandDetails();
+                        var lDetails = lCommandBuilder.EmitCommandDetails();
 
                         foreach (var lPart in lDetails.Parts)
                         {

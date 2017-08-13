@@ -23,20 +23,20 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.authenticated) throw new InvalidOperationException();
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
                     //  note the lack of locking - this can only called during connect
 
-                    lCommand.BeginList(eListBracketing.none);
-                    lCommand.Add(kEnableCommandPartEnable);
-                    if ((pExtensions & fEnableableExtensions.utf8) != 0) lCommand.Add(kEnableCommandPartUTF8);
+                    lBuilder.BeginList(eListBracketing.none);
+                    lBuilder.Add(kEnableCommandPartEnable);
+                    if ((pExtensions & fEnableableExtensions.utf8) != 0) lBuilder.Add(kEnableCommandPartUTF8);
                     // more here as required
-                    lCommand.EndList();
+                    lBuilder.EndList();
 
                     var lHook = new cEnableCommandHook();
-                    lCommand.Add(lHook);
+                    lBuilder.Add(lHook);
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

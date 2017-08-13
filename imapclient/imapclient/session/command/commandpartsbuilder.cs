@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
                     mList.Add(pPart);
                 }
 
-                public void Add(IList<cCommandPart> pParts)
+                public void Add(IEnumerable<cCommandPart> pParts)
                 {
                     if (mList == null)
                     {
@@ -130,7 +130,7 @@ namespace work.bacome.imapclient
                         mAddCount++;
                     }
 
-                    public void Add(IList<cCommandPart> pParts)
+                    public void Add(IEnumerable<cCommandPart> pParts)
                     {
                         if (mAddCount != 0) mParts.Add(cCommandPart.Space);
                         mParts.AddRange(pParts);

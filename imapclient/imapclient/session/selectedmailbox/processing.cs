@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCache.ProcessData(pCursor, pParentContext);
 
-                public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
+                public bool ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(ProcessTextCode));
 
@@ -34,12 +34,12 @@ namespace work.bacome.imapclient
                         case cResponseDataPermanentFlags lPermanentFlags:
 
                             mMailboxCacheItem.SetPermanentFlags(mSelectedForUpdate, lPermanentFlags.Flags, lContext);
-                            return;
+                            return true;
 
                         case cResponseDataUIDValidity lUIDValidity:
 
-                            mCache = new cSelectedMailboxMessageCache(mCache, lUIDValidity.UIDValidity, lContext);
-                            return;
+                            mCache = new cSelectedMailboxCache(mCache, lUIDValidity.UIDValidity, lContext);
+                            return true;
 
                         case cResponseDataAccess lAccess:
 
@@ -49,20 +49,20 @@ namespace work.bacome.imapclient
                                 mEventSynchroniser.FireMailboxPropertiesChanged(mMailboxCacheItem, fMailboxProperties.isaccessreadonly, lContext);
                             }
 
-                            return;
+                            return true;
                     }
 
-                    mCache.ProcessTextCode(pData, lContext);
+                    return mCache.ProcessTextCode(pData, lContext);
                 }
             }
 
-            private partial class cSelectedMailboxMessageCache
+            private partial class cSelectedMailboxCache
             {
                 private static readonly cBytes kSpaceExpunge = new cBytes(" EXPUNGE");
 
                 public eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ProcessData));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ProcessData));
 
                     switch (pData)
                     {
@@ -87,7 +87,7 @@ namespace work.bacome.imapclient
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ProcessData));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ProcessData));
 
                     if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(kSpaceExpunge) && pCursor.Position.AtEnd)
                     {
@@ -99,22 +99,24 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
+                public bool ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxMessageCache), nameof(ProcessTextCode));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ProcessTextCode));
 
                     switch (pData)
                     {
                         case cResponseDataUIDNext lUIDNext:
 
                             ZUIDNext(lUIDNext.UIDNext, lContext);
-                            return;
+                            return true;
 
                         case cResponseDataHighestModSeq lHighestModSeq:
 
                             ZHighestModSeq(lHighestModSeq.HighestModSeq, lContext);
-                            return;
+                            return true;
                     }
+
+                    return false;
                 }
             }
         }

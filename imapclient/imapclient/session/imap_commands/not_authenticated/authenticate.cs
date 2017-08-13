@@ -21,12 +21,12 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.notauthenticated) throw new InvalidOperationException();
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
                     //  note the lack of locking - this is only called during connect
 
-                    lCommand.Add(kAuthenticateCommandPartAuthenticate);
-                    lCommand.Add(new cCommandPart(pSASL.MechanismName));
+                    lBuilder.Add(kAuthenticateCommandPartAuthenticate);
+                    lBuilder.Add(new cCommandPart(pSASL.MechanismName));
 
                     var lAuthentication = pSASL.GetAuthentication();
 
@@ -43,18 +43,18 @@ namespace work.bacome.imapclient
 
                         if (lAuthenticationResponse != null)
                         {
-                            lCommand.Add(cCommandPart.Space);
-                            if (lAuthenticationResponse.Count == 0) lCommand.Add(kAuthenticateCommandPartEqual); // special case where the initial response is an empty string
-                            else lCommand.Add(new cCommandPart(cBase64.Encode(lAuthenticationResponse), eCommandPartType.text, true));
+                            lBuilder.Add(cCommandPart.Space);
+                            if (lAuthenticationResponse.Count == 0) lBuilder.Add(kAuthenticateCommandPartEqual); // special case where the initial response is an empty string
+                            else lBuilder.Add(new cCommandPart(cBase64.Encode(lAuthenticationResponse), eCommandPartType.text, true));
                         }
                     }
 
-                    lCommand.Add(lAuthentication);
+                    lBuilder.Add(lAuthentication);
 
                     var lHook = new cCommandHookAuthenticate(mConnection, lAuthentication, mCapabilities.LoginReferrals);
-                    lCommand.Add(lHook);
+                    lBuilder.Add(lHook);
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

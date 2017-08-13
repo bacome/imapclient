@@ -21,23 +21,23 @@ namespace work.bacome.imapclient
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
-                    lCommand.Add(await mSortExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // sort commands must be single threaded (so we can tell which result is which)
+                    lBuilder.Add(await mSortExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // sort commands must be single threaded (so we can tell which result is which)
 
-                    lCommand.Add(kSortCommandPart);
-                    lCommand.Add(pSort);
-                    lCommand.Add(cCommandPart.Space);
-                    lCommand.Add(pFilter, true, mEncodingPartFactory); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
+                    lBuilder.Add(kSortCommandPart);
+                    lBuilder.Add(pSort);
+                    lBuilder.Add(cCommandPart.Space);
+                    lBuilder.Add(pFilter, true, mEncodingPartFactory); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
 
                     var lHook = new cSortCommandHook(lSelectedMailbox);
-                    lCommand.Add(lHook);
+                    lBuilder.Add(lHook);
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

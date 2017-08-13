@@ -24,25 +24,25 @@ namespace work.bacome.imapclient
 
                 if (mStatusAttributes == 0) return;
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
                     var lHandle = mMailboxCache.SelectedMailboxDetails?.Handle;
                     if (ReferenceEquals(pHandle, lHandle)) return;
 
-                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // status is msnunsafe
+                    lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // status is msnunsafe
 
-                    lCommand.BeginList(eListBracketing.none);
-                    lCommand.Add(kStatusCommandPart);
-                    lCommand.Add(lItem.MailboxNameCommandPart);
-                    lCommand.AddStatusAttributes(mStatusAttributes);
-                    lCommand.EndList();
+                    lBuilder.BeginList(eListBracketing.none);
+                    lBuilder.Add(kStatusCommandPart);
+                    lBuilder.Add(lItem.MailboxNameCommandPart);
+                    lBuilder.AddStatusAttributes(mStatusAttributes);
+                    lBuilder.EndList();
 
                     var lHook = new cStatusCommandHook(lItem);
-                    lCommand.Add(lHook);
+                    lBuilder.Add(lHook);
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

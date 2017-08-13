@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.async;
@@ -18,11 +16,8 @@ namespace work.bacome.imapclient
             private partial class cCommandPipeline
             {
                 private enum eCommandState { queued, current, active, complete }
-                // pending -> queued -> abandoned
-                // pending -> queued -> current -> complete
-                // pending -> queued -> current -> active -> complete
 
-                private sealed class cCommand
+                private class cCommand
                 {
                     public readonly cCommandTag Tag;
                     private readonly ReadOnlyCollection<cCommandPart> mParts;
@@ -70,9 +65,9 @@ namespace work.bacome.imapclient
                         return mResult;
                     }
 
-                    public void SetAbandoned(cTrace.cContext pParentContext)
+                    public void SetComplete(cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(SetAbandoned), Tag);
+                        var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(SetComplete), Tag);
                         if (mState != eCommandState.queued) throw new InvalidOperationException();
                         mDisposables.Dispose();
                         mState = eCommandState.complete;
@@ -145,54 +140,6 @@ namespace work.bacome.imapclient
                     }
 
                     public override string ToString() => $"{nameof(cCommand)}({Tag},{mState},{mResult},{mException})";
-                }
-
-                private class cActiveCommands : List<cCommand>, iTextCodeProcessor
-                {
-                    public cActiveCommands() { }
-
-                    public void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
-                    {
-                        var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode));
-                        foreach (var lCommand in this) lCommand.Hook.ProcessTextCode(pData, lContext);
-                    }
-
-                    public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
-                    {
-                        var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode));
-
-                        bool lProcessed = false;
-                        var lBookmark = pCursor.Position;
-                        var lPositionAtEnd = pCursor.Position;
-
-                        foreach (var lCommand in this)
-                        {
-                            if (lCommand.Hook.ProcessTextCode(pCursor, lContext) && !lProcessed)
-                            {
-                                lProcessed = true;
-                                lPositionAtEnd = pCursor.Position;
-                            }
-
-                            pCursor.Position = lBookmark;
-                        }
-
-                        if (lProcessed) pCursor.Position = lPositionAtEnd;
-
-                        return lProcessed;
-                    }
-
-                    public override string ToString()
-                    {
-                        var lBuilder = new cListBuilder(nameof(cActiveCommands));
-                        foreach (var lCommand in this) lBuilder.Append(lCommand);
-                        return lBuilder.ToString();
-                    }
-                }
-
-                private class cAuthenticateState
-                {
-                    public bool CancelSent = false;
-                    public cAuthenticateState() { }
                 }
             }
         }

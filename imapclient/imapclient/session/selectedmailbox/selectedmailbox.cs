@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
                 private readonly bool mSelectedForUpdate;
 
                 private bool mAccessReadOnly;
-                private cSelectedMailboxMessageCache mCache;
+                private cSelectedMailboxCache mCache;
 
                 public cSelectedMailbox(cEventSynchroniser pEventSynchoniser, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
                     mSelectedForUpdate = pSelectedForUpdate;
                     mAccessReadOnly = pAccessReadOnly;
-                    mCache = new cSelectedMailboxMessageCache(pEventSynchoniser, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, lContext);
+                    mCache = new cSelectedMailboxCache(pEventSynchoniser, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, lContext);
                 }
 
                 public iMailboxHandle Handle => mMailboxCacheItem;

@@ -23,33 +23,33 @@ namespace work.bacome.imapclient
                 if (pUID == null) throw new ArgumentNullException(nameof(pUID));
                 if (pSection == null) throw new ArgumentNullException(nameof(pSection));
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
                     mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
-                    lCommand.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
+                    lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     // set uidvalidity
-                    lCommand.AddUIDValidity(pUID.UIDValidity);
+                    lBuilder.AddUIDValidity(pUID.UIDValidity);
 
                     // build command
 
-                    lCommand.Add(kFetchCommandPartUIDFetchSpace, new cCommandPart(pUID.UID));
+                    lBuilder.Add(kFetchCommandPartUIDFetchSpace, new cCommandPart(pUID.UID));
 
-                    if (pBinary) lCommand.Add(kFetchCommandPartSpaceBinaryPeekLBracket);
-                    else lCommand.Add(kFetchCommandPartSpaceBodyPeekLBracket);
+                    if (pBinary) lBuilder.Add(kFetchCommandPartSpaceBinaryPeekLBracket);
+                    else lBuilder.Add(kFetchCommandPartSpaceBodyPeekLBracket);
 
-                    lCommand.Add(pSection, pOrigin, pLength);
+                    lBuilder.Add(pSection, pOrigin, pLength);
 
                     // hook
                     var lHook = new cCommandHookFetchUID(pBinary, pSection, pOrigin, pUID.UID);
-                    lCommand.Add(lHook);
+                    lBuilder.Add(lHook);
 
                     // go
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
                 cResponseDataParserFetch._Tests(lContext);
                 cResponseDataParserESearch._Tests(lContext);
                 //_Tests_ListExtendedCommandParts(lContext);
-                cCommand._Tests(lContext);
+                cCommandDetailsBuilder._Tests(lContext);
                 cQuotedPrintableDecoder._Tests(lContext);
             }
         }

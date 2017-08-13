@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
 
             private interface iTextCodeProcessor
             {
-                void ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext);
+                bool ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext);
                 bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext);
             }
 

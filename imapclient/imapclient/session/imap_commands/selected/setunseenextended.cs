@@ -20,18 +20,18 @@ namespace work.bacome.imapclient
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lCommand.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
-                    lCommand.Add(kSetUnseenExtendedCommandPart);
+                    lBuilder.Add(kSetUnseenExtendedCommandPart);
 
-                    var lHook = new cSetUnseenExtendedCommandHook(lCommand.Tag, lSelectedMailbox);
-                    lCommand.Add(lHook);
+                    var lHook = new cSetUnseenExtendedCommandHook(lBuilder.Tag, lSelectedMailbox);
+                    lBuilder.Add(lHook);
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {

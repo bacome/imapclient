@@ -20,16 +20,16 @@ namespace work.bacome.imapclient
                 if (_ConnectionState != eConnectionState.notauthenticated) throw new InvalidOperationException("must be not authenticated");
                 if (mConnection.TLSInstalled) throw new InvalidOperationException("tls already installed");
 
-                using (var lCommand = new cCommand())
+                using (var lBuilder = new cCommandDetailsBuilder())
                 {
                     //  note the lack of locking - this is only called during connect
 
-                    lCommand.Add(kStartTLSCommandPart);
+                    lBuilder.Add(kStartTLSCommandPart);
 
                     var lHook = new cStartTLSCommandHook(mConnection);
-                    lCommand.Add(lHook);
+                    lBuilder.Add(lHook);
 
-                    var lResult = await mPipeline.ExecuteAsync(pMC, lCommand, lContext).ConfigureAwait(false);
+                    var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
