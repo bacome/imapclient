@@ -37,8 +37,8 @@
             this.cmdCreate = new System.Windows.Forms.Button();
             this.tmrProofOfASync = new System.Windows.Forms.Timer(this.components);
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.txtInstanceName = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
+            this.txtInstanceName = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -68,6 +68,7 @@
             this.cmdTests.TabIndex = 2;
             this.cmdTests.Text = "Tests";
             this.cmdTests.UseVisualStyleBackColor = true;
+            this.cmdTests.Click += new System.EventHandler(this.cmdTests_Click);
             // 
             // cmdQuickTests
             // 
@@ -77,6 +78,7 @@
             this.cmdQuickTests.TabIndex = 3;
             this.cmdQuickTests.Text = "Quick Tests";
             this.cmdQuickTests.UseVisualStyleBackColor = true;
+            this.cmdQuickTests.Click += new System.EventHandler(this.cmdQuickTests_Click);
             // 
             // cmdCurrentTest
             // 
@@ -86,6 +88,7 @@
             this.cmdCurrentTest.TabIndex = 4;
             this.cmdCurrentTest.Text = "Current Test";
             this.cmdCurrentTest.UseVisualStyleBackColor = true;
+            this.cmdCurrentTest.Click += new System.EventHandler(this.cmdCurrentTest_Click);
             // 
             // cmdCreate
             // 
@@ -114,13 +117,6 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "New Client";
             // 
-            // txtInstanceName
-            // 
-            this.txtInstanceName.Location = new System.Drawing.Point(100, 19);
-            this.txtInstanceName.Name = "txtInstanceName";
-            this.txtInstanceName.Size = new System.Drawing.Size(198, 20);
-            this.txtInstanceName.TabIndex = 6;
-            // 
             // label2
             // 
             this.label2.AutoSize = true;
@@ -129,6 +125,13 @@
             this.label2.Size = new System.Drawing.Size(79, 13);
             this.label2.TabIndex = 7;
             this.label2.Text = "Instance Name";
+            // 
+            // txtInstanceName
+            // 
+            this.txtInstanceName.Location = new System.Drawing.Point(100, 19);
+            this.txtInstanceName.Name = "txtInstanceName";
+            this.txtInstanceName.Size = new System.Drawing.Size(198, 20);
+            this.txtInstanceName.TabIndex = 6;
             // 
             // frmStart
             // 

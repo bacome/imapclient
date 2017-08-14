@@ -159,12 +159,12 @@ namespace testharness2
             lServer.AddSendData("* BYE [REFERRAL IMAP://user;AUTH=*@SERVER2/] Server not accepting connections.Try SERVER2\r\n");
             lServer.AddExpectClose();
 
-            cIMAPClient lClient = new cIMAPClient("ZTestByeAtStartup1_cIMAPClient");
+            cIMAPClient lClient = new cIMAPClient("ZTestByeAtStartup3_cIMAPClient");
             lClient.SetServer("localhost");
             lClient.SetPlainCredentials("fred", "angus");
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "Server not accepting connections.Try SERVER2");
+            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.referral, "Server not accepting connections.Try SERVER2");
 
             Task lTask = null;
 
@@ -282,7 +282,7 @@ namespace testharness2
 
             bool lFailed = false;
             try { lClient.ClientId = lClientId; }
-            catch (Exception e) { lFailed = true; }
+            catch (Exception) { lFailed = true; }
             if (!lFailed) throw new cTestsException("ZTestPreauthAtStartup1_2: utf8 client id should have failed");
 
             lClientId = new cIdDictionary();
@@ -327,9 +327,9 @@ namespace testharness2
 
             cServer lServer = new cServer();
             lServer.AddSendData("* OK [CAPABILITY ENABLE IMAP4rev1 AUTH=GSSAPI UTF8=ACCEPT LITERAL- ID] this is the text\r\n");
-            lServer.AddExpectTagged("ID (\"name\" \"fr?d\")\r\n");
-            lServer.AddSendData("* ID (\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")\r\n");
-            lServer.AddSendTagged("OK ID command completed\r\n");
+            //lServer.AddExpectTagged("ID (\"name\" \"fr?d\")\r\n");
+            //lServer.AddSendData("* ID (\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")\r\n");
+            //lServer.AddSendTagged("OK ID command completed\r\n");
 
 
             lServer.AddExpectTagged("LOGIN {4+}\r\nfred {5+}\r\nangus\r\n");
@@ -358,7 +358,7 @@ namespace testharness2
 
             cIdDictionary lClientId = new cIdDictionary();
             lClientId.Name = "fr€d";
-            lClient.ClientId = lClientId;
+            lClient.ClientIdUTF8 = lClientId;
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
             lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
@@ -745,7 +745,7 @@ namespace testharness2
 
                 bool lFailed = false;
                 try { lClient.Connect(); }
-                catch (cHomeServerReferralException e)
+                catch (cHomeServerReferralException)
                 {
                     if (lClient.HomeServerReferral.Host != "SERVER2" || lClient.HomeServerReferral.UserId != "user" || lClient.HomeServerReferral.MechanismName != "GSSAPI") throw new cTestsException("unexpected URL properties", lContext);
                     lFailed = true;
@@ -1532,16 +1532,16 @@ namespace testharness2
             lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
 
             lServer.AddExpectTagged("SEARCH UNSEEN\r\n");
-            lServer.AddSendData("* SEARCH 2 84 172\r\n");
             lServer.AddSendData("* OK [UIDVALIDITY 3857529046] clear cache\r\n");
+            lServer.AddSendData("* SEARCH 2 84 172\r\n");
             lServer.AddSendTagged("OK SEARCH completed\r\n");
 
-            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT)\r\n");
+            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
             lServer.AddSendData("* STATUS blurdybloop (MESSAGES 231 UIDNEXT 44292)\r\n");
             lServer.AddSendTagged("OK STATUS completed\r\n");
 
-            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UNSEEN)\r\n");
-            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 231 UNSEEN 3)\r\n");
+            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
+            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 232 UNSEEN 3)\r\n");
             lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44293)\r\n");
             lServer.AddSendTagged("OK STATUS completed\r\n");
 
@@ -1633,8 +1633,6 @@ namespace testharness2
 
             try
             {
-                cMailboxStatus lStatus;
-                iMailboxProperties lProperties;
                 cMessageFlags lFlags;
                 cMailbox lMailbox;
                 List<cMessage> lMessageList;
@@ -1646,77 +1644,63 @@ namespace testharness2
 
                 lTask = lServer.RunAsync(lContext);
 
+                lClient.MailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount | fMailboxCacheData.uidnext;
+
                 lClient.Connect();
 
-                if (lClient.Inbox.IsSelected || lClient.Inbox.Properties != null) throw new cTestsException("ZTestSearch1.1");
+                if (lClient.Inbox.IsSelected) throw new cTestsException("ZTestSearch1.1");
 
                 lClient.Inbox.Select(true);
 
-                if (!lClient.Inbox.Selected) throw new cTestsException("ZTestSearch1.2");
+                if (!lClient.Inbox.IsSelected) throw new cTestsException("ZTestSearch1.2");
 
-                lProperties = lClient.Inbox.Properties;
-                if (lProperties.Messages != 172 || lProperties.Recent != 1 || lProperties.UIDNext != 4392 || lProperties.UIDValidity != 3857529045 || lProperties.Unseen != null) throw new cTestsException("ZTestSearch1.3");
+                if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 4392 || lClient.Inbox.UIDValidity != 3857529045 || lClient.Inbox.UnseenCount != 0 || lClient.Inbox.UnseenUnknownCount != 172) throw new cTestsException("ZTestSearch1.3");
 
-                lFlags = lProperties.Flags;
+                lFlags = lClient.Inbox.MessageFlags;
                 if (lFlags.Count != 5 || !lFlags.ContainsAnswered || !lFlags.ContainsFlagged || !lFlags.ContainsDeleted || !lFlags.ContainsSeen || !lFlags.ContainsDraft) throw new cTestsException("ZTestSearch1.4");
 
-                lFlags = lProperties.PermanentFlags;
+                lFlags = lClient.Inbox.ForUpdatePermanentFlags;
                 if (lFlags.Count != 3 || !lFlags.ContainsDeleted || !lFlags.ContainsSeen || !lFlags.ContainsCreateNewPossible || lFlags.ContainsDraft || lFlags.ContainsFlagged) throw new cTestsException("ZTestSearch1.5");
 
-                if (!lProperties.SelectedForUpdate) throw new cTestsException("ZTestSearch1.6");
+                if (!lClient.Inbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch1.6");
 
-                lStatus = lClient.Inbox.Status(fStatusAttributes.messages);
-                if (lStatus.Messages != 172 || lStatus.Recent != 1 || lStatus.UIDNext != 4392 || lStatus.UIDValidity != 3857529045 || lStatus.Unseen != null) throw new cTestsException("ZTestSearch1.7");
+                lClient.Inbox.SetUnseen();
+                if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 4392 || lClient.Inbox.UIDValidity != 3857529046 || lClient.Inbox.UnseenCount != 3 || lClient.Inbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch1.8");
 
-                lStatus = lClient.Inbox.Status();
-                if (lStatus.Messages != 172 || lStatus.Recent != 1 || lStatus.UIDNext != 4392 || lStatus.UIDValidity != 3857529045 || lStatus.Unseen != 3) throw new cTestsException("ZTestSearch1.8");
+                lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
+                if (lMailbox.IsSelected) throw new cTestsException("ZTestSearch2.1");
 
-                lStatus = lClient.Inbox.Status();
-                if (lStatus.Messages != 172 || lStatus.Recent != 1 || lStatus.UIDNext != 4392 || lStatus.UIDValidity != 3857529046 || lStatus.Unseen != 3) throw new cTestsException("ZTestSearch1.9");
+                if (lMailbox.MessageCount != 231 || lMailbox.UIDNext != 44292) throw new cTestsException("ZTestSearch2.2");
 
-                lMailbox = new cMailbox(lClient, new cMailboxId(lClient.ConnectedAccountId, new cMailboxName("blurdybloop", null)));
-                if (lMailbox.Selected || lMailbox.Properties != null) throw new cTestsException("ZTestSearch2.1");
-
-                lStatus = lMailbox.Status(fStatusAttributes.uidnext | fStatusAttributes.messages);
-                if (lStatus.Messages != 231 || lStatus.UIDNext != 44292) throw new cTestsException("ZTestSearch2.2");
-
-                lStatus = lMailbox.Status();
-                if (lStatus.Messages != 231 || lStatus.Unseen != 3 || lStatus.UIDNext != 44293) throw new cTestsException("ZTestSearch2.3");
-
-
+                lMailbox.Fetch(fMailboxCacheDataSets.status);
+                if (lMailbox.MessageCount != 232 || lMailbox.UnseenCount != 3 || lMailbox.UIDNext != 44293) throw new cTestsException("ZTestSearch2.3");
 
                 lMailbox.Select();
-                if (lClient.Inbox.Selected || !lMailbox.Selected) throw new cTestsException("ZTestSearch3.1");
+                if (lClient.Inbox.IsSelected || !lMailbox.IsSelected) throw new cTestsException("ZTestSearch3.1");
 
-                lProperties = lMailbox.Properties;
-                if (lProperties.Messages != 17 || lProperties.Recent != 2 || lProperties.UIDNext != 4392 || lProperties.UIDValidity != 3857529045 || lProperties.Unseen != null) throw new cTestsException("ZTestSearch3.2");
+                if (lMailbox.MessageCount != 17 || lMailbox.RecentCount != 2 || lMailbox.UIDNext != 4392 || lMailbox.UIDValidity != 3857529045 || lMailbox.UnseenCount != 0 || lMailbox.UnseenUnknownCount != 17) throw new cTestsException("ZTestSearch3.2");
 
-                lFlags = lProperties.Flags;
+                lFlags = lMailbox.MessageFlags;
                 if (lFlags.Count != 5 || !lFlags.ContainsAnswered || !lFlags.ContainsFlagged || !lFlags.ContainsDeleted || !lFlags.ContainsSeen || !lFlags.ContainsDraft) throw new cTestsException("ZTestSearch3.3");
 
-                lFlags = lProperties.PermanentFlags;
+                lFlags = lMailbox.ReadOnlyPermanentFlags;
                 if (lFlags.Count != 0) throw new cTestsException("ZTestSearch3.4");
 
-                if (lProperties.SelectedForUpdate) throw new cTestsException("ZTestSearch3.5");
+                if (lMailbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch3.5");
 
-                lStatus = lMailbox.Status(fStatusAttributes.messages);
-                if (lStatus.Messages != 17 || lStatus.Recent != 2 || lStatus.UIDNext != 4392 || lStatus.UIDValidity != 3857529045 || lStatus.Unseen != null) throw new cTestsException("ZTestSearch3.6");
-
-                lStatus = lMailbox.Status();
-                if (lStatus.Messages != 17 || lStatus.Recent != 2 || lStatus.UIDNext != 4392 || lStatus.UIDValidity != 3857529045 || lStatus.Unseen != 3) throw new cTestsException("ZTestSearch3.7");
-
-
+                lMailbox.SetUnseen();
+                if (lMailbox.UnseenCount != 3 || lMailbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch3.7");
 
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.1");
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fFetchAttributes.received);
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageProperties.received);
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.2");
                 foreach (var lItem in lMessageList) if (lItem.Indent != -1) throw new cTestsException("ZTestSearch4.3");
 
                 lMessage = lMessageList[0];
 
-                if (!lMessage.Handle.Cache.Valid || lMessage.Handle.Expunged || lMessage.Handle.Attributes != fFetchAttributes.received) throw new cTestsException("ZTestSearch4.4");
+                if (lMessage.IsExpunged || lMessage.Handle.Attributes != fFetchAttributes.received) throw new cTestsException("ZTestSearch4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch4.5");
 
 
@@ -1871,25 +1855,25 @@ namespace testharness2
 
                 lClient.Inbox.Select(true);
 
-                if (lClient.Inbox.Properties.Messages != 172) throw new cTestsException("ZTestIdleRestart1.1");
+                if (lClient.Inbox.MessageCount != 172) throw new cTestsException("ZTestIdleRestart1.1");
 
                 var lMessages = lClient.Inbox.Messages(!cFilter.IsSeen);
 
                 Thread.Sleep(3000); // idle should start, message 168 should get deleted, and message 167 should get a UID during this wait
 
-                if (lClient.Inbox.Properties.Messages != 171) throw new cTestsException("ZTestIdleRestart1.2");
+                if (lClient.Inbox.MessageCount != 171) throw new cTestsException("ZTestIdleRestart1.2");
 
-                lMessages[1].Fetch(fFetchAttributes.uid); // this should retrieve nothing (as the message has been deleted), but idle should stop
+                lMessages[1].Fetch(fMessageProperties.uid); // this should retrieve nothing (as the message has been deleted), but idle should stop
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched by this, as message 2 was 168 which should now be gone
                 //  1 should be UID fetched, 3 should be a normal fetch
-                lClient.Fetch(lClient.Inbox.MailboxId, new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fFetchAttributes.received, null);
+                lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.received, null);
 
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
-                lClient.Fetch(lClient.Inbox.MailboxId, new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fFetchAttributes.flags, null);
+                lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.flags, null);
 
 
                 cMailbox lMailbox;
@@ -1899,20 +1883,12 @@ namespace testharness2
 
                 lFilter = cFilter.UID > new cUID(3857529044, 4391);
 
-                // check that the connected account being a different one causes an exception
-                lMailbox = new cMailbox(lClient, new cMailboxId(new cAccountId(lClient.ConnectedAccountId.Host, eAccountType.anonymous), new cMailboxName("blurdybloop", null)));
-
-                lFailed = false;
-                try { lMessages = lMailbox.Messages(lFilter); }
-                catch (cAccountNotConnectedException) { lFailed = true; }
-                if (!lFailed) throw new cTestsException("ZTestIdleRestart1.3");
-
                 // test that there is a throw if the mailbox isn't selected
-                lMailbox = new cMailbox(lClient, new cMailboxId(lClient.ConnectedAccountId, new cMailboxName("blurdybloop", null)));
+                lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
 
                 lFailed = false;
                 try { lMessages = lMailbox.Messages(lFilter); }
-                catch (cMailboxNotSelectedException) { lFailed = true; }
+                catch (InvalidOperationException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestIdleRestart1.4");
 
                 lMailbox.Select(false);
@@ -2026,7 +2002,7 @@ namespace testharness2
                 cUID[] lUIDs = new cUID[] { new cUID(3857529045, 105), new cUID(3857529045, 104), new cUID(3857529045, 103), new cUID(3857529045, 102), new cUID(3857529045, 101) };
 
                 // fetch flags
-                var lMessages = lClient.Inbox.UIDFetch(lUIDs, fFetchAttributes.flags | fFetchAttributes.received);
+                var lMessages = lClient.Inbox.Messages(lUIDs, fMessageProperties.flags | fMessageProperties.received);
                 if (lMessages.Count != 4) throw new cTestsException($"{nameof(ZTestUIDFetch1)}.1");
 
 

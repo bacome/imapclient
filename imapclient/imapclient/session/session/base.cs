@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Text;
+using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;

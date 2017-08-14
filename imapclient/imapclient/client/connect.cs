@@ -37,6 +37,8 @@ namespace work.bacome.imapclient
             {
                 if (!mSession.IsUnconnected) throw new InvalidOperationException("must be unconnected");
                 mSession.Dispose();
+                mNamespaces = null;
+                mInbox = null;
             }
 
             mSession = new cSession(mEventSynchroniser, mIgnoreCapabilities, mMailboxCacheData, mIdleConfiguration, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
@@ -156,9 +158,6 @@ namespace work.bacome.imapclient
                     lIdTask = lSession.IdAsync(lMC, lDictionary, lContext);
                 }
                 else lIdTask = null;
-
-                mNamespaces = null;
-                mInbox = null;
 
                 if (lCurrentCapabilities.Namespace)
                 {

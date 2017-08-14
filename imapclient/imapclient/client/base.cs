@@ -59,6 +59,8 @@ namespace work.bacome.imapclient
 
         // current session
         private cSession mSession = null;
+        private cNamespaces mNamespaces = null; // if namespace is not supported by the server then this is used
+        private cMailbox mInbox = null; // 
 
         // property backing storage
         private int mTimeout = -1;
@@ -74,9 +76,6 @@ namespace work.bacome.imapclient
         private Encoding mEncoding = Encoding.UTF8;
         private cIdDictionary mClientId = cIdDictionary.CreateDefaultClientIdDictionary();
         private cIdDictionary mClientIdUTF8 = cIdDictionary.CreateDefaultClientIdDictionary();
-
-        private cNamespaces mNamespaces = null;
-        private cMailbox mInbox = null;
 
         public cIMAPClient(string pInstanceName = TraceSourceName)
         {
@@ -326,12 +325,12 @@ namespace work.bacome.imapclient
                 foreach (var lPair in value)
                 {
                     if (lPair.Key.Length > 30) throw new ArgumentException("field names must not be longer than 30 octets");
-                    if (cCommandPartFactory.TryAsASCIIString(lPair.Key, out _)) throw new ArgumentException("field names must be ascii");
+                    if (!cCommandPartFactory.TryAsASCIIString(lPair.Key, out _)) throw new ArgumentException("field names must be ascii");
 
                     if (lPair.Value != null)
                     {
                         if (lPair.Value.Length > 1024) throw new ArgumentException("values must not be longer than 1024 octets");
-                        if (cCommandPartFactory.TryAsASCIIString(lPair.Value, out _)) throw new ArgumentException("values must be ascii");
+                        if (!cCommandPartFactory.TryAsASCIIString(lPair.Value, out _)) throw new ArgumentException("values must be ascii");
                     }
                 }
 
@@ -354,12 +353,12 @@ namespace work.bacome.imapclient
                 foreach (var lPair in value)
                 {
                     if (Encoding.UTF8.GetByteCount(lPair.Key) > 30) throw new ArgumentException("field names must not be longer than 30 bytes");
-                    if (cCommandPartFactory.TryAsUTF8String(lPair.Key, out _)) throw new ArgumentException("field names must be utf8");
+                    if (!cCommandPartFactory.TryAsUTF8String(lPair.Key, out _)) throw new ArgumentException("field names must be utf8");
 
                     if (lPair.Value != null)
                     {
                         if (Encoding.UTF8.GetByteCount(lPair.Value) > 1024) throw new ArgumentException("values must not be longer than 1024 bytes");
-                        if (cCommandPartFactory.TryAsUTF8String(lPair.Value, out _)) throw new ArgumentException("values must be utf8");
+                        if (!cCommandPartFactory.TryAsUTF8String(lPair.Value, out _)) throw new ArgumentException("values must be utf8");
                     }
                 }
 

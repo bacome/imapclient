@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
                         while (true)
                         {
                             lContext.TraceVerbose("waiting");
-                            await lTerminator.WhenAny(mConnection.GetAwaitResponseTask(lContext)).ConfigureAwait(false);
+                            await lTerminator.AwaitAny(mConnection.GetBuildResponseTask(lContext)).ConfigureAwait(false);
 
                             var lLines = mConnection.GetResponse(lContext);
                             mEventSynchroniser.FireNetworkActivity(lLines, lContext);

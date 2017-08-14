@@ -75,7 +75,7 @@ namespace work.bacome.imapclient
 
                     public void SetCurrent(cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(SetActive), Tag);
+                        var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(SetCurrent), Tag);
                         if (mState != eCommandState.queued) throw new InvalidOperationException();
                         Hook.CommandStarted(lContext);
                         mState = eCommandState.current;
@@ -120,7 +120,7 @@ namespace work.bacome.imapclient
                         mDisposables.Dispose();
                         mState = eCommandState.complete;
 
-                        // may throw objectdisposed if the timing is perfectly bad
+                        // will throw objectdisposed if the wait finishes before the command does
                         try { mSemaphore.Release(); }
                         catch { }
                     }
@@ -134,7 +134,7 @@ namespace work.bacome.imapclient
                         mDisposables.Dispose();
                         mState = eCommandState.complete;
 
-                        // may throw objectdisposed if the timing is perfectly bad
+                        // will throw objectdisposed if the wait finishes before the command does
                         try { mSemaphore.Release(); }
                         catch { }
                     }

@@ -24,15 +24,15 @@ namespace work.bacome.imapclient
                 private cIdleConfiguration mIdleConfiguration;
                 private readonly Action<cTrace.cContext> mDisconnect;
 
-                // mechanics
-                private readonly cExclusiveAccess mIdleBlock = new cExclusiveAccess("idleblock", 100); // used to control idling
-                private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource(); // for use when stopping the background task
+                // used to control idling
+                private readonly cExclusiveAccess mIdleBlock = new cExclusiveAccess("idleblock", 100); 
 
                 // installable components
                 private readonly List<iResponseDataParser> mResponseDataParsers = new List<iResponseDataParser>();
                 private readonly List<cUnsolicitedDataProcessor> mUnsolicitedDataProcessors = new List<cUnsolicitedDataProcessor>();
 
                 // background task objects
+                private readonly CancellationTokenSource mBackgroundCancellationTokenSource = new CancellationTokenSource(); 
                 private readonly cMethodControl mBackgroundMC;
                 private readonly cReleaser mBackgroundReleaser;
                 private readonly cTerminator mBackgroundTerminator;
@@ -68,12 +68,12 @@ namespace work.bacome.imapclient
                     mIdleConfiguration = pIdleConfiguration;
                     mDisconnect = pDisconnect;
 
-                    mIdleBlock.Released += mBackgroundReleaser.Release; // when the idle block is removed, kick the background process
-
-                    mBackgroundMC = new cMethodControl(System.Threading.Timeout.Infinite, mCancellationTokenSource.Token);
-                    mBackgroundReleaser = new cReleaser("commandpipeline_background", mCancellationTokenSource.Token);
-                    mBackgroundTerminator = new cTerminator(mCancellationTokenSource.Token);
+                    mBackgroundMC = new cMethodControl(System.Threading.Timeout.Infinite, mBackgroundCancellationTokenSource.Token);
+                    mBackgroundReleaser = new cReleaser("commandpipeline_background", mBackgroundCancellationTokenSource.Token);
+                    mBackgroundTerminator = new cTerminator(mBackgroundCancellationTokenSource.Token);
                     mBackgroundTask = ZBackgroundTaskAsync(lContext);
+
+                    mIdleBlock.Released += mBackgroundReleaser.Release; // when the idle block is removed, kick the background process
                 }
 
                 public void Install(iResponseDataParser pResponseDataParser) => mResponseDataParsers.Add(pResponseDataParser);
@@ -151,6 +151,15 @@ namespace work.bacome.imapclient
                     }
                 }
 
+                public void Stop(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(Stop));
+                    if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
+                    if (mStopped) return;
+                    mBackgroundCancellationTokenSource.Cancel();
+                    mBackgroundTask.Wait();
+                }
+
                 private async Task ZBackgroundTaskAsync(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewRootMethod(nameof(cCommandPipeline), nameof(ZBackgroundTaskAsync));
@@ -191,6 +200,11 @@ namespace work.bacome.imapclient
                         lContext.TraceInformation("the pipeline is stopping due to a unilateral bye");
                         mBackgroundTaskException = e;
                     }
+                    catch (OperationCanceledException) when (mBackgroundCancellationTokenSource.IsCancellationRequested)
+                    {
+                        lContext.TraceInformation("the pipeline is stopping as requested");
+                        mBackgroundTaskException = new cPipelineStoppedException(lContext);
+                    }
                     catch (Exception e)
                     {
                         lContext.TraceException("the pipeline is stopping due to an unexpected exception", e);
@@ -205,6 +219,8 @@ namespace work.bacome.imapclient
                     foreach (var lCommand in mActiveCommands) lCommand.SetException(mBackgroundTaskException, lContext);
                     if (mCurrentCommand != null) mCurrentCommand.SetException(mBackgroundTaskException, lContext);
                     foreach (var lCommand in mQueuedCommands) lCommand.SetException(mBackgroundTaskException, lContext);
+
+                    mDisconnect(lContext);
                 }
 
                 private async Task ZSendAsync(cTrace.cContext pParentContext)
@@ -360,9 +376,9 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceVerbose("waiting");
 
-                        Task lAwaitResponseTask = mConnection.GetAwaitResponseTask(lContext);
-                        Task lCompleted = await mBackgroundTerminator.WhenAny(lAwaitResponseTask, pMonitorTasks).ConfigureAwait(false);
-                        if (!ReferenceEquals(lCompleted, lAwaitResponseTask)) return lCompleted;
+                        Task lBuildResponseTask = mConnection.GetBuildResponseTask(lContext);
+                        Task lCompleted = await mBackgroundTerminator.AwaitAny(lBuildResponseTask, pMonitorTasks).ConfigureAwait(false);
+                        if (!ReferenceEquals(lCompleted, lBuildResponseTask)) return lCompleted;
 
                         var lLines = mConnection.GetResponse(lContext);
                         mEventSynchroniser.FireNetworkActivity(lLines, lContext);
@@ -567,9 +583,9 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceVerbose("waiting");
 
-                        Task lAwaitResponseTask = mConnection.GetAwaitResponseTask(lContext);
-                        Task lCompleted = await mBackgroundTerminator.WhenAny(lAwaitResponseTask, pMonitorTasks).ConfigureAwait(false);
-                        if (!ReferenceEquals(lCompleted, lAwaitResponseTask)) return lCompleted;
+                        Task lBuildResponseTask = mConnection.GetBuildResponseTask(lContext);
+                        Task lCompleted = await mBackgroundTerminator.AwaitAny(lBuildResponseTask, pMonitorTasks).ConfigureAwait(false);
+                        if (!ReferenceEquals(lCompleted, lBuildResponseTask)) return lCompleted;
 
                         var lLines = mConnection.GetResponse(lContext);
                         mEventSynchroniser.FireNetworkActivity(lLines, lContext);
@@ -736,7 +752,6 @@ namespace work.bacome.imapclient
                             lContext.TraceVerbose("got a unilateral bye");
                             cResponseText lResponseText = mResponseTextProcessor.Process(pCursor, eResponseTextType.bye, null, lContext);
                             mConnection.Disconnect(lContext);
-                            mDisconnect(lContext);
                             throw new cUnilateralByeException(lResponseText, lContext);
                         }
 
@@ -843,9 +858,9 @@ namespace work.bacome.imapclient
                 {
                     if (mDisposed) return;
 
-                    if (mCancellationTokenSource != null && !mCancellationTokenSource.IsCancellationRequested)
+                    if (mBackgroundCancellationTokenSource != null && !mBackgroundCancellationTokenSource.IsCancellationRequested)
                     {
-                        try { mCancellationTokenSource.Cancel(); }
+                        try { mBackgroundCancellationTokenSource.Cancel(); }
                         catch { }
                     }
 
@@ -878,9 +893,9 @@ namespace work.bacome.imapclient
                         catch { }
                     }
 
-                    if (mCancellationTokenSource != null)
+                    if (mBackgroundCancellationTokenSource != null)
                     {
-                        try { mCancellationTokenSource.Dispose(); }
+                        try { mBackgroundCancellationTokenSource.Dispose(); }
                         catch { }
                     }
 

@@ -58,8 +58,8 @@ namespace work.bacome.imapclient.support
             {
                 if (ZTryAsQuotedASCII(pString, pSecret, out rResult)) return true;
                 var lBytes = Encoding.GetBytes(pString);
-                if (ZTryAsQuotedASCII(lBytes, true, pSecret, out rResult)) return true;
-                return (ZTryAsLiteral(lBytes, true, pSecret, out rResult));
+                if (ZTryAsQuotedASCII(lBytes, pSecret, true, out rResult)) return true;
+                return (ZTryAsLiteral(lBytes, pSecret, true, out rResult));
             }
         }
 
@@ -78,9 +78,9 @@ namespace work.bacome.imapclient.support
             if (Encoding == null) return TryAsString(pString, pSecret, out rResult);
 
             var lBytes = Encoding.GetBytes(pString);
-            if (ZTryAsBytesInCharset(lBytes, cCharset.AString, true, pSecret, out rResult)) return true;
-            if (ZTryAsQuotedASCII(lBytes, true, pSecret, out rResult)) return true;
-            return (ZTryAsLiteral(lBytes, true, pSecret, out rResult));
+            if (ZTryAsBytesInCharset(lBytes, cCharset.AString, pSecret, true, out rResult)) return true;
+            if (ZTryAsQuotedASCII(lBytes, pSecret, true, out rResult)) return true;
+            return (ZTryAsLiteral(lBytes, pSecret, true, out rResult));
         }
 
         public cCommandPart AsAString(string pString, bool pSecret = false)
@@ -122,28 +122,11 @@ namespace work.bacome.imapclient.support
             return lResult;
         }
 
-        /*
-        public bool TryAsMailbox(string pString, char? pDelimiter, out cCommandPart rCommandPart, out string rEncodedString)
-        {
-            if (string.IsNullOrEmpty(pString)) { rCommandPart = null; rEncodedString = null; return false; }
-            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rCommandPart = null; rEncodedString = null; return false; }
-            return ZTryAsMailbox(pString, pDelimiter, cCharset.AString, out rCommandPart, out rEncodedString);
-        } */
-
         public bool TryAsMailbox(cMailboxName pMailboxName, out cCommandPart rCommandPart, out string rEncodedMailboxName)
         {
             if (pMailboxName == null) { rCommandPart = null; rEncodedMailboxName = null; return false; }
             return ZTryAsMailbox(pMailboxName.Name, pMailboxName.Delimiter, cCharset.AString, out rCommandPart, out rEncodedMailboxName);
         }
-
-        /*
-        public cCommandPart AsMailbox(string pString, char? pDelimiter)
-        {
-            if (string.IsNullOrEmpty(pString)) throw new ArgumentOutOfRangeException(nameof(pString));
-            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) throw new ArgumentOutOfRangeException(nameof(pDelimiter));
-            if (!ZTryAsMailbox(pString, pDelimiter, cCharset.AString, out var lResult, out _)) throw new ArgumentOutOfRangeException(nameof(pString));
-            return lResult;
-        } */
 
         private bool ZTryAsMailbox(string pString, char? pDelimiter, cCharset pCharset, out cCommandPart rCommandPart, out string rEncodedMailboxName)
         {
@@ -360,9 +343,7 @@ namespace work.bacome.imapclient.support
         private static bool ZTryAsBytesInCharset(IList<byte> pBytes, cCharset pCharset, bool pSecret, bool pEncoded, out cCommandPart rResult)
         {
             if (pBytes == null || pBytes.Count == 0) { rResult = null; return false; }
-
             foreach (byte lByte in pBytes) if (!pCharset.Contains(lByte)) { rResult = null; return false; }
-
             rResult = new cCommandPart(pBytes, eCommandPartType.text, pSecret, pEncoded);
             return true;
         }
@@ -405,7 +386,7 @@ namespace work.bacome.imapclient.support
 
             lBytes.Add(cASCII.DQUOTE);
 
-            rResult = new cCommandPart(pBytes, eCommandPartType.text, pSecret, pEncoded);
+            rResult = new cCommandPart(lBytes, eCommandPartType.text, pSecret, pEncoded);
             return true;
         }
 

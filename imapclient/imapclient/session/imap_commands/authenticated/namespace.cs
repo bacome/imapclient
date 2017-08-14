@@ -86,9 +86,9 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceVerbose("got namespaces: {0} {1} {2}", lPersonal, lOtherUsers, lShared);
 
-                        Personal = lPersonal.AsReadOnly();
-                        OtherUsers = lOtherUsers.AsReadOnly();
-                        Shared = lShared.AsReadOnly();
+                        Personal = lPersonal?.AsReadOnly();
+                        OtherUsers = lOtherUsers?.AsReadOnly();
+                        Shared = lShared?.AsReadOnly();
 
                         mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Namespaces), lContext);
 

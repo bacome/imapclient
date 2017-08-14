@@ -177,7 +177,6 @@
     <Compile Include="session\command_pipeline\activecommands.cs" />
     <Compile Include="session\connection\connection.cs" />
     <Compile Include="session\connection\responsebuilder.cs" />
-    <Compile Include="session\connection\streamreader.cs" />
     <Compile Include="session\fetch\decoder.cs" />
     <Compile Include="session\imap_commands\not_authenticated\authenticate.cs" />
     <Compile Include="session\imap_commands\any_state\capability.cs" />

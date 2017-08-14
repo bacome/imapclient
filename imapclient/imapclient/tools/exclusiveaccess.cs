@@ -40,25 +40,6 @@ namespace work.bacome.async
             return new cBlock(mName, mSequence, mInstance, ZReleaseBlock, pParentContext);
         }
 
-        /*
-        public async Task<cBlock> GetBlockAsync(cMethodControl pMC, cToken pToken, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cExclusiveAccess), nameof(GetBlockAsync), mName, mInstance);
-
-            if (mDisposed) throw new ObjectDisposedException(nameof(cExclusiveAccess));
-
-            if (pToken == null)
-            {
-                if (!await mExclusiveSemaphoreSlim.WaitAsync(pMC.Timeout, pMC.CancellationToken).ConfigureAwait(false)) throw new TimeoutException();
-                Interlocked.Increment(ref mBlocks);
-                mExclusiveSemaphoreSlim.Release();
-            }
-            else if (pToken == mToken) Interlocked.Increment(ref mBlocks);
-            else throw new ArgumentException("invalid token", nameof(pToken));
-
-            return new cBlock(mName, mSequence, mInstance, ZReleaseBlock, pParentContext);
-        } */
-
         public cBlock TryGetBlock(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cExclusiveAccess), nameof(TryGetBlock), mName, mInstance);

@@ -111,22 +111,22 @@ namespace work.bacome.imapclient
                     cResponseDataParserESearch lRDP = new cResponseDataParserESearch();
                     cResponseDataESearch lRDES;
 
-                    LTest("", "1");
+                    LTest("esearch", "1");
                     if (lRDES.Tag != null || lRDES.UID || lRDES.SequenceSet != null) throw new cTestsException($"{nameof(cResponseDataESearch)}.1.v");
 
-                    LTest(" (TAG \"A282\") MIN 2 COUNT 3", "4731.1");
+                    LTest("esearch (TAG \"A282\") MIN 2 COUNT 3", "4731.1");
                     if (!cASCII.Compare(lRDES.Tag, new cBytes("A282"), true) || lRDES.UID || lRDES.SequenceSet != null) throw new cTestsException($"{nameof(cResponseDataESearch)}.4731.1.v");
 
-                    LTest(" (TAG \"A283\") ALL 2,10:11", "4731.2");
+                    LTest("esearch (TAG \"A283\") ALL 2,10:11", "4731.2");
                     if (!cASCII.Compare(lRDES.Tag, new cBytes("A283"), true) || lRDES.UID || lRDES.SequenceSet == null || lRDES.SequenceSet.ToString() == "cNumber(2),cRange(cNumber(10),cNumber(11))") throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.2.v");
 
-                    LTest(" (TAG \"A284\") MIN 4", "4731.3");
+                    LTest("ESEARCH (TAG \"A284\") MIN 4", "4731.3");
                     if (!cASCII.Compare(lRDES.Tag, new cBytes("A284"), true) || lRDES.UID || lRDES.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.3.v");
 
-                    LTest(" (TAG \"A285\") UID MIN 7 MAX 3800", "4731.4");
+                    LTest("ESEARCH (TAG \"A285\") UID MIN 7 MAX 3800", "4731.4");
                     if (!cASCII.Compare(lRDES.Tag, new cBytes("A285"), true) || !lRDES.UID || lRDES.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.4.v");
 
-                    LTest(" (TAG \"A286\") COUNT 15", "4731.5");
+                    LTest("ESEARCH (TAG \"A286\") COUNT 15", "4731.5");
                     if (!cASCII.Compare(lRDES.Tag, new cBytes("A286"), true) || lRDES.UID || lRDES.SequenceSet != null) throw new cTestsException($"{ nameof(cResponseDataESearch)}.4731.5.v");
 
                     void LTest(string pResponse, string pTest)

@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
                 private Stream mStream = null;
 
                 // reader
-                private cStreamReader mStreamReader = null;
+                private bool mClosed = false;
 
                 // security
                 private cSASLSecurity mSASLSecurity = null;
@@ -44,9 +44,6 @@ namespace work.bacome.imapclient
 
                 // task that is getting the next response
                 private Task<cBytesLines> mBuildResponseTask = null;
-
-                // for killing the above task when disposing
-                private CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
 
                 public cConnection() { }
 
@@ -93,8 +90,6 @@ namespace work.bacome.imapclient
                         }
                         else mStream = lStream;
 
-                        mStreamReader = new cStreamReader(mStream, lContext);
-
                         mState = eState.connected;
                     }
                     catch
@@ -117,8 +112,6 @@ namespace work.bacome.imapclient
                     mSSLStream = new SslStream(mStream);
                     mSSLStream.AuthenticateAsClient(mHost);
                     mStream = mSSLStream;
-
-                    mStreamReader = new cStreamReader(mStream, lContext);
                 }
 
                 public bool TLSInstalled => mSSLStream != null;
@@ -145,9 +138,9 @@ namespace work.bacome.imapclient
 
                 public bool SASLSecurityInstalled => mSASLSecurity != null;
 
-                public Task GetAwaitResponseTask(cTrace.cContext pParentContext)
+                public Task GetBuildResponseTask(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(GetAwaitResponseTask));
+                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(GetBuildResponseTask));
 
                     if (mState != eState.connected) throw new InvalidOperationException("must be connected");
 
@@ -244,9 +237,42 @@ namespace work.bacome.imapclient
                             if (lLines != null) return lLines;
                         }
 
-                        var lBuffer = await mStreamReader.GetBufferAsync(mCancellationTokenSource.Token, lContext).ConfigureAwait(false);
+                        var lBuffer = await ZReadAsync(lContext).ConfigureAwait(false);
+
                         ZNewBuffer(lBuffer, lContext);
                     }
+                }
+
+                public async Task<byte[]> ZReadAsync(cTrace.cContext pParentContext)
+                {
+                    const int kBufferSize = 1000;
+
+                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ZReadAsync));
+
+                    if (mClosed) throw new cStreamClosedException(lContext);
+
+                    byte[] lBuffer = new byte[kBufferSize];
+
+                    int lByteCount;
+
+                    try { lByteCount = await mStream.ReadAsync(lBuffer, 0, kBufferSize).ConfigureAwait(false); }
+                    catch (Exception e)
+                    {
+                        lContext.TraceException(e);
+                        mClosed = true;
+                        throw;
+                    }
+
+                    if (lByteCount == 0)
+                    {
+                        lContext.TraceInformation("stream closed");
+                        mClosed = true;
+                        throw new cStreamClosedException(lContext);
+                    }
+
+                    Array.Resize(ref lBuffer, lByteCount);
+
+                    return lBuffer;
                 }
 
                 private void ZNewBuffer(byte[] pBuffer, cTrace.cContext pParentContext)
@@ -284,23 +310,6 @@ namespace work.bacome.imapclient
 
                     mState = eState.disconnecting;
 
-                    if (mBuildResponseTask != null)
-                    {
-                        if (mCancellationTokenSource != null) mCancellationTokenSource.Cancel();
-
-                        try { mBuildResponseTask.Wait(); }
-                        catch { }
-
-                        try { mBuildResponseTask.Dispose(); }
-                        catch { }
-                    }
-
-                    if (mCancellationTokenSource != null)
-                    {
-                        try { mCancellationTokenSource.Dispose(); }
-                        catch { }
-                    }
-
                     if (mSASLSecurity != null)
                     {
                         try { mSASLSecurity.Dispose(); }
@@ -322,6 +331,16 @@ namespace work.bacome.imapclient
                     if (mTCPClient != null)
                     {
                         try { mTCPClient.Close(); }
+                        catch { }
+                    }
+
+                    // this has to be done after closing the stream, as the only way the read can be cancelled is for the stream to be disposed
+                    if (mBuildResponseTask != null)
+                    {
+                        try { mBuildResponseTask.Wait(); }
+                        catch { }
+
+                        try { mBuildResponseTask.Dispose(); }
                         catch { }
                     }
 
