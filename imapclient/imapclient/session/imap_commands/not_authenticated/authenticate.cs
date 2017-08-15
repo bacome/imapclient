@@ -60,7 +60,12 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceInformation("authenticate success");
 
-                        if (lHook.Capabilities != null) mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                        if (lHook.Capabilities != null)
+                        {
+                            mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                            mPipeline.SetCapability(mCapabilities, lContext);
+                        }
+
                         ZSetHomeServerReferral(lResult.ResponseText);
                         ZSetConnectedAccountId(pAccountId, lContext);
 

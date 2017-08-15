@@ -34,7 +34,11 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceInformation("capability success");
 
-                        if (lHook.Capabilities != null) mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                        if (lHook.Capabilities != null)
+                        {
+                            mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                            mPipeline.SetCapability(mCapabilities, lContext);
+                        }
                         else throw new cUnexpectedServerActionException(0, "capability not received", lContext);
 
                         return;

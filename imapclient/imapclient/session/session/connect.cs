@@ -29,12 +29,12 @@ namespace work.bacome.imapclient
 
                     var lHook = new cCommandHookInitial();
 
-                    using (cTerminator lTerminator = new cTerminator(pMC))
+                    using (var lAwaiter = new cAwaiter(pMC))
                     {
                         while (true)
                         {
                             lContext.TraceVerbose("waiting");
-                            await lTerminator.AwaitAny(mConnection.GetBuildResponseTask(lContext)).ConfigureAwait(false);
+                            await lAwaiter.AwaitAny(mConnection.GetBuildResponseTask(lContext)).ConfigureAwait(false);
 
                             var lLines = mConnection.GetResponse(lContext);
                             mEventSynchroniser.FireNetworkActivity(lLines, lContext);
@@ -46,7 +46,12 @@ namespace work.bacome.imapclient
 
                                 lContext.TraceVerbose("got ok: {0}", lResponseText);
 
-                                if (lHook.Capabilities != null) mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                                if (lHook.Capabilities != null)
+                                {
+                                    mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                                    mPipeline.SetCapability(mCapabilities, lContext);
+                                }
+
                                 ZSetState(eConnectionState.notauthenticated, lContext);
 
                                 return;
@@ -58,7 +63,12 @@ namespace work.bacome.imapclient
 
                                 lContext.TraceVerbose("got preauth: {0}", lResponseText);
 
-                                if (lHook.Capabilities != null) mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                                if (lHook.Capabilities != null)
+                                {
+                                    mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
+                                    mPipeline.SetCapability(mCapabilities, lContext);
+                                }
+
                                 ZSetHomeServerReferral(lResponseText);
                                 ZSetConnectedAccountId(new cAccountId(pServer.Host, eAccountType.none), lContext);
 

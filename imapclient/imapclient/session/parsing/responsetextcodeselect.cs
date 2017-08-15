@@ -65,49 +65,60 @@ namespace work.bacome.imapclient
 
                     if (pCursor.SkipBytes(kPermanentFlagsSpace))
                     {
-                        if (pCursor.GetFlags(out var lFlags) && pCursor.SkipBytes(cBytesCursor.RBracketSpace)) rResponseData = new cResponseDataPermanentFlags(lFlags);
-                        else
+                        if (pCursor.GetFlags(out var lFlags) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                         {
-                            lContext.TraceWarning("likely malformed permanentflags");
-                            rResponseData = null;
+                            rResponseData = new cResponseDataPermanentFlags(lFlags);
+                            return true;
                         }
 
-                        return true;
+                        lContext.TraceWarning("likely malformed permanentflags");
+
+                        rResponseData = null;
+                        return false;
                     }
 
                     if (pCursor.SkipBytes(kUIDNextSpace))
                     {
-                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace)) rResponseData = new cResponseDataUIDNext(lNumber);
+                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                         {
-                            lContext.TraceWarning("likely malformed uidnext");
-                            rResponseData = null;
+                            rResponseData = new cResponseDataUIDNext(lNumber);
+                            return true;
                         }
 
-                        return true;
+                        lContext.TraceWarning("likely malformed uidnext");
+
+                        rResponseData = null;
+                        return false;
                     }
 
                     if (pCursor.SkipBytes(kUIDValiditySpace))
                     {
-                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace)) rResponseData = new cResponseDataUIDValidity(lNumber);
+                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                         {
-                            lContext.TraceWarning("likely malformed uidvalidity");
-                            rResponseData = null;
+                            rResponseData = new cResponseDataUIDValidity(lNumber);
+                            return true;
                         }
 
-                        return true;
+                        lContext.TraceWarning("likely malformed uidvalidity");
+
+                        rResponseData = null;
+                        return false;
                     }
 
                     if (mCapabilities.CondStore)
                     {
                         if (pCursor.SkipBytes(kHighestModSeqSpace))
                         {
-                            if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace)) rResponseData = new cResponseDataHighestModSeq(lNumber);
+                            if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                             {
-                                lContext.TraceWarning("likely malformed highestmodseq");
-                                rResponseData = null;
+                                rResponseData = new cResponseDataHighestModSeq(lNumber);
+                                return true;
                             }
 
-                            return true;
+                            lContext.TraceWarning("likely malformed highestmodseq");
+
+                            rResponseData = null;
+                            return false;
                         }
                     }
 

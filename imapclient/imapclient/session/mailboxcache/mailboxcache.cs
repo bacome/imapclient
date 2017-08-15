@@ -144,11 +144,11 @@ namespace work.bacome.imapclient
 
                     var lHandle = mSelectedMailbox.Handle;
 
-                    mSelectedMailbox = null;
-
                     fMailboxProperties lProperties = fMailboxProperties.isselected;
                     if (mSelectedMailbox.SelectedForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
                     if (mSelectedMailbox.AccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
+
+                    mSelectedMailbox = null;
 
                     mEventSynchroniser.FireMailboxPropertiesChanged(lHandle, lProperties, lContext);
 

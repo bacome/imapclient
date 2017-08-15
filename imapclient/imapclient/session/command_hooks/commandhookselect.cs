@@ -49,13 +49,13 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public override eProcessDataResult ProcessData(cResponseData pCursor, cTrace.cContext pParentContext)
+                public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessData));
 
                     if (!mDeselectDone) return eProcessDataResult.notprocessed;
 
-                    switch (pCursor)
+                    switch (pData)
                     {
                         case cResponseDataFlags lFlags:
 

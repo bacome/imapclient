@@ -28,6 +28,8 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(await mSearchExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // search commands must be single threaded (so we can tell which result is which)
 
+                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+
                     lBuilder.Add(kSetUnseenCommandPart);
 
                     var lHook = new cSetUnseenCommandHook(lSelectedMailbox);

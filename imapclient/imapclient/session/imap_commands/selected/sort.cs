@@ -29,10 +29,12 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(await mSortExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // sort commands must be single threaded (so we can tell which result is which)
 
+                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+
                     lBuilder.Add(kSortCommandPart);
                     lBuilder.Add(pSort);
                     lBuilder.Add(cCommandPart.Space);
-                    lBuilder.Add(pFilter, true, mEncodingPartFactory); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
+                    lBuilder.Add(pFilter, true, mEncodingPartFactory);
 
                     var lHook = new cSortCommandHook(lSelectedMailbox);
                     lBuilder.Add(lHook);

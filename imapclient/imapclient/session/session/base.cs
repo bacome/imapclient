@@ -89,6 +89,7 @@ namespace work.bacome.imapclient
 
                 mMailboxCache = new cMailboxCache(mEventSynchroniser, mMailboxCacheData, _ConnectedAccountId, mCommandPartFactory, mCapabilities, ZSetState);
 
+                mResponseTextProcessor.Install(new cResponseTextCodeParserSelect(mCapabilities));
                 mResponseTextProcessor.Enable(mMailboxCache, lContext);
 
                 mPipeline.Install(new cResponseDataParserSelect());

@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
         public cMessage Message(iMailboxHandle pHandle, cUID pUID, fMessageProperties pProperties)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Message));
-            var lTask = ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUID), ZFetchAttributesRequired(pProperties | fMessageProperties.uid), null, lContext);
+            var lTask = ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUID), ZFetchAttributesRequired(pProperties), null, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             var lResult = lTask.Result;
             if (lResult.Count == 0) return null;
@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
         public async Task<cMessage> MessageAsync(iMailboxHandle pHandle, cUID pUID, fMessageProperties pProperties)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessageAsync));
-            var lResult = await ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUID), ZFetchAttributesRequired(pProperties | fMessageProperties.uid), null, lContext).ConfigureAwait(false);
+            var lResult = await ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUID), ZFetchAttributesRequired(pProperties), null, lContext).ConfigureAwait(false);
             if (lResult.Count == 0) return null;
             if (lResult.Count == 1) return lResult[0];
             throw new cInternalErrorException(lContext);
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
         public List<cMessage> Messages(iMailboxHandle pHandle, IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));
-            var lTask = ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUIDs), ZFetchAttributesRequired(pProperties | fMessageProperties.uid), pFC, lContext);
+            var lTask = ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUIDs), ZFetchAttributesRequired(pProperties), pFC, lContext);
             mEventSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
         public Task<List<cMessage>> MessagesAsync(iMailboxHandle pHandle, IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessagesAsync));
-            return ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUIDs), ZFetchAttributesRequired(pProperties | fMessageProperties.uid), pFC, lContext);
+            return ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUIDs), ZFetchAttributesRequired(pProperties), pFC, lContext);
         }
 
         private cUIDList ZMessageUIDs(cUID pUID)

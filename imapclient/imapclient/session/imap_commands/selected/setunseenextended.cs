@@ -26,6 +26,8 @@ namespace work.bacome.imapclient
 
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
+                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+
                     lBuilder.Add(kSetUnseenExtendedCommandPart);
 
                     var lHook = new cSetUnseenExtendedCommandHook(lBuilder.Tag, lSelectedMailbox);

@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
                 private readonly CancellationTokenSource mBackgroundCancellationTokenSource = new CancellationTokenSource(); 
                 private readonly cMethodControl mBackgroundMC;
                 private readonly cReleaser mBackgroundReleaser;
-                private readonly cTerminator mBackgroundTerminator;
+                private readonly cAwaiter mBackgroundAwaiter;
                 private readonly Task mBackgroundTask; // background task
                 private Exception mBackgroundTaskException = null;
 
@@ -70,7 +70,7 @@ namespace work.bacome.imapclient
 
                     mBackgroundMC = new cMethodControl(System.Threading.Timeout.Infinite, mBackgroundCancellationTokenSource.Token);
                     mBackgroundReleaser = new cReleaser("commandpipeline_background", mBackgroundCancellationTokenSource.Token);
-                    mBackgroundTerminator = new cTerminator(mBackgroundCancellationTokenSource.Token);
+                    mBackgroundAwaiter = new cAwaiter(mBackgroundCancellationTokenSource.Token);
                     mBackgroundTask = ZBackgroundTaskAsync(lContext);
 
                     mIdleBlock.Released += mBackgroundReleaser.Release; // when the idle block is removed, kick the background process
@@ -78,6 +78,15 @@ namespace work.bacome.imapclient
 
                 public void Install(iResponseDataParser pResponseDataParser) => mResponseDataParsers.Add(pResponseDataParser);
                 public void Install(cUnsolicitedDataProcessor pUnsolicitedDataProcessor) => mUnsolicitedDataProcessors.Add(pUnsolicitedDataProcessor);
+
+                public void SetCapability(cCapabilities pCapabilities, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetCapability));
+                    if (mMailboxCache != null) throw new InvalidOperationException();
+                    if (pCapabilities == null) throw new ArgumentNullException(nameof(pCapabilities));
+                    mLiteralPlus = pCapabilities.LiteralPlus;
+                    mLiteralMinus = pCapabilities.LiteralMinus;
+                }
 
                 public void Enable(cMailboxCache pMailboxCache, cCapabilities pCapabilities, cTrace.cContext pParentContext)
                 {
@@ -205,6 +214,12 @@ namespace work.bacome.imapclient
                         lContext.TraceInformation("the pipeline is stopping as requested");
                         mBackgroundTaskException = new cPipelineStoppedException(lContext);
                     }
+                    catch (AggregateException e)
+                    {
+                        var lException = e.Flatten();
+                        if (lException.InnerExceptions.Count == 1) mBackgroundTaskException = new cPipelineStoppedException(lException.InnerExceptions[0], lContext);
+                        else mBackgroundTaskException = new cPipelineStoppedException(e, lContext);
+                    }
                     catch (Exception e)
                     {
                         lContext.TraceException("the pipeline is stopping due to an unexpected exception", e);
@@ -288,8 +303,8 @@ namespace work.bacome.imapclient
                     // the current command can be added to the list of active commands now
                     lock (mPipelineLock)
                     {
-                        mCurrentCommand.SetActive(lContext);
                         mActiveCommands.Add(mCurrentCommand);
+                        mCurrentCommand.SetActive(lContext);
                         mCurrentCommand = null;
                     }
 
@@ -313,8 +328,8 @@ namespace work.bacome.imapclient
                                 if (lCommand.UIDValidity != null && lCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity) lCommand.SetException(new cUIDValidityChangedException(lContext), lContext);
                                 else
                                 {
-                                    lCommand.SetCurrent(lContext);
                                     mCurrentCommand = lCommand;
+                                    lCommand.SetCurrent(lContext);
                                     break;
                                 }
                             }
@@ -377,7 +392,7 @@ namespace work.bacome.imapclient
                         lContext.TraceVerbose("waiting");
 
                         Task lBuildResponseTask = mConnection.GetBuildResponseTask(lContext);
-                        Task lCompleted = await mBackgroundTerminator.AwaitAny(lBuildResponseTask, pMonitorTasks).ConfigureAwait(false);
+                        Task lCompleted = await mBackgroundAwaiter.AwaitAny(lBuildResponseTask, pMonitorTasks).ConfigureAwait(false);
                         if (!ReferenceEquals(lCompleted, lBuildResponseTask)) return lCompleted;
 
                         var lLines = mConnection.GetResponse(lContext);
@@ -584,7 +599,7 @@ namespace work.bacome.imapclient
                         lContext.TraceVerbose("waiting");
 
                         Task lBuildResponseTask = mConnection.GetBuildResponseTask(lContext);
-                        Task lCompleted = await mBackgroundTerminator.AwaitAny(lBuildResponseTask, pMonitorTasks).ConfigureAwait(false);
+                        Task lCompleted = await mBackgroundAwaiter.AwaitAny(lBuildResponseTask, pMonitorTasks).ConfigureAwait(false);
                         if (!ReferenceEquals(lCompleted, lBuildResponseTask)) return lCompleted;
 
                         var lLines = mConnection.GetResponse(lContext);
@@ -887,9 +902,9 @@ namespace work.bacome.imapclient
                         catch { }
                     }
 
-                    if (mBackgroundTerminator != null)
+                    if (mBackgroundAwaiter != null)
                     {
-                        try { mBackgroundTerminator.Dispose(); }
+                        try { mBackgroundAwaiter.Dispose(); }
                         catch { }
                     }
 

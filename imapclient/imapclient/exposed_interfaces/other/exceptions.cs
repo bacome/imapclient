@@ -223,6 +223,7 @@ namespace work.bacome.imapclient
     // thrown when the UIDValidity changed while doing something that depended on it not changing
     public class cUIDValidityChangedException : cIMAPException
     {
+        public cUIDValidityChangedException() { }
         public cUIDValidityChangedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityChangedException));
     }
 

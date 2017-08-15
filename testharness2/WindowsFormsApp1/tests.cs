@@ -20,7 +20,8 @@ namespace testharness2
         {
             // quickly get to the test I'm working on
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(CurrentTest));
-            cIMAPClient._Tests(lContext);
+            //cIMAPClient._Tests(lContext);
+            ZTestUIDFetch1(lContext);
         }
 
         [Conditional("DEBUG")]
@@ -63,6 +64,8 @@ namespace testharness2
 
 
                 ZTestSearch1(lContext);
+                ZTestSearch2(lContext);
+                ZTestSearch3(lContext);
                 if (!pQuick) ZTestIdleRestart(lContext);
                 ZTestUIDFetch1(lContext);
             }
@@ -354,7 +357,7 @@ namespace testharness2
 
             cIMAPClient lClient = new cIMAPClient("ZTestPreauthAtStartup1_3_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cIdDictionary lClientId = new cIdDictionary();
             lClientId.Name = "fr€d";
@@ -362,7 +365,7 @@ namespace testharness2
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
             lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "ID command completed");
+            //lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "ID command completed");
             lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged in");
             lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "enable done");
             lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "ID command completed");
@@ -567,7 +570,7 @@ namespace testharness2
 
             cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup2_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
             lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
@@ -619,7 +622,7 @@ namespace testharness2
 
             cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup3_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
             lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
@@ -677,7 +680,7 @@ namespace testharness2
 
             cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup4_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
             lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
@@ -729,11 +732,11 @@ namespace testharness2
 
             cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup4_1_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
             lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.failure, eResponseTextCode.none, "Specified user is invalid on this server.Try SERVER2.");
+            lExpecter.Expect(eResponseTextType.failure, eResponseTextCode.referral, "Specified user is invalid on this server.Try SERVER2.");
             lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
             lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
 
@@ -785,7 +788,7 @@ namespace testharness2
 
             cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup4_2_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
             lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
@@ -856,7 +859,7 @@ namespace testharness2
 
             cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup5_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
             lClient.IdleConfiguration = new cIdleConfiguration(2000, 10000);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
@@ -928,7 +931,7 @@ namespace testharness2
 
             cIMAPClient lClient = new cIMAPClient("ZTestAuthAtStartup5_1_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             Task lTask = null;
 
@@ -1025,7 +1028,7 @@ namespace testharness2
 
             cIMAPClient lClient = new cIMAPClient("ZTestLiteralMinusWorker_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials(pUserId, pPassword);
+            lClient.SetPlainCredentials(pUserId, pPassword, eTLSRequirement.indifferent);
 
             Task lTask = null;
 
@@ -1085,7 +1088,7 @@ namespace testharness2
 
             cIMAPClient lClient = new cIMAPClient("ZTestNonIdlePolling_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
             lClient.IdleConfiguration = new cIdleConfiguration(2000, 1200000, 7000);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
@@ -1441,7 +1444,7 @@ namespace testharness2
 
             lClient = new cIMAPClient("ZTestAuth2_1_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             lTask = null;
 
@@ -1489,7 +1492,7 @@ namespace testharness2
 
             lClient = new cIMAPClient("ZTestAuth2_1_cIMAPClient");
             lClient.SetServer("localhost");
-            lClient.SetPlainCredentials("fred", "angus");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             lTask = null;
 
@@ -1536,6 +1539,10 @@ namespace testharness2
             lServer.AddSendData("* SEARCH 2 84 172\r\n");
             lServer.AddSendTagged("OK SEARCH completed\r\n");
 
+            lServer.AddExpectTagged("SEARCH UNSEEN\r\n");
+            lServer.AddSendData("* SEARCH 2 84 172\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
             lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
             lServer.AddSendData("* STATUS blurdybloop (MESSAGES 231 UIDNEXT 44292)\r\n");
             lServer.AddSendTagged("OK STATUS completed\r\n");
@@ -1554,22 +1561,20 @@ namespace testharness2
             lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
             lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
             lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
-            lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
+            //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
             lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
 
 
-            lServer.AddExpectTagged("SEARCH RETURN () UNSEEN\r\n");
-            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 2,10:11\r\n");
-            lServer.AddSendData("* CAPABILITY IMAP4rev1\r\n");
+            lServer.AddExpectTagged("SEARCH UNSEEN\r\n");
+            lServer.AddSendData("* SEARCH 2 10 11\r\n");
             lServer.AddSendTagged("OK SEARCH completed\r\n");
 
             lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
             lServer.AddSendData("* SEARCH 15 16 17\r\n");
-            lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
             lServer.AddSendTagged("OK SEARCH completed\r\n");
 
-            lServer.AddExpectTagged("SEARCH RETURN () SINCE 8-JUN-2017\r\n");
-            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 15:17\r\n");
+            lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
+            lServer.AddSendData("* SEARCH 15 16 17\r\n");
             lServer.AddSendData("* 16 FETCH (INTERNALDATE \"08-JUN-2017 08:09:16 -1200\")\r\n");
             lServer.AddSendTagged("OK SEARCH completed\r\n");
 
@@ -1579,7 +1584,6 @@ namespace testharness2
 
             lServer.AddExpectTagged("FETCH 17 INTERNALDATE\r\n");
             lServer.AddSendData("* 17 FETCH (INTERNALDATE \"08-JUN-2017 08:09:17 -1200\")\r\n");
-            lServer.AddSendData("* CAPABILITY IMAP4rev1\r\n");
             lServer.AddSendTagged("OK FETCH completed\r\n");
 
             lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
@@ -1590,12 +1594,13 @@ namespace testharness2
             lServer.AddSendData("* 12 FETCH (INTERNALDATE \"08-JUN-2017 08:09:12 -1200\")\r\n");
             lServer.AddSendData("* 14 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
             lServer.AddSendData("* 13 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
-            lServer.AddSendData("* CAPABILITY IMAP4rev1 SORT\r\n");
+            //lServer.AddSendData("* CAPABILITY IMAP4rev1 SORT\r\n");
             lServer.AddSendTagged("OK FETCH completed\r\n");
 
+            /*
             lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 7-JUN-2017\r\n");
             lServer.AddSendData("* SORT 17 16 15 13 14 12\r\n");
-            lServer.AddSendTagged("OK SORT completed\r\n");
+            lServer.AddSendTagged("OK SORT completed\r\n"); 
 
 
             lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
@@ -1614,7 +1619,7 @@ namespace testharness2
             lServer.AddSendTagged("OK SEARCH completed\r\n");
             lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
             lServer.AddSendData("* SEARCH 15 16 17\r\n");
-            lServer.AddSendTagged("OK SEARCH completed\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n"); */
 
 
 
@@ -1637,9 +1642,9 @@ namespace testharness2
                 cMailbox lMailbox;
                 List<cMessage> lMessageList;
                 cMessage lMessage;
-                Task<List<cMessage>> lTask1;
+                /*Task<List<cMessage>> lTask1;
                 Task<List<cMessage>> lTask2;
-                Task<List<cMessage>> lTask3;
+                Task<List<cMessage>> lTask3; */
 
 
                 lTask = lServer.RunAsync(lContext);
@@ -1664,8 +1669,13 @@ namespace testharness2
 
                 if (!lClient.Inbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch1.6");
 
+                bool lFailed = false;
+                try { lClient.Inbox.SetUnseen(); }
+                catch (cUIDValidityChangedException) { lFailed = true; }
+                if (!lFailed) throw new cTestsException("ZTestSearch1.7");
+
                 lClient.Inbox.SetUnseen();
-                if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 4392 || lClient.Inbox.UIDValidity != 3857529046 || lClient.Inbox.UnseenCount != 3 || lClient.Inbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch1.8");
+                if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 0 || lClient.Inbox.UIDNextUnknownCount != 172 || lClient.Inbox.UIDValidity != 3857529046 || lClient.Inbox.UnseenCount != 3 || lClient.Inbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch1.8");
 
                 lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
                 if (lMailbox.IsSelected) throw new cTestsException("ZTestSearch2.1");
@@ -1712,13 +1722,268 @@ namespace testharness2
                 if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
                     lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch5.2");
 
-
+                /*
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
 
                 if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch6.1");
                 if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
                     lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch6.2");
+                    
 
+                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+
+                Task.WaitAll(lTask1, lTask2);
+
+                lMessageList = lTask1.Result;
+                if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch7.1");
+
+                lMessageList = lTask2.Result;
+                if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch7.2"); 
+
+
+                // this checks that the search commands lock one another out ...
+
+                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8));
+                lTask3 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+
+                Task.WaitAll(lTask1, lTask2, lTask3); */
+
+
+
+
+
+
+                lClient.Disconnect();
+
+                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
+                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+            }
+            finally
+            {
+                ZFinally(lServer, lClient, lTask);
+            }
+
+        }
+
+        private static void ZTestSearch2(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestSearch2));
+
+            cServer lServer = new cServer();
+            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 ESEARCH] this is the text\r\n");
+            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+            lServer.AddSendData("* LIST () nil \"\"\r\n");
+            lServer.AddSendTagged("OK LIST command completed\r\n");
+
+            lServer.AddExpectTagged("SELECT INBOX\r\n");
+            lServer.AddSendData("* 172 EXISTS\r\n");
+            lServer.AddSendData("* 1 RECENT\r\n");
+            lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
+            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+            lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
+            lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
+
+            lServer.AddExpectTagged("SEARCH RETURN () UNSEEN\r\n");
+            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 2,10:11\r\n");
+            lServer.AddSendData("* OK [UIDVALIDITY 3857529046] clear cache\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+            lServer.AddExpectTagged("SEARCH RETURN () UNSEEN\r\n");
+            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 2,10:11\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
+            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 231 UIDNEXT 44292)\r\n");
+            lServer.AddSendTagged("OK STATUS completed\r\n");
+
+            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
+            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 232 UNSEEN 3)\r\n");
+            lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44293)\r\n");
+            lServer.AddSendTagged("OK STATUS completed\r\n");
+
+
+            lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
+            lServer.AddSendData("* 17 EXISTS\r\n");
+            lServer.AddSendData("* 2 RECENT\r\n");
+            lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
+            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+            lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+            //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
+            lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+
+            lServer.AddExpectTagged("SEARCH RETURN () UNSEEN\r\n");
+            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 2,10:11\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+            lServer.AddExpectTagged("SEARCH RETURN () SINCE 8-JUN-2017\r\n");
+            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 15:17\r\n");
+            //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+            lServer.AddExpectTagged("SEARCH RETURN () SINCE 8-JUN-2017\r\n");
+            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 15:17\r\n");
+            lServer.AddSendData("* 16 FETCH (INTERNALDATE \"08-JUN-2017 08:09:16 -1200\")\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+            lServer.AddExpectTagged("FETCH 15 INTERNALDATE\r\n");
+            lServer.AddSendData("* 15 FETCH (INTERNALDATE \"08-JUN-2017 08:09:15 -1200\")\r\n");
+            lServer.AddSendTagged("OK FETCH completed\r\n");
+
+            lServer.AddExpectTagged("FETCH 17 INTERNALDATE\r\n");
+            lServer.AddSendData("* 17 FETCH (INTERNALDATE \"08-JUN-2017 08:09:17 -1200\")\r\n");
+            //lServer.AddSendData("* CAPABILITY IMAP4rev1\r\n");
+            lServer.AddSendTagged("OK FETCH completed\r\n");
+
+            lServer.AddExpectTagged("SEARCH RETURN () SINCE 7-JUN-2017\r\n");
+            lServer.AddSendData("* ESEARCH (TAG \"\t\") ALL 12:17\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+            lServer.AddExpectTagged("FETCH 12:14 INTERNALDATE\r\n");
+            lServer.AddSendData("* 12 FETCH (INTERNALDATE \"08-JUN-2017 08:09:12 -1200\")\r\n");
+            lServer.AddSendData("* 14 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
+            lServer.AddSendData("* 13 FETCH (INTERNALDATE \"08-JUN-2017 08:09:14 -1200\")\r\n");
+            //lServer.AddSendData("* CAPABILITY IMAP4rev1 SORT\r\n");
+            lServer.AddSendTagged("OK FETCH completed\r\n");
+
+            /*
+            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 7-JUN-2017\r\n");
+            lServer.AddSendData("* SORT 17 16 15 13 14 12\r\n");
+            lServer.AddSendTagged("OK SORT completed\r\n"); 
+
+
+            lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
+            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
+            lServer.AddSendData("* SORT 17 16 15\r\n");
+            lServer.AddSendTagged("OK SORT completed\r\n");
+            lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+            lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
+            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
+            lServer.AddSendData("* SORT 17 16 15\r\n");
+            lServer.AddSendTagged("OK SORT completed\r\n");
+            lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+            lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
+            lServer.AddSendData("* SEARCH 15 16 17\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");*/
+
+
+
+            lServer.AddExpectTagged("LOGOUT\r\n");
+            lServer.AddSendData("* BYE logging out\r\n");
+            lServer.AddSendTagged("OK logged out\r\n");
+            lServer.AddExpectClose();
+
+
+            cIMAPClient lClient = new cIMAPClient("ZTestSearch2_cIMAPClient");
+            lClient.SetServer("localhost");
+            lClient.SetNoCredentials();
+            lClient.IdleConfiguration = null;
+
+            Task lTask = null;
+
+            try
+            {
+                cMessageFlags lFlags;
+                cMailbox lMailbox;
+                List<cMessage> lMessageList;
+                cMessage lMessage;
+                /*Task<List<cMessage>> lTask1;
+                Task<List<cMessage>> lTask2;
+                Task<List<cMessage>> lTask3; */
+
+
+                lTask = lServer.RunAsync(lContext);
+
+                lClient.MailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount | fMailboxCacheData.uidnext;
+
+                lClient.Connect();
+
+                if (lClient.Inbox.IsSelected) throw new cTestsException("ZTestSearch2_1.1");
+
+                lClient.Inbox.Select(true);
+
+                if (!lClient.Inbox.IsSelected) throw new cTestsException("ZTestSearch2_1.2");
+
+                if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 4392 || lClient.Inbox.UIDValidity != 3857529045 || lClient.Inbox.UnseenCount != 0 || lClient.Inbox.UnseenUnknownCount != 172) throw new cTestsException("ZTestSearch1.3");
+
+                lFlags = lClient.Inbox.MessageFlags;
+                if (lFlags.Count != 5 || !lFlags.ContainsAnswered || !lFlags.ContainsFlagged || !lFlags.ContainsDeleted || !lFlags.ContainsSeen || !lFlags.ContainsDraft) throw new cTestsException("ZTestSearch2_1.4");
+
+                lFlags = lClient.Inbox.ForUpdatePermanentFlags;
+                if (lFlags.Count != 3 || !lFlags.ContainsDeleted || !lFlags.ContainsSeen || !lFlags.ContainsCreateNewPossible || lFlags.ContainsDraft || lFlags.ContainsFlagged) throw new cTestsException("ZTestSearch2_1.5");
+
+                if (!lClient.Inbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch2_1.6");
+
+                bool lFailed = false;
+                try { lClient.Inbox.SetUnseen(); }
+                catch (cUIDValidityChangedException) { lFailed = true; }
+                if (!lFailed) throw new cTestsException("ZTestSearch2_1.7");
+
+                lClient.Inbox.SetUnseen();
+                if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 0 || lClient.Inbox.UIDNextUnknownCount != 172 || lClient.Inbox.UIDValidity != 3857529046 || lClient.Inbox.UnseenCount != 3 || lClient.Inbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch2_1.8");
+
+                lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
+                if (lMailbox.IsSelected) throw new cTestsException("ZTestSearch2_2.1");
+
+                if (lMailbox.MessageCount != 231 || lMailbox.UIDNext != 44292) throw new cTestsException("ZTestSearch2_2.2");
+
+                lMailbox.Fetch(fMailboxCacheDataSets.status);
+                if (lMailbox.MessageCount != 232 || lMailbox.UnseenCount != 3 || lMailbox.UIDNext != 44293) throw new cTestsException("ZTestSearch2_2.3");
+
+                lMailbox.Select();
+                if (lClient.Inbox.IsSelected || !lMailbox.IsSelected) throw new cTestsException("ZTestSearch2_3.1");
+
+                if (lMailbox.MessageCount != 17 || lMailbox.RecentCount != 2 || lMailbox.UIDNext != 4392 || lMailbox.UIDValidity != 3857529045 || lMailbox.UnseenCount != 0 || lMailbox.UnseenUnknownCount != 17) throw new cTestsException("ZTestSearch2_3.2");
+
+                lFlags = lMailbox.MessageFlags;
+                if (lFlags.Count != 5 || !lFlags.ContainsAnswered || !lFlags.ContainsFlagged || !lFlags.ContainsDeleted || !lFlags.ContainsSeen || !lFlags.ContainsDraft) throw new cTestsException("ZTestSearch2_3.3");
+
+                lFlags = lMailbox.ReadOnlyPermanentFlags;
+                if (lFlags.Count != 0) throw new cTestsException("ZTestSearch2_3.4");
+
+                if (lMailbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch2_3.5");
+
+                lMailbox.SetUnseen();
+                if (lMailbox.UnseenCount != 3 || lMailbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch2_3.7");
+
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));
+                if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch2_4.1");
+
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageProperties.received);
+                if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch2_4.2");
+                foreach (var lItem in lMessageList) if (lItem.Indent != -1) throw new cTestsException("ZTestSearch2_4.3");
+
+                lMessage = lMessageList[0];
+
+                if (lMessage.IsExpunged || lMessage.Handle.Attributes != fFetchAttributes.received) throw new cTestsException("ZTestSearch2_4.4");
+                if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch2_4.5");
+
+
+
+
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
+
+                if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch2_5.1");
+                if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
+                    lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch2_5.2");
+
+                /*
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
+
+                if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch6.1");
+                if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
+                    lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch6.2");
+                    
 
                 lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
                 lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
@@ -1730,6 +1995,153 @@ namespace testharness2
 
                 lMessageList = lTask2.Result;
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch7.2");
+
+
+                // this checks that the search commands lock one another out ...
+
+                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8));
+                lTask3 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+
+                Task.WaitAll(lTask1, lTask2, lTask3);*/
+
+
+
+
+
+
+                lClient.Disconnect();
+
+                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
+                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+            }
+            finally
+            {
+                ZFinally(lServer, lClient, lTask);
+            }
+
+        }
+
+        private static void ZTestSearch3(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestSearch3));
+
+            cServer lServer = new cServer();
+            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 SORT] this is the text\r\n");
+            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+            lServer.AddSendData("* LIST () nil \"\"\r\n");
+            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 231 UNSEEN 0)\r\n");
+            lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44292)\r\n");
+            lServer.AddSendTagged("OK LIST command completed\r\n");
+
+            lServer.AddExpectTagged("STATUS blurdybloop (MESSAGES UIDNEXT UNSEEN)\r\n");
+            lServer.AddSendData("* STATUS blurdybloop (MESSAGES 232 UNSEEN 3)\r\n");
+            lServer.AddSendData("* STATUS blurdybloop (UIDNEXT 44293)\r\n");
+            lServer.AddSendTagged("OK STATUS completed\r\n");
+
+
+            lServer.AddExpectTagged("EXAMINE blurdybloop\r\n");
+            lServer.AddSendData("* 17 EXISTS\r\n");
+            lServer.AddSendData("* 2 RECENT\r\n");
+            lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
+            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+            lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+            lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 7-JUN-2017\r\n");
+            lServer.AddSendData("* SORT 17 16 15 13 14 12\r\n");
+            lServer.AddSendTagged("OK SORT completed\r\n");
+
+
+            lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
+            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
+            lServer.AddSendData("* SORT 17 16 15\r\n");
+            lServer.AddSendTagged("OK SORT completed\r\n");
+            lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+            lServer.AddExpectTagged("SEARCH SINCE 7-JUN-2017\r\n");
+            lServer.AddExpectTagged("SORT (REVERSE ARRIVAL) US-ASCII SINCE 8-JUN-2017\r\n");
+            lServer.AddSendData("* SORT 17 16 15\r\n");
+            lServer.AddSendTagged("OK SORT completed\r\n");
+            lServer.AddSendData("* SEARCH 15 16 17 14 13 12\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+            lServer.AddExpectTagged("SEARCH SINCE 8-JUN-2017\r\n");
+            lServer.AddSendData("* SEARCH 15 16 17\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+
+            lServer.AddExpectTagged("LOGOUT\r\n");
+            lServer.AddSendData("* BYE logging out\r\n");
+            lServer.AddSendTagged("OK logged out\r\n");
+            lServer.AddExpectClose();
+
+
+            cIMAPClient lClient = new cIMAPClient("ZTestSearch3_cIMAPClient");
+            lClient.SetServer("localhost");
+            lClient.SetNoCredentials();
+            lClient.IdleConfiguration = null;
+
+            Task lTask = null;
+
+            try
+            {
+                cMessageFlags lFlags;
+                cMailbox lMailbox;
+                List<cMessage> lMessageList;
+                Task<List<cMessage>> lTask1;
+                Task<List<cMessage>> lTask2;
+                Task<List<cMessage>> lTask3;
+
+
+                lTask = lServer.RunAsync(lContext);
+
+                lClient.MailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount | fMailboxCacheData.uidnext;
+
+                lClient.Connect();
+
+                lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
+                if (lMailbox.IsSelected) throw new cTestsException("ZTestSearch3_2.1");
+
+                if (lMailbox.MessageCount != 231 || lMailbox.UIDNext != 44292) throw new cTestsException("ZTestSearch3_2.2");
+
+                lMailbox.Fetch(fMailboxCacheDataSets.status);
+                if (lMailbox.MessageCount != 232 || lMailbox.UnseenCount != 3 || lMailbox.UIDNext != 44293) throw new cTestsException("ZTestSearch3_2.3");
+
+                lMailbox.Select();
+                if (lClient.Inbox.IsSelected || !lMailbox.IsSelected) throw new cTestsException("ZTestSearch3_3.1");
+
+                if (lMailbox.MessageCount != 17 || lMailbox.RecentCount != 2 || lMailbox.UIDNext != 4392 || lMailbox.UIDValidity != 3857529045 || lMailbox.UnseenCount != 0 || lMailbox.UnseenUnknownCount != 17) throw new cTestsException("ZTestSearch3_3.2");
+
+                lFlags = lMailbox.MessageFlags;
+                if (lFlags.Count != 5 || !lFlags.ContainsAnswered || !lFlags.ContainsFlagged || !lFlags.ContainsDeleted || !lFlags.ContainsSeen || !lFlags.ContainsDraft) throw new cTestsException("ZTestSearch3_3.3");
+
+                lFlags = lMailbox.ReadOnlyPermanentFlags;
+                if (lFlags.Count != 0) throw new cTestsException("ZTestSearch3_3.4");
+
+                if (lMailbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch3_3.5");
+
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
+
+                if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch3_6.1");
+                if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
+                    lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch3_6.2");
+
+
+                lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
+                lTask2 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 8), new cSort(cSortItem.ReceivedDesc));
+
+                Task.WaitAll(lTask1, lTask2);
+
+                lMessageList = lTask1.Result;
+                if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch3_7.1");
+
+                lMessageList = lTask2.Result;
+                if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch3_7.2");
 
 
                 // this checks that the search commands lock one another out ...
@@ -1824,11 +2236,11 @@ namespace testharness2
             lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
             lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
             lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
-            lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
+            //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
             lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
 
-            lServer.AddExpectTagged("SEARCH RETURN () UID 4392:*\r\n");
-            lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
+            lServer.AddExpectTagged("SEARCH UID 4392:*\r\n");
+            lServer.AddSendData("* SEARCH\r\n");
             lServer.AddSendTagged("OK SEARCH completed\r\n");
 
 
@@ -1863,17 +2275,20 @@ namespace testharness2
 
                 if (lClient.Inbox.MessageCount != 171) throw new cTestsException("ZTestIdleRestart1.2");
 
-                lMessages[1].Fetch(fMessageProperties.uid); // this should retrieve nothing (as the message has been deleted), but idle should stop
+                try { lMessages[1].Fetch(fMessageProperties.uid); } // this should retrieve nothing (as the message has been deleted), but idle should stop
+                catch (cFetchFailedException) { }
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched by this, as message 2 was 168 which should now be gone
                 //  1 should be UID fetched, 3 should be a normal fetch
-                lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.received, null);
+                try { lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.received, null); }
+                catch (cFetchFailedException) { }
 
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
-                lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.flags, null);
+                try { lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.flags, null); }
+                catch (cFetchFailedException) { }
 
 
                 cMailbox lMailbox;
@@ -1910,11 +2325,11 @@ namespace testharness2
 
                 if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
                 if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
-            }
-            finally
-            {
-                ZFinally(lServer, lClient, lTask);
-            }
+                }
+                finally
+                {
+                    ZFinally(lServer, lClient, lTask);
+                }
         }
 
         private static void ZTestUIDFetch1(cTrace.cContext pParentContext)

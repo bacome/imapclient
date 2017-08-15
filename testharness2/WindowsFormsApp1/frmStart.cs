@@ -15,6 +15,7 @@ namespace testharness2
     {
         private cTrace.cContext mRootContext = Program.Trace.NewRoot(nameof(frmStart), true);
         private int mTimer = 7;
+        private int mInstanceNumber = 7;
 
         public frmStart()
         {
@@ -29,27 +30,46 @@ namespace testharness2
 
         private void cmdCreate_Click(object sender, EventArgs e)
         {
-            // TODO
+            string lInstanceName = txtInstanceName.Text.Trim();
+            if (lInstanceName.Length == 0) lInstanceName = "Client_" + (++mInstanceNumber).ToString();
+            var lClient = new frmClient(lInstanceName);
+            lClient.Show();
         }
 
         private void cmdTests_Click(object sender, EventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(frmStart), nameof(cmdTests_Click));
-            try { cTests.Tests(false, lContext); }
+
+            try
+            {
+                cTests.Tests(false, lContext);
+                MessageBox.Show("all tests passed");
+            }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void cmdQuickTests_Click(object sender, EventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(frmStart), nameof(cmdQuickTests_Click));
-            try { cTests.Tests(true, lContext); }
+
+            try
+            {
+                cTests.Tests(true, lContext);
+                MessageBox.Show("quick tests passed");
+            }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
 
         private void cmdCurrentTest_Click(object sender, EventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(frmStart), nameof(cmdCurrentTest_Click));
-            try { cTests.CurrentTest(lContext); }
+
+            try
+            {
+                cTests.CurrentTest(lContext);
+                MessageBox.Show("current test passed");
+
+            }
             catch (Exception ex) { MessageBox.Show(ex.ToString()); }
         }
     }

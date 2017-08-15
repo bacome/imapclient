@@ -479,7 +479,7 @@ namespace work.bacome.imapclient
                     if (mEmitted) throw new InvalidOperationException();
                     if (pUIDValidity == null) return;
                     if (mUIDValidity == null) mUIDValidity = pUIDValidity;
-                    else if (pUIDValidity != mUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
+                    else if (pUIDValidity != mUIDValidity) throw new cUIDValidityChangedException();
                 }
 
                 public void Add(cCommandHook pHook)

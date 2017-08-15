@@ -27,10 +27,12 @@ namespace work.bacome.imapclient
 
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
+                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+
                     lBuilder.Add(kSortExtendedCommandPart);
                     lBuilder.Add(pSort);
                     lBuilder.Add(cCommandPart.Space);
-                    lBuilder.Add(pFilter, true, mEncodingPartFactory); // if the filter has UIDs in it, this makes the command sensitive to UIDValidity changes
+                    lBuilder.Add(pFilter, true, mEncodingPartFactory);
 
                     var lHook = new cCommandHookSearchExtended(lBuilder.Tag, lSelectedMailbox, true);
                     lBuilder.Add(lHook);

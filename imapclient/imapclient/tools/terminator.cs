@@ -6,53 +6,24 @@ using System.Threading.Tasks;
 
 namespace work.bacome.async
 { 
-    public sealed class cTerminator : IDisposable
+    public sealed class cAwaiter : IDisposable
     {
         private bool mDisposed = false;
         private readonly CancellationTokenSource mDisposeCancellationTokenSource = new CancellationTokenSource();
         private readonly CancellationTokenSource mLinkedCancellationTokenSource;
         private readonly Task mTask;
 
-        public cTerminator(cMethodControl pMC)
+        public cAwaiter(cMethodControl pMC)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pMC.CancellationToken);
             mTask = Task.Delay(pMC.Timeout, mLinkedCancellationTokenSource.Token);
         }
 
-        public cTerminator(CancellationToken pCancellationToken)
+        public cAwaiter(CancellationToken pCancellationToken)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pCancellationToken);
             mTask = Task.Delay(Timeout.Infinite, mLinkedCancellationTokenSource.Token);
         }
-
-        /*
-        public Task GetAwaitTerminationTask()
-        {
-            if (mDisposed) throw new ObjectDisposedException(nameof(cTerminator));
-            return mTask;
-        }
-
-        public bool Terminated()
-        {
-            if (mDisposed) throw new ObjectDisposedException(nameof(cTerminator));
-            return mTask.IsCompleted;
-        }
-
-        public bool Throw()
-        {
-            if (mDisposed) throw new ObjectDisposedException(nameof(cTerminator));
-            if (!mTask.IsCompleted) throw new InvalidOperationException();
-            if (mTask.IsCanceled) throw new OperationCanceledException();
-            throw new TimeoutException();
-        }
-
-        public void ThrowIfTerminated()
-        {
-            if (mDisposed) throw new ObjectDisposedException(nameof(cTerminator));
-            if (!mTask.IsCompleted) return;
-            if (mTask.IsCanceled) throw new OperationCanceledException();
-            throw new TimeoutException();
-        } */
 
         public async Task<Task> AwaitAny(Task pTask, params Task[] pTasks)
         {
@@ -93,13 +64,13 @@ namespace work.bacome.async
 
             if (lTasks.Count == 0) return;
 
-            using (var lTerminator = new cTerminator(pMC))
+            using (var lAwaiter = new cAwaiter(pMC))
             {
-                Task lCompleted = await Task.WhenAny(lTerminator.mTask, Task.WhenAll(lTasks)).ConfigureAwait(false);
+                Task lCompleted = await Task.WhenAny(lAwaiter.mTask, Task.WhenAll(lTasks)).ConfigureAwait(false);
 
-                if (ReferenceEquals(lCompleted, lTerminator.mTask))
+                if (ReferenceEquals(lCompleted, lAwaiter.mTask))
                 {
-                    if (lTerminator.mTask.IsCanceled) throw new OperationCanceledException();
+                    if (lAwaiter.mTask.IsCanceled) throw new OperationCanceledException();
                     throw new TimeoutException();
                 }
 

@@ -56,6 +56,8 @@ namespace work.bacome.imapclient
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                 }
 
+                public void Install(iResponseTextCodeParser pResponseTextCodeParser) => mResponseTextCodeParsers.Add(pResponseTextCodeParser);
+
                 public void Enable(cMailboxCache pMailboxCache, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(Enable));
