@@ -14,7 +14,6 @@ namespace work.bacome.imapclient
             {
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly fMailboxCacheData mMailboxCacheData;
-                private readonly cAccountId mConnectedAccountId;
                 private readonly cCommandPartFactory mCommandPartFactory;
                 private readonly cCapabilities mCapabilities;
                 private readonly Action<eConnectionState, cTrace.cContext> mSetState;
@@ -23,11 +22,10 @@ namespace work.bacome.imapclient
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cEventSynchroniser pEventSynchroniser, fMailboxCacheData pMailboxCacheData, cAccountId pConnectedAccountId, cCommandPartFactory pCommandPartFactory, cCapabilities pCapabilities, Action<eConnectionState, cTrace.cContext> pSetState)
+                public cMailboxCache(cEventSynchroniser pEventSynchroniser, fMailboxCacheData pMailboxCacheData, cCommandPartFactory pCommandPartFactory, cCapabilities pCapabilities, Action<eConnectionState, cTrace.cContext> pSetState)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mMailboxCacheData = pMailboxCacheData;
-                    mConnectedAccountId = pConnectedAccountId ?? throw new ArgumentNullException(nameof(pConnectedAccountId));
                     mCommandPartFactory = pCommandPartFactory ?? throw new ArgumentNullException(nameof(pCommandPartFactory));
                     mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
                     mSetState = pSetState ?? throw new ArgumentNullException(nameof(pSetState));

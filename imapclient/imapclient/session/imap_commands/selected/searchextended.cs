@@ -28,10 +28,10 @@ namespace work.bacome.imapclient
 
                     if (pFilter == null) return new cMessageHandleList(lSelectedMailbox.Cache); // special case
 
-                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity); // if a UIDValidity change happens while the command is running, disbelieve the results
 
                     lBuilder.Add(kSearchExtendedCommandPart);
-                    lBuilder.Add(pFilter, false, mEncodingPartFactory);
+                    lBuilder.Add(pFilter, lSelectedMailbox, false, mEncodingPartFactory);
 
                     var lHook = new cCommandHookSearchExtended(lBuilder.Tag, lSelectedMailbox, false);
                     lBuilder.Add(lHook);

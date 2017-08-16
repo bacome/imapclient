@@ -27,14 +27,12 @@ namespace work.bacome.imapclient
 
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
-                    ;?; // if the filter contains mh then temp blok
-
-                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity); // if a UIDValidity change happens while the command is running, disbelieve the results
 
                     lBuilder.Add(kSortExtendedCommandPart);
                     lBuilder.Add(pSort);
                     lBuilder.Add(cCommandPart.Space);
-                    lBuilder.Add(pFilter, true, mEncodingPartFactory);
+                    lBuilder.Add(pFilter, lSelectedMailbox, true, mEncodingPartFactory);
 
                     var lHook = new cCommandHookSearchExtended(lBuilder.Tag, lSelectedMailbox, true);
                     lBuilder.Add(lHook);

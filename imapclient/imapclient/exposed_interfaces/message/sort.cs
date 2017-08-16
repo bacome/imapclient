@@ -42,7 +42,8 @@ namespace work.bacome.imapclient
 
     public class cSort
     {
-        public static readonly cSort Default = new cSort("default");
+        public static readonly cSort None = new cSort("none");
+        public static readonly cSort ClientDefault = new cSort("clientdefault");
         public static readonly cSort OrderedSubject = new cSort("orderedsubject");
         public static readonly cSort References = new cSort("references");
 

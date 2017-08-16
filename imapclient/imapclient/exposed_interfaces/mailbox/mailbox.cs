@@ -239,7 +239,7 @@ namespace work.bacome.imapclient
             get
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
-                if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.MessageCount;
+                if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.Count;
                 if ((Client.MailboxCacheData & fMailboxCacheData.messagecount) == 0) throw new InvalidOperationException("mailbox not caching this data");
                 if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
                 if (Handle.MailboxStatus == null) throw new InvalidOperationException("mailbox doesn't exist");
@@ -402,8 +402,8 @@ namespace work.bacome.imapclient
         public void Expunge(bool pAndClose = false) => Client.Expunge(Handle, pAndClose);
         public void ExpungeAsync(bool pAndClose = false) => Client.ExpungeAsync(Handle, pAndClose);
 
-        public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Messages(Handle, pFilter, pSort, pProperties);
-        public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.MessagesAsync(Handle, pFilter, pSort, pProperties);
+        public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Messages(Handle, pFilter, pSort ?? cSort.ClientDefault, pProperties);
+        public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.MessagesAsync(Handle, pFilter, pSort ?? cSort.ClientDefault, pProperties);
 
         public List<cMessage> Messages(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC = null)
         {

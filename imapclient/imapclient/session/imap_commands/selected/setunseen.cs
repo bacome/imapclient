@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(await mSearchExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // search commands must be single threaded (so we can tell which result is which)
 
-                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity); // if a UIDValidity change happens while the command is running, disbelieve the results
 
                     lBuilder.Add(kSetUnseenCommandPart);
 

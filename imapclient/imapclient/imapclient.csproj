@@ -77,6 +77,7 @@
     <Compile Include="exposed_interfaces\support\enums\mailboxpropertiies.cs" />
     <Compile Include="exposed_interfaces\support\types\lsubflags.cs" />
     <Compile Include="exposed_interfaces\support\types\messagecache.cs" />
+    <Compile Include="exposed_interfaces\support\types\references.cs" />
     <Compile Include="exposed_interfaces\support\types\selectedmailboxdetails.cs" />
     <Compile Include="exposed_interfaces\support\types\mailboxhandle.cs" />
     <Compile Include="exposed_interfaces\support\types\mailboxselectedproperties.cs" />

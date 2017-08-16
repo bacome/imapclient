@@ -325,6 +325,9 @@ namespace work.bacome.imapclient
 
                             if (lCommand.State == eCommandState.queued)
                             {
+                                // check the references 
+
+
                                 if (lCommand.UIDValidity != null && lCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity) lCommand.SetException(new cUIDValidityChangedException(lContext), lContext);
                                 else
                                 {
@@ -862,6 +865,8 @@ namespace work.bacome.imapclient
 
                     var lResult = ZProcessCommandCompletion(pCursor, pCommand.Tag, pCommand.Hook, lContext);
                     if (lResult == null) return false;
+
+                    // check the references
 
                     if (pCommand.UIDValidity != null && pCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity) pCommand.SetException(new cUIDValidityChangedException(lContext), lContext);
                     else pCommand.SetResult(lResult, lContext);

@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
 
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
-                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity); // if a UIDValidity change happens while the command is running, disbelieve the results
 
                     lBuilder.Add(kSetUnseenExtendedCommandPart);
 
@@ -61,7 +61,7 @@ namespace work.bacome.imapclient
 
                     if (pResult.ResultType != eCommandResultType.ok || mSequenceSets == null) return;
 
-                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.MessageCount);
+                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.Count);
                     lMSNs = lMSNs.ToSortedUniqueList();
                     Handles = mSelectedMailbox.SetUnseen(lMSNs, lContext);
                 }

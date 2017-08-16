@@ -96,7 +96,7 @@ namespace work.bacome.imapclient
                 public readonly cCommandTag Tag = new cCommandTag();
                 private readonly cCommandPartsBuilder mParts = new cCommandPartsBuilder();
                 private readonly cCommandDisposables mDisposables = new cCommandDisposables();
-                private uint? mUIDValidity = null;
+                private cReferences mReferences = cReferences.None;
                 private cCommandHook mHook = null;
                 private bool mEmitted = false;
 
@@ -144,15 +144,11 @@ namespace work.bacome.imapclient
                 {
                     if (mEmitted) throw new InvalidOperationException();
 
-                    if (pFilter != null)
-                    {
-                        ;?;
-                    }
+                    if (pSelectedMailbox == null) throw new ArgumentNullException(nameof(pSelectedMailbox));
 
-                    if (pFilter.References)
-                    if (pFilter?.References.UIDValidity != null) AddUIDValidity(pFilter.References.UIDValidity.Value);
+                    if (pFilter != null) mReferences = mReferences.Combine(pFilter.References);
 
-                    var lFilterParts = ZFilterParts(pFilter, eListBracketing.none, pFactory);
+                    var lFilterParts = ZFilterParts(pFilter, pSelectedMailbox, eListBracketing.none, pFactory);
 
                     if (pFactory.UTF8Enabled)
                     {
@@ -184,9 +180,11 @@ namespace work.bacome.imapclient
                     mParts.Add(lFilterParts);
                 }
 
-                private static ReadOnlyCollection<cCommandPart> ZFilterParts(cFilter pFilter, cSelectedMailbox x, eListBracketing pBracketing, cCommandPartFactory pFactory)
+                private static ReadOnlyCollection<cCommandPart> ZFilterParts(cFilter pFilter, cSelectedMailbox pSelectedMailbox, eListBracketing pBracketing, cCommandPartFactory pFactory)
                 {
                     var lParts = new cCommandPartsBuilder();
+
+                    if (pSelectedMailbox == null) throw new ArgumentNullException(nameof(pSelectedMailbox));
 
                     switch (pFilter)
                     {
@@ -197,11 +195,52 @@ namespace work.bacome.imapclient
 
                         case cFilterMessageHandleRelativity lRelativity:
 
-                            // 
+                            var lMSN = pSelectedMailbox.GetMSN(lRelativity.Handle);
 
+                            if (lMSN == 0) throw new ArgumentOutOfRangeException(nameof(pFilter), "invalid message handle"); // may have been expunged
 
-                            x;
-                            return lParts.Parts;
+                            switch (lRelativity.Relativity)
+                            {
+                                case eFilterHandleRelativity.less:
+
+                                    if (lMSN == 1)
+                                    {
+                                        lParts.BeginList(pBracketing);
+                                        lParts.Add(kCommandPartSeen);
+                                        lParts.Add(kCommandPartUnseen);
+                                        lParts.EndList();
+                                    }
+                                    else lParts.Add(new cCommandPart(new cSequenceSet(1, lMSN - 1)));
+
+                                    return lParts.Parts;
+
+                                case eFilterHandleRelativity.lessequal:
+
+                                    lParts.Add(new cCommandPart(new cSequenceSet(1, lMSN)));
+                                    return lParts.Parts;
+
+                                case eFilterHandleRelativity.greaterequal:
+
+                                    lParts.Add(new cCommandPart(new cSequenceSet(lMSN, uint.MaxValue)));
+                                    return lParts.Parts;
+
+                                case eFilterHandleRelativity.greater:
+
+                                    if (lMSN == uint.MaxValue)
+                                    {
+                                        lParts.BeginList(pBracketing);
+                                        lParts.Add(kCommandPartSeen);
+                                        lParts.Add(kCommandPartUnseen);
+                                        lParts.EndList();
+                                    }
+                                    else lParts.Add(new cCommandPart(new cSequenceSet(lMSN + 1, uint.MaxValue)));
+
+                                    return lParts.Parts;
+
+                                default:
+
+                                    throw new cInternalErrorException();
+                            }
 
                         case cFilterUIDIn lUIDIn:
 
@@ -307,16 +346,16 @@ namespace work.bacome.imapclient
                         case cFilterAnd lAnd:
 
                             lParts.BeginList(pBracketing);
-                            foreach (var lTerm in lAnd.Terms) lParts.Add(ZFilterParts(lTerm, eListBracketing.none, pFactory));
+                            foreach (var lTerm in lAnd.Terms) lParts.Add(ZFilterParts(lTerm, pSelectedMailbox, eListBracketing.none, pFactory));
                             lParts.EndList();
                             return lParts.Parts;
 
                         case cFilterOr lOr:
 
                             lParts.Add(kCommandPartOrSpace);
-                            lParts.Add(ZFilterParts(lOr.A, eListBracketing.ifmorethanone, pFactory));
+                            lParts.Add(ZFilterParts(lOr.A, pSelectedMailbox, eListBracketing.ifmorethanone, pFactory));
                             lParts.Add(cCommandPart.Space);
-                            lParts.Add(ZFilterParts(lOr.B, eListBracketing.ifmorethanone, pFactory));
+                            lParts.Add(ZFilterParts(lOr.B, pSelectedMailbox, eListBracketing.ifmorethanone, pFactory));
                             return lParts.Parts;
 
                         case cFilterNot lNot:
@@ -341,7 +380,7 @@ namespace work.bacome.imapclient
                             else
                             {
                                 lParts.Add(kCommandPartNotSpace);
-                                lParts.Add(ZFilterParts(lNot.Not, eListBracketing.ifmorethanone, pFactory));
+                                lParts.Add(ZFilterParts(lNot.Not, pSelectedMailbox, eListBracketing.ifmorethanone, pFactory));
                             }
 
                             return lParts.Parts;
@@ -488,12 +527,10 @@ namespace work.bacome.imapclient
                     mDisposables.Add(pSASLAuthentication);
                 }
 
-                public void AddUIDValidity(uint? pUIDValidity)
+                public void AddUIDValidity(uint pUIDValidity)
                 {
                     if (mEmitted) throw new InvalidOperationException();
-                    if (pUIDValidity == null) return;
-                    if (mUIDValidity == null) mUIDValidity = pUIDValidity;
-                    else if (pUIDValidity != mUIDValidity) throw new cUIDValidityChangedException();
+                    mReferences = mReferences.Combine(new cReferences(pUIDValidity));
                 }
 
                 public void Add(cCommandHook pHook)
@@ -507,7 +544,7 @@ namespace work.bacome.imapclient
                 {
                     if (mEmitted) throw new InvalidOperationException();
                     mEmitted = true;
-                    return new sCommandDetails(Tag, mParts.Parts, mDisposables, mUIDValidity, mHook ?? cCommandHook.DoNothing);
+                    return new sCommandDetails(Tag, mParts.Parts, mDisposables, mReferences, mHook ?? cCommandHook.DoNothing);
                 }
 
                 public void Dispose()
@@ -516,100 +553,106 @@ namespace work.bacome.imapclient
                     mDisposables.Dispose();
                 }
 
-                public override string ToString() => $"{nameof(cCommandDetailsBuilder)}({Tag},{mParts},{mUIDValidity},{mEmitted})";
+                public override string ToString() => $"{nameof(cCommandDetailsBuilder)}({Tag},{mParts},{mReferences},{mEmitted})";
 
                 [Conditional("DEBUG")]
                 public static void _Tests(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandDetailsBuilder), nameof(_Tests));
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID < new cUID(1, 1000), false, false, null) != "UID 1:999") throw new cTestsException("ZMessageFilterCommandPartsTests UID.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID <= new cUID(1, 1000), false, false, null) != "UID 1:1000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.2", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID == new cUID(1, 1000), false, false, null) != "UID 1000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.3", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID >= new cUID(1, 1000), false, false, null) != "UID 1000:*") throw new cTestsException("ZMessageFilterCommandPartsTests UID.4", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID > new cUID(1, 1000), false, false, null) != "UID 1001:*") throw new cTestsException("ZMessageFilterCommandPartsTests UID.5", lContext);
-
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID > new cUID(1, 1000) & cFilter.UID < new cUID(1, 2000), false, false, null) != "UID 1001:* UID 1:1999") throw new cTestsException("ZMessageFilterCommandPartsTests UID.6", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), false, false, null) != "NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.7", lContext);
-
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), true, false, null) != "US-ASCII NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.8", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), true, true, null) != "UTF-8 NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.9", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), true, false, Encoding.UTF32) != "US-ASCII NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.10", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), true, true, Encoding.UTF32) != "UTF-8 NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.11", lContext);
+                    cEventSynchroniser lES = new cEventSynchroniser(new object(), cTrace.cContext.Null);
+                    cMailboxCache lMC = new cMailboxCache(lES, 0, cCommandPartFactory.Validation, new cCapabilities(new cUniqueIgnoreCaseStringList(), new cUniqueIgnoreCaseStringList(), 0), (eConnectionState pCS, cTrace.cContext pC) => { });
+                    cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 2222, 0, cTrace.cContext.Null);
+                    cSelectedMailbox lSelectedMailbox2 = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 2222, 0, cTrace.cContext.Null);
 
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered, false, false, null) != "ANSWERED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged, false, false, null) != "ANSWERED FLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.2", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID < new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1:999") throw new cTestsException("ZMessageFilterCommandPartsTests UID.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID <= new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1:1000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.2", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID == new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID >= new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1000:*") throw new cTestsException("ZMessageFilterCommandPartsTests UID.4", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID > new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1001:*") throw new cTestsException("ZMessageFilterCommandPartsTests UID.5", lContext);
+
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID > new cUID(1, 1000) & cFilter.UID < new cUID(1, 2000), lSelectedMailbox, false, false, null) != "UID 1001:* UID 1:1999") throw new cTestsException("ZMessageFilterCommandPartsTests UID.6", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), lSelectedMailbox, false, false, null) != "NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.7", lContext);
+
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), lSelectedMailbox, true, false, null) != "US-ASCII NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.8", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), lSelectedMailbox, true, true, null) != "UTF-8 NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.9", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), lSelectedMailbox, true, false, Encoding.UTF32) != "US-ASCII NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.10", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), lSelectedMailbox, true, true, Encoding.UTF32) != "UTF-8 NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.11", lContext);
+
+
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered, lSelectedMailbox, false, false, null) != "ANSWERED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged, lSelectedMailbox, false, false, null) != "ANSWERED FLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.2", lContext);
 
                     cFetchableFlags lFFlags;
                     lFFlags = new cFetchableFlags();
 
                     lFFlags.IsDraft = true;
                     lFFlags.IsRecent = true;
-                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged | cFilter.FlagsContain(lFFlags), false, false, null) != "OR (ANSWERED FLAGGED) (DRAFT RECENT)") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.3", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged & cFilter.FlagsContain(lFFlags), false, false, null) != "ANSWERED DRAFT FLAGGED RECENT") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.4", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged | cFilter.FlagsContain(lFFlags), lSelectedMailbox, false, false, null) != "OR (ANSWERED FLAGGED) (DRAFT RECENT)") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged & cFilter.FlagsContain(lFFlags), lSelectedMailbox, false, false, null) != "ANSWERED DRAFT FLAGGED RECENT") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.4", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged & cFilter.IsForwarded, false, false, null) != "KEYWORD $FORWARDED ANSWERED FLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.5", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.IsAnswered & cFilter.IsFlagged & cFilter.IsForwarded, lSelectedMailbox, false, false, null) != "KEYWORD $FORWARDED ANSWERED FLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.5", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(!(cFilter.IsAnswered & cFilter.IsFlagged & cFilter.IsForwarded), false, false, null) != "UNKEYWORD $FORWARDED UNANSWERED UNFLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.6", lContext);
+                    if (LMessageFilterCommandPartsTestsString(!(cFilter.IsAnswered & cFilter.IsFlagged & cFilter.IsForwarded), lSelectedMailbox, false, false, null) != "UNKEYWORD $FORWARDED UNANSWERED UNFLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.6", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred"), false, false, null) != "KEYWORD FRED") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred") | cFilter.FlagsContain("angus"), false, false, null) != "OR KEYWORD FRED KEYWORD ANGUS") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.2", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred") & cFilter.FlagsContain("angus"), false, false, null) != "KEYWORD ANGUS KEYWORD FRED") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred"), lSelectedMailbox, false, false, null) != "KEYWORD FRED") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred") | cFilter.FlagsContain("angus"), lSelectedMailbox, false, false, null) != "OR KEYWORD FRED KEYWORD ANGUS") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.2", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred") & cFilter.FlagsContain("angus"), lSelectedMailbox, false, false, null) != "KEYWORD ANGUS KEYWORD FRED") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.3", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.BCC.Contains("@bacome.work"), false, false, null) != "BCC @bacome.work") throw new cTestsException("ZMessageFilterCommandPartsTests BCC.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("imap client"), false, false, null) != "SUBJECT \"imap client\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Body.Contains("imap"), false, false, null) != "BODY imap") throw new cTestsException("ZMessageFilterCommandPartsTests Body.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.BCC.Contains("@bacome.work"), lSelectedMailbox, false, false, null) != "BCC @bacome.work") throw new cTestsException("ZMessageFilterCommandPartsTests BCC.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("imap client"), lSelectedMailbox, false, false, null) != "SUBJECT \"imap client\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Body.Contains("imap"), lSelectedMailbox, false, false, null) != "BODY imap") throw new cTestsException("ZMessageFilterCommandPartsTests Body.1", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(!cFilter.To.Contains("bacome") & !cFilter.FlagsContain(cMessageFlags.Recent), false, false, null) != "NOT TO bacome OLD") throw new cTestsException("ZMessageFilterCommandPartsTests And.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(!cFilter.To.Contains("bacome") & !cFilter.FlagsContain(cMessageFlags.Recent), lSelectedMailbox, false, false, null) != "NOT TO bacome OLD") throw new cTestsException("ZMessageFilterCommandPartsTests And.1", lContext);
 
                     bool lFailed;
 
                     lFailed = false;
-                    try { if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), false, false, null) != "SUBJECT \"fr?d\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.2", lContext); }
+                    try { if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, false, false, null) != "SUBJECT \"fr?d\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.2", lContext); }
                     catch { lFailed = true; }
                     if (!lFailed) throw new cTestsException("ZMessageFilterCommandPartsTests Subject.2 - didn't fail as expected", lContext);
 
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), false, true, Encoding.UTF32) != "SUBJECT \"fr«226»«130»«172»d\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.3", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), false, false, Encoding.UTF8) != "CHARSET utf-8 SUBJECT {6}fr«226»«130»«172»d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.4", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), false, false, Encoding.UTF7) != "CHARSET utf-7 SUBJECT fr+IKw-d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.5", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, false, true, Encoding.UTF32) != "SUBJECT \"fr«226»«130»«172»d\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, false, false, Encoding.UTF8) != "CHARSET utf-8 SUBJECT {6}fr«226»«130»«172»d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.4", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, false, false, Encoding.UTF7) != "CHARSET utf-7 SUBJECT fr+IKw-d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.5", lContext);
 
 
 
                     lFailed = false;
-                    try { if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), true, false, null) != "US-ASCII SUBJECT \"fr?d\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.6", lContext); }
+                    try { if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, true, false, null) != "US-ASCII SUBJECT \"fr?d\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.6", lContext); }
                     catch { lFailed = true; }
                     if (!lFailed) throw new cTestsException("ZMessageFilterCommandPartsTests Subject.6 - didn't fail as expected", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), true, true, Encoding.UTF32) != "UTF-8 SUBJECT \"fr«226»«130»«172»d\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.6", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), true, false, Encoding.UTF8) != "utf-8 SUBJECT {6}fr«226»«130»«172»d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.7", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), true, false, Encoding.UTF7) != "utf-7 SUBJECT fr+IKw-d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.8", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, true, true, Encoding.UTF32) != "UTF-8 SUBJECT \"fr«226»«130»«172»d\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.6", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, true, false, Encoding.UTF8) != "utf-8 SUBJECT {6}fr«226»«130»«172»d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.7", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, true, false, Encoding.UTF7) != "utf-7 SUBJECT fr+IKw-d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.8", lContext);
 
                     DateTime lDateTime = new DateTime(1968, 4, 4, 12, 34, 56);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent < lDateTime, false, false, null) != "SENTBEFORE 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent <= lDateTime, false, false, null) != "SENTBEFORE 5-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.2", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent == lDateTime, false, false, null) != "SENTON 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.3", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent >= lDateTime, false, false, null) != "SENTSINCE 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.4", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent > lDateTime, false, false, null) != "SENTSINCE 5-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.5", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent < lDateTime, lSelectedMailbox, false, false, null) != "SENTBEFORE 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent <= lDateTime, lSelectedMailbox, false, false, null) != "SENTBEFORE 5-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.2", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent == lDateTime, lSelectedMailbox, false, false, null) != "SENTON 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent >= lDateTime, lSelectedMailbox, false, false, null) != "SENTSINCE 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.4", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent > lDateTime, lSelectedMailbox, false, false, null) != "SENTSINCE 5-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.5", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Received < lDateTime, false, false, null) != "BEFORE 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.6", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Received <= lDateTime, false, false, null) != "BEFORE 5-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.7", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Received == lDateTime, false, false, null) != "ON 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.8", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Received != lDateTime, false, false, null) != "NOT ON 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.9", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Received >= lDateTime, false, false, null) != "SINCE 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.10", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Received > lDateTime, false, false, null) != "SINCE 5-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.11", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Received < lDateTime, lSelectedMailbox, false, false, null) != "BEFORE 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.6", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Received <= lDateTime, lSelectedMailbox, false, false, null) != "BEFORE 5-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.7", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Received == lDateTime, lSelectedMailbox, false, false, null) != "ON 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.8", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Received != lDateTime, lSelectedMailbox, false, false, null) != "NOT ON 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.9", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Received >= lDateTime, lSelectedMailbox, false, false, null) != "SINCE 4-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.10", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Received > lDateTime, lSelectedMailbox, false, false, null) != "SINCE 5-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.11", lContext);
 
                     lDateTime = new DateTime(1968, 4, 14, 12, 34, 56);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent < lDateTime, false, false, null) != "SENTBEFORE 14-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.12", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Sent < lDateTime, lSelectedMailbox, false, false, null) != "SENTBEFORE 14-APR-1968") throw new cTestsException("ZMessageFilterCommandPartsTests date.12", lContext);
 
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.HasHeaderField("references"), false, false, null) != "HEADER references \"\"") throw new cTestsException("ZMessageFilterCommandPartsTests header.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.HeaderFieldContains("references", "@bacome"), false, false, null) != "HEADER references @bacome") throw new cTestsException("ZMessageFilterCommandPartsTests header.2", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.HasHeaderField("references"), lSelectedMailbox, false, false, null) != "HEADER references \"\"") throw new cTestsException("ZMessageFilterCommandPartsTests header.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.HeaderFieldContains("references", "@bacome"), lSelectedMailbox, false, false, null) != "HEADER references @bacome") throw new cTestsException("ZMessageFilterCommandPartsTests header.2", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Size < 1000, false, false, null) != "SMALLER 1000") throw new cTestsException("ZMessageFilterCommandPartsTests Size.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Size > 1000, false, false, null) != "LARGER 1000") throw new cTestsException("ZMessageFilterCommandPartsTests Size.2", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Size < 1000, lSelectedMailbox, false, false, null) != "SMALLER 1000") throw new cTestsException("ZMessageFilterCommandPartsTests Size.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Size > 1000, lSelectedMailbox, false, false, null) != "LARGER 1000") throw new cTestsException("ZMessageFilterCommandPartsTests Size.2", lContext);
 
                     lFailed = false;
                     try { var lMF = cFilter.UID > new cUID(1, 1000) & cFilter.UID < new cUID(2, 2000); }
@@ -624,12 +667,22 @@ namespace work.bacome.imapclient
                     catch { lFailed = true; }
                     if (!lFailed) throw new cTestsException("ZMessageFilterCommandPartsTests UIDValidity.2 - didn't fail as expected", lContext);
 
-                    string LMessageFilterCommandPartsTestsString(cFilter pFilter, bool pCharsetMandatory, bool pUTF8Enabled, Encoding pEncoding)
+                    var lMH1 = lSelectedMailbox.Cache[0];
+                    var lMH2 = lSelectedMailbox.Cache[1];
+
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle < lMH1, lSelectedMailbox, false, false, null) != "SEEN UNSEEN") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle < lMH2, lSelectedMailbox, false, false, null) != "1:1") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.2", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle <= lMH1, lSelectedMailbox, false, false, null) != "1:1") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle <= lMH2, lSelectedMailbox, false, false, null) != "1:2") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.4", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle >= lMH2, lSelectedMailbox, false, false, null) != "2:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.5", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle > lMH2, lSelectedMailbox, false, false, null) != "3:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.6", lContext);
+
+                    string LMessageFilterCommandPartsTestsString(cFilter pFilter, cSelectedMailbox pSelectedMailbox, bool pCharsetMandatory, bool pUTF8Enabled, Encoding pEncoding)
                     {
                         StringBuilder lBuilder = new StringBuilder();
                         var lCommandBuilder = new cCommandDetailsBuilder();
                         cCommandPartFactory lFactory = new cCommandPartFactory(pUTF8Enabled, pEncoding);
-                        lCommandBuilder.Add(pFilter, pCharsetMandatory, lFactory);
+                        lCommandBuilder.Add(pFilter, pSelectedMailbox, pCharsetMandatory, lFactory);
                         var lDetails = lCommandBuilder.EmitCommandDetails();
 
                         foreach (var lPart in lDetails.Parts)

@@ -37,9 +37,9 @@ namespace work.bacome.imapclient
 
         public static readonly cFilter False = IsSeen & !IsSeen;
 
-        public readonly cFilterReferences References;
+        public readonly cReferences References;
 
-        protected cFilter(cFilterReferences pReferences) => References = pReferences ?? throw new ArgumentNullException(nameof(pReferences));
+        protected cFilter(cReferences pReferences) => References = pReferences ?? throw new ArgumentNullException(nameof(pReferences));
 
         public static cFilter FlagsContain(params string[] pFlags) => new cFilterFlagsContain(pFlags);
         public static cFilter FlagsContain(cFetchableFlags pFlags) => new cFilterFlagsContain(pFlags);
@@ -75,46 +75,6 @@ namespace work.bacome.imapclient
         public static cFilter operator !(cFilter pNot) => new cFilterNot(pNot);
     }
 
-    public class cFilterReferences
-    {
-        public static readonly cFilterReferences None = new cFilterReferences();
-
-        public readonly iMessageCache Cache;
-        public readonly uint? UIDValidity;
-
-        private cFilterReferences()
-        {
-            Cache = null;
-            UIDValidity = null;
-        }
-
-        public cFilterReferences(iMessageCache pCache)
-        {
-            Cache = pCache ?? throw new ArgumentNullException(nameof(pCache));
-            UIDValidity = pCache.UIDValidity;
-        }
-
-        public cFilterReferences(uint? pUIDValidity)
-        {
-            Cache = null;
-            UIDValidity = pUIDValidity;
-        }
-
-        public cFilterReferences Combine(cFilterReferences pReferences)
-        {
-            if (pReferences == null) throw new ArgumentNullException(nameof(pReferences));
-            if (Cache != null && pReferences.Cache != null && !ReferenceEquals(Cache, pReferences.Cache)) throw new ArgumentOutOfRangeException(nameof(pReferences), "inconsistent message cache");
-            if (UIDValidity != null && pReferences.UIDValidity != null && UIDValidity != pReferences.UIDValidity) throw new ArgumentOutOfRangeException(nameof(pReferences), "inconsistent uidvalidity");
-            if (Cache != null) return this;
-            if (pReferences.Cache != null) return pReferences;
-            if (UIDValidity != null) return this;
-            if (pReferences.UIDValidity != null) return pReferences;
-            return this;
-        }
-
-        public override string ToString() => $"{nameof(cFilterReferences)}({Cache},{UIDValidity})";
-    }
-
     public enum eFilterHandleRelativity { less, lessequal, greaterequal, greater }
     public enum eFilterPart { bcc, body, cc, from, subject, text, to }
     public enum eFilterDate { arrival, sent }
@@ -130,7 +90,7 @@ namespace work.bacome.imapclient
         public readonly iMessageHandle Handle;
         public readonly eFilterHandleRelativity Relativity;
 
-        public cFilterMessageHandleRelativity(iMessageHandle pHandle, eFilterHandleRelativity pRelativity) : base(new cFilterReferences(pHandle.Cache))
+        public cFilterMessageHandleRelativity(iMessageHandle pHandle, eFilterHandleRelativity pRelativity) : base(new cReferences(pHandle))
         {
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
             Relativity = pRelativity;
@@ -171,7 +131,7 @@ namespace work.bacome.imapclient
     public class cFilterUIDIn : cFilter
     {
         public readonly cSequenceSet SequenceSet;
-        public cFilterUIDIn(uint pUIDValidity, cSequenceSet pSequenceSet) : base(new cFilterReferences(pUIDValidity)) { SequenceSet = pSequenceSet ?? throw new ArgumentNullException(nameof(pSequenceSet)); }
+        public cFilterUIDIn(uint pUIDValidity, cSequenceSet pSequenceSet) : base(new cReferences(pUIDValidity)) { SequenceSet = pSequenceSet ?? throw new ArgumentNullException(nameof(pSequenceSet)); }
         public override string ToString() => $"{nameof(cFilterUIDIn)}({References},{SequenceSet})";
     }
 
@@ -204,19 +164,31 @@ namespace work.bacome.imapclient
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             return new cFilterUIDIn(pUID.UIDValidity, new cSequenceSet(pUID.UID, uint.MaxValue));
         }
+
+        public static cFilter operator ==(cFilterUID pFilterUID, cUID pUID)
+        {
+            if (pUID == null) throw new ArgumentNullException(nameof(pUID));
+            return new cFilterUIDIn(pUID.UIDValidity, new cSequenceSet(pUID.UID));
+        }
+
+        public static cFilter operator !=(cFilterUID pFilterUID, cUID pUID)
+        {
+            if (pUID == null) throw new ArgumentNullException(nameof(pUID));
+            return new cFilterNot(new cFilterUIDIn(pUID.UIDValidity, new cSequenceSet(pUID.UID)));
+        }
     }
 
     public class cFilterFlagsContain : cFilter
     {
         public readonly cMessageFlags Flags;
 
-        public cFilterFlagsContain(params string[] pFlags) : base(cFilterReferences.None)
+        public cFilterFlagsContain(params string[] pFlags) : base(cReferences.None)
         {
             if (pFlags == null || pFlags.Length == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
             Flags = new cMessageFlags(new cFetchableFlags(pFlags));
         }
 
-        public cFilterFlagsContain(cFetchableFlags pFlags) : base(cFilterReferences.None)
+        public cFilterFlagsContain(cFetchableFlags pFlags) : base(cReferences.None)
         {
             if (pFlags == null || pFlags.Count == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
             Flags = new cMessageFlags(pFlags);
@@ -230,7 +202,7 @@ namespace work.bacome.imapclient
         public readonly eFilterPart Part;
         public readonly string Contains; // have to convert to an astring
 
-        public cFilterPartContains(eFilterPart pPart, string pContains) : base(cFilterReferences.None)
+        public cFilterPartContains(eFilterPart pPart, string pContains) : base(cReferences.None)
         {
             Part = pPart;
             Contains = pContains ?? throw new ArgumentNullException(nameof(pContains));
@@ -252,7 +224,7 @@ namespace work.bacome.imapclient
         public readonly eFilterDateCompare Compare;
         public readonly DateTime WithDate;
 
-        public cFilterDateCompare(eFilterDate pDate, eFilterDateCompare pCompare, DateTime pWithDate) : base(cFilterReferences.None)
+        public cFilterDateCompare(eFilterDate pDate, eFilterDateCompare pCompare, DateTime pWithDate) : base(cReferences.None)
         {
             Date = pDate;
             Compare = pCompare;
@@ -283,7 +255,7 @@ namespace work.bacome.imapclient
         public readonly string HeaderField;
         public readonly string Contains; // have to convert to an astring
 
-        public cFilterHeaderFieldContains(string pHeaderField, string pContains) : base(cFilterReferences.None)
+        public cFilterHeaderFieldContains(string pHeaderField, string pContains) : base(cReferences.None)
         {
             HeaderField = pHeaderField ?? throw new ArgumentNullException(nameof(HeaderField));
             if (!cCommandPartFactory.TryAsASCIIAString(HeaderField, out _)) throw new ArgumentOutOfRangeException(nameof(HeaderField));
@@ -298,7 +270,7 @@ namespace work.bacome.imapclient
         public readonly eFilterSizeCompare Compare;
         public readonly uint WithSize;
 
-        public cFilterSizeCompare(eFilterSizeCompare pCompare, uint pSize) : base(cFilterReferences.None)
+        public cFilterSizeCompare(eFilterSizeCompare pCompare, uint pSize) : base(cReferences.None)
         {
             Compare = pCompare;
             WithSize = pSize;
@@ -323,12 +295,12 @@ namespace work.bacome.imapclient
             Terms = new ReadOnlyCollection<cFilter>(new List<cFilter>(pTerms));
         }
 
-        private static cFilterReferences ZCombinedReferences(IList<cFilter> pTerms)
+        private static cReferences ZCombinedReferences(IList<cFilter> pTerms)
         {
             if (pTerms == null) throw new ArgumentNullException(nameof(pTerms));
             if (pTerms.Count < 2) throw new ArgumentOutOfRangeException(nameof(pTerms));
 
-            cFilterReferences lReferences = null;
+            cReferences lReferences = null;
 
             foreach (var lTerm in pTerms)
             {
@@ -359,7 +331,7 @@ namespace work.bacome.imapclient
             B = pB;
         }
 
-        private static cFilterReferences ZCombinedReferences(cFilter pA, cFilter pB)
+        private static cReferences ZCombinedReferences(cFilter pA, cFilter pB)
         {
             if (pA == null) throw new ArgumentNullException(nameof(pA));
             if (pB == null) throw new ArgumentNullException(nameof(pB));

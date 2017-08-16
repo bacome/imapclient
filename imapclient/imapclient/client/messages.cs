@@ -64,7 +64,7 @@ namespace work.bacome.imapclient
             return new cUIDList(pUIDs);
         }
 
-        public cSort DefaultMessageSort { get; set; } = null;
+        public cSort DefaultSort { get; set; } = null;
 
         private enum eMessageThreadAlgorithm { orderedsubject, references }
 
@@ -93,9 +93,9 @@ namespace work.bacome.imapclient
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-            ;?; // NO!
             cSort lSort;
-            if (pSort == null) lSort = DefaultMessageSort;
+            if (ReferenceEquals(pSort, cSort.None)) lSort = null;
+            else if (ReferenceEquals(pSort, cSort.ClientDefault)) lSort = DefaultSort;
             else lSort = pSort;
 
             var lCapabilities = lSession.Capabilities;

@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
                     private readonly ReadOnlyCollection<cCommandPart> mParts;
                     private readonly cCommandDisposables mDisposables;
                     private readonly cSASLAuthentication mSASLAuthentication;
-                    public readonly uint? UIDValidity;
+                    public readonly cReferences References;
                     public readonly cCommandHook Hook;
                     private readonly SemaphoreSlim mSemaphore = new SemaphoreSlim(0, 1);
 
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
                         mParts = pCommandDetails.Parts ?? throw new ArgumentOutOfRangeException(nameof(pCommandDetails));
                         mDisposables = pCommandDetails.Disposables ?? throw new ArgumentOutOfRangeException(nameof(pCommandDetails));
                         mSASLAuthentication = mDisposables.SASLAuthentication;
-                        UIDValidity = pCommandDetails.UIDValidity;
+                        References = pCommandDetails.References ?? throw new ArgumentOutOfRangeException(nameof(pCommandDetails));
                         Hook = pCommandDetails.Hook ?? throw new ArgumentOutOfRangeException(nameof(pCommandDetails));
                     }
 
