@@ -5,7 +5,7 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract class cMessageFlagsBase : IEnumerable<string>
+    public abstract class cMessageFlagsBase : IReadOnlyCollection<string>
     {
         private readonly bool mAllowRecent;
         private readonly Dictionary<string, bool> mDictionary = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);
@@ -133,6 +133,7 @@ namespace work.bacome.imapclient
             }
         }
 
+        public int Count => mDictionary.Count;
         public IEnumerator<string> GetEnumerator() => mDictionary.Keys.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mDictionary.Keys.GetEnumerator();
 

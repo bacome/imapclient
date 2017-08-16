@@ -93,6 +93,7 @@ namespace work.bacome.imapclient
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
+            ;?; // NO!
             cSort lSort;
             if (pSort == null) lSort = DefaultMessageSort;
             else lSort = pSort;

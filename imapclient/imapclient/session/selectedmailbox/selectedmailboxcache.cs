@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
@@ -95,9 +96,13 @@ namespace work.bacome.imapclient
                     ZSetMailboxStatus(lContext);
                 }
 
+                public int Count => mItems.Count;
+                public iMessageHandle this[int i] => mItems[i];
+                public IEnumerator<iMessageHandle> GetEnumerator() { foreach (var lItem in mItems) yield return lItem; }
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
                 public iMailboxHandle MailboxHandle => mMailboxCacheItem;
                 public bool NoModSeq => mNoModSeq;
-                public int MessageCount => mItems.Count;
                 public int RecentCount => mRecentCount;
                 public uint UIDNext => mUIDNext;
                 public int UIDNextUnknownCount => mUIDNextUnknownCount;

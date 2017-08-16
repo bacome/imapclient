@@ -27,6 +27,8 @@ namespace work.bacome.imapclient
 
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
+                    ;?; // if the filter contains mh then temp blok
+
                     lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
 
                     lBuilder.Add(kSortExtendedCommandPart);

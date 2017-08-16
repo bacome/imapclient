@@ -26,6 +26,8 @@ namespace work.bacome.imapclient
 
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
+                    if (pFilter == null) return new cMessageHandleList(lSelectedMailbox.Cache); // special case
+
                     lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
 
                     lBuilder.Add(kSearchExtendedCommandPart);

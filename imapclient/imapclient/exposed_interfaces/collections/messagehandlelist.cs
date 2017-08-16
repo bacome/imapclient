@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
     {
         public cMessageHandleList() { }
         public cMessageHandleList(iMessageHandle pHandle) : base(new iMessageHandle[] { pHandle }) { }
-        public cMessageHandleList(IList<iMessageHandle> pHandles) : base(pHandles) { }
+        public cMessageHandleList(IEnumerable<iMessageHandle> pHandles) : base(pHandles) { }
 
         public void SortByCacheSequence() => Sort(ZCompareCacheSequence);
         public void Sort(cSort pSort) => Sort(pSort.Comparison);

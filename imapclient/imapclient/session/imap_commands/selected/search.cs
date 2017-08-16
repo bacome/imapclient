@@ -26,12 +26,14 @@ namespace work.bacome.imapclient
 
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
 
+                    if (pFilter == null) return new cMessageHandleList(lSelectedMailbox.Cache); // special case
+
                     lBuilder.Add(await mSearchExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // search commands must be single threaded (so we can tell which result is which)
 
                     lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
 
                     lBuilder.Add(kSearchCommandPart);
-                    lBuilder.Add(pFilter, false, mEncodingPartFactory);
+                    lBuilder.Add(pFilter, lSelectedMailbox, false, mEncodingPartFactory);
 
                     var lHook = new cSearchCommandHook(lSelectedMailbox);
                     lBuilder.Add(lHook);

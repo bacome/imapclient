@@ -140,11 +140,17 @@ namespace work.bacome.imapclient
                     mParts.EndList();
                 }
 
-                public void Add(cFilter pFilter, bool pCharsetMandatory, cCommandPartFactory pFactory)
+                public void Add(cFilter pFilter, cSelectedMailbox pSelectedMailbox, bool pCharsetMandatory, cCommandPartFactory pFactory)
                 {
                     if (mEmitted) throw new InvalidOperationException();
 
-                    if (pFilter?.UIDValidity != null) AddUIDValidity(pFilter.UIDValidity.Value);
+                    if (pFilter != null)
+                    {
+                        ;?;
+                    }
+
+                    if (pFilter.References)
+                    if (pFilter?.References.UIDValidity != null) AddUIDValidity(pFilter.References.UIDValidity.Value);
 
                     var lFilterParts = ZFilterParts(pFilter, eListBracketing.none, pFactory);
 
@@ -178,7 +184,7 @@ namespace work.bacome.imapclient
                     mParts.Add(lFilterParts);
                 }
 
-                private static ReadOnlyCollection<cCommandPart> ZFilterParts(cFilter pFilter, eListBracketing pBracketing, cCommandPartFactory pFactory)
+                private static ReadOnlyCollection<cCommandPart> ZFilterParts(cFilter pFilter, cSelectedMailbox x, eListBracketing pBracketing, cCommandPartFactory pFactory)
                 {
                     var lParts = new cCommandPartsBuilder();
 
@@ -187,6 +193,14 @@ namespace work.bacome.imapclient
                         case null:
 
                             lParts.Add(kCommandPartAll);
+                            return lParts.Parts;
+
+                        case cFilterMessageHandleRelativity lRelativity:
+
+                            // 
+
+
+                            x;
                             return lParts.Parts;
 
                         case cFilterUIDIn lUIDIn:
