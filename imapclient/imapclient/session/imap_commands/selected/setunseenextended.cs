@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
+                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, null);
 
                     lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity); // if a UIDValidity change happens while the command is running, disbelieve the results
 

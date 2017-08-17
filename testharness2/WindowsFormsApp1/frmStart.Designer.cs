@@ -64,7 +64,7 @@
             // 
             this.cmdTests.Location = new System.Drawing.Point(320, 39);
             this.cmdTests.Name = "cmdTests";
-            this.cmdTests.Size = new System.Drawing.Size(136, 30);
+            this.cmdTests.Size = new System.Drawing.Size(100, 25);
             this.cmdTests.TabIndex = 2;
             this.cmdTests.Text = "Tests";
             this.cmdTests.UseVisualStyleBackColor = true;
@@ -72,9 +72,9 @@
             // 
             // cmdQuickTests
             // 
-            this.cmdQuickTests.Location = new System.Drawing.Point(321, 75);
+            this.cmdQuickTests.Location = new System.Drawing.Point(320, 69);
             this.cmdQuickTests.Name = "cmdQuickTests";
-            this.cmdQuickTests.Size = new System.Drawing.Size(135, 30);
+            this.cmdQuickTests.Size = new System.Drawing.Size(100, 25);
             this.cmdQuickTests.TabIndex = 3;
             this.cmdQuickTests.Text = "Quick Tests";
             this.cmdQuickTests.UseVisualStyleBackColor = true;
@@ -82,9 +82,9 @@
             // 
             // cmdCurrentTest
             // 
-            this.cmdCurrentTest.Location = new System.Drawing.Point(320, 111);
+            this.cmdCurrentTest.Location = new System.Drawing.Point(320, 99);
             this.cmdCurrentTest.Name = "cmdCurrentTest";
-            this.cmdCurrentTest.Size = new System.Drawing.Size(134, 31);
+            this.cmdCurrentTest.Size = new System.Drawing.Size(100, 25);
             this.cmdCurrentTest.TabIndex = 4;
             this.cmdCurrentTest.Text = "Current Test";
             this.cmdCurrentTest.UseVisualStyleBackColor = true;
@@ -94,7 +94,7 @@
             // 
             this.cmdCreate.Location = new System.Drawing.Point(100, 45);
             this.cmdCreate.Name = "cmdCreate";
-            this.cmdCreate.Size = new System.Drawing.Size(83, 26);
+            this.cmdCreate.Size = new System.Drawing.Size(100, 25);
             this.cmdCreate.TabIndex = 5;
             this.cmdCreate.Text = "Create";
             this.cmdCreate.UseVisualStyleBackColor = true;
@@ -112,7 +112,7 @@
             this.groupBox1.Controls.Add(this.cmdCreate);
             this.groupBox1.Location = new System.Drawing.Point(5, 34);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(309, 108);
+            this.groupBox1.Size = new System.Drawing.Size(309, 90);
             this.groupBox1.TabIndex = 6;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "New Client";
@@ -137,7 +137,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(461, 146);
+            this.ClientSize = new System.Drawing.Size(425, 128);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.cmdCurrentTest);
             this.Controls.Add(this.cmdQuickTests);

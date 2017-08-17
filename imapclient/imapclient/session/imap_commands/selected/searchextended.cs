@@ -24,9 +24,11 @@ namespace work.bacome.imapclient
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle);
+                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, pFilter?.UIDValidity);
 
                     if (pFilter == null) return new cMessageHandleList(lSelectedMailbox.Cache); // special case
+
+                    if (pFilter.ContainsMessageHandles) lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity); // if a UIDValidity change happens while the command is running, disbelieve the results
 

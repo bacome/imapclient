@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
-                mMailboxCache.CheckIsSelectedMailbox(pHandle); // to be repeated inside the select lock
+                mMailboxCache.CheckIsSelectedMailbox(pHandle, pUID.UIDValidity); // to be repeated inside the select lock
 
                 return ZFetchBodyAsync(pMC, pHandle, pUID, null, pSection, pDecoding, pStream, lContext);
             }

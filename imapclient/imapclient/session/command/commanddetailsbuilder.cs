@@ -96,7 +96,7 @@ namespace work.bacome.imapclient
                 public readonly cCommandTag Tag = new cCommandTag();
                 private readonly cCommandPartsBuilder mParts = new cCommandPartsBuilder();
                 private readonly cCommandDisposables mDisposables = new cCommandDisposables();
-                private cReferences mReferences = cReferences.None;
+                private uint? mUIDValidity = null;
                 private cCommandHook mHook = null;
                 private bool mEmitted = false;
 
@@ -146,7 +146,11 @@ namespace work.bacome.imapclient
 
                     if (pSelectedMailbox == null) throw new ArgumentNullException(nameof(pSelectedMailbox));
 
-                    if (pFilter != null) mReferences = mReferences.Combine(pFilter.References);
+                    if (pFilter != null && pFilter.UIDValidity != null)
+                    {
+                        if (pFilter.UIDValidity != pSelectedMailbox.Cache.UIDValidity) throw new cUIDValidityChangedException();
+                        AddUIDValidity(pFilter.UIDValidity.Value);
+                    }
 
                     var lFilterParts = ZFilterParts(pFilter, pSelectedMailbox, eListBracketing.none, pFactory);
 
@@ -530,7 +534,8 @@ namespace work.bacome.imapclient
                 public void AddUIDValidity(uint pUIDValidity)
                 {
                     if (mEmitted) throw new InvalidOperationException();
-                    mReferences = mReferences.Combine(new cReferences(pUIDValidity));
+                    if (mUIDValidity == null) mUIDValidity = pUIDValidity;
+                    if (pUIDValidity != mUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
                 }
 
                 public void Add(cCommandHook pHook)
@@ -544,7 +549,7 @@ namespace work.bacome.imapclient
                 {
                     if (mEmitted) throw new InvalidOperationException();
                     mEmitted = true;
-                    return new sCommandDetails(Tag, mParts.Parts, mDisposables, mReferences, mHook ?? cCommandHook.DoNothing);
+                    return new sCommandDetails(Tag, mParts.Parts, mDisposables, mUIDValidity, mHook ?? cCommandHook.DoNothing);
                 }
 
                 public void Dispose()
@@ -553,7 +558,7 @@ namespace work.bacome.imapclient
                     mDisposables.Dispose();
                 }
 
-                public override string ToString() => $"{nameof(cCommandDetailsBuilder)}({Tag},{mParts},{mReferences},{mEmitted})";
+                public override string ToString() => $"{nameof(cCommandDetailsBuilder)}({Tag},{mParts},{mUIDValidity},{mEmitted})";
 
                 [Conditional("DEBUG")]
                 public static void _Tests(cTrace.cContext pParentContext)
@@ -562,8 +567,8 @@ namespace work.bacome.imapclient
 
                     cEventSynchroniser lES = new cEventSynchroniser(new object(), cTrace.cContext.Null);
                     cMailboxCache lMC = new cMailboxCache(lES, 0, cCommandPartFactory.Validation, new cCapabilities(new cUniqueIgnoreCaseStringList(), new cUniqueIgnoreCaseStringList(), 0), (eConnectionState pCS, cTrace.cContext pC) => { });
-                    cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 2222, 0, cTrace.cContext.Null);
-                    cSelectedMailbox lSelectedMailbox2 = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 2222, 0, cTrace.cContext.Null);
+                    cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 1, 0, cTrace.cContext.Null);
+                    //cSelectedMailbox lSelectedMailbox2 = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 2222, 0, cTrace.cContext.Null);
 
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID < new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1:999") throw new cTestsException("ZMessageFilterCommandPartsTests UID.1", lContext);

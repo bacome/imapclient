@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    mMailboxCache.CheckIsSelectedMailbox(pHandle);
+                    mMailboxCache.CheckIsSelectedMailbox(pHandle, null);
 
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 

@@ -148,6 +148,7 @@ namespace work.bacome.imapclient
 
         public eConnectionState ConnectionState => mSession?.ConnectionState ?? eConnectionState.notconnected;
         public bool IsUnconnected => mSession == null || mSession.IsUnconnected;
+        public bool IsConnected => mSession != null && mSession.IsConnected;
 
         public cCapabilities Capabilities => mSession?.Capabilities;
         public fEnableableExtensions EnabledExtensions => mSession?.EnabledExtensions ?? fEnableableExtensions.none;

@@ -51,7 +51,7 @@ namespace work.bacome.imapclient
 
                     if (pResult.ResultType != eCommandResultType.ok || mSequenceSets == null) return;
 
-                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.MessageCount);
+                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.Count);
                     if (!mSort) lMSNs = lMSNs.ToSortedUniqueList();
                     var lHandles = new cMessageHandleList();
                     foreach (var lMSN in lMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
