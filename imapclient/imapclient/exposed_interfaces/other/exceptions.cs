@@ -208,6 +208,7 @@ namespace work.bacome.imapclient
     // thrown when the command pipeline is stopped
     public class cPipelineStoppedException : cIMAPException
     {
+        public cPipelineStoppedException() { }
         public cPipelineStoppedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineStoppedException));
         public cPipelineStoppedException(Exception pInner, cTrace.cContext pContext) : base(string.Empty, pInner) => pContext.TraceError("{0}\n{1}", nameof(cPipelineStoppedException), pInner);
     }
@@ -215,6 +216,7 @@ namespace work.bacome.imapclient
     // thrown when the stream is closed
     public class cStreamClosedException : cIMAPException
     {
+        public cStreamClosedException() { }
         public cStreamClosedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cStreamClosedException));
         public cStreamClosedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cStreamClosedException), pMessage);
         public cStreamClosedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamClosedException), pMessage, pInner);

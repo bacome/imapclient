@@ -163,9 +163,11 @@ namespace work.bacome.imapclient
                 {
                     await lSession.NamespaceAsync(lMC, lContext).ConfigureAwait(false);
 
-                    if (lSession.PersonalNamespaces != null)
+                    var lPersonalNamespaceNames = lSession.NamespaceNames?.Personal;
+
+                    if (lPersonalNamespaceNames != null)
                     {
-                        foreach (var lName in lSession.PersonalNamespaces)
+                        foreach (var lName in lPersonalNamespaceNames)
                         {
                             cMailboxNamePattern lPattern = new cMailboxNamePattern(lName.Prefix, "%", lName.Delimiter);
 

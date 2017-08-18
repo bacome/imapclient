@@ -212,10 +212,11 @@ namespace work.bacome.imapclient
                     catch (OperationCanceledException) when (mBackgroundCancellationTokenSource.IsCancellationRequested)
                     {
                         lContext.TraceInformation("the pipeline is stopping as requested");
-                        mBackgroundTaskException = new cPipelineStoppedException(lContext);
+                        mBackgroundTaskException = new cPipelineStoppedException();
                     }
                     catch (AggregateException e)
                     {
+                        lContext.TraceException("the pipeline is stopping due to an unexpected exception", e);
                         var lException = e.Flatten();
                         if (lException.InnerExceptions.Count == 1) mBackgroundTaskException = new cPipelineStoppedException(lException.InnerExceptions[0], lContext);
                         else mBackgroundTaskException = new cPipelineStoppedException(e, lContext);

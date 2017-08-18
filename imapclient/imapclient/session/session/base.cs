@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Text;
-using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
@@ -175,9 +174,7 @@ namespace work.bacome.imapclient
 
             public bool SASLSecurityInstalled => mConnection?.SASLSecurityInstalled ?? false;
 
-            public ReadOnlyCollection<cNamespaceName> PersonalNamespaces => mNamespaceDataProcessor.Personal;
-            public ReadOnlyCollection<cNamespaceName> OtherUsersNamespaces => mNamespaceDataProcessor.OtherUsers;
-            public ReadOnlyCollection<cNamespaceName> SharedNamespaces => mNamespaceDataProcessor.Shared;
+            public cNamespaceNames NamespaceNames => mNamespaceDataProcessor?.NamespaceNames;
 
             public iSelectedMailboxDetails SelectedMailboxDetails => mMailboxCache?.SelectedMailboxDetails;
 

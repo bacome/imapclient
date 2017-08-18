@@ -267,7 +267,7 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceInformation("stream closed");
                         mClosed = true;
-                        throw new cStreamClosedException(lContext);
+                        throw new cStreamClosedException();
                     }
 
                     Array.Resize(ref lBuffer, lByteCount);

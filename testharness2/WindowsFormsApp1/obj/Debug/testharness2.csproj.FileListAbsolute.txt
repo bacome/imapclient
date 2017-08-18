@@ -10,3 +10,4 @@ C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Deb
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.exe
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.pdb
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmClient.resources
+C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmNetworkActivity.resources

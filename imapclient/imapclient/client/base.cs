@@ -53,6 +53,7 @@ namespace work.bacome.imapclient
 
         // mechanics
         private bool mDisposed = false;
+        private readonly string mInstanceName;
         private readonly cTrace.cContext mRootContext;
         private readonly cEventSynchroniser mEventSynchroniser;
         private readonly cAsyncCounter mAsyncCounter;
@@ -79,11 +80,14 @@ namespace work.bacome.imapclient
 
         public cIMAPClient(string pInstanceName = TraceSourceName)
         {
+            mInstanceName = pInstanceName;
             mRootContext = mTrace.NewRoot(pInstanceName);
             mRootContext.TraceInformation("cIMAPClient by bacome version {0}, release date {1}", Version, ReleaseDate);
             mEventSynchroniser = new cEventSynchroniser(this, mRootContext);
             mAsyncCounter = new cAsyncCounter(mEventSynchroniser);
         }
+
+        public string InstanceName => mInstanceName;
 
         // events
 
@@ -377,9 +381,9 @@ namespace work.bacome.imapclient
             get
             {
                 if (mNamespaces != null) return mNamespaces;
-                var lSession = mSession;
-                if (lSession == null) return null;
-                return new cNamespaces(this, lSession.PersonalNamespaces, lSession.OtherUsersNamespaces, lSession.SharedNamespaces);
+                var lNamespaceNames = mSession?.NamespaceNames;
+                if (lNamespaceNames == null) return null;
+                return new cNamespaces(this, lNamespaceNames.Personal, lNamespaceNames.OtherUsers, lNamespaceNames.Shared);
             }
         }
 

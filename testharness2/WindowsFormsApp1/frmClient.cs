@@ -15,14 +15,13 @@ namespace testharness2
 {
     public partial class frmClient : Form
     {
-        private readonly string mInstanceName;
         private readonly cTrace.cContext mRootContext;
         private readonly cIMAPClient mClient;
         private CancellationTokenSource mCancellationTokenSource = null;
+        private frmNetworkActivity mNetworkActivity = null;
 
         public frmClient(string pInstanceName)
         {
-            mInstanceName = pInstanceName;
             mRootContext = Program.Trace.NewRoot(pInstanceName, true);
             mClient = new cIMAPClient(pInstanceName);
             InitializeComponent();
@@ -58,26 +57,38 @@ namespace testharness2
                 {
                     cmdCancel.Text = "Cancel";
                     cmdCancel.Enabled = false;
-                    
+
                     if (mCancellationTokenSource != null && mCancellationTokenSource.IsCancellationRequested)
                     {
                         mCancellationTokenSource.Dispose();
                         mCancellationTokenSource = null;
                     }
-
-                    if (mCancellationTokenSource == null)
-                    {
-                        mCancellationTokenSource = new CancellationTokenSource();
-                        mClient.CancellationToken = mCancellationTokenSource.Token;
-                    }
                 }
-                else
+
+                if (mCancellationTokenSource == null)
+                {
+                    mCancellationTokenSource = new CancellationTokenSource();
+                    mClient.CancellationToken = mCancellationTokenSource.Token;
+                }
+                
+                if (lAsyncCount != 0)
                 {
                     cmdCancel.Text = "Cancel " + lAsyncCount.ToString();
                     cmdCancel.Enabled = !mCancellationTokenSource.IsCancellationRequested;
                 }
 
                 cmdDisconnect.Enabled = mClient.IsConnected;
+            }
+
+            if (mClient.Namespaces == null)
+            {
+                cmdMailboxes.Enabled = false;
+                cmdSubscriptions.Enabled = false;
+            }
+            else
+            {
+                cmdMailboxes.Enabled = true;
+                cmdSubscriptions.Enabled = true;
             }
         }
 
@@ -88,7 +99,9 @@ namespace testharness2
             txtTrace.Enabled = rdoCredAnon.Checked;
             txtUserId.Enabled = rdoCredBasic.Checked;
             txtPassword.Enabled = rdoCredBasic.Checked;
-            chkRequireTLS.Enabled = rdoCredBasic.Checked || rdoCredBasic.Checked;
+
+            gbxTLSRequirement.Enabled = rdoCredBasic.Checked || rdoCredBasic.Checked;
+            chkTryIfNotAdvertised.Enabled = rdoCredBasic.Checked || rdoCredBasic.Checked;
         }
 
         private void ZSetControlStateIdle(cTrace.cContext pParentContext)
@@ -107,21 +120,79 @@ namespace testharness2
             ZSetControlState(lContext);
         }
 
-        private void cmdConnect_Click(object sender, EventArgs e)
+        private async void cmdConnect_Click(object sender, EventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdConnect_Click));
 
-            /*
-            ValidateChildren
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
 
             try
             {
-                mClient.
+                mClient.SetServer(txtHost.Text.Trim(), int.Parse(txtPort.Text.Trim()), chkSSL.Checked);
+
+                if (rdoCredNone.Checked) mClient.SetNoCredentials();
+                else
+                {
+                    eTLSRequirement lTLSRequirement;
+                    if (rdoTLSIndifferent.Checked) lTLSRequirement = eTLSRequirement.indifferent;
+                    else if (rdoTLSRequired.Checked) lTLSRequirement = eTLSRequirement.required;
+                    else lTLSRequirement = eTLSRequirement.disallowed;
+
+                    if (rdoCredAnon.Checked) mClient.SetAnonymousCredentials(txtTrace.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
+                    else mClient.SetPlainCredentials(txtUserId.Text.Trim(), txtPassword.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
+                }
+
+                fMailboxCacheData lMailboxCacheData = 0;
+                if (chkCacheSubscribed.Checked) lMailboxCacheData |= fMailboxCacheData.subscribed;
+                if (chkCacheChildren.Checked) lMailboxCacheData |= fMailboxCacheData.children;
+                if (chkCacheSpecialUse.Checked) lMailboxCacheData |= fMailboxCacheData.specialuse;
+                if (chkCacheMessageCount.Checked) lMailboxCacheData |= fMailboxCacheData.messagecount;
+                if (chkCacheRecentCount.Checked) lMailboxCacheData |= fMailboxCacheData.recentcount;
+                if (chkCacheUIDNext.Checked) lMailboxCacheData |= fMailboxCacheData.uidnext;
+                if (chkCacheUIDValidity.Checked) lMailboxCacheData |= fMailboxCacheData.uidvalidity;
+                if (chkCacheUnseenCount.Checked) lMailboxCacheData |= fMailboxCacheData.unseencount;
+                if (chkCacheHighestModSeq.Checked) lMailboxCacheData |= fMailboxCacheData.highestmodseq;
+
+                mClient.MailboxCacheData = lMailboxCacheData;
+
+                fKnownCapabilities lKnownCapabilities = 0;
+
+                if (chkIgnoreStartTLS.Checked) lKnownCapabilities |= fKnownCapabilities.starttls;
+                if (chkIgnoreEnable.Checked) lKnownCapabilities |= fKnownCapabilities.enable;
+                if (chkIgnoreUTF8.Checked) lKnownCapabilities |= fKnownCapabilities.utf8accept | fKnownCapabilities.utf8only;
+                if (chkIgnoreId.Checked) lKnownCapabilities |= fKnownCapabilities.id;
+                if (chkIgnoreNamespace.Checked) lKnownCapabilities |= fKnownCapabilities.namespaces;
+
+                if (chkIgnoreMailboxReferrals.Checked) lKnownCapabilities |= fKnownCapabilities.mailboxreferrals;
+                if (chkIgnoreListExtended.Checked) lKnownCapabilities |= fKnownCapabilities.listextended;
+                if (chkIgnoreListStatus.Checked) lKnownCapabilities |= fKnownCapabilities.liststatus;
+                if (chkIgnoreSpecialUse.Checked) lKnownCapabilities |= fKnownCapabilities.specialuse;
+
+                if (chkIgnoreCondStore.Checked) lKnownCapabilities |= fKnownCapabilities.condstore;
+                if (chkIgnoreQResync.Checked) lKnownCapabilities |= fKnownCapabilities.qresync;
+
+                if (chkIgnoreLiteralPlus.Checked) lKnownCapabilities |= fKnownCapabilities.literalplus | fKnownCapabilities.literalminus;
+                if (chkIgnoreBinary.Checked) lKnownCapabilities |= fKnownCapabilities.binary;
+                if (chkIgnoreIdle.Checked) lKnownCapabilities |= fKnownCapabilities.idle;
+                if (chkIgnoreSASLIR.Checked) lKnownCapabilities |= fKnownCapabilities.sasl_ir;
+
+                if (chkIgnoreESearch.Checked) lKnownCapabilities |= fKnownCapabilities.esearch;
+                if (chkIgnoreSort.Checked) lKnownCapabilities |= fKnownCapabilities.sort;
+                if (chkIgnoreSortDisplay.Checked) lKnownCapabilities |= fKnownCapabilities.sortdisplay;
+                if (chkIgnoreThreadOrderedSubject.Checked) lKnownCapabilities |= fKnownCapabilities.threadorderedsubject;
+                if (chkIgnoreThreadReferences.Checked) lKnownCapabilities |= fKnownCapabilities.threadreferences;
+                if (chkIgnoreESort.Checked) lKnownCapabilities |= fKnownCapabilities.esort;
+
+                mClient.IgnoreCapabilities = lKnownCapabilities;
+
+                mClient.MailboxReferrals = chkMailboxReferrals.Checked;
+
+                await mClient.ConnectAsync();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Connect error\n{ex}");
-            } */
+            }
         }
 
         private async void cmdDisconnect_Click(object sender, EventArgs e)
@@ -167,10 +238,10 @@ namespace testharness2
         {
             if (!(sender is TextBox lSender)) return;
 
-            if (!int.TryParse(lSender.Text, out var i) || i < 100 || i > 99999)
+            if (!int.TryParse(lSender.Text, out var i) || i < 100 || i > 9999999)
             {
                 e.Cancel = true;
-                erp.SetError(lSender, "time should be a number 100 .. 99999");
+                erp.SetError(lSender, "time in ms should be a number 100 .. 9999999");
             }
         }
 
@@ -209,6 +280,7 @@ namespace testharness2
 
         private void ZValEnableChanged(object sender, EventArgs e)
         {
+            // TODO: check if this is required
             if (!((Control)sender).Enabled) erp.SetError((Control)sender, null);
         }
 
@@ -233,7 +305,8 @@ namespace testharness2
         private void frmClient_Load(object sender, EventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(frmClient_Load));
-            Text = "imapclient testharness - client - " + mInstanceName;
+
+            Text = "imapclient testharness - client - " + mClient.InstanceName;
             ZSetControlState(lContext);
             ZSetControlStateIdle(lContext);
             mClient.PropertyChanged += mClient_PropertyChanged;
@@ -267,8 +340,28 @@ namespace testharness2
             ZLoadFetchConfig(mClient.FetchBodyWriteConfiguration, txtFWMin, txtFWMax, txtFWMaxTime, txtFWInitial);
         }
 
+        private void ZLoadFetchConfig(cFetchSizeConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
+        {
+            pMin.Text = pConfig.Min.ToString();
+            pMax.Text = pConfig.Max.ToString();
+            pMaxTime.Text = pConfig.MaxTime.ToString();
+            pInitial.Text = pConfig.Initial.ToString();
+        }
+
         private void frmClient_FormClosing(object sender, FormClosingEventArgs e)
         {
+            // to allow closing with validation errors
+            e.Cancel = false;
+        }
+
+        private void frmClient_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (mNetworkActivity != null)
+            {
+                try { mNetworkActivity.Close(); }
+                catch { }
+            }
+
             if (mClient != null)
             {
                 try { mClient.Dispose(); }
@@ -280,9 +373,6 @@ namespace testharness2
                 try { mCancellationTokenSource.Dispose(); }
                 catch { }
             }
-
-            // to allow closing with validation errors
-            e.Cancel = false;
         }
 
         private void chkIdleAuto_CheckedChanged(object sender, EventArgs e)
@@ -320,6 +410,44 @@ namespace testharness2
             {
                 MessageBox.Show($"Set idle error\n{ex}");
             }
+        }
+
+        private void cmdEvents_Click(object sender, EventArgs e)
+        {
+            ;?;
+        }
+
+        private void ZChildFormsNew(Form pForm)
+        {
+            pForm.FormClosed += ZChildFormClosed;
+            pForm.Show();
+        }
+
+        private void ZChildFormClosed(object sender, EventArgs e)
+        {
+            if (!(sender is Form lForm)) return;
+            lForm.FormClosed -= ZChildFormClosed;
+        }
+
+        private void ZChildFormsFocus(Form pForm)
+        {
+            if (pForm.WindowState == FormWindowState.Minimized) pForm.WindowState = FormWindowState.Normal;
+            pForm.Focus();
+        }
+
+        private void cmdNetworkActivity_Click(object sender, EventArgs e)
+        {
+            if (mNetworkActivity == null || mNetworkActivity.IsDisposed)
+            {
+                mNetworkActivity = new frmNetworkActivity(mClient);
+                ZChildFormsNew(mNetworkActivity);
+            }
+            else ZChildFormsFocus(mNetworkActivity);
+        }
+
+        private void cmdResponseText_Click(object sender, EventArgs e)
+        {
+            ;?;
         }
     }
 }

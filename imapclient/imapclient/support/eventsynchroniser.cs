@@ -137,7 +137,7 @@ namespace work.bacome.imapclient
 
                 if (pResponse.Count > 1 || lCharCount < pResponse[0].Count) for (int i = 0; i < 3; i++) lChars[lCharCount++] = '.';
 
-                ZFireAndForget(new cNetworkActivityEventArgs(eNetworkActivitySource.server, new string(lChars)), lContext);
+                ZFireAndForget(new cNetworkActivityEventArgs(eNetworkActivitySource.server, new string(lChars, 0, lCharCount)), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
@@ -164,7 +164,7 @@ namespace work.bacome.imapclient
 
                 if (lCharCount < pSending.Count) for (int i = 0; i < 3; i++) lChars[lCharCount++] = '.';
 
-                ZFireAndForget(new cNetworkActivityEventArgs(eNetworkActivitySource.client, new string(lChars)), lContext);
+                ZFireAndForget(new cNetworkActivityEventArgs(eNetworkActivitySource.client, new string(lChars, 0, lCharCount)), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 

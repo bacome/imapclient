@@ -170,6 +170,7 @@
     <Compile Include="session\command\commandhook.cs" />
     <Compile Include="session\command_hooks\commandhookbasesearch.cs" />
     <Compile Include="session\command_hooks\commandhookfetch.cs" />
+    <Compile Include="support\namespacenames.cs" />
     <Compile Include="zzz\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooksearchextended.cs" />
     <Compile Include="session\command_hooks\commandhookselect.cs" />
