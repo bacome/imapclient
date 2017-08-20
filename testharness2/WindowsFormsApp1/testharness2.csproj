@@ -54,11 +54,23 @@
     <Compile Include="frmClient.Designer.cs">
       <DependentUpon>frmClient.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmDetails.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmDetails.Designer.cs">
+      <DependentUpon>frmDetails.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmNetworkActivity.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="frmNetworkActivity.Designer.cs">
       <DependentUpon>frmNetworkActivity.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmResponseText.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmResponseText.Designer.cs">
+      <DependentUpon>frmResponseText.cs</DependentUpon>
     </Compile>
     <Compile Include="frmStart.cs">
       <SubType>Form</SubType>
@@ -72,8 +84,14 @@
     <EmbeddedResource Include="frmClient.resx">
       <DependentUpon>frmClient.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="frmDetails.resx">
+      <DependentUpon>frmDetails.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="frmNetworkActivity.resx">
       <DependentUpon>frmNetworkActivity.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmResponseText.resx">
+      <DependentUpon>frmResponseText.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

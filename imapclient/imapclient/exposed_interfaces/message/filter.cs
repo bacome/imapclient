@@ -7,6 +7,8 @@ namespace work.bacome.imapclient
 {
     public abstract class cFilter
     {
+        public static readonly cFilter All = new cAll();
+
         public static readonly cFilterMessageHandle MessageHandle = new cFilterMessageHandle();
         public static readonly cFilterUID UID = new cFilterUID();
 
@@ -96,6 +98,11 @@ namespace work.bacome.imapclient
 
         public static cFilter operator |(cFilter pA, cFilter pB) => new cFilterOr(pA, pB);
         public static cFilter operator !(cFilter pNot) => new cFilterNot(pNot);
+
+        private class cAll : cFilter
+        {
+            public cAll() { }
+        }
 
         protected struct sCTorParams
         {

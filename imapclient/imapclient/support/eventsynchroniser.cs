@@ -141,7 +141,7 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void FireNetworkActivity(IList<byte> pSending, cTrace.cContext pParentContext)
+            public void FireNetworkActivity(IList<int> pBufferStartPoints, IList<byte> pBuffer, cTrace.cContext pParentContext)
             {
                 if (NetworkActivity == null) return; // pre-check for efficiency only
 
@@ -149,20 +149,42 @@ namespace work.bacome.imapclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
 
-                if (pSending == null) throw new ArgumentNullException(nameof(pSending));
-                if (pSending.Count == 0) throw new ArgumentOutOfRangeException(nameof(pSending));
+                if (pBufferStartPoints == null) throw new ArgumentNullException(nameof(pBufferStartPoints));
+                if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
 
-                char[] lChars = new char[kNetworkActivityMaxLength + 3];
+                if (pBufferStartPoints.Count == 0) throw new ArgumentOutOfRangeException(nameof(pBufferStartPoints));
+                if (pBuffer.Count == 0) throw new ArgumentOutOfRangeException(nameof(pBuffer));
+
+                char[] lChars = new char[(kNetworkActivityMaxLength + 4) * pBufferStartPoints.Count];
                 int lCharCount = 0;
 
-                foreach (var lByte in pSending)
+                for (int i = 0; i < pBufferStartPoints.Count; i++)
                 {
-                    if (lByte < cASCII.SPACE || lByte > cASCII.TILDA) break;
-                    lChars[lCharCount++] = (char)lByte;
-                    if (lCharCount == kNetworkActivityMaxLength) break;
-                }
+                    if (i != 0) lChars[lCharCount++] = ';';
 
-                if (lCharCount < pSending.Count) for (int i = 0; i < 3; i++) lChars[lCharCount++] = '.';
+                    int lStart = pBufferStartPoints[i];
+
+                    int lSegmentEnd;
+                    if (i == pBufferStartPoints.Count - 1) lSegmentEnd = pBuffer.Count;
+                    else lSegmentEnd = pBufferStartPoints[i + 1];
+
+                    int lNetworkActivityMaxLengthEnd = lStart + kNetworkActivityMaxLength;
+
+                    int lEnd = Math.Min(lSegmentEnd, lNetworkActivityMaxLengthEnd);
+
+                    int lPos = lStart;
+
+                    while (lPos < lEnd)
+                    {
+                        var lByte = pBuffer[lPos];
+                        if (lByte < cASCII.SPACE || lByte > cASCII.TILDA) break;
+                        lChars[lCharCount++] = (char)lByte;
+
+                        lPos++;
+                    }
+
+                    if (lPos < lSegmentEnd) for (int j = 0; j < 3; j++) lChars[lCharCount++] = '.';
+                }
 
                 ZFireAndForget(new cNetworkActivityEventArgs(eNetworkActivitySource.client, new string(lChars, 0, lCharCount)), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also

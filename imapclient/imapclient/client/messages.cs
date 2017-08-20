@@ -64,7 +64,13 @@ namespace work.bacome.imapclient
             return new cUIDList(pUIDs);
         }
 
-        public cSort DefaultSort { get; set; } = null;
+        private cSort mDefaultSort = cSort.None;
+
+        public cSort DefaultSort
+        {
+            get => mDefaultSort;
+            set => mDefaultSort = value ?? throw new ArgumentNullException();
+        }
 
         private enum eMessageThreadAlgorithm { orderedsubject, references }
 
@@ -92,11 +98,8 @@ namespace work.bacome.imapclient
             if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-
-            cSort lSort;
-            if (ReferenceEquals(pSort, cSort.None)) lSort = null;
-            else if (ReferenceEquals(pSort, cSort.ClientDefault)) lSort = DefaultSort;
-            else lSort = pSort;
+            if (pFilter == null) throw new ArgumentNullException(nameof(pFilter));
+            if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
             var lCapabilities = lSession.Capabilities;
 
@@ -112,54 +115,49 @@ namespace work.bacome.imapclient
 
                 fMessageProperties lProperties;
 
-                if (lSort == null) lProperties = pProperties;
-                else
+                if (ReferenceEquals(pSort, cSort.None)) lProperties = pProperties;
+                else if (ReferenceEquals(pSort, cSort.ThreadOrderedSubject))
                 {
-                    // may have to add to the attributes to get the data we need to do the sort if we are doing the sort
-                    if (ReferenceEquals(lSort, cSort.OrderedSubject))
-                    {
-                        if (lCapabilities.ThreadOrderedSubject) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.orderedsubject, pFilter, pProperties, lContext).ConfigureAwait(false);
-                        lProperties = pProperties | fMessageProperties.basesubject | fMessageProperties.received;
-                    }
-                    else if (ReferenceEquals(lSort, cSort.References))
-                    {
-                        if (lCapabilities.ThreadReferences) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.references, pFilter, pProperties, lContext).ConfigureAwait(false);
-                        lProperties = pProperties | fMessageProperties.subject | fMessageProperties.received | fMessageProperties.references;
-                    }
-                    else if (lSort.Items != null && lSort.Items.Count > 0)
-                    {
-                        var lSortProperties = lSort.Properties(out var lSortDisplay);
-
-                        if (!lSortDisplay && lCapabilities.Sort || lSortDisplay && lCapabilities.SortDisplay)
-                        {
-                            if (lCapabilities.ESort) lHandles = await lSession.SortExtendedAsync(lMC, pHandle, pFilter, lSort, lContext).ConfigureAwait(false);
-                            else lHandles = await lSession.SortAsync(lMC, pHandle, pFilter, lSort, lContext).ConfigureAwait(false);
-
-                            await ZMessagesFetchAsync(lMC, lSession, lHandles, pProperties, lContext).ConfigureAwait(false);
-
-                            return ZMessagesFlatMessageList(lHandles, lContext);
-                        }
-
-                        lProperties = pProperties | lSortProperties;
-                    }
-                    else throw new cInternalErrorException(lContext);
+                    if (lCapabilities.ThreadOrderedSubject) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.orderedsubject, pFilter, pProperties, lContext).ConfigureAwait(false);
+                    lProperties = pProperties | fMessageProperties.basesubject | fMessageProperties.received;
                 }
+                else if (ReferenceEquals(pSort, cSort.ThreadReferences))
+                {
+                    if (lCapabilities.ThreadReferences) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.references, pFilter, pProperties, lContext).ConfigureAwait(false);
+                    lProperties = pProperties | fMessageProperties.subject | fMessageProperties.received | fMessageProperties.references;
+                }
+                else if (pSort.Items != null)
+                {
+                    var lSortProperties = pSort.Properties(out var lSortDisplay);
+
+                    if (!lSortDisplay && lCapabilities.Sort || lSortDisplay && lCapabilities.SortDisplay)
+                    {
+                        if (lCapabilities.ESort) lHandles = await lSession.SortExtendedAsync(lMC, pHandle, pFilter, pSort, lContext).ConfigureAwait(false);
+                        else lHandles = await lSession.SortAsync(lMC, pHandle, pFilter, pSort, lContext).ConfigureAwait(false);
+
+                        await ZMessagesFetchAsync(lMC, lSession, lHandles, pProperties, lContext).ConfigureAwait(false);
+
+                        return ZMessagesFlatMessageList(lHandles, lContext);
+                    }
+
+                    lProperties = pProperties | lSortProperties;
+                }
+                else throw new cInternalErrorException(lContext);
 
                 if (lCapabilities.ESearch) lHandles = await lSession.SearchExtendedAsync(lMC, pHandle, pFilter, lContext).ConfigureAwait(false);
                 else lHandles = await lSession.SearchAsync(lMC, pHandle, pFilter, lContext).ConfigureAwait(false);
 
                 await ZMessagesFetchAsync(lMC, lSession, lHandles, lProperties, lContext).ConfigureAwait(false);
-
-                if (lSort == null) return ZMessagesFlatMessageList(lHandles, lContext);
             }
             finally { mAsyncCounter.Decrement(lContext); }
 
             // client side sorting
 
-            if (ReferenceEquals(lSort, cSort.OrderedSubject)) return ZMessagesThreadOrderedSubject(lHandles, lContext);
-            if (ReferenceEquals(lSort, cSort.References)) return ZMessagesThreadReferences(lHandles, lContext);
+            if (ReferenceEquals(pSort, cSort.ThreadOrderedSubject)) return ZMessagesThreadOrderedSubject(lHandles, lContext);
+            if (ReferenceEquals(pSort, cSort.ThreadReferences)) return ZMessagesThreadReferences(lHandles, lContext);
 
-            lHandles.Sort(lSort);
+            if (!ReferenceEquals(pSort, cSort.None)) lHandles.Sort(pSort);
+
             return ZMessagesFlatMessageList(lHandles, lContext);
         }
 

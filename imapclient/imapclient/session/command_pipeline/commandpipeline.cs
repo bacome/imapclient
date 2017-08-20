@@ -14,6 +14,9 @@ namespace work.bacome.imapclient
         {
             private sealed partial class cCommandPipeline : IDisposable
             {
+                // for tracing
+                private static readonly int[] kBufferStartPointsBeginning = new int[1] { 0 };
+
                 private bool mDisposed = false;
                 private bool mStopped = false;
 
@@ -55,8 +58,9 @@ namespace work.bacome.imapclient
                 private readonly cActiveCommands mActiveCommands = new cActiveCommands();
 
                 // growable buffers
-                private cByteList mSendBuffer = new cByteList();
-                private cByteList mTraceBuffer = new cByteList();
+                private readonly cByteList mSendBuffer = new cByteList();
+                private readonly List<int> mBufferStartPoints = new List<int>();
+                private readonly cByteList mTraceBuffer = new cByteList();
 
                 public cCommandPipeline(cEventSynchroniser pEventSynchroniser, cConnection pConnection, cResponseTextProcessor pResponseTextProcessor, cIdleConfiguration pIdleConfiguration, Action<cTrace.cContext> pDisconnect, cTrace.cContext pParentContext)
                 {
@@ -244,9 +248,14 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZSendAsync));
 
                     mSendBuffer.Clear();
+                    mBufferStartPoints.Clear();
                     mTraceBuffer.Clear();
 
-                    if (mCurrentCommand != null) ZSendAppendCurrentPartDataAndMoveNextPart(lContext);
+                    if (mCurrentCommand != null)
+                    {
+                        mBufferStartPoints.Add(0);
+                        ZSendAppendCurrentPartDataAndMoveNextPart(lContext);
+                    }
 
                     while (true)
                     {
@@ -270,7 +279,7 @@ namespace work.bacome.imapclient
                     else
                     {
                         lContext.TraceVerbose("sending {0}", mTraceBuffer);
-                        mEventSynchroniser.FireNetworkActivity(mTraceBuffer, lContext);
+                        mEventSynchroniser.FireNetworkActivity(mBufferStartPoints, mTraceBuffer, lContext);
                         await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
                     }
                 }
@@ -344,6 +353,8 @@ namespace work.bacome.imapclient
 
                     mSendBuffer.AddRange(mCurrentCommand.Tag);
                     mSendBuffer.Add(cASCII.SPACE);
+
+                    mBufferStartPoints.Add(mTraceBuffer.Count);
 
                     mTraceBuffer.AddRange(mCurrentCommand.Tag);
                     mTraceBuffer.Add(cASCII.SPACE);
@@ -496,7 +507,7 @@ namespace work.bacome.imapclient
                             mSendBuffer.Add(cASCII.LF);
 
                             lContext.TraceVerbose("sending {0}", mSendBuffer);
-                            mEventSynchroniser.FireNetworkActivity(mSendBuffer, lContext);
+                            mEventSynchroniser.FireNetworkActivity(kBufferStartPointsBeginning, mSendBuffer, lContext);
                             await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                             // wait for continuation
@@ -514,7 +525,7 @@ namespace work.bacome.imapclient
                             mSendBuffer.Add(cASCII.LF);
 
                             lContext.TraceVerbose("sending {0}", mSendBuffer);
-                            mEventSynchroniser.FireNetworkActivity(mSendBuffer, lContext);
+                            mEventSynchroniser.FireNetworkActivity(kBufferStartPointsBeginning, mSendBuffer, lContext);
                             await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                             // process responses until the command completion is received
@@ -588,7 +599,7 @@ namespace work.bacome.imapclient
                     mSendBuffer.Add(cASCII.LF);
 
                     lContext.TraceVerbose("sending {0}", mSendBuffer);
-                    mEventSynchroniser.FireNetworkActivity(mSendBuffer, lContext);
+                    mEventSynchroniser.FireNetworkActivity(kBufferStartPointsBeginning, mSendBuffer, lContext);
                     await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                     await ZIdleProcessResponsesAsync(lTag, false, lContext).ConfigureAwait(false);
@@ -675,7 +686,7 @@ namespace work.bacome.imapclient
                         lContext.TraceVerbose("sending cancellation");
                         lBuffer = new byte[] { cASCII.ASTERISK, cASCII.CR, cASCII.LF };
                         mAuthenticateState.CancelSent = true;
-                        mEventSynchroniser.FireNetworkActivity(kAsterisk, lContext);
+                        mEventSynchroniser.FireNetworkActivity(kBufferStartPointsBeginning, kAsterisk, lContext);
                     }
                     else
                     {
@@ -684,7 +695,7 @@ namespace work.bacome.imapclient
                         lBytes.Add(cASCII.CR);
                         lBytes.Add(cASCII.LF);
                         lBuffer = lBytes.ToArray();
-                        mEventSynchroniser.FireNetworkActivity(kSASLAuthenticationResponse, lContext);
+                        mEventSynchroniser.FireNetworkActivity(kBufferStartPointsBeginning, kSASLAuthenticationResponse, lContext);
                     }
 
                     await mConnection.WriteAsync(mBackgroundMC, lBuffer, lContext).ConfigureAwait(false);

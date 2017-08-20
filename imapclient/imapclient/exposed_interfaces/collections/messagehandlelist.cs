@@ -11,7 +11,13 @@ namespace work.bacome.imapclient
         public cMessageHandleList(IEnumerable<iMessageHandle> pHandles) : base(pHandles) { }
 
         public void SortByCacheSequence() => Sort(ZCompareCacheSequence);
-        public void Sort(cSort pSort) => Sort(pSort.Comparison);
+
+        public void Sort(cSort pSort)
+        {
+            if (pSort == null) throw new ArgumentNullException(nameof(pSort));
+            if (pSort.Items == null) throw new ArgumentOutOfRangeException(nameof(pSort));
+            Sort(pSort.Comparison);
+        }
 
         private static int ZCompareCacheSequence(iMessageHandle pX, iMessageHandle pY) => pX.CacheSequence.CompareTo(pY.CacheSequence);
 

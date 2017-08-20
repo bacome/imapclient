@@ -144,9 +144,11 @@ namespace work.bacome.imapclient
                 {
                     if (mEmitted) throw new InvalidOperationException();
 
+                    if (pFilter == null) throw new ArgumentNullException(nameof(pFilter));
                     if (pSelectedMailbox == null) throw new ArgumentNullException(nameof(pSelectedMailbox));
+                    if (pFactory == null) throw new ArgumentNullException(nameof(pFactory));
 
-                    if (pFilter != null && pFilter.UIDValidity != null)
+                    if (pFilter.UIDValidity != null)
                     {
                         if (pFilter.UIDValidity != pSelectedMailbox.Cache.UIDValidity) throw new cUIDValidityChangedException();
                         AddUIDValidity(pFilter.UIDValidity.Value);
@@ -188,15 +190,14 @@ namespace work.bacome.imapclient
                 {
                     var lParts = new cCommandPartsBuilder();
 
-                    if (pSelectedMailbox == null) throw new ArgumentNullException(nameof(pSelectedMailbox));
+                    if (ReferenceEquals(pFilter, cFilter.All))
+                    {
+                        lParts.Add(kCommandPartAll);
+                        return lParts.Parts;
+                    }
 
                     switch (pFilter)
                     {
-                        case null:
-
-                            lParts.Add(kCommandPartAll);
-                            return lParts.Parts;
-
                         case cFilterMessageHandleRelativity lRelativity:
 
                             var lMSN = pSelectedMailbox.GetMSN(lRelativity.Handle);
@@ -398,6 +399,8 @@ namespace work.bacome.imapclient
                 public void Add(cSort pSort)
                 {
                     if (mEmitted) throw new InvalidOperationException();
+
+                    if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
                     mParts.BeginList(eListBracketing.bracketed);
 

@@ -14,26 +14,28 @@ namespace testharness2
     public partial class frmNetworkActivity : Form
     {
         private readonly cIMAPClient mClient;
+        private readonly int mMaxMessages;
         private readonly Queue<cNetworkActivityEventArgs> mQueue = new Queue<cNetworkActivityEventArgs>();
         private readonly StringBuilder mBuilder = new StringBuilder();
         private bool mRefreshRequired = false;
 
-        public frmNetworkActivity(cIMAPClient pClient)
+        public frmNetworkActivity(cIMAPClient pClient, int pMaxMessages)
         {
             mClient = pClient;
+            mMaxMessages = pMaxMessages;
             InitializeComponent();
         }
 
         private void frmNetworkActivity_Load(object sender, EventArgs e)
         {
-            Text = "imapclient testharness - network activity - " + mClient.InstanceName;
+            Text = "imapclient testharness - network activity - " + mClient.InstanceName + " [" + mMaxMessages + "]";
             mClient.NetworkActivity += mClient_NetworkActivity;
         }
 
         private void mClient_NetworkActivity(object sender, cNetworkActivityEventArgs e)
         {
             mQueue.Enqueue(e);
-            if (mQueue.Count > 100) mQueue.Dequeue();
+            if (mQueue.Count > mMaxMessages) mQueue.Dequeue();
             mRefreshRequired = true;
         }
 

@@ -15,10 +15,12 @@ namespace testharness2
 {
     public partial class frmClient : Form
     {
+        private static readonly cSort kSortReceivedDesc = new cSort(cSortItem.ReceivedDesc);
+
         private readonly cTrace.cContext mRootContext;
         private readonly cIMAPClient mClient;
         private CancellationTokenSource mCancellationTokenSource = null;
-        private frmNetworkActivity mNetworkActivity = null;
+        private Dictionary<string, Form> mNamedChildren = new Dictionary<string, Form>();
 
         public frmClient(string pInstanceName)
         {
@@ -308,7 +310,7 @@ namespace testharness2
 
             Text = "imapclient testharness - client - " + mClient.InstanceName;
             ZSetControlState(lContext);
-            ZSetControlStateIdle(lContext);
+            ZSetControlStateIdle(lContext);           
             mClient.PropertyChanged += mClient_PropertyChanged;
 
             var lMailboxCacheData = mClient.MailboxCacheData;
@@ -338,6 +340,15 @@ namespace testharness2
             ZLoadFetchConfig(mClient.FetchAttributesConfiguration, txtFAMin, txtFAMax, txtFAMaxTime, txtFAInitial);
             ZLoadFetchConfig(mClient.FetchBodyReadConfiguration, txtFRMin, txtFRMax, txtFRMaxTime, txtFRInitial);
             ZLoadFetchConfig(mClient.FetchBodyWriteConfiguration, txtFWMin, txtFWMax, txtFWMaxTime, txtFWInitial);
+
+            if (ReferenceEquals(mClient.DefaultSort, cSort.None)) rdoSortNone.Checked = true;
+            else if (ReferenceEquals(mClient.DefaultSort, cSort.ThreadOrderedSubject)) rdoThreadOrderedSubject.Checked = true;
+            else if (ReferenceEquals(mClient.DefaultSort, cSort.ThreadReferences)) rdoThreadReferences.Checked = true;
+            else
+            {
+                rdoSortOther.Checked = true;
+                txtSortOther.Text = mClient.DefaultSort.ToString();
+            }
         }
 
         private void ZLoadFetchConfig(cFetchSizeConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
@@ -356,10 +367,19 @@ namespace testharness2
 
         private void frmClient_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (mNetworkActivity != null)
+            List<Form> lForms = new List<Form>();
+
+            foreach (var lForm in mNamedChildren.Values)
             {
-                try { mNetworkActivity.Close(); }
+                lForms.Add(lForm);
+                lForm.FormClosed -= ZNamedChildClosed;
+            }
+
+            foreach (var lForm in lForms) 
+            {
+                try { lForm.Close(); }
                 catch { }
+
             }
 
             if (mClient != null)
@@ -414,22 +434,37 @@ namespace testharness2
 
         private void cmdEvents_Click(object sender, EventArgs e)
         {
-            ;?;
+            //;?;
         }
 
-        private void ZChildFormsNew(Form pForm)
+        private void ZNamedChildAdd(Form pForm)
         {
-            pForm.FormClosed += ZChildFormClosed;
+            mNamedChildren.Add(pForm.Name, pForm);
+            pForm.FormClosed += ZNamedChildClosed;
             pForm.Show();
+            ZNamedChildrenSetControlState();
         }
 
-        private void ZChildFormClosed(object sender, EventArgs e)
+        private void ZNamedChildClosed(object sender, EventArgs e)
         {
             if (!(sender is Form lForm)) return;
-            lForm.FormClosed -= ZChildFormClosed;
+            lForm.FormClosed -= ZNamedChildClosed;
+            mNamedChildren.Remove(lForm.Name);
+            ZNamedChildrenSetControlState();
         }
 
-        private void ZChildFormsFocus(Form pForm)
+        private void ZNamedChildrenSetControlState()
+        {
+            txtNetworkActivity.Enabled = !mNamedChildren.ContainsKey(nameof(frmNetworkActivity));
+
+            bool lResponseText = !mNamedChildren.ContainsKey(nameof(frmResponseText));
+
+            txtResponseText.Enabled = lResponseText;
+            gbxResponseTextType.Enabled = lResponseText;
+            gbxResponseTextCode.Enabled = lResponseText;
+        }
+
+        private void ZFocus(Form pForm)
         {
             if (pForm.WindowState == FormWindowState.Minimized) pForm.WindowState = FormWindowState.Normal;
             pForm.Focus();
@@ -437,17 +472,196 @@ namespace testharness2
 
         private void cmdNetworkActivity_Click(object sender, EventArgs e)
         {
-            if (mNetworkActivity == null || mNetworkActivity.IsDisposed)
-            {
-                mNetworkActivity = new frmNetworkActivity(mClient);
-                ZChildFormsNew(mNetworkActivity);
-            }
-            else ZChildFormsFocus(mNetworkActivity);
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+            if (mNamedChildren.TryGetValue(nameof(frmNetworkActivity), out var lForm)) ZFocus(lForm);
+            else ZNamedChildAdd(new frmNetworkActivity(mClient, int.Parse(txtNetworkActivity.Text)));
         }
 
         private void cmdResponseText_Click(object sender, EventArgs e)
         {
-            ;?;
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            if (mNamedChildren.TryGetValue(nameof(frmResponseText), out var lForm)) ZFocus(lForm);
+            else
+            {
+                int lMaxMessages = int.Parse(txtResponseText.Text);
+
+                List<eResponseTextType> lTypes = new List<eResponseTextType>();
+
+                if (chkRTTGreeting.Checked) lTypes.Add(eResponseTextType.greeting);
+                if (chkRTTContinue.Checked) lTypes.Add(eResponseTextType.continuerequest);
+                if (chkRTTBye.Checked) lTypes.Add(eResponseTextType.bye);
+                if (chkRTTInformation.Checked) lTypes.Add(eResponseTextType.information);
+                if (chkRTTWarning.Checked) lTypes.Add(eResponseTextType.warning);
+                if (chkRTTError.Checked) lTypes.Add(eResponseTextType.error);
+                if (chkRTTSuccess.Checked) lTypes.Add(eResponseTextType.success);
+                if (chkRTTFailure.Checked) lTypes.Add(eResponseTextType.failure);
+                if (chkRTTProtocolError.Checked) lTypes.Add(eResponseTextType.protocolerror);
+                if (chkRTTAuthenticationCancelled.Checked) lTypes.Add(eResponseTextType.authenticationcancelled);
+
+                List<eResponseTextCode> lCodes = new List<eResponseTextCode>();
+
+                if (chkRTCNone.Checked) lCodes.Add(eResponseTextCode.none);
+                if (chkRTCUnknown.Checked) lCodes.Add(eResponseTextCode.unknown);
+                if (chkRTCAlert.Checked) lCodes.Add(eResponseTextCode.alert);
+                if (chkRTCBadCharset.Checked) lCodes.Add(eResponseTextCode.badcharset);
+                if (chkRTCParse.Checked) lCodes.Add(eResponseTextCode.parse);
+                if (chkRTCTryCreate.Checked) lCodes.Add(eResponseTextCode.trycreate);
+
+                if (chkRTCRFC5530.Checked)
+                {
+                    lCodes.Add(eResponseTextCode.unavailable);
+                    lCodes.Add(eResponseTextCode.authenticationfailed);
+                    lCodes.Add(eResponseTextCode.authorizationfailed);
+                    lCodes.Add(eResponseTextCode.expired);
+                    lCodes.Add(eResponseTextCode.privacyrequired);
+                    lCodes.Add(eResponseTextCode.contactadmin);
+                    lCodes.Add(eResponseTextCode.noperm);
+                    lCodes.Add(eResponseTextCode.inuse);
+                    lCodes.Add(eResponseTextCode.expungeissued);
+                    lCodes.Add(eResponseTextCode.corruption);
+                    lCodes.Add(eResponseTextCode.serverbug);
+                    lCodes.Add(eResponseTextCode.clientbug);
+                    lCodes.Add(eResponseTextCode.cannot);
+                    lCodes.Add(eResponseTextCode.limit);
+                    lCodes.Add(eResponseTextCode.overquota);
+                    lCodes.Add(eResponseTextCode.alreadyexists);
+                    lCodes.Add(eResponseTextCode.nonexistent);
+                }
+
+                if (chkRTCReferral.Checked) lCodes.Add(eResponseTextCode.referral);
+                if (chkRTCUseAttr.Checked) lCodes.Add(eResponseTextCode.useattr);
+                if (chkRTCUnknownCTE.Checked) lCodes.Add(eResponseTextCode.unknowncte);
+
+                ZNamedChildAdd(new frmResponseText(mClient, lMaxMessages, lTypes, lCodes));
+            }
+        }
+
+        private void cmdTimeoutSet_Click(object sender, EventArgs e)
+        {
+            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdTimeoutSet_Click));
+
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            try
+            {
+                mClient.Timeout = int.Parse(txtTimeout.Text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Set timeout error\n{ex}");
+            }
+        }
+
+        private void cmdFRSet_Click(object sender, EventArgs e)
+        {
+            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdFRSet_Click));
+
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            try
+            {
+                mClient.FetchBodyReadConfiguration = new cFetchSizeConfiguration(int.Parse(txtFRMin.Text), int.Parse(txtFRMax.Text), int.Parse(txtFRMaxTime.Text), int.Parse(txtFRInitial.Text));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Set fetch body read error\n{ex}");
+            }
+        }
+
+        private void cmdFASet_Click(object sender, EventArgs e)
+        {
+            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdFASet_Click));
+
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            try
+            {
+                mClient.FetchAttributesConfiguration = new cFetchSizeConfiguration(int.Parse(txtFAMin.Text), int.Parse(txtFAMax.Text), int.Parse(txtFAMaxTime.Text), int.Parse(txtFAInitial.Text));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Set fetch attributes error\n{ex}");
+            }
+        }
+
+        private void cmdFWSet_Click(object sender, EventArgs e)
+        {
+            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdFWSet_Click));
+
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            try
+            {
+                mClient.FetchBodyWriteConfiguration = new cFetchSizeConfiguration(int.Parse(txtFWMin.Text), int.Parse(txtFWMax.Text), int.Parse(txtFWMaxTime.Text), int.Parse(txtFWInitial.Text));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Set fetch body write error\n{ex}");
+            }
+        }
+
+        private void cmdDetails_Click(object sender, EventArgs e)
+        {
+            if (mNamedChildren.TryGetValue(nameof(frmDetails), out var lForm)) ZFocus(lForm);
+            else ZNamedChildAdd(new frmDetails(mClient));
+        }
+
+        private void ZSetDefaultSort(object sender, EventArgs e)
+        {
+            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(ZSetDefaultSort));
+
+            try
+            {
+                if (rdoSortNone.Checked) mClient.DefaultSort = cSort.None;
+                else if (rdoThreadOrderedSubject.Checked) mClient.DefaultSort = cSort.ThreadOrderedSubject;
+                else if (rdoThreadReferences.Checked) mClient.DefaultSort = cSort.ThreadReferences;
+                else if (rdoSortReceivedDesc.Checked) mClient.DefaultSort = kSortReceivedDesc;
+                else throw new cInternalErrorException();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Set default sort error\n{ex}");
+            }
+        }
+
+        private void ZSetDefaultMessageProperties(object sender, EventArgs e)
+        {
+            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(ZSetDefaultMessageProperties));
+
+            try
+            {
+                fMessageProperties lProperties = 0;
+
+                if (chkMPEnvelope.Checked) lProperties |= fMessageProperties.sent;
+                if (chkMPFlags.Checked) lProperties |= fMessageProperties.isanswered;
+                if (chkMPReceived.Checked) lProperties |= fMessageProperties.received;
+                if (chkMPSize.Checked) lProperties |= fMessageProperties.size;
+                if (chkMPUID.Checked) lProperties |= fMessageProperties.uid;
+                if (chkMPReferences.Checked) lProperties |= fMessageProperties.references;
+                if (chkMPModSeq.Checked) lProperties |= fMessageProperties.modseq;
+                if (chkMPBodyStructure.Checked) lProperties |= fMessageProperties.bodystructure;
+
+                mClient.DefaultMessageProperties = lProperties;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Set default message properties error\n{ex}");
+            }
+        }
+
+        private async void cmdPoll_Click(object sender, EventArgs e)
+        {
+            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdPoll_Click));
+
+            try
+            {
+                await mClient.PollAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Set default message properties error\n{ex}");
+            }
         }
     }
 }
