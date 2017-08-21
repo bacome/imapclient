@@ -44,6 +44,7 @@ namespace work.bacome.imapclient
                         lContext.TraceInformation("enabled extensions {0}", lEnabledExtensions);
                         EnabledExtensions = EnabledExtensions | lEnabledExtensions;
                         lContext.TraceVerbose("current enabled extensions {0}", EnabledExtensions);
+                        mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.EnabledExtensions), lContext);
                         return;
                     }
 

@@ -147,19 +147,32 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetState), pConnectionState);
                 if (pConnectionState == _ConnectionState) return;
+                bool lIsUnconnected = IsUnconnected;
+                bool lIsConnected = IsConnected;
                 _ConnectionState = pConnectionState;
                 mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.ConnectionState), lContext);
+                if (IsConnected != lIsConnected) mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.IsConnected), lContext);
+                if (IsUnconnected != lIsUnconnected) mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.IsUnconnected), lContext);
             }
 
             public cCapabilities Capabilities => mCapabilities;
 
             public cURL HomeServerReferral => _HomeServerReferral;
 
-            private bool ZSetHomeServerReferral(cResponseText pResponseText)
+            private bool ZSetHomeServerReferral(cResponseText pResponseText, cTrace.cContext pParentContext)
             {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetHomeServerReferral), pResponseText);
+
                 if (pResponseText.Code != eResponseTextCode.referral || pResponseText.Strings == null || pResponseText.Strings.Count != 1) return false;
-                string lReferral = pResponseText.Strings[0];
-                return cURL.TryParse(lReferral, out _HomeServerReferral);
+
+                if (cURL.TryParse(pResponseText.Strings[0], out var lReferral) && lReferral.IsHomeServerReferral)
+                {
+                    _HomeServerReferral = lReferral;
+                    mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.HomeServerReferral), lContext);
+                    return true;
+                }
+
+                return false;
             }
 
             public cAccountId ConnectedAccountId => _ConnectedAccountId;
@@ -170,6 +183,7 @@ namespace work.bacome.imapclient
                 if (_ConnectedAccountId != null) throw new InvalidOperationException(); // can only be set once
                 _ConnectedAccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId));
                 ZSetState(eConnectionState.authenticated, lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.ConnectedAccountId), lContext);
             }
 
             public bool SASLSecurityInstalled => mConnection?.SASLSecurityInstalled ?? false;

@@ -50,6 +50,7 @@ namespace work.bacome.imapclient
                                 {
                                     mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
                                     mPipeline.SetCapability(mCapabilities, lContext);
+                                    mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
                                 }
 
                                 ZSetState(eConnectionState.notauthenticated, lContext);
@@ -67,9 +68,10 @@ namespace work.bacome.imapclient
                                 {
                                     mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
                                     mPipeline.SetCapability(mCapabilities, lContext);
+                                    mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
                                 }
 
-                                ZSetHomeServerReferral(lResponseText);
+                                ZSetHomeServerReferral(lResponseText, lContext);
                                 ZSetConnectedAccountId(new cAccountId(pServer.Host, eAccountType.none), lContext);
 
                                 return;
@@ -85,7 +87,7 @@ namespace work.bacome.imapclient
 
                                 Disconnect(lContext);
 
-                                if (ZSetHomeServerReferral(lResponseText)) throw new cHomeServerReferralException(lResponseText, lContext);
+                                if (ZSetHomeServerReferral(lResponseText, lContext)) throw new cHomeServerReferralException(lResponseText, lContext);
                                 throw new cConnectByeException(lResponseText, lContext);
                             }
 

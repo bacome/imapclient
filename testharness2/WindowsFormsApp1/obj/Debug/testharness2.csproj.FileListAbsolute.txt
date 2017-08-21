@@ -13,3 +13,4 @@ C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Deb
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmNetworkActivity.resources
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmResponseText.resources
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmDetails.resources
+C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmEvents.resources

@@ -20,7 +20,8 @@ namespace testharness2
         private readonly cTrace.cContext mRootContext;
         private readonly cIMAPClient mClient;
         private CancellationTokenSource mCancellationTokenSource = null;
-        private Dictionary<string, Form> mNamedChildren = new Dictionary<string, Form>();
+        private readonly Dictionary<string, Form> mNamedChildren = new Dictionary<string, Form>();
+        private readonly List<Form> mUnnamedChildren = new List<Form>();
 
         public frmClient(string pInstanceName)
         {
@@ -92,6 +93,8 @@ namespace testharness2
                 cmdMailboxes.Enabled = true;
                 cmdSubscriptions.Enabled = true;
             }
+
+            cmdInbox.Enabled = mClient.Inbox != null;
         }
 
         private void ZSetControlStateCredentials(cTrace.cContext pParentContext)
@@ -280,12 +283,6 @@ namespace testharness2
             }
         }
 
-        private void ZValEnableChanged(object sender, EventArgs e)
-        {
-            // TODO: check if this is required
-            if (!((Control)sender).Enabled) erp.SetError((Control)sender, null);
-        }
-
         private void ZValControlValidated(object sender, EventArgs e)
         {
             erp.SetError((Control)sender, null);
@@ -349,6 +346,15 @@ namespace testharness2
                 rdoSortOther.Checked = true;
                 txtSortOther.Text = mClient.DefaultSort.ToString();
             }
+
+            chkMPEnvelope.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0;
+            chkMPFlags.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0;
+            chkMPReceived.Checked = (mClient.DefaultMessageProperties & fMessageProperties.received) != 0;
+            chkMPSize.Checked = (mClient.DefaultMessageProperties & fMessageProperties.size) != 0;
+            chkMPUID.Checked = (mClient.DefaultMessageProperties & fMessageProperties.uid) != 0;
+            chkMPReferences.Checked = (mClient.DefaultMessageProperties & fMessageProperties.references) != 0;
+            chkMPModSeq.Checked = (mClient.DefaultMessageProperties & fMessageProperties.modseq) != 0;
+            chkMPBodyStructure.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.bodystructure | fMessageProperties.attachments)) != 0;
         }
 
         private void ZLoadFetchConfig(cFetchSizeConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
@@ -375,11 +381,16 @@ namespace testharness2
                 lForm.FormClosed -= ZNamedChildClosed;
             }
 
+            foreach (var lForm in mUnnamedChildren)
+            {
+                lForms.Add(lForm);
+                lForm.FormClosed -= ZUnnamedChildClosed;
+            }
+
             foreach (var lForm in lForms) 
             {
                 try { lForm.Close(); }
                 catch { }
-
             }
 
             if (mClient != null)
@@ -434,7 +445,8 @@ namespace testharness2
 
         private void cmdEvents_Click(object sender, EventArgs e)
         {
-            //;?;
+            if (mNamedChildren.TryGetValue(nameof(frmEvents), out var lForm)) ZFocus(lForm);
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmEvents(mClient, int.Parse(txtEvents.Text)));
         }
 
         private void ZNamedChildAdd(Form pForm)
@@ -456,12 +468,27 @@ namespace testharness2
         private void ZNamedChildrenSetControlState()
         {
             txtNetworkActivity.Enabled = !mNamedChildren.ContainsKey(nameof(frmNetworkActivity));
+            txtEvents.Enabled = !mNamedChildren.ContainsKey(nameof(frmEvents));
 
             bool lResponseText = !mNamedChildren.ContainsKey(nameof(frmResponseText));
 
             txtResponseText.Enabled = lResponseText;
             gbxResponseTextType.Enabled = lResponseText;
             gbxResponseTextCode.Enabled = lResponseText;
+        }
+
+        private void ZUnnamedChildAdd(Form pForm)
+        {
+            mUnnamedChildren.Add(pForm);
+            pForm.FormClosed += ZUnnamedChildClosed;
+            pForm.Show();
+        }
+
+        private void ZUnnamedChildClosed(object sender, EventArgs e)
+        {
+            if (!(sender is Form lForm)) return;
+            lForm.FormClosed -= ZUnnamedChildClosed;
+            mUnnamedChildren.Remove(lForm);
         }
 
         private void ZFocus(Form pForm)
@@ -472,17 +499,14 @@ namespace testharness2
 
         private void cmdNetworkActivity_Click(object sender, EventArgs e)
         {
-            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
             if (mNamedChildren.TryGetValue(nameof(frmNetworkActivity), out var lForm)) ZFocus(lForm);
-            else ZNamedChildAdd(new frmNetworkActivity(mClient, int.Parse(txtNetworkActivity.Text)));
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmNetworkActivity(mClient, int.Parse(txtNetworkActivity.Text)));
         }
 
         private void cmdResponseText_Click(object sender, EventArgs e)
         {
-            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
-
             if (mNamedChildren.TryGetValue(nameof(frmResponseText), out var lForm)) ZFocus(lForm);
-            else
+            else if (ValidateChildren(ValidationConstraints.Enabled))
             {
                 int lMaxMessages = int.Parse(txtResponseText.Text);
 
@@ -634,7 +658,7 @@ namespace testharness2
                 fMessageProperties lProperties = 0;
 
                 if (chkMPEnvelope.Checked) lProperties |= fMessageProperties.sent;
-                if (chkMPFlags.Checked) lProperties |= fMessageProperties.isanswered;
+                if (chkMPFlags.Checked) lProperties |= fMessageProperties.flags;
                 if (chkMPReceived.Checked) lProperties |= fMessageProperties.received;
                 if (chkMPSize.Checked) lProperties |= fMessageProperties.size;
                 if (chkMPUID.Checked) lProperties |= fMessageProperties.uid;
@@ -660,8 +684,13 @@ namespace testharness2
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Set default message properties error\n{ex}");
+                MessageBox.Show($"Poll error\n{ex}");
             }
+        }
+
+        private void cmdMailboxes_Click(object sender, EventArgs e)
+        {
+            //;?;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace testharness2
     {
         private readonly cIMAPClient mClient;
         private readonly int mMaxMessages;
-        private readonly Queue<cNetworkActivityEventArgs> mQueue = new Queue<cNetworkActivityEventArgs>();
+        private readonly Queue<string> mQueue = new Queue<string>();
         private readonly StringBuilder mBuilder = new StringBuilder();
         private bool mRefreshRequired = false;
 
@@ -34,7 +34,7 @@ namespace testharness2
 
         private void mClient_NetworkActivity(object sender, cNetworkActivityEventArgs e)
         {
-            mQueue.Enqueue(e);
+            mQueue.Enqueue(e.ToString());
             if (mQueue.Count > mMaxMessages) mQueue.Dequeue();
             mRefreshRequired = true;
         }
@@ -48,7 +48,7 @@ namespace testharness2
         {
             if (mRefreshRequired)
             {
-                foreach (var lArgs in mQueue) mBuilder.AppendLine(lArgs.ToString());
+                foreach (var lString in mQueue) mBuilder.AppendLine(lString);
 
                 rtx.Text = mBuilder.ToString();
                 rtx.ScrollToCaret();

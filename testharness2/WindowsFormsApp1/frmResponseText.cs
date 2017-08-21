@@ -17,7 +17,7 @@ namespace testharness2
         private readonly int mMaxMessages;
         private readonly IList<eResponseTextType> mTypes;
         private readonly IList<eResponseTextCode> mCodes;
-        private readonly Queue<cResponseTextEventArgs> mQueue = new Queue<cResponseTextEventArgs>();
+        private readonly Queue<string> mQueue = new Queue<string>();
         private readonly StringBuilder mBuilder = new StringBuilder();
         private bool mRefreshRequired = false;
 
@@ -40,7 +40,7 @@ namespace testharness2
         {
             if (mTypes.Contains(e.TextType) || mCodes.Contains(e.Text.Code))
             {
-                mQueue.Enqueue(e);
+                mQueue.Enqueue(e.ToString());
                 if (mQueue.Count > mMaxMessages) mQueue.Dequeue();
                 mRefreshRequired = true;
             }
@@ -55,7 +55,7 @@ namespace testharness2
         {
             if (mRefreshRequired)
             {
-                foreach (var lArgs in mQueue) mBuilder.AppendLine(lArgs.ToString());
+                foreach (var lString in mQueue) mBuilder.AppendLine(lString);
 
                 rtx.Text = mBuilder.ToString();
                 rtx.ScrollToCaret();

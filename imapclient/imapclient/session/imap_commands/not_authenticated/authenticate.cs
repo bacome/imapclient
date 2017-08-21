@@ -64,9 +64,10 @@ namespace work.bacome.imapclient
                         {
                             mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
                             mPipeline.SetCapability(mCapabilities, lContext);
+                            mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
                         }
 
-                        ZSetHomeServerReferral(lResult.ResponseText);
+                        ZSetHomeServerReferral(lResult.ResponseText, lContext);
                         ZSetConnectedAccountId(pAccountId, lContext);
 
                         return null;
@@ -78,7 +79,7 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceInformation("authenticate failed: {0}", lResult.ResponseText);
 
-                        if (ZSetHomeServerReferral(lResult.ResponseText)) return new cHomeServerReferralException(lResult.ResponseText, lContext);
+                        if (ZSetHomeServerReferral(lResult.ResponseText, lContext)) return new cHomeServerReferralException(lResult.ResponseText, lContext);
 
                         if (lResult.ResponseText.Code == eResponseTextCode.authenticationfailed || lResult.ResponseText.Code == eResponseTextCode.authorizationfailed || lResult.ResponseText.Code == eResponseTextCode.expired)
                             return new cCredentialsException(lResult.ResponseText, lContext);

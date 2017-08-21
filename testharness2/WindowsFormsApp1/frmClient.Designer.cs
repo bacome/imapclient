@@ -195,6 +195,9 @@
             this.chkMPReferences = new System.Windows.Forms.CheckBox();
             this.chkMPModSeq = new System.Windows.Forms.CheckBox();
             this.chkMPBodyStructure = new System.Windows.Forms.CheckBox();
+            this.gbxEvents = new System.Windows.Forms.GroupBox();
+            this.txtEvents = new System.Windows.Forms.TextBox();
+            this.label24 = new System.Windows.Forms.Label();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -222,6 +225,7 @@
             this.tpgResponseText.SuspendLayout();
             this.gbxResponseTextCode.SuspendLayout();
             this.gbxResponseTextType.SuspendLayout();
+            this.gbxEvents.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbxServer
@@ -375,7 +379,6 @@
             this.txtTrace.Name = "txtTrace";
             this.txtTrace.Size = new System.Drawing.Size(150, 20);
             this.txtTrace.TabIndex = 3;
-            this.txtTrace.EnabledChanged += new System.EventHandler(this.ZValEnableChanged);
             this.txtTrace.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxNotBlank);
             this.txtTrace.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
@@ -398,7 +401,6 @@
             this.txtPassword.Size = new System.Drawing.Size(150, 20);
             this.txtPassword.TabIndex = 8;
             this.txtPassword.Text = "imaptest1";
-            this.txtPassword.EnabledChanged += new System.EventHandler(this.ZValEnableChanged);
             this.txtPassword.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxNotBlank);
             this.txtPassword.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
@@ -451,7 +453,6 @@
             this.txtUserId.Size = new System.Drawing.Size(150, 20);
             this.txtUserId.TabIndex = 6;
             this.txtUserId.Text = "imaptest1";
-            this.txtUserId.EnabledChanged += new System.EventHandler(this.ZValEnableChanged);
             this.txtUserId.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxNotBlank);
             this.txtUserId.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
@@ -1216,7 +1217,6 @@
             this.txtIdleRestartInterval.Size = new System.Drawing.Size(50, 20);
             this.txtIdleRestartInterval.TabIndex = 4;
             this.txtIdleRestartInterval.Text = "1200000";
-            this.txtIdleRestartInterval.EnabledChanged += new System.EventHandler(this.ZValEnableChanged);
             this.txtIdleRestartInterval.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
             this.txtIdleRestartInterval.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
@@ -1236,7 +1236,6 @@
             this.txtIdlePollInterval.Size = new System.Drawing.Size(50, 20);
             this.txtIdlePollInterval.TabIndex = 6;
             this.txtIdlePollInterval.Text = "60000";
-            this.txtIdlePollInterval.EnabledChanged += new System.EventHandler(this.ZValEnableChanged);
             this.txtIdlePollInterval.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
             this.txtIdlePollInterval.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
@@ -1256,7 +1255,6 @@
             this.txtIdleStartDelay.Size = new System.Drawing.Size(50, 20);
             this.txtIdleStartDelay.TabIndex = 2;
             this.txtIdleStartDelay.Text = "1000";
-            this.txtIdleStartDelay.EnabledChanged += new System.EventHandler(this.ZValEnableChanged);
             this.txtIdleStartDelay.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
             this.txtIdleStartDelay.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
@@ -1284,7 +1282,7 @@
             // 
             // cmdSubscriptions
             // 
-            this.cmdSubscriptions.Location = new System.Drawing.Point(127, 181);
+            this.cmdSubscriptions.Location = new System.Drawing.Point(127, 202);
             this.cmdSubscriptions.Name = "cmdSubscriptions";
             this.cmdSubscriptions.Size = new System.Drawing.Size(100, 25);
             this.cmdSubscriptions.TabIndex = 4;
@@ -1293,7 +1291,7 @@
             // 
             // cmdEvents
             // 
-            this.cmdEvents.Location = new System.Drawing.Point(280, 102);
+            this.cmdEvents.Location = new System.Drawing.Point(15, 46);
             this.cmdEvents.Name = "cmdEvents";
             this.cmdEvents.Size = new System.Drawing.Size(100, 25);
             this.cmdEvents.TabIndex = 2;
@@ -1303,12 +1301,13 @@
             // 
             // cmdMailboxes
             // 
-            this.cmdMailboxes.Location = new System.Drawing.Point(21, 181);
+            this.cmdMailboxes.Location = new System.Drawing.Point(21, 202);
             this.cmdMailboxes.Name = "cmdMailboxes";
             this.cmdMailboxes.Size = new System.Drawing.Size(100, 25);
             this.cmdMailboxes.TabIndex = 3;
             this.cmdMailboxes.Text = "Mailboxes";
             this.cmdMailboxes.UseVisualStyleBackColor = true;
+            this.cmdMailboxes.Click += new System.EventHandler(this.cmdMailboxes_Click);
             // 
             // cmdDetails
             // 
@@ -1591,13 +1590,13 @@
             // 
             // tbpWindows
             // 
+            this.tbpWindows.Controls.Add(this.gbxEvents);
             this.tbpWindows.Controls.Add(this.cmdPoll);
             this.tbpWindows.Controls.Add(this.cmdInbox);
             this.tbpWindows.Controls.Add(this.gbxNetworkActivity);
             this.tbpWindows.Controls.Add(this.cmdDetails);
             this.tbpWindows.Controls.Add(this.gbxSelectedMailbox);
             this.tbpWindows.Controls.Add(this.cmdSubscriptions);
-            this.tbpWindows.Controls.Add(this.cmdEvents);
             this.tbpWindows.Controls.Add(this.cmdMailboxes);
             this.tbpWindows.Location = new System.Drawing.Point(4, 22);
             this.tbpWindows.Name = "tbpWindows";
@@ -1609,7 +1608,7 @@
             // 
             // cmdPoll
             // 
-            this.cmdPoll.Location = new System.Drawing.Point(21, 143);
+            this.cmdPoll.Location = new System.Drawing.Point(21, 150);
             this.cmdPoll.Name = "cmdPoll";
             this.cmdPoll.Size = new System.Drawing.Size(100, 25);
             this.cmdPoll.TabIndex = 7;
@@ -1619,7 +1618,7 @@
             // 
             // cmdInbox
             // 
-            this.cmdInbox.Location = new System.Drawing.Point(259, 299);
+            this.cmdInbox.Location = new System.Drawing.Point(232, 299);
             this.cmdInbox.Name = "cmdInbox";
             this.cmdInbox.Size = new System.Drawing.Size(100, 25);
             this.cmdInbox.TabIndex = 6;
@@ -2059,6 +2058,37 @@
             this.chkMPBodyStructure.UseVisualStyleBackColor = true;
             this.chkMPBodyStructure.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
             // 
+            // gbxEvents
+            // 
+            this.gbxEvents.Controls.Add(this.txtEvents);
+            this.gbxEvents.Controls.Add(this.label24);
+            this.gbxEvents.Controls.Add(this.cmdEvents);
+            this.gbxEvents.Location = new System.Drawing.Point(217, 56);
+            this.gbxEvents.Name = "gbxEvents";
+            this.gbxEvents.Size = new System.Drawing.Size(205, 77);
+            this.gbxEvents.TabIndex = 8;
+            this.gbxEvents.TabStop = false;
+            this.gbxEvents.Text = "Events";
+            // 
+            // txtEvents
+            // 
+            this.txtEvents.Location = new System.Drawing.Point(133, 19);
+            this.txtEvents.Name = "txtEvents";
+            this.txtEvents.Size = new System.Drawing.Size(50, 20);
+            this.txtEvents.TabIndex = 12;
+            this.txtEvents.Text = "100";
+            this.txtEvents.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfMessages);
+            this.txtEvents.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // label24
+            // 
+            this.label24.AutoSize = true;
+            this.label24.Location = new System.Drawing.Point(12, 22);
+            this.label24.Name = "label24";
+            this.label24.Size = new System.Drawing.Size(114, 13);
+            this.label24.TabIndex = 11;
+            this.label24.Text = "Max Messages Shown";
+            // 
             // frmClient
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2120,6 +2150,8 @@
             this.gbxResponseTextCode.PerformLayout();
             this.gbxResponseTextType.ResumeLayout(false);
             this.gbxResponseTextType.PerformLayout();
+            this.gbxEvents.ResumeLayout(false);
+            this.gbxEvents.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2293,5 +2325,8 @@
         private System.Windows.Forms.CheckBox chkMPSize;
         private System.Windows.Forms.CheckBox chkMPReceived;
         private System.Windows.Forms.CheckBox chkMPFlags;
+        private System.Windows.Forms.GroupBox gbxEvents;
+        private System.Windows.Forms.TextBox txtEvents;
+        private System.Windows.Forms.Label label24;
     }
 }

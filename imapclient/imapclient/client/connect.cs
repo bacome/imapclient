@@ -33,16 +33,39 @@ namespace work.bacome.imapclient
             if (lServer == null) throw new InvalidOperationException("connect requires server to be set");
             if (lCredentials == null) throw new InvalidOperationException("connect requires credentials to be set");
 
-            if (mSession != null)
+            bool lSessionReplaced;
+
+            if (mSession == null) lSessionReplaced = false;
+            else
             {
                 if (!mSession.IsUnconnected) throw new InvalidOperationException("must be unconnected");
                 mSession.Dispose();
+
+                lSessionReplaced = true;
+
                 mNamespaces = null;
+
                 mInbox = null;
+                mEventSynchroniser.FirePropertyChanged(nameof(Inbox), lContext);
             }
 
             mSession = new cSession(mEventSynchroniser, mIgnoreCapabilities, mMailboxCacheData, mIdleConfiguration, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
+
+            if (lSessionReplaced)
+            {
+                mEventSynchroniser.FirePropertyChanged(nameof(Capabilities), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(ConnectionState), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(IsConnected), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(IsUnconnected), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(ConnectedAccountId), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(EnabledExtensions), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(HomeServerReferral), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(ServerId), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(Namespaces), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(SelectedMailbox), lContext);
+                mEventSynchroniser.FirePropertyChanged(nameof(SelectedMailboxDetails), lContext);
+            }
 
             mAsyncCounter.Increment(lContext);
 
@@ -174,6 +197,7 @@ namespace work.bacome.imapclient
                             if (lPattern.Matches(cMailboxName.InboxString))
                             {
                                 mInbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lName.Delimiter)));
+                                mEventSynchroniser.FirePropertyChanged(nameof(Inbox), lContext);
                                 break;
                             }
                         }
@@ -183,10 +207,19 @@ namespace work.bacome.imapclient
                 if (mInbox == null)
                 {
                     var lHandles = await lSession.ListAsync(lMC, string.Empty, null, new cMailboxNamePattern(string.Empty, string.Empty, null), lContext).ConfigureAwait(false);
+
                     if (lHandles.Count != 1) throw new cUnexpectedServerActionException(0, "list special request failed", lContext);
+
                     var lDelimiter = lHandles[0].MailboxName.Delimiter;
-                    if (!lCurrentCapabilities.Namespace) mNamespaces = new cNamespaces(this, new cNamespaceName[] { new cNamespaceName("", lDelimiter) }, null, null);
+
+                    if (!lCurrentCapabilities.Namespace)
+                    {
+                        mNamespaces = new cNamespaces(this, new cNamespaceName[] { new cNamespaceName("", lDelimiter) }, null, null);
+                        mEventSynchroniser.FirePropertyChanged(nameof(Namespaces), lContext);
+                    }
+
                     mInbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lDelimiter)));
+                    mEventSynchroniser.FirePropertyChanged(nameof(Inbox), lContext);
                 }
 
                 // wait for id to complete

@@ -149,9 +149,9 @@ namespace work.bacome.imapclient
 
                     mSelectedMailbox = null;
 
-                    mEventSynchroniser.FireMailboxPropertiesChanged(lHandle, lProperties, lContext);
-
                     mSetState(eConnectionState.notselected, lContext);
+                    mEventSynchroniser.FireMailboxPropertiesChanged(lHandle, lProperties, lContext);
+                    mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
                 }
 
                 public void Select(iMailboxHandle pHandle, bool pForUpdate, bool pAccessReadOnly, cMessageFlags pFlags, cMessageFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
@@ -176,9 +176,9 @@ namespace work.bacome.imapclient
                     if (pForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
                     if (pAccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
 
-                    mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
-
                     mSetState(eConnectionState.selected, lContext);
+                    mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
+                    mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
                 }
 
                 public bool HasChildren(iMailboxHandle pHandle)
