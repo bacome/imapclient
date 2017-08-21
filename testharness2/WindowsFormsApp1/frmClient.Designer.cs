@@ -148,6 +148,14 @@
             this.tbpSettings = new System.Windows.Forms.TabPage();
             this.tbpDefaults = new System.Windows.Forms.TabPage();
             this.gbxDefaultMessageProperties = new System.Windows.Forms.GroupBox();
+            this.chkMPBodyStructure = new System.Windows.Forms.CheckBox();
+            this.chkMPModSeq = new System.Windows.Forms.CheckBox();
+            this.chkMPReferences = new System.Windows.Forms.CheckBox();
+            this.chkMPUID = new System.Windows.Forms.CheckBox();
+            this.chkMPSize = new System.Windows.Forms.CheckBox();
+            this.chkMPReceived = new System.Windows.Forms.CheckBox();
+            this.chkMPFlags = new System.Windows.Forms.CheckBox();
+            this.chkMPEnvelope = new System.Windows.Forms.CheckBox();
             this.gbxDefaultSort = new System.Windows.Forms.GroupBox();
             this.rdoSortOther = new System.Windows.Forms.RadioButton();
             this.rdoSortReceivedDesc = new System.Windows.Forms.RadioButton();
@@ -156,6 +164,9 @@
             this.rdoSortNone = new System.Windows.Forms.RadioButton();
             this.txtSortOther = new System.Windows.Forms.TextBox();
             this.tbpWindows = new System.Windows.Forms.TabPage();
+            this.gbxEvents = new System.Windows.Forms.GroupBox();
+            this.txtEvents = new System.Windows.Forms.TextBox();
+            this.label24 = new System.Windows.Forms.Label();
             this.cmdPoll = new System.Windows.Forms.Button();
             this.cmdInbox = new System.Windows.Forms.Button();
             this.gbxNetworkActivity = new System.Windows.Forms.GroupBox();
@@ -187,17 +198,11 @@
             this.label23 = new System.Windows.Forms.Label();
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
-            this.chkMPEnvelope = new System.Windows.Forms.CheckBox();
-            this.chkMPFlags = new System.Windows.Forms.CheckBox();
-            this.chkMPReceived = new System.Windows.Forms.CheckBox();
-            this.chkMPSize = new System.Windows.Forms.CheckBox();
-            this.chkMPUID = new System.Windows.Forms.CheckBox();
-            this.chkMPReferences = new System.Windows.Forms.CheckBox();
-            this.chkMPModSeq = new System.Windows.Forms.CheckBox();
-            this.chkMPBodyStructure = new System.Windows.Forms.CheckBox();
-            this.gbxEvents = new System.Windows.Forms.GroupBox();
-            this.txtEvents = new System.Windows.Forms.TextBox();
-            this.label24 = new System.Windows.Forms.Label();
+            this.gbxMailboxes = new System.Windows.Forms.GroupBox();
+            this.chkMList = new System.Windows.Forms.CheckBox();
+            this.chkMLSub = new System.Windows.Forms.CheckBox();
+            this.chkMStatus = new System.Windows.Forms.CheckBox();
+            this.chkMUseChildren = new System.Windows.Forms.CheckBox();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -221,11 +226,12 @@
             this.gbxDefaultMessageProperties.SuspendLayout();
             this.gbxDefaultSort.SuspendLayout();
             this.tbpWindows.SuspendLayout();
+            this.gbxEvents.SuspendLayout();
             this.gbxNetworkActivity.SuspendLayout();
             this.tpgResponseText.SuspendLayout();
             this.gbxResponseTextCode.SuspendLayout();
             this.gbxResponseTextType.SuspendLayout();
-            this.gbxEvents.SuspendLayout();
+            this.gbxMailboxes.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbxServer
@@ -1282,12 +1288,13 @@
             // 
             // cmdSubscriptions
             // 
-            this.cmdSubscriptions.Location = new System.Drawing.Point(127, 202);
+            this.cmdSubscriptions.Location = new System.Drawing.Point(121, 19);
             this.cmdSubscriptions.Name = "cmdSubscriptions";
             this.cmdSubscriptions.Size = new System.Drawing.Size(100, 25);
-            this.cmdSubscriptions.TabIndex = 4;
+            this.cmdSubscriptions.TabIndex = 1;
             this.cmdSubscriptions.Text = "Subscriptions";
             this.cmdSubscriptions.UseVisualStyleBackColor = true;
+            this.cmdSubscriptions.Click += new System.EventHandler(this.cmdSubscriptions_Click);
             // 
             // cmdEvents
             // 
@@ -1301,10 +1308,10 @@
             // 
             // cmdMailboxes
             // 
-            this.cmdMailboxes.Location = new System.Drawing.Point(21, 202);
+            this.cmdMailboxes.Location = new System.Drawing.Point(15, 19);
             this.cmdMailboxes.Name = "cmdMailboxes";
             this.cmdMailboxes.Size = new System.Drawing.Size(100, 25);
-            this.cmdMailboxes.TabIndex = 3;
+            this.cmdMailboxes.TabIndex = 0;
             this.cmdMailboxes.Text = "Mailboxes";
             this.cmdMailboxes.UseVisualStyleBackColor = true;
             this.cmdMailboxes.Click += new System.EventHandler(this.cmdMailboxes_Click);
@@ -1324,7 +1331,7 @@
             this.cmdSelectedMailbox.Location = new System.Drawing.Point(15, 46);
             this.cmdSelectedMailbox.Name = "cmdSelectedMailbox";
             this.cmdSelectedMailbox.Size = new System.Drawing.Size(100, 25);
-            this.cmdSelectedMailbox.TabIndex = 10;
+            this.cmdSelectedMailbox.TabIndex = 2;
             this.cmdSelectedMailbox.Text = "Selected Mailbox";
             this.cmdSelectedMailbox.UseVisualStyleBackColor = true;
             // 
@@ -1333,7 +1340,7 @@
             this.cmdNetworkActivity.Location = new System.Drawing.Point(15, 46);
             this.cmdNetworkActivity.Name = "cmdNetworkActivity";
             this.cmdNetworkActivity.Size = new System.Drawing.Size(100, 25);
-            this.cmdNetworkActivity.TabIndex = 9;
+            this.cmdNetworkActivity.TabIndex = 2;
             this.cmdNetworkActivity.Text = "Network Activity";
             this.cmdNetworkActivity.UseVisualStyleBackColor = true;
             this.cmdNetworkActivity.Click += new System.EventHandler(this.cmdNetworkActivity_Click);
@@ -1422,7 +1429,7 @@
             this.gbxSelectedMailbox.Controls.Add(this.txtSelectedMailbox);
             this.gbxSelectedMailbox.Controls.Add(this.label5);
             this.gbxSelectedMailbox.Controls.Add(this.cmdSelectedMailbox);
-            this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 253);
+            this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 260);
             this.gbxSelectedMailbox.Name = "gbxSelectedMailbox";
             this.gbxSelectedMailbox.Size = new System.Drawing.Size(205, 77);
             this.gbxSelectedMailbox.TabIndex = 5;
@@ -1434,7 +1441,7 @@
             this.txtSelectedMailbox.Location = new System.Drawing.Point(133, 19);
             this.txtSelectedMailbox.Name = "txtSelectedMailbox";
             this.txtSelectedMailbox.Size = new System.Drawing.Size(50, 20);
-            this.txtSelectedMailbox.TabIndex = 12;
+            this.txtSelectedMailbox.TabIndex = 1;
             this.txtSelectedMailbox.Text = "100";
             this.txtSelectedMailbox.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfMessages);
             this.txtSelectedMailbox.Validated += new System.EventHandler(this.ZValControlValidated);
@@ -1445,7 +1452,7 @@
             this.label5.Location = new System.Drawing.Point(12, 22);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(114, 13);
-            this.label5.TabIndex = 11;
+            this.label5.TabIndex = 0;
             this.label5.Text = "Max Messages Shown";
             // 
             // tabClient
@@ -1499,10 +1506,98 @@
             this.gbxDefaultMessageProperties.Controls.Add(this.chkMPEnvelope);
             this.gbxDefaultMessageProperties.Location = new System.Drawing.Point(6, 155);
             this.gbxDefaultMessageProperties.Name = "gbxDefaultMessageProperties";
-            this.gbxDefaultMessageProperties.Size = new System.Drawing.Size(432, 225);
+            this.gbxDefaultMessageProperties.Size = new System.Drawing.Size(432, 203);
             this.gbxDefaultMessageProperties.TabIndex = 1;
             this.gbxDefaultMessageProperties.TabStop = false;
             this.gbxDefaultMessageProperties.Text = "Message Properties";
+            // 
+            // chkMPBodyStructure
+            // 
+            this.chkMPBodyStructure.AutoSize = true;
+            this.chkMPBodyStructure.Location = new System.Drawing.Point(12, 180);
+            this.chkMPBodyStructure.Name = "chkMPBodyStructure";
+            this.chkMPBodyStructure.Size = new System.Drawing.Size(230, 17);
+            this.chkMPBodyStructure.TabIndex = 7;
+            this.chkMPBodyStructure.Text = "BodyStructure (bodystructure, attachments)";
+            this.chkMPBodyStructure.UseVisualStyleBackColor = true;
+            this.chkMPBodyStructure.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
+            // 
+            // chkMPModSeq
+            // 
+            this.chkMPModSeq.AutoSize = true;
+            this.chkMPModSeq.Location = new System.Drawing.Point(12, 157);
+            this.chkMPModSeq.Name = "chkMPModSeq";
+            this.chkMPModSeq.Size = new System.Drawing.Size(66, 17);
+            this.chkMPModSeq.TabIndex = 6;
+            this.chkMPModSeq.Text = "ModSeq";
+            this.chkMPModSeq.UseVisualStyleBackColor = true;
+            this.chkMPModSeq.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
+            // 
+            // chkMPReferences
+            // 
+            this.chkMPReferences.AutoSize = true;
+            this.chkMPReferences.Location = new System.Drawing.Point(12, 134);
+            this.chkMPReferences.Name = "chkMPReferences";
+            this.chkMPReferences.Size = new System.Drawing.Size(81, 17);
+            this.chkMPReferences.TabIndex = 5;
+            this.chkMPReferences.Text = "References";
+            this.chkMPReferences.UseVisualStyleBackColor = true;
+            this.chkMPReferences.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
+            // 
+            // chkMPUID
+            // 
+            this.chkMPUID.AutoSize = true;
+            this.chkMPUID.Location = new System.Drawing.Point(12, 111);
+            this.chkMPUID.Name = "chkMPUID";
+            this.chkMPUID.Size = new System.Drawing.Size(45, 17);
+            this.chkMPUID.TabIndex = 4;
+            this.chkMPUID.Text = "UID";
+            this.chkMPUID.UseVisualStyleBackColor = true;
+            this.chkMPUID.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
+            // 
+            // chkMPSize
+            // 
+            this.chkMPSize.AutoSize = true;
+            this.chkMPSize.Location = new System.Drawing.Point(12, 88);
+            this.chkMPSize.Name = "chkMPSize";
+            this.chkMPSize.Size = new System.Drawing.Size(46, 17);
+            this.chkMPSize.TabIndex = 3;
+            this.chkMPSize.Text = "Size";
+            this.chkMPSize.UseVisualStyleBackColor = true;
+            this.chkMPSize.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
+            // 
+            // chkMPReceived
+            // 
+            this.chkMPReceived.AutoSize = true;
+            this.chkMPReceived.Location = new System.Drawing.Point(12, 65);
+            this.chkMPReceived.Name = "chkMPReceived";
+            this.chkMPReceived.Size = new System.Drawing.Size(72, 17);
+            this.chkMPReceived.TabIndex = 2;
+            this.chkMPReceived.Text = "Received";
+            this.chkMPReceived.UseVisualStyleBackColor = true;
+            this.chkMPReceived.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
+            // 
+            // chkMPFlags
+            // 
+            this.chkMPFlags.AutoSize = true;
+            this.chkMPFlags.Location = new System.Drawing.Point(12, 42);
+            this.chkMPFlags.Name = "chkMPFlags";
+            this.chkMPFlags.Size = new System.Drawing.Size(257, 17);
+            this.chkMPFlags.TabIndex = 1;
+            this.chkMPFlags.Text = "Flags (isanswered, isflagged, isdeleted, isseen ...)";
+            this.chkMPFlags.UseVisualStyleBackColor = true;
+            this.chkMPFlags.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
+            // 
+            // chkMPEnvelope
+            // 
+            this.chkMPEnvelope.AutoSize = true;
+            this.chkMPEnvelope.Location = new System.Drawing.Point(12, 19);
+            this.chkMPEnvelope.Name = "chkMPEnvelope";
+            this.chkMPEnvelope.Size = new System.Drawing.Size(276, 17);
+            this.chkMPEnvelope.TabIndex = 0;
+            this.chkMPEnvelope.Text = "Envelope (sent, subject, from, sender, to, cc, bcc, ...)";
+            this.chkMPEnvelope.UseVisualStyleBackColor = true;
+            this.chkMPEnvelope.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
             // 
             // gbxDefaultSort
             // 
@@ -1590,14 +1685,13 @@
             // 
             // tbpWindows
             // 
+            this.tbpWindows.Controls.Add(this.gbxMailboxes);
             this.tbpWindows.Controls.Add(this.gbxEvents);
             this.tbpWindows.Controls.Add(this.cmdPoll);
             this.tbpWindows.Controls.Add(this.cmdInbox);
             this.tbpWindows.Controls.Add(this.gbxNetworkActivity);
             this.tbpWindows.Controls.Add(this.cmdDetails);
             this.tbpWindows.Controls.Add(this.gbxSelectedMailbox);
-            this.tbpWindows.Controls.Add(this.cmdSubscriptions);
-            this.tbpWindows.Controls.Add(this.cmdMailboxes);
             this.tbpWindows.Location = new System.Drawing.Point(4, 22);
             this.tbpWindows.Name = "tbpWindows";
             this.tbpWindows.Padding = new System.Windows.Forms.Padding(3);
@@ -1606,19 +1700,50 @@
             this.tbpWindows.Text = "Windows";
             this.tbpWindows.UseVisualStyleBackColor = true;
             // 
+            // gbxEvents
+            // 
+            this.gbxEvents.Controls.Add(this.txtEvents);
+            this.gbxEvents.Controls.Add(this.label24);
+            this.gbxEvents.Controls.Add(this.cmdEvents);
+            this.gbxEvents.Location = new System.Drawing.Point(217, 56);
+            this.gbxEvents.Name = "gbxEvents";
+            this.gbxEvents.Size = new System.Drawing.Size(205, 77);
+            this.gbxEvents.TabIndex = 2;
+            this.gbxEvents.TabStop = false;
+            this.gbxEvents.Text = "Events";
+            // 
+            // txtEvents
+            // 
+            this.txtEvents.Location = new System.Drawing.Point(133, 19);
+            this.txtEvents.Name = "txtEvents";
+            this.txtEvents.Size = new System.Drawing.Size(50, 20);
+            this.txtEvents.TabIndex = 1;
+            this.txtEvents.Text = "100";
+            this.txtEvents.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfMessages);
+            this.txtEvents.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // label24
+            // 
+            this.label24.AutoSize = true;
+            this.label24.Location = new System.Drawing.Point(12, 22);
+            this.label24.Name = "label24";
+            this.label24.Size = new System.Drawing.Size(114, 13);
+            this.label24.TabIndex = 0;
+            this.label24.Text = "Max Messages Shown";
+            // 
             // cmdPoll
             // 
             this.cmdPoll.Location = new System.Drawing.Point(21, 150);
             this.cmdPoll.Name = "cmdPoll";
             this.cmdPoll.Size = new System.Drawing.Size(100, 25);
-            this.cmdPoll.TabIndex = 7;
+            this.cmdPoll.TabIndex = 3;
             this.cmdPoll.Text = "Poll";
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
             // cmdInbox
             // 
-            this.cmdInbox.Location = new System.Drawing.Point(232, 299);
+            this.cmdInbox.Location = new System.Drawing.Point(232, 306);
             this.cmdInbox.Name = "cmdInbox";
             this.cmdInbox.Size = new System.Drawing.Size(100, 25);
             this.cmdInbox.TabIndex = 6;
@@ -1642,7 +1767,7 @@
             this.txtNetworkActivity.Location = new System.Drawing.Point(133, 19);
             this.txtNetworkActivity.Name = "txtNetworkActivity";
             this.txtNetworkActivity.Size = new System.Drawing.Size(50, 20);
-            this.txtNetworkActivity.TabIndex = 12;
+            this.txtNetworkActivity.TabIndex = 1;
             this.txtNetworkActivity.Text = "100";
             this.txtNetworkActivity.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfMessages);
             this.txtNetworkActivity.Validated += new System.EventHandler(this.ZValControlValidated);
@@ -1653,7 +1778,7 @@
             this.label22.Location = new System.Drawing.Point(12, 22);
             this.label22.Name = "label22";
             this.label22.Size = new System.Drawing.Size(114, 13);
-            this.label22.TabIndex = 11;
+            this.label22.TabIndex = 0;
             this.label22.Text = "Max Messages Shown";
             // 
             // tpgResponseText
@@ -1970,124 +2095,60 @@
             this.cmdResponseText.UseVisualStyleBackColor = true;
             this.cmdResponseText.Click += new System.EventHandler(this.cmdResponseText_Click);
             // 
-            // chkMPEnvelope
+            // gbxMailboxes
             // 
-            this.chkMPEnvelope.AutoSize = true;
-            this.chkMPEnvelope.Location = new System.Drawing.Point(12, 19);
-            this.chkMPEnvelope.Name = "chkMPEnvelope";
-            this.chkMPEnvelope.Size = new System.Drawing.Size(276, 17);
-            this.chkMPEnvelope.TabIndex = 0;
-            this.chkMPEnvelope.Text = "Envelope (sent, subject, from, sender, to, cc, bcc, ...)";
-            this.chkMPEnvelope.UseVisualStyleBackColor = true;
-            this.chkMPEnvelope.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
+            this.gbxMailboxes.Controls.Add(this.chkMUseChildren);
+            this.gbxMailboxes.Controls.Add(this.chkMStatus);
+            this.gbxMailboxes.Controls.Add(this.chkMLSub);
+            this.gbxMailboxes.Controls.Add(this.chkMList);
+            this.gbxMailboxes.Controls.Add(this.cmdMailboxes);
+            this.gbxMailboxes.Controls.Add(this.cmdSubscriptions);
+            this.gbxMailboxes.Location = new System.Drawing.Point(6, 181);
+            this.gbxMailboxes.Name = "gbxMailboxes";
+            this.gbxMailboxes.Size = new System.Drawing.Size(286, 73);
+            this.gbxMailboxes.TabIndex = 4;
+            this.gbxMailboxes.TabStop = false;
+            this.gbxMailboxes.Text = "Mailboxes";
             // 
-            // chkMPFlags
+            // chkMList
             // 
-            this.chkMPFlags.AutoSize = true;
-            this.chkMPFlags.Location = new System.Drawing.Point(12, 42);
-            this.chkMPFlags.Name = "chkMPFlags";
-            this.chkMPFlags.Size = new System.Drawing.Size(257, 17);
-            this.chkMPFlags.TabIndex = 1;
-            this.chkMPFlags.Text = "Flags (isanswered, isflagged, isdeleted, isseen ...)";
-            this.chkMPFlags.UseVisualStyleBackColor = true;
-            this.chkMPFlags.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
+            this.chkMList.AutoSize = true;
+            this.chkMList.Location = new System.Drawing.Point(15, 50);
+            this.chkMList.Name = "chkMList";
+            this.chkMList.Size = new System.Drawing.Size(42, 17);
+            this.chkMList.TabIndex = 2;
+            this.chkMList.Text = "List";
+            this.chkMList.UseVisualStyleBackColor = true;
             // 
-            // chkMPReceived
+            // chkMLSub
             // 
-            this.chkMPReceived.AutoSize = true;
-            this.chkMPReceived.Location = new System.Drawing.Point(12, 65);
-            this.chkMPReceived.Name = "chkMPReceived";
-            this.chkMPReceived.Size = new System.Drawing.Size(72, 17);
-            this.chkMPReceived.TabIndex = 2;
-            this.chkMPReceived.Text = "Received";
-            this.chkMPReceived.UseVisualStyleBackColor = true;
-            this.chkMPReceived.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
+            this.chkMLSub.AutoSize = true;
+            this.chkMLSub.Location = new System.Drawing.Point(75, 50);
+            this.chkMLSub.Name = "chkMLSub";
+            this.chkMLSub.Size = new System.Drawing.Size(51, 17);
+            this.chkMLSub.TabIndex = 3;
+            this.chkMLSub.Text = "LSub";
+            this.chkMLSub.UseVisualStyleBackColor = true;
             // 
-            // chkMPSize
+            // chkMStatus
             // 
-            this.chkMPSize.AutoSize = true;
-            this.chkMPSize.Location = new System.Drawing.Point(12, 88);
-            this.chkMPSize.Name = "chkMPSize";
-            this.chkMPSize.Size = new System.Drawing.Size(46, 17);
-            this.chkMPSize.TabIndex = 3;
-            this.chkMPSize.Text = "Size";
-            this.chkMPSize.UseVisualStyleBackColor = true;
-            this.chkMPSize.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
+            this.chkMStatus.AutoSize = true;
+            this.chkMStatus.Location = new System.Drawing.Point(135, 50);
+            this.chkMStatus.Name = "chkMStatus";
+            this.chkMStatus.Size = new System.Drawing.Size(56, 17);
+            this.chkMStatus.TabIndex = 4;
+            this.chkMStatus.Text = "Status";
+            this.chkMStatus.UseVisualStyleBackColor = true;
             // 
-            // chkMPUID
+            // chkMUseChildren
             // 
-            this.chkMPUID.AutoSize = true;
-            this.chkMPUID.Location = new System.Drawing.Point(12, 111);
-            this.chkMPUID.Name = "chkMPUID";
-            this.chkMPUID.Size = new System.Drawing.Size(45, 17);
-            this.chkMPUID.TabIndex = 4;
-            this.chkMPUID.Text = "UID";
-            this.chkMPUID.UseVisualStyleBackColor = true;
-            this.chkMPUID.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
-            // 
-            // chkMPReferences
-            // 
-            this.chkMPReferences.AutoSize = true;
-            this.chkMPReferences.Location = new System.Drawing.Point(12, 134);
-            this.chkMPReferences.Name = "chkMPReferences";
-            this.chkMPReferences.Size = new System.Drawing.Size(81, 17);
-            this.chkMPReferences.TabIndex = 5;
-            this.chkMPReferences.Text = "References";
-            this.chkMPReferences.UseVisualStyleBackColor = true;
-            this.chkMPReferences.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
-            // 
-            // chkMPModSeq
-            // 
-            this.chkMPModSeq.AutoSize = true;
-            this.chkMPModSeq.Location = new System.Drawing.Point(12, 157);
-            this.chkMPModSeq.Name = "chkMPModSeq";
-            this.chkMPModSeq.Size = new System.Drawing.Size(66, 17);
-            this.chkMPModSeq.TabIndex = 6;
-            this.chkMPModSeq.Text = "ModSeq";
-            this.chkMPModSeq.UseVisualStyleBackColor = true;
-            this.chkMPModSeq.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
-            // 
-            // chkMPBodyStructure
-            // 
-            this.chkMPBodyStructure.AutoSize = true;
-            this.chkMPBodyStructure.Location = new System.Drawing.Point(12, 180);
-            this.chkMPBodyStructure.Name = "chkMPBodyStructure";
-            this.chkMPBodyStructure.Size = new System.Drawing.Size(230, 17);
-            this.chkMPBodyStructure.TabIndex = 7;
-            this.chkMPBodyStructure.Text = "BodyStructure (bodystructure, attachments)";
-            this.chkMPBodyStructure.UseVisualStyleBackColor = true;
-            this.chkMPBodyStructure.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
-            // 
-            // gbxEvents
-            // 
-            this.gbxEvents.Controls.Add(this.txtEvents);
-            this.gbxEvents.Controls.Add(this.label24);
-            this.gbxEvents.Controls.Add(this.cmdEvents);
-            this.gbxEvents.Location = new System.Drawing.Point(217, 56);
-            this.gbxEvents.Name = "gbxEvents";
-            this.gbxEvents.Size = new System.Drawing.Size(205, 77);
-            this.gbxEvents.TabIndex = 8;
-            this.gbxEvents.TabStop = false;
-            this.gbxEvents.Text = "Events";
-            // 
-            // txtEvents
-            // 
-            this.txtEvents.Location = new System.Drawing.Point(133, 19);
-            this.txtEvents.Name = "txtEvents";
-            this.txtEvents.Size = new System.Drawing.Size(50, 20);
-            this.txtEvents.TabIndex = 12;
-            this.txtEvents.Text = "100";
-            this.txtEvents.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfMessages);
-            this.txtEvents.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // label24
-            // 
-            this.label24.AutoSize = true;
-            this.label24.Location = new System.Drawing.Point(12, 22);
-            this.label24.Name = "label24";
-            this.label24.Size = new System.Drawing.Size(114, 13);
-            this.label24.TabIndex = 11;
-            this.label24.Text = "Max Messages Shown";
+            this.chkMUseChildren.AutoSize = true;
+            this.chkMUseChildren.Location = new System.Drawing.Point(195, 50);
+            this.chkMUseChildren.Name = "chkMUseChildren";
+            this.chkMUseChildren.Size = new System.Drawing.Size(86, 17);
+            this.chkMUseChildren.TabIndex = 5;
+            this.chkMUseChildren.Text = "Use Children";
+            this.chkMUseChildren.UseVisualStyleBackColor = true;
             // 
             // frmClient
             // 
@@ -2142,6 +2203,8 @@
             this.gbxDefaultSort.ResumeLayout(false);
             this.gbxDefaultSort.PerformLayout();
             this.tbpWindows.ResumeLayout(false);
+            this.gbxEvents.ResumeLayout(false);
+            this.gbxEvents.PerformLayout();
             this.gbxNetworkActivity.ResumeLayout(false);
             this.gbxNetworkActivity.PerformLayout();
             this.tpgResponseText.ResumeLayout(false);
@@ -2150,8 +2213,8 @@
             this.gbxResponseTextCode.PerformLayout();
             this.gbxResponseTextType.ResumeLayout(false);
             this.gbxResponseTextType.PerformLayout();
-            this.gbxEvents.ResumeLayout(false);
-            this.gbxEvents.PerformLayout();
+            this.gbxMailboxes.ResumeLayout(false);
+            this.gbxMailboxes.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2328,5 +2391,10 @@
         private System.Windows.Forms.GroupBox gbxEvents;
         private System.Windows.Forms.TextBox txtEvents;
         private System.Windows.Forms.Label label24;
+        private System.Windows.Forms.GroupBox gbxMailboxes;
+        private System.Windows.Forms.CheckBox chkMUseChildren;
+        private System.Windows.Forms.CheckBox chkMStatus;
+        private System.Windows.Forms.CheckBox chkMLSub;
+        private System.Windows.Forms.CheckBox chkMList;
     }
 }

@@ -688,9 +688,19 @@ namespace testharness2
             }
         }
 
-        private void cmdMailboxes_Click(object sender, EventArgs e)
+        private void cmdMailboxes_Click(object sender, EventArgs e) => ZMailboxes(false);
+
+        private void cmdSubscriptions_Click(object sender, EventArgs e) => ZMailboxes(true);
+
+        private void ZMailboxes(bool pSubscriptions)
         {
-            //;?;
+            fMailboxCacheDataSets lDataSets = 0;
+
+            if (chkMList.Checked) lDataSets |= fMailboxCacheDataSets.list;
+            if (chkMLSub.Checked) lDataSets |= fMailboxCacheDataSets.lsub;
+            if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
+
+            ZUnnamedChildAdd(new frmMailboxes(mClient, pSubscriptions, lDataSets, chkMUseChildren.Checked, mRootContext));
         }
     }
 }

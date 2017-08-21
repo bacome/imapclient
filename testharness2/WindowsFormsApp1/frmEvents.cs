@@ -115,6 +115,7 @@ namespace testharness2
                 foreach (var lString in mQueue) mBuilder.AppendLine(lString);
 
                 rtx.Text = mBuilder.ToString();
+                rtx.Select(mBuilder.Length, 0);
                 rtx.ScrollToCaret();
 
                 mBuilder.Clear();

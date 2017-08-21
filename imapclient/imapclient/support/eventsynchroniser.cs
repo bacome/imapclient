@@ -112,7 +112,7 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            private const int kNetworkActivityMaxLength = 40;
+            private const int kNetworkActivityMaxLength = 80;
 
             public void FireNetworkActivity(cBytesLines pResponse, cTrace.cContext pParentContext)
             {

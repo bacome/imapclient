@@ -7,7 +7,7 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
-    public class cMailboxName
+    public class cMailboxName : IComparable<cMailboxName>
     {
         public const string InboxString = "INBOX";
         public static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
@@ -97,6 +97,27 @@ namespace work.bacome.imapclient
         }
 
         public static bool operator !=(cMailboxName pA, cMailboxName pB) => !(pA == pB);
+
+        public int CompareTo(cMailboxName pOther)
+        {
+            if (pOther == null) return 1;
+
+            var lCompareTo = Name.CompareTo(pOther.Name);
+
+            if (lCompareTo != 0) return lCompareTo;
+
+            // should never get here
+
+            if (Delimiter == null)
+            {
+                if (pOther.Delimiter == null) return 0;
+                return -1;
+            }
+
+            if (pOther.Delimiter == null) return 1;
+
+            return Delimiter.Value.CompareTo(pOther.Delimiter.Value);
+        }
 
         [Conditional("DEBUG")]
         public static void _Tests(cTrace.cContext pParentContext)

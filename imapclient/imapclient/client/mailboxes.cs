@@ -122,6 +122,7 @@ namespace work.bacome.imapclient
                 if (lCapabilities.ListExtended)
                 {
                     bool lListStatus = lStatus && lCapabilities.ListStatus;
+                    ;?; // if lsub is requested, should just ask for subscribed
 
                     lListTask = lSession.ListExtendedAsync(lMC, eListExtendedSelect.exists, mMailboxReferrals, pListMailbox, pDelimiter, pPattern, lListStatus, lContext);
 

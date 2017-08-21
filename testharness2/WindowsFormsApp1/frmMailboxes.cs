@@ -20,13 +20,16 @@ namespace testharness2
         private readonly cTrace.cContext mRootContext;
         private readonly cIMAPClient mClient;
         private readonly bool mSubscriptions;
+        private readonly fMailboxCacheDataSets mDataSets;
+        private readonly bool mUseChildren;
 
-        public frmMailboxes(cIMAPClient pClient, bool pSubscriptions, cTrace.cContext pParentContext)
+        public frmMailboxes(cIMAPClient pClient, bool pSubscriptions, fMailboxCacheDataSets pDataSets, bool pUseChildren, cTrace.cContext pParentContext)
         {
-            ;?; // new root object
-            mRootContext = pParentContext.NewRootMethod(nameof(frmMailboxes), )
+            mRootContext = pParentContext.NewRootObject(nameof(frmMailboxes));
             mClient = pClient;
             mSubscriptions = pSubscriptions;
+            mDataSets = pDataSets;
+            mUseChildren = pUseChildren;
             InitializeComponent();
         }
 
@@ -43,11 +46,9 @@ namespace testharness2
                 return;
             }
 
-            tvw.BeginUpdate();
             ZAddNamespaces("Personal", lNamespaces.Personal);
             ZAddNamespaces("Other Users", lNamespaces.OtherUsers);
             ZAddNamespaces("Shared", lNamespaces.Shared);
-            tvw.EndUpdate();
         }
 
         private void ZAddNamespaces(string pClass, ReadOnlyCollection<cNamespace> pNamespaces)
@@ -73,54 +74,45 @@ namespace testharness2
             }
         }
 
-        private void tvw_AfterExpand(object sender, TreeViewEventArgs e)
+        private async void tvw_AfterExpand(object sender, TreeViewEventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(Form1), nameof(tvwMailboxes_AfterExpand));
+            var lContext = mRootContext.NewMethod(nameof(frmMailboxes), nameof(tvw_AfterExpand));
 
-            if (!(e.Node.Tag is cTVWMailboxesNodeTag lTag)) return;
+            if (!(e.Node.Tag is cNodeTag lTag)) return;
 
-            if (lTag.State != cTVWMailboxesNodeTag.eState.neverexpanded) return;
+            if (lTag.State != cNodeTag.eState.neverexpanded) return;
 
-            lTag.State = cTVWMailboxesNodeTag.eState.expanding;
+            lTag.State = cNodeTag.eState.expanding;
 
-            List<cMailboxListItem> lMailboxes;
+            List<cMailbox> lMailboxes;
 
             try
             {
-                if (lTag.Namespace != null) lMailboxes = await lTag.Namespace.MailboxesAsync();
-                else if (lTag.Mailbox != null) lMailboxes = await lTag.Mailbox.MailboxesAsync();
-                else lMailboxes = null;
+                if (mSubscriptions) lMailboxes = await lTag.ChildMailboxes.SubscribedAsync(false, mDataSets);
+                else lMailboxes = await lTag.ChildMailboxes.MailboxesAsync(mDataSets);
+
+                foreach (var lMailbox in lMailboxes)
+                {
+                    var lNode = e.Node.Nodes.Add(lMailbox.Name);
+
+                    TreeNode lPleaseWait;
+
+                    if (mUseChildren && lMailbox.HasChildren == false) lPleaseWait = null;
+                    else lPleaseWait = lNode.Nodes.Add(kPleaseWait);
+
+                    lNode.Tag = new cNodeTag(lMailbox, lMailbox.CanSelect, lPleaseWait);
+                }
             }
             catch (Exception ex)
             {
                 lContext.TraceException(ex);
                 MessageBox.Show($"a problem occurred: {ex}");
-                return;
-            }
-
-            if (lMailboxes != null && lMailboxes.Count != 0)
-            {
-                foreach (var lListItem in lMailboxes)
-                {
-                    var lNode = e.Node.Nodes.Add(lListItem.Name);
-
-                    TreeNode lPleaseWait;
-
-                    if (lListItem.HasChildren != false) lPleaseWait = lNode.Nodes.Add(kTVWPleaseWait);
-                    else lPleaseWait = null;
-
-                    lNode.Tag = new cTVWMailboxesNodeTag(lListItem.Mailbox, lListItem.CanSelect ?? false, lPleaseWait);
-                }
             }
 
             e.Node.Nodes.Remove(lTag.PleaseWait);
 
-            lTag.State = cTVWMailboxesNodeTag.eState.expanded;
+            lTag.State = cNodeTag.eState.expanded;
         }
-
-
-
-
 
         public class cNodeTag
         {
