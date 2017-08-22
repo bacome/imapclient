@@ -70,6 +70,7 @@
             this.cmdTestsQuick = new System.Windows.Forms.Button();
             this.cmdApply = new System.Windows.Forms.Button();
             this.pnlIgnoreCapabilities = new System.Windows.Forms.Panel();
+            this.chkIgnoreQResync = new System.Windows.Forms.CheckBox();
             this.chkIgnoreBinary = new System.Windows.Forms.CheckBox();
             this.label12 = new System.Windows.Forms.Label();
             this.chkIgnoreNamespace = new System.Windows.Forms.CheckBox();
@@ -100,7 +101,6 @@
             this.chkMessageEnvelope = new System.Windows.Forms.CheckBox();
             this.chkMessageFlags = new System.Windows.Forms.CheckBox();
             this.label13 = new System.Windows.Forms.Label();
-            this.chkIgnoreQResync = new System.Windows.Forms.CheckBox();
             this.pnlCredentials.SuspendLayout();
             this.pnlConnection.SuspendLayout();
             this.pnlIdle.SuspendLayout();
@@ -248,6 +248,7 @@
             this.txtTrace.Name = "txtTrace";
             this.txtTrace.Size = new System.Drawing.Size(164, 20);
             this.txtTrace.TabIndex = 9;
+            this.txtTrace.TextChanged += new System.EventHandler(this.txtTrace_TextChanged);
             this.txtTrace.Validating += new System.ComponentModel.CancelEventHandler(this.TextBoxNotBlank);
             this.txtTrace.Validated += new System.EventHandler(this.ControlValidated);
             // 
@@ -349,6 +350,7 @@
             this.txtTimeouts.Size = new System.Drawing.Size(42, 20);
             this.txtTimeouts.TabIndex = 8;
             this.txtTimeouts.Text = "60000";
+            this.txtTimeouts.TextChanged += new System.EventHandler(this.txtTimeouts_TextChanged);
             this.txtTimeouts.Validating += new System.ComponentModel.CancelEventHandler(this.TextBoxIsMilliseconds);
             this.txtTimeouts.Validated += new System.EventHandler(this.ControlValidated);
             // 
@@ -535,6 +537,16 @@
             this.pnlIgnoreCapabilities.Size = new System.Drawing.Size(124, 108);
             this.pnlIgnoreCapabilities.TabIndex = 27;
             // 
+            // chkIgnoreQResync
+            // 
+            this.chkIgnoreQResync.AutoSize = true;
+            this.chkIgnoreQResync.Location = new System.Drawing.Point(13, 73);
+            this.chkIgnoreQResync.Name = "chkIgnoreQResync";
+            this.chkIgnoreQResync.Size = new System.Drawing.Size(70, 17);
+            this.chkIgnoreQResync.TabIndex = 16;
+            this.chkIgnoreQResync.Text = "QResync";
+            this.chkIgnoreQResync.UseVisualStyleBackColor = true;
+            // 
             // chkIgnoreBinary
             // 
             this.chkIgnoreBinary.AutoSize = true;
@@ -670,7 +682,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(326, 445);
+            this.tabPage3.Size = new System.Drawing.Size(594, 491);
             this.tabPage3.TabIndex = 0;
             this.tabPage3.Text = "Response Text";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -886,16 +898,6 @@
             this.label13.Size = new System.Drawing.Size(219, 13);
             this.label13.TabIndex = 0;
             this.label13.Text = "When selecting message get these attributes";
-            // 
-            // chkIgnoreQResync
-            // 
-            this.chkIgnoreQResync.AutoSize = true;
-            this.chkIgnoreQResync.Location = new System.Drawing.Point(13, 73);
-            this.chkIgnoreQResync.Name = "chkIgnoreQResync";
-            this.chkIgnoreQResync.Size = new System.Drawing.Size(70, 17);
-            this.chkIgnoreQResync.TabIndex = 16;
-            this.chkIgnoreQResync.Text = "QResync";
-            this.chkIgnoreQResync.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 

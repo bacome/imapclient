@@ -719,5 +719,15 @@ namespace testharness
             mMessageView.Show();
             mMessageView.Focus();
         }
+
+        private void txtTrace_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtTimeouts_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

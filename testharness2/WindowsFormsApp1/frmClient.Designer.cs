@@ -202,7 +202,6 @@
             this.chkMList = new System.Windows.Forms.CheckBox();
             this.chkMLSub = new System.Windows.Forms.CheckBox();
             this.chkMStatus = new System.Windows.Forms.CheckBox();
-            this.chkMUseChildren = new System.Windows.Forms.CheckBox();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -1429,7 +1428,7 @@
             this.gbxSelectedMailbox.Controls.Add(this.txtSelectedMailbox);
             this.gbxSelectedMailbox.Controls.Add(this.label5);
             this.gbxSelectedMailbox.Controls.Add(this.cmdSelectedMailbox);
-            this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 260);
+            this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 281);
             this.gbxSelectedMailbox.Name = "gbxSelectedMailbox";
             this.gbxSelectedMailbox.Size = new System.Drawing.Size(205, 77);
             this.gbxSelectedMailbox.TabIndex = 5;
@@ -1743,7 +1742,7 @@
             // 
             // cmdInbox
             // 
-            this.cmdInbox.Location = new System.Drawing.Point(232, 306);
+            this.cmdInbox.Location = new System.Drawing.Point(232, 327);
             this.cmdInbox.Name = "cmdInbox";
             this.cmdInbox.Size = new System.Drawing.Size(100, 25);
             this.cmdInbox.TabIndex = 6;
@@ -2097,15 +2096,14 @@
             // 
             // gbxMailboxes
             // 
-            this.gbxMailboxes.Controls.Add(this.chkMUseChildren);
             this.gbxMailboxes.Controls.Add(this.chkMStatus);
             this.gbxMailboxes.Controls.Add(this.chkMLSub);
             this.gbxMailboxes.Controls.Add(this.chkMList);
             this.gbxMailboxes.Controls.Add(this.cmdMailboxes);
             this.gbxMailboxes.Controls.Add(this.cmdSubscriptions);
-            this.gbxMailboxes.Location = new System.Drawing.Point(6, 181);
+            this.gbxMailboxes.Location = new System.Drawing.Point(6, 193);
             this.gbxMailboxes.Name = "gbxMailboxes";
-            this.gbxMailboxes.Size = new System.Drawing.Size(286, 73);
+            this.gbxMailboxes.Size = new System.Drawing.Size(228, 73);
             this.gbxMailboxes.TabIndex = 4;
             this.gbxMailboxes.TabStop = false;
             this.gbxMailboxes.Text = "Mailboxes";
@@ -2139,16 +2137,6 @@
             this.chkMStatus.TabIndex = 4;
             this.chkMStatus.Text = "Status";
             this.chkMStatus.UseVisualStyleBackColor = true;
-            // 
-            // chkMUseChildren
-            // 
-            this.chkMUseChildren.AutoSize = true;
-            this.chkMUseChildren.Location = new System.Drawing.Point(195, 50);
-            this.chkMUseChildren.Name = "chkMUseChildren";
-            this.chkMUseChildren.Size = new System.Drawing.Size(86, 17);
-            this.chkMUseChildren.TabIndex = 5;
-            this.chkMUseChildren.Text = "Use Children";
-            this.chkMUseChildren.UseVisualStyleBackColor = true;
             // 
             // frmClient
             // 
@@ -2392,7 +2380,6 @@
         private System.Windows.Forms.TextBox txtEvents;
         private System.Windows.Forms.Label label24;
         private System.Windows.Forms.GroupBox gbxMailboxes;
-        private System.Windows.Forms.CheckBox chkMUseChildren;
         private System.Windows.Forms.CheckBox chkMStatus;
         private System.Windows.Forms.CheckBox chkMLSub;
         private System.Windows.Forms.CheckBox chkMList;

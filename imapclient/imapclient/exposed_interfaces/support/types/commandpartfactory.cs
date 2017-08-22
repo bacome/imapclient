@@ -122,10 +122,10 @@ namespace work.bacome.imapclient.support
             return lResult;
         }
 
-        public bool TryAsMailbox(cMailboxName pMailboxName, out cCommandPart rCommandPart, out string rEncodedMailboxName)
+        public bool TryAsMailbox(string pMailboxName, char? pDelimiter, out cCommandPart rCommandPart, out string rEncodedMailboxName)
         {
             if (pMailboxName == null) { rCommandPart = null; rEncodedMailboxName = null; return false; }
-            return ZTryAsMailbox(pMailboxName.Name, pMailboxName.Delimiter, cCharset.AString, out rCommandPart, out rEncodedMailboxName);
+            return ZTryAsMailbox(pMailboxName, pDelimiter, cCharset.AString, out rCommandPart, out rEncodedMailboxName);
         }
 
         private bool ZTryAsMailbox(string pString, char? pDelimiter, cCharset pCharset, out cCommandPart rCommandPart, out string rEncodedMailboxName)

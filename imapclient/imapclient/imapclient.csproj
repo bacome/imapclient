@@ -42,7 +42,9 @@
   <ItemGroup>
     <Compile Include="client\base.cs" />
     <Compile Include="client\connect.cs" />
+    <Compile Include="client\create.cs" />
     <Compile Include="client\defaultmessageproperties.cs" />
+    <Compile Include="client\delete.cs" />
     <Compile Include="client\disconnect.cs" />
     <Compile Include="client\expunge.cs" />
     <Compile Include="client\fetchattributes.cs" />
@@ -50,7 +52,9 @@
     <Compile Include="client\fetchproperties.cs" />
     <Compile Include="client\fetchbody.cs" />
     <Compile Include="client\fetchmailboxdata.cs" />
+    <Compile Include="client\rename.cs" />
     <Compile Include="client\setunseen.cs" />
+    <Compile Include="client\subscribe.cs" />
     <Compile Include="client\subscribed.cs" />
     <Compile Include="client\uidfetchbody.cs" />
     <Compile Include="client\mailboxes.cs" />
@@ -88,7 +92,11 @@
     <Compile Include="session\command_hooks\commandhookinitial.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
+    <Compile Include="session\imap_commands\authenticated\create.cs" />
+    <Compile Include="session\imap_commands\authenticated\delete.cs" />
+    <Compile Include="session\imap_commands\authenticated\rename.cs" />
     <Compile Include="session\imap_commands\authenticated\rlist.cs" />
+    <Compile Include="session\imap_commands\authenticated\subscribe.cs" />
     <Compile Include="session\imap_commands\not_authenticated\starttls.cs" />
     <Compile Include="session\imap_commands\selected\expunge.cs" />
     <Compile Include="session\parsing\responsedataselect.cs" />

@@ -700,7 +700,7 @@ namespace testharness2
             if (chkMLSub.Checked) lDataSets |= fMailboxCacheDataSets.lsub;
             if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
 
-            ZUnnamedChildAdd(new frmMailboxes(mClient, pSubscriptions, lDataSets, chkMUseChildren.Checked, mRootContext));
+            ZUnnamedChildAdd(new frmMailboxes(mClient, pSubscriptions, lDataSets, mRootContext));
         }
     }
 }

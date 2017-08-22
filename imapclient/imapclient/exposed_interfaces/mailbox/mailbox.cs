@@ -7,7 +7,7 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public class cMailbox : iChildMailboxes
+    public class cMailbox : iMailboxParent
     {
         private PropertyChangedEventHandler mPropertyChanged;
         private object mPropertyChangedLock = new object();
@@ -78,9 +78,10 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pArgs.Handle, Handle)) mMessageDelivery?.Invoke(this, pArgs);
         }
 
-        // convenience method
+        // convenience methods
 
         public string Name => Handle.MailboxName.Name;
+        public char? Delimiter => Handle.MailboxName.Delimiter;
 
         // properties
 
@@ -140,7 +141,6 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if ((Client.MailboxCacheData & fMailboxCacheData.children) == 0) throw new InvalidOperationException("mailbox not caching this data");
                 if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 bool? lHasChildren = Handle.ListFlags?.HasChildren;
                 if (lHasChildren == true) return true;
@@ -149,80 +149,87 @@ namespace work.bacome.imapclient
             }
         }
 
-        public bool ContainsAll
+        public bool? ContainsAll
         {
             get
             {
-                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
                 if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) return false;
-                return Handle.ListFlags.ContainsAll;
+                if (Handle.ListFlags.ContainsAll) return true;
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) return null;
+                return false;
             }
         }
 
-        public bool IsArchive
+        public bool? IsArchive
         {
             get
             {
-                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
                 if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) return false;
-                return Handle.ListFlags.IsArchive;
+                if (Handle.ListFlags.IsArchive) return true;
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) return null;
+                return false;
             }
         }
 
-        public bool ContainsDrafts
+        public bool? ContainsDrafts
         {
             get
             {
-                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
                 if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) return false;
-                return Handle.ListFlags.ContainsDrafts;
+                if (Handle.ListFlags.ContainsDrafts) return true;
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) return null;
+                return false;
             }
         }
 
-        public bool ContainsFlagged
+        public bool? ContainsFlagged
         {
             get
             {
-                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
                 if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) return false;
-                return Handle.ListFlags.ContainsFlagged;
+                if (Handle.ListFlags.ContainsFlagged) return true;
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) return null;
+                return false;
             }
         }
 
-        public bool ContainsJunk
+        public bool? ContainsJunk
         {
             get
             {
-                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
                 if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) return false;
-                return Handle.ListFlags.ContainsJunk;
+                if (Handle.ListFlags.ContainsJunk) return true;
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) return null;
+                return false;
             }
         }
 
-        public bool ContainsSent
+        public bool? ContainsSent
         {
             get
             {
-                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
                 if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) return false;
-                return Handle.ListFlags.ContainsSent;
+                if (Handle.ListFlags.ContainsSent) return true;
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) return null;
+                return false;
             }
         }
 
-        public bool ContainsTrash
+        public bool? ContainsTrash
         {
             get
             {
-                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) throw new InvalidOperationException("mailbox not caching this data");
                 if (Handle.ListFlags == null) Client.Fetch(Handle, fMailboxCacheDataSets.list);
                 if (Handle.ListFlags == null) return false;
-                return Handle.ListFlags.ContainsTrash;
+                if (Handle.ListFlags.ContainsTrash) return true;
+                if ((Client.MailboxCacheData & fMailboxCacheData.specialuse) == 0) return null;
+                return false;
             }
         }
 
@@ -236,42 +243,39 @@ namespace work.bacome.imapclient
             }
         }
 
-        public int MessageCount
+        public int? MessageCount
         {
             get
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.Count;
-                if ((Client.MailboxCacheData & fMailboxCacheData.messagecount) == 0) throw new InvalidOperationException("mailbox not caching this data");
+                if ((Client.MailboxCacheData & fMailboxCacheData.messagecount) == 0) return null;
                 if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
-                if (Handle.MailboxStatus == null) return 0;
-                return Handle.MailboxStatus.MessageCount;
+                return Handle.MailboxStatus?.MessageCount;
             }
         }
 
-        public int RecentCount
+        public int? RecentCount
         {
             get
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.RecentCount;
-                if ((Client.MailboxCacheData & fMailboxCacheData.recentcount) == 0) throw new InvalidOperationException("mailbox not caching this data");
+                if ((Client.MailboxCacheData & fMailboxCacheData.recentcount) == 0) return null;
                 if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
-                if (Handle.MailboxStatus == null) return 0;
-                return Handle.MailboxStatus.RecentCount;
+                return Handle.MailboxStatus?.RecentCount;
             }
         }
 
-        public uint UIDNext
+        public uint? UIDNext
         {
             get
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.UIDNext;
-                if ((Client.MailboxCacheData & fMailboxCacheData.uidnext) == 0) throw new InvalidOperationException("mailbox not caching this data");
+                if ((Client.MailboxCacheData & fMailboxCacheData.uidnext) == 0) return null;
                 if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
-                if (Handle.MailboxStatus == null) return 0;
-                return Handle.MailboxStatus.UIDNext;
+                return Handle.MailboxStatus?.UIDNext;
             }
         }
 
@@ -285,29 +289,27 @@ namespace work.bacome.imapclient
             }
         }
 
-        public uint UIDValidity
+        public uint? UIDValidity
         {
             get
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.UIDValidity;
-                if ((Client.MailboxCacheData & fMailboxCacheData.uidvalidity) == 0) throw new InvalidOperationException("mailbox not caching this data");
+                if ((Client.MailboxCacheData & fMailboxCacheData.uidvalidity) == 0) return null;
                 if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
-                if (Handle.MailboxStatus == null) return 0;
-                return Handle.MailboxStatus.UIDValidity;
+                return Handle.MailboxStatus?.UIDValidity;
             }
         }
 
-        public int UnseenCount
+        public int? UnseenCount
         {
             get
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.UnseenCount;
-                if ((Client.MailboxCacheData & fMailboxCacheData.unseencount) == 0) throw new InvalidOperationException("mailbox not caching this data");
+                if ((Client.MailboxCacheData & fMailboxCacheData.unseencount) == 0) return null;
                 if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
-                if (Handle.MailboxStatus == null) return 0;
-                return Handle.MailboxStatus.UnseenCount;
+                return Handle.MailboxStatus?.UnseenCount;
             }
         }
 
@@ -321,16 +323,15 @@ namespace work.bacome.imapclient
             }
         }
 
-        public ulong HighestModSeq
+        public ulong? HighestModSeq
         {
             get
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.Handle, Handle)) return lSelectedMailboxDetails.Cache.HighestModSeq;
-                if ((Client.MailboxCacheData & fMailboxCacheData.highestmodseq) == 0) throw new InvalidOperationException("mailbox not caching this data");
+                if ((Client.MailboxCacheData & fMailboxCacheData.highestmodseq) == 0) return null;
                 if (Handle.MailboxStatus == null) Client.Fetch(Handle, fMailboxCacheDataSets.status);
-                if (Handle.MailboxStatus == null) return 0;
-                return Handle.MailboxStatus.HighestModSeq;
+                return Handle.MailboxStatus?.HighestModSeq;
             }
         }
 
@@ -343,7 +344,7 @@ namespace work.bacome.imapclient
             get
             {
                 var lSelectedProperties = Handle.SelectedProperties;
-                if (!lSelectedProperties.HasBeenSelected) throw new InvalidOperationException("must have been selected");
+                if (!lSelectedProperties.HasBeenSelected) return null;
                 return lSelectedProperties.MessageFlags;
             }
         }
@@ -353,7 +354,7 @@ namespace work.bacome.imapclient
             get
             {
                 var lSelectedProperties = Handle.SelectedProperties;
-                if (!lSelectedProperties.HasBeenSelectedForUpdate) throw new InvalidOperationException("must have been selected for update");
+                if (!lSelectedProperties.HasBeenSelectedForUpdate) return null;
                 return lSelectedProperties.ForUpdatePermanentFlags;
             }
         }
@@ -363,7 +364,7 @@ namespace work.bacome.imapclient
             get
             {
                 var lSelectedProperties = Handle.SelectedProperties;
-                if (!lSelectedProperties.HasBeenSelectedReadOnly) throw new InvalidOperationException("must have been selected read only");
+                if (!lSelectedProperties.HasBeenSelectedReadOnly) return null;
                 return lSelectedProperties.ReadOnlyPermanentFlags;
             }
         }
@@ -397,6 +398,60 @@ namespace work.bacome.imapclient
 
         public List<cMailbox> Subscribed(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0) => Client.Subscribed(Handle, pDescend, pDataSets);
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(Handle, pDescend, pDataSets);
+
+        public cMailbox CreateChild(string pMailboxName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pMailboxName), pAsFutureParent);
+        public Task<cMailbox> CreateChildAsync(string pMailboxName, bool pAsFutureParent = true) => Client.CreateAsync(ZCreateChild(pMailboxName), pAsFutureParent);
+
+        private cMailboxName ZCreateChild(string pMailboxName)
+        {
+            if (Handle.MailboxName.Delimiter == null) throw new InvalidOperationException();
+            if (string.IsNullOrEmpty(pMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
+            if (pMailboxName.IndexOf(Handle.MailboxName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
+            if (!cMailboxName.TryConstruct(Handle.MailboxName.Name + Handle.MailboxName.Delimiter.Value + pMailboxName, Handle.MailboxName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
+            return lMailboxName;
+        }
+
+        public void Subscribe() => Client.Subscribe(Handle);
+        public void SubscribeAsync() => Client.SubscribeAsync(Handle);
+
+        /*
+        public cMailbox Rename(cMailboxName pMailboxName)
+        {
+            Client.Rename(Handle, pMailboxName);
+            return Client.Mailbox(pMailboxName);
+        }
+
+        public async Task<cMailbox> RenameAsync(cMailboxName pMailboxName)
+        {
+            await Client.RenameAsync(Handle, pMailboxName).ConfigureAwait(false);
+            return Client.Mailbox(pMailboxName);
+        } */
+
+        public cMailbox Rename(string pMailboxName)
+        {
+            // change the last segment of the name
+            ;?;
+        }
+
+        ;?; // and async
+
+
+        public cMailbox Rename(cNamespace pNamespace, string pMailboxName = null)
+        {
+            ;?;
+        }
+
+        public cMailbox Rename(cMailbox pMailbox, string pMailboxName = null)
+        {
+            ;?;
+        }
+
+
+        ;?; // more rename options here ... (rename just end part, rename just beginning part, 
+
+
+        public void Delete() => Client.Delete(Handle);
+        public Task DeleteAsync() => Client.DeleteAsync(Handle);
 
         public void Select(bool pForUpdate = false) => Client.Select(Handle, pForUpdate);
         public Task SelectAsync(bool pForUpdate = false) => Client.SelectAsync(Handle, pForUpdate);
