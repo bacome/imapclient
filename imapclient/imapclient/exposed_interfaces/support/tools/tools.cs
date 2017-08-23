@@ -69,11 +69,11 @@ namespace work.bacome.imapclient.support
             return lBuilder.ToString() + ")";
         }
 
-        public static bool TryMailboxNameBytesToString(IList<byte> pBytes, byte? pDelimiter, bool pUTF8Enabled, out string rString)
+        public static bool TryEncodedMailboxPathToString(IList<byte> pEncodedMailboxPath, byte? pDelimiter, bool pUTF8Enabled, out string rString)
         {
-            if (pUTF8Enabled) { rString = UTF8BytesToString(pBytes); return true; }
+            if (pUTF8Enabled) { rString = UTF8BytesToString(pEncodedMailboxPath); return true; }
 
-            if (pDelimiter == null) return cModifiedUTF7.TryDecode(pBytes, out rString, out _);
+            if (pDelimiter == null) return cModifiedUTF7.TryDecode(pEncodedMailboxPath, out rString, out _);
 
             byte lDelimiterByte = pDelimiter.Value;
             char lDelimiterChar = (char)lDelimiterByte;
@@ -82,7 +82,7 @@ namespace work.bacome.imapclient.support
 
             cByteList lSegment = new cByteList();
 
-            foreach (byte lByte in pBytes)
+            foreach (byte lByte in pEncodedMailboxPath)
             {
                 if (lByte == lDelimiterByte)
                 {

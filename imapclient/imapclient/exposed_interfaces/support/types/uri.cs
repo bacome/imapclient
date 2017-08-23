@@ -44,7 +44,7 @@ namespace work.bacome.imapclient.support
         public string PortString => mParts.Port;
         public int? Port => mURLParts?.Port;
         public string Path => mParts.Path;
-        public string MailboxName => mURLParts?.MailboxName;
+        public string MailboxPath => mURLParts?.MailboxPath;
         public uint? UIDValidity => mURLParts?.UIDValidity;
         public uint? UID => mURLParts?.UID;
         public string Section => mURLParts?.Section;

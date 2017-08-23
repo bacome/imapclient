@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
             {
                 private readonly cEventSynchroniser mEventSynchroniser;
                 private readonly cMailboxCache mMailboxCache;
-                private readonly string mEncodedMailboxName;
+                private readonly string mEncodedMailboxPath;
 
                 private bool? mExists = null;
                 private cListFlags mListFlags = null;
@@ -21,21 +21,39 @@ namespace work.bacome.imapclient
                 private cMailboxStatus mMailboxStatus = null;
                 private cMailboxSelectedProperties mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
 
-                public cMailboxCacheItem(cEventSynchroniser pEventSynchroniser, cMailboxCache pMailboxCache, string pEncodedMailboxName)
+                public cMailboxCacheItem(cEventSynchroniser pEventSynchroniser, cMailboxCache pMailboxCache, string pEncodedMailboxPath)
                 {
                     mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
-                    mEncodedMailboxName = pEncodedMailboxName ?? throw new ArgumentNullException(nameof(pEncodedMailboxName));
+                    mEncodedMailboxPath = pEncodedMailboxPath ?? throw new ArgumentNullException(nameof(pEncodedMailboxPath));
                 }
 
                 public object Cache => mMailboxCache;
                 public cMailboxCache MailboxCache => mMailboxCache;
-                public string EncodedMailboxName => mEncodedMailboxName;
+                public string EncodedMailboxPath => mEncodedMailboxPath;
 
                 public cMailboxName MailboxName { get; set; }
                 public cCommandPart MailboxNameCommandPart { get; set; }
 
                 public bool? Exists => mExists;
+
+                public void Created(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(Created));
+
+                    fMailboxProperties lProperties;
+
+                    if (mExists == false) lProperties = fMailboxProperties.exists;
+                    else lProperties = 0;
+
+                    mExists = true;
+                    mListFlags = null;
+                    mStatus = null;
+                    mMailboxStatus = null;
+                    mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
+
+                    mEventSynchroniser.FireMailboxPropertiesChanged(this, lProperties, lContext);
+                }
 
                 public void ResetExists(cTrace.cContext pParentContext)
                 {
@@ -171,7 +189,7 @@ namespace work.bacome.imapclient
                     return fMailboxProperties.exists;
                 }
 
-                public override string ToString() => $"{nameof(cMailboxCacheItem)}({mEncodedMailboxName})";
+                public override string ToString() => $"{nameof(cMailboxCacheItem)}({mEncodedMailboxPath})";
             }
         }
     }

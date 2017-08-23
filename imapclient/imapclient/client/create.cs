@@ -33,16 +33,16 @@ namespace work.bacome.imapclient
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
             if (pAsFutureParent && pMailboxName.Delimiter == null) throw new ArgumentOutOfRangeException(nameof(pAsFutureParent));
 
-            string lMailboxName;
-            if (pAsFutureParent) lMailboxName = pMailboxName.Name + pMailboxName.Delimiter.Value;
-            else lMailboxName = pMailboxName.Name;
+            string lMailboxPath;
+            if (pAsFutureParent) lMailboxPath = pMailboxName.Path + pMailboxName.Delimiter.Value;
+            else lMailboxPath = pMailboxName.Path;
 
             mAsyncCounter.Increment(lContext);
 
             try
             {
                 var lMC = new cMethodControl(mTimeout, CancellationToken);
-                await lSession.CreateAsync(lMC, lMailboxName, pMailboxName.Delimiter, lContext).ConfigureAwait(false);
+                await lSession.CreateAsync(lMC, lMailboxPath, pMailboxName.Delimiter, lContext).ConfigureAwait(false);
                 var lHandle = lSession.GetMailboxHandle(pMailboxName);
                 return new cMailbox(this, lHandle);
             }

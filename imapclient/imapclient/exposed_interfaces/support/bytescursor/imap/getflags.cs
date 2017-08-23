@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
-    public class cFlags : IEnumerable<string>
+    public class cFlags : IReadOnlyCollection<string>
     {
         private readonly Dictionary<string, bool> mDictionary = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);
 
@@ -17,6 +17,7 @@ namespace work.bacome.imapclient.support
             if (!mDictionary.ContainsKey(pFlag)) mDictionary.Add(pFlag, true);
         }
 
+        public int Count => mDictionary.Count;
         public IEnumerator<string> GetEnumerator() => mDictionary.Keys.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mDictionary.Keys.GetEnumerator();
 

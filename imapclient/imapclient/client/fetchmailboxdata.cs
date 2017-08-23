@@ -48,8 +48,8 @@ namespace work.bacome.imapclient
                     return;
                 }
 
-                string lListMailbox = pHandle.MailboxName.Name.Replace('*', '%');
-                cMailboxNamePattern lPattern = new cMailboxNamePattern(pHandle.MailboxName.Name, string.Empty, pHandle.MailboxName.Delimiter);
+                string lListMailbox = pHandle.MailboxName.Path.Replace('*', '%');
+                cMailboxPathPattern lPattern = new cMailboxPathPattern(pHandle.MailboxName.Path, string.Empty, pHandle.MailboxName.Delimiter);
 
                 var lCapabilities = lSession.Capabilities;
                 bool lList = (pDataSets & fMailboxCacheDataSets.list) != 0;
@@ -75,7 +75,7 @@ namespace work.bacome.imapclient
                     if (lList)
                     {
                         if (mMailboxReferrals && lCapabilities.MailboxReferrals) lTasks.Add(lSession.RListAsync(lMC, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, lContext));
-                        else lTasks.Add(lSession.ListAsync(lMC, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, lContext));
+                        else lTasks.Add(lSession.ListMailboxesAsync(lMC, lListMailbox, pHandle.MailboxName.Delimiter, lPattern, lContext));
                     }
 
                     if (lLSub)

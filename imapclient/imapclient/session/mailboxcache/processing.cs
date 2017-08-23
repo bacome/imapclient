@@ -32,9 +32,9 @@ namespace work.bacome.imapclient
 
                     switch (pData)
                     {
-                        case cResponseDataList lList:
+                        case cResponseDataListMailbox lListMailbox:
 
-                            ZProcessList(lList, lContext);
+                            ZProcessListMailbox(lListMailbox, lContext);
                             return eProcessDataResult.observed;
 
                         case cResponseDataLSub lLSub:
@@ -62,7 +62,7 @@ namespace work.bacome.imapclient
 
                     if (pCursor.SkipBytes(kStatusSpace))
                     {
-                        if (!pCursor.GetAString(out string lEncodedMailboxName) ||
+                        if (!pCursor.GetAString(out string lEncodedMailboxPath) ||
                             !pCursor.SkipBytes(cBytesCursor.SpaceLParen) ||
                             !ZProcessDataStatusAttributes(pCursor, out var lStatus, lContext) ||
                             !pCursor.SkipByte(cASCII.RPAREN) ||
@@ -72,7 +72,7 @@ namespace work.bacome.imapclient
                             return eProcessDataResult.notprocessed;
                         }
 
-                        var lItem = ZItem(lEncodedMailboxName);
+                        var lItem = ZItem(lEncodedMailboxPath);
                         lItem.UpdateStatus(lStatus, lContext);
                         if (!ReferenceEquals(mSelectedMailbox?.Handle, lItem)) lItem.UpdateMailboxStatus(lContext);
 
@@ -89,17 +89,17 @@ namespace work.bacome.imapclient
                     return mSelectedMailbox.ProcessTextCode(pData, lContext);
                 }
 
-                private void ZProcessList(cResponseDataList pList, cTrace.cContext pParentContext)
+                private void ZProcessListMailbox(cResponseDataListMailbox pListMailbox, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessList));
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ZProcessListMailbox));
 
-                    var lItem = ZItem(pList.MailboxName);
-                    lItem.SetListFlags(new cListFlags(mSequence++, pList.Flags), lContext);
+                    var lItem = ZItem(pListMailbox.MailboxName);
+                    lItem.SetListFlags(new cListFlags(mSequence++, pListMailbox.Flags), lContext);
 
                     if (mCapabilities.ListExtended)
                     {
-                        if ((mMailboxCacheData & fMailboxCacheData.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, (pList.Flags & fListFlags.subscribed) != 0), lContext);
-                        else if ((pList.Flags & fListFlags.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, true), lContext);
+                        if ((mMailboxCacheData & fMailboxCacheData.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, (pListMailbox.Flags & fListFlags.subscribed) != 0), lContext);
+                        else if ((pListMailbox.Flags & fListFlags.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, true), lContext);
                     }
                 }
 

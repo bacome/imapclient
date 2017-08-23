@@ -24,15 +24,15 @@ namespace work.bacome.imapclient
         public List<cMailbox> Subscribed(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0) => Client.Subscribed(NamespaceName, pDescend, pDataSets);
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(NamespaceName, pDescend, pDataSets);
 
-        public cMailbox CreateChild(string pMailboxName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pMailboxName), pAsFutureParent);
-        public Task<cMailbox> CreateChildAsync(string pMailboxName, bool pAsFutureParent = true) => Client.CreateAsync(ZCreateChild(pMailboxName), pAsFutureParent);
+        public cMailbox CreateChild(string pName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pName), pAsFutureParent);
+        public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = true) => Client.CreateAsync(ZCreateChild(pName), pAsFutureParent);
 
-        private cMailboxName ZCreateChild(string pMailboxName)
+        private cMailboxName ZCreateChild(string pName)
         {
             if (NamespaceName.Delimiter == null) throw new InvalidOperationException();
-            if (string.IsNullOrEmpty(pMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
-            if (pMailboxName.IndexOf(NamespaceName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
-            if (!cMailboxName.TryConstruct(NamespaceName.Prefix + pMailboxName, NamespaceName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
+            if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (pName.IndexOf(NamespaceName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cMailboxName.TryConstruct(NamespaceName.Prefix + pName, NamespaceName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
             return lMailboxName;
         }
 

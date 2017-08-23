@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kRListCommandPart = new cCommandPart("RLIST \"\" ");
 
-            public async Task<List<iMailboxHandle>> RListAsync(cMethodControl pMC, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, cTrace.cContext pParentContext)
+            public async Task<List<iMailboxHandle>> RListAsync(cMethodControl pMC, string pListMailbox, char? pDelimiter, cMailboxPathPattern pPattern, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(RListAsync), pMC, pListMailbox, pDelimiter, pPattern);
 
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(kRListCommandPart, lListMailboxCommandPart);
 
-                    var lHook = new cCommandHookList(mMailboxCache, pPattern);
+                    var lHook = new cCommandHookListMailboxes(mMailboxCache, pPattern);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);

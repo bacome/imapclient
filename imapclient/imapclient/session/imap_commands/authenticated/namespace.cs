@@ -107,7 +107,7 @@ namespace work.bacome.imapclient
                     while (true)
                     {
                         if (!pCursor.SkipByte(cASCII.LPAREN) ||
-                            !pCursor.GetString(out IList<byte> lPrefix) ||
+                            !pCursor.GetString(out IList<byte> lEncodedPrefix) ||
                             !pCursor.SkipByte(cASCII.SPACE) ||
                             !pCursor.GetMailboxDelimiter(out var lDelimiter) ||
                             !ZProcessNamespaceExtension(pCursor) ||
@@ -118,7 +118,7 @@ namespace work.bacome.imapclient
                             return false;
                         }
 
-                        if (!cNamespaceName.TryConstruct(lPrefix, lDelimiter, mUTF8Enabled, out var lNamespaceName))
+                        if (!cNamespaceName.TryConstruct(lEncodedPrefix, lDelimiter, mUTF8Enabled, out var lNamespaceName))
                         {
                             rNames = null;
                             return false;

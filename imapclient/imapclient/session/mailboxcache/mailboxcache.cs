@@ -93,19 +93,19 @@ namespace work.bacome.imapclient
                     return mSelectedMailbox;
                 }
 
-                public int Sequence => mSequence;
+                public int Sequence => mSequence++;
 
-                public void ResetListFlags(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
+                public void ResetExists(cMailboxPathPattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetListFlags), pPattern, pSequence);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pPattern, pSequence);
 
                     foreach (var lItem in mDictionary.Values)
-                        if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
+                        if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Path))
                             if (lItem.ListFlags == null || lItem.ListFlags.Sequence < pSequence)
                                 lItem.ResetExists(lContext);
                 }
 
-                public void ResetLSubFlags(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
+                public void ResetLSubFlags(cMailboxPathPattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
                     // called after an LSub with subscribed = true
                     //  called after a list-extended/subscribed with subscribed = true
@@ -115,19 +115,19 @@ namespace work.bacome.imapclient
                     cLSubFlags lNotSubscribed = new cLSubFlags(mSequence++, false);
 
                     foreach (var lItem in mDictionary.Values)
-                        if (lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
+                        if (lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Path))
                             if (lItem.LSubFlags == null || lItem.LSubFlags.Sequence < pSequence)
                                 lItem.SetLSubFlags(lNotSubscribed, lContext);
                 }
 
-                public void ResetStatus(cMailboxNamePattern pPattern, int pSequence, cTrace.cContext pParentContext)
+                public void ResetStatus(cMailboxPathPattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetStatus), pPattern, pSequence);
 
                     iMailboxHandle lSelectedMailboxHandle = mSelectedMailbox?.Handle;
 
                     foreach (var lItem in mDictionary.Values)
-                        if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Name))
+                        if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Path))
                             if (lItem.Status != null && lItem.Status.Sequence < pSequence)
                             {
                                 lItem.ClearStatus(lContext);
@@ -187,22 +187,22 @@ namespace work.bacome.imapclient
 
                     if (pHandle.MailboxName.Delimiter == null) return false;
 
-                    cMailboxNamePattern lPattern = new cMailboxNamePattern(pHandle.MailboxName.Name + pHandle.MailboxName.Delimiter, "*", pHandle.MailboxName.Delimiter);
+                    cMailboxPathPattern lPattern = new cMailboxPathPattern(pHandle.MailboxName.Path + pHandle.MailboxName.Delimiter, "*", pHandle.MailboxName.Delimiter);
 
                     foreach (var lItem in mDictionary.Values)
-                        if (lItem.Exists == true && lItem.MailboxName != null && lPattern.Matches(lItem.MailboxName.Name))
+                        if (lItem.Exists == true && lItem.MailboxName != null && lPattern.Matches(lItem.MailboxName.Path))
                             return true;
 
                     return false;
                 }
 
-                private cMailboxCacheItem ZItem(string pEncodedMailboxName) => mDictionary.GetOrAdd(pEncodedMailboxName, new cMailboxCacheItem(mEventSynchroniser, this, pEncodedMailboxName));
+                private cMailboxCacheItem ZItem(string pEncodedMailboxPath) => mDictionary.GetOrAdd(pEncodedMailboxPath, new cMailboxCacheItem(mEventSynchroniser, this, pEncodedMailboxPath));
 
                 private cMailboxCacheItem ZItem(cMailboxName pMailboxName)
                 {
                     if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
-                    if (!mCommandPartFactory.TryAsMailbox(pMailboxName.Name, pMailboxName.Delimiter, out var lCommandPart, out var lEncodedMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
-                    var lItem = mDictionary.GetOrAdd(lEncodedMailboxName, new cMailboxCacheItem(mEventSynchroniser, this, lEncodedMailboxName));
+                    if (!mCommandPartFactory.TryAsMailbox(pMailboxName.Path, pMailboxName.Delimiter, out var lCommandPart, out var lEncodedMailboxPath)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
+                    var lItem = mDictionary.GetOrAdd(lEncodedMailboxPath, new cMailboxCacheItem(mEventSynchroniser, this, lEncodedMailboxPath));
                     lItem.MailboxName = pMailboxName;
                     lItem.MailboxNameCommandPart = lCommandPart;
                     return lItem;

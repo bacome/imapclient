@@ -50,7 +50,7 @@ namespace testharness2
             else if (e.PropertyName == nameof(cIMAPClient.Inbox)) { if (mClient.Inbox == null) lValue = "null"; else lValue = "set"; }
             else if (e.PropertyName == nameof(cIMAPClient.ServerId)) lValue = mClient.ServerId?.ToString();
             else if (e.PropertyName == nameof(cIMAPClient.Namespaces)) lValue = mClient.Namespaces?.ToString();
-            else if (e.PropertyName == nameof(cIMAPClient.SelectedMailbox)) lValue = mClient.SelectedMailbox?.Name;
+            else if (e.PropertyName == nameof(cIMAPClient.SelectedMailbox)) lValue = mClient.SelectedMailbox?.Path;
             else lValue = null;
 
             mQueue.Enqueue($"{nameof(PropertyChangedEventArgs)}({e.PropertyName}) [='{lValue}']");

@@ -122,23 +122,24 @@ namespace work.bacome.imapclient.support
             return lResult;
         }
 
-        public bool TryAsMailbox(string pMailboxName, char? pDelimiter, out cCommandPart rCommandPart, out string rEncodedMailboxName)
+        public bool TryAsMailbox(string pMailboxPath, char? pDelimiter, out cCommandPart rCommandPart, out string rEncodedMailboxPath)
         {
-            if (pMailboxName == null) { rCommandPart = null; rEncodedMailboxName = null; return false; }
-            return ZTryAsMailbox(pMailboxName, pDelimiter, cCharset.AString, out rCommandPart, out rEncodedMailboxName);
+            if (pMailboxPath == null) { rCommandPart = null; rEncodedMailboxPath = null; return false; }
+            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rCommandPart = null; rEncodedMailboxPath = null; return false; }
+            return ZTryAsMailbox(pMailboxPath, pDelimiter, cCharset.AString, out rCommandPart, out rEncodedMailboxPath);
         }
 
-        private bool ZTryAsMailbox(string pString, char? pDelimiter, cCharset pCharset, out cCommandPart rCommandPart, out string rEncodedMailboxName)
+        private bool ZTryAsMailbox(string pString, char? pDelimiter, cCharset pCharset, out cCommandPart rCommandPart, out string rEncodedMailboxPath)
         {
             if (pString.Equals(cMailboxName.InboxString, StringComparison.InvariantCultureIgnoreCase))
             {
                 rCommandPart = new cCommandPart(cMailboxName.InboxBytes);
-                rEncodedMailboxName = cMailboxName.InboxString;
+                rEncodedMailboxPath = cMailboxName.InboxString;
             }
 
             if (ZTryAsBytesInCharset(pString, pCharset, false, out rCommandPart))
             {
-                rEncodedMailboxName = pString;
+                rEncodedMailboxPath = pString;
                 return true;
             }
 
@@ -146,11 +147,11 @@ namespace work.bacome.imapclient.support
             {
                 if (ZTryAsQuotedUTF8(pString, false, out rCommandPart) || ZTryAsUTF8Literal(pString, false, out rCommandPart))
                 {
-                    rEncodedMailboxName = pString;
+                    rEncodedMailboxPath = pString;
                     return true;
                 }
 
-                rEncodedMailboxName = null;
+                rEncodedMailboxPath = null;
                 return false;
             }
 
@@ -177,11 +178,11 @@ namespace work.bacome.imapclient.support
 
             if (ZTryAsBytesInCharset(lBytes, pCharset, false, false, out rCommandPart) || ZTryAsQuotedASCII(lBytes, false, false, out rCommandPart) || ZTryAsASCIILiteral(lBytes, false, out rCommandPart))
             {
-                rEncodedMailboxName = cTools.ASCIIBytesToString(lBytes);
+                rEncodedMailboxPath = cTools.ASCIIBytesToString(lBytes);
                 return true;
             }
 
-            rEncodedMailboxName = null;
+            rEncodedMailboxPath = null;
             return false;
         }
 

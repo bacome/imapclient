@@ -30,6 +30,8 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(kSubscribeCommandPart, lItem.MailboxNameCommandPart);
 
+                    lBuilder.Add(new cSubscribeCommandHook(lItem, true));
+
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
@@ -60,6 +62,8 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(kUnsubscribeCommandPart, lItem.MailboxNameCommandPart);
 
+                    lBuilder.Add(new cSubscribeCommandHook(lItem, false));
+
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
@@ -70,6 +74,31 @@ namespace work.bacome.imapclient
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
                     throw new cProtocolErrorException(lResult, 0, lContext);
+                }
+            }
+
+            private class cSubscribeCommandHook : cCommandHook
+            {
+                private readonly cMailboxCacheItem mItem;
+                private readonly bool mWillBeSubscribedOnOK;
+                private int mSequence;
+
+                public cSubscribeCommandHook(cMailboxCacheItem pItem, bool pWillBeSubscribedOnOK)
+                {
+                    mItem = pItem ?? throw new ArgumentNullException(nameof(pItem));
+                    mWillBeSubscribedOnOK = pWillBeSubscribedOnOK;
+                }
+
+                public override void CommandStarted(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSubscribeCommandHook), nameof(CommandStarted));
+                    mSequence = mItem.MailboxCache.Sequence;
+                }
+
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cSubscribeCommandHook), nameof(CommandCompleted), pResult);
+                    if (pResult.ResultType == eCommandResultType.ok) mItem.SetLSubFlags(new cLSubFlags(mSequence, mWillBeSubscribedOnOK), lContext);
                 }
             }
         }

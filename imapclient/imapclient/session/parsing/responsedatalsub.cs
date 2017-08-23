@@ -44,9 +44,9 @@ namespace work.bacome.imapclient
                         !pCursor.SkipByte(cASCII.SPACE) ||
                         !pCursor.GetMailboxDelimiter(out var lDelimiter) ||
                         !pCursor.SkipByte(cASCII.SPACE) ||
-                        !pCursor.GetAString(out IList<byte> lEncodedMailboxName) ||
+                        !pCursor.GetAString(out IList<byte> lEncodedMailboxPath) ||
                         !pCursor.Position.AtEnd ||
-                        !cMailboxName.TryConstruct(lEncodedMailboxName, lDelimiter, mUTF8Enabled, out var lMailboxName))
+                        !cMailboxName.TryConstruct(lEncodedMailboxPath, lDelimiter, mUTF8Enabled, out var lMailboxName))
                     {
                         lContext.TraceWarning("likely malformed lsub response");
                         rResponseData = null;

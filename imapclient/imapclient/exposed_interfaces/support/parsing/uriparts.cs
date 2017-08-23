@@ -361,7 +361,7 @@ namespace work.bacome.imapclient.support
             if (!lURI.IsMailboxReferral) throw new cTestsException("2193.3.4");
             if (lCursor.Position.AtEnd) throw new cTestsException("2193.3.5");
             if (lCursor.GetRestAsString() != "]") throw new cTestsException("2193.3.6");
-            if (lURI.MustUseAnonymous || lURI.UserId != "user" || lURI.MechanismName != null || lURI.Host != "SERVER3" || lURI.MailboxName != "REMOTE") throw new cTestsException("2193.3.7");
+            if (lURI.MustUseAnonymous || lURI.UserId != "user" || lURI.MechanismName != null || lURI.Host != "SERVER3" || lURI.MailboxPath != "REMOTE") throw new cTestsException("2193.3.7");
 
 
             // 15

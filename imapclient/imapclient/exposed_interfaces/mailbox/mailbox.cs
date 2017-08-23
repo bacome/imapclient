@@ -80,8 +80,11 @@ namespace work.bacome.imapclient
 
         // convenience methods
 
-        public string Name => Handle.MailboxName.Name;
+        public string Path => Handle.MailboxName.Path;
         public char? Delimiter => Handle.MailboxName.Delimiter;
+        public string ParentPath => Handle.MailboxName.ParentPath;
+        public string Name => Handle.MailboxName.Name;
+        public bool IsInbox => Handle.MailboxName.IsInbox;
 
         // properties
 
@@ -399,56 +402,46 @@ namespace work.bacome.imapclient
         public List<cMailbox> Subscribed(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0) => Client.Subscribed(Handle, pDescend, pDataSets);
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(Handle, pDescend, pDataSets);
 
-        public cMailbox CreateChild(string pMailboxName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pMailboxName), pAsFutureParent);
-        public Task<cMailbox> CreateChildAsync(string pMailboxName, bool pAsFutureParent = true) => Client.CreateAsync(ZCreateChild(pMailboxName), pAsFutureParent);
+        public cMailbox CreateChild(string pName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pName), pAsFutureParent);
+        public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = true) => Client.CreateAsync(ZCreateChild(pName), pAsFutureParent);
 
-        private cMailboxName ZCreateChild(string pMailboxName)
+        private cMailboxName ZCreateChild(string pName)
         {
             if (Handle.MailboxName.Delimiter == null) throw new InvalidOperationException();
-            if (string.IsNullOrEmpty(pMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
-            if (pMailboxName.IndexOf(Handle.MailboxName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
-            if (!cMailboxName.TryConstruct(Handle.MailboxName.Name + Handle.MailboxName.Delimiter.Value + pMailboxName, Handle.MailboxName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
+            if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (pName.IndexOf(Handle.MailboxName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cMailboxName.TryConstruct(Handle.MailboxName.Path + Handle.MailboxName.Delimiter.Value + pName, Handle.MailboxName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
             return lMailboxName;
         }
 
         public void Subscribe() => Client.Subscribe(Handle);
-        public void SubscribeAsync() => Client.SubscribeAsync(Handle);
+        public Task SubscribeAsync() => Client.SubscribeAsync(Handle);
+
+        public void Unsubscribe() => Client.Unsubscribe(Handle);
+        public Task UnsubscribeAsync() => Client.UnsubscribeAsync(Handle);
+    
+        public cMailbox Rename(string pName) => Client.Rename(Handle, ZRename(pName));
+        public Task<cMailbox> RenameAsync(string pName) => Client.RenameAsync(Handle, ZRename(pName));
+
+        public cMailboxName ZRename(string pName)
+        {
+            if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (Handle.MailboxName.Delimiter == null) return new cMailboxName(pName, null);
+            if (pName.IndexOf(Handle.MailboxName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cMailboxName.TryConstruct(Handle.MailboxName.ParentPath + Handle.MailboxName.Delimiter + pName, Handle.MailboxName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            return lMailboxName;
+        }
 
         /*
-        public cMailbox Rename(cMailboxName pMailboxName)
+        public cMailbox Rename(cNamespace pNamespace, string pName = null)
         {
-            Client.Rename(Handle, pMailboxName);
-            return Client.Mailbox(pMailboxName);
+            ;?;
         }
 
-        public async Task<cMailbox> RenameAsync(cMailboxName pMailboxName)
+        public cMailbox Rename(cMailbox pMailbox, string pName = null)
         {
-            await Client.RenameAsync(Handle, pMailboxName).ConfigureAwait(false);
-            return Client.Mailbox(pMailboxName);
+            ;?;
         } */
-
-        public cMailbox Rename(string pMailboxName)
-        {
-            // change the last segment of the name
-            ;?;
-        }
-
-        ;?; // and async
-
-
-        public cMailbox Rename(cNamespace pNamespace, string pMailboxName = null)
-        {
-            ;?;
-        }
-
-        public cMailbox Rename(cMailbox pMailbox, string pMailboxName = null)
-        {
-            ;?;
-        }
-
-
-        ;?; // more rename options here ... (rename just end part, rename just beginning part, 
-
 
         public void Delete() => Client.Delete(Handle);
         public Task DeleteAsync() => Client.DeleteAsync(Handle);
@@ -457,7 +450,7 @@ namespace work.bacome.imapclient
         public Task SelectAsync(bool pForUpdate = false) => Client.SelectAsync(Handle, pForUpdate);
 
         public void Expunge(bool pAndClose = false) => Client.Expunge(Handle, pAndClose);
-        public void ExpungeAsync(bool pAndClose = false) => Client.ExpungeAsync(Handle, pAndClose);
+        public Task ExpungeAsync(bool pAndClose = false) => Client.ExpungeAsync(Handle, pAndClose);
 
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Messages(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.MessagesAsync(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties);

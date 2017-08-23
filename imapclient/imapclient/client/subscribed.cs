@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSubscribedAsync), pListMailbox, pDelimiter, pHasSubscribedChildren, pDataSets);
             if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
-            cMailboxNamePattern lPattern = new cMailboxNamePattern(string.Empty, pListMailbox, pDelimiter);
+            cMailboxPathPattern lPattern = new cMailboxPathPattern(string.Empty, pListMailbox, pDelimiter);
             return ZZSubscribedAsync(pListMailbox, pDelimiter, lPattern, pHasSubscribedChildren, pDataSets, lContext);
         }
 
@@ -60,8 +60,8 @@ namespace work.bacome.imapclient
             if (pDescend) lWildcard = "*";
             else lWildcard = "%";
 
-            string lListMailbox = pHandle.MailboxName.Name.Replace('*', '%') + pHandle.MailboxName.Delimiter + lWildcard;
-            cMailboxNamePattern lPattern = new cMailboxNamePattern(pHandle.MailboxName.Name + pHandle.MailboxName.Delimiter, lWildcard, pHandle.MailboxName.Delimiter);
+            string lListMailbox = pHandle.MailboxName.Path.Replace('*', '%') + pHandle.MailboxName.Delimiter + lWildcard;
+            cMailboxPathPattern lPattern = new cMailboxPathPattern(pHandle.MailboxName.Path + pHandle.MailboxName.Delimiter, lWildcard, pHandle.MailboxName.Delimiter);
 
             return await ZZSubscribedAsync(lListMailbox, pHandle.MailboxName.Delimiter, lPattern, !pDescend, pDataSets, lContext).ConfigureAwait(false);
         }
@@ -93,14 +93,14 @@ namespace work.bacome.imapclient
             else lWildcard = "%";
 
             string lListMailbox = pNamespaceName.Prefix.Replace('*', '%') + lWildcard;
-            cMailboxNamePattern lPattern = new cMailboxNamePattern(pNamespaceName.Prefix, lWildcard, pNamespaceName.Delimiter);
+            cMailboxPathPattern lPattern = new cMailboxPathPattern(pNamespaceName.Prefix, lWildcard, pNamespaceName.Delimiter);
 
             return ZZSubscribedAsync(lListMailbox, pNamespaceName.Delimiter, lPattern, !pDescend, pDataSets, lContext);
         }
 
         // common processing
 
-        private async Task<List<cMailbox>> ZZSubscribedAsync(string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
+        private async Task<List<cMailbox>> ZZSubscribedAsync(string pListMailbox, char? pDelimiter, cMailboxPathPattern pPattern, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZSubscribedAsync), pListMailbox, pDelimiter, pPattern, pHasSubscribedChildren, pDataSets);
 
@@ -146,7 +146,7 @@ namespace work.bacome.imapclient
                     if (lList)
                     {
                         if (mMailboxReferrals && lCapabilities.MailboxReferrals) lListTask = lSession.RListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
-                        else lListTask = lSession.ListAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
+                        else lListTask = lSession.ListMailboxesAsync(lMC, pListMailbox, pDelimiter, pPattern, lContext);
                     }
                     else lListTask = null;
 

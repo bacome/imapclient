@@ -29,6 +29,8 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(kDeleteCommandPart, lItem.MailboxNameCommandPart);
 
+                    lBuilder.Add(new cDeleteCommandHook(lItem));
+
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
@@ -39,6 +41,22 @@ namespace work.bacome.imapclient
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
                     throw new cProtocolErrorException(lResult, 0, lContext);
+                }
+            }
+
+            private class cDeleteCommandHook : cCommandHook
+            {
+                private readonly cMailboxCacheItem mItem;
+
+                public cDeleteCommandHook(cMailboxCacheItem pItem)
+                {
+                    mItem = pItem ?? throw new ArgumentNullException(nameof(pItem));
+                }
+
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cDeleteCommandHook), nameof(CommandCompleted), pResult);
+                    if (pResult.ResultType == eCommandResultType.ok) mItem.ResetExists(lContext);
                 }
             }
         }

@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kListExtendedCommandPartSpecialUse = new cCommandPart("SPECIAL-USE");
             private static readonly cCommandPart kListExtendedCommandPartStatus = new cCommandPart("STATUS");
 
-            public async Task<List<iMailboxHandle>> ListExtendedAsync(cMethodControl pMC, eListExtendedSelect pSelect, bool pRemote, string pListMailbox, char? pDelimiter, cMailboxNamePattern pPattern, bool pStatus, cTrace.cContext pParentContext)
+            public async Task<List<iMailboxHandle>> ListExtendedAsync(cMethodControl pMC, eListExtendedSelect pSelect, bool pRemote, string pListMailbox, char? pDelimiter, cMailboxPathPattern pPattern, bool pStatus, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ListExtendedAsync), pMC, pSelect, pRemote, pListMailbox, pDelimiter, pPattern, pStatus);
 
@@ -108,39 +108,44 @@ namespace work.bacome.imapclient
             {
                 private readonly cMailboxCache mCache;
                 private readonly eListExtendedSelect mSelect;
-                private readonly cMailboxNamePattern mPattern;
+                private readonly cMailboxPathPattern mPattern;
                 private readonly bool mStatus;
                 private readonly List<cMailboxName> mMailboxes = new List<cMailboxName>();
-                private readonly int mSequence;
+                private int mSequence;
 
                 private readonly Dictionary<cMailboxName, iMailboxHandle> mHandles = new Dictionary<cMailboxName, iMailboxHandle>();
 
-                public cListExtendedCommandHook(cMailboxCache pCache, eListExtendedSelect pSelect, cMailboxNamePattern pPattern, bool pStatus)
+                public cListExtendedCommandHook(cMailboxCache pCache, eListExtendedSelect pSelect, cMailboxPathPattern pPattern, bool pStatus)
                 {
                     mCache = pCache;
                     mSelect = pSelect;
                     mPattern = pPattern;
                     mStatus = pStatus;
-                    mSequence = pCache.Sequence;
                 }
 
                 public List<iMailboxHandle> Handles { get; private set; } = null;
+
+                public override void CommandStarted(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cListExtendedCommandHook), nameof(CommandStarted));
+                    mSequence = mCache.Sequence;
+                }
 
                 public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cListExtendedCommandHook), nameof(ProcessData));
 
-                    if (!(pData is cResponseDataList lList)) return eProcessDataResult.notprocessed;
-                    if (!mPattern.Matches(lList.MailboxName.Name)) return eProcessDataResult.notprocessed;
+                    if (!(pData is cResponseDataListMailbox lListMailbox)) return eProcessDataResult.notprocessed;
+                    if (!mPattern.Matches(lListMailbox.MailboxName.Path)) return eProcessDataResult.notprocessed;
 
                     switch (mSelect)
                     {
                         case eListExtendedSelect.exists:
 
                             // if it is non-existent it may be being reported because it has children
-                            if ((lList.Flags & fListFlags.nonexistent) == 0 || (lList.Flags & fListFlags.subscribed) == 0 || (lList.Flags & fListFlags.haschildren) != 0)
+                            if ((lListMailbox.Flags & fListFlags.nonexistent) == 0 || (lListMailbox.Flags & fListFlags.subscribed) == 0 || (lListMailbox.Flags & fListFlags.haschildren) != 0)
                             {
-                                mMailboxes.Add(lList.MailboxName);
+                                mMailboxes.Add(lListMailbox.MailboxName);
                                 return eProcessDataResult.observed;
                             }
 
@@ -148,9 +153,9 @@ namespace work.bacome.imapclient
 
                         case eListExtendedSelect.subscribed:
 
-                            if ((lList.Flags & fListFlags.subscribed) != 0)
+                            if ((lListMailbox.Flags & fListFlags.subscribed) != 0)
                             {
-                                mMailboxes.Add(lList.MailboxName);
+                                mMailboxes.Add(lListMailbox.MailboxName);
                                 return eProcessDataResult.observed;
                             }
 
@@ -158,9 +163,9 @@ namespace work.bacome.imapclient
 
                         case eListExtendedSelect.subscribedrecursive:
 
-                            if ((lList.Flags & fListFlags.subscribed) != 0 || lList.HasSubscribedChildren)
+                            if ((lListMailbox.Flags & fListFlags.subscribed) != 0 || lListMailbox.HasSubscribedChildren)
                             {
-                                mMailboxes.Add(lList.MailboxName);
+                                mMailboxes.Add(lListMailbox.MailboxName);
                                 return eProcessDataResult.observed;
                             }
 
@@ -178,7 +183,7 @@ namespace work.bacome.imapclient
 
                     if (pResult.ResultType != eCommandResultType.ok) return;
 
-                    if (mSelect == eListExtendedSelect.exists) mCache.ResetListFlags(mPattern, mSequence, lContext);
+                    if (mSelect == eListExtendedSelect.exists) mCache.ResetExists(mPattern, mSequence, lContext);
                     if (mSelect == eListExtendedSelect.subscribed || mSelect == eListExtendedSelect.subscribedrecursive) mCache.ResetLSubFlags(mPattern, mSequence, lContext);
                     if (mStatus) mCache.ResetStatus(mPattern, mSequence, lContext);
 

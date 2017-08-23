@@ -21,8 +21,8 @@ namespace testharness2
         private readonly cIMAPClient mClient;
         private readonly bool mSubscriptions;
         private readonly fMailboxCacheDataSets mDataSets;
-        private iMailboxParent mCurrentParent = null;
         private cMailbox mSubscribedMailbox = null;
+        private TreeNode mSubscribedMailboxNode = null;
 
         public frmMailboxes(cIMAPClient pClient, bool pSubscriptions, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
@@ -74,6 +74,18 @@ namespace testharness2
             }
         }
 
+        private void ZAddMailbox(TreeNode pNode, cMailbox pMailbox)
+        {
+            var lNode = pNode.Nodes.Add(pMailbox.Name);
+
+            TreeNode lPleaseWait;
+
+            if (pMailbox.HasChildren == false) lPleaseWait = null;
+            else lPleaseWait = lNode.Nodes.Add(kPleaseWait);
+
+            lNode.Tag = new cNodeTag(pMailbox, lPleaseWait);
+        }
+
         private async void tvw_AfterExpand(object sender, TreeViewEventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(frmMailboxes), nameof(tvw_AfterExpand));
@@ -90,18 +102,7 @@ namespace testharness2
             {
                 if (mSubscriptions) lMailboxes = await lTag.ChildMailboxes.SubscribedAsync(false, mDataSets);
                 else lMailboxes = await lTag.ChildMailboxes.MailboxesAsync(mDataSets);
-
-                foreach (var lMailbox in lMailboxes)
-                {
-                    var lNode = e.Node.Nodes.Add(lMailbox.Name);
-
-                    TreeNode lPleaseWait;
-
-                    if (lMailbox.HasChildren == false) lPleaseWait = null;
-                    else lPleaseWait = lNode.Nodes.Add(kPleaseWait);
-
-                    lNode.Tag = new cNodeTag(lMailbox, lPleaseWait);
-                }
+                foreach (var lMailbox in lMailboxes) ZAddMailbox(e.Node, lMailbox);
             }
             catch (Exception ex)
             {
@@ -122,17 +123,14 @@ namespace testharness2
 
             if (!(e.Node.Tag is cNodeTag lTag))
             {
-                mCurrentParent = null;
                 gbxMailbox.Enabled = false;
                 gbxCreate.Enabled = false;
                 return;
             }
 
-            mCurrentParent = lTag.ChildMailboxes;
-
             if (lTag.Namespace == null)
             {
-                ZSubscribeMailbox(lTag.Mailbox);
+                ZSubscribeMailbox(lTag.Mailbox, e.Node);
                 gbxMailbox.Enabled = true;
                 ZSubscribedMailboxDisplay();
             }
@@ -149,11 +147,12 @@ namespace testharness2
             }
         }
 
-        private void ZSubscribeMailbox(cMailbox pMailbox)
+        private void ZSubscribeMailbox(cMailbox pMailbox, TreeNode pNode)
         {
             mSubscribedMailbox = pMailbox;
             mSubscribedMailbox.MessageDelivery += ZSubscribedMailboxMessageDelivery;
             mSubscribedMailbox.PropertyChanged += ZSubscribedMailboxPropertyChanged;
+            mSubscribedMailboxNode = pNode;
         }
 
         private void ZUnsubscribeMailbox()
@@ -174,78 +173,93 @@ namespace testharness2
 
             try
             {
-                lBuilder.AppendLine("Name: '" + mSubscribedMailbox.Name + "'");
+                lBuilder.AppendLine("Path: '" + mSubscribedMailbox.Path + "'");
                 lBuilder.AppendLine("Delimiter: '" + mSubscribedMailbox.Delimiter + "'");
-                lBuilder.AppendLine("Exists: " + mSubscribedMailbox.Exists);
-                lBuilder.AppendLine("Marked: " + mSubscribedMailbox.IsMarked);
-                lBuilder.AppendLine("Remote: " + mSubscribedMailbox.IsRemote);
-                lBuilder.AppendLine("HasChildren: " + mSubscribedMailbox.HasChildren);
-                lBuilder.AppendLine();
+                lBuilder.AppendLine("Parent Path: '" + mSubscribedMailbox.ParentPath + "'");
+                lBuilder.AppendLine("Name: '" + mSubscribedMailbox.Name + "'");
 
-                if (mSubscribedMailbox.ContainsAll == true) lBuilder.AppendLine("Contains All");
-                if (mSubscribedMailbox.IsArchive == true) lBuilder.AppendLine("Is Archive");
-                if (mSubscribedMailbox.ContainsDrafts == true) lBuilder.AppendLine("Contains Drafts");
-                if (mSubscribedMailbox.ContainsFlagged == true) lBuilder.AppendLine("Contains Flagged");
-                if (mSubscribedMailbox.ContainsJunk == true) lBuilder.AppendLine("Contains Junk");
-                if (mSubscribedMailbox.ContainsSent == true) lBuilder.AppendLine("Contains Sent");
-                if (mSubscribedMailbox.ContainsTrash == true) lBuilder.AppendLine("Contains Trash");
-                lBuilder.AppendLine();
-
-                if (mSubscribedMailbox.MessageCount != null) lBuilder.AppendLine("Messages: " + mSubscribedMailbox.MessageCount);
-
-                if (mSubscribedMailbox.RecentCount != null) lBuilder.AppendLine("Recent: " + mSubscribedMailbox.RecentCount);
-
-                if (mSubscribedMailbox.UIDNext != null)
+                if (mSubscribedMailbox.Exists)
                 {
-                    lBuilder.AppendLine("UIDNext: " + mSubscribedMailbox.UIDNext);
-                    lBuilder.AppendLine("UIDNextUnknownCount: " + mSubscribedMailbox.UIDNextUnknownCount);
-                }
-
-                if (mSubscribedMailbox.UIDValidity != null) lBuilder.AppendLine("UIDValidity: " + mSubscribedMailbox.UIDValidity);
-
-                if (mSubscribedMailbox.UnseenCount != null)
-                {
-                    lBuilder.AppendLine("Unseen: " + mSubscribedMailbox.UnseenCount);
-                    lBuilder.AppendLine("UnseenUnknownCount: " + mSubscribedMailbox.UnseenUnknownCount);
-                }
-
-                if (mSubscribedMailbox.HighestModSeq != null) lBuilder.AppendLine("HighestModSeq: " + mSubscribedMailbox.HighestModSeq);
-
-                lBuilder.AppendLine();
-
-                if (mSubscribedMailbox.MessageFlags != null)
-                {
-                    lBuilder.AppendLine("Flags: " + mSubscribedMailbox.MessageFlags.ToString());
+                    lBuilder.AppendLine("Marked: " + mSubscribedMailbox.IsMarked);
+                    lBuilder.AppendLine("Remote: " + mSubscribedMailbox.IsRemote);
+                    lBuilder.AppendLine("HasChildren: " + mSubscribedMailbox.HasChildren);
                     lBuilder.AppendLine();
 
-                    if (mSubscribedMailbox.ForUpdatePermanentFlags != null)
+                    if (mSubscribedMailbox.ContainsAll == true) lBuilder.AppendLine("Contains All");
+                    if (mSubscribedMailbox.IsArchive == true) lBuilder.AppendLine("Is Archive");
+                    if (mSubscribedMailbox.ContainsDrafts == true) lBuilder.AppendLine("Contains Drafts");
+                    if (mSubscribedMailbox.ContainsFlagged == true) lBuilder.AppendLine("Contains Flagged");
+                    if (mSubscribedMailbox.ContainsJunk == true) lBuilder.AppendLine("Contains Junk");
+                    if (mSubscribedMailbox.ContainsSent == true) lBuilder.AppendLine("Contains Sent");
+                    if (mSubscribedMailbox.ContainsTrash == true) lBuilder.AppendLine("Contains Trash");
+                    lBuilder.AppendLine();
+
+                    if (mSubscribedMailbox.MessageCount != null) lBuilder.AppendLine("Messages: " + mSubscribedMailbox.MessageCount);
+
+                    if (mSubscribedMailbox.RecentCount != null) lBuilder.AppendLine("Recent: " + mSubscribedMailbox.RecentCount);
+
+                    if (mSubscribedMailbox.UIDNext != null)
                     {
-                        lBuilder.AppendLine("PermanentFlags: " + mSubscribedMailbox.ForUpdatePermanentFlags.ToString());
+                        lBuilder.AppendLine("UIDNext: " + mSubscribedMailbox.UIDNext);
+                        lBuilder.AppendLine("UIDNextUnknownCount: " + mSubscribedMailbox.UIDNextUnknownCount);
+                    }
+
+                    if (mSubscribedMailbox.UIDValidity != null) lBuilder.AppendLine("UIDValidity: " + mSubscribedMailbox.UIDValidity);
+
+                    if (mSubscribedMailbox.UnseenCount != null)
+                    {
+                        lBuilder.AppendLine("Unseen: " + mSubscribedMailbox.UnseenCount);
+                        lBuilder.AppendLine("UnseenUnknownCount: " + mSubscribedMailbox.UnseenUnknownCount);
+                    }
+
+                    if (mSubscribedMailbox.HighestModSeq != null) lBuilder.AppendLine("HighestModSeq: " + mSubscribedMailbox.HighestModSeq);
+
+                    lBuilder.AppendLine();
+
+                    if (mSubscribedMailbox.MessageFlags != null)
+                    {
+                        lBuilder.AppendLine("Flags: " + mSubscribedMailbox.MessageFlags.ToString());
+                        lBuilder.AppendLine();
+
+                        if (mSubscribedMailbox.ForUpdatePermanentFlags != null)
+                        {
+                            lBuilder.AppendLine("PermanentFlags: " + mSubscribedMailbox.ForUpdatePermanentFlags.ToString());
+                            lBuilder.AppendLine();
+                        }
+
+                        if (mSubscribedMailbox.ReadOnlyPermanentFlags != null && mSubscribedMailbox.ReadOnlyPermanentFlags.Count != 0)
+                        {
+                            lBuilder.AppendLine("PermanentFlags (read only): " + mSubscribedMailbox.ReadOnlyPermanentFlags.ToString());
+                            lBuilder.AppendLine();
+                        }
+                    }
+
+                    if (mSubscribedMailbox.IsSelected)
+                    {
+                        if (mSubscribedMailbox.IsSelectedForUpdate) lBuilder.AppendLine("Selected for update");
+                        else lBuilder.AppendLine("Selected readonly");
+
+                        if (mSubscribedMailbox.IsAccessReadOnly) lBuilder.AppendLine("Read only access");
+                        else lBuilder.AppendLine("Read write access");
+
                         lBuilder.AppendLine();
                     }
 
-                    if (mSubscribedMailbox.ReadOnlyPermanentFlags != null && mSubscribedMailbox.ReadOnlyPermanentFlags.Count != 0)
-                    {
-                        lBuilder.AppendLine("PermanentFlags (read only): " + mSubscribedMailbox.ReadOnlyPermanentFlags.ToString());
-                        lBuilder.AppendLine();
-                    }
+                    cmdSubscribe.Enabled = !mSubscribedMailbox.IsSubscribed;
+                    gbxRename.Enabled = true;
                 }
-
-                if (mSubscribedMailbox.IsSelected)
+                else
                 {
-                    if (mSubscribedMailbox.IsSelectedForUpdate) lBuilder.AppendLine("Selected for update");
-                    else lBuilder.AppendLine("Selected readonly");
-
-                    if (mSubscribedMailbox.IsAccessReadOnly) lBuilder.AppendLine("Read only access");
-                    else lBuilder.AppendLine("Read write access");
-
+                    lBuilder.AppendLine("Does not currently exist");
                     lBuilder.AppendLine();
+
+                    cmdSubscribe.Enabled = false;
+                    gbxRename.Enabled = false;
                 }
 
                 cmdExamine.Enabled = mSubscribedMailbox.CanSelect;
                 cmdSelect.Enabled = mSubscribedMailbox.CanSelect;
 
-                cmdSubscribe.Enabled = !mSubscribedMailbox.IsSubscribed;
                 cmdUnsubscribe.Enabled = mSubscribedMailbox.IsSubscribed;
 
                 cmdDelete.Enabled = mSubscribedMailbox.CanSelect;
@@ -266,30 +280,56 @@ namespace testharness2
             ZUnsubscribeMailbox();
         }
 
-        private void cmdExamine_Click(object sender, EventArgs e)
+        private async void cmdExamine_Click(object sender, EventArgs e)
         {
-            mSubscribedMailbox.Select();
+            try { await mSubscribedMailbox.SelectAsync(); }
+            catch (Exception ex) { MessageBox.Show($"an error occurred while selecting read only: {ex}"); }
         }
 
-        private void cmdSelect_Click(object sender, EventArgs e)
+        private async void cmdSelect_Click(object sender, EventArgs e)
         {
-            mSubscribedMailbox.Select(true);
+            try { await mSubscribedMailbox.SelectAsync(true); }
+            catch (Exception ex) { MessageBox.Show($"an error occurred while selecting for update: {ex}"); }
         }
 
-        private void cmdSubscribe_Click(object sender, EventArgs e)
+        private async void cmdSubscribe_Click(object sender, EventArgs e)
         {
-            mSubscribedMailbox.SubscribeAsync();
+            try { await mSubscribedMailbox.SubscribeAsync(); }
+            catch (Exception ex) { MessageBox.Show($"an error occurred while subscribing: {ex}"); }
         }
 
-        private void cmdUnsubscribe_Click(object sender, EventArgs e)
+        private async void cmdUnsubscribe_Click(object sender, EventArgs e)
         {
-            mSubscribedMailbox.UnsubscribeAsync();
+            try { await mSubscribedMailbox.UnsubscribeAsync(); }
+            catch (Exception ex) { MessageBox.Show($"an error occurred while unsubscribing: {ex}"); }
         }
 
-        private void cmdDelete_Click(object sender, EventArgs e)
+        private async void cmdDelete_Click(object sender, EventArgs e)
         {
-            // do create first
-            //if (MessageBox.Show("Delete " + mSubscribedMailbox.Name, "Delete", MessageBoxButtons.OKCancel) == DialogResult.OK) await mSubscribedMailbox.DeleteAsync();
+            try { await mSubscribedMailbox.DeleteAsync(); }
+            catch (Exception ex) { MessageBox.Show($"an error occurred while deleting: {ex}"); }
+        }
+
+        private async void cmdRename_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var lNode = mSubscribedMailboxNode;
+                var lMailbox = await mSubscribedMailbox.RenameAsync(txtRename.Text.Trim());
+                ZAddMailbox(lNode.Parent, lMailbox);
+            }
+            catch (Exception ex) { MessageBox.Show($"an error occurred while renaming: {ex}"); }
+        }
+
+        private async void cmdCreate_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var lNode = mSubscribedMailboxNode;
+                var lMailbox = await mSubscribedMailbox.CreateChildAsync(txtCreate.Text.Trim(), chkCreate.Checked);
+                ZAddMailbox(lNode, lMailbox);
+            }
+            catch (Exception ex) { MessageBox.Show($"an error occurred while creating: {ex}"); }
         }
 
         public class cNodeTag

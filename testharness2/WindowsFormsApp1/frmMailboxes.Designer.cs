@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.tvw = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.gbxRename = new System.Windows.Forms.GroupBox();
@@ -45,7 +44,6 @@
             this.cmdExamine = new System.Windows.Forms.Button();
             this.rtx = new System.Windows.Forms.RichTextBox();
             this.gbxMailbox = new System.Windows.Forms.GroupBox();
-            this.erp = new System.Windows.Forms.ErrorProvider(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -53,7 +51,6 @@
             this.gbxRename.SuspendLayout();
             this.gbxCreate.SuspendLayout();
             this.gbxMailbox.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
             this.SuspendLayout();
             // 
             // tvw
@@ -98,19 +95,20 @@
             this.gbxRename.Location = new System.Drawing.Point(12, 82);
             this.gbxRename.Name = "gbxRename";
             this.gbxRename.Size = new System.Drawing.Size(537, 83);
-            this.gbxRename.TabIndex = 7;
+            this.gbxRename.TabIndex = 5;
             this.gbxRename.TabStop = false;
             this.gbxRename.Text = "Rename";
             // 
             // cmdRename
             // 
             this.cmdRename.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdRename.Location = new System.Drawing.Point(416, 47);
+            this.cmdRename.Location = new System.Drawing.Point(431, 47);
             this.cmdRename.Name = "cmdRename";
             this.cmdRename.Size = new System.Drawing.Size(100, 25);
-            this.cmdRename.TabIndex = 7;
+            this.cmdRename.TabIndex = 1;
             this.cmdRename.Text = "Rename";
             this.cmdRename.UseVisualStyleBackColor = true;
+            this.cmdRename.Click += new System.EventHandler(this.cmdRename_Click);
             // 
             // txtRename
             // 
@@ -118,8 +116,8 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtRename.Location = new System.Drawing.Point(12, 21);
             this.txtRename.Name = "txtRename";
-            this.txtRename.Size = new System.Drawing.Size(504, 20);
-            this.txtRename.TabIndex = 1;
+            this.txtRename.Size = new System.Drawing.Size(519, 20);
+            this.txtRename.TabIndex = 0;
             // 
             // gbxCreate
             // 
@@ -131,24 +129,25 @@
             this.gbxCreate.Location = new System.Drawing.Point(0, 533);
             this.gbxCreate.Name = "gbxCreate";
             this.gbxCreate.Size = new System.Drawing.Size(555, 81);
-            this.gbxCreate.TabIndex = 6;
+            this.gbxCreate.TabIndex = 2;
             this.gbxCreate.TabStop = false;
             this.gbxCreate.Text = "Create Child Mailbox";
             // 
             // cmdCreate
             // 
             this.cmdCreate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdCreate.Location = new System.Drawing.Point(434, 47);
+            this.cmdCreate.Location = new System.Drawing.Point(443, 47);
             this.cmdCreate.Name = "cmdCreate";
             this.cmdCreate.Size = new System.Drawing.Size(100, 25);
-            this.cmdCreate.TabIndex = 6;
+            this.cmdCreate.TabIndex = 2;
             this.cmdCreate.Text = "Create";
             this.cmdCreate.UseVisualStyleBackColor = true;
+            this.cmdCreate.Click += new System.EventHandler(this.cmdCreate_Click);
             // 
             // chkCreate
             // 
             this.chkCreate.AutoSize = true;
-            this.chkCreate.Location = new System.Drawing.Point(12, 47);
+            this.chkCreate.Location = new System.Drawing.Point(24, 47);
             this.chkCreate.Name = "chkCreate";
             this.chkCreate.Size = new System.Drawing.Size(105, 17);
             this.chkCreate.TabIndex = 1;
@@ -159,57 +158,57 @@
             // 
             this.txtCreate.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtCreate.Location = new System.Drawing.Point(12, 21);
+            this.txtCreate.Location = new System.Drawing.Point(24, 21);
             this.txtCreate.Name = "txtCreate";
-            this.txtCreate.Size = new System.Drawing.Size(522, 20);
+            this.txtCreate.Size = new System.Drawing.Size(519, 20);
             this.txtCreate.TabIndex = 0;
             // 
             // cmdDelete
             // 
-            this.cmdDelete.Location = new System.Drawing.Point(224, 51);
+            this.cmdDelete.Location = new System.Drawing.Point(443, 51);
             this.cmdDelete.Name = "cmdDelete";
             this.cmdDelete.Size = new System.Drawing.Size(100, 25);
-            this.cmdDelete.TabIndex = 5;
+            this.cmdDelete.TabIndex = 4;
             this.cmdDelete.Text = "Delete";
             this.cmdDelete.UseVisualStyleBackColor = true;
             this.cmdDelete.Click += new System.EventHandler(this.cmdDelete_Click);
             // 
             // cmdUnsubscribe
             // 
-            this.cmdUnsubscribe.Location = new System.Drawing.Point(118, 51);
+            this.cmdUnsubscribe.Location = new System.Drawing.Point(130, 51);
             this.cmdUnsubscribe.Name = "cmdUnsubscribe";
             this.cmdUnsubscribe.Size = new System.Drawing.Size(100, 25);
-            this.cmdUnsubscribe.TabIndex = 4;
+            this.cmdUnsubscribe.TabIndex = 3;
             this.cmdUnsubscribe.Text = "Unsubscribe";
             this.cmdUnsubscribe.UseVisualStyleBackColor = true;
             this.cmdUnsubscribe.Click += new System.EventHandler(this.cmdUnsubscribe_Click);
             // 
             // cmdSubscribe
             // 
-            this.cmdSubscribe.Location = new System.Drawing.Point(12, 51);
+            this.cmdSubscribe.Location = new System.Drawing.Point(24, 51);
             this.cmdSubscribe.Name = "cmdSubscribe";
             this.cmdSubscribe.Size = new System.Drawing.Size(100, 25);
-            this.cmdSubscribe.TabIndex = 3;
+            this.cmdSubscribe.TabIndex = 2;
             this.cmdSubscribe.Text = "Subscribe";
             this.cmdSubscribe.UseVisualStyleBackColor = true;
             this.cmdSubscribe.Click += new System.EventHandler(this.cmdSubscribe_Click);
             // 
             // cmdSelect
             // 
-            this.cmdSelect.Location = new System.Drawing.Point(118, 20);
+            this.cmdSelect.Location = new System.Drawing.Point(130, 20);
             this.cmdSelect.Name = "cmdSelect";
             this.cmdSelect.Size = new System.Drawing.Size(100, 25);
-            this.cmdSelect.TabIndex = 2;
+            this.cmdSelect.TabIndex = 1;
             this.cmdSelect.Text = "Select for Update";
             this.cmdSelect.UseVisualStyleBackColor = true;
             this.cmdSelect.Click += new System.EventHandler(this.cmdSelect_Click);
             // 
             // cmdExamine
             // 
-            this.cmdExamine.Location = new System.Drawing.Point(12, 20);
+            this.cmdExamine.Location = new System.Drawing.Point(24, 20);
             this.cmdExamine.Name = "cmdExamine";
             this.cmdExamine.Size = new System.Drawing.Size(100, 25);
-            this.cmdExamine.TabIndex = 1;
+            this.cmdExamine.TabIndex = 0;
             this.cmdExamine.Text = "Select Read Only";
             this.cmdExamine.UseVisualStyleBackColor = true;
             this.cmdExamine.Click += new System.EventHandler(this.cmdExamine_Click);
@@ -238,13 +237,9 @@
             this.gbxMailbox.Location = new System.Drawing.Point(0, 347);
             this.gbxMailbox.Name = "gbxMailbox";
             this.gbxMailbox.Size = new System.Drawing.Size(555, 180);
-            this.gbxMailbox.TabIndex = 8;
+            this.gbxMailbox.TabIndex = 1;
             this.gbxMailbox.TabStop = false;
             this.gbxMailbox.Text = "Mailbox";
-            // 
-            // erp
-            // 
-            this.erp.ContainerControl = this;
             // 
             // frmMailboxes
             // 
@@ -265,7 +260,6 @@
             this.gbxCreate.ResumeLayout(false);
             this.gbxCreate.PerformLayout();
             this.gbxMailbox.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -288,6 +282,5 @@
         private System.Windows.Forms.Button cmdExamine;
         private System.Windows.Forms.RichTextBox rtx;
         private System.Windows.Forms.GroupBox gbxMailbox;
-        private System.Windows.Forms.ErrorProvider erp;
     }
 }

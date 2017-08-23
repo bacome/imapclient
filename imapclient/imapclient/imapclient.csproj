@@ -94,6 +94,7 @@
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
     <Compile Include="session\imap_commands\authenticated\create.cs" />
     <Compile Include="session\imap_commands\authenticated\delete.cs" />
+    <Compile Include="session\imap_commands\authenticated\listdelimiter.cs" />
     <Compile Include="session\imap_commands\authenticated\rename.cs" />
     <Compile Include="session\imap_commands\authenticated\rlist.cs" />
     <Compile Include="session\imap_commands\authenticated\subscribe.cs" />
@@ -198,7 +199,7 @@
     <Compile Include="session\fetch\base.cs" />
     <Compile Include="session\imap_commands\selected\fetch\uidbody.cs" />
     <Compile Include="session\imap_commands\any_state\id.cs" />
-    <Compile Include="session\imap_commands\authenticated\list.cs" />
+    <Compile Include="session\imap_commands\authenticated\listmailboxes.cs" />
     <Compile Include="session\imap_commands\authenticated\listextended.cs" />
     <Compile Include="session\imap_commands\not_authenticated\login.cs" />
     <Compile Include="session\imap_commands\any_state\logout.cs" />

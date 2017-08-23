@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
             cURI._Tests(lContext);
             cURLParts._Tests(lContext);
             cURIParts._Tests(lContext);
-            cMailboxNamePattern._Tests(lContext);
+            cMailboxPathPattern._Tests(lContext);
             cCulturedString._Tests(lContext);
             cMailboxName._Tests(lContext);
             cFetchSizer._Tests(lContext);

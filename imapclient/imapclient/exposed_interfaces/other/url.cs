@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
         public string MechanismName => mParts.MechanismName;
         public string Host => mParts.Host;
         public int Port => mParts.Port;
-        public string MailboxName => mParts.MailboxName;
+        public string MailboxPath => mParts.MailboxPath;
         public uint? UIDValidity => mParts.UIDValidity;
         public string Search => mParts.Search;
         public uint? UID => mParts.UID;

@@ -67,12 +67,17 @@ namespace work.bacome.imapclient
             private class cStatusCommandHook : cCommandHook
             {
                 private readonly cMailboxCacheItem mItem;
-                private readonly int mSequence;
+                private int mSequence;
 
                 public cStatusCommandHook(cMailboxCacheItem pItem)
                 {
                     mItem = pItem ?? throw new ArgumentNullException(nameof(pItem));
-                    mSequence = pItem.MailboxCache.Sequence;
+                }
+
+                public override void CommandStarted(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cStatusCommandHook), nameof(CommandStarted));
+                    mSequence = mItem.MailboxCache.Sequence;
                 }
 
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)

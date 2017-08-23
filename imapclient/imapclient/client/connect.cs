@@ -192,7 +192,7 @@ namespace work.bacome.imapclient
                     {
                         foreach (var lName in lPersonalNamespaceNames)
                         {
-                            cMailboxNamePattern lPattern = new cMailboxNamePattern(lName.Prefix, "%", lName.Delimiter);
+                            cMailboxPathPattern lPattern = new cMailboxPathPattern(lName.Prefix, "%", lName.Delimiter);
 
                             if (lPattern.Matches(cMailboxName.InboxString))
                             {
@@ -206,11 +206,7 @@ namespace work.bacome.imapclient
 
                 if (mInbox == null)
                 {
-                    var lHandles = await lSession.ListAsync(lMC, string.Empty, null, new cMailboxNamePattern(string.Empty, string.Empty, null), lContext).ConfigureAwait(false);
-
-                    if (lHandles.Count != 1) throw new cUnexpectedServerActionException(0, "list special request failed", lContext);
-
-                    var lDelimiter = lHandles[0].MailboxName.Delimiter;
+                    var lDelimiter = await lSession.ListDelimiterAsync(lMC, lContext).ConfigureAwait(false);
 
                     if (!lCurrentCapabilities.Namespace)
                     {

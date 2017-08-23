@@ -39,12 +39,12 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        public static bool TryConstruct(IList<byte> pBytes, byte? pDelimiter, bool pUTF8Enabled, out cNamespaceName rResult)
+        public static bool TryConstruct(IList<byte> pEncodedPrefix, byte? pDelimiter, bool pUTF8Enabled, out cNamespaceName rResult)
         {
-            if (pBytes == null) { rResult = null; return false; }
+            if (pEncodedPrefix == null) { rResult = null; return false; }
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
 
-            if (!cTools.TryMailboxNameBytesToString(pBytes, pDelimiter, pUTF8Enabled, out var lPrefix)) { rResult = null; return false; }
+            if (!cTools.TryEncodedMailboxPathToString(pEncodedPrefix, pDelimiter, pUTF8Enabled, out var lPrefix)) { rResult = null; return false; }
 
             char? lDelimiter;
             if (pDelimiter == null) lDelimiter = null;

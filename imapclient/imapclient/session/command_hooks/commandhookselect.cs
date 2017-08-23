@@ -19,8 +19,6 @@ namespace work.bacome.imapclient
                 private readonly iMailboxHandle mHandle;
                 private readonly bool mForUpdate;
 
-                private bool mDeselectDone = false;
-
                 private cMessageFlags mFlags = null;
                 private int mExists = 0;
                 private int mRecent = 0;
@@ -41,19 +39,14 @@ namespace work.bacome.imapclient
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandStarted));
-
-                    if (!mCapabilities.QResync)
-                    {
-                        mMailboxCache.Deselect(lContext);
-                        mDeselectDone = true;
-                    }
+                    if (mMailboxCache.SelectedMailboxDetails != null && !mCapabilities.QResync) mMailboxCache.Deselect(lContext);
                 }
 
                 public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessData));
 
-                    if (!mDeselectDone) return eProcessDataResult.notprocessed;
+                    if (mMailboxCache.SelectedMailboxDetails != null) return eProcessDataResult.notprocessed;
 
                     switch (pData)
                     {
@@ -80,7 +73,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode));
 
-                    if (!mDeselectDone) return false;
+                    if (mMailboxCache.SelectedMailboxDetails != null) return false;
 
                     switch (pData)
                     {
@@ -119,7 +112,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode));
 
-                    if (mDeselectDone)
+                    if (mMailboxCache.SelectedMailboxDetails == null)
                     {
                         if (pCursor.SkipBytes(kUnseenSpace))
                         {
@@ -133,15 +126,14 @@ namespace work.bacome.imapclient
                             mHighestModSeq = 0;
                             return true;
                         }
-
-                        return false;
                     }
-
-                    if (pCursor.SkipBytes(kClosedRBracketSpace))
-                    { 
-                        mMailboxCache.Deselect(lContext);
-                        mDeselectDone = true;
-                        return true;
+                    else
+                    {
+                        if (pCursor.SkipBytes(kClosedRBracketSpace))
+                        {
+                            mMailboxCache.Deselect(lContext);
+                            return true;
+                        }
                     }
 
                     return false;
