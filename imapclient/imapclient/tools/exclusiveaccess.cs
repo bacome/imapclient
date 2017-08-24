@@ -93,10 +93,10 @@ namespace work.bacome.async
 
         public sealed class cBlock : IDisposable
         {
+            private bool mDisposed = false;
             private readonly string mName;
             public readonly int Sequence;
             private readonly int mInstance;
-            private bool mDisposed = false;
             private readonly Action<cTrace.cContext> mReleaseBlock;
             private readonly cTrace.cContext mContextToUseWhenDisposing;
 
@@ -124,10 +124,10 @@ namespace work.bacome.async
 
         public sealed class cToken : IDisposable
         {
+            private bool mDisposed = false;
             private readonly string mName;
             public readonly int Sequence;
             private readonly int mInstance;
-            private bool mDisposed = false;
             private readonly Action<cTrace.cContext> mReleaseToken;
             private readonly cTrace.cContext mContextToUseWhenDisposing;
 

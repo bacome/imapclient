@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
+                    lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select: the status command is not supported on the selected mailbox
 
                     var lHandle = mMailboxCache.SelectedMailboxDetails?.Handle;
                     if (ReferenceEquals(pHandle, lHandle)) return;

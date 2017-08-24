@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kRenameCommandPart = new cCommandPart("RENAME ");
 
-            public async Task RenameAsync(cMethodControl pMC, iMailboxHandle pHandle, cMailboxName pMailboxName, cTrace.cContext pParentContext)
+            public async Task<iMailboxHandle> RenameAsync(cMethodControl pMC, iMailboxHandle pHandle, cMailboxName pMailboxName, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(RenameAsync), pMC, pHandle, pMailboxName);
 
@@ -26,19 +26,21 @@ namespace work.bacome.imapclient
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lBuilder.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false));
+                    if (!mCapabilities.QResync) lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select if mailbox-data delivered during the command would be ambiguous
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lBuilder.Add(kRenameCommandPart, lItem.MailboxNameCommandPart, cCommandPart.Space, lMailboxCommandPart);
 
-                    if (!pHandle.MailboxName.IsInbox) lBuilder.Add(new cRenameCommandHook(lItem));
+                    if (pHandle.MailboxName.IsInbox) lItem = null; // renaming the inbox has special behaviour
+                    var lHook = new cRenameCommandHook(mMailboxCache, lItem, pMailboxName);
+                    lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("rename success");
-                        return;
+                        return lHook.Handle;
                     }
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
@@ -48,13 +50,19 @@ namespace work.bacome.imapclient
 
             private class cRenameCommandHook : cCommandHook
             {
+                private readonly cMailboxCache mCache;
                 private readonly cMailboxCacheItem mItem;
+                private readonly cMailboxName mMailboxName;
                 private int mSequence;
 
-                public cRenameCommandHook(cMailboxCacheItem pItem)
+                public cRenameCommandHook(cMailboxCache pCache, cMailboxCacheItem pItem, cMailboxName pMailboxName)
                 {
-                    mItem = pItem ?? throw new ArgumentNullException(nameof(pItem));
+                    mCache = pCache ?? throw new ArgumentNullException(nameof(pCache));
+                    mItem = pItem; // may be null if we are renaming the inbox
+                    mMailboxName = pMailboxName ?? throw new ArgumentNullException(nameof(pMailboxName));
                 }
+
+                public iMailboxHandle Handle { get; private set; }
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
@@ -66,11 +74,15 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cRenameCommandHook), nameof(CommandCompleted), pResult);
 
-                    if (pResult.ResultType == eCommandResultType.ok)
+                    if (pResult.ResultType != eCommandResultType.ok) return;
+
+                    if (mItem != null)
                     {
                         mItem.ResetExists(lContext);
-                        if (mItem.MailboxName.Delimiter != null) mItem.MailboxCache.ResetExists(new cMailboxPathPattern(mItem.MailboxName.Path + mItem.MailboxName.Delimiter, "*", mItem.MailboxName.Delimiter), mSequence, lContext);
+                        if (mItem.MailboxName.Delimiter != null) mCache.ResetExists(new cMailboxPathPattern(mItem.MailboxName.Path + mItem.MailboxName.Delimiter, "*", mItem.MailboxName.Delimiter), mSequence, lContext);
                     }
+
+                    Handle = mCache.Create(mMailboxName, lContext);
                 }
             }
         }

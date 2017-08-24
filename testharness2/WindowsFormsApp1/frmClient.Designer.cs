@@ -168,7 +168,6 @@
             this.txtEvents = new System.Windows.Forms.TextBox();
             this.label24 = new System.Windows.Forms.Label();
             this.cmdPoll = new System.Windows.Forms.Button();
-            this.cmdInbox = new System.Windows.Forms.Button();
             this.gbxNetworkActivity = new System.Windows.Forms.GroupBox();
             this.txtNetworkActivity = new System.Windows.Forms.TextBox();
             this.label22 = new System.Windows.Forms.Label();
@@ -1428,7 +1427,7 @@
             this.gbxSelectedMailbox.Controls.Add(this.txtSelectedMailbox);
             this.gbxSelectedMailbox.Controls.Add(this.label5);
             this.gbxSelectedMailbox.Controls.Add(this.cmdSelectedMailbox);
-            this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 281);
+            this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 153);
             this.gbxSelectedMailbox.Name = "gbxSelectedMailbox";
             this.gbxSelectedMailbox.Size = new System.Drawing.Size(205, 77);
             this.gbxSelectedMailbox.TabIndex = 5;
@@ -1687,7 +1686,6 @@
             this.tbpWindows.Controls.Add(this.gbxMailboxes);
             this.tbpWindows.Controls.Add(this.gbxEvents);
             this.tbpWindows.Controls.Add(this.cmdPoll);
-            this.tbpWindows.Controls.Add(this.cmdInbox);
             this.tbpWindows.Controls.Add(this.gbxNetworkActivity);
             this.tbpWindows.Controls.Add(this.cmdDetails);
             this.tbpWindows.Controls.Add(this.gbxSelectedMailbox);
@@ -1704,7 +1702,7 @@
             this.gbxEvents.Controls.Add(this.txtEvents);
             this.gbxEvents.Controls.Add(this.label24);
             this.gbxEvents.Controls.Add(this.cmdEvents);
-            this.gbxEvents.Location = new System.Drawing.Point(217, 56);
+            this.gbxEvents.Location = new System.Drawing.Point(235, 56);
             this.gbxEvents.Name = "gbxEvents";
             this.gbxEvents.Size = new System.Drawing.Size(205, 77);
             this.gbxEvents.TabIndex = 2;
@@ -1732,22 +1730,13 @@
             // 
             // cmdPoll
             // 
-            this.cmdPoll.Location = new System.Drawing.Point(21, 150);
+            this.cmdPoll.Location = new System.Drawing.Point(250, 272);
             this.cmdPoll.Name = "cmdPoll";
             this.cmdPoll.Size = new System.Drawing.Size(100, 25);
             this.cmdPoll.TabIndex = 3;
             this.cmdPoll.Text = "Poll";
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
-            // 
-            // cmdInbox
-            // 
-            this.cmdInbox.Location = new System.Drawing.Point(232, 327);
-            this.cmdInbox.Name = "cmdInbox";
-            this.cmdInbox.Size = new System.Drawing.Size(100, 25);
-            this.cmdInbox.TabIndex = 6;
-            this.cmdInbox.Text = "Inbox";
-            this.cmdInbox.UseVisualStyleBackColor = true;
             // 
             // gbxNetworkActivity
             // 
@@ -2101,7 +2090,7 @@
             this.gbxMailboxes.Controls.Add(this.chkMList);
             this.gbxMailboxes.Controls.Add(this.cmdMailboxes);
             this.gbxMailboxes.Controls.Add(this.cmdSubscriptions);
-            this.gbxMailboxes.Location = new System.Drawing.Point(6, 193);
+            this.gbxMailboxes.Location = new System.Drawing.Point(6, 253);
             this.gbxMailboxes.Name = "gbxMailboxes";
             this.gbxMailboxes.Size = new System.Drawing.Size(228, 73);
             this.gbxMailboxes.TabIndex = 4;
@@ -2359,7 +2348,6 @@
         private System.Windows.Forms.Button cmdResponseText;
         private System.Windows.Forms.TabPage tbpDefaults;
         private System.Windows.Forms.Button cmdPoll;
-        private System.Windows.Forms.Button cmdInbox;
         private System.Windows.Forms.GroupBox gbxDefaultSort;
         private System.Windows.Forms.RadioButton rdoSortOther;
         private System.Windows.Forms.RadioButton rdoSortReceivedDesc;

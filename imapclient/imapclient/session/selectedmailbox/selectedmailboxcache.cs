@@ -146,27 +146,56 @@ namespace work.bacome.imapclient
                     return (uint)lIndex + 1;
                 }
 
-                public cMessageHandleList SetUnseen(cUIntList pMSNs, cTrace.cContext pParentContext)
+                public cMessageHandleList SetUnseen(int pMessageCount, cUIntList pMSNs, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetUnseen), pMSNs);
 
+                    // the message count is required because messages can be delivered during the search, after the search results are calculated
+                    //  it should be the message count that existed when the command was submitted
+                    //   corrollary: fetches may arrive during the search that set the flags after the results were calculated
+                    //    - that is why this code only changes the unseen == null entries
+                    //  (I don't have to worry about expunges, as they are not allowed during a search command)
+
+                    int lMessageCount = pMessageCount;
                     cMessageHandleList lHandles = new cMessageHandleList();
+                    bool lSetMailboxStatus = false;
 
                     foreach (var lMSN in pMSNs)
                     {
-                        var lItem = mItems[(int)lMSN - 1];
-                        lItem.Unseen = true;
+                        int lItemIndex = (int)lMSN - 1;
+
+                        if (lItemIndex >= lMessageCount) lMessageCount = lItemIndex + 1;
+
+                        var lItem = mItems[lItemIndex];
+
+                        if (lItem.Unseen == null)
+                        {
+                            lItem.Unseen = true;
+                            mUnseenCount++;
+                            mUnseenUnknownCount--;
+                            lSetMailboxStatus = true;
+                        }
+
                         lHandles.Add(lItem);
                     }
 
                     if (mUnseenUnknownCount > 0)
                     {
-                        foreach (var lItem in mItems) if (lItem.Unseen == null) lItem.Unseen = false;
-                        mUnseenUnknownCount = 0;
-                        mUnseenCount = pMSNs.Count;
-                        ZSetMailboxStatus(lContext);
+                        for (int i = 0; i < lMessageCount; i++)
+                        {
+                            var lItem = mItems[i];
+
+                            if (lItem.Unseen == null)
+                            {
+                                lItem.Unseen = false;
+                                mUnseenUnknownCount--;
+                                lSetMailboxStatus = true;
+                            }
+                        }
                     }
 
+                    if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
+                    
                     return lHandles;
                 }
 

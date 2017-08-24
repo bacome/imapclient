@@ -37,13 +37,13 @@ namespace work.bacome.imapclient
 
                 public bool? Exists => mExists;
 
-                public void Created(cTrace.cContext pParentContext)
+                public void SetJustCreated(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(Created));
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetJustCreated));
 
                     fMailboxProperties lProperties;
 
-                    if (mExists == false) lProperties = fMailboxProperties.exists;
+                    if (mExists != null) lProperties = fMailboxProperties.exists;
                     else lProperties = 0;
 
                     mExists = true;

@@ -95,6 +95,14 @@ namespace work.bacome.imapclient
 
                 public int Sequence => mSequence++;
 
+                public iMailboxHandle Create(cMailboxName pMailboxName, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Create), pMailboxName);
+                    var lItem = ZItem(pMailboxName);
+                    lItem.SetJustCreated(lContext);
+                    return lItem;
+                }
+
                 public void ResetExists(cMailboxPathPattern pPattern, int pSequence, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetExists), pPattern, pSequence);

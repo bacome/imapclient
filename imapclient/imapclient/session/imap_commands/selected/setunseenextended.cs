@@ -51,9 +51,16 @@ namespace work.bacome.imapclient
 
             private class cSetUnseenExtendedCommandHook : cCommandHookBaseSearchExtended
             {
+                private int mMessageCount;
+
                 public cSetUnseenExtendedCommandHook(cCommandTag pCommandTag, cSelectedMailbox pSelectedMailbox) : base(pCommandTag, pSelectedMailbox) { }
 
                 public cMessageHandleList Handles { get; private set; } = null;
+
+                public override void CommandStarted(cTrace.cContext pParentContext)
+                {
+                    mMessageCount = mSelectedMailbox.Cache.Count;
+                }
 
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
@@ -63,7 +70,7 @@ namespace work.bacome.imapclient
 
                     var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.Count);
                     lMSNs = lMSNs.ToSortedUniqueList();
-                    Handles = mSelectedMailbox.SetUnseen(lMSNs, lContext);
+                    Handles = mSelectedMailbox.SetUnseen(mMessageCount, lMSNs, lContext);
                 }
             }
         }

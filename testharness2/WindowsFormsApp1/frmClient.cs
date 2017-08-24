@@ -93,8 +93,6 @@ namespace testharness2
                 cmdMailboxes.Enabled = true;
                 cmdSubscriptions.Enabled = true;
             }
-
-            cmdInbox.Enabled = mClient.Inbox != null;
         }
 
         private void ZSetControlStateCredentials(cTrace.cContext pParentContext)

@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    lBuilder.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false));
+                    lBuilder.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // get exclusive access to the selected mailbox
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lBuilder.Add(kSelectCommandPart, lItem.MailboxNameCommandPart);

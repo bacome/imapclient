@@ -53,14 +53,21 @@ namespace work.bacome.imapclient
 
             private class cSetUnseenCommandHook : cCommandHookBaseSearch
             {
+                private int mMessageCount;
+
                 public cSetUnseenCommandHook(cSelectedMailbox pSelectedMailbox) : base(pSelectedMailbox) { }
 
                 public cMessageHandleList Handles { get; private set; } = null;
 
+                public override void CommandStarted(cTrace.cContext pParentContext)
+                {
+                    mMessageCount = mSelectedMailbox.Cache.Count;
+                }
+
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSetUnseenCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType == eCommandResultType.ok && mMSNs != null) Handles = mSelectedMailbox.SetUnseen(mMSNs, lContext);
+                    if (pResult.ResultType == eCommandResultType.ok && mMSNs != null) Handles = mSelectedMailbox.SetUnseen(mMessageCount, mMSNs, lContext);
                 }
             }
         }
