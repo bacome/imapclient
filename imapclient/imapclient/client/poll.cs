@@ -28,16 +28,12 @@ namespace work.bacome.imapclient
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
 
-            mAsyncCounter.Increment(lContext);
-            
-            try
+            using (var lMC = mCancellationManager.GetMethodControl(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, CancellationToken);
                 var lCheck = lSession.CheckAsync(lMC, lContext);
                 var lNoOp = lSession.NoOpAsync(lMC, lContext);
                 await Task.WhenAll(lCheck, lNoOp).ConfigureAwait(false);
             }
-            finally { mAsyncCounter.Decrement(lContext); }
         }
     }
 }

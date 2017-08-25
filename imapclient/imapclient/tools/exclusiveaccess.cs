@@ -12,6 +12,7 @@ namespace work.bacome.async
         public event Action<cTrace.cContext> Released;
 
         private bool mDisposed = false;
+
         private readonly string mName;
         private readonly int mSequence; // the order in which this lock should be taken in the set of locks that the program has (for use by external code)
         private readonly int mInstance; // for debugging

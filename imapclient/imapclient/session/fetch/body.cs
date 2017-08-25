@@ -34,9 +34,9 @@ namespace work.bacome.imapclient
                 return ZFetchBodyAsync(pMC, pHandle, pUID, null, pSection, pDecoding, pStream, lContext);
             }
 
-            private async Task ZFetchBodyAsync(cFetchBodyMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
+            private async Task ZFetchBodyAsync(cFetchBodyMethodControl pFBMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pFBMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
 
                 // work out if binary can/should be used or not
                 bool lBinary = mCapabilities.Binary && pSection.TextPart == eSectionPart.all && pDecoding != eDecodingRequired.none;
@@ -57,8 +57,8 @@ namespace work.bacome.imapclient
                     Stopwatch lStopwatch = Stopwatch.StartNew();
 
                     cBody lBody;
-                    if (pUID == null) lBody = await ZFetchBodyAsync(pMC, pMessageHandle, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
-                    else lBody = await ZUIDFetchBodyAsync(pMC, pMailboxHandle, pUID, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
+                    if (pUID == null) lBody = await ZFetchBodyAsync(pFBMC.MC, pMessageHandle, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
+                    else lBody = await ZUIDFetchBodyAsync(pFBMC.MC, pMailboxHandle, pUID, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
 
                     lStopwatch.Stop();
 
@@ -71,10 +71,10 @@ namespace work.bacome.imapclient
                     int lOffset = (int)(lOrigin - lBodyOrigin);
 
                     // write the bytes
-                    await lDecoder.WriteAsync(pMC, lBody.Bytes, lOffset, lContext).ConfigureAwait(false);
+                    await lDecoder.WriteAsync(pFBMC, lBody.Bytes, lOffset, lContext).ConfigureAwait(false);
 
                     // update progress
-                    pMC.IncrementProgress(lBody.Bytes.Count - lOffset, lContext);
+                    pFBMC.IncrementProgress(lBody.Bytes.Count - lOffset, lContext);
 
                     // if the body we got was the whole body, we are done
                     if (lBody.Origin == null) break;
@@ -86,7 +86,7 @@ namespace work.bacome.imapclient
                     lOrigin = lBodyOrigin + (uint)lBody.Bytes.Count;
                 }
 
-                await lDecoder.FlushAsync(pMC, lContext).ConfigureAwait(false);
+                await lDecoder.FlushAsync(pFBMC, lContext).ConfigureAwait(false);
             }
         }
     }

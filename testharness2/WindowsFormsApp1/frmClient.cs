@@ -19,7 +19,6 @@ namespace testharness2
 
         private readonly cTrace.cContext mRootContext;
         private readonly cIMAPClient mClient;
-        private CancellationTokenSource mCancellationTokenSource = null;
         private readonly Dictionary<string, Form> mNamedChildren = new Dictionary<string, Form>();
         private readonly List<Form> mUnnamedChildren = new List<Form>();
 
@@ -33,7 +32,7 @@ namespace testharness2
         private void mClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(mClient_PropertyChanged), e);
-            if (e.PropertyName == nameof(cIMAPClient.ConnectionState) || e.PropertyName == nameof(cIMAPClient.AsyncCount)) ZSetControlState(lContext);
+            if (e.PropertyName == nameof(cIMAPClient.ConnectionState) || e.PropertyName == nameof(cIMAPClient.CancellableCount)) ZSetControlState(lContext);
         }
 
         private void ZSetControlState(cTrace.cContext pParentContext)
@@ -54,9 +53,9 @@ namespace testharness2
             {
                 gbxConnect.Enabled = false;
 
-                var lAsyncCount = mClient.AsyncCount;
+                var lCancallableCount = mClient.CancellableCount;
 
-                if (lAsyncCount == 0)
+                if (lCancallableCount == 0)
                 {
                     cmdCancel.Text = "Cancel";
                     cmdCancel.Enabled = false;

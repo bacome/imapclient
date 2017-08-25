@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Text;
 using System.Threading;
+using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -56,7 +57,7 @@ namespace work.bacome.imapclient
         private readonly string mInstanceName;
         private readonly cTrace.cContext mRootContext;
         private readonly cEventSynchroniser mEventSynchroniser;
-        private readonly cAsyncCounter mAsyncCounter;
+        private readonly cCancellationManager mCancellationManager;
 
         // current session
         private cSession mSession = null;
@@ -64,7 +65,6 @@ namespace work.bacome.imapclient
         private cMailbox mInbox = null; // 
 
         // property backing storage
-        private int mTimeout = -1;
         private fKnownCapabilities mIgnoreCapabilities = 0;
         private cServer mServer = null;
         private cCredentials mCredentials = null;
@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
             mRootContext = mTrace.NewRoot(pInstanceName);
             mRootContext.TraceInformation("cIMAPClient by bacome version {0}, release date {1}", Version, ReleaseDate);
             mEventSynchroniser = new cEventSynchroniser(this, mRootContext);
-            mAsyncCounter = new cAsyncCounter(mEventSynchroniser);
+            mCancellationManager = new cCancellationManager(mEventSynchroniser.FireCancellableCountChanged);
         }
 
         public string InstanceName => mInstanceName;
@@ -133,20 +133,21 @@ namespace work.bacome.imapclient
             remove { mEventSynchroniser.MessagePropertyChanged -= value; }
         }
 
-        // method termination
+        // async operation management
 
         public int Timeout
         {
-            get => mTimeout;
-
-            set
-            {
-                if (value < -1) throw new ArgumentOutOfRangeException();
-                mTimeout = value;
-            }
+            get => mCancellationManager.Timeout;
+            set => mCancellationManager.Timeout = value;
         }
 
-        public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
+        public int CancellableCount => mCancellationManager.Count;
+
+        public void Cancel()
+        {
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Cancel));
+            mCancellationManager.Cancel(lContext);
+        }
 
         // state
 
@@ -160,9 +161,6 @@ namespace work.bacome.imapclient
 
         // the login referral (rfc 2221) if received
         public cURL HomeServerReferral => mSession?.HomeServerReferral;
-
-        // for cheapskate UIs: if this number is greater than zero then a cancel button might be enabled
-        public int AsyncCount => mAsyncCounter.Count;
 
         // capabilities to ignore
         public fKnownCapabilities IgnoreCapabilities
@@ -430,6 +428,12 @@ namespace work.bacome.imapclient
             if (mEventSynchroniser != null)
             {
                 try { mEventSynchroniser.Dispose(); }
+                catch { }
+            }
+
+            if (mCancellationManager != null)
+            {
+                try { mCancellationManager.Dispose(); }
                 catch { }
             }
 

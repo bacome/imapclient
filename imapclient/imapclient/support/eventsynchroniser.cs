@@ -103,6 +103,15 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
+            public void FireCancellableCountChanged(cTrace.cContext pParentContext)
+            {
+                if (PropertyChanged == null) return; // pre-check for efficiency only
+                var lContext = pParentContext.NewMethod(nameof(cEventSynchroniser), nameof(FireCancellableCountChanged));
+                if (mDisposed) throw new ObjectDisposedException(nameof(cEventSynchroniser));
+                ZFireAndForget(new PropertyChangedEventArgs(nameof(cIMAPClient.CancellableCount)), lContext);
+                // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
+            }
+
             public void FireResponseText(eResponseTextType pTextType, cResponseText pResponseText, cTrace.cContext pParentContext)
             {
                 if (ResponseText == null) return; // pre-check for efficiency only

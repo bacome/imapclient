@@ -106,12 +106,8 @@ namespace work.bacome.imapclient
 
             List<iMailboxHandle> lHandles;
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            using (var lMC = mCancellationManager.GetMethodControl(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, CancellationToken);
-
                 var lCapabilities = lSession.Capabilities;
                 bool lLSub = (pDataSets & fMailboxCacheDataSets.lsub) != 0;
                 bool lStatus = (pDataSets & fMailboxCacheDataSets.status) != 0;
@@ -155,7 +151,6 @@ namespace work.bacome.imapclient
 
                 if (lLSubTask != null) await lLSubTask.ConfigureAwait(false);
             }
-            finally { mAsyncCounter.Decrement(lContext); }
 
             List<cMailbox> lMailboxes = new List<cMailbox>();
             foreach (var lHandle in lHandles) lMailboxes.Add(new cMailbox(this, lHandle));

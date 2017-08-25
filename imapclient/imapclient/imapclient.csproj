@@ -180,7 +180,7 @@
     <Compile Include="session\command_hooks\commandhookbasesearch.cs" />
     <Compile Include="session\command_hooks\commandhookfetch.cs" />
     <Compile Include="support\namespacenames.cs" />
-    <Compile Include="tools\asyncoperationcontrol.cs" />
+    <Compile Include="tools\cancellationmanager.cs" />
     <Compile Include="zzz\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooksearchextended.cs" />
     <Compile Include="session\command_hooks\commandhookselect.cs" />
@@ -232,7 +232,6 @@
     <Compile Include="session\support\processors.cs" />
     <Compile Include="session\support\responsetextprocessor.cs" />
     <Compile Include="exposed_interfaces\support\types\status.cs" />
-    <Compile Include="support\asynccounter.cs" />
     <Compile Include="support\body.cs" />
     <Compile Include="support\eventsynchroniser.cs" />
     <Compile Include="zzz\mailboxlist.cs" />

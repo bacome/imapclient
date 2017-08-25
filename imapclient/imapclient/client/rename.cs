@@ -33,15 +33,11 @@ namespace work.bacome.imapclient
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            using (var lMC = mCancellationManager.GetMethodControl(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, CancellationToken);
                 var lHandle = await lSession.RenameAsync(lMC, pHandle, pMailboxName, lContext).ConfigureAwait(false);
                 return new cMailbox(this, lHandle);
             }
-            finally { mAsyncCounter.Decrement(lContext); }
         }
     }
 }

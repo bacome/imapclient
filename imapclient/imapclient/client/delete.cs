@@ -32,14 +32,10 @@ namespace work.bacome.imapclient
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            using (var lMC = mCancellationManager.GetMethodControl(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, CancellationToken);
                 await lSession.DeleteAsync(lMC, pHandle, lContext).ConfigureAwait(false);
             }
-            finally { mAsyncCounter.Decrement(lContext); }
         }
     }
 }

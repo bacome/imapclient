@@ -35,17 +35,13 @@ namespace work.bacome.imapclient
 
             var lCapabilities = lSession.Capabilities;
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            using (var lMC = mCancellationManager.GetMethodControl(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, CancellationToken);
                 cMessageHandleList lHandles;
                 if (lCapabilities.ESearch) lHandles = await lSession.SetUnseenExtendedAsync(lMC, pHandle, lContext).ConfigureAwait(false);
                 else lHandles = await lSession.SetUnseenAsync(lMC, pHandle, lContext).ConfigureAwait(false);
                 return lHandles;
             }
-            finally { mAsyncCounter.Decrement(lContext); }
         }
     }
 }

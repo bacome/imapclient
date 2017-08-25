@@ -40,26 +40,31 @@ namespace work.bacome.imapclient
 
             if (!pStream.CanWrite) throw new ArgumentOutOfRangeException(nameof(pStream));
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            if (pFC == null)
             {
-                cFetchBodyMethodControl lMC;
-                if (pFC == null) lMC = new cFetchBodyMethodControl(mTimeout, CancellationToken, null, null, mFetchBodyWriteConfiguration);
-                else lMC = new cFetchBodyMethodControl(pFC.Timeout, pFC.CancellationToken, mEventSynchroniser, pFC.IncrementProgress, pFC.WriteConfiguration ?? mFetchBodyWriteConfiguration);
-                await lSession.FetchBodyAsync(lMC, pHandle, pSection, pDecoding, pStream, lContext).ConfigureAwait(false);
+                using (var lMC = mCancellationManager.GetMethodControl(lContext))
+                {
+                    var lFBMC = new cFetchBodyMethodControl(lMC, null, null, mFetchBodyWriteConfiguration);
+                    await lSession.FetchBodyAsync(lFBMC, pHandle, pSection, pDecoding, pStream, lContext).ConfigureAwait(false);
+                }
             }
-            finally { mAsyncCounter.Decrement(lContext); }
+            else
+            {
+                var lFBMC = new cFetchBodyMethodControl(new cMethodControl(pFC.Timeout, pFC.CancellationToken), mEventSynchroniser, pFC.IncrementProgress, pFC.WriteConfiguration ?? mFetchBodyWriteConfiguration);
+                await lSession.FetchBodyAsync(lFBMC, pHandle, pSection, pDecoding, pStream, lContext).ConfigureAwait(false);
+            }
         }
-
-        private class cFetchBodyMethodControl : cMethodControl
+    
+        private class cFetchBodyMethodControl
         {
+            public readonly cMethodControl MC;
             private readonly cEventSynchroniser mEventSynchroniser;
             private readonly Action<int> mIncrementProgress;
             public readonly cFetchSizer WriteSizer;
 
-            public cFetchBodyMethodControl(int pTimeout, CancellationToken pCancellationToken, cEventSynchroniser pEventSynchroniser, Action<int> pIncrementProgress, cFetchSizeConfiguration pWriteConfiguration) : base(pTimeout, pCancellationToken)
+            public cFetchBodyMethodControl(cMethodControl pMC, cEventSynchroniser pEventSynchroniser, Action<int> pIncrementProgress, cFetchSizeConfiguration pWriteConfiguration)
             {
+                MC = pMC ?? throw new ArgumentNullException(nameof(pMC));
                 if (pWriteConfiguration == null) throw new ArgumentNullException(nameof(pWriteConfiguration));
                 mEventSynchroniser = pEventSynchroniser;
                 mIncrementProgress = pIncrementProgress;
@@ -68,7 +73,7 @@ namespace work.bacome.imapclient
 
             public void IncrementProgress(int pValue, cTrace.cContext pParentContext) => mEventSynchroniser?.FireIncrementProgress(mIncrementProgress, pValue, pParentContext);
 
-            public override string ToString() => $"{nameof(cFetchBodyMethodControl)}({base.ToString()},{WriteSizer})";
+            public override string ToString() => $"{nameof(cFetchBodyMethodControl)}({MC},{WriteSizer})";
         }
     }
 }
