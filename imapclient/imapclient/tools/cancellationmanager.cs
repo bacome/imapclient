@@ -10,7 +10,6 @@ namespace work.bacome.async
 
         private readonly Action<cTrace.cContext> mCountChanged;
         private readonly object mCurrentCancellationSetLock = new object();
-        private int mTimeout = -1;
         private cCancellationSet mCurrentCancellationSet;
 
         public cCancellationManager()
@@ -25,26 +24,15 @@ namespace work.bacome.async
             mCurrentCancellationSet = new cCancellationSet(mCountChanged);
         }
 
-        public int Timeout
+        public cToken GetToken(cTrace.cContext pParentContext)
         {
-            get => mTimeout;
-
-            set
-            {
-                if (value < -1) throw new ArgumentOutOfRangeException();
-                mTimeout = value;
-            }
-        }
-
-        public cManagedMethodControl GetMethodControl(cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cCancellationManager), nameof(GetMethodControl));
+            var lContext = pParentContext.NewMethod(nameof(cCancellationManager), nameof(GetToken));
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cCancellationManager));
 
             lock (mCurrentCancellationSetLock)
             {
-                return mCurrentCancellationSet.GetMethodControl(mTimeout, lContext);
+                return mCurrentCancellationSet.GetToken(lContext);
             }
         }
 
@@ -102,13 +90,13 @@ namespace work.bacome.async
                 mCountChanged = pCountChanged; // can be null
             }
 
-            public cManagedMethodControl GetMethodControl(int pTimeout, cTrace.cContext pParentContext)
+            public cToken GetToken(cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cCancellationSet), nameof(GetMethodControl));
+                var lContext = pParentContext.NewMethod(nameof(cCancellationSet), nameof(GetToken));
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCancellationSet));
                 Interlocked.Increment(ref mCount);
                 mCountChanged?.Invoke(lContext);
-                return new cManagedMethodControl(pTimeout, mCancellationTokenSource.Token, ZReleaseToken, pParentContext);
+                return new cToken(mCancellationTokenSource.Token, ZReleaseToken, pParentContext);
             }
 
             public int Count => mCount;
@@ -142,14 +130,16 @@ namespace work.bacome.async
             }
         }
 
-        public sealed class cManagedMethodControl : cMethodControl, IDisposable
+        public sealed class cToken : IDisposable
         {
             private bool mDisposed = false;
+            public readonly CancellationToken CancellationToken;
             private readonly Action<cTrace.cContext> mReleaseToken;
             private readonly cTrace.cContext mContextToUseWhenDisposing;
 
-            public cManagedMethodControl(int pTimeout, CancellationToken pCancellationToken, Action<cTrace.cContext> pReleaseToken, cTrace.cContext pContextToUseWhenDisposing) : base(pTimeout, pCancellationToken)
+            public cToken(CancellationToken pCancellationToken, Action<cTrace.cContext> pReleaseToken, cTrace.cContext pContextToUseWhenDisposing)
             {
+                CancellationToken = pCancellationToken;
                 mReleaseToken = pReleaseToken ?? throw new ArgumentNullException(nameof(pReleaseToken));
                 mContextToUseWhenDisposing = pContextToUseWhenDisposing ?? throw new ArgumentNullException(nameof(pContextToUseWhenDisposing));
             }

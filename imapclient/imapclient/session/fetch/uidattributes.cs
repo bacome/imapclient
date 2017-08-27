@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -10,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cMessageHandleList> UIDFetchAttributesAsync(cFetchAttributesMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> UIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cFetchProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchAttributesAsync), pMC, pHandle, pUIDs, pAttributes);
 
@@ -51,7 +52,7 @@ namespace work.bacome.imapclient
                 if (lHandles.Count > 0)
                 {
                     // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                    foreach (var lGroup in ZFetchAttributesGroups(lHandles, lAttributes)) await ZFetchAttributesAsync(pMC, lGroup, lContext).ConfigureAwait(false);
+                    foreach (var lGroup in ZFetchAttributesGroups(lHandles, lAttributes)) await ZFetchAttributesAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
                 }
 
                 // for the messages only identified by UID or where I have to get all the attributes
@@ -59,7 +60,7 @@ namespace work.bacome.imapclient
 
                 if (lUIDs.Count > 0)
                 {
-                    await ZUIDFetchAttributesAsync(pMC, pHandle, lUIDs, lAttributes, lContext).ConfigureAwait(false);
+                    await ZUIDFetchAttributesAsync(pMC, pHandle, lUIDs, lAttributes, pProgress, lContext).ConfigureAwait(false);
 
                     // resolve uids -> handles whilst blocking select exclusive access
                     //
@@ -78,7 +79,7 @@ namespace work.bacome.imapclient
                 return lHandles;
             }
 
-            public async Task ZUIDFetchAttributesAsync(cFetchAttributesMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            public async Task ZUIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cFetchProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAttributesAsync), pMC, pHandle, pUIDs, pAttributes);
 
@@ -106,7 +107,7 @@ namespace work.bacome.imapclient
 
                     // store the time taken so the next fetch is a better size
                     mFetchAttributesSizer.AddSample(lUIDs.Count, lStopwatch.ElapsedMilliseconds, lContext);
-                    pMC.IncrementProgress(lUIDs.Count);
+                    pProgress.Increment(lUIDs.Count, lContext);
                 }
             }
         }

@@ -1,27 +1,39 @@
 ﻿using System;
+using System.Threading;
 
 namespace work.bacome.imapclient
 {
-    public class cFetchSizeConfiguration
+    public class cFetchConfiguration
     {
-        public readonly int Min;
-        public readonly int Max;
-        public readonly int MaxTime;
-        public readonly int Initial;
+        private int mTimeout = -1;
 
-        public cFetchSizeConfiguration(int pMin, int pMax, int pMaxTime, int pInitial)
+        public int Timeout
         {
-            if (pMin < 1) throw new ArgumentOutOfRangeException(nameof(pMin));
-            if (pMax < pMin) throw new ArgumentOutOfRangeException(nameof(pMax));
-            if (pMaxTime < 1) throw new ArgumentOutOfRangeException(nameof(pMaxTime));
-            if (pInitial < 1) throw new ArgumentOutOfRangeException(nameof(pInitial));
+            get => mTimeout;
 
-            Min = pMin;
-            Max = pMax;
-            MaxTime = pMaxTime;
-            Initial = pInitial;
+            set
+            {
+                if (value < -1) throw new ArgumentOutOfRangeException();
+                mTimeout = value;
+            }
         }
 
-        public override string ToString() => $"{nameof(cFetchSizeConfiguration)}({Min},{Max},{MaxTime},{Initial})";
+        public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
+
+        public Action<int> IncrementProgress { get; set; } = null;
+
+        public cFetchSizeConfiguration WriteConfiguration { get; set; } = null;
+
+        public cFetchConfiguration(int pTimeout)
+        {
+            if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
+            mTimeout = pTimeout;
+        }
+
+        public cFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrementProgress = null)
+        {
+            CancellationToken = pCancellationToken;
+            IncrementProgress = pIncrementProgress;
+        }
     }
 }

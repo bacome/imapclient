@@ -2275,20 +2275,19 @@ namespace testharness2
 
                 if (lClient.Inbox.MessageCount != 171) throw new cTestsException("ZTestIdleRestart1.2");
 
-                try { lMessages[1].Fetch(fMessageProperties.uid); } // this should retrieve nothing (as the message has been deleted), but idle should stop
-                catch (cFetchFailedException) { }
+                if (lMessages[1].Fetch(fMessageProperties.uid)) throw new cTestsException("ZTestIdleRestart1.3.1"); // this should retrieve nothing (as the message has been deleted), but idle should stop
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched by this, as message 2 was 168 which should now be gone
                 //  1 should be UID fetched, 3 should be a normal fetch
                 try { lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.received, null); }
-                catch (cFetchFailedException) { }
+                catch (cFetchFailedException) { };?;
 
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
                 try { lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.flags, null); }
-                catch (cFetchFailedException) { }
+                catch (cFetchFailedException) { };?;
 
 
                 cMailbox lMailbox;

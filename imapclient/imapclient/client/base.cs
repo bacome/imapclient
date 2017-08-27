@@ -65,6 +65,7 @@ namespace work.bacome.imapclient
         private cMailbox mInbox = null; // 
 
         // property backing storage
+        private int mTimeout = -1;
         private fKnownCapabilities mIgnoreCapabilities = 0;
         private cServer mServer = null;
         private cCredentials mCredentials = null;
@@ -137,8 +138,13 @@ namespace work.bacome.imapclient
 
         public int Timeout
         {
-            get => mCancellationManager.Timeout;
-            set => mCancellationManager.Timeout = value;
+            get => mTimeout;
+
+            set
+            {
+                if (value < -1) throw new ArgumentOutOfRangeException();
+                mTimeout = value;
+            }
         }
 
         public int CancellableCount => mCancellationManager.Count;

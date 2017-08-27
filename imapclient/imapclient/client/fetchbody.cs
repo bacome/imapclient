@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void Fetch(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC)
+        public void Fetch(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pFC)
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
@@ -18,14 +18,14 @@ namespace work.bacome.imapclient
             mEventSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task FetchAsync(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC)
+        public Task FetchAsync(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pFC)
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
             return ZFetchBodyAsync(pHandle, pSection, pDecoding, pStream, pFC, lContext);
         }
 
-        private async Task ZFetchBodyAsync(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC, cTrace.cContext pParentContext)
+        private async Task ZFetchBodyAsync(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchConfiguration pFC, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchBodyAsync), pHandle, pSection, pDecoding, pFC);
 
@@ -42,38 +42,21 @@ namespace work.bacome.imapclient
 
             if (pFC == null)
             {
-                using (var lMC = mCancellationManager.GetMethodControl(lContext))
+                using (var lToken = mCancellationManager.GetToken(lContext))
                 {
-                    var lFBMC = new cFetchBodyMethodControl(lMC, null, null, mFetchBodyWriteConfiguration);
-                    await lSession.FetchBodyAsync(lFBMC, pHandle, pSection, pDecoding, pStream, lContext).ConfigureAwait(false);
+                    var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                    var lProgress = new cFetchProgress();
+                    var lWriteSizer = new cFetchSizer(mFetchBodyWriteConfiguration);
+                    await lSession.FetchBodyAsync(lMC, pHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
-                var lFBMC = new cFetchBodyMethodControl(new cMethodControl(pFC.Timeout, pFC.CancellationToken), mEventSynchroniser, pFC.IncrementProgress, pFC.WriteConfiguration ?? mFetchBodyWriteConfiguration);
-                await lSession.FetchBodyAsync(lFBMC, pHandle, pSection, pDecoding, pStream, lContext).ConfigureAwait(false);
+                var lMC = new cMethodControl(pFC.Timeout, pFC.CancellationToken);
+                var lProgress = new cFetchProgress(mEventSynchroniser, pFC.IncrementProgress);
+                var lWriteSizer = new cFetchSizer(pFC.WriteConfiguration ?? mFetchBodyWriteConfiguration);
+                await lSession.FetchBodyAsync(lMC, pHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
             }
-        }
-    
-        private class cFetchBodyMethodControl
-        {
-            public readonly cMethodControl MC;
-            private readonly cEventSynchroniser mEventSynchroniser;
-            private readonly Action<int> mIncrementProgress;
-            public readonly cFetchSizer WriteSizer;
-
-            public cFetchBodyMethodControl(cMethodControl pMC, cEventSynchroniser pEventSynchroniser, Action<int> pIncrementProgress, cFetchSizeConfiguration pWriteConfiguration)
-            {
-                MC = pMC ?? throw new ArgumentNullException(nameof(pMC));
-                if (pWriteConfiguration == null) throw new ArgumentNullException(nameof(pWriteConfiguration));
-                mEventSynchroniser = pEventSynchroniser;
-                mIncrementProgress = pIncrementProgress;
-                WriteSizer = new cFetchSizer(pWriteConfiguration);
-            }
-
-            public void IncrementProgress(int pValue, cTrace.cContext pParentContext) => mEventSynchroniser?.FireIncrementProgress(mIncrementProgress, pValue, pParentContext);
-
-            public override string ToString() => $"{nameof(cFetchBodyMethodControl)}({MC},{WriteSizer})";
         }
     }
 }

@@ -32,8 +32,9 @@ namespace work.bacome.imapclient
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-            using (var lMC = mCancellationManager.GetMethodControl(lContext))
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                 if (pAndClose) await lSession.CloseAsync(lMC, pHandle, lContext).ConfigureAwait(false);
                 else await lSession.ExpungeAsync(lMC, pHandle, lContext).ConfigureAwait(false);
             }

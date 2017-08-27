@@ -485,8 +485,8 @@ namespace work.bacome.imapclient
         public void Fetch(fMailboxCacheDataSets pDataSets) => Client.Fetch(Handle, pDataSets);
         public Task FetchAsync(fMailboxCacheDataSets pDataSets) => Client.FetchAsync(Handle, pDataSets);
 
-        public void Fetch(IList<cMessage> pMessages, fMessageProperties pProperties, cFetchControl pFC = null) => Client.Fetch(ZHandles(pMessages), pProperties, pFC);
-        public Task FetchAsync(IList<cMessage> pMessages, fMessageProperties pProperties, cFetchControl pFC = null) => Client.FetchAsync(ZHandles(pMessages), pProperties, pFC);
+        public bool Fetch(IList<cMessage> pMessages, fMessageProperties pProperties, cFetchControl pFC = null) => Client.Fetch(ZHandles(pMessages), pProperties, pFC);
+        public Task<bool> FetchAsync(IList<cMessage> pMessages, fMessageProperties pProperties, cFetchControl pFC = null) => Client.FetchAsync(ZHandles(pMessages), pProperties, pFC);
 
         private List<iMessageHandle> ZHandles(IList<cMessage> pMessages)
         {

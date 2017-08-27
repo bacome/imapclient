@@ -67,8 +67,10 @@ namespace work.bacome.imapclient
                 mEventSynchroniser.FirePropertyChanged(nameof(SelectedMailboxDetails), lContext);
             }
 
-            using (var lMC = mCancellationManager.GetMethodControl(lContext))
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+
                 try
                 {
                     await lSession.ConnectAsync(lMC, lServer, lContext).ConfigureAwait(false);

@@ -35,9 +35,9 @@ namespace work.bacome.imapclient
             return lToFetch;
         }
 
-        private async Task ZFetchAttributesAsync(cMessageHandleList pHandles, fFetchAttributes pAttributes, cFetchControl pFC, cTrace.cContext pParentContext)
+        private async Task ZFetchAttributesAsync(cMessageHandleList pHandles, fFetchAttributes pAttributes, cFetchConfiguration pConfig, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAttributesAsync), pHandles, pAttributes, pFC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAttributesAsync), pHandles, pAttributes);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -48,21 +48,26 @@ namespace work.bacome.imapclient
             if (pHandles.Count == 0) return;
             if (pAttributes == 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            if (pConfig == null)
             {
-                cFetchAttributesMethodControl lMC;
-                if (pFC == null) lMC = new cFetchAttributesMethodControl(mTimeout, CancellationToken, null);
-                else lMC = new cFetchAttributesMethodControl(pFC.Timeout, pFC.CancellationToken, pFC.IncrementProgress);
-                await lSession.FetchAttributesAsync(lMC, pHandles, pAttributes, lContext).ConfigureAwait(false);
+                using (var lToken = mCancellationManager.GetToken(lContext))
+                {
+                    var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                    var lProgress = new cFetchProgress();                    
+                    await lSession.FetchAttributesAsync(lMC, pHandles, pAttributes, lProgress, lContext).ConfigureAwait(false);
+                }
             }
-            finally { mAsyncCounter.Decrement(lContext); }
+            else
+            {
+                var lMC = new cMethodControl(pConfig.Timeout, pConfig.CancellationToken);
+                var lProgress = new cFetchProgress(mEventSynchroniser, pConfig.IncrementProgress);
+                await lSession.FetchAttributesAsync(lMC, pHandles, pAttributes, lProgress, lContext).ConfigureAwait(false);
+            }
         }
 
-        private async Task<List<cMessage>> ZUIDFetchAttributesAsync(iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cFetchControl pFC, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>> ZUIDFetchAttributesAsync(iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cFetchConfiguration pConfig, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchAttributesAsync), pHandle, pUIDs, pAttributes, pFC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchAttributesAsync), pHandle, pUIDs, pAttributes);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -76,32 +81,25 @@ namespace work.bacome.imapclient
 
             cMessageHandleList lHandles;
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            if (pConfig == null)
             {
-                cFetchAttributesMethodControl lMC;
-                if (pFC == null) lMC = new cFetchAttributesMethodControl(mTimeout, CancellationToken, null);
-                else lMC = new cFetchAttributesMethodControl(pFC.Timeout, pFC.CancellationToken, pFC.IncrementProgress);
-                lHandles = await lSession.UIDFetchAttributesAsync(lMC, pHandle, pUIDs, pAttributes, lContext).ConfigureAwait(false);
+                using (var lToken = mCancellationManager.GetToken(lContext))
+                {
+                    var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                    var lProgress = new cFetchProgress();
+                    lHandles = await lSession.UIDFetchAttributesAsync(lMC, pHandle, pUIDs, pAttributes, lProgress, lContext).ConfigureAwait(false);
+                }
             }
-            finally { mAsyncCounter.Decrement(lContext); }
+            else
+            {
+                var lMC = new cMethodControl(pConfig.Timeout, pConfig.CancellationToken);
+                var lProgress = new cFetchProgress(mEventSynchroniser, pConfig.IncrementProgress);
+                lHandles = await lSession.UIDFetchAttributesAsync(lMC, pHandle, pUIDs, pAttributes, lProgress, lContext).ConfigureAwait(false);
+            }
 
             List<cMessage> lMessages = new List<cMessage>(lHandles.Count);
             foreach (var lHandle in lHandles) lMessages.Add(new cMessage(this, lHandle));
             return lMessages;
-        }
-
-        private class cFetchAttributesMethodControl : cMethodControl
-        {
-            private readonly Action<int> mIncrementProgress;
-
-            public cFetchAttributesMethodControl(int pTimeout, CancellationToken pCancellationToken, Action<int> pIncrementProgress) : base(pTimeout, pCancellationToken)
-            {
-                mIncrementProgress = pIncrementProgress;
-            }
-
-            public void IncrementProgress(int pValue) => mIncrementProgress?.Invoke(pValue);
         }
     }
 }

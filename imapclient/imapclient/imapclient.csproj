@@ -48,7 +48,7 @@
     <Compile Include="client\disconnect.cs" />
     <Compile Include="client\expunge.cs" />
     <Compile Include="client\fetchattributes.cs" />
-    <Compile Include="client\fetchcontrol.cs" />
+    <Compile Include="exposed_interfaces\other\fetchconfiguration.cs" />
     <Compile Include="client\fetchproperties.cs" />
     <Compile Include="client\fetchbody.cs" />
     <Compile Include="client\fetchmailboxdata.cs" />
@@ -92,6 +92,7 @@
     <Compile Include="session\command_hooks\commandhookinitial.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
+    <Compile Include="support\fetchprogress.cs" />
     <Compile Include="session\imap_commands\authenticated\create.cs" />
     <Compile Include="session\imap_commands\authenticated\delete.cs" />
     <Compile Include="session\imap_commands\authenticated\listdelimiter.cs" />
@@ -137,7 +138,7 @@
     <Compile Include="exposed_interfaces\other\commandresult.cs" />
     <Compile Include="exposed_interfaces\other\culturedstring.cs" />
     <Compile Include="exposed_interfaces\other\exceptions.cs" />
-    <Compile Include="exposed_interfaces\other\fetchconfiguration.cs" />
+    <Compile Include="exposed_interfaces\other\fetchsizeconfiguration.cs" />
     <Compile Include="exposed_interfaces\other\id.cs" />
     <Compile Include="exposed_interfaces\other\idleconfiguration.cs" />
     <Compile Include="exposed_interfaces\other\responsetext.cs" />

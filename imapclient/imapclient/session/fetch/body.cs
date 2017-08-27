@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -11,7 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public Task FetchBodyAsync(cFetchBodyMethodControl pMC, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
+            public Task FetchBodyAsync(cMethodControl pMC, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pMC, pHandle, pSection, pDecoding);
 
@@ -19,11 +20,11 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckInSelectedMailbox(pHandle); // to be repeated inside the select lock
 
-                if (pHandle.UID == null) return ZFetchBodyAsync(pMC, pHandle.Cache.MailboxHandle, pHandle.UID, null, pSection, pDecoding, pStream, lContext);
-                else return ZFetchBodyAsync(pMC, null, null, pHandle, pSection, pDecoding, pStream, lContext);
+                if (pHandle.UID == null) return ZFetchBodyAsync(pMC, pHandle.Cache.MailboxHandle, pHandle.UID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
+                else return ZFetchBodyAsync(pMC, null, null, pHandle, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
             }
 
-            public Task UIDFetchBodyAsync(cFetchBodyMethodControl pMC, iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
+            public Task UIDFetchBodyAsync(cMethodControl pMC, iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBodyAsync), pMC, pHandle, pUID, pSection, pDecoding);
 
@@ -31,12 +32,12 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckIsSelectedMailbox(pHandle, pUID.UIDValidity); // to be repeated inside the select lock
 
-                return ZFetchBodyAsync(pMC, pHandle, pUID, null, pSection, pDecoding, pStream, lContext);
+                return ZFetchBodyAsync(pMC, pHandle, pUID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
             }
 
-            private async Task ZFetchBodyAsync(cFetchBodyMethodControl pFBMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cTrace.cContext pParentContext)
+            private async Task ZFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pFBMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
 
                 // work out if binary can/should be used or not
                 bool lBinary = mCapabilities.Binary && pSection.TextPart == eSectionPart.all && pDecoding != eDecodingRequired.none;
@@ -57,8 +58,8 @@ namespace work.bacome.imapclient
                     Stopwatch lStopwatch = Stopwatch.StartNew();
 
                     cBody lBody;
-                    if (pUID == null) lBody = await ZFetchBodyAsync(pFBMC.MC, pMessageHandle, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
-                    else lBody = await ZUIDFetchBodyAsync(pFBMC.MC, pMailboxHandle, pUID, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
+                    if (pUID == null) lBody = await ZFetchBodyAsync(pMC, pMessageHandle, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
+                    else lBody = await ZUIDFetchBodyAsync(pMC, pMailboxHandle, pUID, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
 
                     lStopwatch.Stop();
 
@@ -71,10 +72,10 @@ namespace work.bacome.imapclient
                     int lOffset = (int)(lOrigin - lBodyOrigin);
 
                     // write the bytes
-                    await lDecoder.WriteAsync(pFBMC, lBody.Bytes, lOffset, lContext).ConfigureAwait(false);
+                    await lDecoder.WriteAsync(pMC, lBody.Bytes, lOffset, pWriteSizer, lContext).ConfigureAwait(false);
 
                     // update progress
-                    pFBMC.IncrementProgress(lBody.Bytes.Count - lOffset, lContext);
+                    pProgress.Increment(lBody.Bytes.Count - lOffset, lContext);
 
                     // if the body we got was the whole body, we are done
                     if (lBody.Origin == null) break;
@@ -86,7 +87,7 @@ namespace work.bacome.imapclient
                     lOrigin = lBodyOrigin + (uint)lBody.Bytes.Count;
                 }
 
-                await lDecoder.FlushAsync(pFBMC, lContext).ConfigureAwait(false);
+                await lDecoder.FlushAsync(pMC, pWriteSizer, lContext).ConfigureAwait(false);
             }
         }
     }

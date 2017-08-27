@@ -28,12 +28,11 @@ namespace work.bacome.imapclient
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
 
-            using (var lMC = mCancellationManager.GetMethodControl(lContext))
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
-                try
-                {
-                    await lSession.LogoutAsync(lMC, lContext).ConfigureAwait(false);
-                }
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+
+                try { await lSession.LogoutAsync(lMC, lContext).ConfigureAwait(false); }
                 catch when (lSession.ConnectionState != eConnectionState.disconnected)
                 {
                     lSession.Disconnect(lContext);

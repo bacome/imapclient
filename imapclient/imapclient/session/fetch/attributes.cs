@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -11,7 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchAttributesAsync(cFetchAttributesMethodControl pMC, cMessageHandleList pHandles, fFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            public async Task FetchAttributesAsync(cMethodControl pMC, cMessageHandleList pHandles, fFetchAttributes pAttributes, cFetchProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchAttributesAsync), pMC, pHandles, pAttributes);
 
@@ -22,7 +23,7 @@ namespace work.bacome.imapclient
                 var lAttributes = ZFetchAttributes(pAttributes, lContext);
 
                 // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                foreach (var lGroup in ZFetchAttributesGroups(pHandles, lAttributes)) await ZFetchAttributesAsync(pMC, lGroup, lContext).ConfigureAwait(false);
+                foreach (var lGroup in ZFetchAttributesGroups(pHandles, lAttributes)) await ZFetchAttributesAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
             }
 
             private fFetchAttributes ZFetchAttributes(fFetchAttributes pAttributes, cTrace.cContext pParentContext)
@@ -44,7 +45,7 @@ namespace work.bacome.imapclient
                 return pAttributes;
             }
 
-            private async Task ZFetchAttributesAsync(cFetchAttributesMethodControl pMC, cFetchAttributesGroup pGroup, cTrace.cContext pParentContext)
+            private async Task ZFetchAttributesAsync(cMethodControl pMC, cFetchAttributesGroup pGroup, cFetchProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributesAsync), pMC, pGroup);
 
@@ -107,7 +108,7 @@ namespace work.bacome.imapclient
 
                             // store the time taken so the next fetch is a better size
                             mFetchAttributesSizer.AddSample(lHandles.Count, lStopwatch.ElapsedMilliseconds, lContext);
-                            pMC.IncrementProgress(lHandles.Count);
+                            pProgress.Increment(lHandles.Count, lContext);
                         }
                     }
 
@@ -117,7 +118,7 @@ namespace work.bacome.imapclient
 
                 // uid fetch the remainder
                 var lMailboxHandle = pGroup.Handles[0].Cache.MailboxHandle;
-                await ZUIDFetchAttributesAsync(pMC, lMailboxHandle, lUIDs, pGroup.Attributes, lContext).ConfigureAwait(false);
+                await ZUIDFetchAttributesAsync(pMC, lMailboxHandle, lUIDs, pGroup.Attributes, pProgress, lContext).ConfigureAwait(false);
             }
 
             private IEnumerable<cFetchAttributesGroup> ZFetchAttributesGroups(cMessageHandleList pHandles, fFetchAttributes pAttributes)
