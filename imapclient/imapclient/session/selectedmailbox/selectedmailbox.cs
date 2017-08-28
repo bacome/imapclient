@@ -10,21 +10,21 @@ namespace work.bacome.imapclient
         {
             private partial class cSelectedMailbox : iSelectedMailboxDetails
             {
-                private readonly cEventSynchroniser mEventSynchroniser;
+                private readonly cInvokeSynchroniser mSynchroniser;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
                 private readonly bool mSelectedForUpdate;
 
                 private bool mAccessReadOnly;
                 private cSelectedMailboxCache mCache;
 
-                public cSelectedMailbox(cEventSynchroniser pEventSynchoniser, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailbox(cInvokeSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, bool pSelectedForUpdate, bool pAccessReadOnly, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailbox), pMailboxCacheItem, pSelectedForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
-                    mEventSynchroniser = pEventSynchoniser ?? throw new ArgumentNullException(nameof(pEventSynchoniser));
+                    mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
                     mSelectedForUpdate = pSelectedForUpdate;
                     mAccessReadOnly = pAccessReadOnly;
-                    mCache = new cSelectedMailboxCache(pEventSynchoniser, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, lContext);
+                    mCache = new cSelectedMailboxCache(pSynchroniser, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, lContext);
                 }
 
                 public iMailboxHandle Handle => mMailboxCacheItem;

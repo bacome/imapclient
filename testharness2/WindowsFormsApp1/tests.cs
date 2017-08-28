@@ -2280,14 +2280,12 @@ namespace testharness2
 
                 // only message 1 and 3 should be fetched by this, as message 2 was 168 which should now be gone
                 //  1 should be UID fetched, 3 should be a normal fetch
-                try { lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.received, null); }
-                catch (cFetchFailedException) { };?;
+                if (lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.received, null)) throw new cTestsException("ZTestIdleRestart1.3.2");
 
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
-                try { lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.flags, null); }
-                catch (cFetchFailedException) { };?;
+                if (lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.flags, null)) throw new cTestsException("ZTestIdleRestart1.3.3");
 
 
                 cMailbox lMailbox;

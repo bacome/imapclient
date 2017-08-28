@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             private partial class cMailboxCache
             {
-                private readonly cEventSynchroniser mEventSynchroniser;
+                private readonly cInvokeSynchroniser mSynchroniser;
                 private readonly fMailboxCacheData mMailboxCacheData;
                 private readonly cCommandPartFactory mCommandPartFactory;
                 private readonly cCapabilities mCapabilities;
@@ -22,9 +22,9 @@ namespace work.bacome.imapclient
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cEventSynchroniser pEventSynchroniser, fMailboxCacheData pMailboxCacheData, cCommandPartFactory pCommandPartFactory, cCapabilities pCapabilities, Action<eConnectionState, cTrace.cContext> pSetState)
+                public cMailboxCache(cInvokeSynchroniser pSynchroniser, fMailboxCacheData pMailboxCacheData, cCommandPartFactory pCommandPartFactory, cCapabilities pCapabilities, Action<eConnectionState, cTrace.cContext> pSetState)
                 {
-                    mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
+                    mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMailboxCacheData = pMailboxCacheData;
                     mCommandPartFactory = pCommandPartFactory ?? throw new ArgumentNullException(nameof(pCommandPartFactory));
                     mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
@@ -158,8 +158,8 @@ namespace work.bacome.imapclient
                     mSelectedMailbox = null;
 
                     mSetState(eConnectionState.notselected, lContext);
-                    mEventSynchroniser.FireMailboxPropertiesChanged(lHandle, lProperties, lContext);
-                    mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
+                    mSynchroniser.InvokeMailboxPropertiesChanged(lHandle, lProperties, lContext);
+                    mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
                 }
 
                 public void Select(iMailboxHandle pHandle, bool pForUpdate, bool pAccessReadOnly, cMessageFlags pFlags, cMessageFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
@@ -176,7 +176,7 @@ namespace work.bacome.imapclient
                     if (pExists < 0) throw new ArgumentOutOfRangeException(nameof(pExists));
                     if (pRecent < 0) throw new ArgumentOutOfRangeException(nameof(pRecent));
 
-                    mSelectedMailbox = new cSelectedMailbox(mEventSynchroniser, lItem, pForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, lContext);
+                    mSelectedMailbox = new cSelectedMailbox(mSynchroniser, lItem, pForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, lContext);
 
                     lItem.SetSelectedProperties(pFlags, pForUpdate, pPermanentFlags, lContext);
 
@@ -185,8 +185,8 @@ namespace work.bacome.imapclient
                     if (pAccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
 
                     mSetState(eConnectionState.selected, lContext);
-                    mEventSynchroniser.FireMailboxPropertiesChanged(pHandle, lProperties, lContext);
-                    mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
+                    mSynchroniser.InvokeMailboxPropertiesChanged(pHandle, lProperties, lContext);
+                    mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
                 }
 
                 public bool HasChildren(iMailboxHandle pHandle)
@@ -204,13 +204,13 @@ namespace work.bacome.imapclient
                     return false;
                 }
 
-                private cMailboxCacheItem ZItem(string pEncodedMailboxPath) => mDictionary.GetOrAdd(pEncodedMailboxPath, new cMailboxCacheItem(mEventSynchroniser, this, pEncodedMailboxPath));
+                private cMailboxCacheItem ZItem(string pEncodedMailboxPath) => mDictionary.GetOrAdd(pEncodedMailboxPath, new cMailboxCacheItem(mSynchroniser, this, pEncodedMailboxPath));
 
                 private cMailboxCacheItem ZItem(cMailboxName pMailboxName)
                 {
                     if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
                     if (!mCommandPartFactory.TryAsMailbox(pMailboxName.Path, pMailboxName.Delimiter, out var lCommandPart, out var lEncodedMailboxPath)) throw new ArgumentOutOfRangeException(nameof(pMailboxName));
-                    var lItem = mDictionary.GetOrAdd(lEncodedMailboxPath, new cMailboxCacheItem(mEventSynchroniser, this, lEncodedMailboxPath));
+                    var lItem = mDictionary.GetOrAdd(lEncodedMailboxPath, new cMailboxCacheItem(mSynchroniser, this, lEncodedMailboxPath));
                     lItem.MailboxName = pMailboxName;
                     lItem.MailboxNameCommandPart = lCommandPart;
                     return lItem;

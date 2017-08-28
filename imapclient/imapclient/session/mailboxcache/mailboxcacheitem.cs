@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
         {
             private class cMailboxCacheItem : iMailboxHandle
             {
-                private readonly cEventSynchroniser mEventSynchroniser;
+                private readonly cInvokeSynchroniser mSynchroniser;
                 private readonly cMailboxCache mMailboxCache;
                 private readonly string mEncodedMailboxPath;
 
@@ -21,9 +21,9 @@ namespace work.bacome.imapclient
                 private cMailboxStatus mMailboxStatus = null;
                 private cMailboxSelectedProperties mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
 
-                public cMailboxCacheItem(cEventSynchroniser pEventSynchroniser, cMailboxCache pMailboxCache, string pEncodedMailboxPath)
+                public cMailboxCacheItem(cInvokeSynchroniser pSynchroniser, cMailboxCache pMailboxCache, string pEncodedMailboxPath)
                 {
-                    mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
+                    mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     mEncodedMailboxPath = pEncodedMailboxPath ?? throw new ArgumentNullException(nameof(pEncodedMailboxPath));
                 }
@@ -52,7 +52,7 @@ namespace work.bacome.imapclient
                     mMailboxStatus = null;
                     mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
 
-                    mEventSynchroniser.FireMailboxPropertiesChanged(this, lProperties, lContext);
+                    mSynchroniser.InvokeMailboxPropertiesChanged(this, lProperties, lContext);
                 }
 
                 public void ResetExists(cTrace.cContext pParentContext)
@@ -70,7 +70,7 @@ namespace work.bacome.imapclient
                     mMailboxStatus = null;
                     mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
 
-                    mEventSynchroniser.FireMailboxPropertiesChanged(this, lProperties, lContext);
+                    mSynchroniser.InvokeMailboxPropertiesChanged(this, lProperties, lContext);
                 }
 
                 public cListFlags ListFlags => mListFlags;
@@ -86,7 +86,7 @@ namespace work.bacome.imapclient
 
                     mListFlags = pListFlags;
 
-                    mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
+                    mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 
                 public void SetLSubFlags(cLSubFlags pLSubFlags, cTrace.cContext pParentContext)
@@ -99,7 +99,7 @@ namespace work.bacome.imapclient
 
                     mLSubFlags = pLSubFlags;
 
-                    mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
+                    mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 
                 public cStatus Status => mStatus;
@@ -139,7 +139,7 @@ namespace work.bacome.imapclient
                         mMailboxStatus = lMailboxStatus;
                     }
 
-                    mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
+                    mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 
                 public void SetMailboxStatus(cMailboxStatus pMailboxStatus, cTrace.cContext pParentContext)
@@ -148,7 +148,7 @@ namespace work.bacome.imapclient
                     if (pMailboxStatus == null) throw new ArgumentNullException(nameof(pMailboxStatus));
                     fMailboxProperties lDifferences = ZSetExists(true) | cMailboxStatus.Differences(mMailboxStatus, pMailboxStatus);
                     mMailboxStatus = pMailboxStatus;
-                    mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
+                    mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 
                 public cMailboxSelectedProperties SelectedProperties => mSelectedProperties;
@@ -179,7 +179,7 @@ namespace work.bacome.imapclient
                     if (pSelectedProperties == null) throw new ArgumentNullException(nameof(pSelectedProperties));
                     fMailboxProperties lDifferences = ZSetExists(true) | cMailboxSelectedProperties.Differences(mSelectedProperties, pSelectedProperties);
                     mSelectedProperties = pSelectedProperties;
-                    mEventSynchroniser.FireMailboxPropertiesChanged(this, lDifferences, lContext);
+                    mSynchroniser.InvokeMailboxPropertiesChanged(this, lDifferences, lContext);
                 }
 
                 private fMailboxProperties ZSetExists(bool pExists)

@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
             return lToFetch;
         }
 
-        private async Task ZFetchAttributesAsync(cMessageHandleList pHandles, fFetchAttributes pAttributes, cFetchConfiguration pConfig, cTrace.cContext pParentContext)
+        private async Task ZFetchAttributesAsync(cMessageHandleList pHandles, fFetchAttributes pAttributes, cPropertyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAttributesAsync), pHandles, pAttributes);
 
@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
             if (pHandles.Count == 0) return;
             if (pAttributes == 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));
 
-            if (pConfig == null)
+            if (pConfiguration == null)
             {
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
@@ -59,13 +59,13 @@ namespace work.bacome.imapclient
             }
             else
             {
-                var lMC = new cMethodControl(pConfig.Timeout, pConfig.CancellationToken);
-                var lProgress = new cFetchProgress(mEventSynchroniser, pConfig.IncrementProgress);
+                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
+                var lProgress = new cFetchProgress(mSynchroniser, pConfiguration.Increment);
                 await lSession.FetchAttributesAsync(lMC, pHandles, pAttributes, lProgress, lContext).ConfigureAwait(false);
             }
         }
 
-        private async Task<List<cMessage>> ZUIDFetchAttributesAsync(iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cFetchConfiguration pConfig, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>> ZUIDFetchAttributesAsync(iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cPropertyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchAttributesAsync), pHandle, pUIDs, pAttributes);
 
@@ -81,7 +81,7 @@ namespace work.bacome.imapclient
 
             cMessageHandleList lHandles;
 
-            if (pConfig == null)
+            if (pConfiguration == null)
             {
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
@@ -92,8 +92,8 @@ namespace work.bacome.imapclient
             }
             else
             {
-                var lMC = new cMethodControl(pConfig.Timeout, pConfig.CancellationToken);
-                var lProgress = new cFetchProgress(mEventSynchroniser, pConfig.IncrementProgress);
+                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
+                var lProgress = new cFetchProgress(mSynchroniser, pConfiguration.Increment);
                 lHandles = await lSession.UIDFetchAttributesAsync(lMC, pHandle, pUIDs, pAttributes, lProgress, lContext).ConfigureAwait(false);
             }
 

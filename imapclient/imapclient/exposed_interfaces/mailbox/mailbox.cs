@@ -452,18 +452,18 @@ namespace work.bacome.imapclient
         public void Expunge(bool pAndClose = false) => Client.Expunge(Handle, pAndClose);
         public Task ExpungeAsync(bool pAndClose = false) => Client.ExpungeAsync(Handle, pAndClose);
 
-        public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.Messages(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties);
-        public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault) => Client.MessagesAsync(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties);
+        public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault, cMessageFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties, pConfiguration);
+        public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, fMessageProperties pProperties = fMessageProperties.clientdefault, cMessageFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties, pConfiguration);
 
-        public List<cMessage> Messages(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC = null)
+        public List<cMessage> Messages(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration = null)
         {
-            Client.Fetch(pHandles, pProperties, pFC);
+            Client.Fetch(pHandles, pProperties, pConfiguration);
             return ZMessages(pHandles);
         }
 
-        public async Task<List<cMessage>> MessagesAsync(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchControl pFC = null)
+        public async Task<List<cMessage>> MessagesAsync(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration = null)
         {
-            await Client.FetchAsync(pHandles, pProperties, pFC).ConfigureAwait(false);
+            await Client.FetchAsync(pHandles, pProperties, pConfiguration).ConfigureAwait(false);
             return ZMessages(pHandles);
         }
 
@@ -479,14 +479,14 @@ namespace work.bacome.imapclient
 
         public cMessage Message(cUID pUID, fMessageProperties pProperties) => Client.Message(Handle, pUID, pProperties);
         public Task<cMessage> MessageAsync(cUID pUID, fMessageProperties pProperties) => Client.MessageAsync(Handle, pUID, pProperties);
-        public List<cMessage> Messages(IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC = null) => Client.Messages(Handle, pUIDs, pProperties, pFC);
-        public Task<List<cMessage>> MessagesAsync(IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC = null) => Client.MessagesAsync(Handle, pUIDs, pProperties, pFC);
+        public List<cMessage> Messages(IList<cUID> pUIDs, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pUIDs, pProperties, pConfiguration);
+        public Task<List<cMessage>> MessagesAsync(IList<cUID> pUIDs, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pUIDs, pProperties, pConfiguration);
 
         public void Fetch(fMailboxCacheDataSets pDataSets) => Client.Fetch(Handle, pDataSets);
         public Task FetchAsync(fMailboxCacheDataSets pDataSets) => Client.FetchAsync(Handle, pDataSets);
 
-        public bool Fetch(IList<cMessage> pMessages, fMessageProperties pProperties, cFetchControl pFC = null) => Client.Fetch(ZHandles(pMessages), pProperties, pFC);
-        public Task<bool> FetchAsync(IList<cMessage> pMessages, fMessageProperties pProperties, cFetchControl pFC = null) => Client.FetchAsync(ZHandles(pMessages), pProperties, pFC);
+        public bool Fetch(IList<cMessage> pMessages, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration = null) => Client.Fetch(ZHandles(pMessages), pProperties, pConfiguration);
+        public Task<bool> FetchAsync(IList<cMessage> pMessages, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration = null) => Client.FetchAsync(ZHandles(pMessages), pProperties, pConfiguration);
 
         private List<iMessageHandle> ZHandles(IList<cMessage> pMessages)
         {
@@ -501,8 +501,8 @@ namespace work.bacome.imapclient
             return lHandles;
         }
 
-        public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC = null) => Client.UIDFetch(Handle, pUID, pSection, pDecoding, pStream, pFC);
-        public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC = null) => Client.UIDFetchAsync(Handle, pUID, pSection, pDecoding, pStream, pFC);
+        public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetch(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);
+        public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetchAsync(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);
 
         // uid/store TODO
 

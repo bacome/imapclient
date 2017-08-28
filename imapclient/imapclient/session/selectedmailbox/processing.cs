@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
                             if (lAccess.ReadOnly != mAccessReadOnly)
                             {
                                 mAccessReadOnly = lAccess.ReadOnly;
-                                mEventSynchroniser.FireMailboxPropertiesChanged(mMailboxCacheItem, fMailboxProperties.isaccessreadonly, lContext);
+                                mSynchroniser.InvokeMailboxPropertiesChanged(mMailboxCacheItem, fMailboxProperties.isaccessreadonly, lContext);
                             }
 
                             return true;

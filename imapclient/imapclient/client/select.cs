@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Select));
             var lTask = ZSelectAsync(pHandle, pForUpdate, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
         }
 
         public Task SelectAsync(iMailboxHandle pHandle, bool pForUpdate)
@@ -32,8 +32,9 @@ namespace work.bacome.imapclient
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-            using (var lMC = mCancellationManager.GetMethodControl(lContext))
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                 if (pForUpdate) await lSession.SelectAsync(lMC, pHandle, lContext).ConfigureAwait(false);
                 else await lSession.ExamineAsync(lMC, pHandle, lContext).ConfigureAwait(false);
             }

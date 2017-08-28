@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribe));
             var lTask = ZSubscribeAsync(pHandle, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
         }
 
         public Task SubscribeAsync(iMailboxHandle pHandle)
@@ -32,8 +32,9 @@ namespace work.bacome.imapclient
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-            using (var lMC = mCancellationManager.GetMethodControl(lContext))
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                 await lSession.SubscribeAsync(lMC, pHandle, lContext).ConfigureAwait(false);
             }
         }
@@ -42,7 +43,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Unsubscribe));
             var lTask = ZUnsubscribeAsync(pHandle, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
         }
 
         public Task UnsubscribeAsync(iMailboxHandle pHandle)
@@ -62,8 +63,9 @@ namespace work.bacome.imapclient
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-            using (var lMC = mCancellationManager.GetMethodControl(lContext))
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                 await lSession.UnsubscribeAsync(lMC, pHandle, lContext).ConfigureAwait(false);
             }
         }

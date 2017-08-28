@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
 
                 if (mNamespaceDataProcessor == null)
                 {
-                    mNamespaceDataProcessor = new cNamespaceDataProcessor(mEventSynchroniser, (EnabledExtensions & fEnableableExtensions.utf8) != 0);
+                    mNamespaceDataProcessor = new cNamespaceDataProcessor(mSynchroniser, (EnabledExtensions & fEnableableExtensions.utf8) != 0);
                     mPipeline.Install(mNamespaceDataProcessor);
                 }
 
@@ -55,12 +55,12 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kNamespaceSpace = new cBytes("NAMESPACE ");
 
-                private cEventSynchroniser mEventSynchroniser;
+                private cInvokeSynchroniser mSynchroniser;
                 private bool mUTF8Enabled;
 
-                public cNamespaceDataProcessor(cEventSynchroniser pEventSynchroniser, bool pUTF8Enabled)
+                public cNamespaceDataProcessor(cInvokeSynchroniser pSynchroniser, bool pUTF8Enabled)
                 {
-                    mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
+                    mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mUTF8Enabled = pUTF8Enabled;
                 }
 
@@ -82,7 +82,7 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceVerbose("got namespaces");
                         NamespaceNames = new cNamespaceNames(lPersonal, lOtherUsers, lShared);
-                        mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Namespaces), lContext);
+                        mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.Namespaces), lContext);
                         return eProcessDataResult.processed;
                     }
 
@@ -160,7 +160,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cNamespaceDataProcessor), nameof(_Tests));
 
-                    using (cEventSynchroniser lES = new cEventSynchroniser(new object(), lContext))
+                    using (cInvokeSynchroniser lES = new cInvokeSynchroniser(new object(), lContext))
                     {
                         cNamespaceDataProcessor lNRDPASCII = new cNamespaceDataProcessor(lES, false);
                         cNamespaceDataProcessor lNRDPUTF8 = new cNamespaceDataProcessor(lES, true);

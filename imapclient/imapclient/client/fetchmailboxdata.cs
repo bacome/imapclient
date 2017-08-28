@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
             var lTask = ZFetchAsync(pHandle, pDataSets, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
         }
 
         public Task FetchAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
@@ -36,11 +36,9 @@ namespace work.bacome.imapclient
             if (pHandle.MailboxName == null) throw new ArgumentOutOfRangeException(nameof(pHandle));
             if (pDataSets == 0) return;
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, CancellationToken);
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
 
                 if (pDataSets == fMailboxCacheDataSets.status)
                 {
@@ -89,7 +87,6 @@ namespace work.bacome.imapclient
 
                 await Task.WhenAll(lTasks).ConfigureAwait(false);
             }
-            finally { mAsyncCounter.Decrement(lContext); }
         }
 
         private Task ZFetchStatus(cMethodControl pMC, cSession pSession, List<iMailboxHandle> pHandles, cTrace.cContext pParentContext)

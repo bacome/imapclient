@@ -49,7 +49,12 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributesAsync), pMC, pGroup);
 
-                if (pGroup.Attributes == 0) return; // the group where we already have everything that we need
+                if (pGroup.Attributes == 0)
+                {
+                    // the group where we already have everything that we need
+                    pProgress.Increment(pGroup.Handles.Count, lContext);
+                    return; 
+                }
 
                 cUIDList lUIDs = new cUIDList();
 
@@ -108,6 +113,8 @@ namespace work.bacome.imapclient
 
                             // store the time taken so the next fetch is a better size
                             mFetchAttributesSizer.AddSample(lHandles.Count, lStopwatch.ElapsedMilliseconds, lContext);
+
+                            // update progress
                             pProgress.Increment(lHandles.Count, lContext);
                         }
                     }

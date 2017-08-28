@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
         public void Disconnect()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Disconnect));
-            mEventSynchroniser.Wait(ZDisconnectAsync(lContext), lContext);
+            mSynchroniser.Wait(ZDisconnectAsync(lContext), lContext);
         }
 
         public Task DisconnectAsync()

@@ -7,22 +7,28 @@ namespace work.bacome.imapclient
     {
         private class cFetchProgress
         {
-            private readonly cEventSynchroniser mEventSynchroniser;
-            private readonly Action<int> mIncrementProgress;
+            private readonly cInvokeSynchroniser mSynchroniser;
+            private readonly Action<int> mIncrement;
 
             public cFetchProgress()
             {
-                mEventSynchroniser = null;
-                mIncrementProgress = null;
+                mSynchroniser = null;
+                mIncrement = null;
             }
 
-            public cFetchProgress(cEventSynchroniser pEventSynchroniser, Action<int> pIncrementProgress)
+            public cFetchProgress(cInvokeSynchroniser pSynchroniser, Action<int> pIncrement)
             {
-                mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
-                mIncrementProgress = pIncrementProgress;
+                mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
+                mIncrement = pIncrement;
             }
 
-            public void Increment(int pValue, cTrace.cContext pParentContext) => mEventSynchroniser?.FireIncrementProgress(mIncrementProgress, pValue, pParentContext);
+            public cFetchProgress(cInvokeSynchroniser pSynchroniser, Action<int> pSetCount, Action<int> pIncrement)
+            {
+                mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
+                mIncrement = pIncrement;
+            }
+
+            public void Increment(int pValue, cTrace.cContext pParentContext) => mSynchroniser?.InvokeActionInt(mIncrement, pValue, pParentContext);
         }
     }
 }

@@ -84,6 +84,12 @@
     <Compile Include="frmResponseText.Designer.cs">
       <DependentUpon>frmResponseText.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmSelectedMailbox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmSelectedMailbox.Designer.cs">
+      <DependentUpon>frmSelectedMailbox.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmStart.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -110,6 +116,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmResponseText.resx">
       <DependentUpon>frmResponseText.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmSelectedMailbox.resx">
+      <DependentUpon>frmSelectedMailbox.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

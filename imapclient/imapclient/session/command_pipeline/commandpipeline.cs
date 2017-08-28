@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
                 private bool mStopped = false;
 
                 // stuff
-                private readonly cEventSynchroniser mEventSynchroniser;
+                private readonly cInvokeSynchroniser mSynchroniser;
                 private readonly cConnection mConnection;
                 private readonly cResponseTextProcessor mResponseTextProcessor;
                 private cIdleConfiguration mIdleConfiguration;
@@ -62,11 +62,11 @@ namespace work.bacome.imapclient
                 private readonly List<int> mBufferStartPoints = new List<int>();
                 private readonly cByteList mTraceBuffer = new cByteList();
 
-                public cCommandPipeline(cEventSynchroniser pEventSynchroniser, cConnection pConnection, cResponseTextProcessor pResponseTextProcessor, cIdleConfiguration pIdleConfiguration, Action<cTrace.cContext> pDisconnect, cTrace.cContext pParentContext)
+                public cCommandPipeline(cInvokeSynchroniser pSynchroniser, cConnection pConnection, cResponseTextProcessor pResponseTextProcessor, cIdleConfiguration pIdleConfiguration, Action<cTrace.cContext> pDisconnect, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cCommandPipeline), pIdleConfiguration);
 
-                    mEventSynchroniser = pEventSynchroniser;
+                    mSynchroniser = pSynchroniser;
                     mConnection = pConnection;
                     mResponseTextProcessor = pResponseTextProcessor;
                     mIdleConfiguration = pIdleConfiguration;
@@ -279,7 +279,7 @@ namespace work.bacome.imapclient
                     else
                     {
                         lContext.TraceVerbose("sending {0}", mTraceBuffer);
-                        mEventSynchroniser.FireNetworkActivity(mBufferStartPoints, mTraceBuffer, lContext);
+                        mSynchroniser.InvokeNetworkActivity(mBufferStartPoints, mTraceBuffer, lContext);
                         await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
                     }
                 }
@@ -411,7 +411,7 @@ namespace work.bacome.imapclient
                         if (!ReferenceEquals(lCompleted, lBuildResponseTask)) return lCompleted;
 
                         var lLines = mConnection.GetResponse(lContext);
-                        mEventSynchroniser.FireNetworkActivity(lLines, lContext);
+                        mSynchroniser.InvokeNetworkActivity(lLines, lContext);
                         var lCursor = new cBytesCursor(lLines);
 
                         if (mCurrentCommand != null)
@@ -507,7 +507,7 @@ namespace work.bacome.imapclient
                             mSendBuffer.Add(cASCII.LF);
 
                             lContext.TraceVerbose("sending {0}", mSendBuffer);
-                            mEventSynchroniser.FireNetworkActivity(kBufferStartPointsBeginning, mSendBuffer, lContext);
+                            mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, mSendBuffer, lContext);
                             await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                             // wait for continuation
@@ -525,7 +525,7 @@ namespace work.bacome.imapclient
                             mSendBuffer.Add(cASCII.LF);
 
                             lContext.TraceVerbose("sending {0}", mSendBuffer);
-                            mEventSynchroniser.FireNetworkActivity(kBufferStartPointsBeginning, mSendBuffer, lContext);
+                            mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, mSendBuffer, lContext);
                             await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                             // process responses until the command completion is received
@@ -599,7 +599,7 @@ namespace work.bacome.imapclient
                     mSendBuffer.Add(cASCII.LF);
 
                     lContext.TraceVerbose("sending {0}", mSendBuffer);
-                    mEventSynchroniser.FireNetworkActivity(kBufferStartPointsBeginning, mSendBuffer, lContext);
+                    mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, mSendBuffer, lContext);
                     await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
 
                     await ZIdleProcessResponsesAsync(lTag, false, lContext).ConfigureAwait(false);
@@ -618,7 +618,7 @@ namespace work.bacome.imapclient
                         if (!ReferenceEquals(lCompleted, lBuildResponseTask)) return lCompleted;
 
                         var lLines = mConnection.GetResponse(lContext);
-                        mEventSynchroniser.FireNetworkActivity(lLines, lContext);
+                        mSynchroniser.InvokeNetworkActivity(lLines, lContext);
                         var lCursor = new cBytesCursor(lLines);
 
                         if (pExpectContinuation && ZResponseIsContinuation(lCursor, null, lContext)) return null;
@@ -686,7 +686,7 @@ namespace work.bacome.imapclient
                         lContext.TraceVerbose("sending cancellation");
                         lBuffer = new byte[] { cASCII.ASTERISK, cASCII.CR, cASCII.LF };
                         mAuthenticateState.CancelSent = true;
-                        mEventSynchroniser.FireNetworkActivity(kBufferStartPointsBeginning, kAsterisk, lContext);
+                        mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, kAsterisk, lContext);
                     }
                     else
                     {
@@ -695,7 +695,7 @@ namespace work.bacome.imapclient
                         lBytes.Add(cASCII.CR);
                         lBytes.Add(cASCII.LF);
                         lBuffer = lBytes.ToArray();
-                        mEventSynchroniser.FireNetworkActivity(kBufferStartPointsBeginning, kSASLAuthenticationResponse, lContext);
+                        mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, kSASLAuthenticationResponse, lContext);
                     }
 
                     await mConnection.WriteAsync(mBackgroundMC, lBuffer, lContext).ConfigureAwait(false);

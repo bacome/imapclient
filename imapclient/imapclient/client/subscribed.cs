@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
             var lTask = ZSubscribedAsync(pListMailbox, pDelimiter, pHasSubscribedChildren, pDataSets, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
             var lTask = ZSubscribedAsync(pHandle, pDescend, pDataSets, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
@@ -72,7 +72,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
             var lTask = ZSubscribedAsync(pNamespaceName, pDescend, pDataSets, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
@@ -114,8 +114,10 @@ namespace work.bacome.imapclient
 
             List<iMailboxHandle> lHandles;
 
-            using (var lMC = mCancellationManager.GetMethodControl(lContext))
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+
                 var lCapabilities = lSession.Capabilities;
                 bool lList = (pDataSets & fMailboxCacheDataSets.list) != 0;
                 bool lStatus = (pDataSets & fMailboxCacheDataSets.status) != 0;

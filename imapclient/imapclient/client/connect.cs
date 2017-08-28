@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         public void Connect()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Connect));
-            mEventSynchroniser.Wait(ZConnectAsync(lContext), lContext);
+            mSynchroniser.Wait(ZConnectAsync(lContext), lContext);
         }
 
         public Task ConnectAsync()
@@ -46,25 +46,25 @@ namespace work.bacome.imapclient
                 mNamespaces = null;
 
                 mInbox = null;
-                mEventSynchroniser.FirePropertyChanged(nameof(Inbox), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
             }
 
-            mSession = new cSession(mEventSynchroniser, mIgnoreCapabilities, mMailboxCacheData, mIdleConfiguration, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
+            mSession = new cSession(mSynchroniser, mIgnoreCapabilities, mMailboxCacheData, mIdleConfiguration, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
             if (lSessionReplaced)
             {
-                mEventSynchroniser.FirePropertyChanged(nameof(Capabilities), lContext);
-                mEventSynchroniser.FirePropertyChanged(nameof(ConnectionState), lContext);
-                mEventSynchroniser.FirePropertyChanged(nameof(IsConnected), lContext);
-                mEventSynchroniser.FirePropertyChanged(nameof(IsUnconnected), lContext);
-                mEventSynchroniser.FirePropertyChanged(nameof(ConnectedAccountId), lContext);
-                mEventSynchroniser.FirePropertyChanged(nameof(EnabledExtensions), lContext);
-                mEventSynchroniser.FirePropertyChanged(nameof(HomeServerReferral), lContext);
-                mEventSynchroniser.FirePropertyChanged(nameof(ServerId), lContext);
-                mEventSynchroniser.FirePropertyChanged(nameof(Namespaces), lContext);
-                mEventSynchroniser.FirePropertyChanged(nameof(SelectedMailbox), lContext);
-                mEventSynchroniser.FirePropertyChanged(nameof(SelectedMailboxDetails), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(Capabilities), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(ConnectionState), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(IsConnected), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(IsUnconnected), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(ConnectedAccountId), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(EnabledExtensions), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(HomeServerReferral), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(ServerId), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(Namespaces), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(SelectedMailbox), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(SelectedMailboxDetails), lContext);
             }
 
             using (var lToken = mCancellationManager.GetToken(lContext))
@@ -197,7 +197,7 @@ namespace work.bacome.imapclient
                                 if (lPattern.Matches(cMailboxName.InboxString))
                                 {
                                     mInbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lName.Delimiter)));
-                                    mEventSynchroniser.FirePropertyChanged(nameof(Inbox), lContext);
+                                    mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
                                     break;
                                 }
                             }
@@ -211,11 +211,11 @@ namespace work.bacome.imapclient
                         if (!lCurrentCapabilities.Namespace)
                         {
                             mNamespaces = new cNamespaces(this, new cNamespaceName[] { new cNamespaceName("", lDelimiter) }, null, null);
-                            mEventSynchroniser.FirePropertyChanged(nameof(Namespaces), lContext);
+                            mSynchroniser.InvokePropertyChanged(nameof(Namespaces), lContext);
                         }
 
                         mInbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lDelimiter)));
-                        mEventSynchroniser.FirePropertyChanged(nameof(Inbox), lContext);
+                        mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
                     }
 
                     // wait for id to complete

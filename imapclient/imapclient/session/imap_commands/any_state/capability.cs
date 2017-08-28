@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
                         {
                             mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
                             mPipeline.SetCapability(mCapabilities, lContext);
-                            mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
+                            mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
                         }
                         else throw new cUnexpectedServerActionException(0, "capability not received", lContext);
 

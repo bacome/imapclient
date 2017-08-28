@@ -35,24 +35,24 @@ namespace work.bacome.imapclient
         public uint? Size => Part.Disposition?.Size;
         public cStrings Languages => Part.ExtensionData?.Languages;
 
-        public void SaveAs(string pPath, cFetchControl pFC = null)
+        public void SaveAs(string pPath, cBodyFetchConfiguration pConfiguration = null)
         {
             using (FileStream lStream = new FileStream(pPath, FileMode.Create))
             {
-                Client.Fetch(Handle, Part.Section, Part.DecodingRequired, lStream, pFC);
+                Client.Fetch(Handle, Part.Section, Part.DecodingRequired, lStream, pConfiguration);
             }
         }
 
-        public async Task SaveAsAsync(string pPath, cFetchControl pFC = null)
+        public async Task SaveAsAsync(string pPath, cBodyFetchConfiguration pConfiguration = null)
         {
             using (FileStream lStream = new FileStream(pPath, FileMode.Create))
             {
-                await Client.FetchAsync(Handle, Part.Section, Part.DecodingRequired, lStream, pFC).ConfigureAwait(false);
+                await Client.FetchAsync(Handle, Part.Section, Part.DecodingRequired, lStream, pConfiguration).ConfigureAwait(false);
             }
         }
 
-        public void Fetch(Stream pStream, cFetchControl pFC = null) => Client.Fetch(Handle, Part.Section, Part.DecodingRequired, pStream, pFC);
-        public Task FetchAsync(Stream pStream, cFetchControl pFC = null) => Client.FetchAsync(Handle, Part.Section, Part.DecodingRequired, pStream, pFC);
+        public void Fetch(Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.Fetch(Handle, Part.Section, Part.DecodingRequired, pStream, pConfiguration);
+        public Task FetchAsync(Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, Part.Section, Part.DecodingRequired, pStream, pConfiguration);
 
         // debugging
         public override string ToString() => $"{nameof(cAttachment)}({Handle},{Part.Section})";

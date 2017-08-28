@@ -56,7 +56,7 @@ namespace work.bacome.imapclient
         private bool mDisposed = false;
         private readonly string mInstanceName;
         private readonly cTrace.cContext mRootContext;
-        private readonly cEventSynchroniser mEventSynchroniser;
+        private readonly cInvokeSynchroniser mSynchroniser;
         private readonly cCancellationManager mCancellationManager;
 
         // current session
@@ -84,8 +84,8 @@ namespace work.bacome.imapclient
             mInstanceName = pInstanceName;
             mRootContext = mTrace.NewRoot(pInstanceName);
             mRootContext.TraceInformation("cIMAPClient by bacome version {0}, release date {1}", Version, ReleaseDate);
-            mEventSynchroniser = new cEventSynchroniser(this, mRootContext);
-            mCancellationManager = new cCancellationManager(mEventSynchroniser.FireCancellableCountChanged);
+            mSynchroniser = new cInvokeSynchroniser(this, mRootContext);
+            mCancellationManager = new cCancellationManager(mSynchroniser.InvokeCancellableCountChanged);
         }
 
         public string InstanceName => mInstanceName;
@@ -94,44 +94,44 @@ namespace work.bacome.imapclient
 
         public SynchronizationContext SynchronizationContext
         {
-            get => mEventSynchroniser.SynchronizationContext;
-            set => mEventSynchroniser.SynchronizationContext = value;
+            get => mSynchroniser.SynchronizationContext;
+            set => mSynchroniser.SynchronizationContext = value;
         }
 
         public event PropertyChangedEventHandler PropertyChanged
         {
-            add { mEventSynchroniser.PropertyChanged += value; }
-            remove { mEventSynchroniser.PropertyChanged -= value; }
+            add { mSynchroniser.PropertyChanged += value; }
+            remove { mSynchroniser.PropertyChanged -= value; }
         }
 
         public event EventHandler<cResponseTextEventArgs> ResponseText
         {
-            add { mEventSynchroniser.ResponseText += value; }
-            remove { mEventSynchroniser.ResponseText -= value; }
+            add { mSynchroniser.ResponseText += value; }
+            remove { mSynchroniser.ResponseText -= value; }
         }
 
         public event EventHandler<cNetworkActivityEventArgs> NetworkActivity
         {
-            add { mEventSynchroniser.NetworkActivity += value; }
-            remove { mEventSynchroniser.NetworkActivity -= value; }
+            add { mSynchroniser.NetworkActivity += value; }
+            remove { mSynchroniser.NetworkActivity -= value; }
         }
 
         public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged
         {
-            add { mEventSynchroniser.MailboxPropertyChanged += value; }
-            remove { mEventSynchroniser.MailboxPropertyChanged -= value; }
+            add { mSynchroniser.MailboxPropertyChanged += value; }
+            remove { mSynchroniser.MailboxPropertyChanged -= value; }
         }
 
         public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery
         {
-            add { mEventSynchroniser.MailboxMessageDelivery += value; }
-            remove { mEventSynchroniser.MailboxMessageDelivery -= value; }
+            add { mSynchroniser.MailboxMessageDelivery += value; }
+            remove { mSynchroniser.MailboxMessageDelivery -= value; }
         }
 
         public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged
         {
-            add { mEventSynchroniser.MessagePropertyChanged += value; }
-            remove { mEventSynchroniser.MessagePropertyChanged -= value; }
+            add { mSynchroniser.MessagePropertyChanged += value; }
+            remove { mSynchroniser.MessagePropertyChanged -= value; }
         }
 
         // async operation management
@@ -431,9 +431,9 @@ namespace work.bacome.imapclient
                 catch { }
             }
 
-            if (mEventSynchroniser != null)
+            if (mSynchroniser != null)
             {
-                try { mEventSynchroniser.Dispose(); }
+                try { mSynchroniser.Dispose(); }
                 catch { }
             }
 

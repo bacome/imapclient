@@ -15,3 +15,4 @@ C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Deb
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmDetails.resources
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmEvents.resources
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmMailboxes.resources
+C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmSelectedMailbox.resources

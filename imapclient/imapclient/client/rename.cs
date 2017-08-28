@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Rename));
             var lTask = ZRenameAsync(pHandle, pMailboxName, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
@@ -33,8 +33,9 @@ namespace work.bacome.imapclient
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-            using (var lMC = mCancellationManager.GetMethodControl(lContext))
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                 var lHandle = await lSession.RenameAsync(lMC, pHandle, pMailboxName, lContext).ConfigureAwait(false);
                 return new cMailbox(this, lHandle);
             }

@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Create));
             var lTask = ZCreateAsync(pMailboxName, pAsFutureParent, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 

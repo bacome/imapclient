@@ -53,30 +53,17 @@ namespace testharness2
             {
                 gbxConnect.Enabled = false;
 
-                var lCancallableCount = mClient.CancellableCount;
+                var lCancellableCount = mClient.CancellableCount;
 
-                if (lCancallableCount == 0)
+                if (lCancellableCount == 0)
                 {
                     cmdCancel.Text = "Cancel";
                     cmdCancel.Enabled = false;
-
-                    if (mCancellationTokenSource != null && mCancellationTokenSource.IsCancellationRequested)
-                    {
-                        mCancellationTokenSource.Dispose();
-                        mCancellationTokenSource = null;
-                    }
                 }
-
-                if (mCancellationTokenSource == null)
+                else
                 {
-                    mCancellationTokenSource = new CancellationTokenSource();
-                    mClient.CancellationToken = mCancellationTokenSource.Token;
-                }
-                
-                if (lAsyncCount != 0)
-                {
-                    cmdCancel.Text = "Cancel " + lAsyncCount.ToString();
-                    cmdCancel.Enabled = !mCancellationTokenSource.IsCancellationRequested;
+                    cmdCancel.Text = "Cancel " + lCancellableCount.ToString();
+                    cmdCancel.Enabled = true;
                 }
 
                 cmdDisconnect.Enabled = mClient.IsConnected;
@@ -118,7 +105,7 @@ namespace testharness2
         private void cmdCancel_Click(object sender, EventArgs e)
         {
             var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdCancel_Click));
-            mCancellationTokenSource.Cancel();
+            mClient.Cancel();
             ZSetControlState(lContext);
         }
 
@@ -395,12 +382,6 @@ namespace testharness2
                 try { mClient.Dispose(); }
                 catch { }
             }
-
-            if (mCancellationTokenSource != null)
-            {
-                try { mCancellationTokenSource.Dispose(); }
-                catch { }
-            }
         }
 
         private void chkIdleAuto_CheckedChanged(object sender, EventArgs e)
@@ -466,6 +447,7 @@ namespace testharness2
         {
             txtNetworkActivity.Enabled = !mNamedChildren.ContainsKey(nameof(frmNetworkActivity));
             txtEvents.Enabled = !mNamedChildren.ContainsKey(nameof(frmEvents));
+            txtSelectedMailbox.Enabled = !mNamedChildren.ContainsKey(nameof(frmSelectedMailbox));
 
             bool lResponseText = !mNamedChildren.ContainsKey(nameof(frmResponseText));
 
@@ -698,6 +680,12 @@ namespace testharness2
             if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
 
             ZUnnamedChildAdd(new frmMailboxes(mClient, pSubscriptions, lDataSets, mRootContext));
+        }
+
+        private void cmdSelectedMailbox_Click(object sender, EventArgs e)
+        {
+            if (mNamedChildren.TryGetValue(nameof(frmSelectedMailbox), out var lForm)) ZFocus(lForm);
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSelectedMailbox.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked));
         }
     }
 }

@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Delete));
             var lTask = ZDeleteAsync(pHandle, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
         }
 
         public Task DeleteAsync(iMailboxHandle pHandle)

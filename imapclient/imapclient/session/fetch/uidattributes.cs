@@ -107,6 +107,8 @@ namespace work.bacome.imapclient
 
                     // store the time taken so the next fetch is a better size
                     mFetchAttributesSizer.AddSample(lUIDs.Count, lStopwatch.ElapsedMilliseconds, lContext);
+
+                    // update progress
                     pProgress.Increment(lUIDs.Count, lContext);
                 }
             }

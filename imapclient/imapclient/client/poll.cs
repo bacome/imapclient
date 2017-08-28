@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
         public void Poll()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Poll));
-            mEventSynchroniser.Wait(ZPollAsync(lContext), lContext);
+            mSynchroniser.Wait(ZPollAsync(lContext), lContext);
         }
 
         public Task PollAsync()
@@ -28,8 +28,9 @@ namespace work.bacome.imapclient
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
 
-            using (var lMC = mCancellationManager.GetMethodControl(lContext))
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                 var lCheck = lSession.CheckAsync(lMC, lContext);
                 var lNoOp = lSession.NoOpAsync(lMC, lContext);
                 await Task.WhenAll(lCheck, lNoOp).ConfigureAwait(false);

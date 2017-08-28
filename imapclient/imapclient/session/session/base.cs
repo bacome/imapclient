@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
 
             private readonly cConnection mConnection = new cConnection();
 
-            private readonly cEventSynchroniser mEventSynchroniser;
+            private readonly cInvokeSynchroniser mSynchroniser;
             private readonly fMailboxCacheData mMailboxCacheData;
             private readonly fKnownCapabilities mIgnoreCapabilities;
             private readonly cResponseTextProcessor mResponseTextProcessor;
@@ -46,16 +46,16 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cEventSynchroniser pEventSynchroniser, fKnownCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cInvokeSynchroniser pSynchroniser, fKnownCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesConfiguration, pFetchBodyReadConfiguration);
 
-                mEventSynchroniser = pEventSynchroniser;
+                mSynchroniser = pSynchroniser;
                 mIgnoreCapabilities = pIgnoreCapabilities;
                 mMailboxCacheData = pMailboxCacheData;
-                mResponseTextProcessor = new cResponseTextProcessor(mEventSynchroniser);
+                mResponseTextProcessor = new cResponseTextProcessor(mSynchroniser);
 
-                mPipeline = new cCommandPipeline(pEventSynchroniser, mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
+                mPipeline = new cCommandPipeline(pSynchroniser, mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
 
                 mFetchAttributesSizer = new cFetchSizer(pFetchAttributesConfiguration);
                 mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
@@ -86,7 +86,7 @@ namespace work.bacome.imapclient
                 mStatusAttributes = mMailboxCacheData & fMailboxCacheData.allstatus;
                 if (!mCapabilities.CondStore) mStatusAttributes &= ~fMailboxCacheData.highestmodseq;
 
-                mMailboxCache = new cMailboxCache(mEventSynchroniser, mMailboxCacheData, mCommandPartFactory, mCapabilities, ZSetState);
+                mMailboxCache = new cMailboxCache(mSynchroniser, mMailboxCacheData, mCommandPartFactory, mCapabilities, ZSetState);
 
                 mResponseTextProcessor.Install(new cResponseTextCodeParserSelect(mCapabilities));
                 mResponseTextProcessor.Enable(mMailboxCache, lContext);
@@ -150,9 +150,9 @@ namespace work.bacome.imapclient
                 bool lIsUnconnected = IsUnconnected;
                 bool lIsConnected = IsConnected;
                 _ConnectionState = pConnectionState;
-                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.ConnectionState), lContext);
-                if (IsConnected != lIsConnected) mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.IsConnected), lContext);
-                if (IsUnconnected != lIsUnconnected) mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.IsUnconnected), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.ConnectionState), lContext);
+                if (IsConnected != lIsConnected) mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.IsConnected), lContext);
+                if (IsUnconnected != lIsUnconnected) mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.IsUnconnected), lContext);
             }
 
             public cCapabilities Capabilities => mCapabilities;
@@ -168,7 +168,7 @@ namespace work.bacome.imapclient
                 if (cURL.TryParse(pResponseText.Strings[0], out var lReferral) && lReferral.IsHomeServerReferral)
                 {
                     _HomeServerReferral = lReferral;
-                    mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.HomeServerReferral), lContext);
+                    mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.HomeServerReferral), lContext);
                     return true;
                 }
 
@@ -183,7 +183,7 @@ namespace work.bacome.imapclient
                 if (_ConnectedAccountId != null) throw new InvalidOperationException(); // can only be set once
                 _ConnectedAccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId));
                 ZSetState(eConnectionState.authenticated, lContext);
-                mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.ConnectedAccountId), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.ConnectedAccountId), lContext);
             }
 
             public bool SASLSecurityInstalled => mConnection?.SASLSecurityInstalled ?? false;

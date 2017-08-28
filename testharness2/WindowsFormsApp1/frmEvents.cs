@@ -39,7 +39,7 @@ namespace testharness2
         {
             string lValue;
 
-            if (e.PropertyName == nameof(cIMAPClient.AsyncCount)) lValue = mClient.AsyncCount.ToString();
+            if (e.PropertyName == nameof(cIMAPClient.CancellableCount)) lValue = mClient.CancellableCount.ToString();
             else if (e.PropertyName == nameof(cIMAPClient.Capabilities)) lValue = ZCapabilityValue();
             else if (e.PropertyName == nameof(cIMAPClient.ConnectionState)) lValue = mClient.ConnectionState.ToString();
             else if (e.PropertyName == nameof(cIMAPClient.IsConnected)) lValue = mClient.IsConnected.ToString();

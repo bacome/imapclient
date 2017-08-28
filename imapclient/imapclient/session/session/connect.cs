@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
                             await lAwaiter.AwaitAny(mConnection.GetBuildResponseTask(lContext)).ConfigureAwait(false);
 
                             var lLines = mConnection.GetResponse(lContext);
-                            mEventSynchroniser.FireNetworkActivity(lLines, lContext);
+                            mSynchroniser.InvokeNetworkActivity(lLines, lContext);
                             var lCursor = new cBytesCursor(lLines);
 
                             if (lCursor.SkipBytes(kConnectAsteriskSpaceOKSpace))
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
                                 {
                                     mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
                                     mPipeline.SetCapability(mCapabilities, lContext);
-                                    mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
+                                    mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
                                 }
 
                                 ZSetState(eConnectionState.notauthenticated, lContext);
@@ -68,7 +68,7 @@ namespace work.bacome.imapclient
                                 {
                                     mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
                                     mPipeline.SetCapability(mCapabilities, lContext);
-                                    mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
+                                    mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
                                 }
 
                                 ZSetHomeServerReferral(lResponseText, lContext);

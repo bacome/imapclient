@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             private partial class cSelectedMailboxCache : iMessageCache
             {
-                private readonly cEventSynchroniser mEventSynchroniser;
+                private readonly cInvokeSynchroniser mSynchroniser;
                 private readonly cMailboxCacheItem mMailboxCacheItem;
                 private readonly uint mUIDValidity;
                 private readonly bool mNoModSeq;
@@ -33,11 +33,11 @@ namespace work.bacome.imapclient
                 private ulong mHighestModSeq;
                 private ulong mPendingHighestModSeq = 0;
 
-                public cSelectedMailboxCache(cEventSynchroniser pEventSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public cSelectedMailboxCache(cInvokeSynchroniser pSynchroniser, cMailboxCacheItem pMailboxCacheItem, uint pUIDValidity, int pMessageCount, int pRecentCount, uint pUIDNext, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pMailboxCacheItem, pUIDValidity, pMessageCount, pRecentCount, pUIDNext, pHighestModSeq);
 
-                    mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
+                    mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMailboxCacheItem = pMailboxCacheItem ?? throw new ArgumentNullException(nameof(pMailboxCacheItem));
                     mUIDValidity = pUIDValidity;
                     mNoModSeq = pHighestModSeq == 0;
@@ -72,7 +72,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewObject(nameof(cSelectedMailboxCache), pOldCache, pUIDValidity);
 
-                    mEventSynchroniser = pOldCache.mEventSynchroniser;
+                    mSynchroniser = pOldCache.mSynchroniser;
                     mMailboxCacheItem = pOldCache.mMailboxCacheItem;
                     mUIDValidity = pUIDValidity;
                     mNoModSeq = pOldCache.mNoModSeq;
@@ -219,7 +219,7 @@ namespace work.bacome.imapclient
                     mUIDNextUnknownCount += lToAdd;
                     mUnseenUnknownCount += lToAdd;
 
-                    mEventSynchroniser.FireMailboxMessageDelivery(mMailboxCacheItem, lHandles, lContext);
+                    mSynchroniser.InvokeMailboxMessageDelivery(mMailboxCacheItem, lHandles, lContext);
                     ZSetMailboxStatus(lContext);
                 }
 
@@ -249,7 +249,7 @@ namespace work.bacome.imapclient
                     }
                     else mUIDNextMessageCount--;
 
-                    mEventSynchroniser.FireMessagePropertiesChanged(lExpungedItem, fMessageProperties.isexpunged, lContext);
+                    mSynchroniser.InvokeMessagePropertiesChanged(lExpungedItem, fMessageProperties.isexpunged, lContext);
                     ZSetMailboxStatus(lContext);
                 }
 
@@ -312,7 +312,7 @@ namespace work.bacome.imapclient
 
                     if (lFetchedItem.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeq.Value;
 
-                    mEventSynchroniser.FireMessagePropertiesChanged(lFetchedItem, lProperties, lContext);
+                    mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lProperties, lContext);
                     if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
                 }
 

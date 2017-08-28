@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Expunge));
             var lTask = ZExpungeAsync(pHandle, pAndClose, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
         }
 
         public Task ExpungeAsync(iMailboxHandle pHandle, bool pAndClose)

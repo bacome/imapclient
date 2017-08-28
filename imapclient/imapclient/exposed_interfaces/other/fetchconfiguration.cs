@@ -3,37 +3,65 @@ using System.Threading;
 
 namespace work.bacome.imapclient
 {
-    public class cFetchConfiguration
+    public class cPropertyFetchConfiguration
     {
-        private int mTimeout = -1;
+        public readonly int Timeout;
+        public readonly CancellationToken CancellationToken;
+        public readonly Action<int> Increment;
 
-        public int Timeout
-        {
-            get => mTimeout;
-
-            set
-            {
-                if (value < -1) throw new ArgumentOutOfRangeException();
-                mTimeout = value;
-            }
-        }
-
-        public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
-
-        public Action<int> IncrementProgress { get; set; } = null;
-
-        public cFetchSizeConfiguration WriteConfiguration { get; set; } = null;
-
-        public cFetchConfiguration(int pTimeout)
+        public cPropertyFetchConfiguration(int pTimeout)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
-            mTimeout = pTimeout;
+            Timeout = pTimeout;
+            CancellationToken = CancellationToken.None;
+            Increment = null;
         }
 
-        public cFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrementProgress = null)
+        public cPropertyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement)
         {
+            Timeout = -1;
             CancellationToken = pCancellationToken;
-            IncrementProgress = pIncrementProgress;
+            Increment = pIncrement;
+        }
+    }
+
+    public class cBodyFetchConfiguration
+    {
+        public readonly int Timeout;
+        public readonly CancellationToken CancellationToken;
+        public readonly Action<int> Increment;
+        public readonly cFetchSizeConfiguration Write;
+
+        public cBodyFetchConfiguration(int pTimeout, cFetchSizeConfiguration pWrite = null)
+        {
+            if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
+            Timeout = pTimeout;
+            CancellationToken = CancellationToken.None;
+            Increment = null;
+            Write = pWrite;
+        }
+
+        public cBodyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement, cFetchSizeConfiguration pWrite = null)
+        {
+            Timeout = -1;
+            CancellationToken = pCancellationToken;
+            Increment = pIncrement;
+            Write = pWrite;
+        }
+    }
+
+    public class cMessageFetchConfiguration : cPropertyFetchConfiguration
+    {
+        public readonly Action<int> SetCount;
+
+        public cMessageFetchConfiguration(int pTimeout) : base(pTimeout)
+        {
+            SetCount = null;
+        }
+
+        public cMessageFetchConfiguration(CancellationToken pCancellationToken, Action<int> pSetCount, Action<int> pIncrement) : base(pCancellationToken, pIncrement)
+        {
+            SetCount = pSetCount;
         }
     }
 }

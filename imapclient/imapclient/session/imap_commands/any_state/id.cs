@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                 // install the permanant response data processor
                 if (mIdResponseDataProcessor == null)
                 {
-                    mIdResponseDataProcessor = new cIdDataProcessor(mEventSynchroniser);
+                    mIdResponseDataProcessor = new cIdDataProcessor(mSynchroniser);
                     mPipeline.Install(mIdResponseDataProcessor);
                 }
 
@@ -70,12 +70,12 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kIdSpace = new cBytes("ID ");
 
-                private readonly cEventSynchroniser mEventSynchroniser;
+                private readonly cInvokeSynchroniser mSynchroniser;
                 private cIdDictionary mServerId = null;
 
-                public cIdDataProcessor(cEventSynchroniser pEventSynchroniser)
+                public cIdDataProcessor(cInvokeSynchroniser pSynchroniser)
                 {
-                    mEventSynchroniser = pEventSynchroniser ?? throw new ArgumentNullException(nameof(pEventSynchroniser));
+                    mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                 }
 
                 public cIdDictionary ServerId => new cIdDictionary(mServerId);
@@ -90,7 +90,7 @@ namespace work.bacome.imapclient
                         {
                             lContext.TraceVerbose("got id: {0}", lServerId);
                             mServerId = lServerId;
-                            mEventSynchroniser.FirePropertyChanged(nameof(cIMAPClient.ServerId), lContext);
+                            mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.ServerId), lContext);
                             return eProcessDataResult.processed;
                         }
 

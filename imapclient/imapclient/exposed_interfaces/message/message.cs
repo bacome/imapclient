@@ -357,16 +357,16 @@ namespace work.bacome.imapclient
             }
         }
 
-        public void Fetch(cBodyPart pPart, Stream pStream, cFetchControl pFC = null)
+        public void Fetch(cBodyPart pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null)
         {
-            if (pPart is cSinglePartBody lPart) Client.Fetch(Handle, lPart.Section, lPart.DecodingRequired, pStream, pFC);
-            else Client.Fetch(Handle, pPart.Section, eDecodingRequired.none, pStream, pFC);
+            if (pPart is cSinglePartBody lPart) Client.Fetch(Handle, lPart.Section, lPart.DecodingRequired, pStream, pConfiguration);
+            else Client.Fetch(Handle, pPart.Section, eDecodingRequired.none, pStream, pConfiguration);
         }
 
-        public Task FetchAsync(cBodyPart pPart, Stream pStream, cFetchControl pFC = null)
+        public Task FetchAsync(cBodyPart pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null)
         {
-            if (pPart is cSinglePartBody lPart) return Client.FetchAsync(Handle, lPart.Section, lPart.DecodingRequired, pStream, pFC);
-            else return Client.FetchAsync(Handle, pPart.Section, eDecodingRequired.none, pStream, pFC);
+            if (pPart is cSinglePartBody lPart) return Client.FetchAsync(Handle, lPart.Section, lPart.DecodingRequired, pStream, pConfiguration);
+            else return Client.FetchAsync(Handle, pPart.Section, eDecodingRequired.none, pStream, pConfiguration);
         }
 
         public string Fetch(cSection pSection)
@@ -387,9 +387,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        public void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC = null) => Client.Fetch(Handle, pSection, pDecoding, pStream, pFC);
+        public void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.Fetch(Handle, pSection, pDecoding, pStream, pConfiguration);
 
-        public Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC = null) => Client.FetchAsync(Handle, pSection, pDecoding, pStream, pFC);
+        public Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, pSection, pDecoding, pStream, pConfiguration);
 
         // debugging
         public override string ToString() => $"{nameof(cMessage)}({Handle},{Indent})";

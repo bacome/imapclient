@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));
             var lTask = ZSetUnseenAsync(pHandle, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
@@ -35,12 +35,11 @@ namespace work.bacome.imapclient
 
             var lCapabilities = lSession.Capabilities;
 
-            using (var lMC = mCancellationManager.GetMethodControl(lContext))
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
-                cMessageHandleList lHandles;
-                if (lCapabilities.ESearch) lHandles = await lSession.SetUnseenExtendedAsync(lMC, pHandle, lContext).ConfigureAwait(false);
-                else lHandles = await lSession.SetUnseenAsync(lMC, pHandle, lContext).ConfigureAwait(false);
-                return lHandles;
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                if (lCapabilities.ESearch) return await lSession.SetUnseenExtendedAsync(lMC, pHandle, lContext).ConfigureAwait(false);
+                else return await lSession.SetUnseenAsync(lMC, pHandle, lContext).ConfigureAwait(false);
             }
         }
     }

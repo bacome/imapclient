@@ -19,13 +19,13 @@ namespace work.bacome.imapclient
             if (lToFetch == 0) return true; // got everything already
 
             var lTask = ZFetchAttributesAsync(lHandles, lToFetch, null, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
 
             var lMissing = ZFetchAttributesToFetch(lHandles, lRequired);
             return lMissing == 0;
         }
 
-        public bool Fetch(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchConfiguration pConfig)
+        public bool Fetch(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
 
@@ -36,8 +36,8 @@ namespace work.bacome.imapclient
             var lToFetch = ZFetchAttributesToFetch(lHandles, lRequired);
             if (lToFetch == 0) return true; // got everything already
 
-            var lTask = ZFetchAttributesAsync(lHandles, lToFetch, pConfig, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            var lTask = ZFetchAttributesAsync(lHandles, lToFetch, pConfiguration, lContext);
+            mSynchroniser.Wait(lTask, lContext);
 
             var lMissing = ZFetchAttributesToFetch(lHandles, lRequired);
             return lMissing == 0;
@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
             return lMissing == 0;
         }
 
-        public async Task<bool> FetchAsync(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cFetchConfiguration pConfig)
+        public async Task<bool> FetchAsync(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
 
@@ -71,7 +71,7 @@ namespace work.bacome.imapclient
             var lToFetch = ZFetchAttributesToFetch(lHandles, lRequired);
             if (lToFetch == 0) return true; // got everything already
 
-            await ZFetchAttributesAsync(lHandles, lToFetch, pConfig, lContext).ConfigureAwait(false);
+            await ZFetchAttributesAsync(lHandles, lToFetch, pConfiguration, lContext).ConfigureAwait(false);
 
             var lMissing = ZFetchAttributesToFetch(lHandles, lRequired);
             return lMissing == 0;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -12,7 +13,7 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Message));
             var lTask = ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUID), ZFetchAttributesRequired(pProperties), null, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            mSynchroniser.Wait(lTask, lContext);
             var lResult = lTask.Result;
             if (lResult.Count == 0) return null;
             if (lResult.Count == 1) return lResult[0];
@@ -28,18 +29,18 @@ namespace work.bacome.imapclient
             throw new cInternalErrorException(lContext);
         }
 
-        public List<cMessage> Messages(iMailboxHandle pHandle, IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC)
+        public List<cMessage> Messages(iMailboxHandle pHandle, IList<cUID> pUIDs, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));
-            var lTask = ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUIDs), ZFetchAttributesRequired(pProperties), pFC, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            var lTask = ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUIDs), ZFetchAttributesRequired(pProperties), pConfiguration, lContext);
+            mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<List<cMessage>> MessagesAsync(iMailboxHandle pHandle, IList<cUID> pUIDs, fMessageProperties pProperties, cFetchControl pFC)
+        public Task<List<cMessage>> MessagesAsync(iMailboxHandle pHandle, IList<cUID> pUIDs, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessagesAsync));
-            return ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUIDs), ZFetchAttributesRequired(pProperties), pFC, lContext);
+            return ZUIDFetchAttributesAsync(pHandle, ZMessageUIDs(pUIDs), ZFetchAttributesRequired(pProperties), pConfiguration, lContext);
         }
 
         private cUIDList ZMessageUIDs(cUID pUID)
@@ -74,23 +75,42 @@ namespace work.bacome.imapclient
 
         private enum eMessageThreadAlgorithm { orderedsubject, references }
 
-        public List<cMessage> Messages(iMailboxHandle pHandle, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cFetchControl pFC = null)
+        public List<cMessage> Messages(iMailboxHandle pHandle, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cMessageFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));
-            var lTask = ZMessagesAsync(pHandle, pFilter, pSort, pProperties, pFC, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            var lTask = ZMessagesAsync(pHandle, pFilter, pSort, pProperties, pConfiguration, lContext);
+            mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<List<cMessage>> MessagesAsync(iMailboxHandle pHandle, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cFetchControl pFC = null)
+        public Task<List<cMessage>> MessagesAsync(iMailboxHandle pHandle, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cMessageFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessagesAsync));
-            return ZMessagesAsync(pHandle, pFilter, pSort, pProperties, pFC, lContext);
+            return ZMessagesAsync(pHandle, pFilter, pSort, pProperties, pConfiguration, lContext);
         }
 
-        private async Task<List<cMessage>> ZMessagesAsync(iMailboxHandle pHandle, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cFetchControl pFC, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>> ZMessagesAsync(iMailboxHandle pHandle, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cMessageFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesAsync), pHandle, pFilter, pSort, pProperties, pFC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesAsync), pHandle, pFilter, pSort, pProperties);
+
+            if (pConfiguration == null)
+            {
+                using (var lToken = mCancellationManager.GetToken(lContext))
+                {
+                    var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                    return await ZZMessagesAsync(lMC, pHandle, pFilter, pSort, pProperties, pConfiguration, lContext).ConfigureAwait(false);
+                }
+            }
+            else
+            {
+                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
+                return await ZZMessagesAsync(lMC, pHandle, pFilter, pSort, pProperties, pConfiguration, lContext).ConfigureAwait(false);
+            }
+        }
+
+        private async Task<List<cMessage>> ZZMessagesAsync(cMethodControl pMC, iMailboxHandle pHandle, cFilter pFilter, cSort pSort, fMessageProperties pProperties, cMessageFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZZMessagesAsync), pMC, pHandle, pFilter, pSort, pProperties);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -101,77 +121,66 @@ namespace work.bacome.imapclient
             if (pFilter == null) throw new ArgumentNullException(nameof(pFilter));
             if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
-            var lCapabilities = lSession.Capabilities;
+            fMessageProperties lProperties;
+
+            if (ReferenceEquals(pSort, cSort.None)) lProperties = pProperties;
+            else if (ReferenceEquals(pSort, cSort.ThreadOrderedSubject))
+            {
+                if (lSession.Capabilities.ThreadOrderedSubject) return await ZMessagesThreadAsync(pMC, lSession, pHandle, eMessageThreadAlgorithm.orderedsubject, pFilter, pProperties, pConfiguration, lContext).ConfigureAwait(false);
+                lProperties = pProperties | fMessageProperties.basesubject | fMessageProperties.received;
+            }
+            else if (ReferenceEquals(pSort, cSort.ThreadReferences))
+            {
+                if (lSession.Capabilities.ThreadReferences) return await ZMessagesThreadAsync(pMC, lSession, pHandle, eMessageThreadAlgorithm.references, pFilter, pProperties, pConfiguration, lContext).ConfigureAwait(false);
+                lProperties = pProperties | fMessageProperties.subject | fMessageProperties.received | fMessageProperties.references;
+            }
+            else
+            {
+                var lSortProperties = pSort.Properties(out var lSortDisplay);
+                if (!lSortDisplay && lSession.Capabilities.Sort || lSortDisplay && lSession.Capabilities.SortDisplay) return await ZMessagesSortAsync(pMC, lSession, pHandle, pSort, pFilter, pProperties, pConfiguration, lContext).ConfigureAwait(false);
+                lProperties = pProperties | lSortProperties;
+            }
 
             cMessageHandleList lHandles;
+            if (lSession.Capabilities.ESearch) lHandles = await lSession.SearchExtendedAsync(pMC, pHandle, pFilter, lContext).ConfigureAwait(false);
+            else lHandles = await lSession.SearchAsync(pMC, pHandle, pFilter, lContext).ConfigureAwait(false);
 
-            mAsyncCounter.Increment(lContext);
-
-            try
-            {
-                cFetchAttributesMethodControl lMC;
-                if (pFC == null) lMC = new cFetchAttributesMethodControl(mTimeout, CancellationToken, null);
-                else lMC = new cFetchAttributesMethodControl(pFC.Timeout, pFC.CancellationToken, pFC.IncrementProgress);
-
-                fMessageProperties lProperties;
-
-                if (ReferenceEquals(pSort, cSort.None)) lProperties = pProperties;
-                else if (ReferenceEquals(pSort, cSort.ThreadOrderedSubject))
-                {
-                    if (lCapabilities.ThreadOrderedSubject) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.orderedsubject, pFilter, pProperties, lContext).ConfigureAwait(false);
-                    lProperties = pProperties | fMessageProperties.basesubject | fMessageProperties.received;
-                }
-                else if (ReferenceEquals(pSort, cSort.ThreadReferences))
-                {
-                    if (lCapabilities.ThreadReferences) return await ZMessagesThreadAsync(lMC, lSession, pHandle, eMessageThreadAlgorithm.references, pFilter, pProperties, lContext).ConfigureAwait(false);
-                    lProperties = pProperties | fMessageProperties.subject | fMessageProperties.received | fMessageProperties.references;
-                }
-                else if (pSort.Items != null)
-                {
-                    var lSortProperties = pSort.Properties(out var lSortDisplay);
-
-                    if (!lSortDisplay && lCapabilities.Sort || lSortDisplay && lCapabilities.SortDisplay)
-                    {
-                        if (lCapabilities.ESort) lHandles = await lSession.SortExtendedAsync(lMC, pHandle, pFilter, pSort, lContext).ConfigureAwait(false);
-                        else lHandles = await lSession.SortAsync(lMC, pHandle, pFilter, pSort, lContext).ConfigureAwait(false);
-
-                        await ZMessagesFetchAsync(lMC, lSession, lHandles, pProperties, lContext).ConfigureAwait(false);
-
-                        return ZMessagesFlatMessageList(lHandles, lContext);
-                    }
-
-                    lProperties = pProperties | lSortProperties;
-                }
-                else throw new cInternalErrorException(lContext);
-
-                if (lCapabilities.ESearch) lHandles = await lSession.SearchExtendedAsync(lMC, pHandle, pFilter, lContext).ConfigureAwait(false);
-                else lHandles = await lSession.SearchAsync(lMC, pHandle, pFilter, lContext).ConfigureAwait(false);
-
-                await ZMessagesFetchAsync(lMC, lSession, lHandles, lProperties, lContext).ConfigureAwait(false);
-            }
-            finally { mAsyncCounter.Decrement(lContext); }
+            await ZMessagesFetchAsync(pMC, lSession, lHandles, lProperties, pConfiguration, lContext).ConfigureAwait(false);
 
             // client side sorting
 
+            if (ReferenceEquals(pSort, cSort.None)) return ZMessagesFlatMessageList(lHandles, lContext);
             if (ReferenceEquals(pSort, cSort.ThreadOrderedSubject)) return ZMessagesThreadOrderedSubject(lHandles, lContext);
             if (ReferenceEquals(pSort, cSort.ThreadReferences)) return ZMessagesThreadReferences(lHandles, lContext);
 
-            if (!ReferenceEquals(pSort, cSort.None)) lHandles.Sort(pSort);
-
+            lHandles.Sort(pSort);
             return ZMessagesFlatMessageList(lHandles, lContext);
         }
 
-        private async Task<List<cMessage>> ZMessagesThreadAsync(cFetchAttributesMethodControl pMC, cSession pSession, iMailboxHandle pHandle, eMessageThreadAlgorithm pAlgorithm, cFilter pFilter, fMessageProperties pProperties, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>> ZMessagesThreadAsync(cMethodControl pMC, cSession pSession, iMailboxHandle pHandle, eMessageThreadAlgorithm pAlgorithm, cFilter pFilter, fMessageProperties pProperties, cMessageFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             // this routine uses the thread command and then gets the properties of the returned messages (if required)
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesThreadAsync), pMC, pHandle, pFilter, pProperties, pAlgorithm);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesThreadAsync), pMC, pHandle, pAlgorithm, pFilter, pProperties);
             throw new NotImplementedException();
             // TODO
             //  (this will call fetch if required)
             //  (note the UIDValidity check is required)
         }
 
-        private async Task ZMessagesFetchAsync(cFetchAttributesMethodControl pMC, cSession pSession, cMessageHandleList pHandles, fMessageProperties pProperties, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>> ZMessagesSortAsync(cMethodControl pMC, cSession pSession, iMailboxHandle pHandle, cSort pSort, cFilter pFilter, fMessageProperties pProperties, cMessageFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesSortAsync), pMC, pHandle, pSort, pFilter, pProperties);
+
+            cMessageHandleList lHandles;
+            if (pSession.Capabilities.ESort) lHandles = await pSession.SortExtendedAsync(pMC, pHandle, pFilter, pSort, lContext).ConfigureAwait(false);
+            else lHandles = await pSession.SortAsync(pMC, pHandle, pFilter, pSort, lContext).ConfigureAwait(false);
+
+            await ZMessagesFetchAsync(pMC, pSession, lHandles, pProperties, pConfiguration, lContext).ConfigureAwait(false);
+
+            return ZMessagesFlatMessageList(lHandles, lContext);
+        }
+
+        private async Task ZMessagesFetchAsync(cMethodControl pMC, cSession pSession, cMessageHandleList pHandles, fMessageProperties pProperties, cMessageFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesFetchAsync), pMC, pHandles, pProperties);
 
@@ -183,7 +192,11 @@ namespace work.bacome.imapclient
             var lToFetch = ZFetchAttributesToFetch(pHandles, lRequired);
             if (lToFetch == 0) return; // got everything already
 
-            await pSession.FetchAttributesAsync(pMC, pHandles, lToFetch, lContext).ConfigureAwait(false);
+            pConfiguration.SetCount(pHandles.Count);
+
+            cFetchProgress lProgress = new cFetchProgress(mSynchroniser, pConfiguration.Increment);
+
+            await pSession.FetchAttributesAsync(pMC, pHandles, lToFetch, lProgress, lContext).ConfigureAwait(false);
         }
 
         private static readonly cSort kMessagesThreadOrderedSubjectSort = new cSort(cSortItem.Subject, cSortItem.Sent);

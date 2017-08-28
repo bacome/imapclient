@@ -164,6 +164,10 @@
             this.rdoSortNone = new System.Windows.Forms.RadioButton();
             this.txtSortOther = new System.Windows.Forms.TextBox();
             this.tbpWindows = new System.Windows.Forms.TabPage();
+            this.gbxMailboxes = new System.Windows.Forms.GroupBox();
+            this.chkMStatus = new System.Windows.Forms.CheckBox();
+            this.chkMLSub = new System.Windows.Forms.CheckBox();
+            this.chkMList = new System.Windows.Forms.CheckBox();
             this.gbxEvents = new System.Windows.Forms.GroupBox();
             this.txtEvents = new System.Windows.Forms.TextBox();
             this.label24 = new System.Windows.Forms.Label();
@@ -197,10 +201,8 @@
             this.label23 = new System.Windows.Forms.Label();
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
-            this.gbxMailboxes = new System.Windows.Forms.GroupBox();
-            this.chkMList = new System.Windows.Forms.CheckBox();
-            this.chkMLSub = new System.Windows.Forms.CheckBox();
-            this.chkMStatus = new System.Windows.Forms.CheckBox();
+            this.chkTrackUnseen = new System.Windows.Forms.CheckBox();
+            this.chkTrackUIDNext = new System.Windows.Forms.CheckBox();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -224,12 +226,12 @@
             this.gbxDefaultMessageProperties.SuspendLayout();
             this.gbxDefaultSort.SuspendLayout();
             this.tbpWindows.SuspendLayout();
+            this.gbxMailboxes.SuspendLayout();
             this.gbxEvents.SuspendLayout();
             this.gbxNetworkActivity.SuspendLayout();
             this.tpgResponseText.SuspendLayout();
             this.gbxResponseTextCode.SuspendLayout();
             this.gbxResponseTextType.SuspendLayout();
-            this.gbxMailboxes.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbxServer
@@ -1286,7 +1288,7 @@
             // 
             // cmdSubscriptions
             // 
-            this.cmdSubscriptions.Location = new System.Drawing.Point(121, 19);
+            this.cmdSubscriptions.Location = new System.Drawing.Point(133, 19);
             this.cmdSubscriptions.Name = "cmdSubscriptions";
             this.cmdSubscriptions.Size = new System.Drawing.Size(100, 25);
             this.cmdSubscriptions.TabIndex = 1;
@@ -1326,12 +1328,13 @@
             // 
             // cmdSelectedMailbox
             // 
-            this.cmdSelectedMailbox.Location = new System.Drawing.Point(15, 46);
+            this.cmdSelectedMailbox.Location = new System.Drawing.Point(15, 91);
             this.cmdSelectedMailbox.Name = "cmdSelectedMailbox";
             this.cmdSelectedMailbox.Size = new System.Drawing.Size(100, 25);
             this.cmdSelectedMailbox.TabIndex = 2;
             this.cmdSelectedMailbox.Text = "Selected Mailbox";
             this.cmdSelectedMailbox.UseVisualStyleBackColor = true;
+            this.cmdSelectedMailbox.Click += new System.EventHandler(this.cmdSelectedMailbox_Click);
             // 
             // cmdNetworkActivity
             // 
@@ -1345,7 +1348,7 @@
             // 
             // cmdCancel
             // 
-            this.cmdCancel.Location = new System.Drawing.Point(380, 463);
+            this.cmdCancel.Location = new System.Drawing.Point(383, 463);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(100, 25);
             this.cmdCancel.TabIndex = 3;
@@ -1364,7 +1367,7 @@
             // 
             // cmdDisconnect
             // 
-            this.cmdDisconnect.Location = new System.Drawing.Point(486, 463);
+            this.cmdDisconnect.Location = new System.Drawing.Point(595, 463);
             this.cmdDisconnect.Name = "cmdDisconnect";
             this.cmdDisconnect.Size = new System.Drawing.Size(100, 25);
             this.cmdDisconnect.TabIndex = 4;
@@ -1424,12 +1427,14 @@
             // 
             // gbxSelectedMailbox
             // 
+            this.gbxSelectedMailbox.Controls.Add(this.chkTrackUIDNext);
+            this.gbxSelectedMailbox.Controls.Add(this.chkTrackUnseen);
             this.gbxSelectedMailbox.Controls.Add(this.txtSelectedMailbox);
             this.gbxSelectedMailbox.Controls.Add(this.label5);
             this.gbxSelectedMailbox.Controls.Add(this.cmdSelectedMailbox);
-            this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 153);
+            this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 162);
             this.gbxSelectedMailbox.Name = "gbxSelectedMailbox";
-            this.gbxSelectedMailbox.Size = new System.Drawing.Size(205, 77);
+            this.gbxSelectedMailbox.Size = new System.Drawing.Size(205, 123);
             this.gbxSelectedMailbox.TabIndex = 5;
             this.gbxSelectedMailbox.TabStop = false;
             this.gbxSelectedMailbox.Text = "Selected Mailbox";
@@ -1685,7 +1690,6 @@
             // 
             this.tbpWindows.Controls.Add(this.gbxMailboxes);
             this.tbpWindows.Controls.Add(this.gbxEvents);
-            this.tbpWindows.Controls.Add(this.cmdPoll);
             this.tbpWindows.Controls.Add(this.gbxNetworkActivity);
             this.tbpWindows.Controls.Add(this.cmdDetails);
             this.tbpWindows.Controls.Add(this.gbxSelectedMailbox);
@@ -1696,6 +1700,50 @@
             this.tbpWindows.TabIndex = 1;
             this.tbpWindows.Text = "Windows";
             this.tbpWindows.UseVisualStyleBackColor = true;
+            // 
+            // gbxMailboxes
+            // 
+            this.gbxMailboxes.Controls.Add(this.chkMStatus);
+            this.gbxMailboxes.Controls.Add(this.chkMLSub);
+            this.gbxMailboxes.Controls.Add(this.chkMList);
+            this.gbxMailboxes.Controls.Add(this.cmdMailboxes);
+            this.gbxMailboxes.Controls.Add(this.cmdSubscriptions);
+            this.gbxMailboxes.Location = new System.Drawing.Point(6, 307);
+            this.gbxMailboxes.Name = "gbxMailboxes";
+            this.gbxMailboxes.Size = new System.Drawing.Size(249, 73);
+            this.gbxMailboxes.TabIndex = 4;
+            this.gbxMailboxes.TabStop = false;
+            this.gbxMailboxes.Text = "Mailboxes";
+            // 
+            // chkMStatus
+            // 
+            this.chkMStatus.AutoSize = true;
+            this.chkMStatus.Location = new System.Drawing.Point(177, 50);
+            this.chkMStatus.Name = "chkMStatus";
+            this.chkMStatus.Size = new System.Drawing.Size(56, 17);
+            this.chkMStatus.TabIndex = 4;
+            this.chkMStatus.Text = "Status";
+            this.chkMStatus.UseVisualStyleBackColor = true;
+            // 
+            // chkMLSub
+            // 
+            this.chkMLSub.AutoSize = true;
+            this.chkMLSub.Location = new System.Drawing.Point(97, 50);
+            this.chkMLSub.Name = "chkMLSub";
+            this.chkMLSub.Size = new System.Drawing.Size(51, 17);
+            this.chkMLSub.TabIndex = 3;
+            this.chkMLSub.Text = "LSub";
+            this.chkMLSub.UseVisualStyleBackColor = true;
+            // 
+            // chkMList
+            // 
+            this.chkMList.AutoSize = true;
+            this.chkMList.Location = new System.Drawing.Point(15, 50);
+            this.chkMList.Name = "chkMList";
+            this.chkMList.Size = new System.Drawing.Size(42, 17);
+            this.chkMList.TabIndex = 2;
+            this.chkMList.Text = "List";
+            this.chkMList.UseVisualStyleBackColor = true;
             // 
             // gbxEvents
             // 
@@ -1730,7 +1778,7 @@
             // 
             // cmdPoll
             // 
-            this.cmdPoll.Location = new System.Drawing.Point(250, 272);
+            this.cmdPoll.Location = new System.Drawing.Point(489, 463);
             this.cmdPoll.Name = "cmdPoll";
             this.cmdPoll.Size = new System.Drawing.Size(100, 25);
             this.cmdPoll.TabIndex = 3;
@@ -2083,49 +2131,25 @@
             this.cmdResponseText.UseVisualStyleBackColor = true;
             this.cmdResponseText.Click += new System.EventHandler(this.cmdResponseText_Click);
             // 
-            // gbxMailboxes
+            // chkTrackUnseen
             // 
-            this.gbxMailboxes.Controls.Add(this.chkMStatus);
-            this.gbxMailboxes.Controls.Add(this.chkMLSub);
-            this.gbxMailboxes.Controls.Add(this.chkMList);
-            this.gbxMailboxes.Controls.Add(this.cmdMailboxes);
-            this.gbxMailboxes.Controls.Add(this.cmdSubscriptions);
-            this.gbxMailboxes.Location = new System.Drawing.Point(6, 253);
-            this.gbxMailboxes.Name = "gbxMailboxes";
-            this.gbxMailboxes.Size = new System.Drawing.Size(228, 73);
-            this.gbxMailboxes.TabIndex = 4;
-            this.gbxMailboxes.TabStop = false;
-            this.gbxMailboxes.Text = "Mailboxes";
+            this.chkTrackUnseen.AutoSize = true;
+            this.chkTrackUnseen.Location = new System.Drawing.Point(15, 68);
+            this.chkTrackUnseen.Name = "chkTrackUnseen";
+            this.chkTrackUnseen.Size = new System.Drawing.Size(94, 17);
+            this.chkTrackUnseen.TabIndex = 3;
+            this.chkTrackUnseen.Text = "Track Unseen";
+            this.chkTrackUnseen.UseVisualStyleBackColor = true;
             // 
-            // chkMList
+            // chkTrackUIDNext
             // 
-            this.chkMList.AutoSize = true;
-            this.chkMList.Location = new System.Drawing.Point(15, 50);
-            this.chkMList.Name = "chkMList";
-            this.chkMList.Size = new System.Drawing.Size(42, 17);
-            this.chkMList.TabIndex = 2;
-            this.chkMList.Text = "List";
-            this.chkMList.UseVisualStyleBackColor = true;
-            // 
-            // chkMLSub
-            // 
-            this.chkMLSub.AutoSize = true;
-            this.chkMLSub.Location = new System.Drawing.Point(75, 50);
-            this.chkMLSub.Name = "chkMLSub";
-            this.chkMLSub.Size = new System.Drawing.Size(51, 17);
-            this.chkMLSub.TabIndex = 3;
-            this.chkMLSub.Text = "LSub";
-            this.chkMLSub.UseVisualStyleBackColor = true;
-            // 
-            // chkMStatus
-            // 
-            this.chkMStatus.AutoSize = true;
-            this.chkMStatus.Location = new System.Drawing.Point(135, 50);
-            this.chkMStatus.Name = "chkMStatus";
-            this.chkMStatus.Size = new System.Drawing.Size(56, 17);
-            this.chkMStatus.TabIndex = 4;
-            this.chkMStatus.Text = "Status";
-            this.chkMStatus.UseVisualStyleBackColor = true;
+            this.chkTrackUIDNext.AutoSize = true;
+            this.chkTrackUIDNext.Location = new System.Drawing.Point(15, 45);
+            this.chkTrackUIDNext.Name = "chkTrackUIDNext";
+            this.chkTrackUIDNext.Size = new System.Drawing.Size(98, 17);
+            this.chkTrackUIDNext.TabIndex = 4;
+            this.chkTrackUIDNext.Text = "Track UIDNext";
+            this.chkTrackUIDNext.UseVisualStyleBackColor = true;
             // 
             // frmClient
             // 
@@ -2135,6 +2159,7 @@
             this.ClientSize = new System.Drawing.Size(838, 496);
             this.Controls.Add(this.tabClient);
             this.Controls.Add(this.gbxConnect);
+            this.Controls.Add(this.cmdPoll);
             this.Controls.Add(this.lblState);
             this.Controls.Add(this.cmdCancel);
             this.Controls.Add(this.cmdDisconnect);
@@ -2180,6 +2205,8 @@
             this.gbxDefaultSort.ResumeLayout(false);
             this.gbxDefaultSort.PerformLayout();
             this.tbpWindows.ResumeLayout(false);
+            this.gbxMailboxes.ResumeLayout(false);
+            this.gbxMailboxes.PerformLayout();
             this.gbxEvents.ResumeLayout(false);
             this.gbxEvents.PerformLayout();
             this.gbxNetworkActivity.ResumeLayout(false);
@@ -2190,8 +2217,6 @@
             this.gbxResponseTextCode.PerformLayout();
             this.gbxResponseTextType.ResumeLayout(false);
             this.gbxResponseTextType.PerformLayout();
-            this.gbxMailboxes.ResumeLayout(false);
-            this.gbxMailboxes.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2371,5 +2396,7 @@
         private System.Windows.Forms.CheckBox chkMStatus;
         private System.Windows.Forms.CheckBox chkMLSub;
         private System.Windows.Forms.CheckBox chkMList;
+        private System.Windows.Forms.CheckBox chkTrackUIDNext;
+        private System.Windows.Forms.CheckBox chkTrackUnseen;
     }
 }
