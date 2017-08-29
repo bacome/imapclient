@@ -98,7 +98,7 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    return await ZZMessagesAsync(lMC, pHandle, pFilter, pSort, pProperties, pConfiguration, lContext).ConfigureAwait(false);
+                    return await ZZMessagesAsync(lMC, pHandle, pFilter, pSort, pProperties, null, lContext).ConfigureAwait(false);
                 }
             }
             else
@@ -192,9 +192,14 @@ namespace work.bacome.imapclient
             var lToFetch = ZFetchAttributesToFetch(pHandles, lRequired);
             if (lToFetch == 0) return; // got everything already
 
-            pConfiguration.SetCount(pHandles.Count);
+            cFetchProgress lProgress;
 
-            cFetchProgress lProgress = new cFetchProgress(mSynchroniser, pConfiguration.Increment);
+            if (pConfiguration == null) lProgress = new cFetchProgress();
+            else
+            {
+                pConfiguration.SetCount?.Invoke(pHandles.Count);
+                lProgress = new cFetchProgress(mSynchroniser, pConfiguration.Increment);
+            }
 
             await pSession.FetchAttributesAsync(pMC, pHandles, lToFetch, lProgress, lContext).ConfigureAwait(false);
         }

@@ -20,8 +20,8 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckInSelectedMailbox(pHandle); // to be repeated inside the select lock
 
-                if (pHandle.UID == null) return ZFetchBodyAsync(pMC, pHandle.Cache.MailboxHandle, pHandle.UID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
-                else return ZFetchBodyAsync(pMC, null, null, pHandle, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
+                if (pHandle.UID == null) return ZFetchBodyAsync(pMC, null, null, pHandle, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
+                else return ZFetchBodyAsync(pMC, pHandle.Cache.MailboxHandle, pHandle.UID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
             }
 
             public Task UIDFetchBodyAsync(cMethodControl pMC, iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cTrace.cContext pParentContext)

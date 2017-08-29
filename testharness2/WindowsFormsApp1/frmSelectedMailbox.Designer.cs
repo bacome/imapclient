@@ -104,6 +104,7 @@
             this.dgv.Name = "dgv";
             this.dgv.Size = new System.Drawing.Size(276, 356);
             this.dgv.TabIndex = 0;
+            this.dgv.CellContentDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_CellContentDoubleClick);
             // 
             // frmSelectedMailbox
             // 

@@ -72,6 +72,12 @@
     <Compile Include="frmMailboxes.Designer.cs">
       <DependentUpon>frmMailboxes.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmMessage.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMessage.Designer.cs">
+      <DependentUpon>frmMessage.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmNetworkActivity.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -116,6 +122,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmMailboxes.resx">
       <DependentUpon>frmMailboxes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmMessage.resx">
+      <DependentUpon>frmMessage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmNetworkActivity.resx">
       <DependentUpon>frmNetworkActivity.cs</DependentUpon>

@@ -19,6 +19,7 @@ namespace testharness2
         private readonly bool mTrackUIDNext;
         private readonly bool mTrackUnseen;
         private readonly bool mProgressBar;
+        private readonly List<frmMessage> mMessages = new List<frmMessage>();
         private cMailbox mSelectedMailbox = null;
 
         public frmSelectedMailbox(cIMAPClient pClient, int pMaxMessages, bool pTrackUIDNext, bool pTrackUnseen, bool pProgressBar)
@@ -48,14 +49,14 @@ namespace testharness2
             var lTemplate = new DataGridViewTextBoxCell();
 
             dgv.AutoGenerateColumns = false;
-            dgv.Columns.Add(LColumn(nameof(cGridRow.Indent)));
-            dgv.Columns.Add(LColumn(nameof(cGridRow.Seen)));
-            dgv.Columns.Add(LColumn(nameof(cGridRow.Deleted)));
-            dgv.Columns.Add(LColumn(nameof(cGridRow.Expunged)));
-            dgv.Columns.Add(LColumn(nameof(cGridRow.From)));
-            dgv.Columns.Add(LColumn(nameof(cGridRow.Subject)));
-            dgv.Columns.Add(LColumn(nameof(cGridRow.Received)));
-            if (mTrackUIDNext) dgv.Columns.Add(LColumn(nameof(cGridRow.UID)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Indent)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Seen)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Deleted)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Expunged)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.From)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Subject)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Received)));
+            if (mTrackUIDNext) dgv.Columns.Add(LColumn(nameof(cGridRowData.UID)));
 
             DataGridViewColumn LColumn(string pName)
             {
@@ -105,7 +106,62 @@ namespace testharness2
 
         private void mClient_MessagePropertyChanged(object sender, cMessagePropertyChangedEventArgs e)
         {
-            // TODO: change the message if it is on the grid
+            var lBindingSource = dgv.DataSource as BindingSource;
+
+            if (lBindingSource == null) return;
+
+            for (int i = 0; i < lBindingSource.List.Count; i++)
+            {
+                var lData = lBindingSource.List[i] as cGridRowData;
+
+                if (lData != null && lData.Message.Handle == e.Handle)
+                {
+                    lBindingSource.ResetItem(i);
+                    break;
+                }
+            }
+        }
+
+        public cMessage Next(cMessage pMessage)
+        {
+            var lBindingSource = dgv.DataSource as BindingSource;
+
+            if (lBindingSource == null) return null;
+
+            for (int i = 0; i < lBindingSource.List.Count - 1; i++)
+            {
+                var lData = lBindingSource.List[i] as cGridRowData;
+
+                if (lData != null && lData.Message.Handle == pMessage.Handle)
+                {
+                    lData = lBindingSource.List[i + 1] as cGridRowData;
+                    if (lData == null) return null;
+                    return lData.Message;
+                }
+            }
+
+            return null;
+        }
+
+        public cMessage Previous(cMessage pMessage)
+        {
+            var lBindingSource = dgv.DataSource as BindingSource;
+
+            if (lBindingSource == null) return null;
+
+            for (int i = 1; i < lBindingSource.List.Count; i++)
+            {
+                var lData = lBindingSource.List[i] as cGridRowData;
+
+                if (lData != null && lData.Message.Handle == pMessage.Handle)
+                {
+                    lData = lBindingSource.List[i - 1] as cGridRowData;
+                    if (lData == null) return null;
+                    return lData.Message;
+                }
+            }
+
+            return null;
         }
 
         private void ZChangedMailboxProperties()
@@ -161,6 +217,7 @@ namespace testharness2
             int lChangedMessagesAsyncEntryNumber = ++mChangedMessagesAsyncEntryNumber;
 
             dgv.Enabled = false;
+            ZMessagesClose();
 
             if (mSelectedMailbox == null) return;
 
@@ -177,7 +234,7 @@ namespace testharness2
                 if (lDetails.Cache.Count > mMaxMessages)
                 {
                     var lHandle = lDetails.Cache[lDetails.Cache.Count - mMaxMessages];
-                    lFilter = cFilter.MessageHandle > lHandle;
+                    lFilter = cFilter.MessageHandle >= lHandle;
                 }
                 else lFilter = null;
             }
@@ -200,6 +257,7 @@ namespace testharness2
                 if (mProgressBar)
                 {
                     lProgress = new frmProgress("loading messages");
+                    lProgress.Show();
                     lConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, lProgress.SetCount, lProgress.Increment);
                 }
                 else
@@ -225,7 +283,7 @@ namespace testharness2
 
             // load the grid with data
             BindingSource lBindingSource = new BindingSource();
-            foreach (var lMessage in lMessages) lBindingSource.Add(new cGridRow(lMessage));
+            foreach (var lMessage in lMessages) lBindingSource.Add(new cGridRowData(lMessage));
             dgv.Enabled = true;
             dgv.DataSource = lBindingSource;
 
@@ -242,11 +300,37 @@ namespace testharness2
             if (e.PropertyName == nameof(cIMAPClient.SelectedMailbox)) ZChangedSelectedMailbox();
         }
 
-        private void frmSelectedMailbox_FormClosed(object sender, FormClosedEventArgs e)
+        private void ZMessageAdd(frmMessage pForm)
         {
-            mClient.PropertyChanged -= mClient_PropertyChanged;
-            mClient.MessagePropertyChanged -= mClient_MessagePropertyChanged;
-            ZUnsubscribeMailbox();
+            mMessages.Add(pForm);
+            pForm.FormClosed += ZMessageClosed;
+            pForm.Show();
+        }
+
+        private void ZMessageClosed(object sender, EventArgs e)
+        {
+            if (!(sender is frmMessage lForm)) return;
+            lForm.FormClosed -= ZMessageClosed;
+            mMessages.Remove(lForm);
+        }
+
+        private void ZMessagesClose()
+        {
+            List<frmMessage> lForms = new List<frmMessage>();
+
+            foreach (var lForm in mMessages)
+            {
+                lForms.Add(lForm);
+                lForm.FormClosed -= ZMessageClosed;
+            }
+
+            mMessages.Clear();
+
+            foreach (var lForm in lForms)
+            {
+                try { lForm.Close(); }
+                catch { }
+            }
         }
 
         private async void cmdExpunge_Click(object sender, EventArgs e)
@@ -261,6 +345,20 @@ namespace testharness2
             catch (Exception ex) { MessageBox.Show($"an error occurred while closing: {ex}"); }
         }
 
+        private void dgv_CellContentDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            var lData = dgv.Rows[e.RowIndex].DataBoundItem as cGridRowData;
+            if (lData == null) return;
+            ZMessageAdd(new frmMessage(this, mSelectedMailbox, lData.Message));
+        }
+
+        private void frmSelectedMailbox_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            mClient.PropertyChanged -= mClient_PropertyChanged;
+            mClient.MessagePropertyChanged -= mClient_MessagePropertyChanged;
+            ZUnsubscribeMailbox();
+            ZMessagesClose();
+        }
 
 
 
@@ -276,11 +374,11 @@ namespace testharness2
 
 
 
-        private class cGridRow
+        private class cGridRowData
         {
             public readonly cMessage Message;
 
-            public cGridRow(cMessage pMessage)
+            public cGridRowData(cMessage pMessage)
             {
                 Message = pMessage;
             }
