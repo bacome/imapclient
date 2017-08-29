@@ -47,6 +47,7 @@ namespace testharness2
                 ZSetControlStateCredentials(lContext);
                 cmdCancel.Text = "Cancel";
                 cmdCancel.Enabled = false;
+                cmdPoll.Enabled = false;
                 cmdDisconnect.Enabled = false;
             }
             else
@@ -66,6 +67,7 @@ namespace testharness2
                     cmdCancel.Enabled = true;
                 }
 
+                cmdPoll.Enabled = mClient.IsConnected;
                 cmdDisconnect.Enabled = mClient.IsConnected;
             }
 
@@ -685,7 +687,7 @@ namespace testharness2
         private void cmdSelectedMailbox_Click(object sender, EventArgs e)
         {
             if (mNamedChildren.TryGetValue(nameof(frmSelectedMailbox), out var lForm)) ZFocus(lForm);
-            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSelectedMailbox.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked));
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSelectedMailbox.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked));
         }
     }
 }

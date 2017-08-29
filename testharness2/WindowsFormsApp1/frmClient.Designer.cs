@@ -142,6 +142,8 @@
             this.tbpCapabilities = new System.Windows.Forms.TabPage();
             this.gbxConnect = new System.Windows.Forms.GroupBox();
             this.gbxSelectedMailbox = new System.Windows.Forms.GroupBox();
+            this.chkTrackUIDNext = new System.Windows.Forms.CheckBox();
+            this.chkTrackUnseen = new System.Windows.Forms.CheckBox();
             this.txtSelectedMailbox = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.tabClient = new System.Windows.Forms.TabControl();
@@ -171,7 +173,6 @@
             this.gbxEvents = new System.Windows.Forms.GroupBox();
             this.txtEvents = new System.Windows.Forms.TextBox();
             this.label24 = new System.Windows.Forms.Label();
-            this.cmdPoll = new System.Windows.Forms.Button();
             this.gbxNetworkActivity = new System.Windows.Forms.GroupBox();
             this.txtNetworkActivity = new System.Windows.Forms.TextBox();
             this.label22 = new System.Windows.Forms.Label();
@@ -201,8 +202,8 @@
             this.label23 = new System.Windows.Forms.Label();
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
-            this.chkTrackUnseen = new System.Windows.Forms.CheckBox();
-            this.chkTrackUIDNext = new System.Windows.Forms.CheckBox();
+            this.cmdPoll = new System.Windows.Forms.Button();
+            this.chkProgressBar = new System.Windows.Forms.CheckBox();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -1328,10 +1329,10 @@
             // 
             // cmdSelectedMailbox
             // 
-            this.cmdSelectedMailbox.Location = new System.Drawing.Point(15, 91);
+            this.cmdSelectedMailbox.Location = new System.Drawing.Point(15, 114);
             this.cmdSelectedMailbox.Name = "cmdSelectedMailbox";
             this.cmdSelectedMailbox.Size = new System.Drawing.Size(100, 25);
-            this.cmdSelectedMailbox.TabIndex = 2;
+            this.cmdSelectedMailbox.TabIndex = 5;
             this.cmdSelectedMailbox.Text = "Selected Mailbox";
             this.cmdSelectedMailbox.UseVisualStyleBackColor = true;
             this.cmdSelectedMailbox.Click += new System.EventHandler(this.cmdSelectedMailbox_Click);
@@ -1370,7 +1371,7 @@
             this.cmdDisconnect.Location = new System.Drawing.Point(595, 463);
             this.cmdDisconnect.Name = "cmdDisconnect";
             this.cmdDisconnect.Size = new System.Drawing.Size(100, 25);
-            this.cmdDisconnect.TabIndex = 4;
+            this.cmdDisconnect.TabIndex = 5;
             this.cmdDisconnect.Text = "Disconnect";
             this.cmdDisconnect.UseVisualStyleBackColor = true;
             this.cmdDisconnect.Click += new System.EventHandler(this.cmdDisconnect_Click);
@@ -1427,17 +1428,38 @@
             // 
             // gbxSelectedMailbox
             // 
+            this.gbxSelectedMailbox.Controls.Add(this.chkProgressBar);
             this.gbxSelectedMailbox.Controls.Add(this.chkTrackUIDNext);
             this.gbxSelectedMailbox.Controls.Add(this.chkTrackUnseen);
             this.gbxSelectedMailbox.Controls.Add(this.txtSelectedMailbox);
             this.gbxSelectedMailbox.Controls.Add(this.label5);
             this.gbxSelectedMailbox.Controls.Add(this.cmdSelectedMailbox);
-            this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 162);
+            this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 143);
             this.gbxSelectedMailbox.Name = "gbxSelectedMailbox";
-            this.gbxSelectedMailbox.Size = new System.Drawing.Size(205, 123);
-            this.gbxSelectedMailbox.TabIndex = 5;
+            this.gbxSelectedMailbox.Size = new System.Drawing.Size(205, 146);
+            this.gbxSelectedMailbox.TabIndex = 3;
             this.gbxSelectedMailbox.TabStop = false;
             this.gbxSelectedMailbox.Text = "Selected Mailbox";
+            // 
+            // chkTrackUIDNext
+            // 
+            this.chkTrackUIDNext.AutoSize = true;
+            this.chkTrackUIDNext.Location = new System.Drawing.Point(15, 45);
+            this.chkTrackUIDNext.Name = "chkTrackUIDNext";
+            this.chkTrackUIDNext.Size = new System.Drawing.Size(98, 17);
+            this.chkTrackUIDNext.TabIndex = 2;
+            this.chkTrackUIDNext.Text = "Track UIDNext";
+            this.chkTrackUIDNext.UseVisualStyleBackColor = true;
+            // 
+            // chkTrackUnseen
+            // 
+            this.chkTrackUnseen.AutoSize = true;
+            this.chkTrackUnseen.Location = new System.Drawing.Point(15, 68);
+            this.chkTrackUnseen.Name = "chkTrackUnseen";
+            this.chkTrackUnseen.Size = new System.Drawing.Size(94, 17);
+            this.chkTrackUnseen.TabIndex = 3;
+            this.chkTrackUnseen.Text = "Track Unseen";
+            this.chkTrackUnseen.UseVisualStyleBackColor = true;
             // 
             // txtSelectedMailbox
             // 
@@ -1776,16 +1798,6 @@
             this.label24.TabIndex = 0;
             this.label24.Text = "Max Messages Shown";
             // 
-            // cmdPoll
-            // 
-            this.cmdPoll.Location = new System.Drawing.Point(489, 463);
-            this.cmdPoll.Name = "cmdPoll";
-            this.cmdPoll.Size = new System.Drawing.Size(100, 25);
-            this.cmdPoll.TabIndex = 3;
-            this.cmdPoll.Text = "Poll";
-            this.cmdPoll.UseVisualStyleBackColor = true;
-            this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
-            // 
             // gbxNetworkActivity
             // 
             this.gbxNetworkActivity.Controls.Add(this.txtNetworkActivity);
@@ -1829,7 +1841,7 @@
             this.tpgResponseText.Padding = new System.Windows.Forms.Padding(3);
             this.tpgResponseText.Size = new System.Drawing.Size(446, 386);
             this.tpgResponseText.TabIndex = 2;
-            this.tpgResponseText.Text = "Response Text";
+            this.tpgResponseText.Text = "Response Text Window";
             this.tpgResponseText.UseVisualStyleBackColor = true;
             // 
             // gbxResponseTextCode
@@ -2131,25 +2143,25 @@
             this.cmdResponseText.UseVisualStyleBackColor = true;
             this.cmdResponseText.Click += new System.EventHandler(this.cmdResponseText_Click);
             // 
-            // chkTrackUnseen
+            // cmdPoll
             // 
-            this.chkTrackUnseen.AutoSize = true;
-            this.chkTrackUnseen.Location = new System.Drawing.Point(15, 68);
-            this.chkTrackUnseen.Name = "chkTrackUnseen";
-            this.chkTrackUnseen.Size = new System.Drawing.Size(94, 17);
-            this.chkTrackUnseen.TabIndex = 3;
-            this.chkTrackUnseen.Text = "Track Unseen";
-            this.chkTrackUnseen.UseVisualStyleBackColor = true;
+            this.cmdPoll.Location = new System.Drawing.Point(489, 463);
+            this.cmdPoll.Name = "cmdPoll";
+            this.cmdPoll.Size = new System.Drawing.Size(100, 25);
+            this.cmdPoll.TabIndex = 4;
+            this.cmdPoll.Text = "Poll";
+            this.cmdPoll.UseVisualStyleBackColor = true;
+            this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
-            // chkTrackUIDNext
+            // chkProgressBar
             // 
-            this.chkTrackUIDNext.AutoSize = true;
-            this.chkTrackUIDNext.Location = new System.Drawing.Point(15, 45);
-            this.chkTrackUIDNext.Name = "chkTrackUIDNext";
-            this.chkTrackUIDNext.Size = new System.Drawing.Size(98, 17);
-            this.chkTrackUIDNext.TabIndex = 4;
-            this.chkTrackUIDNext.Text = "Track UIDNext";
-            this.chkTrackUIDNext.UseVisualStyleBackColor = true;
+            this.chkProgressBar.AutoSize = true;
+            this.chkProgressBar.Location = new System.Drawing.Point(15, 91);
+            this.chkProgressBar.Name = "chkProgressBar";
+            this.chkProgressBar.Size = new System.Drawing.Size(86, 17);
+            this.chkProgressBar.TabIndex = 4;
+            this.chkProgressBar.Text = "Progress Bar";
+            this.chkProgressBar.UseVisualStyleBackColor = true;
             // 
             // frmClient
             // 
@@ -2398,5 +2410,6 @@
         private System.Windows.Forms.CheckBox chkMList;
         private System.Windows.Forms.CheckBox chkTrackUIDNext;
         private System.Windows.Forms.CheckBox chkTrackUnseen;
+        private System.Windows.Forms.CheckBox chkProgressBar;
     }
 }

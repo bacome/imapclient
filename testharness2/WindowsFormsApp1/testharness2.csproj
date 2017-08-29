@@ -78,6 +78,12 @@
     <Compile Include="frmNetworkActivity.Designer.cs">
       <DependentUpon>frmNetworkActivity.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmProgress.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmProgress.Designer.cs">
+      <DependentUpon>frmProgress.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmResponseText.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -113,6 +119,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmNetworkActivity.resx">
       <DependentUpon>frmNetworkActivity.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmProgress.resx">
+      <DependentUpon>frmProgress.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmResponseText.resx">
       <DependentUpon>frmResponseText.cs</DependentUpon>

@@ -65,7 +65,7 @@
             this.cmdTests.Location = new System.Drawing.Point(320, 39);
             this.cmdTests.Name = "cmdTests";
             this.cmdTests.Size = new System.Drawing.Size(100, 25);
-            this.cmdTests.TabIndex = 2;
+            this.cmdTests.TabIndex = 3;
             this.cmdTests.Text = "Tests";
             this.cmdTests.UseVisualStyleBackColor = true;
             this.cmdTests.Click += new System.EventHandler(this.cmdTests_Click);
@@ -75,7 +75,7 @@
             this.cmdQuickTests.Location = new System.Drawing.Point(320, 69);
             this.cmdQuickTests.Name = "cmdQuickTests";
             this.cmdQuickTests.Size = new System.Drawing.Size(100, 25);
-            this.cmdQuickTests.TabIndex = 3;
+            this.cmdQuickTests.TabIndex = 4;
             this.cmdQuickTests.Text = "Quick Tests";
             this.cmdQuickTests.UseVisualStyleBackColor = true;
             this.cmdQuickTests.Click += new System.EventHandler(this.cmdQuickTests_Click);
@@ -85,7 +85,7 @@
             this.cmdCurrentTest.Location = new System.Drawing.Point(320, 99);
             this.cmdCurrentTest.Name = "cmdCurrentTest";
             this.cmdCurrentTest.Size = new System.Drawing.Size(100, 25);
-            this.cmdCurrentTest.TabIndex = 4;
+            this.cmdCurrentTest.TabIndex = 5;
             this.cmdCurrentTest.Text = "Current Test";
             this.cmdCurrentTest.UseVisualStyleBackColor = true;
             this.cmdCurrentTest.Click += new System.EventHandler(this.cmdCurrentTest_Click);
@@ -95,7 +95,7 @@
             this.cmdCreate.Location = new System.Drawing.Point(100, 45);
             this.cmdCreate.Name = "cmdCreate";
             this.cmdCreate.Size = new System.Drawing.Size(100, 25);
-            this.cmdCreate.TabIndex = 5;
+            this.cmdCreate.TabIndex = 2;
             this.cmdCreate.Text = "Create";
             this.cmdCreate.UseVisualStyleBackColor = true;
             this.cmdCreate.Click += new System.EventHandler(this.cmdCreate_Click);
@@ -113,7 +113,7 @@
             this.groupBox1.Location = new System.Drawing.Point(5, 34);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(309, 90);
-            this.groupBox1.TabIndex = 6;
+            this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "New Client";
             // 
@@ -123,7 +123,7 @@
             this.label2.Location = new System.Drawing.Point(12, 22);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(79, 13);
-            this.label2.TabIndex = 7;
+            this.label2.TabIndex = 0;
             this.label2.Text = "Instance Name";
             // 
             // txtInstanceName
@@ -131,7 +131,7 @@
             this.txtInstanceName.Location = new System.Drawing.Point(100, 19);
             this.txtInstanceName.Name = "txtInstanceName";
             this.txtInstanceName.Size = new System.Drawing.Size(198, 20);
-            this.txtInstanceName.TabIndex = 6;
+            this.txtInstanceName.TabIndex = 1;
             // 
             // frmStart
             // 

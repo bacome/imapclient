@@ -96,7 +96,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kUIDSpace = new cBytes("UID ");
                 private static readonly cBytes kBinaryLBracket = new cBytes("BINARY[");
                 private static readonly cBytes kBinarySizeLBracket = new cBytes("BINARY.SIZE[");
-                private static readonly cBytes kModSeqSpace = new cBytes("MODSEQ ");
+                private static readonly cBytes kModSeqSpaceLParen = new cBytes("MODSEQ (");
 
                 private const string kReferences = "REFERENCES";
 
@@ -233,10 +233,10 @@ namespace work.bacome.imapclient
                             lOK = ZProcessBinarySize(pCursor, out var lPart, out var lBytes);
                             if (lOK) lBinarySizesBuilder.Set(lPart, lBytes);
                         }
-                        else if (pCursor.SkipBytes(kModSeqSpace))
+                        else if (pCursor.SkipBytes(kModSeqSpaceLParen))
                         {
                             lAttribute = fFetchAttributes.modseq;
-                            lOK = pCursor.GetNumber(out var lTemp);
+                            lOK = pCursor.GetNumber(out var lTemp) && pCursor.SkipByte(cASCII.RPAREN);
                             if (lOK) lModSeq = lTemp;
                         }
                         else break;
