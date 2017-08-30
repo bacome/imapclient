@@ -71,7 +71,10 @@ namespace testharness2
         private void ZChangedSelectedMailbox()
         {
             ZUnsubscribeMailbox();
-            mSelectedMailbox = mClient.SelectedMailbox;
+
+            if (mClient.IsConnected) mSelectedMailbox = mClient.SelectedMailbox;
+            else mSelectedMailbox = null;
+
             ZSubscribeMailbox();
 
             ZChangedMailboxProperties();
@@ -297,7 +300,7 @@ namespace testharness2
 
         private void mClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(cIMAPClient.SelectedMailbox)) ZChangedSelectedMailbox();
+            if (e.PropertyName == nameof(cIMAPClient.IsConnected) || e.PropertyName == nameof(cIMAPClient.SelectedMailbox)) ZChangedSelectedMailbox();
         }
 
         private void ZMessageAdd(frmMessage pForm)
@@ -349,7 +352,7 @@ namespace testharness2
         {
             var lData = dgv.Rows[e.RowIndex].DataBoundItem as cGridRowData;
             if (lData == null) return;
-            ZMessageAdd(new frmMessage(this, mSelectedMailbox, lData.Message));
+            ZMessageAdd(new frmMessage(mClient.InstanceName, this, mSelectedMailbox, lData.Message));
         }
 
         private void frmSelectedMailbox_FormClosed(object sender, FormClosedEventArgs e)

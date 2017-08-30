@@ -333,7 +333,7 @@ namespace testharness2
                 txtSortOther.Text = mClient.DefaultSort.ToString();
             }
 
-            chkMPEnvelope.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0;
+            chkMPEnvelope.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0;
             chkMPFlags.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0;
             chkMPReceived.Checked = (mClient.DefaultMessageProperties & fMessageProperties.received) != 0;
             chkMPSize.Checked = (mClient.DefaultMessageProperties & fMessageProperties.size) != 0;
@@ -638,7 +638,7 @@ namespace testharness2
             {
                 fMessageProperties lProperties = 0;
 
-                if (chkMPEnvelope.Checked) lProperties |= fMessageProperties.sent;
+                if (chkMPEnvelope.Checked) lProperties |= fMessageProperties.envelope;
                 if (chkMPFlags.Checked) lProperties |= fMessageProperties.flags;
                 if (chkMPReceived.Checked) lProperties |= fMessageProperties.received;
                 if (chkMPSize.Checked) lProperties |= fMessageProperties.size;
@@ -681,10 +681,15 @@ namespace testharness2
             if (chkMLSub.Checked) lDataSets |= fMailboxCacheDataSets.lsub;
             if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
 
-            ZUnnamedChildAdd(new frmMailboxes(mClient, pSubscriptions, lDataSets, mRootContext));
+            ZUnnamedChildAdd(new frmMailboxes(mClient, pSubscriptions, lDataSets, ZDisplaySelectedMailbox, mRootContext));
         }
 
         private void cmdSelectedMailbox_Click(object sender, EventArgs e)
+        {
+            ZDisplaySelectedMailbox();
+        }
+
+        private void ZDisplaySelectedMailbox()
         {
             if (mNamedChildren.TryGetValue(nameof(frmSelectedMailbox), out var lForm)) ZFocus(lForm);
             else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSelectedMailbox.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked));

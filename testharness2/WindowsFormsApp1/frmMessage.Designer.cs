@@ -31,25 +31,46 @@
             this.cmdPrevious = new System.Windows.Forms.Button();
             this.cmdNext = new System.Windows.Forms.Button();
             this.chkAutoRefresh = new System.Windows.Forms.CheckBox();
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.tab = new System.Windows.Forms.TabControl();
+            this.tpgEnvelope = new System.Windows.Forms.TabPage();
             this.rtxEnvelope = new System.Windows.Forms.RichTextBox();
-            this.tbpText = new System.Windows.Forms.TabPage();
+            this.tpgText = new System.Windows.Forms.TabPage();
             this.rtxText = new System.Windows.Forms.RichTextBox();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.tpgAttachments = new System.Windows.Forms.TabPage();
+            this.tpgFlags = new System.Windows.Forms.TabPage();
             this.chkFred = new System.Windows.Forms.CheckBox();
             this.chkDeleted = new System.Windows.Forms.CheckBox();
             this.chkSeen = new System.Windows.Forms.CheckBox();
             this.rtxFlags = new System.Windows.Forms.RichTextBox();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.tpgBodyStructure = new System.Windows.Forms.TabPage();
+            this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.tvwBodyStructure = new System.Windows.Forms.TreeView();
+            this.tabBodyStructure = new System.Windows.Forms.TabControl();
+            this.tpgSummary = new System.Windows.Forms.TabPage();
+            this.rtxSummary = new System.Windows.Forms.RichTextBox();
+            this.tpgRaw = new System.Windows.Forms.TabPage();
+            this.rtxRaw = new System.Windows.Forms.RichTextBox();
+            this.tpgDecoded = new System.Windows.Forms.TabPage();
+            this.rtxDecoded = new System.Windows.Forms.RichTextBox();
+            this.tpgOther = new System.Windows.Forms.TabPage();
             this.rtxOther = new System.Windows.Forms.RichTextBox();
-            this.tabControl1.SuspendLayout();
-            this.tabPage4.SuspendLayout();
-            this.tbpText.SuspendLayout();
-            this.tabPage1.SuspendLayout();
-            this.tabPage5.SuspendLayout();
+            this.lblQueryError = new System.Windows.Forms.Label();
+            this.cmdDownloadRaw = new System.Windows.Forms.Button();
+            this.cmdDownloadDecoded = new System.Windows.Forms.Button();
+            this.tab.SuspendLayout();
+            this.tpgEnvelope.SuspendLayout();
+            this.tpgText.SuspendLayout();
+            this.tpgFlags.SuspendLayout();
+            this.tpgBodyStructure.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
+            this.splitContainer1.Panel2.SuspendLayout();
+            this.splitContainer1.SuspendLayout();
+            this.tabBodyStructure.SuspendLayout();
+            this.tpgSummary.SuspendLayout();
+            this.tpgRaw.SuspendLayout();
+            this.tpgDecoded.SuspendLayout();
+            this.tpgOther.SuspendLayout();
             this.SuspendLayout();
             // 
             // cmdPrevious
@@ -85,33 +106,34 @@
             this.chkAutoRefresh.UseVisualStyleBackColor = true;
             this.chkAutoRefresh.CheckedChanged += new System.EventHandler(this.chkAutoRefresh_CheckedChanged);
             // 
-            // tabControl1
+            // tab
             // 
-            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.tab.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tabControl1.Controls.Add(this.tabPage4);
-            this.tabControl1.Controls.Add(this.tbpText);
-            this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Controls.Add(this.tabPage3);
-            this.tabControl1.Controls.Add(this.tabPage5);
-            this.tabControl1.Location = new System.Drawing.Point(5, 36);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(528, 299);
-            this.tabControl1.TabIndex = 3;
+            this.tab.Controls.Add(this.tpgEnvelope);
+            this.tab.Controls.Add(this.tpgText);
+            this.tab.Controls.Add(this.tpgAttachments);
+            this.tab.Controls.Add(this.tpgFlags);
+            this.tab.Controls.Add(this.tpgBodyStructure);
+            this.tab.Controls.Add(this.tpgOther);
+            this.tab.Location = new System.Drawing.Point(5, 36);
+            this.tab.Name = "tab";
+            this.tab.SelectedIndex = 0;
+            this.tab.Size = new System.Drawing.Size(690, 299);
+            this.tab.TabIndex = 4;
+            this.tab.Selected += new System.Windows.Forms.TabControlEventHandler(this.tab_Selected);
             // 
-            // tabPage4
+            // tpgEnvelope
             // 
-            this.tabPage4.Controls.Add(this.rtxEnvelope);
-            this.tabPage4.Location = new System.Drawing.Point(4, 22);
-            this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(520, 273);
-            this.tabPage4.TabIndex = 4;
-            this.tabPage4.Text = "Envelope";
-            this.tabPage4.UseVisualStyleBackColor = true;
+            this.tpgEnvelope.Controls.Add(this.rtxEnvelope);
+            this.tpgEnvelope.Location = new System.Drawing.Point(4, 22);
+            this.tpgEnvelope.Name = "tpgEnvelope";
+            this.tpgEnvelope.Padding = new System.Windows.Forms.Padding(3);
+            this.tpgEnvelope.Size = new System.Drawing.Size(682, 273);
+            this.tpgEnvelope.TabIndex = 4;
+            this.tpgEnvelope.Text = "Envelope";
+            this.tpgEnvelope.UseVisualStyleBackColor = true;
             // 
             // rtxEnvelope
             // 
@@ -120,20 +142,20 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtxEnvelope.Location = new System.Drawing.Point(6, 6);
             this.rtxEnvelope.Name = "rtxEnvelope";
-            this.rtxEnvelope.Size = new System.Drawing.Size(508, 261);
+            this.rtxEnvelope.Size = new System.Drawing.Size(670, 261);
             this.rtxEnvelope.TabIndex = 0;
             this.rtxEnvelope.Text = "";
             // 
-            // tbpText
+            // tpgText
             // 
-            this.tbpText.Controls.Add(this.rtxText);
-            this.tbpText.Location = new System.Drawing.Point(4, 22);
-            this.tbpText.Name = "tbpText";
-            this.tbpText.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpText.Size = new System.Drawing.Size(520, 273);
-            this.tbpText.TabIndex = 0;
-            this.tbpText.Text = "Text";
-            this.tbpText.UseVisualStyleBackColor = true;
+            this.tpgText.Controls.Add(this.rtxText);
+            this.tpgText.Location = new System.Drawing.Point(4, 22);
+            this.tpgText.Name = "tpgText";
+            this.tpgText.Padding = new System.Windows.Forms.Padding(3);
+            this.tpgText.Size = new System.Drawing.Size(682, 273);
+            this.tpgText.TabIndex = 0;
+            this.tpgText.Text = "Text";
+            this.tpgText.UseVisualStyleBackColor = true;
             // 
             // rtxText
             // 
@@ -142,39 +164,39 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtxText.Location = new System.Drawing.Point(6, 6);
             this.rtxText.Name = "rtxText";
-            this.rtxText.Size = new System.Drawing.Size(508, 261);
+            this.rtxText.Size = new System.Drawing.Size(670, 261);
             this.rtxText.TabIndex = 1;
             this.rtxText.Text = "";
             // 
-            // tabPage2
+            // tpgAttachments
             // 
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(520, 273);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Attachments";
-            this.tabPage2.UseVisualStyleBackColor = true;
+            this.tpgAttachments.Location = new System.Drawing.Point(4, 22);
+            this.tpgAttachments.Name = "tpgAttachments";
+            this.tpgAttachments.Padding = new System.Windows.Forms.Padding(3);
+            this.tpgAttachments.Size = new System.Drawing.Size(682, 273);
+            this.tpgAttachments.TabIndex = 1;
+            this.tpgAttachments.Text = "Attachments";
+            this.tpgAttachments.UseVisualStyleBackColor = true;
             // 
-            // tabPage1
+            // tpgFlags
             // 
-            this.tabPage1.Controls.Add(this.chkFred);
-            this.tabPage1.Controls.Add(this.chkDeleted);
-            this.tabPage1.Controls.Add(this.chkSeen);
-            this.tabPage1.Controls.Add(this.rtxFlags);
-            this.tabPage1.Location = new System.Drawing.Point(4, 22);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(520, 273);
-            this.tabPage1.TabIndex = 2;
-            this.tabPage1.Text = "Flags";
-            this.tabPage1.UseVisualStyleBackColor = true;
+            this.tpgFlags.Controls.Add(this.chkFred);
+            this.tpgFlags.Controls.Add(this.chkDeleted);
+            this.tpgFlags.Controls.Add(this.chkSeen);
+            this.tpgFlags.Controls.Add(this.rtxFlags);
+            this.tpgFlags.Location = new System.Drawing.Point(4, 22);
+            this.tpgFlags.Name = "tpgFlags";
+            this.tpgFlags.Padding = new System.Windows.Forms.Padding(3);
+            this.tpgFlags.Size = new System.Drawing.Size(682, 273);
+            this.tpgFlags.TabIndex = 2;
+            this.tpgFlags.Text = "Flags";
+            this.tpgFlags.UseVisualStyleBackColor = true;
             // 
             // chkFred
             // 
             this.chkFred.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkFred.AutoSize = true;
-            this.chkFred.Location = new System.Drawing.Point(126, 256);
+            this.chkFred.Location = new System.Drawing.Point(132, 256);
             this.chkFred.Name = "chkFred";
             this.chkFred.Size = new System.Drawing.Size(47, 17);
             this.chkFred.TabIndex = 3;
@@ -185,7 +207,7 @@
             // 
             this.chkDeleted.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkDeleted.AutoSize = true;
-            this.chkDeleted.Location = new System.Drawing.Point(57, 256);
+            this.chkDeleted.Location = new System.Drawing.Point(63, 256);
             this.chkDeleted.Name = "chkDeleted";
             this.chkDeleted.Size = new System.Drawing.Size(63, 17);
             this.chkDeleted.TabIndex = 2;
@@ -196,7 +218,7 @@
             // 
             this.chkSeen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkSeen.AutoSize = true;
-            this.chkSeen.Location = new System.Drawing.Point(0, 256);
+            this.chkSeen.Location = new System.Drawing.Point(6, 256);
             this.chkSeen.Name = "chkSeen";
             this.chkSeen.Size = new System.Drawing.Size(51, 17);
             this.chkSeen.TabIndex = 1;
@@ -210,30 +232,142 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtxFlags.Location = new System.Drawing.Point(6, 6);
             this.rtxFlags.Name = "rtxFlags";
-            this.rtxFlags.Size = new System.Drawing.Size(508, 244);
+            this.rtxFlags.Size = new System.Drawing.Size(670, 244);
             this.rtxFlags.TabIndex = 0;
             this.rtxFlags.Text = "";
             // 
-            // tabPage3
+            // tpgBodyStructure
             // 
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(520, 273);
-            this.tabPage3.TabIndex = 3;
-            this.tabPage3.Text = "Body Structure";
-            this.tabPage3.UseVisualStyleBackColor = true;
+            this.tpgBodyStructure.Controls.Add(this.splitContainer1);
+            this.tpgBodyStructure.Location = new System.Drawing.Point(4, 22);
+            this.tpgBodyStructure.Name = "tpgBodyStructure";
+            this.tpgBodyStructure.Padding = new System.Windows.Forms.Padding(3);
+            this.tpgBodyStructure.Size = new System.Drawing.Size(682, 273);
+            this.tpgBodyStructure.TabIndex = 3;
+            this.tpgBodyStructure.Text = "Body Structure";
+            this.tpgBodyStructure.UseVisualStyleBackColor = true;
             // 
-            // tabPage5
+            // splitContainer1
             // 
-            this.tabPage5.Controls.Add(this.rtxOther);
-            this.tabPage5.Location = new System.Drawing.Point(4, 22);
-            this.tabPage5.Name = "tabPage5";
-            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(520, 273);
-            this.tabPage5.TabIndex = 5;
-            this.tabPage5.Text = "Other";
-            this.tabPage5.UseVisualStyleBackColor = true;
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer1.Location = new System.Drawing.Point(3, 3);
+            this.splitContainer1.Name = "splitContainer1";
+            // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.tvwBodyStructure);
+            // 
+            // splitContainer1.Panel2
+            // 
+            this.splitContainer1.Panel2.Controls.Add(this.tabBodyStructure);
+            this.splitContainer1.Size = new System.Drawing.Size(676, 267);
+            this.splitContainer1.SplitterDistance = 225;
+            this.splitContainer1.TabIndex = 0;
+            // 
+            // tvwBodyStructure
+            // 
+            this.tvwBodyStructure.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tvwBodyStructure.Location = new System.Drawing.Point(0, 0);
+            this.tvwBodyStructure.Name = "tvwBodyStructure";
+            this.tvwBodyStructure.Size = new System.Drawing.Size(222, 267);
+            this.tvwBodyStructure.TabIndex = 0;
+            this.tvwBodyStructure.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvwBodyStructure_AfterSelect);
+            // 
+            // tabBodyStructure
+            // 
+            this.tabBodyStructure.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.tabBodyStructure.Controls.Add(this.tpgSummary);
+            this.tabBodyStructure.Controls.Add(this.tpgRaw);
+            this.tabBodyStructure.Controls.Add(this.tpgDecoded);
+            this.tabBodyStructure.Location = new System.Drawing.Point(3, 0);
+            this.tabBodyStructure.Name = "tabBodyStructure";
+            this.tabBodyStructure.SelectedIndex = 0;
+            this.tabBodyStructure.Size = new System.Drawing.Size(444, 267);
+            this.tabBodyStructure.TabIndex = 1;
+            this.tabBodyStructure.Selected += new System.Windows.Forms.TabControlEventHandler(this.tabBodyStructure_Selected);
+            // 
+            // tpgSummary
+            // 
+            this.tpgSummary.Controls.Add(this.rtxSummary);
+            this.tpgSummary.Location = new System.Drawing.Point(4, 22);
+            this.tpgSummary.Name = "tpgSummary";
+            this.tpgSummary.Padding = new System.Windows.Forms.Padding(3);
+            this.tpgSummary.Size = new System.Drawing.Size(436, 241);
+            this.tpgSummary.TabIndex = 0;
+            this.tpgSummary.Text = "Summary";
+            this.tpgSummary.UseVisualStyleBackColor = true;
+            // 
+            // rtxSummary
+            // 
+            this.rtxSummary.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.rtxSummary.Location = new System.Drawing.Point(3, 3);
+            this.rtxSummary.Name = "rtxSummary";
+            this.rtxSummary.Size = new System.Drawing.Size(430, 235);
+            this.rtxSummary.TabIndex = 0;
+            this.rtxSummary.Text = "";
+            // 
+            // tpgRaw
+            // 
+            this.tpgRaw.Controls.Add(this.cmdDownloadRaw);
+            this.tpgRaw.Controls.Add(this.rtxRaw);
+            this.tpgRaw.Location = new System.Drawing.Point(4, 22);
+            this.tpgRaw.Name = "tpgRaw";
+            this.tpgRaw.Padding = new System.Windows.Forms.Padding(3);
+            this.tpgRaw.Size = new System.Drawing.Size(436, 241);
+            this.tpgRaw.TabIndex = 1;
+            this.tpgRaw.Text = "Raw";
+            this.tpgRaw.UseVisualStyleBackColor = true;
+            // 
+            // rtxRaw
+            // 
+            this.rtxRaw.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.rtxRaw.Location = new System.Drawing.Point(3, 3);
+            this.rtxRaw.Name = "rtxRaw";
+            this.rtxRaw.Size = new System.Drawing.Size(430, 204);
+            this.rtxRaw.TabIndex = 1;
+            this.rtxRaw.Text = "";
+            // 
+            // tpgDecoded
+            // 
+            this.tpgDecoded.Controls.Add(this.cmdDownloadDecoded);
+            this.tpgDecoded.Controls.Add(this.rtxDecoded);
+            this.tpgDecoded.Location = new System.Drawing.Point(4, 22);
+            this.tpgDecoded.Name = "tpgDecoded";
+            this.tpgDecoded.Padding = new System.Windows.Forms.Padding(3);
+            this.tpgDecoded.Size = new System.Drawing.Size(436, 241);
+            this.tpgDecoded.TabIndex = 2;
+            this.tpgDecoded.Text = "Decoded";
+            this.tpgDecoded.UseVisualStyleBackColor = true;
+            // 
+            // rtxDecoded
+            // 
+            this.rtxDecoded.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.rtxDecoded.Location = new System.Drawing.Point(3, 3);
+            this.rtxDecoded.Name = "rtxDecoded";
+            this.rtxDecoded.Size = new System.Drawing.Size(430, 204);
+            this.rtxDecoded.TabIndex = 1;
+            this.rtxDecoded.Text = "";
+            // 
+            // tpgOther
+            // 
+            this.tpgOther.Controls.Add(this.rtxOther);
+            this.tpgOther.Location = new System.Drawing.Point(4, 22);
+            this.tpgOther.Name = "tpgOther";
+            this.tpgOther.Padding = new System.Windows.Forms.Padding(3);
+            this.tpgOther.Size = new System.Drawing.Size(682, 273);
+            this.tpgOther.TabIndex = 5;
+            this.tpgOther.Text = "Other";
+            this.tpgOther.UseVisualStyleBackColor = true;
             // 
             // rtxOther
             // 
@@ -242,16 +376,46 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtxOther.Location = new System.Drawing.Point(3, 6);
             this.rtxOther.Name = "rtxOther";
-            this.rtxOther.Size = new System.Drawing.Size(511, 261);
+            this.rtxOther.Size = new System.Drawing.Size(673, 261);
             this.rtxOther.TabIndex = 1;
             this.rtxOther.Text = "";
+            // 
+            // lblQueryError
+            // 
+            this.lblQueryError.AutoSize = true;
+            this.lblQueryError.Location = new System.Drawing.Point(311, 11);
+            this.lblQueryError.Name = "lblQueryError";
+            this.lblQueryError.Size = new System.Drawing.Size(60, 13);
+            this.lblQueryError.TabIndex = 3;
+            this.lblQueryError.Text = "Query Error";
+            // 
+            // cmdDownloadRaw
+            // 
+            this.cmdDownloadRaw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdDownloadRaw.Location = new System.Drawing.Point(333, 213);
+            this.cmdDownloadRaw.Name = "cmdDownloadRaw";
+            this.cmdDownloadRaw.Size = new System.Drawing.Size(100, 25);
+            this.cmdDownloadRaw.TabIndex = 2;
+            this.cmdDownloadRaw.Text = "Download";
+            this.cmdDownloadRaw.UseVisualStyleBackColor = true;
+            // 
+            // cmdDownloadDecoded
+            // 
+            this.cmdDownloadDecoded.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdDownloadDecoded.Location = new System.Drawing.Point(333, 213);
+            this.cmdDownloadDecoded.Name = "cmdDownloadDecoded";
+            this.cmdDownloadDecoded.Size = new System.Drawing.Size(100, 25);
+            this.cmdDownloadDecoded.TabIndex = 3;
+            this.cmdDownloadDecoded.Text = "Download";
+            this.cmdDownloadDecoded.UseVisualStyleBackColor = true;
             // 
             // frmMessage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(539, 340);
-            this.Controls.Add(this.tabControl1);
+            this.ClientSize = new System.Drawing.Size(701, 340);
+            this.Controls.Add(this.lblQueryError);
+            this.Controls.Add(this.tab);
             this.Controls.Add(this.chkAutoRefresh);
             this.Controls.Add(this.cmdNext);
             this.Controls.Add(this.cmdPrevious);
@@ -259,12 +423,21 @@
             this.Text = "frmMessage";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMessage_FormClosed);
             this.Load += new System.EventHandler(this.frmMessage_Load);
-            this.tabControl1.ResumeLayout(false);
-            this.tabPage4.ResumeLayout(false);
-            this.tbpText.ResumeLayout(false);
-            this.tabPage1.ResumeLayout(false);
-            this.tabPage1.PerformLayout();
-            this.tabPage5.ResumeLayout(false);
+            this.tab.ResumeLayout(false);
+            this.tpgEnvelope.ResumeLayout(false);
+            this.tpgText.ResumeLayout(false);
+            this.tpgFlags.ResumeLayout(false);
+            this.tpgFlags.PerformLayout();
+            this.tpgBodyStructure.ResumeLayout(false);
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
+            this.splitContainer1.ResumeLayout(false);
+            this.tabBodyStructure.ResumeLayout(false);
+            this.tpgSummary.ResumeLayout(false);
+            this.tpgRaw.ResumeLayout(false);
+            this.tpgDecoded.ResumeLayout(false);
+            this.tpgOther.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -275,19 +448,31 @@
         private System.Windows.Forms.Button cmdPrevious;
         private System.Windows.Forms.Button cmdNext;
         private System.Windows.Forms.CheckBox chkAutoRefresh;
-        private System.Windows.Forms.TabControl tabControl1;
-        private System.Windows.Forms.TabPage tbpText;
-        private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.TabControl tab;
+        private System.Windows.Forms.TabPage tpgText;
+        private System.Windows.Forms.TabPage tpgAttachments;
+        private System.Windows.Forms.TabPage tpgFlags;
+        private System.Windows.Forms.TabPage tpgBodyStructure;
+        private System.Windows.Forms.TabPage tpgEnvelope;
         private System.Windows.Forms.RichTextBox rtxEnvelope;
         private System.Windows.Forms.RichTextBox rtxText;
-        private System.Windows.Forms.TabPage tabPage5;
+        private System.Windows.Forms.TabPage tpgOther;
         private System.Windows.Forms.RichTextBox rtxOther;
         private System.Windows.Forms.CheckBox chkFred;
         private System.Windows.Forms.CheckBox chkDeleted;
         private System.Windows.Forms.CheckBox chkSeen;
         private System.Windows.Forms.RichTextBox rtxFlags;
+        private System.Windows.Forms.SplitContainer splitContainer1;
+        private System.Windows.Forms.TreeView tvwBodyStructure;
+        private System.Windows.Forms.RichTextBox rtxSummary;
+        private System.Windows.Forms.Label lblQueryError;
+        private System.Windows.Forms.TabControl tabBodyStructure;
+        private System.Windows.Forms.TabPage tpgSummary;
+        private System.Windows.Forms.TabPage tpgRaw;
+        private System.Windows.Forms.TabPage tpgDecoded;
+        private System.Windows.Forms.RichTextBox rtxRaw;
+        private System.Windows.Forms.RichTextBox rtxDecoded;
+        private System.Windows.Forms.Button cmdDownloadRaw;
+        private System.Windows.Forms.Button cmdDownloadDecoded;
     }
 }

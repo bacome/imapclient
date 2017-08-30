@@ -89,6 +89,10 @@ namespace testharness2
                 mBuilder.AppendLine(mClient.ServerId.ToString());
             }
 
+            mBuilder.AppendLine();
+            mBuilder.AppendLine("Event subscription counts:");
+            mBuilder.AppendLine(mClient.EventSubscriptionCounts.ToString());
+
             rtx.Text = mBuilder.ToString();
 
             mBuilder.Clear();
@@ -106,6 +110,11 @@ namespace testharness2
             }
 
             pBuilder.AppendLine();
+        }
+
+        private void cmdRefresh_Click(object sender, EventArgs e)
+        {
+            ZDisplay();
         }
     }
 }

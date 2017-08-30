@@ -94,6 +94,22 @@ namespace work.bacome.imapclient
                 throw pAsyncTask.Exception;
             }
 
+            public sEventSubscriptionCounts EventSubscriptionCounts
+            {
+                get
+                {
+                    sEventSubscriptionCounts lResult = new sEventSubscriptionCounts();
+                    lResult.PropertyChanged = PropertyChanged?.GetInvocationList().Length ?? 0;
+                    lResult.ResponseText = ResponseText?.GetInvocationList().Length ?? 0;
+                    lResult.NetworkActivity = NetworkActivity?.GetInvocationList().Length ?? 0;
+                    lResult.MailboxPropertyChanged = MailboxPropertyChanged?.GetInvocationList().Length ?? 0;
+                    lResult.MailboxMessageDelivery = MailboxMessageDelivery?.GetInvocationList().Length ?? 0;
+                    lResult.MessagePropertyChanged = MessagePropertyChanged?.GetInvocationList().Length ?? 0;
+                    return lResult;
+
+                }
+            }
+
             public void InvokePropertyChanged(string pPropertyName, cTrace.cContext pParentContext)
             {
                 if (PropertyChanged == null) return; // pre-check for efficiency only
@@ -526,6 +542,18 @@ namespace work.bacome.imapclient
 
                 public override string ToString() => $"{nameof(cActionIntEventArgs)}({Int})";
             }
+        }
+
+        public struct sEventSubscriptionCounts
+        {
+            public int PropertyChanged;
+            public int ResponseText;
+            public int NetworkActivity;
+            public int MailboxPropertyChanged;
+            public int MailboxMessageDelivery;
+            public int MessagePropertyChanged;
+
+            public override string ToString() => $"{nameof(PropertyChanged)}:{PropertyChanged} {nameof(ResponseText)}:{ResponseText} {nameof(NetworkActivity)}:{NetworkActivity} {nameof(MailboxPropertyChanged)}:{MailboxPropertyChanged} {nameof(MailboxMessageDelivery)}:{MailboxMessageDelivery} {nameof(MessagePropertyChanged)}:{MessagePropertyChanged} ";
         }
     }
 }

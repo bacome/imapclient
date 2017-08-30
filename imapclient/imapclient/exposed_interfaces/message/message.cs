@@ -52,6 +52,15 @@ namespace work.bacome.imapclient
 
         public bool IsExpunged => Handle.Expunged;
 
+        public cEnvelope Envelope
+        {
+            get
+            {
+                if (!Client.Fetch(Handle, fMessageProperties.envelope)) throw new InvalidOperationException();
+                return Handle.Envelope;
+            }
+        }
+
         public DateTime? Sent
         {
             get

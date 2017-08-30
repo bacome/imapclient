@@ -421,6 +421,8 @@ namespace work.bacome.imapclient
 
         public bool? HasCachedChildren(iMailboxHandle pHandle) => mSession?.HasCachedChildren(pHandle);
 
+        public sEventSubscriptionCounts EventSubscriptionCounts => mSynchroniser.EventSubscriptionCounts;
+
         public void Dispose()
         {
             if (mDisposed) return;

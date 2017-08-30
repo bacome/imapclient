@@ -21,15 +21,17 @@ namespace testharness2
         private readonly cIMAPClient mClient;
         private readonly bool mSubscriptions;
         private readonly fMailboxCacheDataSets mDataSets;
+        private readonly Action mDisplaySelectedMailbox;
         private cMailbox mSubscribedMailbox = null;
         private TreeNode mSubscribedMailboxNode = null;
 
-        public frmMailboxes(cIMAPClient pClient, bool pSubscriptions, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
+        public frmMailboxes(cIMAPClient pClient, bool pSubscriptions, fMailboxCacheDataSets pDataSets, Action pDisplaySelectedMailbox, cTrace.cContext pParentContext)
         {
             mRootContext = pParentContext.NewRootObject(nameof(frmMailboxes));
             mClient = pClient;
             mSubscriptions = pSubscriptions;
             mDataSets = pDataSets;
+            mDisplaySelectedMailbox = pDisplaySelectedMailbox;
             InitializeComponent();
         }
 
@@ -37,6 +39,8 @@ namespace testharness2
         {
             if (mSubscriptions) Text = "imapclient testharness - subscriptions - " + mClient.InstanceName;
             else Text = "imapclient testharness - mailboxes - " + mClient.InstanceName;
+
+            mClient.PropertyChanged += mClient_PropertyChanged;
 
             var lNamespaces = mClient.Namespaces;
 
@@ -275,20 +279,34 @@ namespace testharness2
             rtx.Text = lBuilder.ToString();
         }
 
+        private void mClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (!mClient.IsConnected) Close();
+        }
+
         private void frmMailboxes_FormClosed(object sender, FormClosedEventArgs e)
         {
+            mClient.PropertyChanged -= mClient_PropertyChanged;
             ZUnsubscribeMailbox();
         }
 
         private async void cmdExamine_Click(object sender, EventArgs e)
         {
-            try { await mSubscribedMailbox.SelectAsync(); }
+            try
+            {
+                await mSubscribedMailbox.SelectAsync();
+                mDisplaySelectedMailbox();
+            }
             catch (Exception ex) { MessageBox.Show($"an error occurred while selecting read only: {ex}"); }
         }
 
         private async void cmdSelect_Click(object sender, EventArgs e)
         {
-            try { await mSubscribedMailbox.SelectAsync(true); }
+            try
+            {
+                await mSubscribedMailbox.SelectAsync(true);
+                mDisplaySelectedMailbox();
+            }
             catch (Exception ex) { MessageBox.Show($"an error occurred while selecting for update: {ex}"); }
         }
 
