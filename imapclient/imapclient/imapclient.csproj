@@ -229,7 +229,7 @@
     <Compile Include="session\fetch\uidattributes.cs" />
     <Compile Include="session\command\commanddetailsbuilder.cs" />
     <Compile Include="session\command\commandtag.cs" />
-    <Compile Include="support\fetchsizer.cs" />
+    <Compile Include="exposed_interfaces\other\fetchsizer.cs" />
     <Compile Include="session\support\messagecacheitem.cs" />
     <Compile Include="session\support\processors.cs" />
     <Compile Include="session\support\responsetextprocessor.cs" />

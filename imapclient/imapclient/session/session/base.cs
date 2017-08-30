@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
             private readonly cResponseTextProcessor mResponseTextProcessor;
             private readonly cCommandPipeline mPipeline;
 
-            private cFetchSizer mFetchAttributesSizer;
+            private cFetchSizer mFetchAttributesReadSizer;
             private cFetchSizer mFetchBodyReadSizer;
 
             private cCommandPartFactory mCommandPartFactory;
@@ -57,7 +57,7 @@ namespace work.bacome.imapclient
 
                 mPipeline = new cCommandPipeline(pSynchroniser, mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
 
-                mFetchAttributesSizer = new cFetchSizer(pFetchAttributesConfiguration);
+                mFetchAttributesReadSizer = new cFetchSizer(pFetchAttributesConfiguration);
                 mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
 
                 mCommandPartFactory = new cCommandPartFactory(false, null);
@@ -122,7 +122,7 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetFetchAttributesConfiguration), pConfiguration);
                 if (pConfiguration == null) throw new ArgumentNullException(nameof(pConfiguration));
-                mFetchAttributesSizer = new cFetchSizer(pConfiguration);
+                mFetchAttributesReadSizer = new cFetchSizer(pConfiguration);
             }
 
             public void SetFetchBodyReadConfiguration(cFetchSizeConfiguration pConfiguration, cTrace.cContext pParentContext)

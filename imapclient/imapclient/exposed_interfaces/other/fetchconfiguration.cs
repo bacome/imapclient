@@ -8,20 +8,23 @@ namespace work.bacome.imapclient
         public readonly int Timeout;
         public readonly CancellationToken CancellationToken;
         public readonly Action<int> Increment;
+        public readonly cFetchSizer ReadSizer;
 
-        public cPropertyFetchConfiguration(int pTimeout)
+        public cPropertyFetchConfiguration(int pTimeout, cFetchSizer pReadSizer = null)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             Timeout = pTimeout;
             CancellationToken = CancellationToken.None;
             Increment = null;
+            ReadSizer = pReadSizer;
         }
 
-        public cPropertyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement)
+        public cPropertyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement, cFetchSizer pReadSizer = null)
         {
             Timeout = -1;
             CancellationToken = pCancellationToken;
             Increment = pIncrement;
+            ReadSizer = pReadSizer;
         }
     }
 
@@ -31,22 +34,25 @@ namespace work.bacome.imapclient
         public readonly CancellationToken CancellationToken;
         public readonly Action<int> Increment;
         public readonly cFetchSizeConfiguration Write;
+        public readonly cFetchSizer ReadSizer;
 
-        public cBodyFetchConfiguration(int pTimeout, cFetchSizeConfiguration pWrite = null)
+        public cBodyFetchConfiguration(int pTimeout, cFetchSizeConfiguration pWrite = null, cFetchSizer pReadSizer = null)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             Timeout = pTimeout;
             CancellationToken = CancellationToken.None;
             Increment = null;
             Write = pWrite;
+            ReadSizer = pReadSizer;
         }
 
-        public cBodyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement, cFetchSizeConfiguration pWrite = null)
+        public cBodyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement, cFetchSizeConfiguration pWrite = null, cFetchSizer pReadSizer = null)
         {
             Timeout = -1;
             CancellationToken = pCancellationToken;
             Increment = pIncrement;
             Write = pWrite;
+            ReadSizer = pReadSizer;
         }
     }
 

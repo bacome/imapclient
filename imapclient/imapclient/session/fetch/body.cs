@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public Task FetchBodyAsync(cMethodControl pMC, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cTrace.cContext pParentContext)
+            public Task FetchBodyAsync(cMethodControl pMC, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cFetchSizer pReadSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pMC, pHandle, pSection, pDecoding);
 
@@ -20,11 +20,11 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckInSelectedMailbox(pHandle); // to be repeated inside the select lock
 
-                if (pHandle.UID == null) return ZFetchBodyAsync(pMC, null, null, pHandle, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
-                else return ZFetchBodyAsync(pMC, pHandle.Cache.MailboxHandle, pHandle.UID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
+                if (pHandle.UID == null) return ZFetchBodyAsync(pMC, null, null, pHandle, pSection, pDecoding, pStream, pProgress, pWriteSizer, pReadSizer, lContext);
+                else return ZFetchBodyAsync(pMC, pHandle.Cache.MailboxHandle, pHandle.UID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, pReadSizer, lContext);
             }
 
-            public Task UIDFetchBodyAsync(cMethodControl pMC, iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cTrace.cContext pParentContext)
+            public Task UIDFetchBodyAsync(cMethodControl pMC, iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cFetchSizer pReadSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBodyAsync), pMC, pHandle, pUID, pSection, pDecoding);
 
@@ -32,10 +32,10 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckIsSelectedMailbox(pHandle, pUID.UIDValidity); // to be repeated inside the select lock
 
-                return ZFetchBodyAsync(pMC, pHandle, pUID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
+                return ZFetchBodyAsync(pMC, pHandle, pUID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, pReadSizer, lContext);
             }
 
-            private async Task ZFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cTrace.cContext pParentContext)
+            private async Task ZFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cFetchSizer pReadSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
 
@@ -51,9 +51,11 @@ namespace work.bacome.imapclient
 
                 uint lOrigin = 0;
 
+                var lReadSizer = pReadSizer ?? mFetchBodyReadSizer;
+
                 while (true)
                 {
-                    int lLength = mFetchBodyReadSizer.Current;
+                    int lLength = lReadSizer.Current;
 
                     Stopwatch lStopwatch = Stopwatch.StartNew();
 
@@ -64,7 +66,7 @@ namespace work.bacome.imapclient
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size
-                    mFetchBodyReadSizer.AddSample(lBody.Bytes.Count, lStopwatch.ElapsedMilliseconds, lContext);
+                    lReadSizer.AddSample(lBody.Bytes.Count, lStopwatch.ElapsedMilliseconds, lContext);
 
                     uint lBodyOrigin = lBody.Origin ?? 0;
 
