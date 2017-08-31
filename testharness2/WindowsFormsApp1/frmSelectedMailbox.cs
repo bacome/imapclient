@@ -249,8 +249,9 @@ namespace testharness2
                 if (mSelectedMailbox.MessageCount > mMaxMessages)
                 {
                     lMessages = await mSelectedMailbox.MessagesAsync(null, null, 0, lConfiguration);
+                    if (lChangedMessagesAsyncEntryNumber != mChangedMessagesAsyncEntryNumber) return;
                     lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
-                    mSelectedMailbox.Fetch(lMessages, fMessageProperties.clientdefault, lConfiguration);
+                    await mSelectedMailbox.FetchAsync(lMessages, fMessageProperties.clientdefault, lConfiguration);
                 }
                 else if (lConfiguration == null) lMessages = await mSelectedMailbox.MessagesAsync();
                 else lMessages = await mSelectedMailbox.MessagesAsync(null, null, fMessageProperties.clientdefault, lConfiguration);
