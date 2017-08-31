@@ -1555,9 +1555,9 @@
             this.chkMPBodyStructure.AutoSize = true;
             this.chkMPBodyStructure.Location = new System.Drawing.Point(12, 180);
             this.chkMPBodyStructure.Name = "chkMPBodyStructure";
-            this.chkMPBodyStructure.Size = new System.Drawing.Size(230, 17);
+            this.chkMPBodyStructure.Size = new System.Drawing.Size(326, 17);
             this.chkMPBodyStructure.TabIndex = 7;
-            this.chkMPBodyStructure.Text = "BodyStructure (bodystructure, attachments)";
+            this.chkMPBodyStructure.Text = "BodyStructure (bodystructure, attachments, plaintextsizeinbytes)";
             this.chkMPBodyStructure.UseVisualStyleBackColor = true;
             this.chkMPBodyStructure.CheckedChanged += new System.EventHandler(this.ZSetDefaultMessageProperties);
             // 

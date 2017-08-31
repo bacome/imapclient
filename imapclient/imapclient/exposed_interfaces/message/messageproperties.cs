@@ -41,6 +41,7 @@ namespace work.bacome.imapclient
         modseq = 1 << 29,
 
         bodystructure = 1 << 30,
-        attachments = 1 << 31
+        attachments = 1 << 31,
+        plaintextsizeinbytes = 1 << 32
     }
 }

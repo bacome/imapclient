@@ -49,14 +49,15 @@
             this.tpgSummary = new System.Windows.Forms.TabPage();
             this.rtxSummary = new System.Windows.Forms.RichTextBox();
             this.tpgRaw = new System.Windows.Forms.TabPage();
+            this.cmdDownloadRaw = new System.Windows.Forms.Button();
             this.rtxRaw = new System.Windows.Forms.RichTextBox();
             this.tpgDecoded = new System.Windows.Forms.TabPage();
+            this.cmdDownloadDecoded = new System.Windows.Forms.Button();
             this.rtxDecoded = new System.Windows.Forms.RichTextBox();
             this.tpgOther = new System.Windows.Forms.TabPage();
             this.rtxOther = new System.Windows.Forms.RichTextBox();
             this.lblQueryError = new System.Windows.Forms.Label();
-            this.cmdDownloadRaw = new System.Windows.Forms.Button();
-            this.cmdDownloadDecoded = new System.Windows.Forms.Button();
+            this.pbx = new System.Windows.Forms.PictureBox();
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
@@ -71,6 +72,7 @@
             this.tpgRaw.SuspendLayout();
             this.tpgDecoded.SuspendLayout();
             this.tpgOther.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pbx)).BeginInit();
             this.SuspendLayout();
             // 
             // cmdPrevious
@@ -324,6 +326,16 @@
             this.tpgRaw.Text = "Raw";
             this.tpgRaw.UseVisualStyleBackColor = true;
             // 
+            // cmdDownloadRaw
+            // 
+            this.cmdDownloadRaw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdDownloadRaw.Location = new System.Drawing.Point(333, 213);
+            this.cmdDownloadRaw.Name = "cmdDownloadRaw";
+            this.cmdDownloadRaw.Size = new System.Drawing.Size(100, 25);
+            this.cmdDownloadRaw.TabIndex = 2;
+            this.cmdDownloadRaw.Text = "Download";
+            this.cmdDownloadRaw.UseVisualStyleBackColor = true;
+            // 
             // rtxRaw
             // 
             this.rtxRaw.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -337,6 +349,7 @@
             // 
             // tpgDecoded
             // 
+            this.tpgDecoded.Controls.Add(this.pbx);
             this.tpgDecoded.Controls.Add(this.cmdDownloadDecoded);
             this.tpgDecoded.Controls.Add(this.rtxDecoded);
             this.tpgDecoded.Location = new System.Drawing.Point(4, 22);
@@ -346,6 +359,16 @@
             this.tpgDecoded.TabIndex = 2;
             this.tpgDecoded.Text = "Decoded";
             this.tpgDecoded.UseVisualStyleBackColor = true;
+            // 
+            // cmdDownloadDecoded
+            // 
+            this.cmdDownloadDecoded.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdDownloadDecoded.Location = new System.Drawing.Point(333, 213);
+            this.cmdDownloadDecoded.Name = "cmdDownloadDecoded";
+            this.cmdDownloadDecoded.Size = new System.Drawing.Size(100, 25);
+            this.cmdDownloadDecoded.TabIndex = 3;
+            this.cmdDownloadDecoded.Text = "Download";
+            this.cmdDownloadDecoded.UseVisualStyleBackColor = true;
             // 
             // rtxDecoded
             // 
@@ -389,25 +412,13 @@
             this.lblQueryError.TabIndex = 3;
             this.lblQueryError.Text = "Query Error";
             // 
-            // cmdDownloadRaw
+            // pbx
             // 
-            this.cmdDownloadRaw.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdDownloadRaw.Location = new System.Drawing.Point(333, 213);
-            this.cmdDownloadRaw.Name = "cmdDownloadRaw";
-            this.cmdDownloadRaw.Size = new System.Drawing.Size(100, 25);
-            this.cmdDownloadRaw.TabIndex = 2;
-            this.cmdDownloadRaw.Text = "Download";
-            this.cmdDownloadRaw.UseVisualStyleBackColor = true;
-            // 
-            // cmdDownloadDecoded
-            // 
-            this.cmdDownloadDecoded.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdDownloadDecoded.Location = new System.Drawing.Point(333, 213);
-            this.cmdDownloadDecoded.Name = "cmdDownloadDecoded";
-            this.cmdDownloadDecoded.Size = new System.Drawing.Size(100, 25);
-            this.cmdDownloadDecoded.TabIndex = 3;
-            this.cmdDownloadDecoded.Text = "Download";
-            this.cmdDownloadDecoded.UseVisualStyleBackColor = true;
+            this.pbx.Location = new System.Drawing.Point(25, 212);
+            this.pbx.Name = "pbx";
+            this.pbx.Size = new System.Drawing.Size(31, 25);
+            this.pbx.TabIndex = 4;
+            this.pbx.TabStop = false;
             // 
             // frmMessage
             // 
@@ -438,6 +449,7 @@
             this.tpgRaw.ResumeLayout(false);
             this.tpgDecoded.ResumeLayout(false);
             this.tpgOther.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pbx)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -474,5 +486,6 @@
         private System.Windows.Forms.RichTextBox rtxDecoded;
         private System.Windows.Forms.Button cmdDownloadRaw;
         private System.Windows.Forms.Button cmdDownloadDecoded;
+        private System.Windows.Forms.PictureBox pbx;
     }
 }

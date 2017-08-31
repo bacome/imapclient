@@ -215,9 +215,17 @@ namespace testharness2
         }
 
         private int mChangedMessagesAsyncEntryNumber = 0;
+        private object mChangedMessagesLastCache = new object();
 
         private async void ZChangedMessagesAsync()
         {
+            // defend against being called twice with the same settings
+            //  (note this is inevitable as events from the client are delivered asyncronously - therefore two events may arrive together after two changes)
+            //
+            var lCache = mClient.SelectedMailboxDetails.Cache;
+            if (ReferenceEquals(lCache, mChangedMessagesLastCache)) return;
+            mChangedMessagesLastCache = lCache;
+
             // defend against re-entry during awaits
             int lChangedMessagesAsyncEntryNumber = ++mChangedMessagesAsyncEntryNumber;
 

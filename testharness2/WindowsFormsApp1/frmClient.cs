@@ -340,7 +340,7 @@ namespace testharness2
             chkMPUID.Checked = (mClient.DefaultMessageProperties & fMessageProperties.uid) != 0;
             chkMPReferences.Checked = (mClient.DefaultMessageProperties & fMessageProperties.references) != 0;
             chkMPModSeq.Checked = (mClient.DefaultMessageProperties & fMessageProperties.modseq) != 0;
-            chkMPBodyStructure.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.bodystructure | fMessageProperties.attachments)) != 0;
+            chkMPBodyStructure.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.bodystructure | fMessageProperties.attachments | fMessageProperties.plaintextsizeinbytes)) != 0;
         }
 
         private void ZLoadFetchConfig(cFetchSizeConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)

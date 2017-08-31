@@ -255,11 +255,11 @@ namespace work.bacome.imapclient
             get
             {
                 if (!Client.Fetch(Handle, fMessageProperties.attachments)) throw new InvalidOperationException();
-                return ZAttachments(Handle.BodyStructure);
+                return ZAttachmentParts(Handle.BodyStructure);
             }
         }
 
-        private List<cAttachment> ZAttachments(cBodyPart pPart)
+        private List<cAttachment> ZAttachmentParts(cBodyPart pPart)
         {
             // TODO: when we know what languages the user is interested in (on implementation of languages) choose from multipart/alternative options based on language tag
 
@@ -273,7 +273,7 @@ namespace work.bacome.imapclient
             {
                 foreach (var lPart in lMultiPart.Parts)
                 {
-                    var lAttachments = ZAttachments(lPart);
+                    var lAttachments = ZAttachmentParts(lPart);
                     lResult.AddRange(lAttachments);
                     if (lAttachments.Count > 0 && lMultiPart.SubTypeCode == eMultiPartBodySubTypeCode.alternative) break;
                 }
@@ -282,43 +282,18 @@ namespace work.bacome.imapclient
             return lResult;
         }
 
-        public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(Handle, pOffset);
-
-        // get data
-
         public uint PlainTextSizeInBytes
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.bodystructure)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, fMessageProperties.plaintextsizeinbytes)) throw new InvalidOperationException();
                 uint lSize = 0;
-                foreach (var lPart in ZPlainText(Handle.BodyStructure)) lSize += lPart.SizeInBytes;
+                foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lSize += lPart.SizeInBytes;
                 return lSize;
             }
         }
 
-        public string PlainText()
-        {
-            if (!Client.Fetch(Handle, fMessageProperties.bodystructure)) throw new InvalidOperationException();
-            StringBuilder lBuilder = new StringBuilder();
-            foreach (var lPart in ZPlainText(Handle.BodyStructure)) lBuilder.Append(Fetch(lPart));
-            return lBuilder.ToString();
-        }
-
-        public async Task<string> PlainTextAsync()
-        {
-            if (!await Client.FetchAsync(Handle, fMessageProperties.bodystructure).ConfigureAwait(false)) throw new InvalidOperationException();
-
-            List<Task<string>> lTasks = new List<Task<string>>();
-            foreach (var lPart in ZPlainText(Handle.BodyStructure)) lTasks.Add(FetchAsync(lPart));
-            await Task.WhenAll(lTasks).ConfigureAwait(false);
-
-            StringBuilder lBuilder = new StringBuilder();
-            foreach (var lTask in lTasks) lBuilder.Append(lTask.Result);
-            return lBuilder.ToString();
-        }
-
-        private List<cTextBodyPart> ZPlainText(cBodyPart pPart)
+        private List<cTextBodyPart> ZPlainTextParts(cBodyPart pPart)
         {
             // TODO: when we know what languages the user is interested in (on implementation of languages) choose from multipart/alternative options based on language tag
 
@@ -334,7 +309,7 @@ namespace work.bacome.imapclient
             {
                 foreach (var lPart in lMultiPart.Parts)
                 {
-                    var lParts = ZPlainText(lPart);
+                    var lParts = ZPlainTextParts(lPart);
                     lResult.AddRange(lParts);
                     if (lParts.Count > 0 && lMultiPart.SubTypeCode == eMultiPartBodySubTypeCode.alternative) break;
                 }
@@ -346,6 +321,31 @@ namespace work.bacome.imapclient
         public bool Fetch(fMessageProperties pProperties) => Client.Fetch(Handle, pProperties);
 
         public Task<bool> FetchAsync(fMessageProperties pProperties) => Client.FetchAsync(Handle, pProperties);
+
+        public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(Handle, pOffset);
+
+        // get data
+
+        public string PlainText()
+        {
+            if (!Client.Fetch(Handle, fMessageProperties.bodystructure)) throw new InvalidOperationException();
+            StringBuilder lBuilder = new StringBuilder();
+            foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lBuilder.Append(Fetch(lPart));
+            return lBuilder.ToString();
+        }
+
+        public async Task<string> PlainTextAsync()
+        {
+            if (!await Client.FetchAsync(Handle, fMessageProperties.bodystructure).ConfigureAwait(false)) throw new InvalidOperationException();
+
+            List<Task<string>> lTasks = new List<Task<string>>();
+            foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lTasks.Add(FetchAsync(lPart));
+            await Task.WhenAll(lTasks).ConfigureAwait(false);
+
+            StringBuilder lBuilder = new StringBuilder();
+            foreach (var lTask in lTasks) lBuilder.Append(lTask.Result);
+            return lBuilder.ToString();
+        }
 
         public string Fetch(cBodyPart pPart)
         {

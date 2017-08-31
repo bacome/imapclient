@@ -13,6 +13,8 @@ namespace testharness2
 {
     public partial class frmMessage : Form
     {
+        private const string kNoNodeSelected = "no node selected";
+
         private readonly string mInstanceName;
         private readonly frmSelectedMailbox mParent; // for previous/next
         private readonly cMailbox mMailbox;
@@ -28,6 +30,8 @@ namespace testharness2
         private bool mSummaryDisplayed = false;
         private bool mRawDisplayed = false;
         private bool mDecodedDisplayed = false;
+        private string mASCIIData = null;
+        private string mEncodedData = null;
 
         public frmMessage(string pInstanceName, frmSelectedMailbox pParent, cMailbox pMailbox, uint pMaxBytes, cMessage pMessage)
         {
@@ -233,7 +237,192 @@ namespace testharness2
             return lBytes;
         }
 
-        private async void ZQueryBodyStructureDetailAsync(bool pFirst)
+        private int mQueryBodyStructureDetailEntryNumber = 0;
+
+        private void ZQueryBodyStructureDetailAsync(bool pFirst)
+        {
+            // defend against re-entry during awaits
+            int lQueryBodyStructureDetailEntryNumber = ++mQueryBodyStructureDetailEntryNumber;
+
+            if (pFirst)
+            {
+                mSummaryDisplayed = false;
+                mRawDisplayed = false;
+                mDecodedDisplayed = false;
+                mASCIIData = null;
+                mEncodedData = null;
+            }
+
+            lblQueryError.Text = "";
+
+            try
+            {
+                if (ReferenceEquals(tabBodyStructure.SelectedTab, tpgSummary))
+                {
+                    if (!mSummaryDisplayed)
+                    {
+                        mSummaryDisplayed = true;
+                        ZQueryBodyStructureSummaryAsync(lQueryBodyStructureDetailEntryNumber);
+                    }
+
+                    return;
+                }
+
+                if (ReferenceEquals(tabBodyStructure.SelectedTab, tpgRaw))
+                {
+                    if (!mRawDisplayed)
+                    {
+                        mRawDisplayed = true;
+                        cmdDownloadRaw.Enabled = true;
+
+                        if (await ZQueryBodyStructureDetailAllAsync()) return;
+                        if (await ZQueryBodyStructureDetailRawAndDecodedAsync()) return;
+                        await ZQueryBodyStructureDetailRawAsync();
+                    }
+
+                    return;
+                }
+
+                if (ReferenceEquals(tabBodyStructure.SelectedTab, tpgDecoded))
+                {
+                    if (!mDecodedDisplayed)
+                    {
+                        mDecodedDisplayed = true;
+                        cmdDownloadDecoded.Enabled = true;
+
+                        if (await ZQueryBodyStructureDetailAllAsync()) return;
+                        if (await ZQueryBodyStructureDetailRawAndDecodedAsync()) return;
+                        await ZQueryBodyStructureDetailDecodedAsync();
+                    }
+
+                    return;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                lblQueryError.Text = $"error: {ex.ToString()}";
+            }
+        }
+
+        private async void ZQueryBodyStructureSummaryAsync(int pQueryBodyStructureDetailEntryNumber)
+        {
+            if (tvwBodyStructure.SelectedNode == null)
+            {
+                rtxSummary.Text = kNoNodeSelected;
+                return;
+            }
+
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+
+            StringBuilder lBuilder = new StringBuilder();
+
+            if (lTag.BodyPart != null)
+            {
+                lBuilder.AppendLine($"Section: {lTag.BodyPart.Section}");
+
+                if (lTag.BodyPart.Disposition != null) lBuilder.AppendLine($"Disposition: {lTag.BodyPart.Disposition.Type} {lTag.BodyPart.Disposition.FileName} {lTag.BodyPart.Disposition.Size} {lTag.BodyPart.Disposition.CreationDate}");
+                if (lTag.BodyPart.Languages != null) lBuilder.AppendLine($"Languages: {lTag.BodyPart.Languages}");
+                if (lTag.BodyPart.Location != null) lBuilder.AppendLine($"Location: {lTag.BodyPart.Location}");
+
+                if (lTag.BodyPart is cSinglePartBody lSingleBodyPart)
+                {
+                    lBuilder.AppendLine($"Content Id: {lSingleBodyPart.ContentId}");
+                    lBuilder.AppendLine($"Description: {lSingleBodyPart.Description}");
+                    lBuilder.AppendLine($"ContentTransferEncoding: {lSingleBodyPart.ContentTransferEncoding}");
+                    lBuilder.AppendLine($"Size: {lSingleBodyPart.SizeInBytes}");
+
+                    if (lTag.BodyPart is cTextBodyPart lTextBodyPart) lBuilder.AppendLine($"Charset: {lTextBodyPart.Charset}");
+                    else if (lTag.BodyPart is cMessageBodyPart lMessageBodyPart) ZAppendEnvelope(lBuilder, lMessageBodyPart.Envelope);
+                }
+
+                rtxSummary.Text = lBuilder.ToString();
+                return;
+            }
+
+            if (lTag.Section == cSection.All)
+            {
+                lBuilder.AppendLine("root");
+                lBuilder.AppendLine("message size: " + mMessage.Size);
+                rtxSummary.Text = lBuilder.ToString();
+                return;
+            }
+
+            await ZQueryBodyStructureASCIIDataAsync(lTag, pQueryBodyStructureDetailEntryNumber);
+            if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
+            rtxSummary.Text = mASCIIData;
+        }
+
+
+
+
+
+        private async Task ZQueryBodyStructureASCIIDataAsync(cNodeTag pTag, int pQueryBodyStructureDetailEntryNumber)
+        {
+            if (mASCIIData != null) return;
+
+            string lText;
+
+            if (pTag.Bytes > mMaxBytes) lText = ZTooBig(lTag.Bytes);
+            else
+            {
+                lText = await mMessage.FetchAsync(lTag.Section);
+                if (lQueryBodyStructureSummaryAsyncEntryNumber != mQueryBodyStructureSummaryAsyncEntryNumber) return;
+            }
+
+        }
+
+
+
+
+
+        private void ZQueryBodyStructureDetailSummary()
+        {
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+
+            var lBuilder = new StringBuilder();
+
+            if (lTag.BodyPart != null)
+            {
+                lBuilder.AppendLine($"Section: {lTag.BodyPart.Section}");
+
+                if (lTag.BodyPart.Disposition != null) lBuilder.AppendLine($"Disposition: {lTag.BodyPart.Disposition.Type} {lTag.BodyPart.Disposition.FileName} {lTag.BodyPart.Disposition.Size} {lTag.BodyPart.Disposition.CreationDate}");
+                if (lTag.BodyPart.Languages != null) lBuilder.AppendLine($"Languages: {lTag.BodyPart.Languages}");
+                if (lTag.BodyPart.Location != null) lBuilder.AppendLine($"Location: {lTag.BodyPart.Location}");
+
+                if (lTag.BodyPart is cSinglePartBody lSingleBodyPart)
+                {
+                    lBuilder.AppendLine($"Content Id: {lSingleBodyPart.ContentId}");
+                    lBuilder.AppendLine($"Description: {lSingleBodyPart.Description}");
+                    lBuilder.AppendLine($"ContentTransferEncoding: {lSingleBodyPart.ContentTransferEncoding}");
+                    lBuilder.AppendLine($"Size: {lSingleBodyPart.SizeInBytes}");
+
+                    if (lTag.BodyPart is cTextBodyPart lTextBodyPart) lBuilder.AppendLine($"Charset: {lTextBodyPart.Charset}");
+                    else if (lTag.BodyPart is cMessageBodyPart lMessageBodyPart) ZAppendEnvelope(lBuilder, lMessageBodyPart.Envelope);
+                }
+            }
+            else if (lTag.Section == cSection.All)
+            {
+                lBuilder.AppendLine("root");
+                lBuilder.AppendLine("message size: " + mMessage.Size);
+            }
+
+            mSummaryDisplayed = true;
+            rtxSummary.Text = lBuilder.ToString();
+        }
+
+
+
+
+
+
+
+
+
+
+
+        /*
+        private async void ZQueryBodyStructureDetailAsyncX(bool pFirst)
         {
             if (pFirst)
             {
@@ -389,7 +578,11 @@ namespace testharness2
 
             var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
 
-            if (lTag.BodyPart != null && lTag.BodyPart is cTextBodyPart) return false;
+            if (lTag.BodyPart != null)
+            {
+                if (lTag.BodyPart is cTextBodyPart) return false;
+                if (lTag.BodyPart is cSinglePartBody lPart && lPart.TypeCode == eBodyPartTypeCode.image)
+            }
 
             string lText;
 
@@ -458,6 +651,7 @@ namespace testharness2
 
             rtxDecoded.Text = lText;
         }
+        */
 
         private void frmMessage_FormClosed(object sender, FormClosedEventArgs e)
         {

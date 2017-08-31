@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
             if ((lProperties & fMessageProperties.uid) != 0) lRequired |= fFetchAttributes.uid;
             if ((lProperties & fMessageProperties.references) != 0) lRequired |= fFetchAttributes.references;
             if ((lProperties & fMessageProperties.modseq) != 0) lRequired |= fFetchAttributes.modseq;
-            if ((lProperties & (fMessageProperties.bodystructure | fMessageProperties.attachments)) != 0) lRequired |= fFetchAttributes.bodystructure;
+            if ((lProperties & (fMessageProperties.bodystructure | fMessageProperties.attachments | fMessageProperties.plaintextsizeinbytes)) != 0) lRequired |= fFetchAttributes.bodystructure;
 
             return lRequired;
         }
