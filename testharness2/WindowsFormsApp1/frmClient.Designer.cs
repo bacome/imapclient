@@ -142,9 +142,10 @@
             this.tbpCapabilities = new System.Windows.Forms.TabPage();
             this.gbxConnect = new System.Windows.Forms.GroupBox();
             this.gbxSelectedMailbox = new System.Windows.Forms.GroupBox();
+            this.chkProgressBar = new System.Windows.Forms.CheckBox();
             this.chkTrackUIDNext = new System.Windows.Forms.CheckBox();
             this.chkTrackUnseen = new System.Windows.Forms.CheckBox();
-            this.txtSelectedMailbox = new System.Windows.Forms.TextBox();
+            this.txtSMMessages = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.tabClient = new System.Windows.Forms.TabControl();
             this.tbpSettings = new System.Windows.Forms.TabPage();
@@ -203,7 +204,8 @@
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
             this.cmdPoll = new System.Windows.Forms.Button();
-            this.chkProgressBar = new System.Windows.Forms.CheckBox();
+            this.txtSMBytes = new System.Windows.Forms.TextBox();
+            this.label25 = new System.Windows.Forms.Label();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -1329,10 +1331,10 @@
             // 
             // cmdSelectedMailbox
             // 
-            this.cmdSelectedMailbox.Location = new System.Drawing.Point(15, 114);
+            this.cmdSelectedMailbox.Location = new System.Drawing.Point(15, 92);
             this.cmdSelectedMailbox.Name = "cmdSelectedMailbox";
             this.cmdSelectedMailbox.Size = new System.Drawing.Size(100, 25);
-            this.cmdSelectedMailbox.TabIndex = 5;
+            this.cmdSelectedMailbox.TabIndex = 7;
             this.cmdSelectedMailbox.Text = "Selected Mailbox";
             this.cmdSelectedMailbox.UseVisualStyleBackColor = true;
             this.cmdSelectedMailbox.Click += new System.EventHandler(this.cmdSelectedMailbox_Click);
@@ -1428,48 +1430,60 @@
             // 
             // gbxSelectedMailbox
             // 
+            this.gbxSelectedMailbox.Controls.Add(this.label25);
+            this.gbxSelectedMailbox.Controls.Add(this.txtSMBytes);
             this.gbxSelectedMailbox.Controls.Add(this.chkProgressBar);
             this.gbxSelectedMailbox.Controls.Add(this.chkTrackUIDNext);
             this.gbxSelectedMailbox.Controls.Add(this.chkTrackUnseen);
-            this.gbxSelectedMailbox.Controls.Add(this.txtSelectedMailbox);
+            this.gbxSelectedMailbox.Controls.Add(this.txtSMMessages);
             this.gbxSelectedMailbox.Controls.Add(this.label5);
             this.gbxSelectedMailbox.Controls.Add(this.cmdSelectedMailbox);
             this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 143);
             this.gbxSelectedMailbox.Name = "gbxSelectedMailbox";
-            this.gbxSelectedMailbox.Size = new System.Drawing.Size(205, 146);
+            this.gbxSelectedMailbox.Size = new System.Drawing.Size(433, 127);
             this.gbxSelectedMailbox.TabIndex = 3;
             this.gbxSelectedMailbox.TabStop = false;
             this.gbxSelectedMailbox.Text = "Selected Mailbox";
             // 
+            // chkProgressBar
+            // 
+            this.chkProgressBar.AutoSize = true;
+            this.chkProgressBar.Location = new System.Drawing.Point(244, 69);
+            this.chkProgressBar.Name = "chkProgressBar";
+            this.chkProgressBar.Size = new System.Drawing.Size(86, 17);
+            this.chkProgressBar.TabIndex = 6;
+            this.chkProgressBar.Text = "Progress Bar";
+            this.chkProgressBar.UseVisualStyleBackColor = true;
+            // 
             // chkTrackUIDNext
             // 
             this.chkTrackUIDNext.AutoSize = true;
-            this.chkTrackUIDNext.Location = new System.Drawing.Point(15, 45);
+            this.chkTrackUIDNext.Location = new System.Drawing.Point(15, 69);
             this.chkTrackUIDNext.Name = "chkTrackUIDNext";
             this.chkTrackUIDNext.Size = new System.Drawing.Size(98, 17);
-            this.chkTrackUIDNext.TabIndex = 2;
+            this.chkTrackUIDNext.TabIndex = 4;
             this.chkTrackUIDNext.Text = "Track UIDNext";
             this.chkTrackUIDNext.UseVisualStyleBackColor = true;
             // 
             // chkTrackUnseen
             // 
             this.chkTrackUnseen.AutoSize = true;
-            this.chkTrackUnseen.Location = new System.Drawing.Point(15, 68);
+            this.chkTrackUnseen.Location = new System.Drawing.Point(133, 69);
             this.chkTrackUnseen.Name = "chkTrackUnseen";
             this.chkTrackUnseen.Size = new System.Drawing.Size(94, 17);
-            this.chkTrackUnseen.TabIndex = 3;
+            this.chkTrackUnseen.TabIndex = 5;
             this.chkTrackUnseen.Text = "Track Unseen";
             this.chkTrackUnseen.UseVisualStyleBackColor = true;
             // 
-            // txtSelectedMailbox
+            // txtSMMessages
             // 
-            this.txtSelectedMailbox.Location = new System.Drawing.Point(133, 19);
-            this.txtSelectedMailbox.Name = "txtSelectedMailbox";
-            this.txtSelectedMailbox.Size = new System.Drawing.Size(50, 20);
-            this.txtSelectedMailbox.TabIndex = 1;
-            this.txtSelectedMailbox.Text = "100";
-            this.txtSelectedMailbox.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfMessages);
-            this.txtSelectedMailbox.Validated += new System.EventHandler(this.ZValControlValidated);
+            this.txtSMMessages.Location = new System.Drawing.Point(133, 19);
+            this.txtSMMessages.Name = "txtSMMessages";
+            this.txtSMMessages.Size = new System.Drawing.Size(50, 20);
+            this.txtSMMessages.TabIndex = 1;
+            this.txtSMMessages.Text = "100";
+            this.txtSMMessages.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfMessages);
+            this.txtSMMessages.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // label5
             // 
@@ -2153,15 +2167,24 @@
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
-            // chkProgressBar
+            // txtSMBytes
             // 
-            this.chkProgressBar.AutoSize = true;
-            this.chkProgressBar.Location = new System.Drawing.Point(15, 91);
-            this.chkProgressBar.Name = "chkProgressBar";
-            this.chkProgressBar.Size = new System.Drawing.Size(86, 17);
-            this.chkProgressBar.TabIndex = 4;
-            this.chkProgressBar.Text = "Progress Bar";
-            this.chkProgressBar.UseVisualStyleBackColor = true;
+            this.txtSMBytes.Location = new System.Drawing.Point(133, 41);
+            this.txtSMBytes.Name = "txtSMBytes";
+            this.txtSMBytes.Size = new System.Drawing.Size(50, 20);
+            this.txtSMBytes.TabIndex = 3;
+            this.txtSMBytes.Text = "10000";
+            this.txtSMBytes.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtSMBytes.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // label25
+            // 
+            this.label25.AutoSize = true;
+            this.label25.Location = new System.Drawing.Point(12, 44);
+            this.label25.Name = "label25";
+            this.label25.Size = new System.Drawing.Size(80, 13);
+            this.label25.TabIndex = 2;
+            this.label25.Text = "Max Text Bytes";
             // 
             // frmClient
             // 
@@ -2349,7 +2372,7 @@
         private System.Windows.Forms.RadioButton rdoTLSRequired;
         private System.Windows.Forms.RadioButton rdoTLSIndifferent;
         private System.Windows.Forms.GroupBox gbxSelectedMailbox;
-        private System.Windows.Forms.TextBox txtSelectedMailbox;
+        private System.Windows.Forms.TextBox txtSMMessages;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TabControl tabClient;
         private System.Windows.Forms.TabPage tbpSettings;
@@ -2411,5 +2434,7 @@
         private System.Windows.Forms.CheckBox chkTrackUIDNext;
         private System.Windows.Forms.CheckBox chkTrackUnseen;
         private System.Windows.Forms.CheckBox chkProgressBar;
+        private System.Windows.Forms.Label label25;
+        private System.Windows.Forms.TextBox txtSMBytes;
     }
 }

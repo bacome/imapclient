@@ -94,7 +94,7 @@ namespace work.bacome.imapclient
                 while (lIndex < pUIDs.Count)
                 {
                     // the number of messages to fetch this time
-                    int lFetchCount = mFetchAttributesSizer.Current;
+                    int lFetchCount = mFetchAttributesReadSizer.Current;
 
                     // get the UIDs to fetch this time
                     cUIntList lUIDs = new cUIntList();
@@ -106,7 +106,7 @@ namespace work.bacome.imapclient
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size
-                    mFetchAttributesSizer.AddSample(lUIDs.Count, lStopwatch.ElapsedMilliseconds, lContext);
+                    mFetchAttributesReadSizer.AddSample(lUIDs.Count, lStopwatch.ElapsedMilliseconds, lContext);
 
                     // update progress
                     pProgress.Increment(lUIDs.Count, lContext);

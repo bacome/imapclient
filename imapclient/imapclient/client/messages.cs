@@ -145,11 +145,16 @@ namespace work.bacome.imapclient
             if (lSession.Capabilities.ESearch) lHandles = await lSession.SearchExtendedAsync(pMC, pHandle, pFilter, lContext).ConfigureAwait(false);
             else lHandles = await lSession.SearchAsync(pMC, pHandle, pFilter, lContext).ConfigureAwait(false);
 
-            await ZMessagesFetchAsync(pMC, lSession, lHandles, lProperties, pConfiguration, lContext).ConfigureAwait(false);
+            if (ReferenceEquals(pSort, cSort.None))
+            {
+                await ZMessagesFetchAsync(pMC, lSession, lHandles, lProperties, pConfiguration, lContext).ConfigureAwait(false);
+                return ZMessagesFlatMessageList(lHandles, lContext);
+            }
 
             // client side sorting
 
-            if (ReferenceEquals(pSort, cSort.None)) return ZMessagesFlatMessageList(lHandles, lContext);
+            await ZMessagesFetchAsync(pMC, lSession, lHandles, lProperties, pConfiguration, lContext).ConfigureAwait(false);
+
             if (ReferenceEquals(pSort, cSort.ThreadOrderedSubject)) return ZMessagesThreadOrderedSubject(lHandles, lContext);
             if (ReferenceEquals(pSort, cSort.ThreadReferences)) return ZMessagesThreadReferences(lHandles, lContext);
 
@@ -197,7 +202,7 @@ namespace work.bacome.imapclient
             if (pConfiguration == null) lProgress = new cFetchProgress();
             else
             {
-                pConfiguration.SetCount?.Invoke(pHandles.Count);
+                mSynchroniser.InvokeActionInt(pConfiguration.SetCount, pHandles.Count, lContext);
                 lProgress = new cFetchProgress(mSynchroniser, pConfiguration.Increment);
             }
 

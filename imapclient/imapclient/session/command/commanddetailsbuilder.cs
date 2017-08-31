@@ -198,47 +198,78 @@ namespace work.bacome.imapclient
 
                     switch (pFilter)
                     {
-                        case cFilterMessageHandleRelativity lRelativity:
+                        case cFilterMSNRelativity lRelativity:
 
-                            var lMSN = pSelectedMailbox.GetMSN(lRelativity.Handle);
+                            long lMSN;
 
-                            if (lMSN == 0) throw new ArgumentOutOfRangeException(nameof(pFilter), "invalid message handle"); // may have been expunged
+                            if (lRelativity.Handle == null)
+                            {
+                                if (lRelativity.End == eFilterEnd.first) lMSN = 1;
+                                else lMSN = pSelectedMailbox.Cache.Count; // could be zero
+                            }
+                            else
+                            {
+                                lMSN = pSelectedMailbox.GetMSN(lRelativity.Handle);
+                                if (lMSN == 0) throw new cFilterMSNException(lRelativity.Handle); // may have been expunged
+                            }
+
+                            lMSN = lMSN + lRelativity.Offset;
 
                             switch (lRelativity.Relativity)
                             {
                                 case eFilterHandleRelativity.less:
 
-                                    if (lMSN == 1)
+                                    if (lMSN < 2)
                                     {
                                         lParts.BeginList(pBracketing);
                                         lParts.Add(kCommandPartSeen);
                                         lParts.Add(kCommandPartUnseen);
                                         lParts.EndList();
                                     }
-                                    else lParts.Add(new cCommandPart(new cSequenceSet(1, lMSN - 1)));
+                                    else if (lMSN > uint.MaxValue) lParts.Add(kCommandPartAll);
+                                    else lParts.Add(new cCommandPart(new cSequenceSet(1, (uint)lMSN - 1)));
 
                                     return lParts.Parts;
 
                                 case eFilterHandleRelativity.lessequal:
 
-                                    lParts.Add(new cCommandPart(new cSequenceSet(1, lMSN)));
-                                    return lParts.Parts;
-
-                                case eFilterHandleRelativity.greaterequal:
-
-                                    lParts.Add(new cCommandPart(new cSequenceSet(lMSN, uint.MaxValue)));
-                                    return lParts.Parts;
-
-                                case eFilterHandleRelativity.greater:
-
-                                    if (lMSN == uint.MaxValue)
+                                    if (lMSN < 1)
                                     {
                                         lParts.BeginList(pBracketing);
                                         lParts.Add(kCommandPartSeen);
                                         lParts.Add(kCommandPartUnseen);
                                         lParts.EndList();
                                     }
-                                    else lParts.Add(new cCommandPart(new cSequenceSet(lMSN + 1, uint.MaxValue)));
+                                    else if (lMSN >= uint.MaxValue) lParts.Add(kCommandPartAll);
+                                    else lParts.Add(new cCommandPart(new cSequenceSet(1, (uint)lMSN)));
+
+                                    return lParts.Parts;
+
+                                case eFilterHandleRelativity.greaterequal:
+
+                                    if (lMSN < 2) lParts.Add(kCommandPartAll);
+                                    else if (lMSN > uint.MaxValue)
+                                    {
+                                        lParts.BeginList(pBracketing);
+                                        lParts.Add(kCommandPartSeen);
+                                        lParts.Add(kCommandPartUnseen);
+                                        lParts.EndList();
+                                    }
+                                    else lParts.Add(new cCommandPart(new cSequenceSet((uint)lMSN, uint.MaxValue)));
+
+                                    return lParts.Parts;
+
+                                case eFilterHandleRelativity.greater:
+
+                                    if (lMSN < 1) lParts.Add(kCommandPartAll);
+                                    else if (lMSN >= uint.MaxValue)
+                                    {
+                                        lParts.BeginList(pBracketing);
+                                        lParts.Add(kCommandPartSeen);
+                                        lParts.Add(kCommandPartUnseen);
+                                        lParts.EndList();
+                                    }
+                                    else lParts.Add(new cCommandPart(new cSequenceSet((uint)lMSN + 1, uint.MaxValue)));
 
                                     return lParts.Parts;
 
@@ -675,15 +706,40 @@ namespace work.bacome.imapclient
                     catch { lFailed = true; }
                     if (!lFailed) throw new cTestsException("ZMessageFilterCommandPartsTests UIDValidity.2 - didn't fail as expected", lContext);
 
-                    var lMH1 = lSelectedMailbox.Cache[0];
-                    var lMH2 = lSelectedMailbox.Cache[1];
+                    var lClient = new cIMAPClient();
+                    var lMH1 = new cMessage(lClient, lSelectedMailbox.Cache[0]);
+                    var lMH2 = new cMessage(lClient, lSelectedMailbox.Cache[1]);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle < lMH1, lSelectedMailbox, false, false, null) != "SEEN UNSEEN") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.1", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle < lMH2, lSelectedMailbox, false, false, null) != "1:1") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.2", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle <= lMH1, lSelectedMailbox, false, false, null) != "1:1") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.3", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle <= lMH2, lSelectedMailbox, false, false, null) != "1:2") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.4", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle >= lMH2, lSelectedMailbox, false, false, null) != "2:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.5", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MessageHandle > lMH2, lSelectedMailbox, false, false, null) != "3:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.6", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN < lMH1, lSelectedMailbox, false, false, null) != "SEEN UNSEEN") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN < lMH2, lSelectedMailbox, false, false, null) != "1:1") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.2", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN <= lMH1, lSelectedMailbox, false, false, null) != "1:1") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN <= lMH2, lSelectedMailbox, false, false, null) != "1:2") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.4", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= lMH2, lSelectedMailbox, false, false, null) != "2:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.5", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > lMH2, lSelectedMailbox, false, false, null) != "3:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.6", lContext);
+
+
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > cFilter.First.MSNOffset(-5), lSelectedMailbox, false, false, null) != "ALL") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.7", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > cFilter.First.MSNOffset(0), lSelectedMailbox, false, false, null) != "2:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.8", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= cFilter.First.MSNOffset(0), lSelectedMailbox, false, false, null) != "ALL") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.9", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= cFilter.First.MSNOffset(2), lSelectedMailbox, false, false, null) != "3:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.10", lContext);
+
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN < cFilter.First.MSNOffset(-5), lSelectedMailbox, false, false, null) != "SEEN UNSEEN") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.11", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN < cFilter.First.MSNOffset(0), lSelectedMailbox, false, false, null) != "SEEN UNSEEN") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.12", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN <= cFilter.First.MSNOffset(0), lSelectedMailbox, false, false, null) != "1:1") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.13", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN <= cFilter.First.MSNOffset(2), lSelectedMailbox, false, false, null) != "1:3") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.14", lContext);
+
+
+
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > cFilter.Last.MSNOffset(-5), lSelectedMailbox, false, false, null) != "6:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.15", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > cFilter.Last.MSNOffset(0), lSelectedMailbox, false, false, null) != "11:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.16", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= cFilter.Last.MSNOffset(0), lSelectedMailbox, false, false, null) != "10:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.17", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= cFilter.Last.MSNOffset(2), lSelectedMailbox, false, false, null) != "12:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.18", lContext);
+
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN < cFilter.Last.MSNOffset(-5), lSelectedMailbox, false, false, null) != "1:4") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.19", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN < cFilter.Last.MSNOffset(0), lSelectedMailbox, false, false, null) != "1:9") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.20", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN <= cFilter.Last.MSNOffset(0), lSelectedMailbox, false, false, null) != "1:10") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.21", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN <= cFilter.Last.MSNOffset(2), lSelectedMailbox, false, false, null) != "1:12") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.22", lContext);
+
 
                     string LMessageFilterCommandPartsTestsString(cFilter pFilter, cSelectedMailbox pSelectedMailbox, bool pCharsetMandatory, bool pUTF8Enabled, Encoding pEncoding)
                     {

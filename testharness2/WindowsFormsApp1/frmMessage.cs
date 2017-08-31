@@ -16,6 +16,7 @@ namespace testharness2
         private readonly string mInstanceName;
         private readonly frmSelectedMailbox mParent; // for previous/next
         private readonly cMailbox mMailbox;
+        private readonly uint mMaxBytes;
         private cMessage mMessage;
         private bool mSubscribed = false;
         private bool mEnvelopeDisplayed = false;
@@ -28,11 +29,12 @@ namespace testharness2
         private bool mRawDisplayed = false;
         private bool mDecodedDisplayed = false;
 
-        public frmMessage(string pInstanceName, frmSelectedMailbox pParent, cMailbox pMailbox, cMessage pMessage)
+        public frmMessage(string pInstanceName, frmSelectedMailbox pParent, cMailbox pMailbox, uint pMaxBytes, cMessage pMessage)
         {
             mInstanceName = pInstanceName;
             mParent = pParent;
             mMailbox = pMailbox;
+            mMaxBytes = pMaxBytes;
             mMessage = pMessage;
             InitializeComponent();
         }
@@ -56,6 +58,8 @@ namespace testharness2
 
             ZQueryAsync(true);
         }
+
+        private string ZTooBig(uint pBytes) => $"<too big: estimated size: {pBytes}>";
 
         private int mQueryAsyncEntryNumber = 0;
 
@@ -97,7 +101,12 @@ namespace testharness2
                     if (!mTextDisplayed)
                     {
                         mTextDisplayed = true;
-                        string lText = await mMessage.PlainTextAsync();
+
+                        string lText;
+                        uint lBytes = mMessage.PlainTextSizeInBytes;
+                        if (lBytes > mMaxBytes) lText = ZTooBig(lBytes);
+                        else lText = await mMessage.PlainTextAsync();
+
                         if (lQueryAsyncEntryNumber != mQueryAsyncEntryNumber) return;
                         rtxText.Text = lText;
                     }
@@ -174,20 +183,20 @@ namespace testharness2
             tvwBodyStructure.BeginUpdate();
             tvwBodyStructure.Nodes.Clear();
             var lRoot = tvwBodyStructure.Nodes.Add("root");
-            lRoot.Tag = new cNodeTag(cSection.All);
-            ZQueryBodyStructureAddSection(lRoot, "header", cSection.Header);
+            lRoot.Tag = new cNodeTag(cSection.All, mMessage.Size);
+            ZQueryBodyStructureAddSection(lRoot, "header", cSection.Header, 0);
             ZQueryBodyStructureAddPart(lRoot, mMessage.BodyStructure);
             tvwBodyStructure.ExpandAll();
             tvwBodyStructure.EndUpdate();
         }
 
-        private void ZQueryBodyStructureAddSection(TreeNode pParent, string pText, cSection pSection)
+        private void ZQueryBodyStructureAddSection(TreeNode pParent, string pText, cSection pSection, uint pBytes)
         {
             var lNode = pParent.Nodes.Add(pText);
-            lNode.Tag = new cNodeTag(pSection);
+            lNode.Tag = new cNodeTag(pSection, pBytes);
         }
 
-        private void ZQueryBodyStructureAddPart(TreeNode pParent, cBodyPart pBodyPart)
+        private uint ZQueryBodyStructureAddPart(TreeNode pParent, cBodyPart pBodyPart)
         {
             string lPart;
 
@@ -196,24 +205,32 @@ namespace testharness2
             {
                 if (pBodyPart.Section.TextPart == eSectionPart.all)
                 {
-                    ZQueryBodyStructureAddSection(pParent, pBodyPart.Section.Part + ".mime", new cSection(pBodyPart.Section.Part, eSectionPart.mime));
+                    ZQueryBodyStructureAddSection(pParent, pBodyPart.Section.Part + ".mime", new cSection(pBodyPart.Section.Part, eSectionPart.mime), 0);
                     lPart = pBodyPart.Section.Part;
                 }
                 else lPart = pBodyPart.Section.Part + "." + pBodyPart.Section.TextPart.ToString();
             }
 
             var lNode = pParent.Nodes.Add(lPart + ": " + pBodyPart.Type + "/" + pBodyPart.SubType);
-            lNode.Tag = new cNodeTag(pBodyPart);
+            uint lBytes;
 
             if (pBodyPart is cMessageBodyPart lMessage)
             {
-                ZQueryBodyStructureAddSection(lNode, pBodyPart.Section.Part + ".header", new cSection(pBodyPart.Section.Part, eSectionPart.header));
+                ZQueryBodyStructureAddSection(lNode, pBodyPart.Section.Part + ".header", new cSection(pBodyPart.Section.Part, eSectionPart.header), 0);
                 ZQueryBodyStructureAddPart(lNode, lMessage.BodyStructure);
+                lBytes = lMessage.SizeInBytes;
             }
             else if (pBodyPart is cMultiPartBody lMultiPartPart)
             {
-                foreach (var lBodyPart in lMultiPartPart.Parts) ZQueryBodyStructureAddPart(lNode, lBodyPart);
+                lBytes = 0;
+                foreach (var lBodyPart in lMultiPartPart.Parts) lBytes += ZQueryBodyStructureAddPart(lNode, lBodyPart);
             }
+            else if (pBodyPart is cSinglePartBody lSinglePart) lBytes = lSinglePart.SizeInBytes;
+            else lBytes = int.MaxValue; // should never happen
+
+            lNode.Tag = new cNodeTag(pBodyPart, lBytes);
+
+            return lBytes;
         }
 
         private async void ZQueryBodyStructureDetailAsync(bool pFirst)
@@ -225,6 +242,22 @@ namespace testharness2
                 mDecodedDisplayed = false;
             }
 
+            if (tvwBodyStructure.SelectedNode == null)
+            {
+                mSummaryDisplayed = true;
+                rtxSummary.Text = "no node selected";
+
+                mRawDisplayed = true;
+                rtxRaw.Text = "no node selected";
+                cmdDownloadRaw.Enabled = false;
+
+                mDecodedDisplayed = true;
+                rtxDecoded.Text = "no node selected";
+                cmdDownloadDecoded.Enabled = false;
+
+                return;
+            }
+
             lblQueryError.Text = "";
 
             try
@@ -233,6 +266,7 @@ namespace testharness2
                 {
                     if (!mSummaryDisplayed)
                     {
+                        mSummaryDisplayed = true;
                         if (await ZQueryBodyStructureDetailAllAsync()) return;
                         ZQueryBodyStructureDetailSummary();
                     }
@@ -240,14 +274,16 @@ namespace testharness2
                     return;
                 }
 
-
                 if (ReferenceEquals(tabBodyStructure.SelectedTab, tpgRaw))
                 {
                     if (!mRawDisplayed)
                     {
+                        mRawDisplayed = true;
                         cmdDownloadRaw.Enabled = true;
+
                         if (await ZQueryBodyStructureDetailAllAsync()) return;
-                        //ZQueryBodyStructureDetailRawAsync();
+                        if (await ZQueryBodyStructureDetailRawAndDecodedAsync()) return;
+                        await ZQueryBodyStructureDetailRawAsync();
                     }
 
                     return;
@@ -257,9 +293,12 @@ namespace testharness2
                 {
                     if (!mDecodedDisplayed)
                     {
+                        mDecodedDisplayed = true;
                         cmdDownloadDecoded.Enabled = true;
+
                         if (await ZQueryBodyStructureDetailAllAsync()) return;
-                        //ZQueryBodyStructureDetailDecodedAsync();
+                        if (await ZQueryBodyStructureDetailRawAndDecodedAsync()) return;
+                        await ZQueryBodyStructureDetailDecodedAsync();
                     }
 
                     return;
@@ -270,41 +309,38 @@ namespace testharness2
             {
                 lblQueryError.Text = $"error: {ex.ToString()}";
             }
-
         }
 
         private int mQueryBodyStructureDetailAllAsyncEntryNumber = 0;
 
         private async Task<bool> ZQueryBodyStructureDetailAllAsync()
         {
-            // defend against re-entry during awaits
+            // defend against re-entry during await
             int lQueryBodyStructureDetailAllAsyncEntryNumber = ++mQueryBodyStructureDetailAllAsyncEntryNumber;
-
-            if (tvwBodyStructure.SelectedNode == null)
-            {
-                rtxSummary.Text = "no node selected";
-                rtxRaw.Text = "no node selected";
-                cmdDownloadRaw.Enabled = false;
-                rtxDecoded.Text = "no node selected";
-                cmdDownloadDecoded.Enabled = false;
-                return true;
-            }
 
             var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
 
             if (lTag.Section == null || lTag.Section == cSection.All) return false;
 
-            string lSectionText = await mMessage.FetchAsync(lTag.Section);
-            if (lQueryBodyStructureDetailAllAsyncEntryNumber != mQueryBodyStructureDetailAllAsyncEntryNumber) return true;
+            string lText;
+
+            if (lTag.Bytes > mMaxBytes) lText = ZTooBig(lTag.Bytes);
+            else
+            {
+                lText = await mMessage.FetchAsync(lTag.Section);
+                if (lQueryBodyStructureDetailAllAsyncEntryNumber != mQueryBodyStructureDetailAllAsyncEntryNumber) return true;
+            }
 
             mSummaryDisplayed = true;
-            rtxSummary.Text = lSectionText;
+            rtxSummary.Text = lText;
 
             mRawDisplayed = true;
-            rtxRaw.Text = lSectionText;
+            rtxRaw.Text = lText;
+            cmdDownloadRaw.Enabled = true;
 
             mDecodedDisplayed = true;
-            rtxDecoded.Text = lSectionText;
+            rtxDecoded.Text = lText;
+            cmdDownloadDecoded.Enabled = true;
 
             return true;
         }
@@ -317,6 +353,8 @@ namespace testharness2
 
             if (lTag.BodyPart != null)
             {
+                lBuilder.AppendLine($"Section: {lTag.BodyPart.Section}");
+
                 if (lTag.BodyPart.Disposition != null) lBuilder.AppendLine($"Disposition: {lTag.BodyPart.Disposition.Type} {lTag.BodyPart.Disposition.FileName} {lTag.BodyPart.Disposition.Size} {lTag.BodyPart.Disposition.CreationDate}");
                 if (lTag.BodyPart.Languages != null) lBuilder.AppendLine($"Languages: {lTag.BodyPart.Languages}");
                 if (lTag.BodyPart.Location != null) lBuilder.AppendLine($"Location: {lTag.BodyPart.Location}");
@@ -332,7 +370,7 @@ namespace testharness2
                     else if (lTag.BodyPart is cMessageBodyPart lMessageBodyPart) ZAppendEnvelope(lBuilder, lMessageBodyPart.Envelope);
                 }
             }
-            else if (lTag.Section  == cSection.All)
+            else if (lTag.Section == cSection.All)
             {
                 lBuilder.AppendLine("root");
                 lBuilder.AppendLine("message size: " + mMessage.Size);
@@ -340,6 +378,85 @@ namespace testharness2
 
             mSummaryDisplayed = true;
             rtxSummary.Text = lBuilder.ToString();
+        }
+
+        private int mQueryBodyStructureDetailRawAndDecodedAsyncEntryNumber = 0;
+
+        private async Task<bool> ZQueryBodyStructureDetailRawAndDecodedAsync()
+        {
+            // defend against re-entry during await
+            int lQueryBodyStructureDetailRawAndDecodedAsyncEntryNumber = ++mQueryBodyStructureDetailRawAndDecodedAsyncEntryNumber;
+
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+
+            if (lTag.BodyPart != null && lTag.BodyPart is cTextBodyPart) return false;
+
+            string lText;
+
+            if (lTag.Bytes > mMaxBytes) lText = ZTooBig(lTag.Bytes);
+            else
+            {
+                cSection lSection;
+                if (lTag.BodyPart == null) lSection = lTag.Section;
+                else lSection = lTag.BodyPart.Section;
+
+                lText = await mMessage.FetchAsync(lSection);
+                if (lQueryBodyStructureDetailRawAndDecodedAsyncEntryNumber != mQueryBodyStructureDetailRawAndDecodedAsyncEntryNumber) return true;
+            }
+
+            mRawDisplayed = true;
+            rtxRaw.Text = lText;
+            cmdDownloadRaw.Enabled = true;
+
+            mDecodedDisplayed = true;
+            rtxDecoded.Text = lText;
+            cmdDownloadDecoded.Enabled = true;
+
+            return true;
+        }
+
+        private int mQueryBodyStructureDetailRawAsyncEntryNumber = 0;
+
+        private async Task ZQueryBodyStructureDetailRawAsync()
+        {
+            // defend against re-entry during await
+            int lQueryBodyStructureDetailRawAsyncEntryNumber = ++mQueryBodyStructureDetailRawAsyncEntryNumber;
+
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+
+            string lText;
+
+            if (lTag.BodyPart == null) lText = null;
+            else if (lTag.BodyPart is cTextBodyPart lTextPart)
+            {
+                lText = await mMessage.FetchAsync(lTag.BodyPart.Section);
+                if (lQueryBodyStructureDetailRawAsyncEntryNumber != mQueryBodyStructureDetailRawAsyncEntryNumber) return;
+            }
+            else lText = null;
+
+            rtxRaw.Text = lText;
+        }
+
+        private int mQueryBodyStructureDetailDecodedAsyncEntryNumber = 0;
+
+        private async Task ZQueryBodyStructureDetailDecodedAsync()
+        {
+            // defend against re-entry during await
+            int lQueryBodyStructureDetailDecodedAsyncEntryNumber = ++mQueryBodyStructureDetailDecodedAsyncEntryNumber;
+
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+
+            string lText;
+
+            if (lTag.BodyPart == null) lText = null;
+            else if (lTag.BodyPart is cTextBodyPart lTextPart)
+            {
+                lText = await mMessage.FetchAsync(lTag.BodyPart);
+                if (lQueryBodyStructureDetailDecodedAsyncEntryNumber != mQueryBodyStructureDetailDecodedAsyncEntryNumber) return;
+            }
+            else lText = null;
+
+            rtxDecoded.Text = lText;
         }
 
         private void frmMessage_FormClosed(object sender, FormClosedEventArgs e)
@@ -467,17 +584,20 @@ namespace testharness2
         {
             public readonly cBodyPart BodyPart;
             public readonly cSection Section;
+            public readonly uint Bytes;
 
-            public cNodeTag(cBodyPart pBodyPart)
+            public cNodeTag(cBodyPart pBodyPart, uint pBytes)
             {
                 BodyPart = pBodyPart ?? throw new ArgumentNullException(nameof(pBodyPart));
                 Section = null;
+                Bytes = pBytes;
             }
 
-            public cNodeTag(cSection pSection)
+            public cNodeTag(cSection pSection, uint pBytes)
             {
                 BodyPart = null;
                 Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
+                Bytes = pBytes;
             }
         }
     }

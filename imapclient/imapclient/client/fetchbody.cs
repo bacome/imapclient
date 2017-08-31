@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                     var lProgress = new cFetchProgress();
                     var lWriteSizer = new cFetchSizer(mFetchBodyWriteConfiguration);
-                    await lSession.FetchBodyAsync(lMC, pHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, null, lContext).ConfigureAwait(false);
+                    await lSession.FetchBodyAsync(lMC, pHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
                 }
             }
             else
@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
                 var lProgress = new cFetchProgress(mSynchroniser, pConfiguration.Increment);
                 var lWriteSizer = new cFetchSizer(pConfiguration.Write ?? mFetchBodyWriteConfiguration);
-                await lSession.FetchBodyAsync(lMC, pHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, pConfiguration.FetchSizer, lContext).ConfigureAwait(false);
+                await lSession.FetchBodyAsync(lMC, pHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
             }
         }
     }

@@ -16,16 +16,18 @@ namespace testharness2
     {
         private readonly cIMAPClient mClient;
         private readonly int mMaxMessages;
+        private readonly uint mMaxBytes;
         private readonly bool mTrackUIDNext;
         private readonly bool mTrackUnseen;
         private readonly bool mProgressBar;
         private readonly List<frmMessage> mMessages = new List<frmMessage>();
         private cMailbox mSelectedMailbox = null;
 
-        public frmSelectedMailbox(cIMAPClient pClient, int pMaxMessages, bool pTrackUIDNext, bool pTrackUnseen, bool pProgressBar)
+        public frmSelectedMailbox(cIMAPClient pClient, int pMaxMessages, uint pMaxBytes, bool pTrackUIDNext, bool pTrackUnseen, bool pProgressBar)
         {
             mClient = pClient;
             mMaxMessages = pMaxMessages;
+            mMaxBytes = pMaxBytes;
             mTrackUIDNext = pTrackUIDNext;
             mTrackUnseen = pTrackUnseen;
             mProgressBar = pProgressBar;
@@ -224,30 +226,6 @@ namespace testharness2
 
             if (mSelectedMailbox == null) return;
 
-            // magic for implementing the restriction on message count; note that the message collection is live and maintained on a different thread, so we have to be careful
-
-            cFilter lFilter;
-
-            var lDetails = mClient.SelectedMailboxDetails;
-
-            if (!ReferenceEquals(lDetails.Handle, mSelectedMailbox.Handle)) return;
-
-            try
-            {
-                if (lDetails.Cache.Count > mMaxMessages)
-                {
-                    var lHandle = lDetails.Cache[lDetails.Cache.Count - mMaxMessages];
-                    lFilter = cFilter.MessageHandle >= lHandle;
-                }
-                else lFilter = null;
-            }
-            catch
-            {
-                lFilter = null;
-            }
-
-            // end magic
-
             // get the messages
 
             frmProgress lProgress = null;
@@ -268,7 +246,14 @@ namespace testharness2
                     lConfiguration = null;
                 }
 
-                lMessages = await mSelectedMailbox.MessagesAsync(lFilter, null, fMessageProperties.clientdefault, lConfiguration);
+                if (mSelectedMailbox.MessageCount > mMaxMessages)
+                {
+                    lMessages = await mSelectedMailbox.MessagesAsync(null, null, 0, lConfiguration);
+                    lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
+                    mSelectedMailbox.Fetch(lMessages, fMessageProperties.clientdefault, lConfiguration);
+                }
+                else if (lConfiguration == null) lMessages = await mSelectedMailbox.MessagesAsync();
+                else lMessages = await mSelectedMailbox.MessagesAsync(null, null, fMessageProperties.clientdefault, lConfiguration);
             }
             catch (Exception e)
             {
@@ -352,7 +337,7 @@ namespace testharness2
         {
             var lData = dgv.Rows[e.RowIndex].DataBoundItem as cGridRowData;
             if (lData == null) return;
-            ZMessageAdd(new frmMessage(mClient.InstanceName, this, mSelectedMailbox, lData.Message));
+            ZMessageAdd(new frmMessage(mClient.InstanceName, this, mSelectedMailbox, mMaxBytes, lData.Message));
         }
 
         private void frmSelectedMailbox_FormClosed(object sender, FormClosedEventArgs e)

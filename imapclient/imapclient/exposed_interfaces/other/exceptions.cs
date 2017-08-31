@@ -260,6 +260,21 @@ namespace work.bacome.imapclient
         }
     }
 
+    // thrown when a handle can't resolved when building the filter
+    public class cFilterMSNException : cIMAPException
+    {
+        public readonly iMessageHandle Handle;
+        public cFilterMSNException(iMessageHandle pHandle) { Handle = pHandle; }
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cFilterMSNException));
+            lBuilder.Append(Handle);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
+    }
+
     public class cTestsException : Exception
     {
         public cTestsException() { }

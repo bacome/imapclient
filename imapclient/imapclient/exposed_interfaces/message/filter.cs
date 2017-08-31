@@ -9,8 +9,11 @@ namespace work.bacome.imapclient
     {
         public static readonly cFilter All = new cAll();
 
-        public static readonly cFilterMessageHandle MessageHandle = new cFilterMessageHandle();
+        public static readonly cFilterMSN MSN = new cFilterMSN();
         public static readonly cFilterUID UID = new cFilterUID();
+
+        public static readonly cFilterEnd First = new cFilterEnd(eFilterEnd.first);
+        public static readonly cFilterEnd Last = new cFilterEnd(eFilterEnd.last);
 
         public static readonly cFilter IsAnswered = new cFilterFlagsContain(cMessageFlags.Answered);
         public static readonly cFilter IsFlagged = new cFilterFlagsContain(cMessageFlags.Flagged);
@@ -116,51 +119,119 @@ namespace work.bacome.imapclient
     public enum eFilterDate { arrival, sent }
     public enum eFilterDateCompare { before, on, since }
     public enum eFilterSizeCompare { smaller, larger }
+    public enum eFilterEnd { first, last }
 
     // suppress the warnings about not implementing == properly: here == is being used as an expression builder
     #pragma warning disable 660
     #pragma warning disable 661
 
-    public class cFilterMessageHandleRelativity : cFilter
+    public class cFilterMSNRelativity : cFilter
     {
         public readonly iMessageHandle Handle;
+        public readonly eFilterEnd? End;
+        public readonly int Offset;
         public readonly eFilterHandleRelativity Relativity;
 
-        public cFilterMessageHandleRelativity(iMessageHandle pHandle, eFilterHandleRelativity pRelativity) : base(true, pHandle.Cache.UIDValidity)
+        public cFilterMSNRelativity(iMessageHandle pHandle, eFilterHandleRelativity pRelativity) : base(true, pHandle.Cache.UIDValidity)
         {
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+            End = null;
+            Offset = 0;
             Relativity = pRelativity;
         }
 
-        public override string ToString() => $"{nameof(cFilterMessageHandleRelativity)}({UIDValidity},{Handle},{Relativity})";
+        public cFilterMSNRelativity(cFilterMSNOffset pOffset, eFilterHandleRelativity pRelativity)
+        {
+            End = pOffset.End;
+            Handle = pOffset.Handle;
+            Offset = pOffset.Offset;
+            Relativity = pRelativity;
+        }
+
+        public override string ToString() => $"{nameof(cFilterMSNRelativity)}({UIDValidity},{Handle},{End},{Offset},{Relativity})";
     }
 
-    public class cFilterMessageHandle
+    public class cFilterMSNOffset
     {
-        public cFilterMessageHandle() { }
+        public readonly iMessageHandle Handle;
+        public readonly eFilterEnd? End;
+        public readonly int Offset;
 
-        public static cFilter operator <(cFilterMessageHandle pFilterMessageHandle, iMessageHandle pHandle)
+        public cFilterMSNOffset(iMessageHandle pHandle, int pOffset)
         {
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-            return new cFilterMessageHandleRelativity(pHandle, eFilterHandleRelativity.less);
+            Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+            End = null; 
+            Offset = pOffset;
         }
 
-        public static cFilter operator >(cFilterMessageHandle pFilterMessageHandle, iMessageHandle pHandle)
+        public cFilterMSNOffset(eFilterEnd pEnd, int pOffset)
         {
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-            return new cFilterMessageHandleRelativity(pHandle, eFilterHandleRelativity.greater);
+            Handle = null;
+            End = pEnd;
+            Offset = pOffset;
         }
 
-        public static cFilter operator <=(cFilterMessageHandle pFilterMessageHandle, iMessageHandle pHandle)
+        public override string ToString() => $"{nameof(cFilterMSNOffset)}({Handle},{End},{Offset})";
+    }
+
+    public class cFilterEnd
+    {
+        public readonly eFilterEnd End;
+        public cFilterEnd(eFilterEnd pEnd) { End = pEnd; }
+        public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(End, pOffset);
+        public override string ToString() => $"{nameof(cFilterEnd)}({End})";
+    }
+
+    public class cFilterMSN
+    {
+        public cFilterMSN() { }
+
+        public static cFilter operator <(cFilterMSN pFilterMSN, cMessage pMessage)
         {
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-            return new cFilterMessageHandleRelativity(pHandle, eFilterHandleRelativity.lessequal);
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+            return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.less);
         }
 
-        public static cFilter operator >=(cFilterMessageHandle pFilterMessageHandle, iMessageHandle pHandle)
+        public static cFilter operator >(cFilterMSN pFilterMSN, cMessage pMessage)
         {
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-            return new cFilterMessageHandleRelativity(pHandle, eFilterHandleRelativity.greaterequal);
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+            return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.greater);
+        }
+
+        public static cFilter operator <(cFilterMSN pFilterMSN, cFilterMSNOffset pOffset)
+        {
+            if (pOffset == null) throw new ArgumentNullException(nameof(pOffset));
+            return new cFilterMSNRelativity(pOffset, eFilterHandleRelativity.less);
+        }
+
+        public static cFilter operator >(cFilterMSN pFilterMSN, cFilterMSNOffset pOffset)
+        {
+            if (pOffset == null) throw new ArgumentNullException(nameof(pOffset));
+            return new cFilterMSNRelativity(pOffset, eFilterHandleRelativity.greater);
+        }
+
+        public static cFilter operator <=(cFilterMSN pFilterMSN, cMessage pMessage)
+        {
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+            return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.lessequal);
+        }
+
+        public static cFilter operator >=(cFilterMSN pFilterMSN, cMessage pMessage)
+        {
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+            return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.greaterequal);
+        }
+
+        public static cFilter operator <=(cFilterMSN pFilterMSN, cFilterMSNOffset pOffset)
+        {
+            if (pOffset == null) throw new ArgumentNullException(nameof(pOffset));
+            return new cFilterMSNRelativity(pOffset, eFilterHandleRelativity.lessequal);
+        }
+
+        public static cFilter operator >=(cFilterMSN pFilterMSN, cFilterMSNOffset pOffset)
+        {
+            if (pOffset == null) throw new ArgumentNullException(nameof(pOffset));
+            return new cFilterMSNRelativity(pOffset, eFilterHandleRelativity.greaterequal);
         }
     }
 

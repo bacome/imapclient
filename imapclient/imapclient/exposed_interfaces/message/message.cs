@@ -282,7 +282,20 @@ namespace work.bacome.imapclient
             return lResult;
         }
 
+        public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(Handle, pOffset);
+
         // get data
+
+        public uint PlainTextSizeInBytes
+        {
+            get
+            {
+                if (!Client.Fetch(Handle, fMessageProperties.bodystructure)) throw new InvalidOperationException();
+                uint lSize = 0;
+                foreach (var lPart in ZPlainText(Handle.BodyStructure)) lSize += lPart.SizeInBytes;
+                return lSize;
+            }
+        }
 
         public string PlainText()
         {
@@ -305,17 +318,17 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
-        private List<cBodyPart> ZPlainText(cBodyPart pPart)
+        private List<cTextBodyPart> ZPlainText(cBodyPart pPart)
         {
             // TODO: when we know what languages the user is interested in (on implementation of languages) choose from multipart/alternative options based on language tag
 
-            List<cBodyPart> lResult = new List<cBodyPart>();
+            List<cTextBodyPart> lResult = new List<cTextBodyPart>();
 
             if (pPart.Disposition?.TypeCode == eDispositionTypeCode.attachment) return lResult;
 
             if (pPart is cTextBodyPart lTextPart)
             {
-                if (lTextPart.SubTypeCode == eTextBodyPartSubTypeCode.plain) lResult.Add(pPart);
+                if (lTextPart.SubTypeCode == eTextBodyPartSubTypeCode.plain) lResult.Add(lTextPart);
             }
             else if (pPart is cMultiPartBody lMultiPart)
             {

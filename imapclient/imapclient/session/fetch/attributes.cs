@@ -73,7 +73,7 @@ namespace work.bacome.imapclient
                     while (lIndex < pGroup.Handles.Count && lMSNHandleCount != 0)
                     {
                         // the number of messages to fetch this time
-                        int lFetchCount = mFetchAttributesSizer.Current;
+                        int lFetchCount = mFetchAttributesReadSizer.Current;
 
                         // the number of UID handles we need to fetch to top up the number of handles to the limit
                         //
@@ -112,7 +112,7 @@ namespace work.bacome.imapclient
                             lStopwatch.Stop();
 
                             // store the time taken so the next fetch is a better size
-                            mFetchAttributesSizer.AddSample(lHandles.Count, lStopwatch.ElapsedMilliseconds, lContext);
+                            mFetchAttributesReadSizer.AddSample(lHandles.Count, lStopwatch.ElapsedMilliseconds, lContext);
 
                             // update progress
                             pProgress.Increment(lHandles.Count, lContext);
