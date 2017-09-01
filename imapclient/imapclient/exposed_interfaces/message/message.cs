@@ -319,8 +319,9 @@ namespace work.bacome.imapclient
         }
 
         public bool Fetch(fMessageProperties pProperties) => Client.Fetch(Handle, pProperties);
-
         public Task<bool> FetchAsync(fMessageProperties pProperties) => Client.FetchAsync(Handle, pProperties);
+        public uint FetchSizeInBytes(cSinglePartBody pPart) => Client.FetchSizeInBytes(Handle, pPart);
+        public Task<uint> FetchSizeInBytesAsync(cSinglePartBody pPart) => Client.FetchSizeInBytesAsync(Handle, pPart);
 
         public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(Handle, pOffset);
 

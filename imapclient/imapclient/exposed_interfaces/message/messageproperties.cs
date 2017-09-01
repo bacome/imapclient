@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     [Flags]
-    public enum fMessageProperties
+    public enum fMessageProperties : long
     {
         clientdefault = 1 << 0,
 
@@ -42,6 +42,6 @@ namespace work.bacome.imapclient
 
         bodystructure = 1 << 30,
         attachments = 1 << 31,
-        plaintextsizeinbytes = 1 << 32
+        plaintextsizeinbytes = 1L << 32
     }
 }

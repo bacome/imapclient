@@ -79,7 +79,7 @@ namespace work.bacome.imapclient
                 return lHandles;
             }
 
-            public async Task ZUIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cFetchProgress pProgress, cTrace.cContext pParentContext)
+            private async Task ZUIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cFetchProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAttributesAsync), pMC, pHandle, pUIDs, pAttributes);
 

@@ -16,18 +16,18 @@ namespace testharness2
     {
         private readonly cIMAPClient mClient;
         private readonly int mMaxMessages;
-        private readonly uint mMaxBytes;
+        private readonly uint mMaxTextBytes;
         private readonly bool mTrackUIDNext;
         private readonly bool mTrackUnseen;
         private readonly bool mProgressBar;
         private readonly List<frmMessage> mMessages = new List<frmMessage>();
         private cMailbox mSelectedMailbox = null;
 
-        public frmSelectedMailbox(cIMAPClient pClient, int pMaxMessages, uint pMaxBytes, bool pTrackUIDNext, bool pTrackUnseen, bool pProgressBar)
+        public frmSelectedMailbox(cIMAPClient pClient, int pMaxMessages, uint pMaxTextBytes, bool pTrackUIDNext, bool pTrackUnseen, bool pProgressBar)
         {
             mClient = pClient;
             mMaxMessages = pMaxMessages;
-            mMaxBytes = pMaxBytes;
+            mMaxTextBytes = pMaxTextBytes;
             mTrackUIDNext = pTrackUIDNext;
             mTrackUnseen = pTrackUnseen;
             mProgressBar = pProgressBar;
@@ -222,7 +222,7 @@ namespace testharness2
             // defend against being called twice with the same settings
             //  (note this is inevitable as events from the client are delivered asyncronously - therefore two events may arrive together after two changes)
             //
-            var lCache = mClient.SelectedMailboxDetails.Cache;
+            var lCache = mClient.SelectedMailboxDetails?.Cache;
             if (ReferenceEquals(lCache, mChangedMessagesLastCache)) return;
             mChangedMessagesLastCache = lCache;
 
@@ -346,7 +346,7 @@ namespace testharness2
         {
             var lData = dgv.Rows[e.RowIndex].DataBoundItem as cGridRowData;
             if (lData == null) return;
-            ZMessageAdd(new frmMessage(mClient.InstanceName, this, mSelectedMailbox, mMaxBytes, lData.Message));
+            ZMessageAdd(new frmMessage(mClient.InstanceName, this, mSelectedMailbox, mMaxTextBytes, lData.Message));
         }
 
         private void frmSelectedMailbox_FormClosed(object sender, FormClosedEventArgs e)

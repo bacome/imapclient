@@ -204,7 +204,7 @@
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
             this.cmdPoll = new System.Windows.Forms.Button();
-            this.txtSMBytes = new System.Windows.Forms.TextBox();
+            this.txtSMTextBytes = new System.Windows.Forms.TextBox();
             this.label25 = new System.Windows.Forms.Label();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
@@ -1334,7 +1334,7 @@
             this.cmdSelectedMailbox.Location = new System.Drawing.Point(15, 92);
             this.cmdSelectedMailbox.Name = "cmdSelectedMailbox";
             this.cmdSelectedMailbox.Size = new System.Drawing.Size(100, 25);
-            this.cmdSelectedMailbox.TabIndex = 7;
+            this.cmdSelectedMailbox.TabIndex = 9;
             this.cmdSelectedMailbox.Text = "Selected Mailbox";
             this.cmdSelectedMailbox.UseVisualStyleBackColor = true;
             this.cmdSelectedMailbox.Click += new System.EventHandler(this.cmdSelectedMailbox_Click);
@@ -1431,7 +1431,7 @@
             // gbxSelectedMailbox
             // 
             this.gbxSelectedMailbox.Controls.Add(this.label25);
-            this.gbxSelectedMailbox.Controls.Add(this.txtSMBytes);
+            this.gbxSelectedMailbox.Controls.Add(this.txtSMTextBytes);
             this.gbxSelectedMailbox.Controls.Add(this.chkProgressBar);
             this.gbxSelectedMailbox.Controls.Add(this.chkTrackUIDNext);
             this.gbxSelectedMailbox.Controls.Add(this.chkTrackUnseen);
@@ -1451,7 +1451,7 @@
             this.chkProgressBar.Location = new System.Drawing.Point(244, 69);
             this.chkProgressBar.Name = "chkProgressBar";
             this.chkProgressBar.Size = new System.Drawing.Size(86, 17);
-            this.chkProgressBar.TabIndex = 6;
+            this.chkProgressBar.TabIndex = 8;
             this.chkProgressBar.Text = "Progress Bar";
             this.chkProgressBar.UseVisualStyleBackColor = true;
             // 
@@ -1461,7 +1461,7 @@
             this.chkTrackUIDNext.Location = new System.Drawing.Point(15, 69);
             this.chkTrackUIDNext.Name = "chkTrackUIDNext";
             this.chkTrackUIDNext.Size = new System.Drawing.Size(98, 17);
-            this.chkTrackUIDNext.TabIndex = 4;
+            this.chkTrackUIDNext.TabIndex = 6;
             this.chkTrackUIDNext.Text = "Track UIDNext";
             this.chkTrackUIDNext.UseVisualStyleBackColor = true;
             // 
@@ -1471,7 +1471,7 @@
             this.chkTrackUnseen.Location = new System.Drawing.Point(133, 69);
             this.chkTrackUnseen.Name = "chkTrackUnseen";
             this.chkTrackUnseen.Size = new System.Drawing.Size(94, 17);
-            this.chkTrackUnseen.TabIndex = 5;
+            this.chkTrackUnseen.TabIndex = 7;
             this.chkTrackUnseen.Text = "Track Unseen";
             this.chkTrackUnseen.UseVisualStyleBackColor = true;
             // 
@@ -2167,15 +2167,15 @@
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
-            // txtSMBytes
+            // txtSMTextBytes
             // 
-            this.txtSMBytes.Location = new System.Drawing.Point(133, 41);
-            this.txtSMBytes.Name = "txtSMBytes";
-            this.txtSMBytes.Size = new System.Drawing.Size(50, 20);
-            this.txtSMBytes.TabIndex = 3;
-            this.txtSMBytes.Text = "10000";
-            this.txtSMBytes.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtSMBytes.Validated += new System.EventHandler(this.ZValControlValidated);
+            this.txtSMTextBytes.Location = new System.Drawing.Point(133, 41);
+            this.txtSMTextBytes.Name = "txtSMTextBytes";
+            this.txtSMTextBytes.Size = new System.Drawing.Size(50, 20);
+            this.txtSMTextBytes.TabIndex = 3;
+            this.txtSMTextBytes.Text = "10000";
+            this.txtSMTextBytes.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtSMTextBytes.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // label25
             // 
@@ -2435,6 +2435,6 @@
         private System.Windows.Forms.CheckBox chkTrackUnseen;
         private System.Windows.Forms.CheckBox chkProgressBar;
         private System.Windows.Forms.Label label25;
-        private System.Windows.Forms.TextBox txtSMBytes;
+        private System.Windows.Forms.TextBox txtSMTextBytes;
     }
 }

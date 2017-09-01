@@ -452,7 +452,7 @@ namespace testharness2
 
             bool lSelectedMailbox = !mNamedChildren.ContainsKey(nameof(frmSelectedMailbox));
             txtSMMessages.Enabled = lSelectedMailbox;
-            txtSMBytes.Enabled = lSelectedMailbox;
+            txtSMTextBytes.Enabled = lSelectedMailbox;
             chkTrackUIDNext.Enabled = lSelectedMailbox;
             chkTrackUnseen.Enabled = lSelectedMailbox;
             chkProgressBar.Enabled = lSelectedMailbox;
@@ -698,7 +698,7 @@ namespace testharness2
         private void ZDisplaySelectedMailbox()
         {
             if (mNamedChildren.TryGetValue(nameof(frmSelectedMailbox), out var lForm)) ZFocus(lForm);
-            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSMMessages.Text), uint.Parse(txtSMBytes.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked));
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSMMessages.Text), uint.Parse(txtSMTextBytes.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked));
         }
     }
 }

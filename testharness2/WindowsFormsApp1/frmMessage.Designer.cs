@@ -52,12 +52,12 @@
             this.cmdDownloadRaw = new System.Windows.Forms.Button();
             this.rtxRaw = new System.Windows.Forms.RichTextBox();
             this.tpgDecoded = new System.Windows.Forms.TabPage();
+            this.pbx = new System.Windows.Forms.PictureBox();
             this.cmdDownloadDecoded = new System.Windows.Forms.Button();
             this.rtxDecoded = new System.Windows.Forms.RichTextBox();
             this.tpgOther = new System.Windows.Forms.TabPage();
             this.rtxOther = new System.Windows.Forms.RichTextBox();
             this.lblQueryError = new System.Windows.Forms.Label();
-            this.pbx = new System.Windows.Forms.PictureBox();
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
@@ -71,8 +71,8 @@
             this.tpgSummary.SuspendLayout();
             this.tpgRaw.SuspendLayout();
             this.tpgDecoded.SuspendLayout();
-            this.tpgOther.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbx)).BeginInit();
+            this.tpgOther.SuspendLayout();
             this.SuspendLayout();
             // 
             // cmdPrevious
@@ -360,6 +360,17 @@
             this.tpgDecoded.Text = "Decoded";
             this.tpgDecoded.UseVisualStyleBackColor = true;
             // 
+            // pbx
+            // 
+            this.pbx.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pbx.Location = new System.Drawing.Point(105, 53);
+            this.pbx.Name = "pbx";
+            this.pbx.Size = new System.Drawing.Size(104, 83);
+            this.pbx.TabIndex = 4;
+            this.pbx.TabStop = false;
+            // 
             // cmdDownloadDecoded
             // 
             this.cmdDownloadDecoded.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -412,14 +423,6 @@
             this.lblQueryError.TabIndex = 3;
             this.lblQueryError.Text = "Query Error";
             // 
-            // pbx
-            // 
-            this.pbx.Location = new System.Drawing.Point(25, 212);
-            this.pbx.Name = "pbx";
-            this.pbx.Size = new System.Drawing.Size(31, 25);
-            this.pbx.TabIndex = 4;
-            this.pbx.TabStop = false;
-            // 
             // frmMessage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -448,8 +451,8 @@
             this.tpgSummary.ResumeLayout(false);
             this.tpgRaw.ResumeLayout(false);
             this.tpgDecoded.ResumeLayout(false);
-            this.tpgOther.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pbx)).EndInit();
+            this.tpgOther.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 

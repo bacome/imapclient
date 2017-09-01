@@ -11,6 +11,7 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kFetchCommandPartUIDFetchSpace = new cCommandPart("UID FETCH ");
             private static readonly cCommandPart kFetchCommandPartSpaceBodyPeekLBracket = new cCommandPart(" BODY.PEEK[");
             private static readonly cCommandPart kFetchCommandPartSpaceBinaryPeekLBracket = new cCommandPart(" BINARY.PEEK[");
+            private static readonly cCommandPart kFetchCommandPartSpaceBinarySizeLBracket = new cCommandPart(" BINARY.SIZE[");
         }
     }
 }
