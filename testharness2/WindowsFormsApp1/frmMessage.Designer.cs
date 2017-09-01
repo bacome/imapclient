@@ -435,6 +435,7 @@
             this.Controls.Add(this.cmdPrevious);
             this.Name = "frmMessage";
             this.Text = "frmMessage";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMessage_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMessage_FormClosed);
             this.Load += new System.EventHandler(this.frmMessage_Load);
             this.tab.ResumeLayout(false);

@@ -34,6 +34,10 @@ namespace testharness2
         private bool mDecodedDisplayed = false;
         private string mRawSectionData = null;
 
+        private Task mImageLoadTask = null;
+        private frmProgress mImageLoadProgress = null;
+        private MemoryStream mImageStream = null;
+
         public frmMessage(string pInstanceName, frmSelectedMailbox pParent, cMailbox pMailbox, uint pMaxTextBytes, cMessage pMessage)
         {
             mInstanceName = pInstanceName;
@@ -163,7 +167,7 @@ namespace testharness2
                     {
                         mBodyStructureDisplayed = true;
                         ZQueryBodyStructure();
-                        ZQueryBodyStructureDetailAsync(true);
+                        ZQueryBodyStructureDetail(true);
                     }
 
                     return;
@@ -246,7 +250,7 @@ namespace testharness2
 
         private int mQueryBodyStructureDetailEntryNumber = 0;
 
-        private void ZQueryBodyStructureDetailAsync(bool pFirst)
+        private void ZQueryBodyStructureDetail(bool pFirst)
         {
             // defend against re-entry during awaits
             int lQueryBodyStructureDetailEntryNumber = ++mQueryBodyStructureDetailEntryNumber;
@@ -261,49 +265,41 @@ namespace testharness2
 
             lblQueryError.Text = "";
 
-            try
+            if (ReferenceEquals(tabBodyStructure.SelectedTab, tpgSummary))
             {
-                if (ReferenceEquals(tabBodyStructure.SelectedTab, tpgSummary))
+                if (!mSummaryDisplayed)
                 {
-                    if (!mSummaryDisplayed)
-                    {
-                        mSummaryDisplayed = true;
-                        ZQueryBodyStructureSummaryAsync(lQueryBodyStructureDetailEntryNumber);
-                    }
-
-                    return;
+                    mSummaryDisplayed = true;
+                    ZQueryBodyStructureSummary(lQueryBodyStructureDetailEntryNumber);
                 }
 
-                if (ReferenceEquals(tabBodyStructure.SelectedTab, tpgRaw))
-                {
-                    if (!mRawDisplayed)
-                    {
-                        mRawDisplayed = true;
-                        ZQueryBodyStructureRawAsync(lQueryBodyStructureDetailEntryNumber);
-                    }
-
-                    return;
-                }
-
-                if (ReferenceEquals(tabBodyStructure.SelectedTab, tpgDecoded))
-                {
-                    if (!mDecodedDisplayed)
-                    {
-                        mDecodedDisplayed = true;
-                        ZQueryBodyStructureDecodedAsync(lQueryBodyStructureDetailEntryNumber);
-                    }
-
-                    return;
-                }
-
+                return;
             }
-            catch (Exception ex)
+
+            if (ReferenceEquals(tabBodyStructure.SelectedTab, tpgRaw))
             {
-                lblQueryError.Text = $"error: {ex.ToString()}";
+                if (!mRawDisplayed)
+                {
+                    mRawDisplayed = true;
+                    ZQueryBodyStructureRaw(lQueryBodyStructureDetailEntryNumber);
+                }
+
+                return;
+            }
+
+            if (ReferenceEquals(tabBodyStructure.SelectedTab, tpgDecoded))
+            {
+                if (!mDecodedDisplayed)
+                {
+                    mDecodedDisplayed = true;
+                    ZQueryBodyStructureDecodedAsync(lQueryBodyStructureDetailEntryNumber);
+                }
+
+                return;
             }
         }
 
-        private async void ZQueryBodyStructureSummaryAsync(int pQueryBodyStructureDetailEntryNumber)
+        private void ZQueryBodyStructureSummary(int pQueryBodyStructureDetailEntryNumber)
         {
             if (tvwBodyStructure.SelectedNode == null)
             {
@@ -347,12 +343,10 @@ namespace testharness2
                 return;
             }
 
-            await ZQueryBodyStructureRawSectionDataAsync(lTag, pQueryBodyStructureDetailEntryNumber);
-            if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
-            rtxSummary.Text = mRawSectionData;
+            ZQueryBodyStructureRawSectionDataAsync(lTag, pQueryBodyStructureDetailEntryNumber, rtxSummary);
         }
 
-        private async void ZQueryBodyStructureRawAsync(int pQueryBodyStructureDetailEntryNumber)
+        private void ZQueryBodyStructureRaw(int pQueryBodyStructureDetailEntryNumber)
         {
             if (tvwBodyStructure.SelectedNode == null)
             {
@@ -365,10 +359,7 @@ namespace testharness2
             cmdDownloadRaw.Enabled = true;
 
             var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
-
-            await ZQueryBodyStructureRawSectionDataAsync(lTag, pQueryBodyStructureDetailEntryNumber);
-            if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
-            rtxRaw.Text = mRawSectionData;
+            ZQueryBodyStructureRawSectionDataAsync(lTag, pQueryBodyStructureDetailEntryNumber, rtxRaw);
         }
 
         private async void ZQueryBodyStructureDecodedAsync(int pQueryBodyStructureDetailEntryNumber)
@@ -387,8 +378,7 @@ namespace testharness2
             pbx.Visible = false;
             cmdDownloadDecoded.Enabled = true;
 
-            //await ZImageLoaderCloseAsync();
-            if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
+            ZImageLoadCancel();
 
             var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
 
@@ -401,7 +391,12 @@ namespace testharness2
                     if (lTag.Bytes > mMaxTextBytes) lText = ZTooBig(lTag.Bytes);
                     else
                     {
-                        lText = await mMessage.FetchAsync(lTag.BodyPart);
+                        try { lText = await mMessage.FetchAsync(lTag.BodyPart); }
+                        catch (Exception e)
+                        {
+                            lText = e.ToString();
+                        }
+
                         if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
                     }
 
@@ -411,88 +406,122 @@ namespace testharness2
 
                 if (lTag.BodyPart is cSinglePartBody lSinglePart && lSinglePart.TypeCode == eBodyPartTypeCode.image)
                 {
-                    uint lSize = mMessage.FetchSizeInBytes(lSinglePart);
+                    string lError = "<something went wrong>";
 
-                    rtxDecoded.Text = "image size: " + lSize;
-                    return;
-
-
-                    /*
-
-
-
-                    if (mim)
-
-
-
-                    // TODO: progress bar
-                    //  todo: cancel on message change?
-
-
-
-
-                    string lError = null;
-                
-                    pbx.Image = null;
-                    rtxDecoded.Visible = false;
-                    pbx.Visible = true;
-
-                    using (var lStream = new MemoryStream())
+                    try
                     {
-                        try
-                        {
-                            var lTask = mMessage.FetchAsync(lTag.BodyPart, lStream, lConfig);
-                            pbx.Image = Image.FromStream(lStream);
-                            await lTask;
-                        }
-                        catch (Exception e)
-                        {
-                            lError = e.ToString();
-                        }
+                        uint lSize = await mMessage.FetchSizeInBytesAsync(lSinglePart);
+                        if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
+
+                        mImageLoadTask = ZImageLoad(pQueryBodyStructureDetailEntryNumber, lSinglePart, lSize);
+                        await mImageLoadTask;
+                        if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
+
+                        pbx.Image = Image.FromStream(mImageStream);
+                        pbx.Visible = true;
+                        rtxDecoded.Visible = false;
+                        return;
+                    }
+                    catch (Exception e)
+                    {
+                        lError = e.ToString();
                     }
 
                     if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
+                    mImageLoadTask = null;
 
-                    if (lError == null)
-                    {
-                        rtxDecoded.Visible = false;
-
-                    }
-
-
-
-                    rtxDecoded.Text = "image";
-                    rtxDecoded.Visible = true;
-                    pbx.Visible = false;
-                    cmdDownloadDecoded.Enabled = true;
+                    rtxDecoded.Text = lError;
                     return;
-                    */
                 }
             }
 
-            await ZQueryBodyStructureRawSectionDataAsync(lTag, pQueryBodyStructureDetailEntryNumber);
-            if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
-            rtxDecoded.Text = mRawSectionData;
+            ZQueryBodyStructureRawSectionDataAsync(lTag, pQueryBodyStructureDetailEntryNumber, rtxDecoded);
         }
 
-        private async Task ZQueryBodyStructureRawSectionDataAsync(cNodeTag pTag, int pQueryBodyStructureDetailEntryNumber)
+        private async Task ZImageLoad(int pQueryBodyStructureDetailEntryNumber, cSinglePartBody pPart, uint pSize)
         {
-            if (mRawSectionData != null) return;
+            MemoryStream lStream = null;
 
-            if (pTag.Bytes > mMaxTextBytes)
+            try
             {
-                mRawSectionData = ZTooBig(pTag.Bytes);
-                return;
+                mImageLoadProgress = new frmProgress("image " + pPart.Section.Part + " [" + pSize + " bytes]", (int)pSize);
+                mImageLoadProgress.Show();
+                lStream = new MemoryStream();
+                cBodyFetchConfiguration lConfiguration = new cBodyFetchConfiguration(mImageLoadProgress.CancellationToken, mImageLoadProgress.Increment);
+                await mMessage.FetchAsync(pPart, lStream, lConfiguration);
+                if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) throw new Exception();
+                mImageStream = lStream;
+            }
+            catch (Exception e)
+            {
+                if (mImageLoadProgress != null) mImageLoadProgress.Cancel();
+                if (lStream != null) lStream.Dispose();
+                if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
+                rtxDecoded.Text = e.ToString();
+                throw;
+            }
+            finally
+            {
+                if (mImageLoadProgress != null)
+                {
+                    mImageLoadProgress.Close();
+                    mImageLoadProgress = null;
+                }
+            }
+        }
+
+        private void ZImageLoadCancel()
+        {
+            if (mImageLoadProgress != null)
+            {
+                try { mImageLoadProgress.Cancel(); }
+                catch { }
             }
 
-            cSection lSection;
+            if (mImageLoadTask != null)
+            {
+                try { mImageLoadTask.Wait(); }
+                catch { }
+            }
 
-            if (pTag.Section == null) lSection = pTag.BodyPart.Section;
-            else lSection = pTag.Section;
+            if (mImageStream != null)
+            {
+                try { mImageStream.Dispose(); }
+                catch { }
+            }
+        }
 
-            string lRawSectionData = await mMessage.FetchAsync(lSection);
-            if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
-            mRawSectionData = lRawSectionData;
+        private async void ZQueryBodyStructureRawSectionDataAsync(cNodeTag pTag, int pQueryBodyStructureDetailEntryNumber, RichTextBox pRTX)
+        {
+            if (mRawSectionData == null)
+            {
+                if (pTag.Bytes > mMaxTextBytes) mRawSectionData = ZTooBig(pTag.Bytes);
+                else
+                {
+                    cSection lSection;
+
+                    if (pTag.Section == null) lSection = pTag.BodyPart.Section;
+                    else lSection = pTag.Section;
+
+                    string lRawSectionData;
+
+                    try { lRawSectionData = await mMessage.FetchAsync(lSection); }
+                    catch (Exception e)
+                    {
+                        lRawSectionData = e.ToString();
+                    }
+
+                    if (pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
+                    mRawSectionData = lRawSectionData;
+                }
+            }
+
+            pRTX.Text = mRawSectionData;
+        }
+
+        private void frmMessage_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            ZImageLoadCancel();
         }
 
         private void frmMessage_FormClosed(object sender, FormClosedEventArgs e)
@@ -559,7 +588,7 @@ namespace testharness2
 
         private void tvwBodyStructure_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            ZQueryBodyStructureDetailAsync(true);
+            ZQueryBodyStructureDetail(true);
         }
 
         private void ZAppendEnvelope(StringBuilder pBuilder, cEnvelope pEnvelope)
@@ -600,7 +629,7 @@ namespace testharness2
 
         private void tabBodyStructure_Selected(object sender, TabControlEventArgs e)
         {
-            ZQueryBodyStructureDetailAsync(false);
+            ZQueryBodyStructureDetail(false);
         }
 
 
