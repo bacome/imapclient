@@ -60,7 +60,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tvw.Location = new System.Drawing.Point(0, 0);
             this.tvw.Name = "tvw";
-            this.tvw.Size = new System.Drawing.Size(369, 614);
+            this.tvw.Size = new System.Drawing.Size(313, 571);
             this.tvw.TabIndex = 0;
             this.tvw.AfterExpand += new System.Windows.Forms.TreeViewEventHandler(this.tvw_AfterExpand);
             this.tvw.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvw_AfterSelect);
@@ -82,8 +82,8 @@
             this.splitContainer1.Panel2.Controls.Add(this.gbxMailbox);
             this.splitContainer1.Panel2.Controls.Add(this.gbxCreate);
             this.splitContainer1.Panel2.Controls.Add(this.rtx);
-            this.splitContainer1.Size = new System.Drawing.Size(931, 614);
-            this.splitContainer1.SplitterDistance = 371;
+            this.splitContainer1.Size = new System.Drawing.Size(792, 571);
+            this.splitContainer1.SplitterDistance = 315;
             this.splitContainer1.TabIndex = 1;
             // 
             // gbxMailbox
@@ -96,9 +96,9 @@
             this.gbxMailbox.Controls.Add(this.cmdSubscribe);
             this.gbxMailbox.Controls.Add(this.cmdDelete);
             this.gbxMailbox.Controls.Add(this.cmdUnsubscribe);
-            this.gbxMailbox.Location = new System.Drawing.Point(0, 347);
+            this.gbxMailbox.Location = new System.Drawing.Point(0, 304);
             this.gbxMailbox.Name = "gbxMailbox";
-            this.gbxMailbox.Size = new System.Drawing.Size(556, 180);
+            this.gbxMailbox.Size = new System.Drawing.Size(473, 180);
             this.gbxMailbox.TabIndex = 1;
             this.gbxMailbox.TabStop = false;
             this.gbxMailbox.Text = "Mailbox";
@@ -121,7 +121,7 @@
             this.gbxRename.Controls.Add(this.txtRename);
             this.gbxRename.Location = new System.Drawing.Point(12, 82);
             this.gbxRename.Name = "gbxRename";
-            this.gbxRename.Size = new System.Drawing.Size(538, 83);
+            this.gbxRename.Size = new System.Drawing.Size(455, 83);
             this.gbxRename.TabIndex = 5;
             this.gbxRename.TabStop = false;
             this.gbxRename.Text = "Rename";
@@ -129,7 +129,7 @@
             // cmdRename
             // 
             this.cmdRename.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdRename.Location = new System.Drawing.Point(432, 47);
+            this.cmdRename.Location = new System.Drawing.Point(349, 47);
             this.cmdRename.Name = "cmdRename";
             this.cmdRename.Size = new System.Drawing.Size(100, 25);
             this.cmdRename.TabIndex = 1;
@@ -143,7 +143,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtRename.Location = new System.Drawing.Point(12, 21);
             this.txtRename.Name = "txtRename";
-            this.txtRename.Size = new System.Drawing.Size(520, 20);
+            this.txtRename.Size = new System.Drawing.Size(437, 20);
             this.txtRename.TabIndex = 0;
             // 
             // cmdSelect
@@ -193,9 +193,9 @@
             this.gbxCreate.Controls.Add(this.cmdCreate);
             this.gbxCreate.Controls.Add(this.chkCreate);
             this.gbxCreate.Controls.Add(this.txtCreate);
-            this.gbxCreate.Location = new System.Drawing.Point(0, 533);
+            this.gbxCreate.Location = new System.Drawing.Point(0, 490);
             this.gbxCreate.Name = "gbxCreate";
-            this.gbxCreate.Size = new System.Drawing.Size(556, 81);
+            this.gbxCreate.Size = new System.Drawing.Size(473, 81);
             this.gbxCreate.TabIndex = 2;
             this.gbxCreate.TabStop = false;
             this.gbxCreate.Text = "Create Child Mailbox";
@@ -203,7 +203,7 @@
             // cmdCreate
             // 
             this.cmdCreate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdCreate.Location = new System.Drawing.Point(444, 47);
+            this.cmdCreate.Location = new System.Drawing.Point(361, 47);
             this.cmdCreate.Name = "cmdCreate";
             this.cmdCreate.Size = new System.Drawing.Size(100, 25);
             this.cmdCreate.TabIndex = 2;
@@ -227,7 +227,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtCreate.Location = new System.Drawing.Point(24, 21);
             this.txtCreate.Name = "txtCreate";
-            this.txtCreate.Size = new System.Drawing.Size(520, 20);
+            this.txtCreate.Size = new System.Drawing.Size(437, 20);
             this.txtCreate.TabIndex = 0;
             // 
             // rtx
@@ -237,7 +237,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtx.Location = new System.Drawing.Point(0, 0);
             this.rtx.Name = "rtx";
-            this.rtx.Size = new System.Drawing.Size(556, 341);
+            this.rtx.Size = new System.Drawing.Size(473, 298);
             this.rtx.TabIndex = 0;
             this.rtx.Text = "";
             // 
@@ -245,9 +245,10 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(931, 616);
+            this.ClientSize = new System.Drawing.Size(792, 573);
             this.Controls.Add(this.splitContainer1);
             this.Name = "frmMailboxes";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmMailboxes";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMailboxes_FormClosed);
             this.Load += new System.EventHandler(this.frmMailboxes_Load);

@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cMessageHandleList> UIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cFetchProgress pProgress, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> UIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchAttributesAsync), pMC, pHandle, pUIDs, pAttributes);
 
@@ -79,7 +79,7 @@ namespace work.bacome.imapclient
                 return lHandles;
             }
 
-            private async Task ZUIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cFetchProgress pProgress, cTrace.cContext pParentContext)
+            private async Task ZUIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAttributesAsync), pMC, pHandle, pUIDs, pAttributes);
 

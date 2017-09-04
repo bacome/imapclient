@@ -30,9 +30,9 @@ namespace work.bacome.imapclient
         public readonly int Timeout;
         public readonly CancellationToken CancellationToken;
         public readonly Action<int> Increment;
-        public readonly cFetchSizeConfiguration Write;
+        public readonly cBatchSizerConfiguration Write;
 
-        public cBodyFetchConfiguration(int pTimeout, cFetchSizeConfiguration pWrite = null)
+        public cBodyFetchConfiguration(int pTimeout, cBatchSizerConfiguration pWrite = null)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             Timeout = pTimeout;
@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
             Write = pWrite;
         }
 
-        public cBodyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement, cFetchSizeConfiguration pWrite = null)
+        public cBodyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement, cBatchSizerConfiguration pWrite = null)
         {
             Timeout = -1;
             CancellationToken = pCancellationToken;

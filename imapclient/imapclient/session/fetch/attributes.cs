@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchAttributesAsync(cMethodControl pMC, cMessageHandleList pHandles, fFetchAttributes pAttributes, cFetchProgress pProgress, cTrace.cContext pParentContext)
+            public async Task FetchAttributesAsync(cMethodControl pMC, cMessageHandleList pHandles, fFetchAttributes pAttributes, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchAttributesAsync), pMC, pHandles, pAttributes);
 
@@ -45,7 +45,7 @@ namespace work.bacome.imapclient
                 return pAttributes;
             }
 
-            private async Task ZFetchAttributesAsync(cMethodControl pMC, cFetchAttributesGroup pGroup, cFetchProgress pProgress, cTrace.cContext pParentContext)
+            private async Task ZFetchAttributesAsync(cMethodControl pMC, cFetchAttributesGroup pGroup, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributesAsync), pMC, pGroup);
 

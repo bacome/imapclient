@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using work.bacome.imapclient;
-using work.bacome.trace;
 
 namespace testharness2
 {
@@ -17,34 +16,29 @@ namespace testharness2
     {
         private static readonly cSort kSortReceivedDesc = new cSort(cSortItem.ReceivedDesc);
 
-        private readonly cTrace.cContext mRootContext;
         private readonly cIMAPClient mClient;
         private readonly Dictionary<string, Form> mNamedChildren = new Dictionary<string, Form>();
         private readonly List<Form> mUnnamedChildren = new List<Form>();
 
         public frmClient(string pInstanceName)
         {
-            mRootContext = Program.Trace.NewRoot(pInstanceName, true);
             mClient = new cIMAPClient(pInstanceName);
             InitializeComponent();
         }
 
         private void mClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(mClient_PropertyChanged), e);
-            if (e.PropertyName == nameof(cIMAPClient.ConnectionState) || e.PropertyName == nameof(cIMAPClient.CancellableCount)) ZSetControlState(lContext);
+            if (e.PropertyName == nameof(cIMAPClient.ConnectionState) || e.PropertyName == nameof(cIMAPClient.CancellableCount)) ZSetControlState();
         }
 
-        private void ZSetControlState(cTrace.cContext pParentContext)
+        private void ZSetControlState()
         {
-            var lContext = pParentContext.NewMethod(nameof(frmClient), nameof(ZSetControlState));
-
             lblState.Text = mClient.ConnectionState.ToString();
 
             if (mClient.IsUnconnected)
             {
                 gbxConnect.Enabled = true;
-                ZSetControlStateCredentials(lContext);
+                ZSetControlStateCredentials();
                 cmdCancel.Text = "Cancel";
                 cmdCancel.Enabled = false;
                 cmdPoll.Enabled = false;
@@ -83,10 +77,8 @@ namespace testharness2
             }
         }
 
-        private void ZSetControlStateCredentials(cTrace.cContext pParentContext)
+        private void ZSetControlStateCredentials()
         {
-            var lContext = pParentContext.NewMethod(nameof(frmClient), nameof(ZSetControlStateCredentials));
-
             txtTrace.Enabled = rdoCredAnon.Checked;
             txtUserId.Enabled = rdoCredBasic.Checked;
             txtPassword.Enabled = rdoCredBasic.Checked;
@@ -95,10 +87,8 @@ namespace testharness2
             chkTryIfNotAdvertised.Enabled = rdoCredBasic.Checked || rdoCredBasic.Checked;
         }
 
-        private void ZSetControlStateIdle(cTrace.cContext pParentContext)
+        private void ZSetControlStateIdle()
         {
-            var lContext = pParentContext.NewMethod(nameof(frmClient), nameof(ZSetControlStateIdle));
-
             txtIdleStartDelay.Enabled = chkIdleAuto.Checked;
             txtIdleRestartInterval.Enabled = chkIdleAuto.Checked;
             txtIdlePollInterval.Enabled = chkIdleAuto.Checked;
@@ -106,15 +96,12 @@ namespace testharness2
 
         private void cmdCancel_Click(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdCancel_Click));
             mClient.Cancel();
-            ZSetControlState(lContext);
+            ZSetControlState();
         }
 
         private async void cmdConnect_Click(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdConnect_Click));
-
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
 
             try
@@ -182,25 +169,22 @@ namespace testharness2
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Connect error\n{ex}");
+                if (!IsDisposed) MessageBox.Show(this, $"Connect error\n{ex}");
             }
         }
 
         private async void cmdDisconnect_Click(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdDisconnect_Click));
-            
             try { await mClient.DisconnectAsync(); }
             catch (Exception ex)
             {
-                MessageBox.Show($"Disconnect error\n{ex}");
+                if (!IsDisposed) MessageBox.Show(this, $"Disconnect error\n{ex}");
             }
         }
 
         private void ZCredCheckedChanged(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(ZCredCheckedChanged));
-            ZSetControlStateCredentials(lContext);
+            ZSetControlStateCredentials();
         }
 
         private void ZValTextBoxNotBlank(object sender, CancelEventArgs e)
@@ -289,11 +273,9 @@ namespace testharness2
 
         private void frmClient_Load(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(frmClient_Load));
-
             Text = "imapclient testharness - client - " + mClient.InstanceName;
-            ZSetControlState(lContext);
-            ZSetControlStateIdle(lContext);           
+            ZSetControlState();
+            ZSetControlStateIdle();           
             mClient.PropertyChanged += mClient_PropertyChanged;
 
             var lMailboxCacheData = mClient.MailboxCacheData;
@@ -320,7 +302,7 @@ namespace testharness2
 
             txtTimeout.Text = mClient.Timeout.ToString();
 
-            ZLoadFetchConfig(mClient.FetchAttributesConfiguration, txtFAMin, txtFAMax, txtFAMaxTime, txtFAInitial);
+            ZLoadFetchConfig(mClient.FetchAttributesReadConfiguration, txtFAMin, txtFAMax, txtFAMaxTime, txtFAInitial);
             ZLoadFetchConfig(mClient.FetchBodyReadConfiguration, txtFRMin, txtFRMax, txtFRMaxTime, txtFRInitial);
             ZLoadFetchConfig(mClient.FetchBodyWriteConfiguration, txtFWMin, txtFWMax, txtFWMaxTime, txtFWInitial);
 
@@ -343,7 +325,7 @@ namespace testharness2
             chkMPBodyStructure.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.bodystructure | fMessageProperties.attachments | fMessageProperties.plaintextsizeinbytes)) != 0;
         }
 
-        private void ZLoadFetchConfig(cFetchSizeConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
+        private void ZLoadFetchConfig(cBatchSizerConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
         {
             pMin.Text = pConfig.Min.ToString();
             pMax.Text = pConfig.Max.ToString();
@@ -388,8 +370,7 @@ namespace testharness2
 
         private void chkIdleAuto_CheckedChanged(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(chkIdleAuto_CheckedChanged));
-            ZSetControlStateIdle(lContext);
+            ZSetControlStateIdle();
         }
 
         private void gbxFetchAttributes_Validating(object sender, CancelEventArgs e)
@@ -409,8 +390,6 @@ namespace testharness2
 
         private void cmdIdleSet_Click(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdIdleSet_Click));
-
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
 
             try
@@ -419,20 +398,21 @@ namespace testharness2
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Set idle error\n{ex}");
+                MessageBox.Show(this, $"Set idle error\n{ex}");
             }
         }
 
         private void cmdEvents_Click(object sender, EventArgs e)
         {
             if (mNamedChildren.TryGetValue(nameof(frmEvents), out var lForm)) ZFocus(lForm);
-            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmEvents(mClient, int.Parse(txtEvents.Text)));
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmEvents(mClient, int.Parse(txtEvents.Text)), cmdEvents);
         }
 
-        private void ZNamedChildAdd(Form pForm)
+        private void ZNamedChildAdd(Form pForm, Control pControl)
         {
             mNamedChildren.Add(pForm.Name, pForm);
             pForm.FormClosed += ZNamedChildClosed;
+            Program.Centre(pForm, this);
             pForm.Show();
             ZNamedChildrenSetControlState();
         }
@@ -464,10 +444,11 @@ namespace testharness2
             gbxResponseTextCode.Enabled = lResponseText;
         }
 
-        private void ZUnnamedChildAdd(Form pForm)
+        private void ZUnnamedChildAdd(Form pForm, Control pControl)
         {
             mUnnamedChildren.Add(pForm);
             pForm.FormClosed += ZUnnamedChildClosed;
+            Program.Centre(pForm, this, mUnnamedChildren);
             pForm.Show();
         }
 
@@ -487,7 +468,7 @@ namespace testharness2
         private void cmdNetworkActivity_Click(object sender, EventArgs e)
         {
             if (mNamedChildren.TryGetValue(nameof(frmNetworkActivity), out var lForm)) ZFocus(lForm);
-            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmNetworkActivity(mClient, int.Parse(txtNetworkActivity.Text)));
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmNetworkActivity(mClient, int.Parse(txtNetworkActivity.Text)), cmdNetworkActivity);
         }
 
         private void cmdResponseText_Click(object sender, EventArgs e)
@@ -544,14 +525,12 @@ namespace testharness2
                 if (chkRTCUseAttr.Checked) lCodes.Add(eResponseTextCode.useattr);
                 if (chkRTCUnknownCTE.Checked) lCodes.Add(eResponseTextCode.unknowncte);
 
-                ZNamedChildAdd(new frmResponseText(mClient, lMaxMessages, lTypes, lCodes));
+                ZNamedChildAdd(new frmResponseText(mClient, lMaxMessages, lTypes, lCodes), cmdResponseText);
             }
         }
 
         private void cmdTimeoutSet_Click(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdTimeoutSet_Click));
-
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
 
             try
@@ -560,68 +539,60 @@ namespace testharness2
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Set timeout error\n{ex}");
+                MessageBox.Show(this, $"Set timeout error\n{ex}");
             }
         }
 
         private void cmdFRSet_Click(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdFRSet_Click));
-
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
 
             try
             {
-                mClient.FetchBodyReadConfiguration = new cFetchSizeConfiguration(int.Parse(txtFRMin.Text), int.Parse(txtFRMax.Text), int.Parse(txtFRMaxTime.Text), int.Parse(txtFRInitial.Text));
+                mClient.FetchBodyReadConfiguration = new cBatchSizerConfiguration(int.Parse(txtFRMin.Text), int.Parse(txtFRMax.Text), int.Parse(txtFRMaxTime.Text), int.Parse(txtFRInitial.Text));
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Set fetch body read error\n{ex}");
+                MessageBox.Show(this, $"Set fetch body read error\n{ex}");
             }
         }
 
         private void cmdFASet_Click(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdFASet_Click));
-
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
 
             try
             {
-                mClient.FetchAttributesConfiguration = new cFetchSizeConfiguration(int.Parse(txtFAMin.Text), int.Parse(txtFAMax.Text), int.Parse(txtFAMaxTime.Text), int.Parse(txtFAInitial.Text));
+                mClient.FetchAttributesReadConfiguration = new cBatchSizerConfiguration(int.Parse(txtFAMin.Text), int.Parse(txtFAMax.Text), int.Parse(txtFAMaxTime.Text), int.Parse(txtFAInitial.Text));
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Set fetch attributes error\n{ex}");
+                MessageBox.Show(this, $"Set fetch attributes error\n{ex}");
             }
         }
 
         private void cmdFWSet_Click(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdFWSet_Click));
-
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
 
             try
             {
-                mClient.FetchBodyWriteConfiguration = new cFetchSizeConfiguration(int.Parse(txtFWMin.Text), int.Parse(txtFWMax.Text), int.Parse(txtFWMaxTime.Text), int.Parse(txtFWInitial.Text));
+                mClient.FetchBodyWriteConfiguration = new cBatchSizerConfiguration(int.Parse(txtFWMin.Text), int.Parse(txtFWMax.Text), int.Parse(txtFWMaxTime.Text), int.Parse(txtFWInitial.Text));
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Set fetch body write error\n{ex}");
+                MessageBox.Show(this, $"Set fetch body write error\n{ex}");
             }
         }
 
         private void cmdDetails_Click(object sender, EventArgs e)
         {
             if (mNamedChildren.TryGetValue(nameof(frmDetails), out var lForm)) ZFocus(lForm);
-            else ZNamedChildAdd(new frmDetails(mClient));
+            else ZNamedChildAdd(new frmDetails(mClient), cmdDetails);
         }
 
         private void ZSetDefaultSort(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(ZSetDefaultSort));
-
             try
             {
                 if (rdoSortNone.Checked) mClient.DefaultSort = cSort.None;
@@ -632,14 +603,12 @@ namespace testharness2
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Set default sort error\n{ex}");
+                MessageBox.Show(this, $"Set default sort error\n{ex}");
             }
         }
 
         private void ZSetDefaultMessageProperties(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(ZSetDefaultMessageProperties));
-
             try
             {
                 fMessageProperties lProperties = 0;
@@ -657,29 +626,23 @@ namespace testharness2
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Set default message properties error\n{ex}");
+                MessageBox.Show(this, $"Set default message properties error\n{ex}");
             }
         }
 
         private async void cmdPoll_Click(object sender, EventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmClient), nameof(cmdPoll_Click));
-
             try
             {
                 await mClient.PollAsync();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Poll error\n{ex}");
+                if (!IsDisposed) MessageBox.Show(this, $"Poll error\n{ex}");
             }
         }
 
-        private void cmdMailboxes_Click(object sender, EventArgs e) => ZMailboxes(false);
-
-        private void cmdSubscriptions_Click(object sender, EventArgs e) => ZMailboxes(true);
-
-        private void ZMailboxes(bool pSubscriptions)
+        private void cmdMailboxes_Click(object sender, EventArgs e)
         {
             fMailboxCacheDataSets lDataSets = 0;
 
@@ -687,18 +650,29 @@ namespace testharness2
             if (chkMLSub.Checked) lDataSets |= fMailboxCacheDataSets.lsub;
             if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
 
-            ZUnnamedChildAdd(new frmMailboxes(mClient, pSubscriptions, lDataSets, ZDisplaySelectedMailbox, mRootContext));
+            ZUnnamedChildAdd(new frmMailboxes(mClient, false, lDataSets, ZDisplaySelectedMailbox), cmdMailboxes);
+        }
+
+        private void cmdSubscriptions_Click(object sender, EventArgs e)
+        {
+            fMailboxCacheDataSets lDataSets = 0;
+
+            if (chkMList.Checked) lDataSets |= fMailboxCacheDataSets.list;
+            if (chkMLSub.Checked) lDataSets |= fMailboxCacheDataSets.lsub;
+            if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
+
+            ZUnnamedChildAdd(new frmMailboxes(mClient, true, lDataSets, ZDisplaySelectedMailbox), cmdSubscriptions);
         }
 
         private void cmdSelectedMailbox_Click(object sender, EventArgs e)
         {
-            ZDisplaySelectedMailbox();
+            ZDisplaySelectedMailbox(this);
         }
 
-        private void ZDisplaySelectedMailbox()
+        private void ZDisplaySelectedMailbox(Form pForm)
         {
             if (mNamedChildren.TryGetValue(nameof(frmSelectedMailbox), out var lForm)) ZFocus(lForm);
-            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSMMessages.Text), uint.Parse(txtSMTextBytes.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked));
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSMMessages.Text), uint.Parse(txtSMTextBytes.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked), pForm);
         }
     }
 }

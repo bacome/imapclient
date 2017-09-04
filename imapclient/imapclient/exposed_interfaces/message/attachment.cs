@@ -32,11 +32,11 @@ namespace work.bacome.imapclient
         public DateTime? CreationDate => Part.Disposition?.CreationDate;
         public DateTime? ModificationDate => Part.Disposition?.ModificationDate;
         public DateTime? ReadDate => Part.Disposition?.ReadDate;
-        public uint? Size => Part.Disposition?.Size;
+        public uint? ApproximateFileSizeInBytes => Part.Disposition?.Size;
         public cStrings Languages => Part.ExtensionData?.Languages;
 
-        public uint FetchSizeInBytes() => Client.FetchSizeInBytes(Handle, Part);
-        public Task<uint> FetchSizeInBytesAsync() => Client.FetchSizeInBytesAsync(Handle, Part);
+        public uint SaveSizeInBytes() => Client.FetchSizeInBytes(Handle, Part);
+        public Task<uint> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(Handle, Part);
 
         public void SaveAs(string pPath, cBodyFetchConfiguration pConfiguration = null)
         {
@@ -44,6 +44,10 @@ namespace work.bacome.imapclient
             {
                 Client.Fetch(Handle, Part.Section, Part.DecodingRequired, lStream, pConfiguration);
             }
+
+            if (Part.Disposition?.CreationDate != null) File.SetCreationTime(pPath, Part.Disposition.CreationDate.Value);
+            if (Part.Disposition?.ModificationDate != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDate.Value);
+            if (Part.Disposition?.ReadDate != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDate.Value);
         }
 
         public async Task SaveAsAsync(string pPath, cBodyFetchConfiguration pConfiguration = null)
@@ -52,10 +56,11 @@ namespace work.bacome.imapclient
             {
                 await Client.FetchAsync(Handle, Part.Section, Part.DecodingRequired, lStream, pConfiguration).ConfigureAwait(false);
             }
-        }
 
-        public void Fetch(Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.Fetch(Handle, Part.Section, Part.DecodingRequired, pStream, pConfiguration);
-        public Task FetchAsync(Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, Part.Section, Part.DecodingRequired, pStream, pConfiguration);
+            if (Part.Disposition?.CreationDate != null) File.SetCreationTime(pPath, Part.Disposition.CreationDate.Value);
+            if (Part.Disposition?.ModificationDate != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDate.Value);
+            if (Part.Disposition?.ReadDate != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDate.Value);
+        }
 
         // debugging
         public override string ToString() => $"{nameof(cAttachment)}({Handle},{Part.Section})";

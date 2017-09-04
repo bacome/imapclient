@@ -23,8 +23,8 @@ namespace work.bacome.imapclient
             private readonly cResponseTextProcessor mResponseTextProcessor;
             private readonly cCommandPipeline mPipeline;
 
-            private cFetchSizer mFetchAttributesReadSizer;
-            private cFetchSizer mFetchBodyReadSizer;
+            private cBatchSizer mFetchAttributesReadSizer;
+            private cBatchSizer mFetchBodyReadSizer;
 
             private cCommandPartFactory mCommandPartFactory;
             private cCommandPartFactory mEncodingPartFactory;
@@ -46,9 +46,9 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cInvokeSynchroniser pSynchroniser, fKnownCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cIdleConfiguration pIdleConfiguration, cFetchSizeConfiguration pFetchAttributesConfiguration, cFetchSizeConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cInvokeSynchroniser pSynchroniser, fKnownCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cIdleConfiguration pIdleConfiguration, cBatchSizerConfiguration pFetchAttributesReadConfiguration, cBatchSizerConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesConfiguration, pFetchBodyReadConfiguration);
+                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesReadConfiguration, pFetchBodyReadConfiguration);
 
                 mSynchroniser = pSynchroniser;
                 mIgnoreCapabilities = pIgnoreCapabilities;
@@ -57,8 +57,8 @@ namespace work.bacome.imapclient
 
                 mPipeline = new cCommandPipeline(pSynchroniser, mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
 
-                mFetchAttributesReadSizer = new cFetchSizer(pFetchAttributesConfiguration);
-                mFetchBodyReadSizer = new cFetchSizer(pFetchBodyReadConfiguration);
+                mFetchAttributesReadSizer = new cBatchSizer(pFetchAttributesReadConfiguration);
+                mFetchBodyReadSizer = new cBatchSizer(pFetchBodyReadConfiguration);
 
                 mCommandPartFactory = new cCommandPartFactory(false, null);
 
@@ -118,18 +118,18 @@ namespace work.bacome.imapclient
                 mPipeline.SetIdleConfiguration(pConfiguration, lContext);
             }
 
-            public void SetFetchAttributesConfiguration(cFetchSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
+            public void SetFetchAttributesReadConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetFetchAttributesConfiguration), pConfiguration);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetFetchAttributesReadConfiguration), pConfiguration);
                 if (pConfiguration == null) throw new ArgumentNullException(nameof(pConfiguration));
-                mFetchAttributesReadSizer = new cFetchSizer(pConfiguration);
+                mFetchAttributesReadSizer = new cBatchSizer(pConfiguration);
             }
 
-            public void SetFetchBodyReadConfiguration(cFetchSizeConfiguration pConfiguration, cTrace.cContext pParentContext)
+            public void SetFetchBodyReadConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetFetchBodyReadConfiguration), pConfiguration);
                 if (pConfiguration == null) throw new ArgumentNullException(nameof(pConfiguration));
-                mFetchBodyReadSizer = new cFetchSizer(pConfiguration);
+                mFetchBodyReadSizer = new cBatchSizer(pConfiguration);
             }
 
             public void SetEncoding(Encoding pEncoding, cTrace.cContext pParentContext)

@@ -45,7 +45,6 @@ namespace work.bacome.imapclient
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                     if (pHandle.UID == null) await lSession.FetchBinarySizeAsync(lMC, pHandle, pPart.Section.Part, lContext).ConfigureAwait(false);
                     else await lSession.UIDFetchBinarySizeAsync(lMC, pHandle.Cache.MailboxHandle, pHandle.UID, pPart.Section.Part, lContext).ConfigureAwait(false);
-                    int i = 8;
                 }
 
                 if (pHandle.BinarySizes.TryGetValue(pPart.Section.Part, out lSizeInBytes)) return lSizeInBytes;

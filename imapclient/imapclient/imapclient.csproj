@@ -95,7 +95,7 @@
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
     <Compile Include="session\imap_commands\selected\fetch\binarysize.cs" />
-    <Compile Include="support\fetchprogress.cs" />
+    <Compile Include="support\progress.cs" />
     <Compile Include="session\imap_commands\authenticated\create.cs" />
     <Compile Include="session\imap_commands\authenticated\delete.cs" />
     <Compile Include="session\imap_commands\authenticated\listdelimiter.cs" />
@@ -141,7 +141,7 @@
     <Compile Include="exposed_interfaces\other\commandresult.cs" />
     <Compile Include="exposed_interfaces\other\culturedstring.cs" />
     <Compile Include="exposed_interfaces\other\exceptions.cs" />
-    <Compile Include="exposed_interfaces\other\fetchsizeconfiguration.cs" />
+    <Compile Include="exposed_interfaces\other\batchsizerconfiguration.cs" />
     <Compile Include="exposed_interfaces\other\id.cs" />
     <Compile Include="exposed_interfaces\other\idleconfiguration.cs" />
     <Compile Include="exposed_interfaces\other\responsetext.cs" />
@@ -231,7 +231,7 @@
     <Compile Include="session\fetch\uidattributes.cs" />
     <Compile Include="session\command\commanddetailsbuilder.cs" />
     <Compile Include="session\command\commandtag.cs" />
-    <Compile Include="support\fetchsizer.cs" />
+    <Compile Include="support\batchsizer.cs" />
     <Compile Include="session\support\messagecacheitem.cs" />
     <Compile Include="session\support\processors.cs" />
     <Compile Include="session\support\responsetextprocessor.cs" />

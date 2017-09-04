@@ -16,6 +16,8 @@ namespace testharness2
         private readonly string mTitle;
         private readonly int mCount;
         private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
+        private int mTotal = 0;
+        private bool mComplete = false;
 
         public frmProgress(string pTitle, int pCount = 0)
         {
@@ -38,12 +40,15 @@ namespace testharness2
             else
             {
                 prg.Maximum = pCount;
+                prg.Value = mTotal;
                 prg.Style = ProgressBarStyle.Continuous;
             }
         }
 
         public void Increment(int pCount)
         {
+            mTotal += pCount;
+            lblTotal.Text = mTotal.ToString();
             prg.Increment(pCount);
         }
 
@@ -54,6 +59,20 @@ namespace testharness2
             cmdCancel.Enabled = false;
         }
 
+        private void cmdCancel_Click(object sender, EventArgs e) => Cancel();
+
+        public void Complete()
+        {
+            mComplete = true;
+            Close();
+        }
+
+        private void frmProgress_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Cancel();
+            if (!mComplete && e.CloseReason != CloseReason.ApplicationExitCall && e.CloseReason != CloseReason.TaskManagerClosing && e.CloseReason != CloseReason.WindowsShutDown) e.Cancel = true;
+        }
+
         private void frmProgress_FormClosed(object sender, FormClosedEventArgs e)
         {
             if (mCancellationTokenSource != null)
@@ -62,7 +81,5 @@ namespace testharness2
                 catch { }
             }
         }
-
-        private void cmdCancel_Click(object sender, EventArgs e) => Cancel();
     }
 }

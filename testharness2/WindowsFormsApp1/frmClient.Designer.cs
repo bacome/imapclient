@@ -142,6 +142,8 @@
             this.tbpCapabilities = new System.Windows.Forms.TabPage();
             this.gbxConnect = new System.Windows.Forms.GroupBox();
             this.gbxSelectedMailbox = new System.Windows.Forms.GroupBox();
+            this.label25 = new System.Windows.Forms.Label();
+            this.txtSMTextBytes = new System.Windows.Forms.TextBox();
             this.chkProgressBar = new System.Windows.Forms.CheckBox();
             this.chkTrackUIDNext = new System.Windows.Forms.CheckBox();
             this.chkTrackUnseen = new System.Windows.Forms.CheckBox();
@@ -204,8 +206,6 @@
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
             this.cmdPoll = new System.Windows.Forms.Button();
-            this.txtSMTextBytes = new System.Windows.Forms.TextBox();
-            this.label25 = new System.Windows.Forms.Label();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -1445,9 +1445,30 @@
             this.gbxSelectedMailbox.TabStop = false;
             this.gbxSelectedMailbox.Text = "Selected Mailbox";
             // 
+            // label25
+            // 
+            this.label25.AutoSize = true;
+            this.label25.Location = new System.Drawing.Point(12, 44);
+            this.label25.Name = "label25";
+            this.label25.Size = new System.Drawing.Size(80, 13);
+            this.label25.TabIndex = 2;
+            this.label25.Text = "Max Text Bytes";
+            // 
+            // txtSMTextBytes
+            // 
+            this.txtSMTextBytes.Location = new System.Drawing.Point(133, 41);
+            this.txtSMTextBytes.Name = "txtSMTextBytes";
+            this.txtSMTextBytes.Size = new System.Drawing.Size(50, 20);
+            this.txtSMTextBytes.TabIndex = 3;
+            this.txtSMTextBytes.Text = "10000";
+            this.txtSMTextBytes.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtSMTextBytes.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
             // chkProgressBar
             // 
             this.chkProgressBar.AutoSize = true;
+            this.chkProgressBar.Checked = true;
+            this.chkProgressBar.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkProgressBar.Location = new System.Drawing.Point(244, 69);
             this.chkProgressBar.Name = "chkProgressBar";
             this.chkProgressBar.Size = new System.Drawing.Size(86, 17);
@@ -2167,25 +2188,6 @@
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
-            // txtSMTextBytes
-            // 
-            this.txtSMTextBytes.Location = new System.Drawing.Point(133, 41);
-            this.txtSMTextBytes.Name = "txtSMTextBytes";
-            this.txtSMTextBytes.Size = new System.Drawing.Size(50, 20);
-            this.txtSMTextBytes.TabIndex = 3;
-            this.txtSMTextBytes.Text = "10000";
-            this.txtSMTextBytes.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtSMTextBytes.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // label25
-            // 
-            this.label25.AutoSize = true;
-            this.label25.Location = new System.Drawing.Point(12, 44);
-            this.label25.Name = "label25";
-            this.label25.Size = new System.Drawing.Size(80, 13);
-            this.label25.TabIndex = 2;
-            this.label25.Text = "Max Text Bytes";
-            // 
             // frmClient
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2199,6 +2201,7 @@
             this.Controls.Add(this.cmdCancel);
             this.Controls.Add(this.cmdDisconnect);
             this.Name = "frmClient";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmClient";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmClient_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmClient_FormClosed);

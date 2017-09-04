@@ -40,7 +40,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtx.Location = new System.Drawing.Point(0, 0);
             this.rtx.Name = "rtx";
-            this.rtx.Size = new System.Drawing.Size(176, 125);
+            this.rtx.Size = new System.Drawing.Size(592, 773);
             this.rtx.TabIndex = 0;
             this.rtx.Text = "";
             // 
@@ -53,9 +53,10 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(176, 125);
+            this.ClientSize = new System.Drawing.Size(592, 773);
             this.Controls.Add(this.rtx);
             this.Name = "frmResponseText";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmResponseText";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmResponseText_FormClosed);
             this.Load += new System.EventHandler(this.frmResponseText_Load);

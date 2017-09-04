@@ -72,9 +72,9 @@ namespace work.bacome.imapclient
         private bool mMailboxReferrals = false;
         private fMailboxCacheData mMailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
-        private cFetchSizeConfiguration mFetchAttributesConfiguration = new cFetchSizeConfiguration(1, 1000, 10000, 1);
-        private cFetchSizeConfiguration mFetchBodyReadConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
-        private cFetchSizeConfiguration mFetchBodyWriteConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mFetchAttributesReadConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
+        private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
         private cIdDictionary mClientId = cIdDictionary.CreateDefaultClientIdDictionary();
         private cIdDictionary mClientIdUTF8 = cIdDictionary.CreateDefaultClientIdDictionary();
@@ -264,20 +264,20 @@ namespace work.bacome.imapclient
 
         // controls for long running activities
 
-        public cFetchSizeConfiguration FetchAttributesConfiguration
+        public cBatchSizerConfiguration FetchAttributesReadConfiguration
         {
-            get => mFetchAttributesConfiguration;
+            get => mFetchAttributesReadConfiguration;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchAttributesConfiguration), value);
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchAttributesReadConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mFetchAttributesConfiguration = value ?? throw new ArgumentNullException();
-                mSession?.SetFetchAttributesConfiguration(value, lContext);
+                mFetchAttributesReadConfiguration = value ?? throw new ArgumentNullException();
+                mSession?.SetFetchAttributesReadConfiguration(value, lContext);
             }
         }
 
-        public cFetchSizeConfiguration FetchBodyReadConfiguration
+        public cBatchSizerConfiguration FetchBodyReadConfiguration
         {
             get => mFetchBodyReadConfiguration;
 
@@ -290,7 +290,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        public cFetchSizeConfiguration FetchBodyWriteConfiguration
+        public cBatchSizerConfiguration FetchBodyWriteConfiguration
         {
             get => mFetchBodyWriteConfiguration;
 

@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using work.bacome.imapclient;
-using work.bacome.trace;
 
 namespace testharness2
 {
@@ -17,17 +16,15 @@ namespace testharness2
     {
         private const string kPleaseWait = "<please wait>";
 
-        private readonly cTrace.cContext mRootContext;
         private readonly cIMAPClient mClient;
         private readonly bool mSubscriptions;
         private readonly fMailboxCacheDataSets mDataSets;
-        private readonly Action mDisplaySelectedMailbox;
+        private readonly Action<Form> mDisplaySelectedMailbox;
         private cMailbox mSubscribedMailbox = null;
         private TreeNode mSubscribedMailboxNode = null;
 
-        public frmMailboxes(cIMAPClient pClient, bool pSubscriptions, fMailboxCacheDataSets pDataSets, Action pDisplaySelectedMailbox, cTrace.cContext pParentContext)
+        public frmMailboxes(cIMAPClient pClient, bool pSubscriptions, fMailboxCacheDataSets pDataSets, Action<Form> pDisplaySelectedMailbox)
         {
-            mRootContext = pParentContext.NewRootObject(nameof(frmMailboxes));
             mClient = pClient;
             mSubscriptions = pSubscriptions;
             mDataSets = pDataSets;
@@ -92,8 +89,6 @@ namespace testharness2
 
         private async void tvw_AfterExpand(object sender, TreeViewEventArgs e)
         {
-            var lContext = mRootContext.NewMethod(nameof(frmMailboxes), nameof(tvw_AfterExpand));
-
             if (!(e.Node.Tag is cNodeTag lTag)) return;
 
             if (lTag.State != cNodeTag.eState.neverexpanded) return;
@@ -106,12 +101,13 @@ namespace testharness2
             {
                 if (mSubscriptions) lMailboxes = await lTag.ChildMailboxes.SubscribedAsync(false, mDataSets);
                 else lMailboxes = await lTag.ChildMailboxes.MailboxesAsync(mDataSets);
+                if (IsDisposed) return;
                 foreach (var lMailbox in lMailboxes) ZAddMailbox(e.Node, lMailbox);
             }
             catch (Exception ex)
             {
-                lContext.TraceException(ex);
-                MessageBox.Show($"a problem occurred: {ex}");
+                if (!IsDisposed) MessageBox.Show(this, $"a problem occurred: {ex}");
+                return;
             }
 
             e.Node.Nodes.Remove(lTag.PleaseWait);
@@ -295,9 +291,13 @@ namespace testharness2
             try
             {
                 await mSubscribedMailbox.SelectAsync();
-                mDisplaySelectedMailbox();
+                if (IsDisposed) return;
+                mDisplaySelectedMailbox(this);
             }
-            catch (Exception ex) { MessageBox.Show($"an error occurred while selecting read only: {ex}"); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while selecting read only: {ex}");
+            }
         }
 
         private async void cmdSelect_Click(object sender, EventArgs e)
@@ -305,27 +305,40 @@ namespace testharness2
             try
             {
                 await mSubscribedMailbox.SelectAsync(true);
-                mDisplaySelectedMailbox();
+                if (IsDisposed) return;
+                mDisplaySelectedMailbox(this);
             }
-            catch (Exception ex) { MessageBox.Show($"an error occurred while selecting for update: {ex}"); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while selecting for update: {ex}");
+            }
         }
 
         private async void cmdSubscribe_Click(object sender, EventArgs e)
         {
             try { await mSubscribedMailbox.SubscribeAsync(); }
-            catch (Exception ex) { MessageBox.Show($"an error occurred while subscribing: {ex}"); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while subscribing: {ex}");
+            }
         }
 
         private async void cmdUnsubscribe_Click(object sender, EventArgs e)
         {
             try { await mSubscribedMailbox.UnsubscribeAsync(); }
-            catch (Exception ex) { MessageBox.Show($"an error occurred while unsubscribing: {ex}"); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while unsubscribing: {ex}");
+            }
         }
 
         private async void cmdDelete_Click(object sender, EventArgs e)
         {
             try { await mSubscribedMailbox.DeleteAsync(); }
-            catch (Exception ex) { MessageBox.Show($"an error occurred while deleting: {ex}"); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while deleting: {ex}");
+            }
         }
 
         private async void cmdRename_Click(object sender, EventArgs e)
@@ -334,9 +347,13 @@ namespace testharness2
             {
                 var lNode = mSubscribedMailboxNode;
                 var lMailbox = await mSubscribedMailbox.RenameAsync(txtRename.Text.Trim());
+                if (IsDisposed) return;
                 ZAddMailbox(lNode.Parent, lMailbox);
             }
-            catch (Exception ex) { MessageBox.Show($"an error occurred while renaming: {ex}"); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while renaming: {ex}");
+            }
         }
 
         private async void cmdCreate_Click(object sender, EventArgs e)
@@ -345,9 +362,13 @@ namespace testharness2
             {
                 var lNode = mSubscribedMailboxNode;
                 var lMailbox = await mSubscribedMailbox.CreateChildAsync(txtCreate.Text.Trim(), chkCreate.Checked);
+                if (IsDisposed) return;
                 ZAddMailbox(lNode, lMailbox);
             }
-            catch (Exception ex) { MessageBox.Show($"an error occurred while creating: {ex}"); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while creating: {ex}");
+            }
         }
 
         public class cNodeTag

@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using work.bacome.imapclient;
-using work.bacome.trace;
 
 namespace testharness2
 {
@@ -20,8 +19,9 @@ namespace testharness2
         private readonly bool mTrackUIDNext;
         private readonly bool mTrackUnseen;
         private readonly bool mProgressBar;
-        private readonly List<frmMessage> mMessages = new List<frmMessage>();
+        private readonly List<Form> mMessages = new List<Form>();
         private cMailbox mSelectedMailbox = null;
+        private frmProgress mQueryMessagesProgress = null;
 
         public frmSelectedMailbox(cIMAPClient pClient, int pMaxMessages, uint pMaxTextBytes, bool pTrackUIDNext, bool pTrackUnseen, bool pProgressBar)
         {
@@ -43,7 +43,7 @@ namespace testharness2
             mClient.PropertyChanged += mClient_PropertyChanged;
             mClient.MessagePropertyChanged += mClient_MessagePropertyChanged;
 
-            ZChangedSelectedMailbox();
+            ZQuery();
         }
 
         private void ZGridInitialise()
@@ -70,8 +70,10 @@ namespace testharness2
             }
         }
 
-        private void ZChangedSelectedMailbox()
+        private void ZQuery()
         {
+            ZQueryMessagesCancel();
+
             ZUnsubscribeMailbox();
 
             if (mClient.IsConnected) mSelectedMailbox = mClient.SelectedMailbox;
@@ -79,9 +81,8 @@ namespace testharness2
 
             ZSubscribeMailbox();
 
-            ZChangedMailboxProperties();
-
-            ZChangedMessagesAsync(); // don't wait
+            ZQueryProperties();
+            ZQueryMessagesAsync(); // don't wait
         }
 
         private void ZSubscribeMailbox()
@@ -100,8 +101,8 @@ namespace testharness2
 
         private void mSelectedMailbox_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            ZChangedMailboxProperties();
-            if (e.PropertyName == nameof(cMailbox.UIDValidity)) ZChangedMessagesAsync(); // don't wait
+            ZQueryProperties();
+            if (e.PropertyName == nameof(cMailbox.UIDValidity)) ZQueryMessagesAsync(); // don't wait
         }
 
         private void mSelectedMailbox_MessageDelivery(object sender, cMessageDeliveryEventArgs e)
@@ -169,7 +170,7 @@ namespace testharness2
             return null;
         }
 
-        private void ZChangedMailboxProperties()
+        private void ZQueryProperties()
         {
             if (mSelectedMailbox == null)
             {
@@ -217,7 +218,7 @@ namespace testharness2
         private int mChangedMessagesAsyncEntryNumber = 0;
         private object mChangedMessagesLastCache = new object();
 
-        private async void ZChangedMessagesAsync()
+        private async void ZQueryMessagesAsync()
         {
             // defend against being called twice with the same settings
             //  (note this is inevitable as events from the client are delivered asyncronously - therefore two events may arrive together after two changes)
@@ -246,18 +247,17 @@ namespace testharness2
                 if (mProgressBar)
                 {
                     lProgress = new frmProgress("loading messages");
+                    Program.Centre(lProgress, this);
                     lProgress.Show();
                     lConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, lProgress.SetCount, lProgress.Increment);
+                    mQueryMessagesProgress = lProgress; // so it can be cancelled from code
                 }
-                else
-                {
-                    lConfiguration = null;
-                }
+                else lConfiguration = null;
 
                 if (mSelectedMailbox.MessageCount > mMaxMessages)
                 {
                     lMessages = await mSelectedMailbox.MessagesAsync(null, null, 0, lConfiguration);
-                    if (lChangedMessagesAsyncEntryNumber != mChangedMessagesAsyncEntryNumber) return;
+                    if (IsDisposed || lChangedMessagesAsyncEntryNumber != mChangedMessagesAsyncEntryNumber) return;
                     lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
                     await mSelectedMailbox.FetchAsync(lMessages, fMessageProperties.clientdefault, lConfiguration);
                 }
@@ -266,17 +266,16 @@ namespace testharness2
             }
             catch (Exception e)
             {
-                if (lProgress != null) lProgress.Cancel();
-                MessageBox.Show($"a problem occurred: {e}");
+                if (!IsDisposed) MessageBox.Show(this, $"a problem occurred: {e}");
                 return;
             }
             finally
             {
-                if (lProgress != null) lProgress.Close();
+                if (lProgress != null) lProgress.Complete();
             }
 
-            // check that while getting the messages we haven't been re-entered
-            if (lChangedMessagesAsyncEntryNumber != mChangedMessagesAsyncEntryNumber) return;
+            // check that while getting the messages we haven't been closed or re-entered
+            if (IsDisposed || lChangedMessagesAsyncEntryNumber != mChangedMessagesAsyncEntryNumber) return;
 
             // load the grid with data
             BindingSource lBindingSource = new BindingSource();
@@ -288,19 +287,34 @@ namespace testharness2
             if (mSelectedMailbox.UnseenUnknownCount > 0 && mTrackUnseen)
             {
                 try { await mSelectedMailbox.SetUnseenAsync(); }
-                catch (Exception ex) { MessageBox.Show($"an error occurred while setting unseen: {ex}"); }
+                catch (Exception ex)
+                {
+                    if (!IsDisposed) MessageBox.Show(this, $"an error occurred while setting unseen: {ex}");
+                }
+            }
+        }
+
+        private void ZQueryMessagesCancel()
+        {
+            if (mQueryMessagesProgress != null)
+            {
+                try { mQueryMessagesProgress.Cancel(); }
+                catch { }
+
+                mQueryMessagesProgress = null;
             }
         }
 
         private void mClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(cIMAPClient.IsConnected) || e.PropertyName == nameof(cIMAPClient.SelectedMailbox)) ZChangedSelectedMailbox();
+            if (e.PropertyName == nameof(cIMAPClient.IsConnected) || e.PropertyName == nameof(cIMAPClient.SelectedMailbox)) ZQuery();
         }
 
         private void ZMessageAdd(frmMessage pForm)
         {
             mMessages.Add(pForm);
             pForm.FormClosed += ZMessageClosed;
+            Program.Centre(pForm, this, mMessages);
             pForm.Show();
         }
 
@@ -313,7 +327,7 @@ namespace testharness2
 
         private void ZMessagesClose()
         {
-            List<frmMessage> lForms = new List<frmMessage>();
+            List<Form> lForms = new List<Form>();
 
             foreach (var lForm in mMessages)
             {
@@ -333,20 +347,31 @@ namespace testharness2
         private async void cmdExpunge_Click(object sender, EventArgs e)
         {
             try { await mSelectedMailbox.ExpungeAsync(); }
-            catch (Exception ex) { MessageBox.Show($"an error occurred while expunging: {ex}"); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while expunging: {ex}");
+            }
         }
 
         private async void cmdClose_Click(object sender, EventArgs e)
         {
             try { await mSelectedMailbox.ExpungeAsync(true); }
-            catch (Exception ex) { MessageBox.Show($"an error occurred while closing: {ex}"); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while closing: {ex}");
+            }
         }
 
-        private void dgv_CellContentDoubleClick(object sender, DataGridViewCellEventArgs e)
+        private void dgv_RowHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             var lData = dgv.Rows[e.RowIndex].DataBoundItem as cGridRowData;
             if (lData == null) return;
-            ZMessageAdd(new frmMessage(mClient.InstanceName, this, mSelectedMailbox, mMaxTextBytes, lData.Message));
+            ZMessageAdd(new frmMessage(mClient.InstanceName, this, mProgressBar, mSelectedMailbox, mMaxTextBytes, lData.Message));
+        }
+
+        private void frmSelectedMailbox_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            ZQueryMessagesCancel();
         }
 
         private void frmSelectedMailbox_FormClosed(object sender, FormClosedEventArgs e)

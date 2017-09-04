@@ -43,7 +43,7 @@
             // cmdExpunge
             // 
             this.cmdExpunge.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdExpunge.Location = new System.Drawing.Point(3, 303);
+            this.cmdExpunge.Location = new System.Drawing.Point(3, 513);
             this.cmdExpunge.Name = "cmdExpunge";
             this.cmdExpunge.Size = new System.Drawing.Size(100, 25);
             this.cmdExpunge.TabIndex = 1;
@@ -54,7 +54,7 @@
             // cmdClose
             // 
             this.cmdClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdClose.Location = new System.Drawing.Point(3, 334);
+            this.cmdClose.Location = new System.Drawing.Point(3, 544);
             this.cmdClose.Name = "cmdClose";
             this.cmdClose.Size = new System.Drawing.Size(100, 25);
             this.cmdClose.TabIndex = 2;
@@ -69,7 +69,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtx.Location = new System.Drawing.Point(3, 3);
             this.rtx.Name = "rtx";
-            this.rtx.Size = new System.Drawing.Size(141, 294);
+            this.rtx.Size = new System.Drawing.Size(262, 504);
             this.rtx.TabIndex = 0;
             this.rtx.Text = "";
             // 
@@ -90,8 +90,8 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.dgv);
-            this.splitContainer1.Size = new System.Drawing.Size(433, 362);
-            this.splitContainer1.SplitterDistance = 147;
+            this.splitContainer1.Size = new System.Drawing.Size(792, 572);
+            this.splitContainer1.SplitterDistance = 268;
             this.splitContainer1.TabIndex = 0;
             // 
             // dgv
@@ -102,18 +102,20 @@
             this.dgv.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgv.Location = new System.Drawing.Point(3, 3);
             this.dgv.Name = "dgv";
-            this.dgv.Size = new System.Drawing.Size(276, 356);
+            this.dgv.Size = new System.Drawing.Size(514, 566);
             this.dgv.TabIndex = 0;
-            this.dgv.CellContentDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_CellContentDoubleClick);
+            this.dgv.RowHeaderMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgv_RowHeaderMouseDoubleClick);
             // 
             // frmSelectedMailbox
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(433, 363);
+            this.ClientSize = new System.Drawing.Size(792, 573);
             this.Controls.Add(this.splitContainer1);
             this.Name = "frmSelectedMailbox";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmSelectedMailbox";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmSelectedMailbox_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmSelectedMailbox_FormClosed);
             this.Load += new System.EventHandler(this.frmSelectedMailbox_Load);
             this.splitContainer1.Panel1.ResumeLayout(false);

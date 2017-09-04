@@ -13,7 +13,9 @@ namespace testharness2
 {
     public partial class frmStart : Form
     {
-        private cTrace.cContext mRootContext = Program.Trace.NewRoot(nameof(frmStart), true);
+        private static cTrace kTrace = new cTrace("testharness2");
+
+        private cTrace.cContext mRootContext = kTrace.NewRoot(nameof(frmStart), true);
         private int mTimer = 7;
         private int mInstanceNumber = 7;
 
@@ -33,6 +35,7 @@ namespace testharness2
             string lInstanceName = txtInstanceName.Text.Trim();
             if (lInstanceName.Length == 0) lInstanceName = "Client_" + (++mInstanceNumber).ToString();
             var lClient = new frmClient(lInstanceName);
+            Program.Centre(lClient, this);
             lClient.Show();
         }
 
@@ -43,9 +46,9 @@ namespace testharness2
             try
             {
                 cTests.Tests(false, lContext);
-                MessageBox.Show("all tests passed");
+                MessageBox.Show(this, "all tests passed");
             }
-            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+            catch (Exception ex) { MessageBox.Show(this, ex.ToString()); }
         }
 
         private void cmdQuickTests_Click(object sender, EventArgs e)
@@ -55,9 +58,9 @@ namespace testharness2
             try
             {
                 cTests.Tests(true, lContext);
-                MessageBox.Show("quick tests passed");
+                MessageBox.Show(this, "quick tests passed");
             }
-            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+            catch (Exception ex) { MessageBox.Show(this, ex.ToString()); }
         }
 
         private void cmdCurrentTest_Click(object sender, EventArgs e)
@@ -67,10 +70,10 @@ namespace testharness2
             try
             {
                 cTests.CurrentTest(lContext);
-                MessageBox.Show("current test passed");
+                MessageBox.Show(this, "current test passed");
 
             }
-            catch (Exception ex) { MessageBox.Show(ex.ToString()); }
+            catch (Exception ex) { MessageBox.Show(this, ex.ToString()); }
         }
     }
 }

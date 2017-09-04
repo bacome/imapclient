@@ -197,13 +197,13 @@ namespace work.bacome.imapclient
             var lToFetch = ZFetchAttributesToFetch(pHandles, lRequired);
             if (lToFetch == 0) return; // got everything already
 
-            cFetchProgress lProgress;
+            cProgress lProgress;
 
-            if (pConfiguration == null) lProgress = new cFetchProgress();
+            if (pConfiguration == null) lProgress = new cProgress();
             else
             {
                 mSynchroniser.InvokeActionInt(pConfiguration.SetCount, pHandles.Count, lContext);
-                lProgress = new cFetchProgress(mSynchroniser, pConfiguration.Increment);
+                lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
             }
 
             await pSession.FetchAttributesAsync(pMC, pHandles, lToFetch, lProgress, lContext).ConfigureAwait(false);

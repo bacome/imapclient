@@ -348,48 +348,24 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
-        public string Fetch(cBodyPart pPart)
+        public string Fetch(cTextBodyPart pPart)
         {
             using (var lStream = new MemoryStream())
             {
-                if (pPart is cTextBodyPart lPart)
-                {
-                    Client.Fetch(Handle, lPart.Section, lPart.DecodingRequired, lStream, null);
-                    Encoding lEncoding = Encoding.GetEncoding(lPart.Charset);
-                    return new string(lEncoding.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
-                }
-
-                Client.Fetch(Handle, pPart.Section, eDecodingRequired.none, lStream, null);
-                return new string(Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+                Client.Fetch(Handle, pPart.Section, pPart.DecodingRequired, lStream, null);
+                Encoding lEncoding = Encoding.GetEncoding(pPart.Charset);
+                return new string(lEncoding.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
             }
         }
 
-        public async Task<string> FetchAsync(cBodyPart pPart)
+        public async Task<string> FetchAsync(cTextBodyPart pPart)
         {
             using (var lStream = new MemoryStream())
             {
-                if (pPart is cTextBodyPart lPart)
-                {
-                    await Client.FetchAsync(Handle, lPart.Section, lPart.DecodingRequired, lStream, null).ConfigureAwait(false);
-                    Encoding lEncoding = Encoding.GetEncoding(lPart.Charset);
-                    return new string(lEncoding.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
-                }
-
-                await Client.FetchAsync(Handle, pPart.Section, eDecodingRequired.none, lStream, null).ConfigureAwait(false);
-                return new string(Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
+                await Client.FetchAsync(Handle, pPart.Section, pPart.DecodingRequired, lStream, null).ConfigureAwait(false);
+                Encoding lEncoding = Encoding.GetEncoding(pPart.Charset);
+                return new string(lEncoding.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
             }
-        }
-
-        public void Fetch(cBodyPart pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null)
-        {
-            if (pPart is cSinglePartBody lPart) Client.Fetch(Handle, lPart.Section, lPart.DecodingRequired, pStream, pConfiguration);
-            else Client.Fetch(Handle, pPart.Section, eDecodingRequired.none, pStream, pConfiguration);
-        }
-
-        public Task FetchAsync(cBodyPart pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null)
-        {
-            if (pPart is cSinglePartBody lPart) return Client.FetchAsync(Handle, lPart.Section, lPart.DecodingRequired, pStream, pConfiguration);
-            else return Client.FetchAsync(Handle, pPart.Section, eDecodingRequired.none, pStream, pConfiguration);
         }
 
         public string Fetch(cSection pSection)
@@ -410,8 +386,9 @@ namespace work.bacome.imapclient
             }
         }
 
+        public void Fetch(cSinglePartBody pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.Fetch(Handle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
+        public Task FetchAsync(cSinglePartBody pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
         public void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.Fetch(Handle, pSection, pDecoding, pStream, pConfiguration);
-
         public Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, pSection, pDecoding, pStream, pConfiguration);
 
         // debugging

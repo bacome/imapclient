@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public Task FetchBodyAsync(cMethodControl pMC, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cTrace.cContext pParentContext)
+            public Task FetchBodyAsync(cMethodControl pMC, iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cProgress pProgress, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pMC, pHandle, pSection, pDecoding);
 
@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
                 else return ZFetchBodyAsync(pMC, pHandle.Cache.MailboxHandle, pHandle.UID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
             }
 
-            public Task UIDFetchBodyAsync(cMethodControl pMC, iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cTrace.cContext pParentContext)
+            public Task UIDFetchBodyAsync(cMethodControl pMC, iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cProgress pProgress, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBodyAsync), pMC, pHandle, pUID, pSection, pDecoding);
 
@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
                 return ZFetchBodyAsync(pMC, pHandle, pUID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
             }
 
-            private async Task ZFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchProgress pProgress, cFetchSizer pWriteSizer, cTrace.cContext pParentContext)
+            private async Task ZFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cProgress pProgress, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
 

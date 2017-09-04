@@ -53,14 +53,14 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    var lProgress = new cFetchProgress();                    
+                    var lProgress = new cProgress();                    
                     await lSession.FetchAttributesAsync(lMC, pHandles, pAttributes, lProgress, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                var lProgress = new cFetchProgress(mSynchroniser, pConfiguration.Increment);
+                var lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
                 await lSession.FetchAttributesAsync(lMC, pHandles, pAttributes, lProgress, lContext).ConfigureAwait(false);
             }
         }
@@ -86,14 +86,14 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    var lProgress = new cFetchProgress();
+                    var lProgress = new cProgress();
                     lHandles = await lSession.UIDFetchAttributesAsync(lMC, pHandle, pUIDs, pAttributes, lProgress, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                var lProgress = new cFetchProgress(mSynchroniser, pConfiguration.Increment);
+                var lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
                 lHandles = await lSession.UIDFetchAttributesAsync(lMC, pHandle, pUIDs, pAttributes, lProgress, lContext).ConfigureAwait(false);
             }
 

@@ -30,21 +30,23 @@
         {
             this.prg = new System.Windows.Forms.ProgressBar();
             this.cmdCancel = new System.Windows.Forms.Button();
+            this.lblTotal = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // prg
             // 
-            this.prg.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.prg.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.prg.Location = new System.Drawing.Point(0, 0);
             this.prg.Name = "prg";
-            this.prg.Size = new System.Drawing.Size(292, 25);
+            this.prg.Size = new System.Drawing.Size(294, 25);
             this.prg.TabIndex = 0;
             // 
             // cmdCancel
             // 
-            this.cmdCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdCancel.Location = new System.Drawing.Point(192, 31);
+            this.cmdCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdCancel.Location = new System.Drawing.Point(194, 31);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(100, 25);
             this.cmdCancel.TabIndex = 1;
@@ -52,20 +54,33 @@
             this.cmdCancel.UseVisualStyleBackColor = true;
             this.cmdCancel.Click += new System.EventHandler(this.cmdCancel_Click);
             // 
+            // lblTotal
+            // 
+            this.lblTotal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.lblTotal.AutoSize = true;
+            this.lblTotal.Location = new System.Drawing.Point(12, 37);
+            this.lblTotal.Name = "lblTotal";
+            this.lblTotal.Size = new System.Drawing.Size(48, 13);
+            this.lblTotal.TabIndex = 2;
+            this.lblTotal.Text = "Progress";
+            // 
             // frmProgress
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(292, 57);
+            this.ClientSize = new System.Drawing.Size(294, 57);
             this.ControlBox = false;
+            this.Controls.Add(this.lblTotal);
             this.Controls.Add(this.cmdCancel);
             this.Controls.Add(this.prg);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "frmProgress";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmProgress";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmProgress_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmProgress_FormClosed);
             this.Load += new System.EventHandler(this.frmProgress_Load);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -73,5 +88,6 @@
 
         private System.Windows.Forms.ProgressBar prg;
         private System.Windows.Forms.Button cmdCancel;
+        private System.Windows.Forms.Label lblTotal;
     }
 }

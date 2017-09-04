@@ -145,6 +145,7 @@
             this.Controls.Add(this.lblProofOfASync);
             this.Controls.Add(this.label1);
             this.Name = "frmStart";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "imapclient testharness - start";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();

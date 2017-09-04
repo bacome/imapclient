@@ -39,14 +39,14 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtx.Location = new System.Drawing.Point(0, 0);
             this.rtx.Name = "rtx";
-            this.rtx.Size = new System.Drawing.Size(524, 406);
+            this.rtx.Size = new System.Drawing.Size(592, 542);
             this.rtx.TabIndex = 0;
             this.rtx.Text = "";
             // 
             // cmdRefresh
             // 
             this.cmdRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdRefresh.Location = new System.Drawing.Point(0, 412);
+            this.cmdRefresh.Location = new System.Drawing.Point(0, 548);
             this.cmdRefresh.Name = "cmdRefresh";
             this.cmdRefresh.Size = new System.Drawing.Size(100, 25);
             this.cmdRefresh.TabIndex = 1;
@@ -58,10 +58,11 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(524, 437);
+            this.ClientSize = new System.Drawing.Size(592, 573);
             this.Controls.Add(this.cmdRefresh);
             this.Controls.Add(this.rtx);
             this.Name = "frmDetails";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmDetails";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmDetails_FormClosed);
             this.Load += new System.EventHandler(this.frmDetails_Load);
