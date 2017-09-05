@@ -186,9 +186,14 @@
             // 
             // dgv
             // 
+            this.dgv.AllowUserToAddRows = false;
+            this.dgv.AllowUserToDeleteRows = false;
+            this.dgv.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
+            this.dgv.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.dgv.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgv.Location = new System.Drawing.Point(3, 3);
             this.dgv.Name = "dgv";
+            this.dgv.ReadOnly = true;
             this.dgv.Size = new System.Drawing.Size(767, 500);
             this.dgv.TabIndex = 0;
             this.dgv.RowHeaderMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgv_RowHeaderMouseDoubleClick);
@@ -394,6 +399,7 @@
             this.cmdDownloadDecoded.TabIndex = 3;
             this.cmdDownloadDecoded.Text = "Download";
             this.cmdDownloadDecoded.UseVisualStyleBackColor = true;
+            this.cmdDownloadDecoded.Click += new System.EventHandler(this.cmdDownloadDecoded_Click);
             // 
             // rtxDecoded
             // 

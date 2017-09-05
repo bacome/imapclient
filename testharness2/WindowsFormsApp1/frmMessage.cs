@@ -21,7 +21,7 @@ namespace testharness2
         private readonly frmSelectedMailbox mParent; // for previous/next
         private readonly bool mProgressBar;
         private readonly cMailbox mMailbox;
-        private readonly uint mMaxTextBytes;
+        private readonly int mMaxTextBytes;
         private cMessage mMessage;
         private bool mSubscribed = false;
         private bool mEnvelopeDisplayed = false;
@@ -40,7 +40,7 @@ namespace testharness2
 
         private List<Form> mDownloads = new List<Form>();
 
-        public frmMessage(string pInstanceName, frmSelectedMailbox pParent, bool pProgressBar, cMailbox pMailbox, uint pMaxTextBytes, cMessage pMessage)
+        public frmMessage(string pInstanceName, frmSelectedMailbox pParent, bool pProgressBar, cMailbox pMailbox, int pMaxTextBytes, cMessage pMessage)
         {
             mInstanceName = pInstanceName;
             mParent = pParent;
@@ -100,7 +100,7 @@ namespace testharness2
             }
         }
 
-        private string ZTooBig(uint pBytes) => $"<too big: estimated size: {pBytes}>";
+        private string ZTooBig(int pBytes) => $"<too big: estimated size: {pBytes}>";
 
         private int mQueryAsyncEntryNumber = 0;
 
@@ -147,7 +147,7 @@ namespace testharness2
                         mTextDisplayed = true;
 
                         string lText;
-                        uint lBytes = mMessage.PlainTextSizeInBytes;
+                        int lBytes = mMessage.PlainTextSizeInBytes;
                         if (lBytes > mMaxTextBytes) lText = ZTooBig(lBytes);
                         else lText = await mMessage.PlainTextAsync();
 
@@ -241,13 +241,13 @@ namespace testharness2
             tvwBodyStructure.EndUpdate();
         }
 
-        private void ZQueryBodyStructureAddSection(TreeNode pParent, string pText, cSection pSection, uint pBytes)
+        private void ZQueryBodyStructureAddSection(TreeNode pParent, string pText, cSection pSection, int pApproximateSizeInBytes)
         {
             var lNode = pParent.Nodes.Add(pText);
-            lNode.Tag = new cNodeTag(pSection, pBytes);
+            lNode.Tag = new cNodeTag(pSection, pApproximateSizeInBytes);
         }
 
-        private uint ZQueryBodyStructureAddPart(TreeNode pParent, cBodyPart pBodyPart)
+        private int ZQueryBodyStructureAddPart(TreeNode pParent, cBodyPart pBodyPart)
         {
             string lPart;
 
@@ -263,25 +263,25 @@ namespace testharness2
             }
 
             var lNode = pParent.Nodes.Add(lPart + ": " + pBodyPart.Type + "/" + pBodyPart.SubType);
-            uint lBytes;
+            int lApproximateSizeInBytes;
 
             if (pBodyPart is cMessageBodyPart lMessage)
             {
                 ZQueryBodyStructureAddSection(lNode, pBodyPart.Section.Part + ".header", new cSection(pBodyPart.Section.Part, eSectionPart.header), 0);
                 ZQueryBodyStructureAddPart(lNode, lMessage.BodyStructure);
-                lBytes = lMessage.SizeInBytes;
+                lApproximateSizeInBytes = (int)lMessage.SizeInBytes;
             }
             else if (pBodyPart is cMultiPartBody lMultiPartPart)
             {
-                lBytes = 0;
-                foreach (var lBodyPart in lMultiPartPart.Parts) lBytes += ZQueryBodyStructureAddPart(lNode, lBodyPart);
+                lApproximateSizeInBytes = 0;
+                foreach (var lBodyPart in lMultiPartPart.Parts) lApproximateSizeInBytes += ZQueryBodyStructureAddPart(lNode, lBodyPart);
             }
-            else if (pBodyPart is cSinglePartBody lSinglePart) lBytes = lSinglePart.SizeInBytes;
-            else lBytes = int.MaxValue; // should never happen
+            else if (pBodyPart is cSinglePartBody lSinglePart) lApproximateSizeInBytes = (int)lSinglePart.SizeInBytes;
+            else lApproximateSizeInBytes = int.MaxValue; // should never happen
 
-            lNode.Tag = new cNodeTag(pBodyPart, lBytes);
+            lNode.Tag = new cNodeTag(pBodyPart, lApproximateSizeInBytes);
 
-            return lBytes;
+            return lApproximateSizeInBytes;
         }
 
         private int mQueryBodyStructureDetailEntryNumber = 0;
@@ -424,7 +424,7 @@ namespace testharness2
                 {
                     string lText;
 
-                    if (lTag.Bytes > mMaxTextBytes) lText = ZTooBig(lTag.Bytes);
+                    if (lTag.ApproximateSizeInBytes > mMaxTextBytes) lText = ZTooBig(lTag.ApproximateSizeInBytes);
                     else
                     {
                         try { lText = await mMessage.FetchAsync(lTextPart); }
@@ -446,7 +446,7 @@ namespace testharness2
 
                     try
                     {
-                        uint lSize = await mMessage.FetchSizeInBytesAsync(lSinglePart);
+                        int lSize = await mMessage.FetchSizeInBytesAsync(lSinglePart);
                         if (IsDisposed || pQueryBodyStructureDetailEntryNumber != mQueryBodyStructureDetailEntryNumber) return;
 
                         await ZImageLoadAsync(pQueryBodyStructureDetailEntryNumber, lSinglePart, lSize);
@@ -472,7 +472,7 @@ namespace testharness2
             ZQueryBodyStructureRawSectionDataAsync(lTag, pQueryBodyStructureDetailEntryNumber, rtxDecoded);
         }
 
-        private async Task ZImageLoadAsync(int pQueryBodyStructureDetailEntryNumber, cSinglePartBody pPart, uint pSize)
+        private async Task ZImageLoadAsync(int pQueryBodyStructureDetailEntryNumber, cSinglePartBody pPart, int pSize)
         {
             frmProgress lProgress = null;
             MemoryStream lStream = null;
@@ -483,7 +483,7 @@ namespace testharness2
 
                 if (mProgressBar)
                 {
-                    lProgress = new frmProgress("image " + pPart.Section.Part + " [" + pSize + " bytes]", (int)pSize);
+                    lProgress = new frmProgress("image " + pPart.Section.Part + " [" + pSize + " bytes]", pSize);
                     Program.Centre(lProgress, this);
                     lProgress.Show();
                     lConfiguration = new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
@@ -534,7 +534,7 @@ namespace testharness2
         {
             if (mRawSectionData == null)
             {
-                if (pTag.Bytes > mMaxTextBytes) mRawSectionData = ZTooBig(pTag.Bytes);
+                if (pTag.ApproximateSizeInBytes > mMaxTextBytes) mRawSectionData = ZTooBig(pTag.ApproximateSizeInBytes);
                 else
                 {
                     cSection lSection;
@@ -666,18 +666,10 @@ namespace testharness2
             pBuilder.AppendLine();
         }
 
-
         private void tabBodyStructure_Selected(object sender, TabControlEventArgs e)
         {
             ZQueryBodyStructureDetail(false);
         }
-
-
-
-
-
-
-
 
         private void ZDownloadAdd(frmProgress pProgress)
         {
@@ -728,11 +720,47 @@ namespace testharness2
 
             try
             {
-                var lSize = await lAttachment.SaveSizeInBytesAsync();
-                if (IsDisposed) return;
-                lProgress = new frmProgress("saving " + lSaveFileDialog.FileName, (int)lSize);
+                int lSize = lAttachment.SaveSizeInBytes();
+                lProgress = new frmProgress("saving " + lSaveFileDialog.FileName, lSize);
                 ZDownloadAdd(lProgress);
                 await lAttachment.SaveAsAsync(lSaveFileDialog.FileName, new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment));
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"problem when saving '{lSaveFileDialog.FileName}'\n{ex}");
+            }
+            finally
+            {
+                if (lProgress != null) lProgress.Complete();
+            }
+        }
+
+        private string ZDownloadFileName(cSection pSection)
+        {
+            string lFileName = mMessage.UID.UID.ToString();
+            if (pSection.Part != null) lFileName += "." + pSection.Part;
+            if (pSection.TextPart != eSectionPart.all) lFileName += "." + pSection.TextPart;
+            return lFileName;
+        }
+
+        private async void ZDownloadRaw(cSection pSection, int pSize)
+        {
+            var lSaveFileDialog = new SaveFileDialog();
+            lSaveFileDialog.FileName = ZDownloadFileName(pSection) + ".txt";
+            if (lSaveFileDialog.ShowDialog() != DialogResult.OK) return;
+
+            frmProgress lProgress = null;
+
+            try
+            {
+                lProgress = new frmProgress("saving " + lSaveFileDialog.FileName, pSize);
+                ZDownloadAdd(lProgress);
+
+                using (FileStream lStream = new FileStream(lSaveFileDialog.FileName, FileMode.Create))
+                {
+                    await mMessage.FetchAsync(pSection, eDecodingRequired.none, lStream, new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment));
+                }
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
@@ -765,19 +793,43 @@ namespace testharness2
                 lSize = 0;
             }
 
+            ZDownloadRaw(lSection, lSize);
+        }
+
+        private async void cmdDownloadDecoded_Click(object sender, EventArgs e)
+        {
+            if (tvwBodyStructure.SelectedNode == null) return;
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+
+            if (lTag.BodyPart == null || !(lTag.BodyPart is cSinglePartBody lSinglePart))
+            {
+                ZDownloadRaw(lTag.Section, 0);
+                return;
+            }
+
+            string lExtension;
+
+            if (lSinglePart is cTextBodyPart lTextPart && lTextPart.SubTypeCode == eTextBodyPartSubTypeCode.plain) lExtension = ".txt";
+            else if (lSinglePart is cMessageBodyPart) lExtension = ".eml";
+            else if (lSinglePart.TypeCode == eBodyPartTypeCode.text || lSinglePart.TypeCode == eBodyPartTypeCode.image || lSinglePart.TypeCode == eBodyPartTypeCode.audio || lSinglePart.TypeCode == eBodyPartTypeCode.video) lExtension = "." + lSinglePart.SubType;
+            else lExtension = "";
+
             var lSaveFileDialog = new SaveFileDialog();
-            if (lTag.Section.TextPart == eSectionPart.all) lSaveFileDialog.FileName = lSection.Part;
-            else lSaveFileDialog.FileName = lSection.Part + "." + lSection.TextPart;
+            lSaveFileDialog.FileName = ZDownloadFileName(lSinglePart.Section) + lExtension;
             if (lSaveFileDialog.ShowDialog() != DialogResult.OK) return;
 
             frmProgress lProgress = null;
 
             try
             {
+                int lSize = mMessage.FetchSizeInBytes(lSinglePart);
                 lProgress = new frmProgress("saving " + lSaveFileDialog.FileName, lSize);
                 ZDownloadAdd(lProgress);
 
-                await lAttachment.SaveAsAsync(lSaveFileDialog.FileName, new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment));
+                using (FileStream lStream = new FileStream(lSaveFileDialog.FileName, FileMode.Create))
+                {
+                    await mMessage.FetchAsync(lSinglePart.Section, lSinglePart.DecodingRequired, lStream, new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment));
+                }
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
@@ -802,7 +854,7 @@ namespace testharness2
             public string Type => Attachment.Type;
             public string SubType => Attachment.SubType;
             public string Description => Attachment.Description;
-            public uint Size => Attachment.ApproximateFileSizeInBytes ?? Attachment.PartSizeInBytes;
+            public int Size => Attachment.ApproximateFileSizeInBytes ?? Attachment.PartSizeInBytes;
             public string FileName => Attachment.FileName;
         }
 
@@ -810,20 +862,20 @@ namespace testharness2
         {
             public readonly cBodyPart BodyPart;
             public readonly cSection Section;
-            public readonly uint Bytes;
+            public readonly int ApproximateSizeInBytes;
 
-            public cNodeTag(cBodyPart pBodyPart, uint pBytes)
+            public cNodeTag(cBodyPart pBodyPart, int pApproximateSizeInBytes)
             {
                 BodyPart = pBodyPart ?? throw new ArgumentNullException(nameof(pBodyPart));
                 Section = null;
-                Bytes = pBytes;
+                ApproximateSizeInBytes = pApproximateSizeInBytes;
             }
 
-            public cNodeTag(cSection pSection, uint pBytes)
+            public cNodeTag(cSection pSection, int pApproximateSizeInBytes)
             {
                 BodyPart = null;
                 Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-                Bytes = pBytes;
+                ApproximateSizeInBytes = pApproximateSizeInBytes;
             }
         }
     }

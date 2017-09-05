@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using work.bacome.imapclient.support;
 
@@ -55,12 +56,31 @@ namespace work.bacome.imapclient
             Items = null;
         }
 
+        public cSort(IList<cSortItem> pItems)
+        {
+            if (pItems == null) throw new ArgumentNullException(nameof(pItems));
+            if (pItems.Count == 0) throw new ArgumentOutOfRangeException(nameof(pItems));
+
+            List<cSortItem> lItems = new List<cSortItem>();
+
+            foreach (var lItem in pItems)
+            {
+                if (lItem == null) throw new ArgumentOutOfRangeException(nameof(pItems));
+                lItems.Add(lItem);
+            }
+
+            mName = null;
+            Items = new ReadOnlyCollection<cSortItem>(lItems);
+        }
+
         public cSort(params cSortItem[] pItems)
         {
-            mName = null;
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
             if (pItems.Length == 0) throw new ArgumentOutOfRangeException(nameof(pItems));
+
             foreach (var lItem in pItems) if (lItem == null) throw new ArgumentOutOfRangeException(nameof(pItems));
+
+            mName = null;
             Items = new ReadOnlyCollection<cSortItem>(pItems);
         }
 

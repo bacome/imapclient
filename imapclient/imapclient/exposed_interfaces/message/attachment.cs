@@ -26,17 +26,17 @@ namespace work.bacome.imapclient
         public cCulturedString Description => Part.Description;
         public string ContentTransferEncoding => Part.ContentTransferEncoding;
         public eDecodingRequired DecodingRequired => Part.DecodingRequired;
-        public uint PartSizeInBytes => Part.SizeInBytes;
+        public int PartSizeInBytes => (int)Part.SizeInBytes;
         public string MD5 => Part.ExtensionData?.MD5;
         public string FileName => Part.Disposition?.FileName;
         public DateTime? CreationDate => Part.Disposition?.CreationDate;
         public DateTime? ModificationDate => Part.Disposition?.ModificationDate;
         public DateTime? ReadDate => Part.Disposition?.ReadDate;
-        public uint? ApproximateFileSizeInBytes => Part.Disposition?.Size;
+        public int? ApproximateFileSizeInBytes => Part.Disposition?.Size;
         public cStrings Languages => Part.ExtensionData?.Languages;
 
-        public uint SaveSizeInBytes() => Client.FetchSizeInBytes(Handle, Part);
-        public Task<uint> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(Handle, Part);
+        public int SaveSizeInBytes() => Client.FetchSizeInBytes(Handle, Part);
+        public Task<int> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(Handle, Part);
 
         public void SaveAs(string pPath, cBodyFetchConfiguration pConfiguration = null)
         {

@@ -192,6 +192,14 @@ namespace work.bacome.imapclient
                         {
                             foreach (var lName in lPersonalNamespaceNames)
                             {
+                                // special case, where the personal namespace is "INBOX/" (where "/" is the delimiter)
+                                if (lName.Delimiter != null && lName.Prefix == cMailboxName.InboxString + lName.Delimiter)
+                                {
+                                    mInbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lName.Delimiter)));
+                                    mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
+                                    break;
+                                }
+
                                 cMailboxPathPattern lPattern = new cMailboxPathPattern(lName.Prefix, "%", lName.Delimiter);
 
                                 if (lPattern.Matches(cMailboxName.InboxString))

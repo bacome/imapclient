@@ -47,9 +47,22 @@ namespace testharness2
                 return;
             }
 
+            ZAddInbox();
             ZAddNamespaces("Personal", lNamespaces.Personal);
             ZAddNamespaces("Other Users", lNamespaces.OtherUsers);
             ZAddNamespaces("Shared", lNamespaces.Shared);
+        }
+
+        private void ZAddInbox()
+        {
+            var lNode = tvw.Nodes.Add(cMailboxName.InboxString);
+
+            TreeNode lPleaseWait;
+
+            if (mClient.Inbox.HasChildren == false) lPleaseWait = null;
+            else lPleaseWait = lNode.Nodes.Add(kPleaseWait);
+
+            lNode.Tag = new cNodeTag(mClient.Inbox, lPleaseWait);
         }
 
         private void ZAddNamespaces(string pClass, ReadOnlyCollection<cNamespace> pNamespaces)

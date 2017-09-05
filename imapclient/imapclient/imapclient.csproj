@@ -73,7 +73,6 @@
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
     <Compile Include="exposed_interfaces\enums\mailboxcachedata.cs" />
-    <Compile Include="exposed_interfaces\other\messagesconfiguration.cs" />
     <Compile Include="exposed_interfaces\other\networkactivity.cs" />
     <Compile Include="exposed_interfaces\support\enums\listflags.cs" />
     <Compile Include="exposed_interfaces\support\types\listflags.cs" />
@@ -185,7 +184,6 @@
     <Compile Include="session\command_hooks\commandhookfetch.cs" />
     <Compile Include="support\namespacenames.cs" />
     <Compile Include="tools\cancellationmanager.cs" />
-    <Compile Include="zzz\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooksearchextended.cs" />
     <Compile Include="session\command_hooks\commandhookselect.cs" />
     <Compile Include="session\command_pipeline\commandpipeline.cs" />
@@ -221,7 +219,6 @@
     <Compile Include="session\imap_commands\selected\fetch\uidattributes.cs" />
     <Compile Include="session\parsing\responsedataesearch.cs" />
     <Compile Include="session\parsing\responsedatafetch.cs" />
-    <Compile Include="zzz\responsedatastatus.cs" />
     <Compile Include="session\selectedmailbox\selectedmailbox.cs" />
     <Compile Include="session\selectedmailbox\selectedmailboxcache.cs" />
     <Compile Include="session\session\base.cs" />
@@ -238,7 +235,6 @@
     <Compile Include="exposed_interfaces\support\types\status.cs" />
     <Compile Include="support\body.cs" />
     <Compile Include="support\invokesynchroniser.cs" />
-    <Compile Include="zzz\mailboxlist.cs" />
     <Compile Include="support\mailboxnamepattern.cs" />
     <Compile Include="support\uidlist.cs" />
     <Compile Include="tests\tests.cs" />

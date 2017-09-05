@@ -205,12 +205,12 @@ namespace work.bacome.imapclient
             }
         }
 
-        public uint Size
+        public int Size
         {
             get
             {
                 if (!Client.Fetch(Handle, fMessageProperties.size)) throw new InvalidOperationException();
-                return Handle.Size.Value;
+                return (int)Handle.Size.Value;
             }
         }
 
@@ -282,13 +282,13 @@ namespace work.bacome.imapclient
             return lResult;
         }
 
-        public uint PlainTextSizeInBytes
+        public int PlainTextSizeInBytes
         {
             get
             {
                 if (!Client.Fetch(Handle, fMessageProperties.plaintextsizeinbytes)) throw new InvalidOperationException();
-                uint lSize = 0;
-                foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lSize += lPart.SizeInBytes;
+                int lSize = 0;
+                foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lSize += (int)lPart.SizeInBytes;
                 return lSize;
             }
         }
@@ -320,8 +320,8 @@ namespace work.bacome.imapclient
 
         public bool Fetch(fMessageProperties pProperties) => Client.Fetch(Handle, pProperties);
         public Task<bool> FetchAsync(fMessageProperties pProperties) => Client.FetchAsync(Handle, pProperties);
-        public uint FetchSizeInBytes(cSinglePartBody pPart) => Client.FetchSizeInBytes(Handle, pPart);
-        public Task<uint> FetchSizeInBytesAsync(cSinglePartBody pPart) => Client.FetchSizeInBytesAsync(Handle, pPart);
+        public int FetchSizeInBytes(cSinglePartBody pPart) => Client.FetchSizeInBytes(Handle, pPart);
+        public Task<int> FetchSizeInBytesAsync(cSinglePartBody pPart) => Client.FetchSizeInBytesAsync(Handle, pPart);
 
         public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(Handle, pOffset);
 

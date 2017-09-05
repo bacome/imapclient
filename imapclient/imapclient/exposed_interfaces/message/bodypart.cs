@@ -222,7 +222,15 @@ namespace work.bacome.imapclient
         public DateTime? ModificationDate => Parameters.GetDateTimeValue("modification-date");
         public DateTime? ReadDate => Parameters.GetDateTimeValue("read-date");
 
-        public uint? Size => Parameters.GetUIntValue("size");
+        public int? Size
+        {
+            get
+            {
+                uint? lSize = Parameters.GetUIntValue("size");
+                if (lSize == null) return null;
+                return (int)lSize.Value;
+            }
+        }
 
         public override string ToString() => $"{nameof(cBodyPartDisposition)}({Type},{TypeCode},{Parameters})";
     }

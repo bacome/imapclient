@@ -377,6 +377,13 @@ namespace work.bacome.imapclient
         public readonly eFilterSizeCompare Compare;
         public readonly uint WithSize;
 
+        public cFilterSizeCompare(eFilterSizeCompare pCompare, int pSize)
+        {
+            if (pSize < 0) throw new ArgumentOutOfRangeException(nameof(pSize));
+            Compare = pCompare;
+            WithSize = (uint)pSize;
+        }
+
         public cFilterSizeCompare(eFilterSizeCompare pCompare, uint pSize)
         {
             Compare = pCompare;
@@ -389,6 +396,8 @@ namespace work.bacome.imapclient
     public class cFilterSize
     {
         public cFilterSize() { }
+        public static cFilter operator <(cFilterSize pFitlerSize, int pSize) => new cFilterSizeCompare(eFilterSizeCompare.smaller, pSize);
+        public static cFilter operator >(cFilterSize pFitlerSize, int pSize) => new cFilterSizeCompare(eFilterSizeCompare.larger, pSize);
         public static cFilter operator <(cFilterSize pFitlerSize, uint pSize) => new cFilterSizeCompare(eFilterSizeCompare.smaller, pSize);
         public static cFilter operator >(cFilterSize pFitlerSize, uint pSize) => new cFilterSizeCompare(eFilterSizeCompare.larger, pSize);
     }

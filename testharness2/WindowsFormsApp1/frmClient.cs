@@ -405,10 +405,10 @@ namespace testharness2
         private void cmdEvents_Click(object sender, EventArgs e)
         {
             if (mNamedChildren.TryGetValue(nameof(frmEvents), out var lForm)) ZFocus(lForm);
-            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmEvents(mClient, int.Parse(txtEvents.Text)), cmdEvents);
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmEvents(mClient, int.Parse(txtEvents.Text)));
         }
 
-        private void ZNamedChildAdd(Form pForm, Control pControl)
+        private void ZNamedChildAdd(Form pForm)
         {
             mNamedChildren.Add(pForm.Name, pForm);
             pForm.FormClosed += ZNamedChildClosed;
@@ -444,7 +444,7 @@ namespace testharness2
             gbxResponseTextCode.Enabled = lResponseText;
         }
 
-        private void ZUnnamedChildAdd(Form pForm, Control pControl)
+        private void ZUnnamedChildAdd(Form pForm)
         {
             mUnnamedChildren.Add(pForm);
             pForm.FormClosed += ZUnnamedChildClosed;
@@ -468,7 +468,7 @@ namespace testharness2
         private void cmdNetworkActivity_Click(object sender, EventArgs e)
         {
             if (mNamedChildren.TryGetValue(nameof(frmNetworkActivity), out var lForm)) ZFocus(lForm);
-            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmNetworkActivity(mClient, int.Parse(txtNetworkActivity.Text)), cmdNetworkActivity);
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmNetworkActivity(mClient, int.Parse(txtNetworkActivity.Text)));
         }
 
         private void cmdResponseText_Click(object sender, EventArgs e)
@@ -525,7 +525,7 @@ namespace testharness2
                 if (chkRTCUseAttr.Checked) lCodes.Add(eResponseTextCode.useattr);
                 if (chkRTCUnknownCTE.Checked) lCodes.Add(eResponseTextCode.unknowncte);
 
-                ZNamedChildAdd(new frmResponseText(mClient, lMaxMessages, lTypes, lCodes), cmdResponseText);
+                ZNamedChildAdd(new frmResponseText(mClient, lMaxMessages, lTypes, lCodes));
             }
         }
 
@@ -588,7 +588,7 @@ namespace testharness2
         private void cmdDetails_Click(object sender, EventArgs e)
         {
             if (mNamedChildren.TryGetValue(nameof(frmDetails), out var lForm)) ZFocus(lForm);
-            else ZNamedChildAdd(new frmDetails(mClient), cmdDetails);
+            else ZNamedChildAdd(new frmDetails(mClient));
         }
 
         private void ZSetDefaultSort(object sender, EventArgs e)
@@ -650,7 +650,7 @@ namespace testharness2
             if (chkMLSub.Checked) lDataSets |= fMailboxCacheDataSets.lsub;
             if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
 
-            ZUnnamedChildAdd(new frmMailboxes(mClient, false, lDataSets, ZDisplaySelectedMailbox), cmdMailboxes);
+            ZUnnamedChildAdd(new frmMailboxes(mClient, false, lDataSets, ZDisplaySelectedMailbox));
         }
 
         private void cmdSubscriptions_Click(object sender, EventArgs e)
@@ -661,7 +661,7 @@ namespace testharness2
             if (chkMLSub.Checked) lDataSets |= fMailboxCacheDataSets.lsub;
             if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
 
-            ZUnnamedChildAdd(new frmMailboxes(mClient, true, lDataSets, ZDisplaySelectedMailbox), cmdSubscriptions);
+            ZUnnamedChildAdd(new frmMailboxes(mClient, true, lDataSets, ZDisplaySelectedMailbox));
         }
 
         private void cmdSelectedMailbox_Click(object sender, EventArgs e)
@@ -672,7 +672,7 @@ namespace testharness2
         private void ZDisplaySelectedMailbox(Form pForm)
         {
             if (mNamedChildren.TryGetValue(nameof(frmSelectedMailbox), out var lForm)) ZFocus(lForm);
-            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSMMessages.Text), uint.Parse(txtSMTextBytes.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked), pForm);
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSMMessages.Text), int.Parse(txtSMTextBytes.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked));
         }
     }
 }
