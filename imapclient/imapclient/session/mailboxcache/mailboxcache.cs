@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             private partial class cMailboxCache
             {
-                private readonly cInvokeSynchroniser mSynchroniser;
+                private readonly cCallbackSynchroniser mSynchroniser;
                 private readonly fMailboxCacheData mMailboxCacheData;
                 private readonly cCommandPartFactory mCommandPartFactory;
                 private readonly cCapabilities mCapabilities;
@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
                 private int mSequence = 7;
                 private cSelectedMailbox mSelectedMailbox = null;
 
-                public cMailboxCache(cInvokeSynchroniser pSynchroniser, fMailboxCacheData pMailboxCacheData, cCommandPartFactory pCommandPartFactory, cCapabilities pCapabilities, Action<eConnectionState, cTrace.cContext> pSetState)
+                public cMailboxCache(cCallbackSynchroniser pSynchroniser, fMailboxCacheData pMailboxCacheData, cCommandPartFactory pCommandPartFactory, cCapabilities pCapabilities, Action<eConnectionState, cTrace.cContext> pSetState)
                 {
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMailboxCacheData = pMailboxCacheData;

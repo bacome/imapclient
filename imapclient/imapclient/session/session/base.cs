@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
 
             private readonly cConnection mConnection = new cConnection();
 
-            private readonly cInvokeSynchroniser mSynchroniser;
+            private readonly cCallbackSynchroniser mSynchroniser;
             private readonly fMailboxCacheData mMailboxCacheData;
             private readonly fKnownCapabilities mIgnoreCapabilities;
             private readonly cResponseTextProcessor mResponseTextProcessor;
@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cInvokeSynchroniser pSynchroniser, fKnownCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cIdleConfiguration pIdleConfiguration, cBatchSizerConfiguration pFetchAttributesReadConfiguration, cBatchSizerConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cCallbackSynchroniser pSynchroniser, fKnownCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cIdleConfiguration pIdleConfiguration, cBatchSizerConfiguration pFetchAttributesReadConfiguration, cBatchSizerConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchAttributesReadConfiguration, pFetchBodyReadConfiguration);
 

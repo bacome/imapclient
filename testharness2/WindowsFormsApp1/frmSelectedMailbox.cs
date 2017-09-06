@@ -13,6 +13,8 @@ namespace testharness2
 {
     public partial class frmSelectedMailbox : Form
     {
+        private const string kUsingDefault = "<using default>";
+
         private readonly cIMAPClient mClient;
         private readonly int mMaxMessages;
         private readonly int mMaxTextBytes;
@@ -22,7 +24,9 @@ namespace testharness2
         private readonly List<Form> mMessageForms = new List<Form>();
         private readonly List<Form> mMessagesLoadingForms = new List<Form>();
         private cMailbox mSelectedMailbox = null;
-        private frmSort mSort = null;
+        private cFilter mFilter = null;
+        private cSort mOverrideSort = null;
+
 
         public frmSelectedMailbox(cIMAPClient pClient, int pMaxMessages, int pMaxTextBytes, bool pTrackUIDNext, bool pTrackUnseen, bool pProgressBar)
         {
@@ -38,11 +42,9 @@ namespace testharness2
         private void frmSelectedMailbox_Load(object sender, EventArgs e)
         {
             Text = "imapclient testharness - selected mailbox - " + mClient.InstanceName + " [" + mMaxMessages + "]";
-
+            lblOverrideSort.Text = kUsingDefault;
             ZGridInitialise();
-
             mClient.PropertyChanged += mClient_PropertyChanged;
-
             ZQuery();
         }
 
@@ -72,7 +74,7 @@ namespace testharness2
 
         private void ZQuery()
         {
-            ZMessagesLoadingClose();
+            ZMessageFormsClose();
 
             ZUnsubscribeMailbox();
 
@@ -253,9 +255,11 @@ namespace testharness2
             // defend against re-entry during awaits
             int lQueryMessagesAsyncEntryNumber = ++mQueryMessagesAsyncEntryNumber;
 
+            // terminate any outstanding message loading
+            ZMessagesLoadingClose();
+
             dgvMessages.Enabled = false;
             dgvMessages.DataSource = new BindingSource();
-            ZMessageFormsClose();
 
             if (mSelectedMailbox == null) return;
 
@@ -282,13 +286,18 @@ namespace testharness2
 
                 if (mSelectedMailbox.MessageCount > mMaxMessages)
                 {
-                    lMessages = await mSelectedMailbox.MessagesAsync(null, null, 0, lConfiguration);
+                    // first get the messages, sorted, but don't get the requested properties yet (as this would be wasteful)
+                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, 0, lConfiguration);
                     if (IsDisposed || lQueryMessagesAsyncEntryNumber != mQueryMessagesAsyncEntryNumber) return;
-                    lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
+
+                    // remove any excess messages (the filter may have removed enough or the mailbox may have changed in the meantime)
+                    if (lMessages.Count > mMaxMessages) lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
+
+                    // get any missing attributes
                     await mSelectedMailbox.FetchAsync(lMessages, fMessageProperties.clientdefault, lConfiguration);
                 }
-                else if (lConfiguration == null) lMessages = await mSelectedMailbox.MessagesAsync();
-                else lMessages = await mSelectedMailbox.MessagesAsync(null, null, fMessageProperties.clientdefault, lConfiguration);
+                else if (mFilter != null || mOverrideSort != null || lConfiguration != null) lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, fMessageProperties.clientdefault, lConfiguration); // demonstrate the full API (note that we could have specified additional message properties if required)
+                else lMessages = await mSelectedMailbox.MessagesAsync(); // show that getting the full set of messages in a mailbox is trivial if no restrictions are required and the defaults are set correctly
             }
             catch (Exception e)
             {
@@ -441,27 +450,25 @@ namespace testharness2
             ZMessageFormAdd(new frmMessage(mClient.InstanceName, this, mProgressBar, mSelectedMailbox, mMaxTextBytes, lData.Message));
         }
 
-        private void cmdSort_Click(object sender, EventArgs e)
+        private void cmdOverrideSort_Click(object sender, EventArgs e)
         {
-            if (mSort == null)
+            using (frmSortDialog lSortDialog = new frmSortDialog(mOverrideSort ?? mClient.DefaultSort))
             {
-                mSort = new frmSort(mClient.InstanceName);
-                mSort.FormClosed += ZSortClosed;
-                Program.Centre(mSort, this);
-                mSort.Show();
-            }
-            else
-            {
-                if (mSort.WindowState == FormWindowState.Minimized) mSort.WindowState = FormWindowState.Normal;
-                mSort.Focus();
+                if (lSortDialog.ShowDialog(this) == DialogResult.OK) ZOverrideSortSet(lSortDialog.Sort);
             }
         }
 
-        private void ZSortClosed(object sender, EventArgs e)
+        private void cmdOverrideSortClear_Click(object sender, EventArgs e)
         {
-            if (!(sender is Form lForm)) return;
-            lForm.FormClosed -= ZSortClosed;
-            mSort = null;
+            ZOverrideSortSet(null);
+        }
+
+        private void ZOverrideSortSet(cSort pSort)
+        {
+            mOverrideSort = pSort;
+            if (mOverrideSort == null) lblOverrideSort.Text = kUsingDefault;
+            else lblOverrideSort.Text = $"Set to: {mOverrideSort}";
+            ZQueryMessagesAsync();
         }
 
         private void frmSelectedMailbox_FormClosing(object sender, FormClosingEventArgs e)
@@ -474,7 +481,6 @@ namespace testharness2
             mClient.PropertyChanged -= mClient_PropertyChanged;
             ZUnsubscribeMailbox();
             ZMessageFormsClose();
-            if (mSort != null) mSort.Close();
         }
 
 

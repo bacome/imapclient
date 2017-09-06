@@ -55,10 +55,10 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kNamespaceSpace = new cBytes("NAMESPACE ");
 
-                private cInvokeSynchroniser mSynchroniser;
+                private cCallbackSynchroniser mSynchroniser;
                 private bool mUTF8Enabled;
 
-                public cNamespaceDataProcessor(cInvokeSynchroniser pSynchroniser, bool pUTF8Enabled)
+                public cNamespaceDataProcessor(cCallbackSynchroniser pSynchroniser, bool pUTF8Enabled)
                 {
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mUTF8Enabled = pUTF8Enabled;
@@ -160,7 +160,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cNamespaceDataProcessor), nameof(_Tests));
 
-                    using (cInvokeSynchroniser lES = new cInvokeSynchroniser(new object(), lContext))
+                    using (cCallbackSynchroniser lES = new cCallbackSynchroniser(new object(), lContext))
                     {
                         cNamespaceDataProcessor lNRDPASCII = new cNamespaceDataProcessor(lES, false);
                         cNamespaceDataProcessor lNRDPUTF8 = new cNamespaceDataProcessor(lES, true);

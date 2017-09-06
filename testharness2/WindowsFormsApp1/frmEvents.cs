@@ -33,6 +33,7 @@ namespace testharness2
             mClient.MailboxPropertyChanged += mClient_MailboxPropertyChanged;
             mClient.MailboxMessageDelivery += mClient_MailboxMessageDelivery;
             mClient.MessagePropertyChanged += mClient_MessagePropertyChanged;
+            mClient.CallbackException += mClient_CallbackException;
         }
 
         private void mClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -100,12 +101,20 @@ namespace testharness2
             mRefreshRequired = true;
         }
 
+        private void mClient_CallbackException(object sender, cCallbackExceptionEventArgs e)
+        {
+            mQueue.Enqueue(e.ToString());
+            if (mQueue.Count > mMaxMessages) mQueue.Dequeue();
+            mRefreshRequired = true;
+        }
+
         private void frmEvents_FormClosed(object sender, FormClosedEventArgs e)
         {
             mClient.PropertyChanged -= mClient_PropertyChanged;
             mClient.MailboxPropertyChanged -= mClient_MailboxPropertyChanged;
             mClient.MailboxMessageDelivery -= mClient_MailboxMessageDelivery;
             mClient.MessagePropertyChanged -= mClient_MessagePropertyChanged;
+            mClient.CallbackException -= mClient_CallbackException;
         }
 
         private void tmr_Tick(object sender, EventArgs e)

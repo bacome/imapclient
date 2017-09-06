@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
         {
             private class cMailboxCacheItem : iMailboxHandle
             {
-                private readonly cInvokeSynchroniser mSynchroniser;
+                private readonly cCallbackSynchroniser mSynchroniser;
                 private readonly cMailboxCache mMailboxCache;
                 private readonly string mEncodedMailboxPath;
 
@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
                 private cMailboxStatus mMailboxStatus = null;
                 private cMailboxSelectedProperties mSelectedProperties = cMailboxSelectedProperties.NeverBeenSelected;
 
-                public cMailboxCacheItem(cInvokeSynchroniser pSynchroniser, cMailboxCache pMailboxCache, string pEncodedMailboxPath)
+                public cMailboxCacheItem(cCallbackSynchroniser pSynchroniser, cMailboxCache pMailboxCache, string pEncodedMailboxPath)
                 {
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));

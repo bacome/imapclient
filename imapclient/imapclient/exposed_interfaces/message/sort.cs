@@ -5,40 +5,105 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    public enum eSortItem { received, cc, sent, from, size, subject, to, displayfrom, displayto }
+
     public class cSortItem
     {
-        public static readonly cSortItem Received = new cSortItem(fMessageProperties.received, false, false);
-        public static readonly cSortItem CC = new cSortItem(fMessageProperties.cc, false, false);
-        public static readonly cSortItem Sent = new cSortItem(fMessageProperties.sent, false, false);
-        public static readonly cSortItem From = new cSortItem(fMessageProperties.from, false, false);
-        public static readonly cSortItem Size = new cSortItem(fMessageProperties.size, false, false);
-        public static readonly cSortItem Subject = new cSortItem(fMessageProperties.subject, false, false);
-        public static readonly cSortItem To = new cSortItem(fMessageProperties.to, false, false);
-        public static readonly cSortItem DisplayFrom = new cSortItem(fMessageProperties.from, true, false);
-        public static readonly cSortItem DisplayTo = new cSortItem(fMessageProperties.to, true, false);
+        public static readonly cSortItem Received = new cSortItem(eSortItem.received, false);
+        public static readonly cSortItem CC = new cSortItem(eSortItem.cc, false);
+        public static readonly cSortItem Sent = new cSortItem(eSortItem.sent, false);
+        public static readonly cSortItem From = new cSortItem(eSortItem.from, false);
+        public static readonly cSortItem Size = new cSortItem(eSortItem.size, false);
+        public static readonly cSortItem Subject = new cSortItem(eSortItem.subject, false);
+        public static readonly cSortItem To = new cSortItem(eSortItem.to, false);
+        public static readonly cSortItem DisplayFrom = new cSortItem(eSortItem.displayfrom, false);
+        public static readonly cSortItem DisplayTo = new cSortItem(eSortItem.displayto, false);
 
-        public static readonly cSortItem ReceivedDesc = new cSortItem(fMessageProperties.received, false, true);
-        public static readonly cSortItem CCDesc = new cSortItem(fMessageProperties.cc, false, true);
-        public static readonly cSortItem SentDesc = new cSortItem(fMessageProperties.sent, false, true);
-        public static readonly cSortItem FromDesc = new cSortItem(fMessageProperties.from, false, true);
-        public static readonly cSortItem SizeDesc = new cSortItem(fMessageProperties.size, false, true);
-        public static readonly cSortItem SubjectDesc = new cSortItem(fMessageProperties.subject, false, true);
-        public static readonly cSortItem ToDesc = new cSortItem(fMessageProperties.to, false, true);
-        public static readonly cSortItem DisplayFromDesc = new cSortItem(fMessageProperties.from, true, true);
-        public static readonly cSortItem DisplayToDesc = new cSortItem(fMessageProperties.to, true, true);
+        public static readonly cSortItem ReceivedDesc = new cSortItem(eSortItem.received, true);
+        public static readonly cSortItem CCDesc = new cSortItem(eSortItem.cc, true);
+        public static readonly cSortItem SentDesc = new cSortItem(eSortItem.sent, true);
+        public static readonly cSortItem FromDesc = new cSortItem(eSortItem.from, true);
+        public static readonly cSortItem SizeDesc = new cSortItem(eSortItem.size, true);
+        public static readonly cSortItem SubjectDesc = new cSortItem(eSortItem.subject, true);
+        public static readonly cSortItem ToDesc = new cSortItem(eSortItem.to, true);
+        public static readonly cSortItem DisplayFromDesc = new cSortItem(eSortItem.displayfrom, true);
+        public static readonly cSortItem DisplayToDesc = new cSortItem(eSortItem.displayto, true);
 
+        public readonly eSortItem Item;
         public readonly fMessageProperties Property;
         public readonly bool Display;
         public readonly bool Desc;
 
-        private cSortItem(fMessageProperties pProperty, bool pDisplay, bool pDesc)
+        public cSortItem(eSortItem pItem, bool pDesc)
         {
-            Property = pProperty;
-            Display = pDisplay;
+            Item = pItem;
+
+            switch (pItem)
+            {
+                case eSortItem.received:
+
+                    Property = fMessageProperties.received;
+                    Display = false;
+                    break;
+
+                case eSortItem.cc:
+
+                    Property = fMessageProperties.cc;
+                    Display = false;
+                    break;
+
+                case eSortItem.sent:
+
+                    Property = fMessageProperties.sent;
+                    Display = false;
+                    break;
+
+                case eSortItem.from:
+
+                    Property = fMessageProperties.from;
+                    Display = false;
+                    break;
+
+                case eSortItem.size:
+
+                    Property = fMessageProperties.size;
+                    Display = false;
+                    break;
+
+                case eSortItem.subject:
+
+                    Property = fMessageProperties.subject;
+                    Display = false;
+                    break;
+
+                case eSortItem.to:
+
+                    Property = fMessageProperties.to;
+                    Display = false;
+                    break;
+
+                case eSortItem.displayfrom:
+
+                    Property = fMessageProperties.from;
+                    Display = true;
+                    break;
+
+                case eSortItem.displayto:
+
+                    Property = fMessageProperties.to;
+                    Display = true;
+                    break;
+
+                default:
+
+                    throw new ArgumentOutOfRangeException(nameof(pItem));
+
+            }
+
             Desc = pDesc;
         }
 
-        public override string ToString() => $"{nameof(cSortItem)}({Property},{Display},{Desc})";
+        public override string ToString() => $"{nameof(cSortItem)}({Item},{Property},{Display},{Desc})";
     }
 
     public class cSort
@@ -56,10 +121,9 @@ namespace work.bacome.imapclient
             Items = null;
         }
 
-        public cSort(IList<cSortItem> pItems)
+        public cSort(IEnumerable<cSortItem> pItems)
         {
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
-            if (pItems.Count == 0) throw new ArgumentOutOfRangeException(nameof(pItems));
 
             List<cSortItem> lItems = new List<cSortItem>();
 
@@ -68,6 +132,8 @@ namespace work.bacome.imapclient
                 if (lItem == null) throw new ArgumentOutOfRangeException(nameof(pItems));
                 lItems.Add(lItem);
             }
+
+            if (lItems.Count == 0) throw new ArgumentOutOfRangeException(nameof(pItems));
 
             mName = null;
             Items = new ReadOnlyCollection<cSortItem>(lItems);
@@ -90,44 +156,52 @@ namespace work.bacome.imapclient
             {
                 int lCompareTo;
 
-                switch (lItem.Property)
+                switch (lItem.Item)
                 {
-                    case fMessageProperties.received:
+                    case eSortItem.received:
 
                         lCompareTo = ZCompareTo(pX.Received, pY.Received);
                         break;
 
-                    case fMessageProperties.cc:
+                    case eSortItem.cc:
 
                         lCompareTo = ZCompareTo(pX.Envelope?.CC?.SortString, pY.Envelope?.CC?.SortString);
                         break;
 
-                    case fMessageProperties.sent:
+                    case eSortItem.sent:
 
                         // rfc 5256 says to use the internal date if the sent date is null
                         lCompareTo = ZCompareTo(pX.Envelope?.Sent ?? pX.Received, pY.Envelope?.Sent ?? pY.Received);
                         break;
 
-                    case fMessageProperties.from:
+                    case eSortItem.from:
 
-                        if (lItem.Display) lCompareTo = ZCompareTo(pX.Envelope?.From?.DisplaySortString, pY.Envelope?.From?.DisplaySortString);
-                        else lCompareTo = ZCompareTo(pX.Envelope?.From?.SortString, pY.Envelope?.From?.SortString);
+                        lCompareTo = ZCompareTo(pX.Envelope?.From?.SortString, pY.Envelope?.From?.SortString);
                         break;
 
-                    case fMessageProperties.size:
+                    case eSortItem.size:
 
                         lCompareTo = ZCompareTo(pX.Size, pY.Size);
                         break;
 
-                    case fMessageProperties.subject:
+                    case eSortItem.subject:
 
                         lCompareTo = ZCompareTo(pX.Envelope?.BaseSubject, pY.Envelope?.BaseSubject);
                         break;
 
-                    case fMessageProperties.to:
+                    case eSortItem.to:
 
-                        if (lItem.Display) lCompareTo = ZCompareTo(pX.Envelope?.To?.DisplaySortString, pY.Envelope?.To?.DisplaySortString);
-                        else lCompareTo = ZCompareTo(pX.Envelope?.To?.SortString, pY.Envelope?.To?.SortString);
+                        lCompareTo = ZCompareTo(pX.Envelope?.To?.SortString, pY.Envelope?.To?.SortString);
+                        break;
+
+                    case eSortItem.displayfrom:
+
+                        lCompareTo = ZCompareTo(pX.Envelope?.From?.DisplaySortString, pY.Envelope?.From?.DisplaySortString);
+                        break;
+
+                    case eSortItem.displayto:
+
+                        lCompareTo = ZCompareTo(pX.Envelope?.To?.DisplaySortString, pY.Envelope?.To?.DisplaySortString);
                         break;
 
                     default:
@@ -211,8 +285,15 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             if (mName != null) return $"{nameof(cSort)}({mName})";
+
             cListBuilder lBuilder = new cListBuilder(nameof(cSort));
-            foreach (var lItem in Items) lBuilder.Append(lItem);
+
+            foreach (var lItem in Items)
+            {
+                if (lItem.Desc) lBuilder.Append(lItem.Item + " desc");
+                else lBuilder.Append(lItem.Item);
+            }
+
             return lBuilder.ToString();
         }
     }

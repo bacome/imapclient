@@ -47,11 +47,11 @@ namespace work.bacome.imapclient
                 // rfc 3516
                 private static readonly cBytes kUnknownCTERBracketSpace = new cBytes("UNKNOWN-CTE] ");
 
-                private readonly cInvokeSynchroniser mSynchroniser;
+                private readonly cCallbackSynchroniser mSynchroniser;
                 private readonly List<iResponseTextCodeParser> mResponseTextCodeParsers = new List<iResponseTextCodeParser>();
                 private cMailboxCache mMailboxCache = null;
 
-                public cResponseTextProcessor(cInvokeSynchroniser pSynchroniser)
+                public cResponseTextProcessor(cCallbackSynchroniser pSynchroniser)
                 {
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                 }

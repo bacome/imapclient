@@ -7,7 +7,7 @@ namespace work.bacome.imapclient
     {
         private class cProgress
         {
-            private readonly cInvokeSynchroniser mSynchroniser;
+            private readonly cCallbackSynchroniser mSynchroniser;
             private readonly Action<int> mIncrement;
 
             public cProgress()
@@ -16,13 +16,13 @@ namespace work.bacome.imapclient
                 mIncrement = null;
             }
 
-            public cProgress(cInvokeSynchroniser pSynchroniser, Action<int> pIncrement)
+            public cProgress(cCallbackSynchroniser pSynchroniser, Action<int> pIncrement)
             {
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                 mIncrement = pIncrement;
             }
 
-            public cProgress(cInvokeSynchroniser pSynchroniser, Action<int> pSetCount, Action<int> pIncrement)
+            public cProgress(cCallbackSynchroniser pSynchroniser, Action<int> pSetCount, Action<int> pIncrement)
             {
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                 mIncrement = pIncrement;

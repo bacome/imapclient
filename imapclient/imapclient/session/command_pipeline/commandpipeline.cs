@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
                 private bool mStopped = false;
 
                 // stuff
-                private readonly cInvokeSynchroniser mSynchroniser;
+                private readonly cCallbackSynchroniser mSynchroniser;
                 private readonly cConnection mConnection;
                 private readonly cResponseTextProcessor mResponseTextProcessor;
                 private cIdleConfiguration mIdleConfiguration;
@@ -62,7 +62,7 @@ namespace work.bacome.imapclient
                 private readonly List<int> mBufferStartPoints = new List<int>();
                 private readonly cByteList mTraceBuffer = new cByteList();
 
-                public cCommandPipeline(cInvokeSynchroniser pSynchroniser, cConnection pConnection, cResponseTextProcessor pResponseTextProcessor, cIdleConfiguration pIdleConfiguration, Action<cTrace.cContext> pDisconnect, cTrace.cContext pParentContext)
+                public cCommandPipeline(cCallbackSynchroniser pSynchroniser, cConnection pConnection, cResponseTextProcessor pResponseTextProcessor, cIdleConfiguration pIdleConfiguration, Action<cTrace.cContext> pDisconnect, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cCommandPipeline), pIdleConfiguration);
 

@@ -162,12 +162,8 @@
             this.chkMPFlags = new System.Windows.Forms.CheckBox();
             this.chkMPEnvelope = new System.Windows.Forms.CheckBox();
             this.gbxDefaultSort = new System.Windows.Forms.GroupBox();
-            this.rdoSortOther = new System.Windows.Forms.RadioButton();
-            this.rdoSortReceivedDesc = new System.Windows.Forms.RadioButton();
-            this.rdoThreadReferences = new System.Windows.Forms.RadioButton();
-            this.rdoThreadOrderedSubject = new System.Windows.Forms.RadioButton();
-            this.rdoSortNone = new System.Windows.Forms.RadioButton();
-            this.txtSortOther = new System.Windows.Forms.TextBox();
+            this.cmdSort = new System.Windows.Forms.Button();
+            this.lblSort = new System.Windows.Forms.Label();
             this.tbpWindows = new System.Windows.Forms.TabPage();
             this.gbxMailboxes = new System.Windows.Forms.GroupBox();
             this.chkMStatus = new System.Windows.Forms.CheckBox();
@@ -1564,7 +1560,7 @@
             this.gbxDefaultMessageProperties.Controls.Add(this.chkMPReceived);
             this.gbxDefaultMessageProperties.Controls.Add(this.chkMPFlags);
             this.gbxDefaultMessageProperties.Controls.Add(this.chkMPEnvelope);
-            this.gbxDefaultMessageProperties.Location = new System.Drawing.Point(6, 155);
+            this.gbxDefaultMessageProperties.Location = new System.Drawing.Point(6, 88);
             this.gbxDefaultMessageProperties.Name = "gbxDefaultMessageProperties";
             this.gbxDefaultMessageProperties.Size = new System.Drawing.Size(432, 203);
             this.gbxDefaultMessageProperties.TabIndex = 1;
@@ -1661,87 +1657,33 @@
             // 
             // gbxDefaultSort
             // 
-            this.gbxDefaultSort.Controls.Add(this.rdoSortOther);
-            this.gbxDefaultSort.Controls.Add(this.rdoSortReceivedDesc);
-            this.gbxDefaultSort.Controls.Add(this.rdoThreadReferences);
-            this.gbxDefaultSort.Controls.Add(this.rdoThreadOrderedSubject);
-            this.gbxDefaultSort.Controls.Add(this.rdoSortNone);
-            this.gbxDefaultSort.Controls.Add(this.txtSortOther);
+            this.gbxDefaultSort.Controls.Add(this.cmdSort);
+            this.gbxDefaultSort.Controls.Add(this.lblSort);
             this.gbxDefaultSort.Location = new System.Drawing.Point(6, 6);
             this.gbxDefaultSort.Name = "gbxDefaultSort";
-            this.gbxDefaultSort.Size = new System.Drawing.Size(433, 143);
+            this.gbxDefaultSort.Size = new System.Drawing.Size(433, 76);
             this.gbxDefaultSort.TabIndex = 0;
             this.gbxDefaultSort.TabStop = false;
             this.gbxDefaultSort.Text = "Sort";
             // 
-            // rdoSortOther
+            // cmdSort
             // 
-            this.rdoSortOther.AutoSize = true;
-            this.rdoSortOther.Enabled = false;
-            this.rdoSortOther.Location = new System.Drawing.Point(12, 111);
-            this.rdoSortOther.Name = "rdoSortOther";
-            this.rdoSortOther.Size = new System.Drawing.Size(51, 17);
-            this.rdoSortOther.TabIndex = 4;
-            this.rdoSortOther.TabStop = true;
-            this.rdoSortOther.Text = "Other";
-            this.rdoSortOther.UseVisualStyleBackColor = true;
-            this.rdoSortOther.CheckedChanged += new System.EventHandler(this.ZSetDefaultSort);
+            this.cmdSort.Location = new System.Drawing.Point(12, 41);
+            this.cmdSort.Name = "cmdSort";
+            this.cmdSort.Size = new System.Drawing.Size(100, 25);
+            this.cmdSort.TabIndex = 2;
+            this.cmdSort.Text = "Set";
+            this.cmdSort.UseVisualStyleBackColor = true;
+            this.cmdSort.Click += new System.EventHandler(this.cmdSort_Click);
             // 
-            // rdoSortReceivedDesc
+            // lblSort
             // 
-            this.rdoSortReceivedDesc.AutoSize = true;
-            this.rdoSortReceivedDesc.Location = new System.Drawing.Point(12, 88);
-            this.rdoSortReceivedDesc.Name = "rdoSortReceivedDesc";
-            this.rdoSortReceivedDesc.Size = new System.Drawing.Size(131, 17);
-            this.rdoSortReceivedDesc.TabIndex = 3;
-            this.rdoSortReceivedDesc.TabStop = true;
-            this.rdoSortReceivedDesc.Text = "Received Descending";
-            this.rdoSortReceivedDesc.UseVisualStyleBackColor = true;
-            this.rdoSortReceivedDesc.CheckedChanged += new System.EventHandler(this.ZSetDefaultSort);
-            // 
-            // rdoThreadReferences
-            // 
-            this.rdoThreadReferences.AutoSize = true;
-            this.rdoThreadReferences.Location = new System.Drawing.Point(12, 65);
-            this.rdoThreadReferences.Name = "rdoThreadReferences";
-            this.rdoThreadReferences.Size = new System.Drawing.Size(117, 17);
-            this.rdoThreadReferences.TabIndex = 2;
-            this.rdoThreadReferences.TabStop = true;
-            this.rdoThreadReferences.Text = "Thread References";
-            this.rdoThreadReferences.UseVisualStyleBackColor = true;
-            this.rdoThreadReferences.CheckedChanged += new System.EventHandler(this.ZSetDefaultSort);
-            // 
-            // rdoThreadOrderedSubject
-            // 
-            this.rdoThreadOrderedSubject.AutoSize = true;
-            this.rdoThreadOrderedSubject.Location = new System.Drawing.Point(12, 42);
-            this.rdoThreadOrderedSubject.Name = "rdoThreadOrderedSubject";
-            this.rdoThreadOrderedSubject.Size = new System.Drawing.Size(139, 17);
-            this.rdoThreadOrderedSubject.TabIndex = 1;
-            this.rdoThreadOrderedSubject.TabStop = true;
-            this.rdoThreadOrderedSubject.Text = "Thread Ordered Subject";
-            this.rdoThreadOrderedSubject.UseVisualStyleBackColor = true;
-            this.rdoThreadOrderedSubject.CheckedChanged += new System.EventHandler(this.ZSetDefaultSort);
-            // 
-            // rdoSortNone
-            // 
-            this.rdoSortNone.AutoSize = true;
-            this.rdoSortNone.Location = new System.Drawing.Point(12, 19);
-            this.rdoSortNone.Name = "rdoSortNone";
-            this.rdoSortNone.Size = new System.Drawing.Size(51, 17);
-            this.rdoSortNone.TabIndex = 0;
-            this.rdoSortNone.TabStop = true;
-            this.rdoSortNone.Text = "None";
-            this.rdoSortNone.UseVisualStyleBackColor = true;
-            this.rdoSortNone.CheckedChanged += new System.EventHandler(this.ZSetDefaultSort);
-            // 
-            // txtSortOther
-            // 
-            this.txtSortOther.Enabled = false;
-            this.txtSortOther.Location = new System.Drawing.Point(69, 110);
-            this.txtSortOther.Name = "txtSortOther";
-            this.txtSortOther.Size = new System.Drawing.Size(347, 20);
-            this.txtSortOther.TabIndex = 5;
+            this.lblSort.AutoSize = true;
+            this.lblSort.Location = new System.Drawing.Point(9, 20);
+            this.lblSort.Name = "lblSort";
+            this.lblSort.Size = new System.Drawing.Size(90, 13);
+            this.lblSort.TabIndex = 0;
+            this.lblSort.Text = "<sort description>";
             // 
             // tbpWindows
             // 
@@ -2412,12 +2354,6 @@
         private System.Windows.Forms.TabPage tbpDefaults;
         private System.Windows.Forms.Button cmdPoll;
         private System.Windows.Forms.GroupBox gbxDefaultSort;
-        private System.Windows.Forms.RadioButton rdoSortOther;
-        private System.Windows.Forms.RadioButton rdoSortReceivedDesc;
-        private System.Windows.Forms.RadioButton rdoThreadReferences;
-        private System.Windows.Forms.RadioButton rdoThreadOrderedSubject;
-        private System.Windows.Forms.RadioButton rdoSortNone;
-        private System.Windows.Forms.TextBox txtSortOther;
         private System.Windows.Forms.GroupBox gbxDefaultMessageProperties;
         private System.Windows.Forms.CheckBox chkMPEnvelope;
         private System.Windows.Forms.CheckBox chkMPBodyStructure;
@@ -2439,5 +2375,7 @@
         private System.Windows.Forms.CheckBox chkProgressBar;
         private System.Windows.Forms.Label label25;
         private System.Windows.Forms.TextBox txtSMTextBytes;
+        private System.Windows.Forms.Button cmdSort;
+        private System.Windows.Forms.Label lblSort;
     }
 }

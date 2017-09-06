@@ -14,8 +14,6 @@ namespace testharness2
 {
     public partial class frmClient : Form
     {
-        private static readonly cSort kSortReceivedDesc = new cSort(cSortItem.ReceivedDesc);
-
         private readonly cIMAPClient mClient;
         private readonly Dictionary<string, Form> mNamedChildren = new Dictionary<string, Form>();
         private readonly List<Form> mUnnamedChildren = new List<Form>();
@@ -306,14 +304,7 @@ namespace testharness2
             ZLoadFetchConfig(mClient.FetchBodyReadConfiguration, txtFRMin, txtFRMax, txtFRMaxTime, txtFRInitial);
             ZLoadFetchConfig(mClient.FetchBodyWriteConfiguration, txtFWMin, txtFWMax, txtFWMaxTime, txtFWInitial);
 
-            if (ReferenceEquals(mClient.DefaultSort, cSort.None)) rdoSortNone.Checked = true;
-            else if (ReferenceEquals(mClient.DefaultSort, cSort.ThreadOrderedSubject)) rdoThreadOrderedSubject.Checked = true;
-            else if (ReferenceEquals(mClient.DefaultSort, cSort.ThreadReferences)) rdoThreadReferences.Checked = true;
-            else
-            {
-                rdoSortOther.Checked = true;
-                txtSortOther.Text = mClient.DefaultSort.ToString();
-            }
+            ZSortDescriptionSet();
 
             chkMPEnvelope.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0;
             chkMPFlags.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0;
@@ -591,22 +582,6 @@ namespace testharness2
             else ZNamedChildAdd(new frmDetails(mClient));
         }
 
-        private void ZSetDefaultSort(object sender, EventArgs e)
-        {
-            try
-            {
-                if (rdoSortNone.Checked) mClient.DefaultSort = cSort.None;
-                else if (rdoThreadOrderedSubject.Checked) mClient.DefaultSort = cSort.ThreadOrderedSubject;
-                else if (rdoThreadReferences.Checked) mClient.DefaultSort = cSort.ThreadReferences;
-                else if (rdoSortReceivedDesc.Checked) mClient.DefaultSort = kSortReceivedDesc;
-                else throw new cInternalErrorException();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, $"Set default sort error\n{ex}");
-            }
-        }
-
         private void ZSetDefaultMessageProperties(object sender, EventArgs e)
         {
             try
@@ -673,6 +648,23 @@ namespace testharness2
         {
             if (mNamedChildren.TryGetValue(nameof(frmSelectedMailbox), out var lForm)) ZFocus(lForm);
             else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSMMessages.Text), int.Parse(txtSMTextBytes.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked));
+        }
+
+        private void cmdSort_Click(object sender, EventArgs e)
+        {
+            using (frmSortDialog lSortDialog = new frmSortDialog(mClient.DefaultSort))
+            {
+                if (lSortDialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    mClient.DefaultSort = lSortDialog.Sort;
+                    ZSortDescriptionSet();
+                }
+            }
+        }
+
+        private void ZSortDescriptionSet()
+        {
+            lblSort.Text = mClient.DefaultSort.ToString();
         }
     }
 }

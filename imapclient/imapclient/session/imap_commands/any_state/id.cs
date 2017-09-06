@@ -70,15 +70,23 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kIdSpace = new cBytes("ID ");
 
-                private readonly cInvokeSynchroniser mSynchroniser;
+                private readonly cCallbackSynchroniser mSynchroniser;
                 private cIdDictionary mServerId = null;
 
-                public cIdDataProcessor(cInvokeSynchroniser pSynchroniser)
+                public cIdDataProcessor(cCallbackSynchroniser pSynchroniser)
                 {
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                 }
 
-                public cIdDictionary ServerId => new cIdDictionary(mServerId);
+                public cIdDictionary ServerId
+                {
+                    get
+                    {
+                        var lServerId = mServerId;
+                        if (lServerId == null) return null;
+                        return new cIdDictionary(lServerId);
+                    }
+                }
 
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {

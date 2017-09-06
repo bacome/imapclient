@@ -73,6 +73,7 @@
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
     <Compile Include="exposed_interfaces\enums\mailboxcachedata.cs" />
+    <Compile Include="exposed_interfaces\other\callbackexceptioneventargs.cs" />
     <Compile Include="exposed_interfaces\other\networkactivity.cs" />
     <Compile Include="exposed_interfaces\support\enums\listflags.cs" />
     <Compile Include="exposed_interfaces\support\types\listflags.cs" />
@@ -234,7 +235,7 @@
     <Compile Include="session\support\responsetextprocessor.cs" />
     <Compile Include="exposed_interfaces\support\types\status.cs" />
     <Compile Include="support\body.cs" />
-    <Compile Include="support\invokesynchroniser.cs" />
+    <Compile Include="support\callbacksynchroniser.cs" />
     <Compile Include="support\mailboxnamepattern.cs" />
     <Compile Include="support\uidlist.cs" />
     <Compile Include="tests\tests.cs" />

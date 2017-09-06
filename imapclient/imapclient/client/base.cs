@@ -56,7 +56,7 @@ namespace work.bacome.imapclient
         private bool mDisposed = false;
         private readonly string mInstanceName;
         private readonly cTrace.cContext mRootContext;
-        private readonly cInvokeSynchroniser mSynchroniser;
+        private readonly cCallbackSynchroniser mSynchroniser;
         private readonly cCancellationManager mCancellationManager;
 
         // current session
@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
             mInstanceName = pInstanceName;
             mRootContext = mTrace.NewRoot(pInstanceName);
             mRootContext.TraceInformation("cIMAPClient by bacome version {0}, release date {1}", Version, ReleaseDate);
-            mSynchroniser = new cInvokeSynchroniser(this, mRootContext);
+            mSynchroniser = new cCallbackSynchroniser(this, mRootContext);
             mCancellationManager = new cCancellationManager(mSynchroniser.InvokeCancellableCountChanged);
         }
 
@@ -132,6 +132,12 @@ namespace work.bacome.imapclient
         {
             add { mSynchroniser.MessagePropertyChanged += value; }
             remove { mSynchroniser.MessagePropertyChanged -= value; }
+        }
+
+        public event EventHandler<cCallbackExceptionEventArgs> CallbackException
+        {
+            add { mSynchroniser.CallbackException += value; }
+            remove { mSynchroniser.CallbackException -= value; }
         }
 
         // async operation management

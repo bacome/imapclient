@@ -108,11 +108,11 @@
     <Compile Include="frmSelectedMailbox.Designer.cs">
       <DependentUpon>frmSelectedMailbox.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmSort.cs">
+    <Compile Include="frmSortDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmSort.Designer.cs">
-      <DependentUpon>frmSort.cs</DependentUpon>
+    <Compile Include="frmSortDialog.Designer.cs">
+      <DependentUpon>frmSortDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="frmStart.cs">
       <SubType>Form</SubType>
@@ -132,6 +132,9 @@
     <EmbeddedResource Include="frmEvents.resx">
       <DependentUpon>frmEvents.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="frmFilter.resx">
+      <DependentUpon>frmFilter.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="frmMailboxes.resx">
       <DependentUpon>frmMailboxes.cs</DependentUpon>
     </EmbeddedResource>
@@ -150,8 +153,8 @@
     <EmbeddedResource Include="frmSelectedMailbox.resx">
       <DependentUpon>frmSelectedMailbox.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmSort.resx">
-      <DependentUpon>frmSort.cs</DependentUpon>
+    <EmbeddedResource Include="frmSortDialog.resx">
+      <DependentUpon>frmSortDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
