@@ -13,8 +13,9 @@ namespace testharness2
 {
     public partial class frmSortDialog : Form
     {
+        private readonly BindingList<cGridRowData> mBindingList = new BindingList<cGridRowData>();
+
         private cSort mSort;
-        private BindingList<cGridRowData> mBindingList = new BindingList<cGridRowData>();
         private int mRank = 1;
 
         public frmSortDialog(cSort pSort)
@@ -92,11 +93,6 @@ namespace testharness2
             dgv.Enabled = rdoOther.Checked;
         }
 
-
-        private void rdoOther_CheckedChanged(object sender, EventArgs e)
-        {
-        }
-
         private void dgv_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             string lDataPropertyName = dgv.Columns[e.ColumnIndex].DataPropertyName;
@@ -111,28 +107,6 @@ namespace testharness2
                 if (dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value is bool lDesc) dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = !lDesc;
             }
         }
-
-        /*
-        private cSort ZSort()
-        {
-            List<cGridRowData> lOrderBy = new List<cGridRowData>();
-
-            foreach (var lRow in dgv.DataSource as BindingSource)
-            {
-                var lRowData = lRow as cGridRowData;
-                if (lRowData.Order != null) lOrderBy.Add(lRowData);
-            }
-
-            if (lOrderBy.Count == 0) return null;
-
-            lOrderBy.Sort();
-
-            List<cSortItem> lItems = new List<cSortItem>();
-
-            foreach (var lTerm in lOrderBy) lItems.Add(lTerm.SortItem);
-
-            return new cSort(lItems);
-        } */
 
         private void dgv_Validating(object sender, CancelEventArgs e)
         {

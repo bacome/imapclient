@@ -74,7 +74,6 @@
             this.Controls.Add(this.cmdCancel);
             this.Controls.Add(this.prg);
             this.Name = "frmProgress";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmProgress";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmProgress_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmProgress_FormClosed);

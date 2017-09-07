@@ -56,7 +56,6 @@
             this.ClientSize = new System.Drawing.Size(792, 773);
             this.Controls.Add(this.rtx);
             this.Name = "frmNetworkActivity";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmNetworkActivity";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmNetworkActivity_FormClosed);
             this.Load += new System.EventHandler(this.frmNetworkActivity_Load);

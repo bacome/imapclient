@@ -147,6 +147,7 @@
             this.Controls.Add(this.cmdOK);
             this.Controls.Add(this.dgv);
             this.Name = "frmSortDialog";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "frmSort";
             this.Load += new System.EventHandler(this.frmSort_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();

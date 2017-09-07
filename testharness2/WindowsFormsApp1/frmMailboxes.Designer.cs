@@ -44,6 +44,7 @@
             this.chkCreate = new System.Windows.Forms.CheckBox();
             this.txtCreate = new System.Windows.Forms.TextBox();
             this.rtx = new System.Windows.Forms.RichTextBox();
+            this.cmdSubscriptions = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -79,6 +80,7 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.cmdSubscriptions);
             this.splitContainer1.Panel2.Controls.Add(this.gbxMailbox);
             this.splitContainer1.Panel2.Controls.Add(this.gbxCreate);
             this.splitContainer1.Panel2.Controls.Add(this.rtx);
@@ -99,7 +101,7 @@
             this.gbxMailbox.Location = new System.Drawing.Point(0, 304);
             this.gbxMailbox.Name = "gbxMailbox";
             this.gbxMailbox.Size = new System.Drawing.Size(473, 180);
-            this.gbxMailbox.TabIndex = 1;
+            this.gbxMailbox.TabIndex = 2;
             this.gbxMailbox.TabStop = false;
             this.gbxMailbox.Text = "Mailbox";
             // 
@@ -197,7 +199,7 @@
             this.gbxCreate.Location = new System.Drawing.Point(0, 490);
             this.gbxCreate.Name = "gbxCreate";
             this.gbxCreate.Size = new System.Drawing.Size(473, 81);
-            this.gbxCreate.TabIndex = 2;
+            this.gbxCreate.TabIndex = 3;
             this.gbxCreate.TabStop = false;
             this.gbxCreate.Text = "Create Child Mailbox";
             // 
@@ -238,9 +240,20 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtx.Location = new System.Drawing.Point(0, 0);
             this.rtx.Name = "rtx";
-            this.rtx.Size = new System.Drawing.Size(473, 298);
+            this.rtx.Size = new System.Drawing.Size(473, 262);
             this.rtx.TabIndex = 0;
             this.rtx.Text = "";
+            // 
+            // cmdSubscriptions
+            // 
+            this.cmdSubscriptions.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdSubscriptions.Location = new System.Drawing.Point(361, 273);
+            this.cmdSubscriptions.Name = "cmdSubscriptions";
+            this.cmdSubscriptions.Size = new System.Drawing.Size(100, 25);
+            this.cmdSubscriptions.TabIndex = 1;
+            this.cmdSubscriptions.Text = "Subscriptions";
+            this.cmdSubscriptions.UseVisualStyleBackColor = true;
+            this.cmdSubscriptions.Click += new System.EventHandler(this.cmdSubscriptions_Click);
             // 
             // frmMailboxes
             // 
@@ -249,7 +262,6 @@
             this.ClientSize = new System.Drawing.Size(792, 573);
             this.Controls.Add(this.splitContainer1);
             this.Name = "frmMailboxes";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmMailboxes";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMailboxes_FormClosed);
             this.Load += new System.EventHandler(this.frmMailboxes_Load);
@@ -284,5 +296,6 @@
         private System.Windows.Forms.Button cmdExamine;
         private System.Windows.Forms.RichTextBox rtx;
         private System.Windows.Forms.GroupBox gbxMailbox;
+        private System.Windows.Forms.Button cmdSubscriptions;
     }
 }

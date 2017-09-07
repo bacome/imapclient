@@ -62,7 +62,6 @@
             this.Controls.Add(this.cmdRefresh);
             this.Controls.Add(this.rtx);
             this.Name = "frmDetails";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmDetails";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmDetails_FormClosed);
             this.Load += new System.EventHandler(this.frmDetails_Load);

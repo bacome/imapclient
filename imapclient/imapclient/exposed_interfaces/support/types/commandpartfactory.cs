@@ -423,6 +423,7 @@ namespace work.bacome.imapclient.support
             return true;
         }
 
+        /* no such thing
         private static bool ZTryAsUTF8Literal(string pString, bool pSecret, out cCommandPart rResult)
         {
             if (pString == null) { rResult = null; return false; }
@@ -430,7 +431,7 @@ namespace work.bacome.imapclient.support
             foreach (byte lByte in lBytes) if (lByte == cASCII.NUL) { rResult = null; return false; }
             rResult = new cCommandPart(lBytes, eCommandPartType.literal, pSecret);
             return true;
-        }
+        } */
 
         private static bool ZTryAsQuotedUTF8(string pString, bool pSecret, out cCommandPart rResult)
         {

@@ -56,7 +56,6 @@
             this.ClientSize = new System.Drawing.Size(592, 773);
             this.Controls.Add(this.rtx);
             this.Name = "frmEvents";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmEvents";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmEvents_FormClosed);
             this.Load += new System.EventHandler(this.frmEvents_Load);

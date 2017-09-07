@@ -23,6 +23,7 @@ namespace testharness2
         private readonly bool mProgressBar;
         private readonly List<Form> mMessageForms = new List<Form>();
         private readonly List<Form> mMessagesLoadingForms = new List<Form>();
+        private readonly List<Form> mFilterForms = new List<Form>();
         private cMailbox mSelectedMailbox = null;
         private cFilter mFilter = null;
         private cSort mOverrideSort = null;
@@ -425,6 +426,40 @@ namespace testharness2
             }
         }
 
+        private void ZFilterFormAdd(frmFilter pForm, Form pCentreOnThis)
+        {
+            mFilterForms.Add(pForm);
+            pForm.FormClosed += ZFilterFormClosed;
+            Program.Centre(pForm, pCentreOnThis, mFilterForms);
+            pForm.Show();
+        }
+
+        private void ZFilterFormClosed(object sender, EventArgs e)
+        {
+            if (!(sender is frmFilter lForm)) return;
+            lForm.FormClosed -= ZFilterFormClosed;
+            mFilterForms.Remove(lForm);
+        }
+
+        private void ZFilterFormsClose()
+        {
+            List<Form> lForms = new List<Form>();
+
+            foreach (var lForm in mFilterForms)
+            {
+                lForms.Add(lForm);
+                lForm.FormClosed -= ZFilterFormClosed;
+            }
+
+            mFilterForms.Clear();
+
+            foreach (var lForm in lForms)
+            {
+                try { lForm.Close(); }
+                catch { }
+            }
+        }
+
         private async void cmdExpunge_Click(object sender, EventArgs e)
         {
             try { await mSelectedMailbox.ExpungeAsync(); }
@@ -471,6 +506,46 @@ namespace testharness2
             ZQueryMessagesAsync();
         }
 
+        private void cmdFilter_Click(object sender, EventArgs e)
+        {
+            if (mFilterForms.Count == 0)
+            {
+                ZFilterFormAdd(new frmFilter(mClient.InstanceName, this), this);
+                return;
+            }
+
+            foreach (var lForm in mFilterForms) Program.Focus(lForm);
+        }
+
+        private void cmdFilterClear_Click(object sender, EventArgs e)
+        {
+            ZFilterFormsClose();
+            mFilter = null;
+            ZQueryMessagesAsync();
+        }
+
+        public void FilterOr(frmFilter pCentreOnThis) => ZFilterFormAdd(new frmFilter(mClient.InstanceName, this), pCentreOnThis);
+
+        public void FilterApply()
+        {
+            cFilter lFilter = null;
+
+            foreach (frmFilter lForm in mFilterForms)
+            {
+                if (!lForm.ValidateChildren(ValidationConstraints.Enabled))
+                {
+                    Program.Focus(lForm);
+                    return;
+                }
+
+                if (lFilter == null) lFilter = lForm.Filter();
+                else lFilter = lFilter | lForm.Filter();
+            }
+
+            mFilter = lFilter;
+            ZQueryMessagesAsync();
+        }
+
         private void frmSelectedMailbox_FormClosing(object sender, FormClosingEventArgs e)
         {
             ZMessagesLoadingClose();
@@ -481,6 +556,7 @@ namespace testharness2
             mClient.PropertyChanged -= mClient_PropertyChanged;
             ZUnsubscribeMailbox();
             ZMessageFormsClose();
+            ZFilterFormsClose();
         }
 
 

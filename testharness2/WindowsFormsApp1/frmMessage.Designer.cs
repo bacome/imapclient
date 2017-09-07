@@ -454,7 +454,6 @@
             this.Controls.Add(this.cmdNext);
             this.Controls.Add(this.cmdPrevious);
             this.Name = "frmMessage";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmMessage";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMessage_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMessage_FormClosed);

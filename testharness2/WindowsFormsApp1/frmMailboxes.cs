@@ -384,6 +384,11 @@ namespace testharness2
             }
         }
 
+        private void cmdSubscriptions_Click(object sender, EventArgs e)
+        {
+            // TODO
+        }
+
         public class cNodeTag
         {
             public enum eState { neverexpanded, expanding, expanded }

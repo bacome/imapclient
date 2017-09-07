@@ -56,7 +56,6 @@
             this.ClientSize = new System.Drawing.Size(592, 773);
             this.Controls.Add(this.rtx);
             this.Name = "frmResponseText";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmResponseText";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmResponseText_FormClosed);
             this.Load += new System.EventHandler(this.frmResponseText_Load);

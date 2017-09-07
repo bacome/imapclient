@@ -19,7 +19,9 @@ namespace testharness2
             Application.Run(new frmStart());
         }
 
-        public const int kCentreStep = 20;
+        public const string FlagFred = "fred";
+
+        private const int kCentreStep = 20;
 
         public static void Centre(Form pThis, Form pOnThis, List<Form> pGivenThese = null)
         {
@@ -61,6 +63,7 @@ namespace testharness2
                 }
             }
 
+            pThis.StartPosition = FormStartPosition.Manual;
             pThis.Top = lTop;
             pThis.Left = lLeft;
         }
@@ -121,6 +124,12 @@ namespace testharness2
             if (pGivenThese == null) return false;
             foreach (var lForm in pGivenThese) if (!ReferenceEquals(pThis, lForm) && Math.Abs(lForm.Top - lTop) < kCentreStep && Math.Abs(lForm.Left - lLeft) < kCentreStep) return true;
             return false;
+        }
+
+        public static void Focus(Form pForm)
+        {
+            if (pForm.WindowState == FormWindowState.Minimized) pForm.WindowState = FormWindowState.Normal;
+            pForm.Focus();
         }
     }
 }

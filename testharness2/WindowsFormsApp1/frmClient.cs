@@ -395,7 +395,7 @@ namespace testharness2
 
         private void cmdEvents_Click(object sender, EventArgs e)
         {
-            if (mNamedChildren.TryGetValue(nameof(frmEvents), out var lForm)) ZFocus(lForm);
+            if (mNamedChildren.TryGetValue(nameof(frmEvents), out var lForm)) Program.Focus(lForm);
             else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmEvents(mClient, int.Parse(txtEvents.Text)));
         }
 
@@ -450,21 +450,15 @@ namespace testharness2
             mUnnamedChildren.Remove(lForm);
         }
 
-        private void ZFocus(Form pForm)
-        {
-            if (pForm.WindowState == FormWindowState.Minimized) pForm.WindowState = FormWindowState.Normal;
-            pForm.Focus();
-        }
-
         private void cmdNetworkActivity_Click(object sender, EventArgs e)
         {
-            if (mNamedChildren.TryGetValue(nameof(frmNetworkActivity), out var lForm)) ZFocus(lForm);
+            if (mNamedChildren.TryGetValue(nameof(frmNetworkActivity), out var lForm)) Program.Focus(lForm);
             else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmNetworkActivity(mClient, int.Parse(txtNetworkActivity.Text)));
         }
 
         private void cmdResponseText_Click(object sender, EventArgs e)
         {
-            if (mNamedChildren.TryGetValue(nameof(frmResponseText), out var lForm)) ZFocus(lForm);
+            if (mNamedChildren.TryGetValue(nameof(frmResponseText), out var lForm)) Program.Focus(lForm);
             else if (ValidateChildren(ValidationConstraints.Enabled))
             {
                 int lMaxMessages = int.Parse(txtResponseText.Text);
@@ -578,7 +572,7 @@ namespace testharness2
 
         private void cmdDetails_Click(object sender, EventArgs e)
         {
-            if (mNamedChildren.TryGetValue(nameof(frmDetails), out var lForm)) ZFocus(lForm);
+            if (mNamedChildren.TryGetValue(nameof(frmDetails), out var lForm)) Program.Focus(lForm);
             else ZNamedChildAdd(new frmDetails(mClient));
         }
 
@@ -646,7 +640,7 @@ namespace testharness2
 
         private void ZDisplaySelectedMailbox(Form pForm)
         {
-            if (mNamedChildren.TryGetValue(nameof(frmSelectedMailbox), out var lForm)) ZFocus(lForm);
+            if (mNamedChildren.TryGetValue(nameof(frmSelectedMailbox), out var lForm)) Program.Focus(lForm);
             else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSMMessages.Text), int.Parse(txtSMTextBytes.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked));
         }
 

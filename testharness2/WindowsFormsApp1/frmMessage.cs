@@ -184,7 +184,7 @@ namespace testharness2
 
                         chkSeen.Checked = mMessage.IsSeen;
                         chkDeleted.Checked = mMessage.IsDeleted;
-                        chkFred.Checked = mMessage.FlagsContain("fred");
+                        chkFred.Checked = mMessage.FlagsContain(Program.FlagFred);
                     }
 
                     return;

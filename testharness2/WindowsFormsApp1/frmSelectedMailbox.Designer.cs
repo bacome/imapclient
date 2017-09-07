@@ -38,6 +38,7 @@
             this.lblOverrideSort = new System.Windows.Forms.Label();
             this.gbxOverrideSort = new System.Windows.Forms.GroupBox();
             this.cmdOverrideSortClear = new System.Windows.Forms.Button();
+            this.cmdFilterClear = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -52,7 +53,7 @@
             this.cmdExpunge.Location = new System.Drawing.Point(15, 544);
             this.cmdExpunge.Name = "cmdExpunge";
             this.cmdExpunge.Size = new System.Drawing.Size(100, 25);
-            this.cmdExpunge.TabIndex = 3;
+            this.cmdExpunge.TabIndex = 4;
             this.cmdExpunge.Text = "Expunge";
             this.cmdExpunge.UseVisualStyleBackColor = true;
             this.cmdExpunge.Click += new System.EventHandler(this.cmdExpunge_Click);
@@ -63,7 +64,7 @@
             this.cmdClose.Location = new System.Drawing.Point(121, 544);
             this.cmdClose.Name = "cmdClose";
             this.cmdClose.Size = new System.Drawing.Size(100, 25);
-            this.cmdClose.TabIndex = 4;
+            this.cmdClose.TabIndex = 5;
             this.cmdClose.Text = "Expunge && Close";
             this.cmdClose.UseVisualStyleBackColor = true;
             this.cmdClose.Click += new System.EventHandler(this.cmdClose_Click);
@@ -89,6 +90,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.cmdFilterClear);
             this.splitContainer1.Panel1.Controls.Add(this.gbxOverrideSort);
             this.splitContainer1.Panel1.Controls.Add(this.cmdFilter);
             this.splitContainer1.Panel1.Controls.Add(this.rtx);
@@ -122,6 +124,7 @@
             this.cmdFilter.TabIndex = 1;
             this.cmdFilter.Text = "Filter";
             this.cmdFilter.UseVisualStyleBackColor = true;
+            this.cmdFilter.Click += new System.EventHandler(this.cmdFilter_Click);
             // 
             // dgvMessages
             // 
@@ -159,7 +162,7 @@
             this.gbxOverrideSort.Location = new System.Drawing.Point(3, 462);
             this.gbxOverrideSort.Name = "gbxOverrideSort";
             this.gbxOverrideSort.Size = new System.Drawing.Size(314, 76);
-            this.gbxOverrideSort.TabIndex = 2;
+            this.gbxOverrideSort.TabIndex = 3;
             this.gbxOverrideSort.TabStop = false;
             this.gbxOverrideSort.Text = "Override Sort";
             // 
@@ -174,6 +177,17 @@
             this.cmdOverrideSortClear.UseVisualStyleBackColor = true;
             this.cmdOverrideSortClear.Click += new System.EventHandler(this.cmdOverrideSortClear_Click);
             // 
+            // cmdFilterClear
+            // 
+            this.cmdFilterClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdFilterClear.Location = new System.Drawing.Point(121, 431);
+            this.cmdFilterClear.Name = "cmdFilterClear";
+            this.cmdFilterClear.Size = new System.Drawing.Size(100, 25);
+            this.cmdFilterClear.TabIndex = 2;
+            this.cmdFilterClear.Text = "Clear";
+            this.cmdFilterClear.UseVisualStyleBackColor = true;
+            this.cmdFilterClear.Click += new System.EventHandler(this.cmdFilterClear_Click);
+            // 
             // frmSelectedMailbox
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -181,7 +195,6 @@
             this.ClientSize = new System.Drawing.Size(792, 573);
             this.Controls.Add(this.splitContainer1);
             this.Name = "frmSelectedMailbox";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "frmSelectedMailbox";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmSelectedMailbox_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmSelectedMailbox_FormClosed);
@@ -208,5 +221,6 @@
         private System.Windows.Forms.Label lblOverrideSort;
         private System.Windows.Forms.GroupBox gbxOverrideSort;
         private System.Windows.Forms.Button cmdOverrideSortClear;
+        private System.Windows.Forms.Button cmdFilterClear;
     }
 }
