@@ -64,7 +64,7 @@ namespace testharness2
             if (dtpSOn.Format != DateTimePickerFormat.Custom) lTerms.Add(cFilter.Sent == dtpSOn.Value);
             if (dtpSBefore.Format != DateTimePickerFormat.Custom) lTerms.Add(cFilter.Sent < dtpSBefore.Value);
 
-            lTerms.AddRange(from r in mHeadersBindingList where !string.IsNullOrWhiteSpace(r.Header) && !string.IsNullOrWhiteSpace(r.Contains) select r.FilterHeaderFieldContains);
+            lTerms.AddRange(from r in mHeadersBindingList where !string.IsNullOrWhiteSpace(r.Header) select r.FilterHeaderFieldContains);
 
             uint lUInt;
 
@@ -209,10 +209,22 @@ namespace testharness2
             if (ValidateChildren(ValidationConstraints.Enabled)) mParent.FilterApply();
         }
 
-        private void frmFilter_FormClosing(object sender, FormClosingEventArgs e)
+        private void dgvHeaders_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
-            // to allow closing with validation errors
-            e.Cancel = false;
+            if (dgvHeaders.Columns[e.ColumnIndex].DataPropertyName == nameof(cHeadersRowData.Header))
+            {
+                if (string.IsNullOrWhiteSpace(e.FormattedValue.ToString()))
+                {
+                    e.Cancel = true;
+                    dgvHeaders.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = "a header field name is required";
+                    ;?; // this error is not picked up by ValidateChildren ?
+                }
+            }
+        }
+
+        private void dgvHeaders_CellValidated(object sender, DataGridViewCellEventArgs e)
+        {
+            dgvHeaders.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = null;
         }
 
         private void tab_Validating(object sender, CancelEventArgs e)
@@ -224,6 +236,11 @@ namespace testharness2
             }
         }
 
+        private void frmFilter_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // to allow closing with validation errors
+            e.Cancel = false;
+        }
 
 
 
@@ -253,29 +270,7 @@ namespace testharness2
             public string Header { get; set; } = null;
             public string Contains { get; set; } = null;
 
-            public cFilterHeaderFieldContains FilterHeaderFieldContains => new cFilterHeaderFieldContains(Header, Contains);
+            public cFilterHeaderFieldContains FilterHeaderFieldContains => new cFilterHeaderFieldContains(Header, Contains ?? "");
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }

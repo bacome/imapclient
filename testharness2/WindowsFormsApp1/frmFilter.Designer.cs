@@ -542,6 +542,8 @@
             this.dgvHeaders.Name = "dgvHeaders";
             this.dgvHeaders.Size = new System.Drawing.Size(437, 182);
             this.dgvHeaders.TabIndex = 1;
+            this.dgvHeaders.CellValidated += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvHeaders_CellValidated);
+            this.dgvHeaders.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.dgvHeaders_CellValidating);
             // 
             // tabPage5
             // 

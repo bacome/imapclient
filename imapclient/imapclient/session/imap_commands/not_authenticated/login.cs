@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
                 {
                     //  note the lack of locking - this is only called during connect
 
-                    lBuilder.Add(kLoginCommandPartLogin, mCommandPartFactory.AsLiteral(pLogin.UserId), cCommandPart.Space, mCommandPartFactory.AsLiteral(pLogin.Password));
+                    lBuilder.Add(kLoginCommandPartLogin, cCommandPartFactory.AsASCIILiteral(pLogin.UserId), cCommandPart.Space, cCommandPartFactory.AsASCIILiteral(pLogin.Password));
 
                     var lHook = new cCommandHookInitial();
                     lBuilder.Add(lHook);

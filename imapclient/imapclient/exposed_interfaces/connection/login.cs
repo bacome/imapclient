@@ -21,8 +21,8 @@ namespace work.bacome.imapclient
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
             if (string.IsNullOrEmpty(pPassword)) throw new ArgumentOutOfRangeException(nameof(pPassword));
 
-            if (!cCommandPartFactory.Validation.TryAsLiteral(pUserId, true, out _)) throw new ArgumentOutOfRangeException(nameof(pUserId));
-            if (!cCommandPartFactory.Validation.TryAsLiteral(pPassword, true, out _)) throw new ArgumentOutOfRangeException(nameof(pPassword));
+            if (!cCommandPartFactory.TryAsASCIILiteral(pUserId, true, out _)) throw new ArgumentOutOfRangeException(nameof(pUserId));
+            if (!cCommandPartFactory.TryAsASCIILiteral(pPassword, true, out _)) throw new ArgumentOutOfRangeException(nameof(pPassword));
 
             UserId = pUserId;
             Password = pPassword;
@@ -33,8 +33,8 @@ namespace work.bacome.imapclient
         {
             if (string.IsNullOrEmpty(pUserId) || string.IsNullOrEmpty(pPassword)) { rLogin = null; return false; }
 
-            if (!cCommandPartFactory.Validation.TryAsLiteral(pUserId, true, out _)) { rLogin = null; return false; }
-            if (!cCommandPartFactory.Validation.TryAsLiteral(pPassword, true, out _)) { rLogin = null; return false; }
+            if (!cCommandPartFactory.TryAsASCIILiteral(pUserId, true, out _)) { rLogin = null; return false; }
+            if (!cCommandPartFactory.TryAsASCIILiteral(pPassword, true, out _)) { rLogin = null; return false; }
 
             rLogin = new cLogin(pUserId, pPassword, pTLSRequirement, true);
             return true;
