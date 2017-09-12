@@ -64,7 +64,7 @@ namespace testharness2
             if (dtpSOn.Format != DateTimePickerFormat.Custom) lTerms.Add(cFilter.Sent == dtpSOn.Value);
             if (dtpSBefore.Format != DateTimePickerFormat.Custom) lTerms.Add(cFilter.Sent < dtpSBefore.Value);
 
-            lTerms.AddRange(from r in mHeadersBindingList where !string.IsNullOrWhiteSpace(r.Header) select r.FilterHeaderFieldContains);
+            lTerms.AddRange(from r in mHeadersBindingList where r.IsValid select r.FilterHeaderFieldContains);
 
             uint lUInt;
 
@@ -209,22 +209,22 @@ namespace testharness2
             if (ValidateChildren(ValidationConstraints.Enabled)) mParent.FilterApply();
         }
 
-        private void dgvHeaders_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        private void dgvHeaders_RowValidating(object sender, DataGridViewCellCancelEventArgs e)
         {
-            if (dgvHeaders.Columns[e.ColumnIndex].DataPropertyName == nameof(cHeadersRowData.Header))
+            if (!(dgvHeaders.Rows[e.RowIndex].DataBoundItem is cHeadersRowData lRowData)) return;
+
+            string lErrorText = lRowData.ErrorText;
+
+            if (lErrorText != null)
             {
-                if (string.IsNullOrWhiteSpace(e.FormattedValue.ToString()))
-                {
-                    e.Cancel = true;
-                    dgvHeaders.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = "a header field name is required";
-                    ;?; // this error is not picked up by ValidateChildren ?
-                }
+                e.Cancel = true;
+                dgvHeaders.Rows[e.RowIndex].ErrorText = lErrorText;
             }
         }
 
-        private void dgvHeaders_CellValidated(object sender, DataGridViewCellEventArgs e)
+        private void dgvHeaders_RowValidated(object sender, DataGridViewCellEventArgs e)
         {
-            dgvHeaders.Rows[e.RowIndex].Cells[e.ColumnIndex].ErrorText = null;
+            dgvHeaders.Rows[e.RowIndex].ErrorText = null;
         }
 
         private void tab_Validating(object sender, CancelEventArgs e)
@@ -252,23 +252,68 @@ namespace testharness2
 
         private class cPartsRowData
         {
+            private string mContains = null;
+
             public cPartsRowData(eFilterPart pPart)
             {
                 Part = pPart;
             }
 
             public eFilterPart Part { get; private set; }
-            public string Contains { get; set; } = null;
+
+            public string Contains
+            {
+                get => mContains;
+
+                set
+                {
+                    if (string.IsNullOrWhiteSpace(value)) mContains = null;
+                    else mContains = value;
+                }
+            }
 
             public cFilterPartContains FilterPartContains => new cFilterPartContains(Part, Contains);
         }
 
         private class cHeadersRowData
         {
+            private string mHeader = null;
+            private string mContains = null;
+
             public cHeadersRowData() { }
 
-            public string Header { get; set; } = null;
-            public string Contains { get; set; } = null;
+            public string Header
+            {
+                get => mHeader;
+
+                set
+                {
+                    if (string.IsNullOrWhiteSpace(value)) mHeader = null;
+                    else mHeader = value.Trim();
+                }
+            }
+
+            public string Contains
+            {
+                get => mContains;
+
+                set
+                {
+                    if (string.IsNullOrWhiteSpace(value)) mContains = null;
+                    else mContains = value;
+                }
+            }
+
+            public string ErrorText
+            {
+                get
+                {
+                    if (mHeader == null) return "must specify a header";
+                    return null;
+                }
+            }
+
+            public bool IsValid => ErrorText == null;
 
             public cFilterHeaderFieldContains FilterHeaderFieldContains => new cFilterHeaderFieldContains(Header, Contains ?? "");
         }

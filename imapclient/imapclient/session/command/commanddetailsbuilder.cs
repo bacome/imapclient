@@ -109,9 +109,11 @@ namespace work.bacome.imapclient
                 public void BeginList(eListBracketing pBracketing, cCommandPart pListName = null) => mParts.BeginList(pBracketing, pListName);
                 public void EndList() => mParts.EndList();
 
-                public void Add(fFetchAttributes pAttributes)
+                public void Add(cFetchAttributes pAttributes, bool pNoModSeq)
                 {
                     if (mEmitted) throw new InvalidOperationException();
+
+                    ;?; // if asking for flags get modseq if nomodseq is false
 
                     mParts.BeginList(eListBracketing.ifmorethanone);
                     if ((pAttributes & fFetchAttributes.flags) != 0) mParts.Add(kCommandPartFlags);
@@ -121,8 +123,13 @@ namespace work.bacome.imapclient
                     if ((pAttributes & fFetchAttributes.body) != 0) mParts.Add(kCommandPartBody);
                     if ((pAttributes & fFetchAttributes.bodystructure) != 0) mParts.Add(kCommandPartBodyStructure);
                     if ((pAttributes & fFetchAttributes.uid) != 0) mParts.Add(kCommandPartUID);
-                    if ((pAttributes & fFetchAttributes.references) != 0) mParts.Add(kCommandPartReferences);
+                    if ((pAttributes & fFetchAttributes.references) != 0) mParts.Add(kCommandPartReferences); ;?;
                     if ((pAttributes & fFetchAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
+
+
+
+                    ;?; // add headers
+
                     mParts.EndList();
                 }
 

@@ -236,6 +236,7 @@ namespace work.bacome.imapclient
         public cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
     }
 
+    /*
     // thrown when a required capability for the call isn't available on the server
     public class cUnsupportedByServerException : cIMAPException
     {
@@ -258,7 +259,7 @@ namespace work.bacome.imapclient
             Required = pRequired;
             pContext.TraceError("{0}: {1}", nameof(cUnsupportedByMailboxException), pRequired);
         }
-    }
+    } */
 
     // thrown when a handle can't resolved when building the filter
     public class cFilterMSNException : cIMAPException

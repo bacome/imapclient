@@ -210,7 +210,6 @@ namespace testharness2
 
                         lBuilder.AppendLine("Received: " + mMessage.Received);
                         lBuilder.AppendLine("UID: " + mMessage.UID);
-                        lBuilder.AppendLine("References: " + mMessage.References);
 
                         rtxOther.Text = lBuilder.ToString();
                     }

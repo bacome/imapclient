@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
 
             private cIdDataProcessor mIdResponseDataProcessor;
 
-            public cIdDictionary ServerId => mIdResponseDataProcessor?.ServerId;
+            public cId ServerId => mIdResponseDataProcessor?.ServerId;
 
             public async Task IdAsync(cMethodControl pMC, cIdDictionary pClientId, cTrace.cContext pParentContext)
             {
@@ -71,22 +71,14 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kIdSpace = new cBytes("ID ");
 
                 private readonly cCallbackSynchroniser mSynchroniser;
-                private cIdDictionary mServerId = null;
+                private cId mServerId = null;
 
                 public cIdDataProcessor(cCallbackSynchroniser pSynchroniser)
                 {
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                 }
 
-                public cIdDictionary ServerId
-                {
-                    get
-                    {
-                        var lServerId = mServerId;
-                        if (lServerId == null) return null;
-                        return new cIdDictionary(lServerId);
-                    }
-                }
+                public cId ServerId => mServerId;
 
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
@@ -108,7 +100,7 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                private static bool ZGetId(cBytesCursor pCursor, out cIdDictionary rServerId, cTrace.cContext pParentContext)
+                private static bool ZGetId(cBytesCursor pCursor, out cId rServerId, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cIdDataProcessor), nameof(ZGetId));
 
@@ -116,7 +108,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.LPAREN)) { rServerId = null; return false; }
 
-                    rServerId = new cIdDictionary();
+                    Dictionary<string, string> lDictionary = new Dictionary<string, string>();
 
                     try
                     {
@@ -124,20 +116,24 @@ namespace work.bacome.imapclient
 
                         while (true)
                         {
-                            if (pCursor.SkipByte(cASCII.RPAREN)) return true;
+                            if (pCursor.SkipByte(cASCII.RPAREN)) break;
 
                             if (lFirst) lFirst = false;
-                            else if (!pCursor.SkipByte(cASCII.SPACE)) return false;
+                            else if (!pCursor.SkipByte(cASCII.SPACE)) { rServerId = null; return false; }
 
-                            if (!pCursor.GetString(out string lField) || !pCursor.SkipByte(cASCII.SPACE)) return false;
-                            if (!pCursor.GetNString(out string lValue)) return false;
+                            if (!pCursor.GetString(out string lField) || !pCursor.SkipByte(cASCII.SPACE)) { rServerId = null; return false; }
+                            if (!pCursor.GetNString(out string lValue)) { rServerId = null; return false; }
 
-                            rServerId.Add(lField, lValue);
+                            lDictionary.Add(lField, lValue);
                         }
+
+                        rServerId = new cId(lDictionary);
+                        return true;
                     }
                     catch (Exception e)
                     {
                         lContext.TraceException("error when constructing the id dictionary", e);
+                        rServerId = null;
                         return false;
                     }
                 }
@@ -147,7 +143,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cIdDataProcessor), nameof(_Tests));
 
-                    cIdDictionary lId;
+                    cId lId;
                     cBytesCursor lCursor;
 
                     cBytesCursor.TryConstruct("(\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")", out lCursor);

@@ -3,45 +3,77 @@
 namespace work.bacome.imapclient
 {
     [Flags]
-    public enum fMessageProperties : long
+    public enum fMessageProperties
     {
-        clientdefault = 1 << 0,
+        isexpunged = 1 << 0,
 
-        isexpunged = 1 << 1,
+        envelope = 1 << 1,
+        sent = 1 << 2,
+        subject = 1 << 3,
+        basesubject = 1 << 4,
+        from = 1 << 5,
+        sender = 1 << 6,
+        replyto = 1 << 7,
+        to = 1 << 8,
+        cc = 1 << 9,
+        bcc = 1 << 10,
+        inreplyto = 1 << 11,
+        messageid = 1 << 12,
 
-        envelope = 1 << 2,
-        sent = 1 << 3,
-        subject = 1 << 4,
-        basesubject = 1 << 5,
-        from = 1 << 6,
-        sender = 1 << 7,
-        replyto = 1 << 8,
-        to = 1 << 9,
-        cc = 1 << 10,
-        bcc = 1 << 11,
-        inreplyto = 1 << 12,
-        messageid = 1 << 13,
+        flags = 1 << 13,
+        isanswered = 1 << 14,
+        isflagged = 1 << 15,
+        isdeleted = 1 << 16,
+        isseen = 1 << 17,
+        isdraft = 1 << 18,
+        isrecent = 1 << 19,
+        ismdnsent = 1 << 20,
+        isforwarded = 1 << 21,
+        issubmitpending = 1 << 22,
+        issubmitted = 1 << 23,
 
-        flags = 1 << 14,
-        isanswered = 1 << 15,
-        isflagged = 1 << 16,
-        isdeleted = 1 << 17,
-        isseen = 1 << 18,
-        isdraft = 1 << 19,
-        isrecent = 1 << 20,
-        ismdnsent = 1 << 21,
-        isforwarded = 1 << 22,
-        issubmitpending = 1 << 23,
-        issubmitted = 1 << 24,
+        received = 1 << 24,
+        size = 1 << 25,
+        uid = 1 << 26,
+        modseq = 1 << 27,
 
-        received = 1 << 25,
-        size = 1 << 26,
-        uid = 1 << 27,
-        references = 1 << 28,
-        modseq = 1 << 29,
+        bodystructure = 1 << 28,
+        attachments = 1 << 29,
+        plaintextsizeinbytes = 1 << 30,
 
-        bodystructure = 1 << 30,
-        attachments = 1 << 31,
-        plaintextsizeinbytes = 1L << 32
+        importance = 1 << 31
+
+        // NOTE: if adding one more then the type needs conversion to long and the shifted 1 to a long
+        //  e.g.
+        //
+        //     public enum fMessageProperties : long
+        //     {
+        //          ...
+        //          newattribute = 1L << 32
+        //     }
+    }
+
+    public class cMessageProperties
+    {
+        public static readonly cMessageProperties None = new cMessageProperties(0, cHeaderNames.None);
+        public static readonly cMessageProperties Envelope = new cMessageProperties(fMessageProperties.envelope, cHeaderNames.None);
+        public static readonly cMessageProperties Flags = new cMessageProperties(fMessageProperties.flags, cHeaderNames.None);
+        public static readonly cMessageProperties Received = new cMessageProperties(fMessageProperties.received, cHeaderNames.None);
+        public static readonly cMessageProperties Size = new cMessageProperties(fMessageProperties.size, cHeaderNames.None);
+        public static readonly cMessageProperties UID = new cMessageProperties(fMessageProperties.uid, cHeaderNames.None);
+        public static readonly cMessageProperties ModSeq = new cMessageProperties(fMessageProperties.modseq, cHeaderNames.None);
+        public static readonly cMessageProperties BodyStructure = new cMessageProperties(fMessageProperties.bodystructure, cHeaderNames.None);
+        public static readonly cMessageProperties Importance = new cMessageProperties(fMessageProperties.importance, cHeaderNames.None);
+
+        public readonly fMessageProperties Properties;
+        public readonly cHeaderNames Names;
+
+        public cMessageProperties(fMessageProperties pProperties, cHeaderNames pNames)
+        {
+            Properties = pProperties;
+            Names = pNames ?? throw new ArgumentNullException(nameof(pNames));
+        }
+
+        public override string ToString() => $"{nameof(cMessageProperties)}({Properties},{Names})";
     }
 }

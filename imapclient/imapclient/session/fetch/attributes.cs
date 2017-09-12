@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchAttributesAsync(cMethodControl pMC, cMessageHandleList pHandles, fFetchAttributes pAttributes, cProgress pProgress, cTrace.cContext pParentContext)
+            public async Task FetchAttributesAsync(cMethodControl pMC, cMessageHandleList pHandles, cFetchAttributes pAttributes, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchAttributesAsync), pMC, pHandles, pAttributes);
 
@@ -23,9 +23,10 @@ namespace work.bacome.imapclient
                 var lAttributes = ZFetchAttributes(pAttributes, lContext);
 
                 // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                foreach (var lGroup in ZFetchAttributesGroups(pHandles, lAttributes)) await ZFetchAttributesAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
+                foreach (var lGroup in ZFetchAttributesGroups(pHandles, pAttributes)) await ZFetchAttributesAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
             }
 
+            /*
             private fFetchAttributes ZFetchAttributes(fFetchAttributes pAttributes, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributes), pAttributes);
@@ -43,13 +44,13 @@ namespace work.bacome.imapclient
                 if (!lNoModSeq) return pAttributes | fFetchAttributes.modseq;
 
                 return pAttributes;
-            }
+            } */
 
             private async Task ZFetchAttributesAsync(cMethodControl pMC, cFetchAttributesGroup pGroup, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributesAsync), pMC, pGroup);
 
-                if (pGroup.Attributes == 0)
+                if (pGroup.Attributes.IsNone)
                 {
                     // the group where we already have everything that we need
                     pProgress.Increment(pGroup.Handles.Count, lContext);
@@ -128,20 +129,20 @@ namespace work.bacome.imapclient
                 await ZUIDFetchAttributesAsync(pMC, lMailboxHandle, lUIDs, pGroup.Attributes, pProgress, lContext).ConfigureAwait(false);
             }
 
-            private IEnumerable<cFetchAttributesGroup> ZFetchAttributesGroups(cMessageHandleList pHandles, fFetchAttributes pAttributes)
+            private IEnumerable<cFetchAttributesGroup> ZFetchAttributesGroups(cMessageHandleList pHandles, cFetchAttributes pAttributes)
             {
-                Dictionary<fFetchAttributes, cFetchAttributesGroup> lGroups = new Dictionary<fFetchAttributes, cFetchAttributesGroup>();
+                Dictionary<cFetchAttributes, cFetchAttributesGroup> lGroups = new Dictionary<cFetchAttributes, cFetchAttributesGroup>();
 
                 foreach (var lHandle in pHandles)
                 {
-                    fFetchAttributes lAttributes = ~lHandle.Attributes & pAttributes;
+                    cFetchAttributes lRequired = new cFetchAttributes(~lHandle.Attributes & pAttributes.Attributes, lHandle.HeaderValues.Missing(pAttributes.Names));
 
                     cFetchAttributesGroup lGroup;
 
-                    if (!lGroups.TryGetValue(lAttributes, out lGroup))
+                    if (!lGroups.TryGetValue(lRequired, out lGroup))
                     {
-                        lGroup = new cFetchAttributesGroup(lAttributes);
-                        lGroups.Add(lAttributes, lGroup);
+                        lGroup = new cFetchAttributesGroup(lRequired);
+                        lGroups.Add(lRequired, lGroup);
                     }
 
                     if (lHandle.UID == null) lGroup.MSNHandleCount++;
@@ -154,11 +155,11 @@ namespace work.bacome.imapclient
 
             private class cFetchAttributesGroup
             {
-                public readonly fFetchAttributes Attributes;
+                public readonly cFetchAttributes Attributes;
                 public int MSNHandleCount = 0;
                 public readonly cMessageHandleList Handles = new cMessageHandleList();
 
-                public cFetchAttributesGroup(fFetchAttributes pAttributes) { Attributes = pAttributes; }
+                public cFetchAttributesGroup(cFetchAttributes pAttributes) { Attributes = pAttributes; }
 
                 public override string ToString()
                 {

@@ -10,32 +10,35 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        private fFetchAttributes ZFetchAttributesRequired(fMessageProperties pProperties)
+        private cFetchAttributes ZFetchAttributesRequired(cMessageProperties pProperties)
         {
-            fFetchAttributes lRequired = 0;
+            fFetchAttributes lAttributesRequired = 0;
+            List<string> lNamesRequired = new List<string>();
 
-            var lProperties = ZDefaultMessagePropertiesAdd(pProperties);
+            if ((pProperties.Properties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0) lAttributesRequired |= fFetchAttributes.envelope;
+            if ((pProperties.Properties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0) lAttributesRequired |= fFetchAttributes.flags;
+            if ((pProperties.Properties & fMessageProperties.received) != 0) lAttributesRequired |= fFetchAttributes.received;
+            if ((pProperties.Properties & fMessageProperties.size) != 0) lAttributesRequired |= fFetchAttributes.size;
+            if ((pProperties.Properties & fMessageProperties.uid) != 0) lAttributesRequired |= fFetchAttributes.uid;
+            if ((pProperties.Properties & fMessageProperties.modseq) != 0) lAttributesRequired |= fFetchAttributes.modseq;
+            if ((pProperties.Properties & (fMessageProperties.bodystructure | fMessageProperties.attachments | fMessageProperties.plaintextsizeinbytes)) != 0) lAttributesRequired |= fFetchAttributes.bodystructure;
+            if ((pProperties.Properties & fMessageProperties.importance) != 0) lNamesRequired.Add(cHeaderNames.Importance);
 
-            if ((lProperties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0) lRequired |= fFetchAttributes.envelope;
-            if ((lProperties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0) lRequired |= fFetchAttributes.flags;
-            if ((lProperties & fMessageProperties.received) != 0) lRequired |= fFetchAttributes.received;
-            if ((lProperties & fMessageProperties.size) != 0) lRequired |= fFetchAttributes.size;
-            if ((lProperties & fMessageProperties.uid) != 0) lRequired |= fFetchAttributes.uid;
-            if ((lProperties & fMessageProperties.references) != 0) lRequired |= fFetchAttributes.references;
-            if ((lProperties & fMessageProperties.modseq) != 0) lRequired |= fFetchAttributes.modseq;
-            if ((lProperties & (fMessageProperties.bodystructure | fMessageProperties.attachments | fMessageProperties.plaintextsizeinbytes)) != 0) lRequired |= fFetchAttributes.bodystructure;
-
-            return lRequired;
+            return new cFetchAttributes(lAttributesRequired, pProperties.Names.Union(new cHeaderNames(lNamesRequired)));
         }
 
-        private fFetchAttributes ZFetchAttributesToFetch(cMessageHandleList pHandles, fFetchAttributes pRequired)
+        private bool ZFetchAttributesGotThemAll(cMessageHandleList pHandles, cFetchAttributes pRequired)
         {
-            fFetchAttributes lToFetch = 0;
-            foreach (var lHandle in pHandles) lToFetch |= pRequired & ~lHandle.Attributes;
-            return lToFetch;
+            foreach (var lHandle in pHandles)
+            {
+                if ((pRequired.Attributes & ~lHandle.Attributes) != 0) return false;
+                if (!lHandle.HeaderValues.ContainsAll(pRequired.Names)) return false;
+            }
+
+            return true;
         }
 
-        private async Task ZFetchAttributesAsync(cMessageHandleList pHandles, fFetchAttributes pAttributes, cPropertyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task ZFetchAttributesAsync(cMessageHandleList pHandles, cFetchAttributes pAttributes, cPropertyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAttributesAsync), pHandles, pAttributes);
 
@@ -46,7 +49,8 @@ namespace work.bacome.imapclient
 
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
             if (pHandles.Count == 0) return;
-            if (pAttributes == 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));
+            if (pAttributes == null) throw new ArgumentNullException(nameof(pAttributes));
+            if (pAttributes.IsNone) return;
 
             if (pConfiguration == null)
             {

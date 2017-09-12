@@ -49,6 +49,9 @@
     <Compile Include="client\expunge.cs" />
     <Compile Include="client\fetchattributes.cs" />
     <Compile Include="client\fetchsizeinbytes.cs" />
+    <Compile Include="exposed_interfaces\message\headernames.cs" />
+    <Compile Include="exposed_interfaces\message\headervalues.cs" />
+    <Compile Include="exposed_interfaces\message\importance.cs" />
     <Compile Include="exposed_interfaces\other\fetchconfiguration.cs" />
     <Compile Include="client\fetchproperties.cs" />
     <Compile Include="client\fetchbody.cs" />
@@ -76,6 +79,7 @@
     <Compile Include="exposed_interfaces\other\callbackexceptioneventargs.cs" />
     <Compile Include="exposed_interfaces\other\networkactivity.cs" />
     <Compile Include="exposed_interfaces\support\enums\listflags.cs" />
+    <Compile Include="exposed_interfaces\support\tools\headervaluesbuilder.cs" />
     <Compile Include="exposed_interfaces\support\types\listflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
     <Compile Include="exposed_interfaces\other\childmailboxes.cs" />

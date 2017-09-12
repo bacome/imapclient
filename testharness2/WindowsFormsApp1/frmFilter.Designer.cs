@@ -536,14 +536,13 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvHeaders.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
-            this.dgvHeaders.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
             this.dgvHeaders.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvHeaders.Location = new System.Drawing.Point(3, 4);
             this.dgvHeaders.Name = "dgvHeaders";
             this.dgvHeaders.Size = new System.Drawing.Size(437, 182);
             this.dgvHeaders.TabIndex = 1;
-            this.dgvHeaders.CellValidated += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvHeaders_CellValidated);
-            this.dgvHeaders.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.dgvHeaders_CellValidating);
+            this.dgvHeaders.RowValidated += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvHeaders_RowValidated);
+            this.dgvHeaders.RowValidating += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgvHeaders_RowValidating);
             // 
             // tabPage5
             // 

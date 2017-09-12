@@ -7,25 +7,23 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public bool Fetch(iMessageHandle pHandle, fMessageProperties pProperties)
+        public bool Fetch(iMessageHandle pHandle, cMessageProperties pProperties)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
 
             var lRequired = ZFetchAttributesRequired(pProperties);
-            if (lRequired == 0) return true; // nothing to do
+            if (lRequired.IsNone) return true; // nothing to do
 
             var lHandles = ZFetchHandles(pHandle);
-            var lToFetch = ZFetchAttributesToFetch(lHandles, lRequired);
-            if (lToFetch == 0) return true; // got everything already
+            if (ZFetchAttributesGotThemAll(lHandles, lRequired)) return true;
 
-            var lTask = ZFetchAttributesAsync(lHandles, lToFetch, null, lContext);
+            var lTask = ZFetchAttributesAsync(lHandles, lRequired, null, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
-            var lMissing = ZFetchAttributesToFetch(lHandles, lRequired);
-            return lMissing == 0;
+            return ZFetchAttributesGotThemAll(lHandles, lRequired);
         }
 
-        public bool Fetch(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration)
+        public bool Fetch(IList<iMessageHandle> pHandles, cMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
 
@@ -43,7 +41,7 @@ namespace work.bacome.imapclient
             return lMissing == 0;
         }
 
-        public async Task<bool> FetchAsync(iMessageHandle pHandle, fMessageProperties pProperties)
+        public async Task<bool> FetchAsync(iMessageHandle pHandle, cMessageProperties pProperties)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
 
@@ -60,7 +58,7 @@ namespace work.bacome.imapclient
             return lMissing == 0;
         }
 
-        public async Task<bool> FetchAsync(IList<iMessageHandle> pHandles, fMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration)
+        public async Task<bool> FetchAsync(IList<iMessageHandle> pHandles, cMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
 

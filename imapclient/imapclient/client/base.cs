@@ -76,8 +76,8 @@ namespace work.bacome.imapclient
         private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
-        private cIdDictionary mClientId = cIdDictionary.CreateDefaultClientIdDictionary();
-        private cIdDictionary mClientIdUTF8 = cIdDictionary.CreateDefaultClientIdDictionary();
+        private cClientId mClientId = new cClientId();
+        private cClientIdUTF8 mClientIdUTF8 = null;
 
         public cIMAPClient(string pInstanceName = TraceSourceName)
         {
@@ -326,63 +326,31 @@ namespace work.bacome.imapclient
 
         // id command (rfc 2971)
         
-        public cIdDictionary ClientId
+        public cClientId ClientId
         {
-            get => new cIdDictionary(mClientId);
+            get => mClientId;
 
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException();
-
-                if (value.Count > 30) throw new ArgumentException("there must not be more than 30 field-value pairs");
-
-                foreach (var lPair in value)
-                {
-                    if (lPair.Key.Length > 30) throw new ArgumentException("field names must not be longer than 30 octets");
-                    if (!cCommandPartFactory.TryAsASCIIString(lPair.Key, out _)) throw new ArgumentException("field names must be ascii");
-
-                    if (lPair.Value != null)
-                    {
-                        if (lPair.Value.Length > 1024) throw new ArgumentException("values must not be longer than 1024 octets");
-                        if (!cCommandPartFactory.TryAsASCIIString(lPair.Value, out _)) throw new ArgumentException("values must be ascii");
-                    }
-                }
-
-                // copy the dictionary
-                mClientId = new cIdDictionary(value);
+                mClientId = value;
             }
         }
 
-        public cIdDictionary ClientIdUTF8
+        public cClientIdUTF8 ClientIdUTF8
         {
-            get => new cIdDictionary(mClientIdUTF8);
+            get => mClientIdUTF8 ?? mClientId;
 
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException();
-
-                if (value.Count > 30) throw new ArgumentException("there must not be more than 30 field-value pairs");
-
-                foreach (var lPair in value)
-                {
-                    if (Encoding.UTF8.GetByteCount(lPair.Key) > 30) throw new ArgumentException("field names must not be longer than 30 bytes");
-                    if (!cCommandPartFactory.TryAsUTF8String(lPair.Key, out _)) throw new ArgumentException("field names must be utf8");
-
-                    if (lPair.Value != null)
-                    {
-                        if (Encoding.UTF8.GetByteCount(lPair.Value) > 1024) throw new ArgumentException("values must not be longer than 1024 bytes");
-                        if (!cCommandPartFactory.TryAsUTF8String(lPair.Value, out _)) throw new ArgumentException("values must be utf8");
-                    }
-                }
-
-                // copy the dictionary
-                mClientIdUTF8 = new cIdDictionary(value);
+                mClientIdUTF8 = value;
             }
         }
 
-        public cIdDictionary ServerId => mSession?.ServerId;
+        public cId ServerId => mSession?.ServerId;
 
         // rfc 2342 namespaces (if the server doesn't support namespaces then this will still work - there will be one personal namespace retrieved using LIST)
         //

@@ -56,7 +56,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.envelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope;
             }
         }
@@ -65,7 +65,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.sent)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope.Sent;
             }
         }
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.subject)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope.Subject;
             }
         }
@@ -83,7 +83,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.basesubject)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope.BaseSubject;
             }
         }
@@ -92,7 +92,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.from)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope.From;
             }
         }
@@ -101,7 +101,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.sender)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope.Sender;
             }
         }
@@ -110,7 +110,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.replyto)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope.ReplyTo;
             }
         }
@@ -119,7 +119,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.to)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope.To;
             }
         }
@@ -128,7 +128,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.cc)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope.CC;
             }
         }
@@ -137,7 +137,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.bcc)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope.BCC;
             }
         }
@@ -146,7 +146,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.inreplyto)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope.InReplyTo;
             }
         }
@@ -155,7 +155,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.messageid)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
                 return Handle.Envelope.MessageId;
             }
         }
@@ -164,7 +164,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.flags)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Flags)) throw new InvalidOperationException();
                 return Handle.Flags;
             }
         }
@@ -174,7 +174,7 @@ namespace work.bacome.imapclient
 
         private bool ZFlagsContain(IEnumerable<string> pFlags)
         {
-            if (!Client.Fetch(Handle, fMessageProperties.flags)) throw new InvalidOperationException();
+            if (!Client.Fetch(Handle, cMessageProperties.Flags)) throw new InvalidOperationException();
             return Handle.Flags.Contain(pFlags);
         }
 
@@ -192,7 +192,7 @@ namespace work.bacome.imapclient
 
         private bool ZFlagsContain(fKnownMessageFlags pFlag)
         {
-            if (!Client.Fetch(Handle, fMessageProperties.flags)) throw new InvalidOperationException();
+            if (!Client.Fetch(Handle, cMessageProperties.Flags)) throw new InvalidOperationException();
             return (Handle.Flags.KnownMessageFlags & pFlag) != 0;
         }
 
@@ -200,7 +200,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.received)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Received)) throw new InvalidOperationException();
                 return Handle.Received.Value;
             }
         }
@@ -209,7 +209,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.size)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.Size)) throw new InvalidOperationException();
                 return (int)Handle.Size.Value;
             }
         }
@@ -218,17 +218,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.uid)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.UID)) throw new InvalidOperationException();
                 return Handle.UID;
-            }
-        }
-
-        public cStrings References
-        {
-            get
-            {
-                if (!Client.Fetch(Handle, fMessageProperties.references)) throw new InvalidOperationException();
-                return Handle.References;
             }
         }
 
@@ -236,7 +227,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.modseq)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.ModSeq)) throw new InvalidOperationException();
                 return Handle.ModSeq.Value;
             }
         }
@@ -245,7 +236,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.bodystructure)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.BodyStructure)) throw new InvalidOperationException();
                 return Handle.BodyStructure;
             }
         }
@@ -254,7 +245,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.attachments)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.BodyStructure)) throw new InvalidOperationException();
                 return ZAttachmentParts(Handle.BodyStructure);
             }
         }
@@ -286,7 +277,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, fMessageProperties.plaintextsizeinbytes)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, cMessageProperties.BodyStructure)) throw new InvalidOperationException();
                 int lSize = 0;
                 foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lSize += (int)lPart.SizeInBytes;
                 return lSize;
@@ -318,8 +309,18 @@ namespace work.bacome.imapclient
             return lResult;
         }
 
-        public bool Fetch(fMessageProperties pProperties) => Client.Fetch(Handle, pProperties);
-        public Task<bool> FetchAsync(fMessageProperties pProperties) => Client.FetchAsync(Handle, pProperties);
+        public eImportance Importance
+        {
+            get
+            {
+                if (!Client.Fetch(Handle, cMessageProperties.Importance)) throw new InvalidOperationException();
+                return Handle.Importance;
+            }
+        }
+
+        public bool Fetch(cMessageProperties pProperties) => Client.Fetch(Handle, pProperties);
+        public Task<bool> FetchAsync(cMessageProperties pProperties) => Client.FetchAsync(Handle, pProperties);
+
         public int FetchSizeInBytes(cSinglePartBody pPart) => Client.FetchSizeInBytes(Handle, pPart);
         public Task<int> FetchSizeInBytesAsync(cSinglePartBody pPart) => Client.FetchSizeInBytesAsync(Handle, pPart);
 
@@ -329,7 +330,7 @@ namespace work.bacome.imapclient
 
         public string PlainText()
         {
-            if (!Client.Fetch(Handle, fMessageProperties.bodystructure)) throw new InvalidOperationException();
+            if (!Client.Fetch(Handle, cMessageProperties.BodyStructure)) throw new InvalidOperationException();
             StringBuilder lBuilder = new StringBuilder();
             foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lBuilder.Append(Fetch(lPart));
             return lBuilder.ToString();
@@ -337,7 +338,7 @@ namespace work.bacome.imapclient
 
         public async Task<string> PlainTextAsync()
         {
-            if (!await Client.FetchAsync(Handle, fMessageProperties.bodystructure).ConfigureAwait(false)) throw new InvalidOperationException();
+            if (!await Client.FetchAsync(Handle, cMessageProperties.BodyStructure).ConfigureAwait(false)) throw new InvalidOperationException();
 
             List<Task<string>> lTasks = new List<Task<string>>();
             foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lTasks.Add(FetchAsync(lPart));
