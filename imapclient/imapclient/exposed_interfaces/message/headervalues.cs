@@ -9,12 +9,13 @@ namespace work.bacome.imapclient
     {
         private readonly cHeaderNames mNames;
         private readonly bool mNot;
-        private readonly ReadOnlyDictionary<string, cStrings> mDictionary;
+        private readonly ReadOnlyDictionary<string, cHeaderValue> mDictionary;
 
-        public cHeaderValues(cHeaderNames pNames, bool pNot, Dictionary<string, List<string>> pDictionary)
+        public cHeaderValues(cHeaderNames pNames, bool pNot, string pHeaders)
         {
             mNames = pNames ?? throw new ArgumentNullException(nameof(pNames));
             mNot = pNot;
+            if (pHeaders == null) throw new ArgumentNullException(nameof(pHeaders));
 
             if (pDictionary == null) throw new ArgumentNullException(nameof(pDictionary));
 
@@ -122,5 +123,10 @@ namespace work.bacome.imapclient
 
             // especially contains, containsall and the various join types
         }
+    }
+
+    public class cHeaderValue
+    {
+
     }
 }

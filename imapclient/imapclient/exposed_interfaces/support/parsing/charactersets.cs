@@ -664,6 +664,57 @@ namespace work.bacome.imapclient.support
             }
         }
 
+        /*
+        private class cVChar : cCharset
+        {
+            public override bool Contains(byte pByte) => pByte > cASCII.SPACE && pByte != 127;
+            public override bool Contains(char pChar) => pChar > ' ' && pChar != '\x7F';
+        } */
+
+        private class cCText : cCharset
+        {
+            private const string cCTextSome = "\0\t\n\r ()\\";
+            private static readonly cBytes aCTextSome = new cBytes(cCTextSome);
+
+            public override bool Contains(byte pByte)
+            {
+                if (pByte > 127) return true; // allows utf8 to pass through (unvalidated)
+                if (ZIsOneOf(pByte, aCTextSome)) return false;
+                return true;
+            }
+
+            public override bool Contains(char pChar)
+            {
+                if (pChar > '\x7F') return true; // allows utf16 to pass through (unvalidated)
+                if (ZIsOneOf(pChar, cCTextSome)) return false;
+                return true;
+            }
+        }
+
+        private class cAText : cCharset
+        {
+            private const string cATextSome = "!#$%&'*+-/=?^_`{|}~";
+            private static readonly cBytes aATextSome = new cBytes(cATextSome);
+
+            public override bool Contains(byte pByte)
+            {
+                if (pByte > 127) return true; // allows utf8 to pass through (unvalidated)
+                if (ZIsAlpha(pByte)) return true;
+                if (ZIsDigit(pByte)) return true;
+                if (ZIsOneOf(pByte, aATextSome)) return true;
+                return false;
+            }
+
+            public override bool Contains(char pChar)
+            {
+                if (pChar > '\x7F') return true; // allows utf16 to pass through (unvalidated)
+                if (ZIsAlpha(pChar)) return true;
+                if (ZIsDigit(pChar)) return true;
+                if (ZIsOneOf(pChar, cATextSome)) return true;
+                return false;
+            }
+        }
+
         // instances
 
         public static readonly cCharset Alpha = new cAlpha();
@@ -689,6 +740,8 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset All = new cAll();
         public static readonly cCharset Base64 = new cBase64();
         public static readonly cCharset QEncoding = new cQEncoding();
+        public static readonly cCharset CText = new cCText();
+        public static readonly cCharset AText = new cAText();
     }
 
     public static class cASCIIMonth

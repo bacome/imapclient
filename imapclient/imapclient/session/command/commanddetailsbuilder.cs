@@ -113,7 +113,7 @@ namespace work.bacome.imapclient
                 {
                     if (mEmitted) throw new InvalidOperationException();
 
-                    ;?; // if asking for flags get modseq if nomodseq is false
+                    ;?; // if asking for flags get modseq if nomodseq is false, if asking for modseq get flags (but not modseq if nomodseq is true)
 
                     mParts.BeginList(eListBracketing.ifmorethanone);
                     if ((pAttributes & fFetchAttributes.flags) != 0) mParts.Add(kCommandPartFlags);

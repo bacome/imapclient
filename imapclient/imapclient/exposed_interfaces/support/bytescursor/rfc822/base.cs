@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
@@ -97,19 +98,98 @@ namespace work.bacome.imapclient.support
                     }
 
                     lByte = Position.BytesLine[Position.Byte];
-
-                    if (lByte > 127)
-                    {
-                        Position = lBookmark;
-                        return lResult;
-                    }
                 }
-                else if (lByte == cASCII.SPACE || lByte == cASCII.TAB || lByte == cASCII.LPAREN || lByte == cASCII.RPAREN || lByte > 127) return lResult;
+                else if (!cCharset.CText.Contains(lByte)) return lResult;
 
                 lResult = true;
                 ZAdvance(ref Position);
             }
         }
+
+        public bool GetRFC822HeaderName(out string rName)
+        {
+
+        }
+
+        public bool GetRFC822HeaderValue(out IList<byte> rValue)
+        {
+
+        }
+
+        public bool GetRFC822Atom(out string rString)
+        {
+            var lBookmark = Position;
+
+            // optional leading spaces
+            SkipRFC822CFWS();
+
+            if (!GetToken(cCharset.AText, null, null, out rString)) { Position = lBookmark; return false; }
+
+            // optional trailing spaces
+            SkipRFC822CFWS();
+
+            return true;
+        }
+
+        public bool GetRFC822DotAtom(out string rString)
+        {
+            var lBookmark = Position;
+
+            // optional leading spaces
+            SkipRFC822CFWS();
+
+            cByteList lResult = new cByteList();
+            cByteList lSegment;
+
+            if (!GetToken(cCharset.AText, null, null, out lSegment)) { Position = lBookmark; rString = null; return false; }
+
+            lResult.AddRange(lSegment);
+
+            while (true)
+            {
+                lBookmark = Position;
+                if (!SkipByte(cASCII.DOT)) break;
+                if (!GetToken(cCharset.AText, null, null, out lSegment)) { Position = lBookmark; break; }
+                lResult.AddRange(lSegment);
+            }
+
+            // optional trailing spaces
+            SkipRFC822CFWS();
+
+            // done
+            rString = cTools.UTF8BytesToString(lResult);
+            return true;
+        }
+
+        public bool GetRFC822QuotedString(out string rString)
+        {
+            var lBookmark = Position;
+
+            // optional leading spaces
+            SkipRFC822CFWS();
+
+            // open quote
+            if (!SkipByte(cASCII.DQUOTE)) { rString = null; return false; }
+
+            ;?;
+
+
+            // tfws
+
+
+
+
+
+
+            // optional trailing spaces
+            SkipRFC822CFWS();
+
+
+            ;?;
+        }
+
+
+
 
         /*
         private bool ZGet822Atom(out IList<byte> rBytes)
