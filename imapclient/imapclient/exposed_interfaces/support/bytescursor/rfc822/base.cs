@@ -1,29 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
     public partial class cBytesCursor
     {
         private static readonly cBytes kCRLF = new cBytes("\r\n");
+        private static readonly cBytes kCRLFTAB = new cBytes("\r\n\t");
+        private static readonly cBytes kCRLFSPACE = new cBytes("\r\n ");
 
-        public int SkipRFC822WSP()
+        public bool SkipRFC822WSP()
         {
-            int lResult = 0;
+            bool lResult = false;
 
             while (true)
             {
                 if (Position.AtEnd || Position.BytesLine.Literal) return lResult;
                 byte lByte = Position.BytesLine[Position.Byte];
                 if (lByte != cASCII.SPACE && lByte != cASCII.TAB) return lResult;
-                lResult++;
+                lResult = true;
                 ZAdvance(ref Position);
             }
         }
 
-        public int SkipRFC822FWS()
+        public bool SkipRFC822FWS()
         {
-            int lResult = SkipRFC822WSP();
+            bool lResult = SkipRFC822WSP();
 
             while (true)
             {
@@ -31,15 +32,13 @@ namespace work.bacome.imapclient.support
 
                 if (!SkipBytes(kCRLF)) return lResult;
 
-                int lSpaces = SkipRFC822WSP();
-
-                if (lSpaces == 0)
+                if (!SkipRFC822WSP())
                 {
                     Position = lBookmark;
                     return lResult;
                 }
 
-                lResult += lSpaces;
+                lResult = true;
             }
         }
 
@@ -49,7 +48,7 @@ namespace work.bacome.imapclient.support
 
             while (true)
             {
-                if (SkipRFC822FWS() != 0) lResult = true;
+                if (SkipRFC822FWS()) lResult = true;
                 else if (ZSkipRFC822Comment()) lResult = true;
                 else return lResult;
             }
@@ -106,14 +105,31 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public bool GetRFC822HeaderName(out string rName)
+        public bool GetRFC822HeaderName(out string rString) => GetToken(cCharset.FText, null, null, out rString);
+
+        public bool GetRFC822HeaderValue(out cByteList rValue)
         {
+            var lBookmark = Position;
 
-        }
+            rValue = new cByteList();
 
-        public bool GetRFC822HeaderValue(out IList<byte> rValue)
-        {
+            while (true)
+            {
+                if (Position.AtEnd || Position.BytesLine.Literal)
+                {
+                    Position = lBookmark;
+                    return false;
+                }
 
+                if (SkipBytes(kCRLFTAB)) rValue.Add(cASCII.TAB);
+                else if (SkipBytes(kCRLFSPACE)) rValue.Add(cASCII.SPACE);
+                else if (SkipBytes(kCRLF)) return true;
+                else
+                {
+                    rValue.Add(Position.BytesLine[Position.Byte]);
+                    ZAdvance(ref Position);
+                }
+            }
         }
 
         public bool GetRFC822Atom(out string rString)
@@ -131,27 +147,41 @@ namespace work.bacome.imapclient.support
             return true;
         }
 
-        public bool GetRFC822DotAtom(out string rString)
+        public bool GetRFC822QuotedString(out string rString)
         {
             var lBookmark = Position;
 
             // optional leading spaces
             SkipRFC822CFWS();
 
+            // open quote
+            if (!SkipByte(cASCII.DQUOTE)) { Position = lBookmark; rString = null; return false; }
+
             cByteList lResult = new cByteList();
-            cByteList lSegment;
-
-            if (!GetToken(cCharset.AText, null, null, out lSegment)) { Position = lBookmark; rString = null; return false; }
-
-            lResult.AddRange(lSegment);
 
             while (true)
             {
-                lBookmark = Position;
-                if (!SkipByte(cASCII.DOT)) break;
-                if (!GetToken(cCharset.AText, null, null, out lSegment)) { Position = lBookmark; break; }
-                lResult.AddRange(lSegment);
+                ZGetRFC822FWS(lResult);
+
+                if (Position.AtEnd || Position.BytesLine.Literal) { Position = lBookmark; rString = null; return false; }
+
+                byte lByte = Position.BytesLine[Position.Byte];
+
+                if (lByte == cASCII.BACKSL)
+                {
+                    ZAdvance(ref Position);
+                    if (Position.AtEnd || Position.BytesLine.Literal) { Position = lBookmark; rString = null; return false; }
+                    lByte = Position.BytesLine[Position.Byte];
+                }
+                else if (!cCharset.QText.Contains(lByte)) break;
+
+                lResult.Add(lByte);
+
+                ZAdvance(ref Position);
             }
+
+            // close quote
+            if (!SkipByte(cASCII.DQUOTE)) { Position = lBookmark; rString = null; return false; }
 
             // optional trailing spaces
             SkipRFC822CFWS();
@@ -161,74 +191,93 @@ namespace work.bacome.imapclient.support
             return true;
         }
 
-        public bool GetRFC822QuotedString(out string rString)
+        private bool ZGetRFC822WSP(cByteList pBytes)
+        {
+            bool lResult = false;
+
+            while (true)
+            {
+                if (Position.AtEnd || Position.BytesLine.Literal) return lResult;
+                byte lByte = Position.BytesLine[Position.Byte];
+                if (lByte != cASCII.SPACE && lByte != cASCII.TAB) return lResult;
+                lResult = true;
+                pBytes.Add(lByte);
+                ZAdvance(ref Position);
+            }
+        }
+
+        private bool ZGetRFC822FWS(cByteList pBytes)
+        {
+            bool lResult = ZGetRFC822WSP(pBytes);
+
+            while (true)
+            {
+                var lBookmark = Position;
+
+                if (!SkipBytes(kCRLF)) return lResult;
+
+                if (!ZGetRFC822WSP(pBytes))
+                {
+                    Position = lBookmark;
+                    return lResult;
+                }
+
+                lResult = true;
+            }
+        }
+
+        public bool GetDomainLiteral(out string rDomainLiteral)
         {
             var lBookmark = Position;
 
             // optional leading spaces
             SkipRFC822CFWS();
 
-            // open quote
-            if (!SkipByte(cASCII.DQUOTE)) { rString = null; return false; }
+            // open bracket
+            if (!SkipByte(cASCII.LBRACKET)) { Position = lBookmark; rDomainLiteral = null; return false; }
 
-            ;?;
+            // the brackets are part of the result
+            cByteList lResult = new cByteList();
+            lResult.Add(cASCII.LBRACKET);
 
+            // optional leading FWS
+            SkipRFC822FWS();
 
-            // tfws
+            bool lSpace = false;
 
+            while (true)
+            {
+                if (Position.AtEnd || Position.BytesLine.Literal) { Position = lBookmark; rDomainLiteral = null; return false; }
 
+                byte lByte = Position.BytesLine[Position.Byte];
 
+                if (lByte == cASCII.BACKSL)
+                {
+                    ZAdvance(ref Position);
+                    if (Position.AtEnd || Position.BytesLine.Literal) { Position = lBookmark; rDomainLiteral = null; return false; }
+                    lByte = Position.BytesLine[Position.Byte];
+                }
+                else if (!cCharset.DText.Contains(lByte)) break;
 
+                if (lSpace) lResult.Add(cASCII.SPACE);
 
+                lResult.Add(lByte);
+
+                ZAdvance(ref Position);
+
+                lSpace = SkipRFC822FWS();
+            }
+
+            // close bracket
+            if (!SkipByte(cASCII.RBRACKET)) { Position = lBookmark; rDomainLiteral = null; return false; }
+            lResult.Add(cASCII.RBRACKET);
 
             // optional trailing spaces
             SkipRFC822CFWS();
 
-
-            ;?;
+            // done
+            rDomainLiteral = cTools.UTF8BytesToString(lResult);
+            return true;
         }
-
-
-
-
-        /*
-        private bool ZGet822Atom(out IList<byte> rBytes)
-        {
-            // [CFWS] 1*atext [CFWS]
-        }
-
-
-        private bool ZGet822QuotedString(out IList<byte> rBytes)
-        {
-            // [CFWS] DQUOTE *([FWS] qcontent) [FWS] DQUOTE [CFWS]
-
-            //  note that the FWS has to be extracted sans the CRLF
-
-            // contains qtext (1-8,11,12,14-31,33,35-91,93-126,127) or quoted-pair
-            //  = not null, not tab, not lf, not cr, not space, not ", not \
-
-            // quoted-pair = \ anything
-            //  note comments in rfc822 about quoted crlf tho - 
-        }
-
-
-        private bool ZGet822Word(out IList<byte> rBytes)
-        {
-            // atom / quoted-string
-
-        }
-
-        private bool ZGet822Phrase(out IList<byte> rBytes)
-        {
-            // word *(word / "." / CFWS)
-            List<byte> lResult = new List<byte>();
-
-            // note that wsp between words is considered to be ONE wsp
-        }
-
-        private bool ZGet822MsgId(out IList<byte> rBytes)
-        {
-            // [CFWS] "<" id-left "@" id-right ">" [CFWS]
-        } */
     }
 }

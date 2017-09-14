@@ -26,11 +26,11 @@ namespace work.bacome.imapclient
                 public readonly cBodyPart BodyStructure;
                 public readonly ReadOnlyCollection<cBody> Bodies;
                 public readonly uint? UID;
-                public readonly cHeaderValues HeaderValues;
+                public readonly cHeaders Headers;
                 public readonly cBinarySizes BinarySizes;
                 public readonly ulong? ModSeq;
 
-                public cResponseDataFetch(uint pMSN, fFetchAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaderValues pHeaderValues, cBinarySizes pBinarySizes, ulong? pModSeq)
+                public cResponseDataFetch(uint pMSN, fFetchAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaders pHeaders, cBinarySizes pBinarySizes, ulong? pModSeq)
                 {
                     MSN = pMSN;
                     Attributes = pAttributes;
@@ -125,7 +125,7 @@ namespace work.bacome.imapclient
                     cBodyPart lBodyStructure = null;
                     List<cBody> lBodies = new List<cBody>();
                     uint? lUID = null;
-                    cHeaderValues lHeaderValues = null;
+                    cHeaders lHeaders = null;
                     cBinarySizesBuilder lBinarySizesBuilder = new cBinarySizesBuilder();
                     ulong? lModSeq = null;
 
@@ -156,23 +156,13 @@ namespace work.bacome.imapclient
                         {
                             lAttribute = 0;
                             lOK = pCursor.GetNString(out lRFC822);
-
-                            if (lOK)
-                            {
-                                cHeaderValues lValues = ZProcessHeaders(new cHeaderNames(), true, lRFC822);
-                                lHeaderValues = lHeaderValues + lValues;
-                            }
+                            if (lOK && cHeaders.TryConstruct(cSection.All, lRFC822, out var lTemp)) lHeaders = lHeaders + lTemp;
                         }
                         else if (pCursor.SkipBytes(kRFC822HeaderSpace))
                         {
                             lAttribute = 0;
                             lOK = pCursor.GetNString(out lRFC822Header); 
-
-                            if (lOK)
-                            {
-                                cHeaderValues lValues = ZProcessHeaders(new cHeaderNames(), true, lRFC822Header);
-                                lHeaderValues = lHeaderValues + lValues;
-                            }
+                            if (lOK && cHeaders.TryConstruct(cSection.Header, lRFC822Header, out var lTemp)) lHeaders = lHeaders + lTemp;)
                         }
                         else if (pCursor.SkipBytes(kRFC822TextSpace))
                         {
@@ -203,20 +193,7 @@ namespace work.bacome.imapclient
                             if (lOK)
                             {
                                 lBodies.Add(lABody);
-
-                                var lSection = lABody.Section;
-
-                                if (lSection.Part == null && lABody.Origin == null)
-                                {
-                                    cHeaderValues lValues;
-
-                                    if (lSection.TextPart == eSectionPart.all || lSection.TextPart == eSectionPart.header) lValues = ZProcessHeaders(new cHeaderNames(), true, lABody.Bytes);
-                                    else if (lSection.TextPart == eSectionPart.headerfields) lValues = ZProcessHeaders(lSection.Names, false, lABody.Bytes);
-                                    else if (lSection.TextPart == eSectionPart.headerfieldsnot) lValues = ZProcessHeaders(lSection.Names, true, lABody.Bytes);
-                                    else lValues = null;
-
-                                    lHeaderValues = lHeaderValues + lValues;
-                                }
+                                if (lABody.Section.Part == null && lABody.Origin == null && cHeaders.TryConstruct(lABody.Section, lABody.Bytes, out var lTemp)) lHeaders = lHeaders + lTemp;
                             }
                         }
                         else if (pCursor.SkipBytes(kUIDSpace))
@@ -823,20 +800,6 @@ namespace work.bacome.imapclient
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rNames = null; return false; }
 
                     return cHeaderNames.TryConstruct(lNames, out rNames));
-                }
-
-                private static cHeaderValues ZProcessHeaders(cHeaderNames pNames, bool pNot, IList<byte> pBytes)
-                {
-                    cHeaderValuesBuilder lBuilder = new cHeaderValuesBuilder(pNames, pNot);
-
-
-                    ;?; // parse headers ... note the notes
-
-                    // parsing this is required for implementing threading (rfc5256) TODO
-                    //  NOTE that this could be called with data for lots of headers, so you have to look for the references header
-                    //  NOTE2: that this could be called with the entire message text, so you have to stop looking for headers at the first blank line
-                    //
-                    return null;
                 }
 
                 private static bool ZProcessBinarySize(cBytesCursor pCursor, out string rPart, out uint rSize)

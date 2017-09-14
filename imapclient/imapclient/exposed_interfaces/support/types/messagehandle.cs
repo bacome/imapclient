@@ -15,7 +15,7 @@ namespace work.bacome.imapclient.support
         DateTime? Received { get; }
         uint? Size { get; }
         cUID UID { get; }
-        cHeaderValues HeaderValues { get; }
+        cHeaders Headers { get; }
         cBinarySizes BinarySizes { get; }
         ulong? ModSeq { get; }
     }

@@ -664,29 +664,22 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        /*
-        private class cVChar : cCharset
-        {
-            public override bool Contains(byte pByte) => pByte > cASCII.SPACE && pByte != 127;
-            public override bool Contains(char pChar) => pChar > ' ' && pChar != '\x7F';
-        } */
-
         private class cCText : cCharset
         {
-            private const string cCTextSome = "\0\t\n\r ()\\";
-            private static readonly cBytes aCTextSome = new cBytes(cCTextSome);
+            private const string cCTextDisallowed = "\0\t\n\r ()\\";
+            private static readonly cBytes aCTextDisallowed = new cBytes(cCTextDisallowed);
 
             public override bool Contains(byte pByte)
             {
-                if (pByte > 127) return true; // allows utf8 to pass through (unvalidated)
-                if (ZIsOneOf(pByte, aCTextSome)) return false;
+                if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
+                if (ZIsOneOf(pByte, aCTextDisallowed)) return false;
                 return true;
             }
 
             public override bool Contains(char pChar)
             {
-                if (pChar > '\x7F') return true; // allows utf16 to pass through (unvalidated)
-                if (ZIsOneOf(pChar, cCTextSome)) return false;
+                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (ZIsOneOf(pChar, cCTextDisallowed)) return false;
                 return true;
             }
         }
@@ -698,7 +691,7 @@ namespace work.bacome.imapclient.support
 
             public override bool Contains(byte pByte)
             {
-                if (pByte > 127) return true; // allows utf8 to pass through (unvalidated)
+                if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
                 if (ZIsAlpha(pByte)) return true;
                 if (ZIsDigit(pByte)) return true;
                 if (ZIsOneOf(pByte, aATextSome)) return true;
@@ -707,12 +700,58 @@ namespace work.bacome.imapclient.support
 
             public override bool Contains(char pChar)
             {
-                if (pChar > '\x7F') return true; // allows utf16 to pass through (unvalidated)
+                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
                 if (ZIsAlpha(pChar)) return true;
                 if (ZIsDigit(pChar)) return true;
                 if (ZIsOneOf(pChar, cATextSome)) return true;
                 return false;
             }
+        }
+
+        private class cQText : cCharset
+        {
+            private const string cQTextDisallowed = "\0\t\n\r \"\\";
+            private static readonly cBytes aQTextDisallowed = new cBytes(cQTextDisallowed);
+
+            public override bool Contains(byte pByte)
+            {
+                if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
+                if (ZIsOneOf(pByte, aQTextDisallowed)) return false;
+                return true;
+            }
+
+            public override bool Contains(char pChar)
+            {
+                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (ZIsOneOf(pChar, cQTextDisallowed)) return false;
+                return true;
+            }
+        }
+
+        private class cDText : cCharset
+        {
+            private const string cDTextDisallowed = "\0\t\n\r [\\]";
+            private static readonly cBytes aDTextDisallowed = new cBytes(cDTextDisallowed);
+
+            public override bool Contains(byte pByte)
+            {
+                if (pByte > cASCII.DEL) return true; // allows utf8 to pass through (unvalidated)
+                if (ZIsOneOf(pByte, aDTextDisallowed)) return false;
+                return true;
+            }
+
+            public override bool Contains(char pChar)
+            {
+                if (pChar > cChar.DEL) return true; // allows utf16 to pass through (unvalidated)
+                if (ZIsOneOf(pChar, cDTextDisallowed)) return false;
+                return true;
+            }
+        }
+
+        private class cFText : cCharset
+        {
+            public override bool Contains(byte pByte) => pByte > cASCII.SPACE && pByte != cASCII.COLON && pByte < cASCII.DEL;
+            public override bool Contains(char pChar) => pChar > ' ' && pChar != ':' && pChar < cChar.DEL;
         }
 
         // instances
@@ -742,6 +781,9 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset QEncoding = new cQEncoding();
         public static readonly cCharset CText = new cCText();
         public static readonly cCharset AText = new cAText();
+        public static readonly cCharset QText = new cQText();
+        public static readonly cCharset DText = new cDText();
+        public static readonly cCharset FText = new cFText();
     }
 
     public static class cASCIIMonth

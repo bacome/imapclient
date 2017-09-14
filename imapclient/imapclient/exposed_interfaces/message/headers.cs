@@ -5,13 +5,19 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public class cHeaderValues
+    public class cHeaderValue
+    {
+        public readonly cBytes Bytes;
+
+    }
+
+    public class cHeaders
     {
         private readonly cHeaderNames mNames;
         private readonly bool mNot;
-        private readonly ReadOnlyDictionary<string, cHeaderValue> mDictionary;
+        private readonly ReadOnlyDictionary<string, cHeaderValue>> mDictionary;
 
-        public cHeaderValues(cHeaderNames pNames, bool pNot, string pHeaders)
+        public cHeaders(cHeaderNames pNames, bool pNot, string pHeaders)
         {
             mNames = pNames ?? throw new ArgumentNullException(nameof(pNames));
             mNot = pNot;
@@ -26,7 +32,7 @@ namespace work.bacome.imapclient
             // NOTE: this is not intended to be passed in: if it were then the lists of strings would need to be cloned before wrapping
         }
 
-        private cHeaderValues(cHeaderNames pNames, bool pNot, Dictionary<string, cStrings> pDictionary)
+        private cHeaders(cHeaderNames pNames, bool pNot, Dictionary<string, cStrings> pDictionary)
         {
             mNames = pNames ?? throw new ArgumentNullException(nameof(pNames));
             mNot = pNot;
@@ -58,14 +64,40 @@ namespace work.bacome.imapclient
 
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cHeaderValues));
+            var lBuilder = new cListBuilder(nameof(cHeaders));
             lBuilder.Append(mNames);
             lBuilder.Append(mNot);
             foreach (var lFieldValue in mDictionary) lBuilder.Append(lFieldValue.Key, lFieldValue.Value);
             return lBuilder.ToString();
         }
 
-        public static cHeaderValues operator +(cHeaderValues pA, cHeaderValues pB)
+
+        public static bool TryConstruct(cSection pSection, IList<byte> pBytes, out cHeaders rHeaders)
+        {
+            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+            if (pSection.TextPart != eSectionPart.all || pSection.TextPart != eSectionPart.header || pSection.TextPart != eSectionPart.headerfields || pSection.TextPart != eSectionPart.headerfieldsnot) { rHeaders = null; return false; }
+            if (pBytes == null) { rHeaders = null; return false; }
+
+            cBytesCursor lCursor = new cBytesCursor(pBytes);
+
+            while (!lCursor.Position.AtEnd)
+            {
+                // might be a blank line
+                //  might be at e
+
+
+                if (!lCursor.GetRFC822HeaderName(lHeaderName)) { rHeaders = null; return false; }
+                lCursor.SkipRFC822FWS();
+                ...
+            }
+
+
+
+            // parse the bytes now ...
+            ;?;
+        }
+
+        public static cHeaders operator +(cHeaders pA, cHeaders pB)
         {
             if (pA == null) return pB;
             if (pB == null) return pA;
@@ -123,10 +155,5 @@ namespace work.bacome.imapclient
 
             // especially contains, containsall and the various join types
         }
-    }
-
-    public class cHeaderValue
-    {
-
     }
 }

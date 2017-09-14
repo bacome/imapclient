@@ -32,7 +32,7 @@ namespace work.bacome.imapclient
                 public DateTime? Received { get; private set; } = null;
                 public uint? Size { get; private set; } = null;
                 public cUID UID { get; private set; } = null;
-                public cHeaderFields HeaderFields { get; private set; } = null;
+                public cHeaders Headers { get; private set; } = null;
                 public cBinarySizes BinarySizes { get; private set; } = null;
                 public ulong? ModSeq { get; private set; } = null;
 

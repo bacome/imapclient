@@ -50,7 +50,7 @@
     <Compile Include="client\fetchattributes.cs" />
     <Compile Include="client\fetchsizeinbytes.cs" />
     <Compile Include="exposed_interfaces\message\headernames.cs" />
-    <Compile Include="exposed_interfaces\message\headervalues.cs" />
+    <Compile Include="exposed_interfaces\message\headers.cs" />
     <Compile Include="exposed_interfaces\message\importance.cs" />
     <Compile Include="exposed_interfaces\other\fetchconfiguration.cs" />
     <Compile Include="client\fetchproperties.cs" />
@@ -78,8 +78,11 @@
     <Compile Include="exposed_interfaces\enums\mailboxcachedata.cs" />
     <Compile Include="exposed_interfaces\other\callbackexceptioneventargs.cs" />
     <Compile Include="exposed_interfaces\other\networkactivity.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\rfc822\getdomain.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\rfc822\getlocalpart.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\rfc822\getmsgid.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\rfc822\tests.cs" />
     <Compile Include="exposed_interfaces\support\enums\listflags.cs" />
-    <Compile Include="exposed_interfaces\support\tools\headervaluesbuilder.cs" />
     <Compile Include="exposed_interfaces\support\types\listflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
     <Compile Include="exposed_interfaces\other\childmailboxes.cs" />
@@ -164,7 +167,7 @@
     <Compile Include="exposed_interfaces\support\bytescursor\other\geturl.cs" />
     <Compile Include="exposed_interfaces\support\bytescursor\other\processencodedword.cs" />
     <Compile Include="exposed_interfaces\support\bytescursor\rfc822\base.cs" />
-    <Compile Include="exposed_interfaces\support\bytescursor\rfc822\getrfc822datetime.cs" />
+    <Compile Include="exposed_interfaces\support\bytescursor\rfc822\getdatetime.cs" />
     <Compile Include="exposed_interfaces\support\collections\bytes.cs" />
     <Compile Include="exposed_interfaces\support\collections\bytesline.cs" />
     <Compile Include="exposed_interfaces\support\collections\byteslist.cs" />

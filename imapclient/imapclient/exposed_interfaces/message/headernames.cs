@@ -10,6 +10,7 @@ namespace work.bacome.imapclient
     public class cHeaderNames : IReadOnlyList<string>
     {
         public const string Importance = "importance";
+        public const string References = "references";
 
         public static readonly cHeaderNames None = new cHeaderNames();
 
