@@ -126,7 +126,10 @@ namespace work.bacome.imapclient
                     if ((pAttributes & fFetchAttributes.references) != 0) mParts.Add(kCommandPartReferences); ;?;
                     if ((pAttributes & fFetchAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
 
-
+                    if (pAttributes.Names.Count > 0)
+                    {
+                        mParts.BeginList()
+                    }
 
                     ;?; // add headers
 

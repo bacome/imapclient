@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kListExtendedCommandPartSubscribed = new cCommandPart("SUBSCRIBED");
             private static readonly cCommandPart kListExtendedCommandPartRemote = new cCommandPart("REMOTE");
             private static readonly cCommandPart kListExtendedCommandPartMailbox = new cCommandPart("\"\"");
-            private static readonly cCommandPart kListExtendedCommandPartReturn = new cCommandPart("RETURN");
+            private static readonly cCommandPart kListExtendedCommandPartReturnSpace = new cCommandPart("RETURN ");
             private static readonly cCommandPart kListExtendedCommandPartChildren = new cCommandPart("CHILDREN");
             private static readonly cCommandPart kListExtendedCommandPartSpecialUse = new cCommandPart("SPECIAL-USE");
             private static readonly cCommandPart kListExtendedCommandPartStatus = new cCommandPart("STATUS");
@@ -67,7 +67,7 @@ namespace work.bacome.imapclient
 
                     // return options
 
-                    lBuilder.BeginList(eListBracketing.ifany, kListExtendedCommandPartReturn);
+                    lBuilder.BeginList(eListBracketing.ifany, kListExtendedCommandPartReturnSpace);
 
                     if ((mMailboxCacheData & fMailboxCacheData.subscribed) != 0) lBuilder.Add(kListExtendedCommandPartSubscribed);
                     if ((mMailboxCacheData & fMailboxCacheData.children) != 0) lBuilder.Add(kListExtendedCommandPartChildren);

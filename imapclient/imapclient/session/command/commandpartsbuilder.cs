@@ -57,10 +57,10 @@ namespace work.bacome.imapclient
                     mList.Add(pParts);
                 }
 
-                public void BeginList(eListBracketing pBracketing, cCommandPart pListName = null)
+                public void BeginList(eListBracketing pBracketing, cCommandPart pPrefix = null, cCommandPart pPostfix = null)
                 {
                     if (mList != null) mLists.Push(mList);
-                    mList = new cList(pBracketing, pListName);
+                    mList = new cList(pBracketing, pPrefix, pPostfix);
                 }
 
                 public void EndList()
@@ -74,25 +74,21 @@ namespace work.bacome.imapclient
                     {
                         List<cCommandPart> lParts = new List<cCommandPart>();
 
-                        if (lList.ListName != null)
-                        {
-                            lParts.Add(lList.ListName);
-                            lParts.Add(cCommandPart.Space);
-                        }
-
+                        if (lList.Prefix != null) lParts.Add(lList.Prefix);
                         lParts.Add(cCommandPart.LParen);
                         lParts.AddRange(lList.Parts);
                         lParts.Add(cCommandPart.RParen);
+                        if (lList.Postfix != null) lParts.Add(lList.Postfix);
                         Add(lParts);
                     }
                     else if (lList.Parts.Count > 0)
                     {
-                        if (lList.ListName != null)
+                        if (lList.Prefix != null || lList.Postfix != null)
                         {
                             List<cCommandPart> lParts = new List<cCommandPart>();
-                            lParts.Add(lList.ListName);
-                            lParts.Add(cCommandPart.Space);
+                            if (lList.Prefix != null) lParts.Add(lList.Prefix);
                             lParts.AddRange(lList.Parts);
+                            if (lList.Postfix != null) lParts.Add(lList.Postfix);
                             Add(lParts);
                         }
                         else Add(lList.Parts);
@@ -109,15 +105,17 @@ namespace work.bacome.imapclient
                 private class cList
                 {
                     public readonly eListBracketing Bracketing;
-                    public readonly cCommandPart ListName;
+                    public readonly cCommandPart Prefix;
+                    public readonly cCommandPart Postfix;
                     private readonly List<cCommandPart> mParts;
                     private int mAddCount;
                     public readonly ReadOnlyCollection<cCommandPart> Parts;
 
-                    public cList(eListBracketing pBracketing, cCommandPart pListName)
+                    public cList(eListBracketing pBracketing, cCommandPart pPrefix, cCommandPart pPostix)
                     {
                         Bracketing = pBracketing;
-                        ListName = pListName;
+                        Prefix = pPrefix;
+                        Postfix = pPostix;
                         mParts = new List<cCommandPart>();
                         mAddCount = 0;
                         Parts = new ReadOnlyCollection<cCommandPart>(mParts);
