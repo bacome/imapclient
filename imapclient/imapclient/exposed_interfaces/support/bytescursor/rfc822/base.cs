@@ -4,7 +4,7 @@ namespace work.bacome.imapclient.support
 {
     public partial class cBytesCursor
     {
-        private static readonly cBytes kCRLF = new cBytes("\r\n");
+        public static readonly cBytes CRLF = new cBytes("\r\n");
         private static readonly cBytes kCRLFTAB = new cBytes("\r\n\t");
         private static readonly cBytes kCRLFSPACE = new cBytes("\r\n ");
 
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient.support
             {
                 var lBookmark = Position;
 
-                if (!SkipBytes(kCRLF)) return lResult;
+                if (!SkipBytes(CRLF)) return lResult;
 
                 if (!SkipRFC822WSP())
                 {
@@ -105,41 +105,46 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public bool GetRFC822HeaderName(out string rString) => GetToken(cCharset.FText, null, null, out rString);
+        public bool GetRFC822FieldName(out string rFieldName) => GetToken(cCharset.FText, null, null, out rFieldName);
 
-        public bool GetRFC822HeaderValue(out cByteList rValue)
+        public bool GetRFC822FieldValue(out cByteList rFieldValue)
         {
             var lBookmark = Position;
 
-            rValue = new cByteList();
+            var lByteList = new cByteList();
 
             while (true)
             {
                 if (Position.AtEnd || Position.BytesLine.Literal)
                 {
                     Position = lBookmark;
+                    rFieldValue = null;
                     return false;
                 }
 
-                if (SkipBytes(kCRLFTAB)) rValue.Add(cASCII.TAB);
-                else if (SkipBytes(kCRLFSPACE)) rValue.Add(cASCII.SPACE);
-                else if (SkipBytes(kCRLF)) return true;
+                if (SkipBytes(kCRLFTAB)) lByteList.Add(cASCII.TAB);
+                else if (SkipBytes(kCRLFSPACE)) lByteList.Add(cASCII.SPACE);
+                else if (SkipBytes(CRLF))
+                {
+                    rFieldValue = lByteList;
+                    return true;
+                }
                 else
                 {
-                    rValue.Add(Position.BytesLine[Position.Byte]);
+                    lByteList.Add(Position.BytesLine[Position.Byte]);
                     ZAdvance(ref Position);
                 }
             }
         }
 
-        public bool GetRFC822Atom(out string rString)
+        public bool GetRFC822Atom(out string rAtom)
         {
             var lBookmark = Position;
 
             // optional leading spaces
             SkipRFC822CFWS();
 
-            if (!GetToken(cCharset.AText, null, null, out rString)) { Position = lBookmark; return false; }
+            if (!GetToken(cCharset.AText, null, null, out rAtom)) { Position = lBookmark; return false; }
 
             // optional trailing spaces
             SkipRFC822CFWS();
@@ -214,7 +219,7 @@ namespace work.bacome.imapclient.support
             {
                 var lBookmark = Position;
 
-                if (!SkipBytes(kCRLF)) return lResult;
+                if (!SkipBytes(CRLF)) return lResult;
 
                 if (!ZGetRFC822WSP(pBytes))
                 {

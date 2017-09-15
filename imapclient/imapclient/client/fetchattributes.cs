@@ -10,6 +10,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /*
         private cFetchAttributes ZFetchAttributesRequired(cMessageProperties pProperties)
         {
             fFetchAttributes lAttributesRequired = 0;
@@ -22,21 +23,11 @@ namespace work.bacome.imapclient
             if ((pProperties.Properties & fMessageProperties.uid) != 0) lAttributesRequired |= fFetchAttributes.uid;
             if ((pProperties.Properties & fMessageProperties.modseq) != 0) lAttributesRequired |= fFetchAttributes.modseq;
             if ((pProperties.Properties & (fMessageProperties.bodystructure | fMessageProperties.attachments | fMessageProperties.plaintextsizeinbytes)) != 0) lAttributesRequired |= fFetchAttributes.bodystructure;
-            if ((pProperties.Properties & fMessageProperties.importance) != 0) lNamesRequired.Add(cHeaderNames.Importance);
+            if ((pProperties.Properties & fMessageProperties.references) != 0) lNamesRequired.Add(cHeaderFieldNames.References);
+            if ((pProperties.Properties & fMessageProperties.importance) != 0) lNamesRequired.Add(cHeaderFieldNames.Importance);
 
-            return new cFetchAttributes(lAttributesRequired, pProperties.Names.Union(new cHeaderNames(lNamesRequired)));
-        }
-
-        private bool ZFetchAttributesGotThemAll(cMessageHandleList pHandles, cFetchAttributes pRequired)
-        {
-            foreach (var lHandle in pHandles)
-            {
-                if ((pRequired.Attributes & ~lHandle.Attributes) != 0) return false;
-                if (!lHandle.HeaderValues.ContainsAll(pRequired.Names)) return false;
-            }
-
-            return true;
-        }
+            return new cFetchAttributes(lAttributesRequired, pProperties.Names.Union(new cHeaderFieldNames(lNamesRequired)));
+        } */
 
         private async Task ZFetchAttributesAsync(cMessageHandleList pHandles, cFetchAttributes pAttributes, cPropertyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
@@ -48,8 +39,9 @@ namespace work.bacome.imapclient
             if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
 
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
-            if (pHandles.Count == 0) return;
             if (pAttributes == null) throw new ArgumentNullException(nameof(pAttributes));
+
+            if (pHandles.Count == 0) return;
             if (pAttributes.IsNone) return;
 
             if (pConfiguration == null)
@@ -69,7 +61,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        private async Task<List<cMessage>> ZUIDFetchAttributesAsync(iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cPropertyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>> ZUIDFetchAttributesAsync(iMailboxHandle pHandle, cUIDList pUIDs, cFetchAttributes pAttributes, cPropertyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchAttributesAsync), pHandle, pUIDs, pAttributes);
 
@@ -80,8 +72,10 @@ namespace work.bacome.imapclient
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
+            if (pAttributes == null) throw new ArgumentNullException(nameof(pAttributes));
+
             if (pUIDs.Count == 0) return new List<cMessage>();
-            if (pAttributes == 0) throw new ArgumentOutOfRangeException(nameof(pAttributes));
+            if (pAttributes.IsNone) throw new ArgumentOutOfRangeException(nameof(pAttributes));
 
             cMessageHandleList lHandles;
 

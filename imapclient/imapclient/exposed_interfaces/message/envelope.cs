@@ -14,10 +14,10 @@ namespace work.bacome.imapclient
         public readonly cAddresses To;
         public readonly cAddresses CC;
         public readonly cAddresses BCC; 
-        public readonly string InReplyTo; // the first (if any) message id in the in-reply-to
-        public readonly string MessageId;
+        public readonly cHeaderFieldMsgIds InReplyTo;
+        public readonly cHeaderFieldMsgId MessageId;
 
-        public cEnvelope(DateTime? pSent, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, string pInReplyTo, string pMessageId)
+        public cEnvelope(DateTime? pSent, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cHeaderFieldMsgIds pInReplyTo, cHeaderFieldMsgId pMessageId)
         {
             Sent = pSent;
             Subject = pSubject;

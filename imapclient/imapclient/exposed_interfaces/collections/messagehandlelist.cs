@@ -10,6 +10,12 @@ namespace work.bacome.imapclient
         public cMessageHandleList(iMessageHandle pHandle) : base(new iMessageHandle[] { pHandle }) { }
         public cMessageHandleList(IEnumerable<iMessageHandle> pHandles) : base(pHandles) { }
 
+        public bool AllHaveAll(cFetchAttributes pAttributes)
+        {
+            foreach (var lHandle in this) if (!lHandle.HasAll(pAttributes)) return false;
+            return true;
+        }
+
         public void SortByCacheSequence() => Sort(ZCompareCacheSequence);
 
         public void Sort(cSort pSort)

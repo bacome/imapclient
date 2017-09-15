@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cMessageHandleList> UIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cProgress pProgress, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> UIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, cFetchAttributes pAttributes, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchAttributesAsync), pMC, pHandle, pUIDs, pAttributes);
 
@@ -22,8 +22,8 @@ namespace work.bacome.imapclient
                 mMailboxCache.CheckIsSelectedMailbox(pHandle, lUIDValidity); // to be repeated inside the select lock
 
                 // always get the flags and modseq together
-                var lAttributes = ZFetchAttributes(pAttributes, lContext);
-
+                // var lAttributes = ZFetchAttributes(pAttributes, lContext);
+                ;?;
 
                 // split the list into those messages I have handles for and those I dont
                 /////////////////////////////////////////////////////////////////////////
@@ -41,6 +41,7 @@ namespace work.bacome.imapclient
                     {
                         var lHandle = lSelectedMailbox.GetHandle(lUID);
                         if (lHandle == null) lUIDs.Add(lUID); // don't have a handle
+                        ;?;
                         else if((~lHandle.Attributes & lAttributes) == lAttributes) lUIDs.Add(lUID); // have to get all the attributes, may as well fetch them with the ones where I might need all the attributes
                         else lHandles.Add(lHandle);
                     }

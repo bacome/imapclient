@@ -142,12 +142,12 @@ namespace work.bacome.imapclient
             }
         }
 
-        public string InReplyTo
+        public cStrings InReplyTo
         {
             get
             {
                 if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
-                return Handle.Envelope.InReplyTo;
+                return Handle.Envelope.InReplyTo?.MsgIds;
             }
         }
 
@@ -156,7 +156,7 @@ namespace work.bacome.imapclient
             get
             {
                 if (!Client.Fetch(Handle, cMessageProperties.Envelope)) throw new InvalidOperationException();
-                return Handle.Envelope.MessageId;
+                return Handle.Envelope.MessageId?.MsgId;
             }
         }
 
@@ -309,12 +309,21 @@ namespace work.bacome.imapclient
             return lResult;
         }
 
-        public eImportance Importance
+        public cStrings References
+        {
+            get
+            {
+                if (!Client.Fetch(Handle, cMessageProperties.References)) throw new InvalidOperationException();
+                return Handle.HeaderFields.References;
+            }
+        }
+
+        public eImportance? Importance
         {
             get
             {
                 if (!Client.Fetch(Handle, cMessageProperties.Importance)) throw new InvalidOperationException();
-                return Handle.Importance;
+                return Handle.HeaderFields.Importance;
             }
         }
 

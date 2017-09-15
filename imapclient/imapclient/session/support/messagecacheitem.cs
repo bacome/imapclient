@@ -32,9 +32,12 @@ namespace work.bacome.imapclient
                 public DateTime? Received { get; private set; } = null;
                 public uint? Size { get; private set; } = null;
                 public cUID UID { get; private set; } = null;
-                public cHeaders Headers { get; private set; } = null;
-                public cBinarySizes BinarySizes { get; private set; } = null;
                 public ulong? ModSeq { get; private set; } = null;
+                public cHeaderFields HeaderFields { get; private set; } = null;
+                public cBinarySizes BinarySizes { get; private set; } = null;
+
+                public bool HasAll(cFetchAttributes pAttributes) => (~mAttributes & pAttributes.Attributes) == 0 && HeaderFields.ContainsAll(pAttributes.Names);
+                public cFetchAttributes Missing(cFetchAttributes pRequired) => new cFetchAttributes(~mAttributes & pRequired.Attributes, HeaderFields.Missing(pRequired.Names));
 
                 public void SetExpunged() => mExpunged = true;
 
@@ -59,10 +62,6 @@ namespace work.bacome.imapclient
                     if ((rAttributesSet & fFetchAttributes.body) != 0) mBody = lFetch.Body;
                     if ((rAttributesSet & fFetchAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
                     if ((rAttributesSet & fFetchAttributes.uid) != 0 && pUIDValidity != 0) UID = new cUID(pUIDValidity, lFetch.UID.Value);
-                    if ((rAttributesSet & fFetchAttributes.references) != 0) References = lFetch.References;
-
-                    if (BinarySizes == null) BinarySizes = lFetch.BinarySizes;
-                    else if (lFetch.BinarySizes != null) BinarySizes = BinarySizes + lFetch.BinarySizes;
 
                     if (!pNoModSeq)
                     {
@@ -74,6 +73,12 @@ namespace work.bacome.imapclient
                             ModSeq = lFetch.ModSeq;
                         }
                     }
+
+                    if (HeaderFields == null) HeaderFields = lFetch.HeaderFields;
+                    else if (lFetch.HeaderFields != null) HeaderFields = HeaderFields + lFetch.HeaderFields;
+
+                    if (BinarySizes == null) BinarySizes = lFetch.BinarySizes;
+                    else if (lFetch.BinarySizes != null) BinarySizes = BinarySizes + lFetch.BinarySizes;
 
                     mAttributes |= lFetch.Attributes;
                 }

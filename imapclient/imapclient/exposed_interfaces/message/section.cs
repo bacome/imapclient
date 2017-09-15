@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
 
         public readonly string Part; // may be null if the section refers to the top-most part
         public readonly eSectionPart TextPart;
-        public readonly cHeaderNames Names;
+        public readonly cHeaderFieldNames Names;
 
         public cSection(string pPart)
         {
@@ -32,7 +32,7 @@ namespace work.bacome.imapclient
             Names = null;
         }
 
-        public cSection(string pPart, cHeaderNames pNames, bool pNot = false)
+        public cSection(string pPart, cHeaderFieldNames pNames, bool pNot = false)
         {
             if (pPart != null && !ZValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             Part = pPart;

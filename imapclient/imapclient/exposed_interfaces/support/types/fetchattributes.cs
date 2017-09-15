@@ -23,13 +23,33 @@ namespace work.bacome.imapclient.support
     public class cFetchAttributes
     {
         public readonly fFetchAttributes Attributes;
-        public readonly cHeaderNames Names;
+        public readonly cHeaderFieldNames Names;
 
-        public cFetchAttributes(fFetchAttributes pAttributes, cHeaderNames pNames)
+        public cFetchAttributes(cMessageProperties pProperties)
+        {
+            Attributes = 0;
+
+            if ((pProperties.Properties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0) Attributes |= fFetchAttributes.envelope;
+            if ((pProperties.Properties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0) Attributes |= fFetchAttributes.flags;
+            if ((pProperties.Properties & fMessageProperties.received) != 0) Attributes |= fFetchAttributes.received;
+            if ((pProperties.Properties & fMessageProperties.size) != 0) Attributes |= fFetchAttributes.size;
+            if ((pProperties.Properties & fMessageProperties.uid) != 0) Attributes |= fFetchAttributes.uid;
+            if ((pProperties.Properties & fMessageProperties.modseq) != 0) Attributes |= fFetchAttributes.modseq;
+            if ((pProperties.Properties & (fMessageProperties.bodystructure | fMessageProperties.attachments | fMessageProperties.plaintextsizeinbytes)) != 0) Attributes |= fFetchAttributes.bodystructure;
+
+            Names = pProperties.Names;
+
+            if ((pProperties.Properties & fMessageProperties.references) != 0) Names |= cHeaderFieldNames.References;
+            if ((pProperties.Properties & fMessageProperties.importance) != 0) Names |= cHeaderFieldNames.Importance;
+        }
+
+
+        /*
+        public cFetchAttributes(fFetchAttributes pAttributes, cHeaderFieldNames pNames)
         {
             Attributes = pAttributes;
             Names = pNames ?? throw new ArgumentNullException(nameof(pNames));
-        }
+        } */
 
         public bool IsNone => Attributes == 0 && Names.Count == 0;
 

@@ -135,7 +135,8 @@ namespace work.bacome.imapclient
 
                 foreach (var lHandle in pHandles)
                 {
-                    cFetchAttributes lRequired = new cFetchAttributes(~lHandle.Attributes & pAttributes.Attributes, lHandle.HeaderValues.Missing(pAttributes.Names));
+                    ;?;
+                    cFetchAttributes lRequired = new cFetchAttributes(~lHandle.Attributes & pAttributes.Attributes, lHandle.HeaderFields.Missing(pAttributes.Names));
 
                     cFetchAttributesGroup lGroup;
 

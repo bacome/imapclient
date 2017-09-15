@@ -49,8 +49,8 @@
     <Compile Include="client\expunge.cs" />
     <Compile Include="client\fetchattributes.cs" />
     <Compile Include="client\fetchsizeinbytes.cs" />
-    <Compile Include="exposed_interfaces\message\headernames.cs" />
-    <Compile Include="exposed_interfaces\message\headers.cs" />
+    <Compile Include="exposed_interfaces\message\headerfieldnames.cs" />
+    <Compile Include="exposed_interfaces\message\headerfields.cs" />
     <Compile Include="exposed_interfaces\message\importance.cs" />
     <Compile Include="exposed_interfaces\other\fetchconfiguration.cs" />
     <Compile Include="client\fetchproperties.cs" />

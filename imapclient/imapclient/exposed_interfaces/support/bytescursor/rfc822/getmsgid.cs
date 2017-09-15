@@ -5,7 +5,7 @@ namespace work.bacome.imapclient.support
 {
     public partial class cBytesCursor
     {
-        private bool GetRFC822MsgId(out string rMsgId)
+        public bool GetRFC822MsgId(out string rMsgId)
         {
             var lBookmark = Position;
 

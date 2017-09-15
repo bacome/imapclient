@@ -26,11 +26,11 @@ namespace work.bacome.imapclient
                 public readonly cBodyPart BodyStructure;
                 public readonly ReadOnlyCollection<cBody> Bodies;
                 public readonly uint? UID;
-                public readonly cHeaders Headers;
+                public readonly cHeaderFields HeaderFields;
                 public readonly cBinarySizes BinarySizes;
                 public readonly ulong? ModSeq;
 
-                public cResponseDataFetch(uint pMSN, fFetchAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaders pHeaders, cBinarySizes pBinarySizes, ulong? pModSeq)
+                public cResponseDataFetch(uint pMSN, fFetchAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaderFields pHeaderFields, cBinarySizes pBinarySizes, ulong? pModSeq)
                 {
                     MSN = pMSN;
                     Attributes = pAttributes;
@@ -45,7 +45,7 @@ namespace work.bacome.imapclient
                     BodyStructure = pBodyStructure;
                     Bodies = new ReadOnlyCollection<cBody>(pBodies);
                     UID = pUID;
-                    HeaderValues = pHeaderValues;
+                    HeaderFields = pHeaderFields;
                     BinarySizes = pBinarySizes;
                     ModSeq = pModSeq;
                 }
@@ -71,7 +71,7 @@ namespace work.bacome.imapclient
                     lBuilder.Append(lBodies);
 
                     lBuilder.Append(UID);
-                    lBuilder.Append(HeaderValues);
+                    lBuilder.Append(HeaderFields);
                     lBuilder.Append(BinarySizes);
                     lBuilder.Append(ModSeq);
 
@@ -125,14 +125,13 @@ namespace work.bacome.imapclient
                     cBodyPart lBodyStructure = null;
                     List<cBody> lBodies = new List<cBody>();
                     uint? lUID = null;
-                    cHeaders lHeaders = null;
+                    cHeaderFields lHeaderFields = null;
                     cBinarySizesBuilder lBinarySizesBuilder = new cBinarySizesBuilder();
                     ulong? lModSeq = null;
 
                     while (true)
                     {
                         fFetchAttributes lAttribute;
-                        Dictionary<string, List<string>> lHeaderFields = new Dictionary<string, List<string>>();
                         bool lOK;
 
                         if (pCursor.SkipBytes(kFlagsSpace))
@@ -156,13 +155,13 @@ namespace work.bacome.imapclient
                         {
                             lAttribute = 0;
                             lOK = pCursor.GetNString(out lRFC822);
-                            if (lOK && cHeaders.TryConstruct(cSection.All, lRFC822, out var lTemp)) lHeaders = lHeaders + lTemp;
+                            if (lOK && cHeaderFields.TryConstruct(cSection.All, lRFC822, out var lTemp)) lHeaderFields = lHeaderFields + lTemp;
                         }
                         else if (pCursor.SkipBytes(kRFC822HeaderSpace))
                         {
                             lAttribute = 0;
                             lOK = pCursor.GetNString(out lRFC822Header); 
-                            if (lOK && cHeaders.TryConstruct(cSection.Header, lRFC822Header, out var lTemp)) lHeaders = lHeaders + lTemp;)
+                            if (lOK && cHeaderFields.TryConstruct(cSection.Header, lRFC822Header, out var lTemp)) lHeaderFields = lHeaderFields + lTemp;
                         }
                         else if (pCursor.SkipBytes(kRFC822TextSpace))
                         {
@@ -193,7 +192,7 @@ namespace work.bacome.imapclient
                             if (lOK)
                             {
                                 lBodies.Add(lABody);
-                                if (lABody.Section.Part == null && lABody.Origin == null && cHeaders.TryConstruct(lABody.Section, lABody.Bytes, out var lTemp)) lHeaders = lHeaders + lTemp;
+                                if (lABody.Section.Part == null && lABody.Origin == null && cHeaderFields.TryConstruct(lABody.Section, lABody.Bytes, out var lTemp)) lHeaderFields = lHeaderFields + lTemp;
                             }
                         }
                         else if (pCursor.SkipBytes(kUIDSpace))
@@ -241,7 +240,7 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    rResponseData = new cResponseDataFetch(lMSN, lAttributes, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lHeaderValues, lBinarySizesBuilder.AsBinarySizes(), lModSeq);
+                    rResponseData = new cResponseDataFetch(lMSN, lAttributes, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lHeaderFields, lBinarySizesBuilder.AsBinarySizes(), lModSeq);
                     return true;
                 }
 
@@ -298,26 +297,11 @@ namespace work.bacome.imapclient
                         lBaseSubject = cBaseSubject.Calculate(lSubject);
                     }
 
-                    string lInReplyTo;
-                    if (lInReplyToBytes == null || lInReplyToBytes.Count == 0) lInReplyTo = null;
-                    else lInReplyTo = ZInReplyTo(lInReplyToBytes);
-
-                    string lMessageId;
-                    if (lMessageIdBytes == null || lMessageIdBytes.Count == 0) lMessageId = null;
-                    else lMessageId = cTools.UTF8BytesToString(lMessageIdBytes);
+                    cHeaderFieldMsgIds.TryConstruct(cHeaderFieldNames.InReplyTo, lInReplyToBytes, out var lInReplyTo);
+                    cHeaderFieldMsgId.TryConstruct(cHeaderFieldNames.MessageId, lMessageIdBytes, out var lMessageId);
 
                     rEnvelope = new cEnvelope(lSent, lSubject, lBaseSubject, lFrom, lSender, lReplyTo, lTo, lCC, lBCC, lInReplyTo, lMessageId);
                     return true;
-                }
-
-                private static string ZInReplyTo(IList<byte> pInReplyToBytes)
-                {
-                    // parsing this is required for implementing threading TODO
-                    //  it has to be parsed according to the rfc822 spec (but see additions to this in 5322 - in particular the addition of a naked "." to a phrase)
-                    //   also see rfc822s assertion that it is assumed that one WSP between adjacent words ...
-                    //  NOTE that the parsing should find the FIRST thing that looks like a messageid and just set the value to that one messageid (see threading rfc5256 for an explanation)
-                    //
-                    return null;
                 }
 
                 private static bool ZProcessAddresses(cBytesCursor pCursor, out cAddresses rAddresses)
@@ -748,16 +732,16 @@ namespace work.bacome.imapclient
 
                         if (pCursor.SkipBytes(kHeaderFieldsSpace))
                         {
-                            if (!ZProcessHeaderFields(pCursor, out var lHeaderFields) || !pCursor.SkipByte(cASCII.RBRACKET)) { rSection = null; return false; }
-                            rSection = new cSection(lPart, lHeaderFields);
+                            if (!ZProcessFieldNames(pCursor, out var lNames) || !pCursor.SkipByte(cASCII.RBRACKET)) { rSection = null; return false; }
+                            rSection = new cSection(lPart, lNames);
                             return true;
                         }
 
 
                         if (pCursor.SkipBytes(kHeaderFieldsNotSpace))
                         {
-                            if (!ZProcessHeaderFields(pCursor, out var lHeaderFields) || !pCursor.SkipByte(cASCII.RBRACKET)) { rSection = null; return false; }
-                            rSection = new cSection(lPart, lHeaderFields, true);
+                            if (!ZProcessFieldNames(pCursor, out var lNames) || !pCursor.SkipByte(cASCII.RBRACKET)) { rSection = null; return false; }
+                            rSection = new cSection(lPart, lNames, true);
                             return true;
                         }
                     }
@@ -784,7 +768,7 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                private static bool ZProcessHeaderFields(cBytesCursor pCursor, out cHeaderNames rNames)
+                private static bool ZProcessFieldNames(cBytesCursor pCursor, out cHeaderFieldNames rNames)
                 {
                     if (!pCursor.SkipByte(cASCII.LPAREN)) { rNames = null; return false; }
 
@@ -799,7 +783,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rNames = null; return false; }
 
-                    return cHeaderNames.TryConstruct(lNames, out rNames));
+                    return cHeaderFieldNames.TryConstruct(lNames, out rNames);
                 }
 
                 private static bool ZProcessBinarySize(cBytesCursor pCursor, out string rPart, out uint rSize)
@@ -1159,7 +1143,7 @@ namespace work.bacome.imapclient
 
                     if (lData.Envelope.BCC != null || lData.Envelope.InReplyTo != null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.10");
 
-                    if (lData.Envelope.MessageId != "<B27397-0100000@cac.washington.edu>") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
+                    if (lData.Envelope.MessageId.MsgId != "B27397-0100000@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
 
                     lTextPart = lData.Body as cTextBodyPart;
                     if (lTextPart.SubType != "PLAIN" || lTextPart.Parameters.Count != 1 || lTextPart.Parameters["charset"].Value != "US-ASCII" || lTextPart.SizeInBytes != 3028 || lTextPart.SizeInLines != 92) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.1");
@@ -1189,7 +1173,7 @@ namespace work.bacome.imapclient
 
                     if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.1");
                     lBody = lData.Bodies[0];
-                    if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != eSectionPart.header || lBody.Section.HeaderFields != null || lBody.Origin != null || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.2");
+                    if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != eSectionPart.header || lBody.Section.Names != null || lBody.Origin != null || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.2.2");
 
 
                     lCursor = MakeCursor(
@@ -1211,7 +1195,7 @@ namespace work.bacome.imapclient
 
                     if (lData.Bodies.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.1");
                     lBody = lData.Bodies[0];
-                    if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != eSectionPart.header || lBody.Section.HeaderFields != null || lBody.Origin != 0 || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.2");
+                    if (lBody.Binary || lBody.Section.Part != null || lBody.Section.TextPart != eSectionPart.header || lBody.Section.Names != null || lBody.Origin != 0 || lBody.Bytes.Count != 342) throw new cTestsException($"{nameof(cResponseDataFetch)}.3.2");
 
 
                     //  "         1         2         3         4         5         6         7"
@@ -1326,10 +1310,10 @@ namespace work.bacome.imapclient
                         if (!cBytesCursor.TryConstruct(pText, out var lxCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.1.{pText}.{pBinary}.1");
                         if (!ZProcessSection(lxCursor, pBinary, out var lSection) || !lxCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.2");
                         if (lSection.Part != pExpectedPart || lSection.TextPart != pExpectedTextPart) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.3");
-                        if (pExpectedHeaderFields == null && lSection.HeaderFields == null) return;
-                        if (pExpectedHeaderFields == null || lSection.HeaderFields == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.4");
-                        if (pExpectedHeaderFields.Length != lSection.HeaderFields.Count) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.5");
-                        for (int i = 0; i < pExpectedHeaderFields.Length; i++) if (lSection.HeaderFields[i] != pExpectedHeaderFields[i]) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.6");
+                        if (pExpectedHeaderFields == null && lSection.Names == null) return;
+                        if (pExpectedHeaderFields == null || lSection.Names == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.4");
+                        if (pExpectedHeaderFields.Length != lSection.Names.Count) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.5");
+                        for (int i = 0; i < pExpectedHeaderFields.Length; i++) if (lSection.Names[i] != pExpectedHeaderFields[i]) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.6");
                     }
 
                     void LTestSectionFail(string pText, bool pBinary)
