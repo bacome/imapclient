@@ -274,15 +274,21 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
+            public void InvokeMessagePropertyChanged(iMessageHandle pHandle, string pPropertyName, cTrace.cContext pParentContext)
+            {
+                if (MessagePropertyChanged == null) return; // pre-check for efficiency only
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMessagePropertyChanged), pHandle, pPropertyName);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
+                ZInvokeAndForget(new cMessagePropertyChangedEventArgs(pHandle, pPropertyName), lContext);
+            }
+
             public void InvokeMessagePropertiesChanged(iMessageHandle pHandle, fMessageProperties pProperties, cTrace.cContext pParentContext)
             {
-                if (MessagePropertyChanged == null | pProperties == 0) return; // pre-checks for efficiency
+                if (MessagePropertyChanged == null || pProperties == 0) return; // pre-checks for efficiency
 
                 var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMessagePropertiesChanged), pHandle, pProperties);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
-
-                if ((pProperties & fMessageProperties.isexpunged) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsExpunged)));
 
                 if ((pProperties & fMessageProperties.flags) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Flags)));
                 if ((pProperties & fMessageProperties.isanswered) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsAnswered)));

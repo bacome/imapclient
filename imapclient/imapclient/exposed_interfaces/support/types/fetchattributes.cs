@@ -43,13 +43,11 @@ namespace work.bacome.imapclient.support
             if ((pProperties.Properties & fMessageProperties.importance) != 0) Names |= cHeaderFieldNames.Importance;
         }
 
-
-        /*
         public cFetchAttributes(fFetchAttributes pAttributes, cHeaderFieldNames pNames)
         {
             Attributes = pAttributes;
             Names = pNames ?? throw new ArgumentNullException(nameof(pNames));
-        } */
+        }
 
         public bool IsNone => Attributes == 0 && Names.Count == 0;
 

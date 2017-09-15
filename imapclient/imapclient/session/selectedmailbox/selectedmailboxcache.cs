@@ -249,7 +249,7 @@ namespace work.bacome.imapclient
                     }
                     else mUIDNextMessageCount--;
 
-                    mSynchroniser.InvokeMessagePropertiesChanged(lExpungedItem, fMessageProperties.isexpunged, lContext);
+                    mSynchroniser.InvokeMessagePropertyChanged(lExpungedItem, nameof(cMessage.IsExpunged), lContext);
                     ZSetMailboxStatus(lContext);
                 }
 

@@ -74,8 +74,8 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartBody = new cCommandPart("BODY");
                 private static readonly cCommandPart kCommandPartBodyStructure = new cCommandPart("BODYSTRUCTURE");
                 private static readonly cCommandPart kCommandPartUID = new cCommandPart("UID");
-                private static readonly cCommandPart kCommandPartReferences = new cCommandPart("BODY.PEEK[HEADER.FIELDS (references)]");
                 private static readonly cCommandPart kCommandPartModSeq = new cCommandPart("MODSEQ");
+                private static readonly cCommandPart kCommandPartHeaderFieldsPrefix = new cCommandPart("BODY.PEEK[HEADER.FIELDS ");
 
                 // fetch body
                 private static readonly cCommandPart kCommandPartHeader = new cCommandPart("HEADER");
@@ -126,12 +126,9 @@ namespace work.bacome.imapclient
                     if ((pAttributes & fFetchAttributes.references) != 0) mParts.Add(kCommandPartReferences); ;?;
                     if ((pAttributes & fFetchAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
 
-                    if (pAttributes.Names.Count > 0)
-                    {
-                        mParts.BeginList()
-                    }
-
-                    ;?; // add headers
+                    mParts.BeginList(eListBracketing.ifany, kCommandPartHeaderFieldsPrefix, cCommandPart.RBracket);
+                    foreach (var lName in pAttributes.Names) mParts.Add(cCommandPartFactory.AsASCIIAString(lName));
+                    mParts.EndList();
 
                     mParts.EndList();
                 }

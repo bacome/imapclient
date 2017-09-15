@@ -192,7 +192,6 @@ namespace work.bacome.imapclient
             if (pHandles.Count == 0) return;
             if (pProperties.IsNone) return;
             var lAttributes = new cFetchAttributes(pProperties);
-            if (lAttributes.IsNone) return; 
             if (pHandles.AllHaveAll(lAttributes)) return;
 
             cProgress lProgress;

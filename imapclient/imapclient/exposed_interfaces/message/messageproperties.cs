@@ -3,46 +3,48 @@
 namespace work.bacome.imapclient
 {
     [Flags]
-    public enum fMessageProperties : long
+    public enum fMessageProperties
     {
-        isexpunged = 1 << 0,
+        envelope = 1 << 0,
+        sent = 1 << 1,
+        subject = 1 << 2,
+        basesubject = 1 << 3,
+        from = 1 << 4,
+        sender = 1 << 5,
+        replyto = 1 << 6,
+        to = 1 << 7,
+        cc = 1 << 8,
+        bcc = 1 << 9,
+        inreplyto = 1 << 10,
+        messageid = 1 << 11,
 
-        envelope = 1 << 1,
-        sent = 1 << 2,
-        subject = 1 << 3,
-        basesubject = 1 << 4,
-        from = 1 << 5,
-        sender = 1 << 6,
-        replyto = 1 << 7,
-        to = 1 << 8,
-        cc = 1 << 9,
-        bcc = 1 << 10,
-        inreplyto = 1 << 11,
-        messageid = 1 << 12,
+        flags = 1 << 12,
+        isanswered = 1 << 13,
+        isflagged = 1 << 14,
+        isdeleted = 1 << 15,
+        isseen = 1 << 16,
+        isdraft = 1 << 17,
+        isrecent = 1 << 18,
+        ismdnsent = 1 << 19,
+        isforwarded = 1 << 20,
+        issubmitpending = 1 << 21,
+        issubmitted = 1 << 22,
 
-        flags = 1 << 13,
-        isanswered = 1 << 14,
-        isflagged = 1 << 15,
-        isdeleted = 1 << 16,
-        isseen = 1 << 17,
-        isdraft = 1 << 18,
-        isrecent = 1 << 19,
-        ismdnsent = 1 << 20,
-        isforwarded = 1 << 21,
-        issubmitpending = 1 << 22,
-        issubmitted = 1 << 23,
+        received = 1 << 23,
+        size = 1 << 24,
+        uid = 1 << 25,
+        modseq = 1 << 26,
 
-        received = 1 << 24,
-        size = 1 << 25,
-        uid = 1 << 26,
-        modseq = 1 << 27,
+        bodystructure = 1 << 27,
+        attachments = 1 << 28,
+        plaintextsizeinbytes = 1 << 29,
 
-        bodystructure = 1 << 28,
-        attachments = 1 << 29,
-        plaintextsizeinbytes = 1 << 30,
+        references = 1 << 30,
+        importance = 1 << 31
 
-        references = 1 << 31,
-        importance = 1L << 32
+        // addig one will require conversion to a long AND use of 1L in the shift
+        //    public enum fMessageProperties : long
+        //         importance = 1L << 31
     }
 
     public class cMessageProperties
