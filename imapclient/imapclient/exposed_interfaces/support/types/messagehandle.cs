@@ -19,7 +19,8 @@ namespace work.bacome.imapclient.support
         cHeaderFields HeaderFields { get; }
         cBinarySizes BinarySizes { get; }
 
-        bool Has(cFetchAttributes pAttributes);
+        bool ContainsAll(cFetchAttributes pAttributes);
+        bool ContainsNone(cFetchAttributes pAttributes);
         cFetchAttributes Missing(cFetchAttributes pAttributes);
     }
 }

@@ -19,32 +19,9 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 mMailboxCache.CheckInSelectedMailbox(pHandles); // to be repeated inside the select lock
 
-                // always get the flags and modseq together
-                var lAttributes = ZFetchAttributes(pAttributes, lContext);
-
                 // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
                 foreach (var lGroup in ZFetchAttributesGroups(pHandles, pAttributes)) await ZFetchAttributesAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
             }
-
-            /*
-            private fFetchAttributes ZFetchAttributes(fFetchAttributes pAttributes, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributes), pAttributes);
-
-                if ((pAttributes & (fFetchAttributes.flags | fFetchAttributes.modseq)) == 0) return pAttributes;
-
-                bool lNoModSeq = mMailboxCache.SelectedMailboxDetails?.Cache.NoModSeq ?? true;
-
-                if ((pAttributes & fFetchAttributes.modseq) != 0)
-                {
-                    if (lNoModSeq) throw new cUnsupportedByMailboxException(fKnownCapabilities.condstore, lContext);
-                    return pAttributes | fFetchAttributes.flags;
-                }
-
-                if (!lNoModSeq) return pAttributes | fFetchAttributes.modseq;
-
-                return pAttributes;
-            } */
 
             private async Task ZFetchAttributesAsync(cMethodControl pMC, cFetchAttributesGroup pGroup, cProgress pProgress, cTrace.cContext pParentContext)
             {

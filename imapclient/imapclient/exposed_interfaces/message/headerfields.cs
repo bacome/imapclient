@@ -141,6 +141,12 @@ namespace work.bacome.imapclient
             else return pNames.Except(mNames).Count == 0;
         }
 
+        public bool ContainsNone(cHeaderFieldNames pNames)
+        {
+            if (mNot) return pNames.Except(mNames).Count == 0;
+            else return pNames.Intersect(mNames).Count == 0;
+        }
+
         public cHeaderFieldNames Missing(cHeaderFieldNames pNames)
         {
             if (mNot) return pNames.Intersect(mNames);

@@ -17,13 +17,17 @@ namespace work.bacome.imapclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
+                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
+                if (pAttributes == null) throw new ArgumentNullException(nameof(pAttributes));
+                if (pProgress == null) throw new ArgumentNullException(nameof(pProgress));
+
+                if (pUIDs.Count == 0) throw new ArgumentOutOfRangeException(nameof(pUIDs));
+                if (pAttributes.IsNone) throw new ArgumentOutOfRangeException(nameof(pAttributes));
+
                 uint lUIDValidity = pUIDs[0].UIDValidity;
 
                 mMailboxCache.CheckIsSelectedMailbox(pHandle, lUIDValidity); // to be repeated inside the select lock
-
-                // always get the flags and modseq together
-                // var lAttributes = ZFetchAttributes(pAttributes, lContext);
-                ;?;
 
                 // split the list into those messages I have handles for and those I dont
                 /////////////////////////////////////////////////////////////////////////
@@ -41,8 +45,7 @@ namespace work.bacome.imapclient
                     {
                         var lHandle = lSelectedMailbox.GetHandle(lUID);
                         if (lHandle == null) lUIDs.Add(lUID); // don't have a handle
-                        ;?;
-                        else if((~lHandle.Attributes & lAttributes) == lAttributes) lUIDs.Add(lUID); // have to get all the attributes, may as well fetch them with the ones where I might need all the attributes
+                        if (lHandle.ContainsNone(pAttributes)) lUIDs.Add(lUID); // have to get all the attributes, may as well fetch them with the ones where I might need all the attributes
                         else lHandles.Add(lHandle);
                     }
                 }
@@ -53,7 +56,7 @@ namespace work.bacome.imapclient
                 if (lHandles.Count > 0)
                 {
                     // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                    foreach (var lGroup in ZFetchAttributesGroups(lHandles, lAttributes)) await ZFetchAttributesAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
+                    foreach (var lGroup in ZFetchAttributesGroups(lHandles, pAttributes)) await ZFetchAttributesAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
                 }
 
                 // for the messages only identified by UID or where I have to get all the attributes
@@ -61,7 +64,7 @@ namespace work.bacome.imapclient
 
                 if (lUIDs.Count > 0)
                 {
-                    await ZUIDFetchAttributesAsync(pMC, pHandle, lUIDs, lAttributes, pProgress, lContext).ConfigureAwait(false);
+                    await ZUIDFetchAttributesAsync(pMC, pHandle, lUIDs, pAttributes, pProgress, lContext).ConfigureAwait(false);
 
                     // resolve uids -> handles whilst blocking select exclusive access
                     //
@@ -80,7 +83,7 @@ namespace work.bacome.imapclient
                 return lHandles;
             }
 
-            private async Task ZUIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, fFetchAttributes pAttributes, cProgress pProgress, cTrace.cContext pParentContext)
+            private async Task ZUIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, cFetchAttributes pAttributes, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAttributesAsync), pMC, pHandle, pUIDs, pAttributes);
 

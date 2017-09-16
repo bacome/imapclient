@@ -36,7 +36,8 @@ namespace work.bacome.imapclient
                 public cHeaderFields HeaderFields { get; private set; } = null;
                 public cBinarySizes BinarySizes { get; private set; } = null;
 
-                public bool Has(cFetchAttributes pAttributes) => (~mAttributes & pAttributes.Attributes) == 0 && HeaderFields.ContainsAll(pAttributes.Names);
+                public bool ContainsAll(cFetchAttributes pAttributes) => (~mAttributes & pAttributes.Attributes) == 0 && HeaderFields.ContainsAll(pAttributes.Names);
+                public bool ContainsNone(cFetchAttributes pAttributes) => (~mAttributes & pAttributes.Attributes) == pAttributes.Attributes && HeaderFields.ContainsNone(pAttributes.Names);
                 public cFetchAttributes Missing(cFetchAttributes pAttributes) => new cFetchAttributes(~mAttributes & pAttributes.Attributes, HeaderFields.Missing(pAttributes.Names));
 
                 public void SetExpunged() => mExpunged = true;

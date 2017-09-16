@@ -79,8 +79,8 @@ namespace work.bacome.imapclient
 
                 // fetch body
                 private static readonly cCommandPart kCommandPartHeader = new cCommandPart("HEADER");
-                private static readonly cCommandPart kCommandPartHeaderFields = new cCommandPart("HEADER.FIELDS(");
-                private static readonly cCommandPart kCommandPartHeaderFieldsNot = new cCommandPart("HEADER.FIELDS.NOT(");
+                private static readonly cCommandPart kCommandPartHeaderFieldsSpaceLParen = new cCommandPart("HEADER.FIELDS (");
+                private static readonly cCommandPart kCommandPartHeaderFieldsNotSpaceLParen = new cCommandPart("HEADER.FIELDS.NOT (");
                 private static readonly cCommandPart kCommandPartText = new cCommandPart("TEXT");
                 private static readonly cCommandPart kCommandPartMime = new cCommandPart("MIME");
                 private static readonly cCommandPart kCommandPartLessThan = new cCommandPart("<");
@@ -113,22 +113,27 @@ namespace work.bacome.imapclient
                 {
                     if (mEmitted) throw new InvalidOperationException();
 
-                    ;?; // if asking for flags get modseq if nomodseq is false, if asking for modseq get flags (but not modseq if nomodseq is true)
+                    fFetchAttributes lAttributes = pAttributes.Attributes;
+                    if ((lAttributes & (fFetchAttributes.flags | fFetchAttributes.modseq)) != 0) lAttributes |= fFetchAttributes.flags | fFetchAttributes.modseq;
+                    if (pNoModSeq) lAttributes = lAttributes & ~fFetchAttributes.modseq;
 
                     mParts.BeginList(eListBracketing.ifmorethanone);
-                    if ((pAttributes & fFetchAttributes.flags) != 0) mParts.Add(kCommandPartFlags);
-                    if ((pAttributes & fFetchAttributes.envelope) != 0) mParts.Add(kCommandPartEnvelope);
-                    if ((pAttributes & fFetchAttributes.received) != 0) mParts.Add(kCommandPartInternalDate);
-                    if ((pAttributes & fFetchAttributes.size) != 0) mParts.Add(kCommandPartrfc822size);
-                    if ((pAttributes & fFetchAttributes.body) != 0) mParts.Add(kCommandPartBody);
-                    if ((pAttributes & fFetchAttributes.bodystructure) != 0) mParts.Add(kCommandPartBodyStructure);
-                    if ((pAttributes & fFetchAttributes.uid) != 0) mParts.Add(kCommandPartUID);
-                    if ((pAttributes & fFetchAttributes.references) != 0) mParts.Add(kCommandPartReferences); ;?;
-                    if ((pAttributes & fFetchAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
 
-                    mParts.BeginList(eListBracketing.ifany, kCommandPartHeaderFieldsPrefix, cCommandPart.RBracket);
-                    foreach (var lName in pAttributes.Names) mParts.Add(cCommandPartFactory.AsASCIIAString(lName));
-                    mParts.EndList();
+                    if ((lAttributes & fFetchAttributes.flags) != 0) mParts.Add(kCommandPartFlags);
+                    if ((lAttributes & fFetchAttributes.envelope) != 0) mParts.Add(kCommandPartEnvelope);
+                    if ((lAttributes & fFetchAttributes.received) != 0) mParts.Add(kCommandPartInternalDate);
+                    if ((lAttributes & fFetchAttributes.size) != 0) mParts.Add(kCommandPartrfc822size);
+                    if ((lAttributes & fFetchAttributes.body) != 0) mParts.Add(kCommandPartBody);
+                    if ((lAttributes & fFetchAttributes.bodystructure) != 0) mParts.Add(kCommandPartBodyStructure);
+                    if ((lAttributes & fFetchAttributes.uid) != 0) mParts.Add(kCommandPartUID);
+                    if ((lAttributes & fFetchAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
+
+                    if (pAttributes.Names.Count > 0)
+                    {
+                        mParts.BeginList(eListBracketing.bracketed, kCommandPartHeaderFieldsPrefix, cCommandPart.RBracket);
+                        foreach (var lName in pAttributes.Names) mParts.Add(cCommandPartFactory.AsASCIIAString(lName));
+                        mParts.EndList();
+                    }
 
                     mParts.EndList();
                 }
@@ -517,15 +522,15 @@ namespace work.bacome.imapclient
 
                         case eSectionPart.headerfields:
 
-                            mParts.Add(kCommandPartHeaderFields);
-                            LAdd(pSection.HeaderFields);
+                            mParts.Add(kCommandPartHeaderFieldsSpaceLParen);
+                            LAdd(pSection.Names);
                             mParts.Add(cCommandPart.RParen);
                             break;
 
                         case eSectionPart.headerfieldsnot:
 
-                            mParts.Add(kCommandPartHeaderFieldsNot);
-                            LAdd(pSection.HeaderFields);
+                            mParts.Add(kCommandPartHeaderFieldsNotSpaceLParen);
+                            LAdd(pSection.Names);
                             mParts.Add(cCommandPart.RParen);
                             break;
 
@@ -546,10 +551,10 @@ namespace work.bacome.imapclient
 
                     mParts.Add(cCommandPart.RBracket, kCommandPartLessThan, new cCommandPart(pOrigin), cCommandPart.Dot, new cCommandPart(pLength), kCommandPartGreaterThan);
 
-                    void LAdd(cStrings pStrings)
+                    void LAdd(cHeaderFieldNames pNames)
                     {
                         mParts.BeginList(eListBracketing.none);
-                        foreach (var lString in pStrings) mParts.Add(cCommandPartFactory.AsASCIIAString(lString));
+                        foreach (var lName in pNames) mParts.Add(cCommandPartFactory.AsASCIIAString(lName));
                         mParts.EndList();
                     }
                 }
