@@ -259,7 +259,7 @@ namespace work.bacome.imapclient
 
                     var lFetchedItem = mItems[(int)pFetch.MSN - 1];
 
-                    lFetchedItem.Update(mUIDValidity, mNoModSeq, pFetch, out var lAttributesSet, out var lKnownMessageFlagsSet, out var lProperties);
+                    lFetchedItem.Update(pFetch, out var lAttributesSet, out var lKnownMessageFlagsSet, out var lProperties);
 
                     bool lSetMailboxStatus = false;
 

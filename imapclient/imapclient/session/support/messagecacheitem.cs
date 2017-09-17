@@ -12,13 +12,25 @@ namespace work.bacome.imapclient
                 private readonly iMessageCache mCache;
                 private readonly int mCacheSequence;
                 private bool mExpunged = false;
-                private fFetchAttributes mAttributes = 0;
+                private fFetchAttributes mAttributes;
                 private cBodyPart mBody = null;
+                private ulong? mModSeq;
 
                 public cMessageCacheItem(iMessageCache pCache, int pCacheSequence)
                 {
                     mCache = pCache ?? throw new ArgumentNullException(nameof(pCache));
                     mCacheSequence = pCacheSequence;
+
+                    if (pCache.NoModSeq)
+                    {
+                        mAttributes = fFetchAttributes.modseq;
+                        mModSeq = 0;
+                    }
+                    else
+                    {
+                        mAttributes = 0;
+                        mModSeq = null;
+                    }
                 }
 
                 public iMessageCache Cache => mCache;
@@ -29,10 +41,10 @@ namespace work.bacome.imapclient
                 public cBodyPart BodyStructure { get; private set; } = null;
                 public cEnvelope Envelope { get; private set; } = null;
                 public cMessageFlags Flags { get; private set; } = null;
+                public ulong? ModSeq => mModSeq;
                 public DateTime? Received { get; private set; } = null;
                 public uint? Size { get; private set; } = null;
                 public cUID UID { get; private set; } = null;
-                public ulong? ModSeq { get; private set; } = null;
                 public cHeaderFields HeaderFields { get; private set; } = null;
                 public cBinarySizes BinarySizes { get; private set; } = null;
 
@@ -42,7 +54,7 @@ namespace work.bacome.imapclient
 
                 public void SetExpunged() => mExpunged = true;
 
-                public void Update(uint pUIDValidity, bool pNoModSeq, cResponseDataFetch lFetch, out fFetchAttributes rAttributesSet, out fKnownMessageFlags rKnownMessageFlagsSet, out fMessageProperties rDifferences)
+                public void Update(cResponseDataFetch lFetch, out fFetchAttributes rAttributesSet, out fKnownMessageFlags rKnownMessageFlagsSet, out fMessageProperties rDifferences)
                 {
                     rAttributesSet = ~mAttributes & lFetch.Attributes;
                     rKnownMessageFlagsSet = 0;
@@ -62,16 +74,16 @@ namespace work.bacome.imapclient
                     if ((rAttributesSet & fFetchAttributes.size) != 0) Size = lFetch.Size;
                     if ((rAttributesSet & fFetchAttributes.body) != 0) mBody = lFetch.Body;
                     if ((rAttributesSet & fFetchAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
-                    if ((rAttributesSet & fFetchAttributes.uid) != 0 && pUIDValidity != 0) UID = new cUID(pUIDValidity, lFetch.UID.Value);
+                    if ((rAttributesSet & fFetchAttributes.uid) != 0 && mCache.UIDValidity != 0) UID = new cUID(mCache.UIDValidity, lFetch.UID.Value);
 
-                    if (!pNoModSeq)
+                    if (!Cache.NoModSeq)
                     {
-                        if ((rAttributesSet & fFetchAttributes.modseq) != 0) ModSeq = lFetch.ModSeq;
-                        else if (lFetch.ModSeq != null && lFetch.ModSeq != ModSeq)
+                        if ((rAttributesSet & fFetchAttributes.modseq) != 0) mModSeq = lFetch.ModSeq;
+                        else if (lFetch.ModSeq != null && lFetch.ModSeq != mModSeq)
                         {
                             rAttributesSet |= fFetchAttributes.modseq;
                             rDifferences |= fMessageProperties.modseq;
-                            ModSeq = lFetch.ModSeq;
+                            mModSeq = lFetch.ModSeq;
                         }
                     }
 
