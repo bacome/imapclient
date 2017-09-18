@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
 
         public readonly eImportance Importance;
 
-        public cHeaderFieldImportance(cBytes pValue, eImportance pImportance) : base(cHeaderFieldNames.Importance, pValue) { Importance = pImportance; }
+        private cHeaderFieldImportance(cBytes pValue, eImportance pImportance) : base(cHeaderFieldNames.Importance, pValue) { Importance = pImportance; }
 
         public static bool TryConstruct(IList<byte> pValue, out cHeaderFieldImportance rImportance)
         {
@@ -67,7 +67,7 @@ namespace work.bacome.imapclient
     {
         public readonly string MsgId;
 
-        public cHeaderFieldMsgId(string pName, cBytes pValue, string pMsgId) : base(pName, pValue) { MsgId = pMsgId; }
+        private cHeaderFieldMsgId(string pName, cBytes pValue, string pMsgId) : base(pName, pValue) { MsgId = pMsgId; }
 
         public static bool TryConstruct(string pName, IList<byte> pValue, out cHeaderFieldMsgId rMsgId)
         {
@@ -92,7 +92,7 @@ namespace work.bacome.imapclient
     {
         public readonly cStrings MsgIds;
 
-        public cHeaderFieldMsgIds(string pName, cBytes pValue, cStrings pMsgIds) : base(pName, pValue) { MsgIds = pMsgIds; }
+        private cHeaderFieldMsgIds(string pName, cBytes pValue, cStrings pMsgIds) : base(pName, pValue) { MsgIds = pMsgIds; }
 
         public static bool TryConstruct(string pName, IList<byte> pValue, out cHeaderFieldMsgIds rMsgIds)
         {
@@ -127,7 +127,7 @@ namespace work.bacome.imapclient
         private readonly bool mNot;
         private readonly ReadOnlyCollection<cHeaderField> mFields; // not null (may be empty)
 
-        public cHeaderFields(cHeaderFieldNames pNames, bool pNot, IList<cHeaderField> pFields)
+        private cHeaderFields(cHeaderFieldNames pNames, bool pNot, IList<cHeaderField> pFields)
         {
             mNames = pNames ?? throw new ArgumentNullException(nameof(pNames));
             mNot = pNot;
@@ -287,13 +287,15 @@ namespace work.bacome.imapclient
 
             // especially contains, containsall and the various join types
 
+            cHeaderFieldNames lABCDE = new cHeaderFieldNames("a", "B", "c", "D", "e");
+            cHeaderFieldNames lDEFGH = new cHeaderFieldNames("f", "g", "h", "D", "e");
+            cHeaderFieldNames lGHIJK = new cHeaderFieldNames("i", "g", "h", "j", "K");
+            cHeaderFieldNames lMissing;
+            cHeaderField lHeaderField;
+            IEnumerable<cHeaderField> lHeaderFields;
+            cStrings lStrings;
 
-
-
-
-
-
-            cBytes lWhole =
+            cBytes lWholeMsg =
                 new cBytes(
                     "angus:  value of angus\r\n" +
                     "fred      :     value of fred      \r\n" +
@@ -306,6 +308,36 @@ namespace work.bacome.imapclient
                     "anotherone: just in case\r\n" +
                     "\r\n" +
                     "check: stop\r\n");
+
+            if (!TryConstruct(cSection.All, lWholeMsg, out var lWholeMsgHeaders)) throw new cTestsException($"{nameof(cHeaderFields)}.1.1");
+
+            if (!lWholeMsgHeaders.Contains("a")) throw new cTestsException($"{nameof(cHeaderFields)}.1.2");
+            if (!lWholeMsgHeaders.ContainsAll(lABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.1.3");
+            if (!lWholeMsgHeaders.ContainsAll(lDEFGH)) throw new cTestsException($"{nameof(cHeaderFields)}.1.4");
+            if (!lWholeMsgHeaders.ContainsAll(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.1.5");
+            if (lWholeMsgHeaders.ContainsNone(lABCDE) || lWholeMsgHeaders.ContainsNone(lDEFGH) || lWholeMsgHeaders.ContainsNone(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.1.6");
+
+            if (lWholeMsgHeaders.Missing(lABCDE).Count != 0 || lWholeMsgHeaders.Missing(lDEFGH).Count != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.7");
+
+            if (cTools.ASCIIBytesToString(lWholeMsgHeaders.First("fred").Value) != "     value of fred      \r\n") throw new cTestsException($"{nameof(cHeaderFields)}.1.8");
+            if (cTools.ASCIIBytesToString(lWholeMsgHeaders.First("a").Value) != null) throw new cTestsException($"{nameof(cHeaderFields)}.1.9");
+
+            if (lWholeMsgHeaders.All("fred").Count() != 1) throw new cTestsException($"{nameof(cHeaderFields)}.1.10");
+            if (lWholeMsgHeaders.All("a").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.11");
+            if (lWholeMsgHeaders.All("mEsSaGe-ID").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.1.12");
+
+            if (!lWholeMsgHeaders.All("mEsSaGe-ID").All(h => h is cHeaderFieldMsgId lMsgId && lMsgId.MsgId == "1234@local.machine.example")) throw new cTestsException($"{nameof(cHeaderFields)}.1.13");
+
+            if (lWholeMsgHeaders.MessageId != "1234@local.machine.example") throw new cTestsException($"{nameof(cHeaderFields)}.1.14");
+
+            lStrings = lWholeMsgHeaders.InReplyTo;
+            if (lStrings.Count != 3 || !lStrings.Contains("12341@local.machine.example") || !lStrings.Contains("12342@local.machine.example") || !lStrings.Contains("12343@local.machine.example")) throw new cTestsException($"{nameof(cHeaderFields)}.1.15");
+
+            ;?; // more
+
+
+
+            // and some not ones
 
             cSection lABCDE = ;?; new cSection(null, new cHeaderFieldNames("angus", "fred", "charlie", "max"));
 
