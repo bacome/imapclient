@@ -16,9 +16,11 @@ namespace work.bacome.imapclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+
                 if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
-                if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
                 if (pAttributes == null) throw new ArgumentNullException(nameof(pAttributes));
+
+                if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
                 if (pAttributes.IsNone) throw new ArgumentOutOfRangeException(nameof(pAttributes));
 
                 using (var lBuilder = new cCommandDetailsBuilder())

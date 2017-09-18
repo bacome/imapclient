@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
 
             public cId ServerId => mIdResponseDataProcessor?.ServerId;
 
-            public async Task IdAsync(cMethodControl pMC, cIdDictionary pClientId, cTrace.cContext pParentContext)
+            public async Task IdAsync(cMethodControl pMC, cId pClientId, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(IdAsync), pMC, pClientId);
 

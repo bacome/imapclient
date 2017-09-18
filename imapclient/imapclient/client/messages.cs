@@ -120,6 +120,7 @@ namespace work.bacome.imapclient
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pFilter == null) throw new ArgumentNullException(nameof(pFilter));
             if (pSort == null) throw new ArgumentNullException(nameof(pSort));
+            if (pProperties == null) throw new ArgumentNullException(nameof(pProperties));
 
             cMessageProperties lProperties;
 
@@ -145,15 +146,12 @@ namespace work.bacome.imapclient
             if (lSession.Capabilities.ESearch) lHandles = await lSession.SearchExtendedAsync(pMC, pHandle, pFilter, lContext).ConfigureAwait(false);
             else lHandles = await lSession.SearchAsync(pMC, pHandle, pFilter, lContext).ConfigureAwait(false);
 
-            if (ReferenceEquals(pSort, cSort.None))
-            {
-                await ZMessagesFetchAsync(pMC, lSession, lHandles, lProperties, pConfiguration, lContext).ConfigureAwait(false);
-                return ZMessagesFlatMessageList(lHandles, lContext);
-            }
+            // get the properties
+            await ZMessagesFetchAsync(pMC, lSession, lHandles, lProperties, pConfiguration, lContext).ConfigureAwait(false);
+
+            if (ReferenceEquals(pSort, cSort.None)) return ZMessagesFlatMessageList(lHandles, lContext);
 
             // client side sorting
-
-            await ZMessagesFetchAsync(pMC, lSession, lHandles, lProperties, pConfiguration, lContext).ConfigureAwait(false);
 
             if (ReferenceEquals(pSort, cSort.ThreadOrderedSubject)) return ZMessagesThreadOrderedSubject(lHandles, lContext);
             if (ReferenceEquals(pSort, cSort.ThreadReferences)) return ZMessagesThreadReferences(lHandles, lContext);
@@ -191,8 +189,9 @@ namespace work.bacome.imapclient
 
             if (pHandles.Count == 0) return;
             if (pProperties.IsNone) return;
+
             var lAttributes = new cFetchAttributes(pProperties);
-            if (pHandles.AllHaveAll(lAttributes)) return;
+            if (pHandles.AllContainAll(lAttributes)) return;
 
             cProgress lProgress;
 

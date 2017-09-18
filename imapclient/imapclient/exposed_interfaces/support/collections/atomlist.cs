@@ -9,13 +9,13 @@ namespace work.bacome.imapclient.support
 
         public cUniqueIgnoreCaseStringList() { }
 
-        public bool Contains(string pAtom) => mDictionary.ContainsKey(pAtom);
+        public bool Contains(string pString) => mDictionary.ContainsKey(pString);
 
-        public void Add(string pAtom)
+        public void Add(string pString)
         {
-            if (pAtom == null) throw new ArgumentNullException(nameof(pAtom));
-            if (mDictionary.ContainsKey(pAtom)) return;
-            mDictionary.Add(pAtom, true);
+            if (pString == null) throw new ArgumentNullException(nameof(pString));
+            if (mDictionary.ContainsKey(pString)) return;
+            mDictionary.Add(pString, true);
         }
 
         public int Count => mDictionary.Count;

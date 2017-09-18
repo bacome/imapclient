@@ -27,6 +27,8 @@ namespace work.bacome.imapclient.support
 
         public cFetchAttributes(cMessageProperties pProperties)
         {
+            if (pProperties == null) throw new ArgumentNullException(nameof(pProperties));
+
             Attributes = 0;
 
             if ((pProperties.Properties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0) Attributes |= fFetchAttributes.envelope;

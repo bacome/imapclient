@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using work.bacome.imapclient.support;
+using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
@@ -220,7 +222,7 @@ namespace work.bacome.imapclient
             if (pSection.TextPart == eSectionPart.headerfields || pSection.TextPart == eSectionPart.headerfieldsnot) lNames = pSection.Names;
             else lNames = cHeaderFieldNames.None;
 
-            rFields = new cHeaderFields(lNames, pSection.TextPart == eSectionPart.headerfieldsnot, lFields);
+            rFields = new cHeaderFields(lNames, pSection.TextPart != eSectionPart.headerfields, lFields);
             return true;
         }
 
@@ -278,11 +280,84 @@ namespace work.bacome.imapclient
 
 
 
-        public static void _Tests()
+        [Conditional("DEBUG")]
+        public static void _Tests(cTrace.cContext pParentContext)
         {
-            ;?;
+            var lContext = pParentContext.NewMethod(nameof(cHeaderFields), nameof(_Tests));
 
             // especially contains, containsall and the various join types
+
+
+
+
+
+
+
+            cBytes lWhole =
+                new cBytes(
+                    "angus:  value of angus\r\n" +
+                    "fred      :     value of fred      \r\n" +
+                    "charlie  \t  :   value    \r\n    \t    of    \r\n   charlie  \t\t   \r\n" +
+                    "message-id   :  <1234@local.machine.example>  \r\n" +
+                    "MESSAGE-id   <1234   @   local(blah)  .machine .example> \r\n" +
+                    "IN-reply-TO:    <12341@local.machine.example><12342@local.machine.example>\r\n\t<12343@local.machine.example>\r\n" +
+                    "REfEReNCeS:\r\n\t<12344@local.machine.example>\r\n\t<12345@local.machine.example>\r\n" +
+                    "Importance: low\r\n" +
+                    "anotherone: just in case\r\n" +
+                    "\r\n" +
+                    "check: stop\r\n");
+
+            cSection lABCDE = ;?; new cSection(null, new cHeaderFieldNames("angus", "fred", "charlie", "max"));
+
+            ;?;
+            cBytes ABCDE =
+                new cBytes(
+                    "a:  arnie\r\n" +
+                    "b      :     barney     \r\n" + 
+                    "c      :     charlie      \r\n");
+
+            cBytes DEF =
+                new cBytes(
+                    "d:  danny\r\n" +
+                    "e      :     ernie      \r\n" +
+                    "f      :     freddy      \r\n");
+
+            cBytes CDE =
+                new cBytes(
+                    "c      :     charlie      \r\n" +
+                    "d:  danny\r\n" +
+                    "e      :     ernie      \r\n"  );
+
+            cBytes lInvalid1 =
+                new cBytes(
+                    "angus:  value of angus\r\n" +
+                    "a test      :     value of fred      \r\n");
+
+            cBytes lInvalid2 =
+                new cBytes(
+                    "angus:  value of angus\r\n" +
+                    "fred      :     value of fred     \r\n ");
+
+            if (!TryConstruct(cSection.All, lWhole, out var lFieldsAll)) throw new cTestsException($"{nameof(cHeaderFields)}.1.1");
+            if (!TryConstruct(lNone, lWhole, out var lFieldsNone)) throw new cTestsException($"{nameof(cHeaderFields)}.1.2");
+            if (!TryConstruct(lAFC, lSome, out var lFieldsAFC)) throw new cTestsException($"{nameof(cHeaderFields)}.1.3");
+            if (TryConstruct(lAll, lInvalid1, out var lFieldsInvalid1)) throw new cTestsException($"{nameof(cHeaderFields)}.1.4");
+            if (TryConstruct(lAll, lInvalid2, out var lFieldsInvalid2)) throw new cTestsException($"{nameof(cHeaderFields)}.1.5");
+
+
+            if (!lFields1.Contains("mike") || !lFields1.Contains("angus")) throw new cTestsException($"{nameof(cHeaderFields)}.3");
+
+
+
+
+
+
+
+
+
+
+
+
         }
     }
 }

@@ -13,7 +13,7 @@ namespace work.bacome.imapclient.support
             cBytesCursor lCursor;
             string lString;
             DateTime lDate;
-            cBytes lBytes;
+            cByteList lByteList;
 
 
             // tests for WSP
@@ -53,17 +53,17 @@ namespace work.bacome.imapclient.support
             // header values
             TryConstruct("   \t  \r\nHeader    \t:      \r\n\t       \t\r\n\r\n", out lCursor);
 
-            if (lCursor.GetRFC822FieldName(out lString) || !lCursor.GetRFC822FieldValue(out lBytes) || cTools.UTF8BytesToString(lBytes) != "   \t  ") throw new cTestsException("header 1.1");
-            if (!lCursor.GetRFC822FieldName(out lString) || lString != "Header" || !lCursor.SkipRFC822WSP() || !lCursor.SkipByte(cASCII.COLON) || !lCursor.GetRFC822FieldValue(out lBytes) || cTools.UTF8BytesToString(lBytes) != "      \t       \t") throw new cTestsException("header 1.2");
+            if (lCursor.GetRFC822FieldName(out lString) || !lCursor.GetRFC822FieldValue(out lByteList) || cTools.UTF8BytesToString(lByteList) != "   \t  ") throw new cTestsException("header 1.1");
+            if (!lCursor.GetRFC822FieldName(out lString) || lString != "Header" || !lCursor.SkipRFC822WSP() || !lCursor.SkipByte(cASCII.COLON) || !lCursor.GetRFC822FieldValue(out lByteList) || cTools.UTF8BytesToString(lByteList) != "      \t       \t") throw new cTestsException("header 1.2");
 
             TryConstruct("Header  \t  :      \r\n        \t\r\nFred", out lCursor);
-            if (!lCursor.GetRFC822FieldName(out lString) || lString != "Header" || !lCursor.SkipRFC822WSP() || !lCursor.SkipByte(cASCII.COLON) || !lCursor.GetRFC822FieldValue(out lBytes) || cTools.UTF8BytesToString(lBytes) != "              \t") throw new cTestsException("header 2.1");
+            if (!lCursor.GetRFC822FieldName(out lString) || lString != "Header" || !lCursor.SkipRFC822WSP() || !lCursor.SkipByte(cASCII.COLON) || !lCursor.GetRFC822FieldValue(out lByteList) || cTools.UTF8BytesToString(lByteList) != "              \t") throw new cTestsException("header 2.1");
 
             TryConstruct("Header:\r\n  this  is  \r\n   the\tvalue     \t\r\n", out lCursor);
-            if (!lCursor.GetRFC822FieldName(out lString) || lString != "Header" || lCursor.SkipRFC822WSP() || !lCursor.SkipByte(cASCII.COLON) || !lCursor.GetRFC822FieldValue(out lBytes) || cTools.UTF8BytesToString(lBytes) != "  this  is     the\tvalue     \t") throw new cTestsException("header 3.1");
+            if (!lCursor.GetRFC822FieldName(out lString) || lString != "Header" || lCursor.SkipRFC822WSP() || !lCursor.SkipByte(cASCII.COLON) || !lCursor.GetRFC822FieldValue(out lByteList) || cTools.UTF8BytesToString(lByteList) != "  this  is     the\tvalue     \t") throw new cTestsException("header 3.1");
 
             TryConstruct("Header:\r\n   should   \r\n    fail    \t\r\n more stuff", out lCursor);
-            if (!lCursor.GetRFC822FieldName(out lString) || lString != "Header" || lCursor.SkipRFC822WSP() || !lCursor.SkipByte(cASCII.COLON) || lCursor.GetRFC822FieldValue(out lBytes)) throw new cTestsException("header 4.1");
+            if (!lCursor.GetRFC822FieldName(out lString) || lString != "Header" || lCursor.SkipRFC822WSP() || !lCursor.SkipByte(cASCII.COLON) || lCursor.GetRFC822FieldValue(out lByteList)) throw new cTestsException("header 4.1");
 
 
             // atoms
@@ -103,7 +103,7 @@ namespace work.bacome.imapclient.support
             if (!lCursor.GetDomainLiteral(out lString) || lString != "[the name com]") throw new cTestsException("domain literal 1.3");
             if (!lCursor.GetDomainLiteral(out lString) || lString != "[[ fr€d]") throw new cTestsException("domain literal 1.4");
             if (lCursor.GetDomainLiteral(out lString)) throw new cTestsException("domain literal 1.5");
-            if (!lCursor.GetRFC822FieldValue(out lBytes) || cTools.UTF8BytesToString(lBytes) != "[    [   ]   ") throw new cTestsException("domain literal 1.6");
+            if (!lCursor.GetRFC822FieldValue(out lByteList) || cTools.UTF8BytesToString(lByteList) != "[    [   ]   ") throw new cTestsException("domain literal 1.6");
 
             // domain
             TryConstruct("    \t   (first a dot-atom form)   fred.angus.bart   (now a obs form)    frxd  \t   .       angxs     .   \t  bxrt      (now a\r\n literal)     [    192.168.1.1     ]       \r\nNextHeader", out lCursor);
@@ -111,7 +111,7 @@ namespace work.bacome.imapclient.support
             if (!lCursor.GetRFC822Domain(out lString) || lString != "fred.angus.bart") throw new cTestsException("domain 1.1");
             if (!lCursor.GetRFC822Domain(out lString) || lString != "frxd.angxs.bxrt") throw new cTestsException("domain 1.2");
             if (!lCursor.GetRFC822Domain(out lString) || lString != "[192.168.1.1]") throw new cTestsException("domain 1.3");
-            if (!lCursor.GetRFC822FieldValue(out lBytes) || lBytes.Count != 0) throw new cTestsException("domain 1.4");
+            if (!lCursor.GetRFC822FieldValue(out lByteList) || lByteList.Count != 0) throw new cTestsException("domain 1.4");
             if (lCursor.GetRestAsString() != "NextHeader") throw new cTestsException("domain 1.5");
 
             // local part
@@ -125,7 +125,7 @@ namespace work.bacome.imapclient.support
 
             TryConstruct("    \t   (edge case)   fred.angus.bart    .    []         \r\nNextHeader", out lCursor);
             if (!lCursor.GetRFC822LocalPart(out lString) || lString != "fred.angus.bart") throw new cTestsException("local part 2.1");
-            if (!lCursor.GetRFC822FieldValue(out lBytes) || cTools.UTF8BytesToString(lBytes) != ".    []         ") throw new cTestsException("local part 2.2");
+            if (!lCursor.GetRFC822FieldValue(out lByteList) || cTools.UTF8BytesToString(lByteList) != ".    []         ") throw new cTestsException("local part 2.2");
 
             // message id
             TryConstruct("     \r\n\t   (one)  <1234@local.machine.example>      <5678.21-Nov-1997@example.com>    <testabcd.1234@silly.example>     <1234   @   local(blah)  .machine .example>    ", out lCursor);

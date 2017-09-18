@@ -218,9 +218,9 @@ namespace testharness2
             lClient.SetServer("localhost");
             lClient.SetPlainCredentials("fred", "angus");
 
-            cIdDictionary lClientId = new cIdDictionary();
-            lClientId.Name = "fred";
-            lClient.ClientId = lClientId;
+            cIdDictionary lIdDictionary = new cIdDictionary();
+            lIdDictionary.Name = "fred";
+            lClient.ClientId = new cClientId(lIdDictionary);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
             lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
@@ -280,17 +280,17 @@ namespace testharness2
             lClient.SetServer("localhost");
             lClient.SetPlainCredentials("fred", "angus");
 
-            cIdDictionary lClientId = new cIdDictionary();
-            lClientId.Name = "fr€d";
+            cIdDictionary lIdDictionary = new cIdDictionary();
+            lIdDictionary.Name = "fr€d";
 
             bool lFailed = false;
-            try { lClient.ClientId = lClientId; }
+            try { lClient.ClientId = new cClientId(lIdDictionary); }
             catch (Exception) { lFailed = true; }
             if (!lFailed) throw new cTestsException("ZTestPreauthAtStartup1_2: utf8 client id should have failed");
 
-            lClientId = new cIdDictionary();
-            lClientId.Name = "fr?d";
-            lClient.ClientId = lClientId;
+            lIdDictionary = new cIdDictionary();
+            lIdDictionary.Name = "fr?d";
+            lClient.ClientId = new cClientId(lIdDictionary);
 
             lClient.IdleConfiguration = null;
 
@@ -359,9 +359,9 @@ namespace testharness2
             lClient.SetServer("localhost");
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
-            cIdDictionary lClientId = new cIdDictionary();
-            lClientId.Name = "fr€d";
-            lClient.ClientIdUTF8 = lClientId;
+            cIdDictionary lIdDictionary = new cIdDictionary();
+            lIdDictionary.Name = "fr€d";
+            lClient.ClientIdUTF8 = new cClientIdUTF8(lIdDictionary);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
             lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");

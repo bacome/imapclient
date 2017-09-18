@@ -8,22 +8,22 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void Expunge(iMailboxHandle pHandle, bool pAndClose)
+        public void Expunge(iMailboxHandle pHandle, bool pAndUnselect)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Expunge));
-            var lTask = ZExpungeAsync(pHandle, pAndClose, lContext);
+            var lTask = ZExpungeAsync(pHandle, pAndUnselect, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task ExpungeAsync(iMailboxHandle pHandle, bool pAndClose)
+        public Task ExpungeAsync(iMailboxHandle pHandle, bool pAndUnselect)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ExpungeAsync));
-            return ZExpungeAsync(pHandle, pAndClose, lContext);
+            return ZExpungeAsync(pHandle, pAndUnselect, lContext);
         }
 
-        private async Task ZExpungeAsync(iMailboxHandle pHandle, bool pAndClose, cTrace.cContext pParentContext)
+        private async Task ZExpungeAsync(iMailboxHandle pHandle, bool pAndUnselect, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZExpungeAsync), pHandle, pAndClose);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZExpungeAsync), pHandle, pAndUnselect);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                if (pAndClose) await lSession.CloseAsync(lMC, pHandle, lContext).ConfigureAwait(false);
+                if (pAndUnselect) await lSession.CloseAsync(lMC, pHandle, lContext).ConfigureAwait(false);
                 else await lSession.ExpungeAsync(lMC, pHandle, lContext).ConfigureAwait(false);
             }
         }

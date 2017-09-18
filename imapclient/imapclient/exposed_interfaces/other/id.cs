@@ -7,6 +7,21 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    public interface iId : IReadOnlyDictionary<string, string>
+    {
+        string Name { get; }
+        string Version { get; }
+        string OS { get; }
+        string OSVersion { get; }
+        string Vendor { get; }
+        string SupportURL { get; }
+        string Address { get; }
+        string Date { get; }
+        string Command { get; }
+        string Arguments { get; }
+        string Environment { get; }
+    }
+
     public abstract class cIdBase
     {
         protected const string kName = "name";
@@ -20,41 +35,9 @@ namespace work.bacome.imapclient
         protected const string kCommand = "command";
         protected const string kArguments = "arguments";
         protected const string kEnvironment = "environment";
-
-        protected static Dictionary<string, string> YDefaultId()
-        {
-            Dictionary<string, string> lDictionary = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
-
-            lDictionary[kName] = "work.bacome.imapclient";
-            lDictionary[kVersion] = cIMAPClient.Version.ToString();
-
-            try
-            {
-                OperatingSystem lOS = Environment.OSVersion;
-                lDictionary[kOS] = lOS.Platform.ToString();
-                lDictionary[kOSVersion] = lOS.Version.ToString();
-            }
-            catch { }
-
-            lDictionary[kVendor] = "bacome";
-            lDictionary[kSupportURL] = @"http:\\bacome.work";
-            lDictionary[kDate] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(cIMAPClient.ReleaseDate).Bytes);
-
-            try
-            {
-                string[] lCommand = Environment.GetCommandLineArgs();
-                lDictionary[kCommand] = lCommand[0];
-                if (lCommand.Length > 1) lDictionary[kArguments] = string.Join(", ", lCommand, 1, lCommand.Length - 1);
-            }
-            catch { }
-
-            lDictionary[kEnvironment] = Environment.Version.ToString();
-
-            return lDictionary;
-        }
     }
 
-    public class cId : cIdBase, IReadOnlyDictionary<string, string>
+    public class cId : cIdBase, iId
     {
         protected readonly ReadOnlyDictionary<string, string> mDictionary;
 
@@ -65,17 +48,16 @@ namespace work.bacome.imapclient
 
         public int Count => mDictionary.Count;
 
-        public bool ContainsKey(string pKey) => mDictionary.ContainsKey(pKey);
-
-        public bool TryGetValue(string pKey, out string rValue) => mDictionary.TryGetValue(pKey, out rValue);
-
-        public string this[string pKey]  => mDictionary[pKey];
-
         public IEnumerable<string> Values => mDictionary.Values;
         public IEnumerable<string> Keys => mDictionary.Keys;
 
+        public bool ContainsKey(string pKey) => mDictionary.ContainsKey(pKey);
+        public bool TryGetValue(string pKey, out string rValue) => mDictionary.TryGetValue(pKey, out rValue);
+
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => mDictionary.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mDictionary.GetEnumerator();
+
+        public string this[string pKey]  => mDictionary[pKey];
 
         private string ZGetValue(string pIdFieldName)
         {
@@ -105,8 +87,6 @@ namespace work.bacome.imapclient
 
     public class cClientIdUTF8 : cId
     {
-        public cClientIdUTF8() : base(YDefaultId()) { }
-
         public cClientIdUTF8(IDictionary<string, string> pDictionary) : base(pDictionary)
         {
             if (pDictionary.Count < 1 || pDictionary.Count > 30) throw new ArgumentOutOfRangeException(nameof(pDictionary));
@@ -127,8 +107,6 @@ namespace work.bacome.imapclient
 
     public class cClientId : cClientIdUTF8
     {
-        public cClientId() : base(YDefaultId()) { }
-
         public cClientId(IDictionary<string, string> pDictionary) : base(pDictionary)
         {
             foreach (var lEntry in pDictionary)
@@ -145,46 +123,69 @@ namespace work.bacome.imapclient
         }
     }
 
-    public class cIdDictionary : cIdBase, IDictionary<string, string>
+    public class cIdDictionary : cIdBase, iId, IDictionary<string, string>
     {
-        private readonly Dictionary<string, string> mDictionary;
-        private readonly ICollection<KeyValuePair<string, string>> mCollection;
+        private readonly Dictionary<string, string> mDictionary = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
         public cIdDictionary(bool pDefault = true)
         {
-            if (pDefault) mDictionary = YDefaultId();
-            else mDictionary = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
-            mCollection = mDictionary;
+            if (pDefault)
+            {
+                mDictionary[kName] = "work.bacome.imapclient";
+                mDictionary[kVersion] = cIMAPClient.Version.ToString();
+
+                try
+                {
+                    OperatingSystem lOS = System.Environment.OSVersion;
+                    mDictionary[kOS] = lOS.Platform.ToString();
+                    mDictionary[kOSVersion] = lOS.Version.ToString();
+                }
+                catch { }
+
+                mDictionary[kVendor] = "bacome";
+                mDictionary[kSupportURL] = @"http:\\bacome.work";
+                mDictionary[kDate] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(cIMAPClient.ReleaseDate).Bytes);
+
+                /* not safe: the command line could contain anything
+                try
+                {
+                    string[] lCommand = System.Environment.GetCommandLineArgs();
+                    mDictionary[kCommand] = lCommand[0];
+                    if (lCommand.Length > 1) mDictionary[kArguments] = string.Join(", ", lCommand, 1, lCommand.Length - 1);
+                }
+                catch { } */
+
+                mDictionary[kEnvironment] = System.Environment.Version.ToString();
+            }
         }
 
-        public bool IsReadOnly => mCollection.IsReadOnly;
-
         public int Count => mDictionary.Count;
+        public bool IsReadOnly => false;
 
-        public void Add(string pKey, string pValue) => mDictionary.Add(pKey, pValue);
-        public void Add(KeyValuePair<string, string> pEntry) => mCollection.Add(pEntry);
-        public bool Remove(string pKey) => mDictionary.Remove(pKey);
-        public bool Remove(KeyValuePair<string, string> pEntry) => mCollection.Remove(pEntry);
-        public void Clear() => mDictionary.Clear();
+        public ICollection<string> Values => mDictionary.Values;
+        public ICollection<string> Keys => mDictionary.Keys;
+        IEnumerable<string> IReadOnlyDictionary<string, string>.Values => mDictionary.Values;
+        IEnumerable<string> IReadOnlyDictionary<string, string>.Keys => mDictionary.Keys;
 
         public bool ContainsKey(string pKey) => mDictionary.ContainsKey(pKey);
-        public bool Contains(KeyValuePair<string, string> pEntry) => mCollection.Contains(pEntry);
-
         public bool TryGetValue(string pKey, out string rValue) => mDictionary.TryGetValue(pKey, out rValue);
+        public void Add(string pKey, string pValue) => mDictionary.Add(pKey, pValue);
+        public bool Remove(string pKey) => mDictionary.Remove(pKey);
+
+        public bool Contains(KeyValuePair<string, string> pEntry) => ((ICollection<KeyValuePair<string, string>>)mDictionary).Contains(pEntry);
+        public void Add(KeyValuePair<string, string> pEntry) => mDictionary.Add(pEntry.Key, pEntry.Value);
+        public bool Remove(KeyValuePair<string, string> pEntry) => mDictionary.Remove(pEntry.Key);
+        public void Clear() => mDictionary.Clear();
+        public void CopyTo(KeyValuePair<string, string>[] pArray, int pIndex) => ((ICollection<KeyValuePair<string, string>>)mDictionary).CopyTo(pArray, pIndex);
+
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => mDictionary.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => mDictionary.GetEnumerator();
 
         public string this[string pKey]
         {
             get => mDictionary[pKey];
             set => mDictionary[pKey] = value;
         }
-
-        public ICollection<string> Values => mDictionary.Values;
-        public ICollection<string> Keys => mDictionary.Keys;
-
-        public void CopyTo(KeyValuePair<string, string>[] pArray, int pIndex) => mCollection.CopyTo(pArray, pIndex);
-
-        public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => mDictionary.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => mDictionary.GetEnumerator();
 
         private string ZGetValue(string pIdFieldName)
         {

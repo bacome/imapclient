@@ -452,8 +452,8 @@ namespace work.bacome.imapclient
         public void Expunge(bool pAndClose = false) => Client.Expunge(Handle, pAndClose);
         public Task ExpungeAsync(bool pAndClose = false) => Client.ExpungeAsync(Handle, pAndClose);
 
-        public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, cMessageProperties pProperties = null, cMessageFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties, pConfiguration);
-        public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, cMessageProperties pProperties = null, cMessageFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties, pConfiguration);
+        public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, cMessageProperties pProperties = null, cMessageFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties ?? Client.DefaultMessageProperties, pConfiguration);
+        public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, cMessageProperties pProperties = null, cMessageFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties ?? Client.DefaultMessageProperties, pConfiguration);
 
         public List<cMessage> Messages(IList<iMessageHandle> pHandles, cMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration = null)
         {

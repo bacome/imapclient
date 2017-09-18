@@ -76,7 +76,7 @@ namespace work.bacome.imapclient
                     if ((rAttributesSet & fFetchAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
                     if ((rAttributesSet & fFetchAttributes.uid) != 0 && mCache.UIDValidity != 0) UID = new cUID(mCache.UIDValidity, lFetch.UID.Value);
 
-                    if (!Cache.NoModSeq)
+                    if (!mCache.NoModSeq)
                     {
                         if ((rAttributesSet & fFetchAttributes.modseq) != 0) mModSeq = lFetch.ModSeq;
                         else if (lFetch.ModSeq != null && lFetch.ModSeq != mModSeq)

@@ -2,8 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using work.bacome.imapclient.support;
+using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
@@ -93,7 +95,7 @@ namespace work.bacome.imapclient
             return new cHeaderFieldNames(lFieldNames.AsReadOnly());
         }
 
-        public static bool TryConstruct(List<string> pFieldNames, out cHeaderFieldNames rNames)
+        public static bool TryConstruct(IEnumerable<string> pFieldNames, out cHeaderFieldNames rNames)
         {
             if (ZTryNormaliseFieldNames(pFieldNames, out var lFieldNames))
             {
@@ -135,6 +137,45 @@ namespace work.bacome.imapclient
 
             rNormalisedFieldNames = lDistinctSortedNames.AsReadOnly();
             return true;
+        }
+
+
+
+
+
+
+
+
+
+        [Conditional("DEBUG")]
+        public static void _Tests(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cHeaderFieldNames), nameof(_Tests));
+
+            cHeaderFieldNames lNames1;
+            cHeaderFieldNames lNames2;
+            cHeaderFieldNames lNames3;
+            cHeaderFieldNames lNames4;
+
+            if (!TryConstruct(new string[] { }, out lNames1) || lNames1 != None) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.1");
+            if (!TryConstruct(new string[] { "fred", "angus"  }, out lNames1) || !TryConstruct(new string[] { "AnGuS", "ANGUS", "FrEd" }, out lNames2) || lNames1 != lNames2) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.2");
+            if (!TryConstruct(new string[] { "fred", "charlie" }, out lNames3) || !TryConstruct(new string[] { "CHARLie", "mAx" }, out lNames4) || lNames3 == lNames4) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.3");
+            if (lNames2.Contains("max") || !lNames2.Contains("FREd") || !lNames4.Contains("max") || lNames4.Contains("FREd")) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.4");
+
+            lNames2 = lNames1 | "fReD";
+            if (!ReferenceEquals(lNames1, lNames2)) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.5");
+
+            lNames2 = lNames1 | "charlie";
+            if (ReferenceEquals(lNames1, lNames2) || !lNames2.Contains("Fred") || !lNames2.Contains("ANgUS") || !lNames2.Contains("CHArLIE") || lNames2.Count != 3) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.6");
+
+            var lNames5 = lNames1.Union(lNames3);
+            if (lNames5 != lNames2) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.7");
+
+            lNames2 = lNames1.Intersect(lNames3);
+            if (lNames2.Count != 1 || !lNames2.Contains("fReD")) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.8");
+
+            lNames2 = lNames5.Except(lNames4);
+            if (lNames2.Count != 2 || lNames2 != lNames1) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.9");
         }
     }
 }

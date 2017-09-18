@@ -17,6 +17,12 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchAttributesAsync), pMC, pHandles, pAttributes);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+
+                if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+                if (pAttributes == null) throw new ArgumentNullException(nameof(pAttributes));
+                if (pProgress == null) throw new ArgumentNullException(nameof(pProgress));
+
                 mMailboxCache.CheckInSelectedMailbox(pHandles); // to be repeated inside the select lock
 
                 // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
@@ -112,15 +118,14 @@ namespace work.bacome.imapclient
 
                 foreach (var lHandle in pHandles)
                 {
-                    ;?;
-                    cFetchAttributes lRequired = new cFetchAttributes(~lHandle.Attributes & pAttributes.Attributes, lHandle.HeaderFields.Missing(pAttributes.Names));
+                    cFetchAttributes lAttributes = lHandle.Missing(pAttributes);
 
                     cFetchAttributesGroup lGroup;
 
-                    if (!lGroups.TryGetValue(lRequired, out lGroup))
+                    if (!lGroups.TryGetValue(lAttributes, out lGroup))
                     {
-                        lGroup = new cFetchAttributesGroup(lRequired);
-                        lGroups.Add(lRequired, lGroup);
+                        lGroup = new cFetchAttributesGroup(lAttributes);
+                        lGroups.Add(lAttributes, lGroup);
                     }
 
                     if (lHandle.UID == null) lGroup.MSNHandleCount++;
@@ -137,7 +142,7 @@ namespace work.bacome.imapclient
                 public int MSNHandleCount = 0;
                 public readonly cMessageHandleList Handles = new cMessageHandleList();
 
-                public cFetchAttributesGroup(cFetchAttributes pAttributes) { Attributes = pAttributes; }
+                public cFetchAttributesGroup(cFetchAttributes pAttributes) { Attributes = pAttributes ?? throw new ArgumentNullException(nameof(pAttributes)); }
 
                 public override string ToString()
                 {

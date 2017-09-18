@@ -17,6 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pMC, pHandle, pSection, pDecoding);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
 
                 mMailboxCache.CheckInSelectedMailbox(pHandle); // to be repeated inside the select lock
 
@@ -29,6 +30,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBodyAsync), pMC, pHandle, pUID, pSection, pDecoding);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
 
                 mMailboxCache.CheckIsSelectedMailbox(pHandle, pUID.UIDValidity); // to be repeated inside the select lock
 
@@ -38,6 +40,13 @@ namespace work.bacome.imapclient
             private async Task ZFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cProgress pProgress, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
+
+                if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+                if (pStream == null) throw new ArgumentNullException(nameof(pStream));
+                if (pProgress == null) throw new ArgumentNullException(nameof(pProgress));
+                if (pWriteSizer == null) throw new ArgumentNullException(nameof(pWriteSizer));
+
+                if (!pStream.CanWrite) throw new ArgumentOutOfRangeException(nameof(pStream));
 
                 // work out if binary can/should be used or not
                 bool lBinary = mCapabilities.Binary && pSection.TextPart == eSectionPart.all && pDecoding != eDecodingRequired.none;

@@ -11,68 +11,66 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
 
-            var lRequired = ZFetchAttributesRequired(pProperties);
-            if (lRequired.IsNone) return true; // nothing to do
+            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pProperties == null) throw new ArgumentNullException(nameof(pProperties));
 
-            var lHandles = ZFetchHandles(pHandle);
-            if (ZFetchAttributesGotThemAll(lHandles, lRequired)) return true;
+            var lAttributes = new cFetchAttributes(pProperties);
+            if (pHandle.ContainsAll(lAttributes)) return true;
 
-            var lTask = ZFetchAttributesAsync(lHandles, lRequired, null, lContext);
+            var lTask = ZFetchAttributesAsync(ZFetchHandles(pHandle), lAttributes, null, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
-            return ZFetchAttributesGotThemAll(lHandles, lRequired);
+            return pHandle.ContainsAll(lAttributes);
         }
 
         public bool Fetch(IList<iMessageHandle> pHandles, cMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
 
-            var lRequired = ZFetchAttributesRequired(pProperties);
-            if (lRequired == 0) return true; // nothing to do
+            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+            if (pProperties == null) throw new ArgumentNullException(nameof(pProperties));
 
             var lHandles = ZFetchHandles(pHandles);
-            var lToFetch = ZFetchAttributesToFetch(lHandles, lRequired);
-            if (lToFetch == 0) return true; // got everything already
 
-            var lTask = ZFetchAttributesAsync(lHandles, lToFetch, pConfiguration, lContext);
+            var lAttributes = new cFetchAttributes(pProperties);
+            if (lHandles.AllContainAll(lAttributes)) return true;
+
+            var lTask = ZFetchAttributesAsync(lHandles, lAttributes, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
-            var lMissing = ZFetchAttributesToFetch(lHandles, lRequired);
-            return lMissing == 0;
+            return lHandles.AllContainAll(lAttributes);
         }
 
         public async Task<bool> FetchAsync(iMessageHandle pHandle, cMessageProperties pProperties)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
 
-            var lRequired = ZFetchAttributesRequired(pProperties);
-            if (lRequired == 0) return true; // nothing to do
+            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pProperties == null) throw new ArgumentNullException(nameof(pProperties));
 
-            var lHandles = ZFetchHandles(pHandle);
-            var lToFetch = ZFetchAttributesToFetch(lHandles, lRequired);
-            if (lToFetch == 0) return true; // got everything already
+            var lAttributes = new cFetchAttributes(pProperties);
+            if (pHandle.ContainsAll(lAttributes)) return true;
 
-            await ZFetchAttributesAsync(lHandles, lToFetch, null, lContext).ConfigureAwait(false);
+            await ZFetchAttributesAsync(ZFetchHandles(pHandle), lAttributes, null, lContext).ConfigureAwait(false);
 
-            var lMissing = ZFetchAttributesToFetch(lHandles, lRequired);
-            return lMissing == 0;
+            return pHandle.ContainsAll(lAttributes);
         }
 
         public async Task<bool> FetchAsync(IList<iMessageHandle> pHandles, cMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
 
-            var lRequired = ZFetchAttributesRequired(pProperties);
-            if (lRequired == 0) return true; // nothing to do
+            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+            if (pProperties == null) throw new ArgumentNullException(nameof(pProperties));
 
             var lHandles = ZFetchHandles(pHandles);
-            var lToFetch = ZFetchAttributesToFetch(lHandles, lRequired);
-            if (lToFetch == 0) return true; // got everything already
 
-            await ZFetchAttributesAsync(lHandles, lToFetch, pConfiguration, lContext).ConfigureAwait(false);
+            var lAttributes = new cFetchAttributes(pProperties);
+            if (lHandles.AllContainAll(lAttributes)) return true;
 
-            var lMissing = ZFetchAttributesToFetch(lHandles, lRequired);
-            return lMissing == 0;
+            await ZFetchAttributesAsync(lHandles, lAttributes, pConfiguration, lContext).ConfigureAwait(false);
+
+            return lHandles.AllContainAll(lAttributes);
         }
 
         private cMessageHandleList ZFetchHandles(iMessageHandle pHandle)

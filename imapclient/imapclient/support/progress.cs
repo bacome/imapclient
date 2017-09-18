@@ -22,12 +22,6 @@ namespace work.bacome.imapclient
                 mIncrement = pIncrement;
             }
 
-            public cProgress(cCallbackSynchroniser pSynchroniser, Action<int> pSetCount, Action<int> pIncrement)
-            {
-                mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
-                mIncrement = pIncrement;
-            }
-
             public void Increment(int pValue, cTrace.cContext pParentContext) => mSynchroniser?.InvokeActionInt(mIncrement, pValue, pParentContext);
         }
     }

@@ -32,6 +32,7 @@ namespace work.bacome.imapclient
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {

@@ -23,6 +23,8 @@ namespace work.bacome.imapclient
             cCulturedString._Tests(lContext);
             cMailboxName._Tests(lContext);
             cBatchSizer._Tests(lContext);
+            cHeaderFieldNames._Tests(lContext);
+            cHeaderFields._Tests(lContext);
         }
 
         private partial class cSession

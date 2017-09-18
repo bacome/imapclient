@@ -12,10 +12,10 @@ namespace work.bacome.imapclient.support
         cBodyPart BodyStructure { get; }
         cEnvelope Envelope { get; }
         cMessageFlags Flags { get; }
+        ulong? ModSeq { get; }
         DateTime? Received { get; }
         uint? Size { get; }
         cUID UID { get; }
-        ulong? ModSeq { get; }
         cHeaderFields HeaderFields { get; }
         cBinarySizes BinarySizes { get; }
 

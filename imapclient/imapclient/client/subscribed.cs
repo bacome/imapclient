@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
         private Task<List<cMailbox>> ZSubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSubscribedAsync), pListMailbox, pDelimiter, pHasSubscribedChildren, pDataSets);
-            if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
+            if (string.IsNullOrEmpty(pListMailbox)) throw new ArgumentOutOfRangeException(nameof(pListMailbox));
             cMailboxPathPattern lPattern = new cMailboxPathPattern(string.Empty, pListMailbox, pDelimiter);
             return ZZSubscribedAsync(pListMailbox, pDelimiter, lPattern, pHasSubscribedChildren, pDataSets, lContext);
         }
