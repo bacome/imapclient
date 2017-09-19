@@ -452,18 +452,18 @@ namespace work.bacome.imapclient
         public void Expunge(bool pAndClose = false) => Client.Expunge(Handle, pAndClose);
         public Task ExpungeAsync(bool pAndClose = false) => Client.ExpungeAsync(Handle, pAndClose);
 
-        public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, cMessageProperties pProperties = null, cMessageFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties ?? Client.DefaultMessageProperties, pConfiguration);
-        public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, cMessageProperties pProperties = null, cMessageFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pProperties ?? Client.DefaultMessageProperties, pConfiguration);
+        public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, cCacheItems pItems = null, cMessageFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultCacheItems, pConfiguration);
+        public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, cCacheItems pItems = null, cMessageFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultCacheItems, pConfiguration);
 
-        public List<cMessage> Messages(IList<iMessageHandle> pHandles, cMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration = null)
+        public List<cMessage> Messages(IList<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null)
         {
-            Client.Fetch(pHandles, pProperties, pConfiguration);
+            Client.Fetch(pHandles, pItems, pConfiguration);
             return ZMessages(pHandles);
         }
 
-        public async Task<List<cMessage>> MessagesAsync(IList<iMessageHandle> pHandles, cMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration = null)
+        public async Task<List<cMessage>> MessagesAsync(IList<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null)
         {
-            await Client.FetchAsync(pHandles, pProperties, pConfiguration).ConfigureAwait(false);
+            await Client.FetchAsync(pHandles, pItems, pConfiguration).ConfigureAwait(false);
             return ZMessages(pHandles);
         }
 
@@ -477,10 +477,10 @@ namespace work.bacome.imapclient
         public cMessageHandleList SetUnseen() => Client.SetUnseen(Handle);
         public Task<cMessageHandleList> SetUnseenAsync() => Client.SetUnseenAsync(Handle);
 
-        public cMessage Message(cUID pUID, cMessageProperties pProperties) => Client.Message(Handle, pUID, pProperties);
-        public Task<cMessage> MessageAsync(cUID pUID, cMessageProperties pProperties) => Client.MessageAsync(Handle, pUID, pProperties);
-        public List<cMessage> Messages(IList<cUID> pUIDs, cMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pUIDs, pProperties, pConfiguration);
-        public Task<List<cMessage>> MessagesAsync(IList<cUID> pUIDs, cMessageProperties pProperties, cPropertyFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pUIDs, pProperties, pConfiguration);
+        public cMessage Message(cUID pUID, cCacheItems pItems) => Client.Message(Handle, pUID, pItems);
+        public Task<cMessage> MessageAsync(cUID pUID, cCacheItems pItems) => Client.MessageAsync(Handle, pUID, pItems);
+        public List<cMessage> Messages(IList<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pUIDs, pItems, pConfiguration);
+        public Task<List<cMessage>> MessagesAsync(IList<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pUIDs, pItems, pConfiguration);
 
         public void Fetch(fMailboxCacheDataSets pDataSets) => Client.Fetch(Handle, pDataSets);
         public Task FetchAsync(fMailboxCacheDataSets pDataSets) => Client.FetchAsync(Handle, pDataSets);

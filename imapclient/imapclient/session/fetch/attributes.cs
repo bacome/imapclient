@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchAttributesAsync(cMethodControl pMC, cMessageHandleList pHandles, cFetchAttributes pAttributes, cProgress pProgress, cTrace.cContext pParentContext)
+            public async Task FetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pHandles, cCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchAttributesAsync), pMC, pHandles, pAttributes);
 
@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                 foreach (var lGroup in ZFetchAttributesGroups(pHandles, pAttributes)) await ZFetchAttributesAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
             }
 
-            private async Task ZFetchAttributesAsync(cMethodControl pMC, cFetchAttributesGroup pGroup, cProgress pProgress, cTrace.cContext pParentContext)
+            private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cFetchCacheItemsGroup pGroup, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributesAsync), pMC, pGroup);
 
@@ -136,18 +136,18 @@ namespace work.bacome.imapclient
                 return lGroups.Values;
             }
 
-            private class cFetchAttributesGroup
+            private class cFetchCacheItemsGroup
             {
-                public readonly cFetchAttributes Attributes;
+                public readonly cCacheItems Items;
                 public int MSNHandleCount = 0;
                 public readonly cMessageHandleList Handles = new cMessageHandleList();
 
-                public cFetchAttributesGroup(cFetchAttributes pAttributes) { Attributes = pAttributes ?? throw new ArgumentNullException(nameof(pAttributes)); }
+                public cFetchCacheItemsGroup(cCacheItems pItems) { Items = pItems ?? throw new ArgumentNullException(nameof(pItems)); }
 
                 public override string ToString()
                 {
-                    cListBuilder lBuilder = new cListBuilder(nameof(cFetchAttributesGroup));
-                    lBuilder.Append(Attributes);
+                    cListBuilder lBuilder = new cListBuilder(nameof(cFetchCacheItemsGroup));
+                    lBuilder.Append(Items);
                     lBuilder.Append(MSNHandleCount);
                     lBuilder.Append(Handles);
                     return lBuilder.ToString();

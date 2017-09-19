@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
         public static readonly cSortItem DisplayToDesc = new cSortItem(eSortItem.displayto, true);
 
         public readonly eSortItem Item;
-        public readonly fMessageProperties Property;
+        public readonly fCacheAttributes Attribute;
         public readonly bool Display;
         public readonly bool Desc;
 
@@ -42,55 +42,30 @@ namespace work.bacome.imapclient
             {
                 case eSortItem.received:
 
-                    Property = fMessageProperties.received;
+                    Attribute = fCacheAttributes.received;
                     Display = false;
                     break;
 
                 case eSortItem.cc:
-
-                    Property = fMessageProperties.cc;
-                    Display = false;
-                    break;
-
                 case eSortItem.sent:
-
-                    Property = fMessageProperties.sent;
-                    Display = false;
-                    break;
-
                 case eSortItem.from:
+                case eSortItem.subject:
+                case eSortItem.to:
 
-                    Property = fMessageProperties.from;
+                    Attribute = fCacheAttributes.envelope;
                     Display = false;
                     break;
 
                 case eSortItem.size:
 
-                    Property = fMessageProperties.size;
-                    Display = false;
-                    break;
-
-                case eSortItem.subject:
-
-                    Property = fMessageProperties.subject;
-                    Display = false;
-                    break;
-
-                case eSortItem.to:
-
-                    Property = fMessageProperties.to;
+                    Attribute = fCacheAttributes.size;
                     Display = false;
                     break;
 
                 case eSortItem.displayfrom:
-
-                    Property = fMessageProperties.from;
-                    Display = true;
-                    break;
-
                 case eSortItem.displayto:
 
-                    Property = fMessageProperties.to;
+                    Attribute = fCacheAttributes.envelope;
                     Display = true;
                     break;
 
@@ -103,7 +78,7 @@ namespace work.bacome.imapclient
             Desc = pDesc;
         }
 
-        public override string ToString() => $"{nameof(cSortItem)}({Item},{Property},{Display},{Desc})";
+        public override string ToString() => $"{nameof(cSortItem)}({Item},{Attribute},{Display},{Desc})";
     }
 
     public class cSort
@@ -228,19 +203,19 @@ namespace work.bacome.imapclient
             return Comparison(pX.Handle, pY.Handle);
         }
 
-        public fMessageProperties Properties(out bool rDisplay)
+        public fCacheAttributes Attributes(out bool rDisplay)
         {
             rDisplay = false;
 
-            fMessageProperties lProperties = 0;
+            fCacheAttributes lAttributes = 0;
 
             foreach (var lItem in Items)
             {
-                lProperties |= lItem.Property;
+                lAttributes |= lItem.Attribute;
                 if (lItem.Display) rDisplay = true;
             }
 
-            return lProperties;
+            return lAttributes;
         }
 
         private int ZCompareTo(uint? pX, uint? pY)

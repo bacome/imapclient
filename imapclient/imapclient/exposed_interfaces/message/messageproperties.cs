@@ -2,6 +2,7 @@
 
 namespace work.bacome.imapclient
 {
+    /*
     [Flags]
     public enum fMessageProperties
     {
@@ -47,7 +48,7 @@ namespace work.bacome.imapclient
         //         importance = 1L << 31
     }
 
-    public class cMessageProperties
+    public class cCacheProperties
     {
         public static readonly cMessageProperties None = new cMessageProperties(0, cHeaderFieldNames.None);
         public static readonly cMessageProperties Envelope = fMessageProperties.envelope;
@@ -82,5 +83,5 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cMessageProperties)}({Properties},{Names})";
 
         public static implicit operator cMessageProperties(fMessageProperties pProperties) => new cMessageProperties(pProperties, cHeaderFieldNames.None);
-    }
+    } */
 }

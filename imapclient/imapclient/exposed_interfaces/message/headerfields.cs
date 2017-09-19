@@ -23,46 +23,6 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cHeaderField)}({Name},{Value})";
     }
 
-    public class cHeaderFieldImportance : cHeaderField
-    {
-        private static readonly cBytes kLow = new cBytes("low");
-        private static readonly cBytes kNormal = new cBytes("normal");
-        private static readonly cBytes kHigh = new cBytes("high");
-
-        public readonly eImportance Importance;
-
-        private cHeaderFieldImportance(cBytes pValue, eImportance pImportance) : base(cHeaderFieldNames.Importance, pValue) { Importance = pImportance; }
-
-        public static bool TryConstruct(IList<byte> pValue, out cHeaderFieldImportance rImportance)
-        {
-            if (pValue == null) { rImportance = null; return false; }
-
-            eImportance lImportance;
-
-            cBytesCursor lCursor = new cBytesCursor(pValue);
-
-            lCursor.SkipRFC822CFWS();
-
-            if (lCursor.SkipBytes(kLow)) lImportance = eImportance.low;
-            else if (lCursor.SkipBytes(kNormal)) lImportance = eImportance.normal;
-            else if (lCursor.SkipBytes(kHigh)) lImportance = eImportance.high;
-            else { rImportance = null; return false; }
-
-            lCursor.SkipRFC822CFWS();
-
-            if (lCursor.Position.AtEnd)
-            {
-                rImportance = new cHeaderFieldImportance(new cBytes(pValue), lImportance);
-                return true;
-            }
-
-            rImportance = null;
-            return false;
-        }
-
-        public override string ToString() => $"{nameof(cHeaderFieldImportance)}({Importance})";
-    }
-
     public class cHeaderFieldMsgId : cHeaderField
     {
         public readonly string MsgId;
@@ -121,6 +81,46 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cHeaderFieldMsgIds)}({MsgIds})";
     }
 
+    public class cHeaderFieldImportance : cHeaderField
+    {
+        private static readonly cBytes kLow = new cBytes("low");
+        private static readonly cBytes kNormal = new cBytes("normal");
+        private static readonly cBytes kHigh = new cBytes("high");
+
+        public readonly eImportance Importance;
+
+        private cHeaderFieldImportance(cBytes pValue, eImportance pImportance) : base(cHeaderFieldNames.Importance, pValue) { Importance = pImportance; }
+
+        public static bool TryConstruct(IList<byte> pValue, out cHeaderFieldImportance rImportance)
+        {
+            if (pValue == null) { rImportance = null; return false; }
+
+            eImportance lImportance;
+
+            cBytesCursor lCursor = new cBytesCursor(pValue);
+
+            lCursor.SkipRFC822CFWS();
+
+            if (lCursor.SkipBytes(kLow)) lImportance = eImportance.low;
+            else if (lCursor.SkipBytes(kNormal)) lImportance = eImportance.normal;
+            else if (lCursor.SkipBytes(kHigh)) lImportance = eImportance.high;
+            else { rImportance = null; return false; }
+
+            lCursor.SkipRFC822CFWS();
+
+            if (lCursor.Position.AtEnd)
+            {
+                rImportance = new cHeaderFieldImportance(new cBytes(pValue), lImportance);
+                return true;
+            }
+
+            rImportance = null;
+            return false;
+        }
+
+        public override string ToString() => $"{nameof(cHeaderFieldImportance)}({Importance})";
+    }
+
     public class cHeaderFields
     {
         private readonly cHeaderFieldNames mNames; // not null (may be empty)
@@ -167,8 +167,6 @@ namespace work.bacome.imapclient
             return from f in mFields where f.Name.Equals(pFieldName, StringComparison.InvariantCultureIgnoreCase) select f;
         }
 
-        public string MessageId => (First(cHeaderFieldNames.MessageId) as cHeaderFieldMsgId)?.MsgId;
-        public cStrings InReplyTo => (First(cHeaderFieldNames.InReplyTo) as cHeaderFieldMsgIds)?.MsgIds;
         public cStrings References => (First(cHeaderFieldNames.References) as cHeaderFieldMsgIds)?.MsgIds;
         public eImportance? Importance => (First(cHeaderFieldNames.Importance) as cHeaderFieldImportance)?.Importance;
 
@@ -181,10 +179,11 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
-        public static bool TryConstruct(cSection pSection, IList<byte> pBytes, out cHeaderFields rFields)
+        public static bool TryConstruct(IList<byte> pBytes, out cHeaderFields rFields) => ZTryConstruct(pBytes, cHeaderFieldNames.None, true, out rFields);
+        public static bool TryConstruct(IList<byte> pBytes, cHeaderFieldNames pNames, bool pNot, out cHeaderFields rFields) => ZTryConstruct(pBytes, pNames, pNot, out rFields);
+
+        private static bool ZTryConstruct(IList<byte> pBytes, cHeaderFieldNames pNames, bool pNot, out cHeaderFields rFields)
         {
-            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
-            if (pSection.TextPart != eSectionPart.all && pSection.TextPart != eSectionPart.header && pSection.TextPart != eSectionPart.headerfields && pSection.TextPart != eSectionPart.headerfieldsnot) { rFields = null; return false; }
             if (pBytes == null) { rFields = null; return false; }
 
             cBytesCursor lCursor = new cBytesCursor(pBytes);
@@ -197,32 +196,22 @@ namespace work.bacome.imapclient
                 if (!lCursor.SkipByte(cASCII.COLON)) { rFields = null; return false; }
                 if (!lCursor.GetRFC822FieldValue(out var lValue)) { rFields = null; return false; }
 
-                if (lName == cHeaderFieldNames.MessageId)
-                {
-                    if (cHeaderFieldMsgId.TryConstruct(lName, lValue, out var lMessageId)) lFields.Add(lMessageId);
-                }
-                else if (lName == cHeaderFieldNames.InReplyTo)
-                {
-                    if (cHeaderFieldMsgIds.TryConstruct(lName, lValue, out var lInReplyTo)) lFields.Add(lInReplyTo);
-                }
-                else if (lName == cHeaderFieldNames.References)
+                if (lName.Equals(cHeaderFieldNames.References, StringComparison.InvariantCultureIgnoreCase))
                 {
                     if (cHeaderFieldMsgIds.TryConstruct(lName, lValue, out var lReferences)) lFields.Add(lReferences);
+                    else lFields.Add(new cHeaderField(lName, new cBytes(lValue)));
                 }
-                else if (lName == cHeaderFieldNames.Importance)
+                else if (lName.Equals(cHeaderFieldNames.Importance, StringComparison.InvariantCultureIgnoreCase))
                 {
                     if (cHeaderFieldImportance.TryConstruct(lValue, out var lImportance)) lFields.Add(lImportance);
+                    else lFields.Add(new cHeaderField(lName, new cBytes(lValue)));
                 }
                 else lFields.Add(new cHeaderField(lName, new cBytes(lValue)));
             }
 
             if (!lCursor.Position.AtEnd || !lCursor.SkipBytes(cBytesCursor.CRLF)) { rFields = null; return false; }
 
-            cHeaderFieldNames lNames;
-            if (pSection.TextPart == eSectionPart.headerfields || pSection.TextPart == eSectionPart.headerfieldsnot) lNames = pSection.Names;
-            else lNames = cHeaderFieldNames.None;
-
-            rFields = new cHeaderFields(lNames, pSection.TextPart != eSectionPart.headerfields, lFields);
+            rFields = new cHeaderFields(pNames, pNot, lFields);
             return true;
         }
 
@@ -285,17 +274,12 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cHeaderFields), nameof(_Tests));
 
-            // especially contains, containsall and the various join types
-
+            cStrings lStrings;
             cHeaderFieldNames lABCDE = new cHeaderFieldNames("a", "B", "c", "D", "e");
             cHeaderFieldNames lDEFGH = new cHeaderFieldNames("f", "g", "h", "D", "e");
             cHeaderFieldNames lGHIJK = new cHeaderFieldNames("i", "g", "h", "j", "K");
-            cHeaderFieldNames lMissing;
-            cHeaderField lHeaderField;
-            IEnumerable<cHeaderField> lHeaderFields;
-            cStrings lStrings;
 
-            cBytes lWholeMsg =
+            var lBytes =
                 new cBytes(
                     "angus:  value of angus\r\n" +
                     "fred      :     value of fred      \r\n" +
@@ -309,83 +293,138 @@ namespace work.bacome.imapclient
                     "\r\n" +
                     "check: stop\r\n");
 
-            if (!TryConstruct(cSection.All, lWholeMsg, out var lWholeMsgHeaders)) throw new cTestsException($"{nameof(cHeaderFields)}.1.1");
+            if (!TryConstruct(lBytes, out var lFields)) throw new cTestsException($"{nameof(cHeaderFields)}.1.1");
 
-            if (!lWholeMsgHeaders.Contains("a")) throw new cTestsException($"{nameof(cHeaderFields)}.1.2");
-            if (!lWholeMsgHeaders.ContainsAll(lABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.1.3");
-            if (!lWholeMsgHeaders.ContainsAll(lDEFGH)) throw new cTestsException($"{nameof(cHeaderFields)}.1.4");
-            if (!lWholeMsgHeaders.ContainsAll(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.1.5");
-            if (lWholeMsgHeaders.ContainsNone(lABCDE) || lWholeMsgHeaders.ContainsNone(lDEFGH) || lWholeMsgHeaders.ContainsNone(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.1.6");
+            if (lFields.mFields.Count != 9) throw new cTestsException($"{nameof(cHeaderFields)}.1.1.1");
 
-            if (lWholeMsgHeaders.Missing(lABCDE).Count != 0 || lWholeMsgHeaders.Missing(lDEFGH).Count != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.7");
+            if (!lFields.Contains("a")) throw new cTestsException($"{nameof(cHeaderFields)}.1.2");
+            if (!lFields.ContainsAll(lABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.1.3");
+            if (!lFields.ContainsAll(lDEFGH)) throw new cTestsException($"{nameof(cHeaderFields)}.1.4");
+            if (!lFields.ContainsAll(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.1.5");
+            if (lFields.ContainsNone(lABCDE) || lFields.ContainsNone(lDEFGH) || lFields.ContainsNone(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.1.6");
 
-            if (cTools.ASCIIBytesToString(lWholeMsgHeaders.First("fred").Value) != "     value of fred      \r\n") throw new cTestsException($"{nameof(cHeaderFields)}.1.8");
-            if (cTools.ASCIIBytesToString(lWholeMsgHeaders.First("a").Value) != null) throw new cTestsException($"{nameof(cHeaderFields)}.1.9");
+            if (lFields.Missing(lABCDE).Count != 0 || lFields.Missing(lDEFGH).Count != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.7");
 
-            if (lWholeMsgHeaders.All("fred").Count() != 1) throw new cTestsException($"{nameof(cHeaderFields)}.1.10");
-            if (lWholeMsgHeaders.All("a").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.11");
-            if (lWholeMsgHeaders.All("mEsSaGe-ID").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.1.12");
+            if (cTools.ASCIIBytesToString(lFields.First("fred").Value) != "     value of fred      \r\n") throw new cTestsException($"{nameof(cHeaderFields)}.1.8");
+            if (cTools.ASCIIBytesToString(lFields.First("a").Value) != null) throw new cTestsException($"{nameof(cHeaderFields)}.1.9");
 
-            if (!lWholeMsgHeaders.All("mEsSaGe-ID").All(h => h is cHeaderFieldMsgId lMsgId && lMsgId.MsgId == "1234@local.machine.example")) throw new cTestsException($"{nameof(cHeaderFields)}.1.13");
+            if (lFields.All("fred").Count() != 1) throw new cTestsException($"{nameof(cHeaderFields)}.1.10");
+            if (lFields.All("a").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.11");
+            if (lFields.All("mEsSaGe-ID").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.1.12");
 
-            if (lWholeMsgHeaders.MessageId != "1234@local.machine.example") throw new cTestsException($"{nameof(cHeaderFields)}.1.14");
+            if (!lFields.All("mEsSaGe-ID").All(h => h is cHeaderFieldMsgId lMsgId && lMsgId.MsgId == "1234@local.machine.example")) throw new cTestsException($"{nameof(cHeaderFields)}.1.13");
 
-            lStrings = lWholeMsgHeaders.InReplyTo;
+            if (lFields.First(cHeaderFieldNames.MessageId) as c != "1234@local.machine.example") throw new cTestsException($"{nameof(cHeaderFields)}.1.14");
+
+            lStrings = lFields.InReplyTo;
             if (lStrings.Count != 3 || !lStrings.Contains("12341@local.machine.example") || !lStrings.Contains("12342@local.machine.example") || !lStrings.Contains("12343@local.machine.example")) throw new cTestsException($"{nameof(cHeaderFields)}.1.15");
 
-            ;?; // more
+            lStrings = lFields.References;
+            if (lStrings.Count != 2 || !lStrings.Contains("12344@local.machine.example") || !lStrings.Contains("12345@local.machine.example")) throw new cTestsException($"{nameof(cHeaderFields)}.1.16");
+
+            if (lFields.Importance != eImportance.low) throw new cTestsException($"{nameof(cHeaderFields)}.1.17");
+
+
+            if (!lFields.Contains("check") || lFields.All("check").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.1.18");
 
 
 
-            // and some not ones
 
-            cSection lABCDE = ;?; new cSection(null, new cHeaderFieldNames("angus", "fred", "charlie", "max"));
+            lBytes = new cBytes("a: 1\r\nc: 2\r\nc: two\r\ne: 3\r\n\r\n");
+            if (!TryConstruct(lBytes, lABCDE, false, out var lFieldsABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.2.1");
+            if (!TryConstruct(lBytes, lABCDE, false, out var lFieldsABCDE2)) throw new cTestsException($"{nameof(cHeaderFields)}.2.1.1");
 
-            ;?;
-            cBytes ABCDE =
+            lBytes = new cBytes("e: 3\r\ng: 4\r\ng: four\r\n\r\n");
+            if (!TryConstruct(lBytes, lDEFGH, false, out var lFieldsDEFGH)) throw new cTestsException($"{nameof(cHeaderFields)}.2.2");
+
+            lBytes = new cBytes("g: 4\r\ni: 5\r\nk: 6\r\nk: six\r\n");
+            if (!TryConstruct(lBytes, lGHIJK, false, out var lFieldsGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.3");
+
+            lBytes =
                 new cBytes(
-                    "a:  arnie\r\n" +
-                    "b      :     barney     \r\n" + 
-                    "c      :     charlie      \r\n");
+                    "Importance: normal\r\n" +
+                    "message-id   :  <1234@local.machine.example  \r\n" +
+                    "IN-reply-TO:    <12341@local.machine.example><12342@local.machine.example\r\n\t<12343@local.machine.example>\r\n" +
+                    "g: 4\r\ng: four\r\ni: 5\r\nk: 6\r\nk: six\r\n");
 
-            cBytes DEF =
+            if (!TryConstruct(lBytes, lABCDE, true, out var lNotABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.2.4");
+
+            lBytes =
                 new cBytes(
-                    "d:  danny\r\n" +
-                    "e      :     ernie      \r\n" +
-                    "f      :     freddy      \r\n");
+                    "Importance: high\r\n" +
+                    "a: 1\r\nc: 2\r\nc: two\r\ni: 5\r\nk: 6\r\nk: six\r\n");
 
-            cBytes CDE =
+            if (!TryConstruct(lBytes, lDEFGH, true, out var lNotDEFGH)) throw new cTestsException($"{nameof(cHeaderFields)}.2.4");
+
+            lBytes =
                 new cBytes(
-                    "c      :     charlie      \r\n" +
-                    "d:  danny\r\n" +
-                    "e      :     ernie      \r\n"  );
+                    "Importance: error\r\n" +
+                    "a: 1\r\nc: 2\r\nc: two\r\ne: 3\r\n");
 
-            cBytes lInvalid1 =
-                new cBytes(
-                    "angus:  value of angus\r\n" +
-                    "a test      :     value of fred      \r\n");
-
-            cBytes lInvalid2 =
-                new cBytes(
-                    "angus:  value of angus\r\n" +
-                    "fred      :     value of fred     \r\n ");
-
-            if (!TryConstruct(cSection.All, lWhole, out var lFieldsAll)) throw new cTestsException($"{nameof(cHeaderFields)}.1.1");
-            if (!TryConstruct(lNone, lWhole, out var lFieldsNone)) throw new cTestsException($"{nameof(cHeaderFields)}.1.2");
-            if (!TryConstruct(lAFC, lSome, out var lFieldsAFC)) throw new cTestsException($"{nameof(cHeaderFields)}.1.3");
-            if (TryConstruct(lAll, lInvalid1, out var lFieldsInvalid1)) throw new cTestsException($"{nameof(cHeaderFields)}.1.4");
-            if (TryConstruct(lAll, lInvalid2, out var lFieldsInvalid2)) throw new cTestsException($"{nameof(cHeaderFields)}.1.5");
+            if (!TryConstruct(lBytes, lGHIJK, true, out var lNotGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.5");
 
 
-            if (!lFields1.Contains("mike") || !lFields1.Contains("angus")) throw new cTestsException($"{nameof(cHeaderFields)}.3");
+            if (lNotABCDE.Contains("a") || lNotABCDE.Contains("e") || !lNotABCDE.Contains("f") || !lNotABCDE.Contains("g")) throw new cTestsException($"{nameof(cHeaderFields)}.2.6");
+            if (lNotABCDE.ContainsAll(lABCDE) || lNotABCDE.ContainsAll(lDEFGH) || !lNotABCDE.ContainsAll(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.7");
+            if (!lNotABCDE.ContainsNone(lABCDE) || lNotABCDE.ContainsNone(lDEFGH) || lNotABCDE.ContainsNone(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.8");
+            if (lNotABCDE.Missing(lABCDE) != lABCDE || lNotABCDE.Missing(lDEFGH) != new cHeaderFieldNames("d", "E") || lNotABCDE.Missing(lGHIJK).Count != 0) throw new cTestsException($"{nameof(cHeaderFields)}.2.9");
 
+            bool lFailed;
 
+            lFailed = false;
+            try { lNotABCDE.First("A"); }
+            catch { lFailed = true; }
+            if (!lFailed) throw new cTestsException($"{nameof(cHeaderFields)}.2.10");
 
+            if (lNotABCDE.MessageId != null || lNotABCDE.InReplyTo != null || lNotABCDE.Importance != eImportance.normal) throw new cTestsException($"{nameof(cHeaderFields)}.2.11");
+            if (lNotDEFGH.Importance != eImportance.high) throw new cTestsException($"{nameof(cHeaderFields)}.2.12");
+            if (lNotGHIJK.Importance != null) throw new cTestsException($"{nameof(cHeaderFields)}.2.13");
 
+            if (!ReferenceEquals((lFieldsABCDE + null), lFieldsABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.2.14.1");
+            if (!ReferenceEquals((null + lFieldsABCDE), lFieldsABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.2.14.2");
+            if (!ReferenceEquals((lFieldsABCDE + lFields), lFields)) throw new cTestsException($"{nameof(cHeaderFields)}.2.14.3");
+            if (!ReferenceEquals(lFields, (lFieldsABCDE + lFields))) throw new cTestsException($"{nameof(cHeaderFields)}.2.14.4");
+            if (!ReferenceEquals(lFieldsABCDE, (lFieldsABCDE + lFieldsABCDE2))) throw new cTestsException($"{nameof(cHeaderFields)}.2.14.5");
 
+            var lNotDE = lNotABCDE + lNotDEFGH;
+            if (!lNotDE.ContainsNone(new cHeaderFieldNames("d", "E"))) throw new cTestsException($"{nameof(cHeaderFields)}.2.15.1");
+            if (!lNotDE.ContainsAll(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.15.2");
+            if (!lNotDE.ContainsAll(new cHeaderFieldNames("a", "c", "f", "h"))) throw new cTestsException($"{nameof(cHeaderFields)}.2.15.3");
+            if (lNotDE.All("a").Count() != 1 || lNotDE.All("b").Count() != 0 || lNotDE.All("c").Count() != 2 || lNotDE.All("f").Count() != 0 || lNotDE.All("g").Count() != 2 || lNotDE.All("h").Count() != 0 || lNotDE.All("i").Count() != 1 || lNotDE.All("j").Count() != 0 || lNotDE.All("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.15.4");
 
+            var lAll = lNotABCDE + lNotGHIJK;
+            if (!lAll.ContainsAll(lABCDE) || !lAll.ContainsAll(lDEFGH) || !lAll.ContainsAll(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.16.1");
+            if (lAll.All("a").Count() != 1 || lAll.All("b").Count() != 0 || lAll.All("c").Count() != 2 || lAll.All("d").Count() != 0 || lAll.All("e").Count() != 1 || lAll.All("f").Count() != 0 || lAll.All("g").Count() != 2 || lAll.All("h").Count() != 0 || lAll.All("i").Count() != 1 || lAll.All("j").Count() != 0 || lAll.All("k").Count() != 2 ) throw new cTestsException($"{nameof(cHeaderFields)}.2.16.2");
 
+            var lNotABC = lNotABCDE + lFieldsDEFGH;
+            if (!lNotABC.ContainsNone(new cHeaderFieldNames("a", "B", "C"))) throw new cTestsException($"{nameof(cHeaderFields)}.2.17.1");
+            if (!lNotABC.ContainsAll(new cHeaderFieldNames("d", "e", "f", "g", "h"))) throw new cTestsException($"{nameof(cHeaderFields)}.2.17.2");
+            if (lNotABC.All("d").Count() != 0 || lNotABC.All("e").Count() != 1 || lNotABC.All("f").Count() != 0 || lNotABC.All("g").Count() != 2 || lNotABC.All("h").Count() != 0 || lNotABC.All("i").Count() != 1 || lNotABC.All("j").Count() != 0 || lNotABC.All("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.16.2");
 
+            var lNotABCDE2 = lNotABCDE + lFieldsGHIJK;
+            if (!lNotABCDE2.ContainsNone(lABCDE) || !lNotABCDE2.ContainsAll(lGHIJK)) throw new cTestsException($"{nameof(cHeaderFields)}.2.18.1");
+            if (lNotABCDE2.All("f").Count() != 0 || lNotABCDE2.All("g").Count() != 2 || lNotABCDE2.All("h").Count() != 0 || lNotABCDE2.All("i").Count() != 1 || lNotABCDE2.All("j").Count() != 0 || lNotABCDE2.All("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.18.2");
+
+            var lNotFGH = lFieldsABCDE + lNotDEFGH;
+            if (!lNotFGH.ContainsNone(new cHeaderFieldNames("F","G","H")) || !lNotFGH.ContainsAll(lABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.2.19.1");
+            if (lNotFGH.All("a").Count() != 1 || lNotFGH.All("b").Count() != 0 || lNotFGH.All("c").Count() != 2 || lNotFGH.All("d").Count() != 0 || lNotFGH.All("e").Count() != 1 || lNotFGH.All("i").Count() != 1 || lNotFGH.All("j").Count() != 0 || lNotFGH.All("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.19.2");
+
+            var lNotGHIJK2 = lFieldsABCDE + lNotGHIJK;
+            if (!lNotGHIJK2.ContainsNone(lGHIJK) || !lNotGHIJK2.ContainsAll(lABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.2.20.1");
+            if (lNotGHIJK2.All("a").Count() != 1 || lNotGHIJK2.All("b").Count() != 0 || lNotGHIJK2.All("c").Count() != 2 || lNotGHIJK2.All("d").Count() != 0 || lNotGHIJK2.All("e").Count() != 1 || lNotGHIJK2.All("f").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.2.20.2");
+
+            var lAtoH = lFieldsABCDE + lFieldsDEFGH;
+            if (!lAtoH.ContainsAll(lABCDE) || !lAtoH.ContainsAll(lDEFGH) || !lAtoH.ContainsNone(new cHeaderFieldNames("I", "J", "K"))) throw new cTestsException($"{nameof(cHeaderFields)}.2.21.1");
+            if (lAtoH.All("a").Count() != 1 || lAtoH.All("b").Count() != 0 || lAtoH.All("c").Count() != 2 || lAtoH.All("d").Count() != 0 || lAtoH.All("e").Count() != 1 || lAtoH.All("f").Count() != 0 || lAtoH.All("g").Count() != 2 || lAtoH.All("h").Count() != 0) throw new cTestsException($"{nameof(cHeaderFields)}.2.16.2");
+
+            lFailed = false;
+            try { lAtoH.All("i"); }
+            catch { lFailed = true; }
+            if (!lFailed) throw new cTestsException($"{nameof(cHeaderFields)}.2.21.3");
+
+            var lNotF = lFieldsABCDE + lFieldsGHIJK;
+            if (lNotF.Contains("F") || !lNotF.ContainsAll(lABCDE) || !lNotF.ContainsAll(lGHIJK) || lNotF.ContainsAll(lDEFGH)) throw new cTestsException($"{nameof(cHeaderFields)}.2.22.1");
+            if (lNotF.All("a").Count() != 1 || lNotF.All("b").Count() != 0 || lNotF.All("c").Count() != 2 || lNotF.All("d").Count() != 0 || lNotF.All("e").Count() != 1  || lNotF.All("g").Count() != 2 || lNotF.All("h").Count() != 0 || lNotF.All("i").Count() != 1 || lNotF.All("j").Count() != 0 || lNotF.All("k").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.2.12.2");
 
 
 

@@ -269,6 +269,50 @@ namespace testharness2
             }
         }
 
+        private void ZValHeaderFieldNames(object sender, CancelEventArgs e)
+        {
+            if (!(sender is TextBox lTextBox)) return;
+
+            if (ZTryParseHeaderFieldNames(txtMPHeaderFieldNames.Text, out var lNames)) lTextBox.Text = ZHeaderFieldNames(lNames);
+            else
+            {
+                e.Cancel = true;
+                erp.SetError((Control)sender, "header field names must be printable ascii only");
+            }
+        }
+
+        private bool ZTryParseHeaderFieldNames(string pText, out cHeaderFieldNames rNames)
+        {
+            if (pText == null) { rNames = null; return true; }
+
+            List<string> lNames = new List<string>();
+            foreach (var lName in pText.Trim().Split(' ', ':')) if (!string.IsNullOrWhiteSpace(lName)) lNames.Add(lName);
+
+            if (lNames.Count == 0) { rNames = null; return true; }
+
+            try { rNames = new cHeaderFieldNames(lNames); }
+            catch { rNames = null; return false; }
+
+            return true;
+        }
+
+        private string ZHeaderFieldNames(cHeaderFieldNames pNames)
+        {
+            if (pNames == null) return string.Empty;
+
+            StringBuilder lBuilder = new StringBuilder();
+            bool lFirst = true;
+
+            foreach (var lName in pNames)
+            {
+                if (lFirst) lFirst = false;
+                else lBuilder.Append(" ");
+                lBuilder.Append(lName);
+            }
+
+            return lBuilder.ToString();
+        }
+
         private void frmClient_Load(object sender, EventArgs e)
         {
             Text = "imapclient testharness - client - " + mClient.InstanceName;
@@ -306,14 +350,16 @@ namespace testharness2
 
             ZSortDescriptionSet();
 
-            chkMPEnvelope.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0;
-            chkMPFlags.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0;
-            chkMPReceived.Checked = (mClient.DefaultMessageProperties & fMessageProperties.received) != 0;
-            chkMPSize.Checked = (mClient.DefaultMessageProperties & fMessageProperties.size) != 0;
-            chkMPUID.Checked = (mClient.DefaultMessageProperties & fMessageProperties.uid) != 0;
-            chkMPReferences.Checked = (mClient.DefaultMessageProperties & fMessageProperties.references) != 0;
-            chkMPModSeq.Checked = (mClient.DefaultMessageProperties & fMessageProperties.modseq) != 0;
-            chkMPBodyStructure.Checked = (mClient.DefaultMessageProperties & (fMessageProperties.bodystructure | fMessageProperties.attachments | fMessageProperties.plaintextsizeinbytes)) != 0;
+            chkMPEnvelope.Checked = (mClient.DefaultMessageProperties.Properties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0;
+            chkMPFlags.Checked = (mClient.DefaultMessageProperties.Properties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0;
+            chkMPReceived.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.received) != 0;
+            chkMPSize.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.size) != 0;
+            chkMPUID.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.uid) != 0;
+            chkMPModSeq.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.modseq) != 0;
+            chkMPBodyStructure.Checked = (mClient.DefaultMessageProperties.Properties & (fMessageProperties.bodystructure | fMessageProperties.attachments | fMessageProperties.plaintextsizeinbytes)) != 0;
+            chkMPReferences.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.references) != 0;
+            chkMPImportance.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.importance) != 0;
+            txtMPHeaderFieldNames.Text = ZHeaderFieldNames(mClient.DefaultMessageProperties.Names);
         }
 
         private void ZLoadFetchConfig(cBatchSizerConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
@@ -576,29 +622,6 @@ namespace testharness2
             else ZNamedChildAdd(new frmDetails(mClient));
         }
 
-        private void ZSetDefaultMessageProperties(object sender, EventArgs e)
-        {
-            try
-            {
-                fMessageProperties lProperties = 0;
-
-                if (chkMPEnvelope.Checked) lProperties |= fMessageProperties.envelope;
-                if (chkMPFlags.Checked) lProperties |= fMessageProperties.flags;
-                if (chkMPReceived.Checked) lProperties |= fMessageProperties.received;
-                if (chkMPSize.Checked) lProperties |= fMessageProperties.size;
-                if (chkMPUID.Checked) lProperties |= fMessageProperties.uid;
-                if (chkMPReferences.Checked) lProperties |= fMessageProperties.references;
-                if (chkMPModSeq.Checked) lProperties |= fMessageProperties.modseq;
-                if (chkMPBodyStructure.Checked) lProperties |= fMessageProperties.bodystructure;
-
-                mClient.DefaultMessageProperties = lProperties;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, $"Set default message properties error\n{ex}");
-            }
-        }
-
         private async void cmdPoll_Click(object sender, EventArgs e)
         {
             try
@@ -659,6 +682,37 @@ namespace testharness2
         private void ZSortDescriptionSet()
         {
             lblSort.Text = mClient.DefaultSort.ToString();
+        }
+
+        private void cmdMPSet_Click(object sender, EventArgs e)
+        {
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            fMessageProperties lProperties = 0;
+
+            if (chkMPEnvelope.Checked) lProperties |= fMessageProperties.envelope;
+            if (chkMPFlags.Checked) lProperties |= fMessageProperties.flags;
+            if (chkMPReceived.Checked) lProperties |= fMessageProperties.received;
+            if (chkMPSize.Checked) lProperties |= fMessageProperties.size;
+            if (chkMPUID.Checked) lProperties |= fMessageProperties.uid;
+            if (chkMPModSeq.Checked) lProperties |= fMessageProperties.modseq;
+            if (chkMPBodyStructure.Checked) lProperties |= fMessageProperties.bodystructure;
+            if (chkMPReferences.Checked) lProperties |= fMessageProperties.references;
+            if (chkMPImportance.Checked) lProperties |= fMessageProperties.references;
+
+            cMessageProperties lProperties = new cMessageProperties(l)
+
+            try
+            {
+
+                ;?;
+
+                mClient.DefaultMessageProperties = lProperties;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Set default message properties error\n{ex}");
+            }
         }
     }
 }

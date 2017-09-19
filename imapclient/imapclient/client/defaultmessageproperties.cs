@@ -4,12 +4,12 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        private cMessageProperties mDefaultMessageProperties = cMessageProperties.None;
+        private cCacheItems mDefaultCacheItems = cCacheItems.None;
 
-        public cMessageProperties DefaultMessageProperties
+        public cCacheItems DefaultCacheItems
         {
-            get => mDefaultMessageProperties;
-            set => mDefaultMessageProperties = value ?? throw new ArgumentNullException();
+            get => mDefaultCacheItems;
+            set => mDefaultCacheItems = value ?? throw new ArgumentNullException();
         }
     }
 }

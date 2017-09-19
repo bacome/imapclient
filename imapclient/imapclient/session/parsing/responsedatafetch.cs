@@ -155,13 +155,13 @@ namespace work.bacome.imapclient
                         {
                             lAttribute = 0;
                             lOK = pCursor.GetNString(out lRFC822);
-                            if (lOK && cHeaderFields.TryConstruct(cSection.All, lRFC822, out var lTemp)) lHeaderFields = lHeaderFields + lTemp;
+                            if (lOK && cHeaderFields.TryConstruct(lRFC822, out var lTemp)) lHeaderFields += lTemp;
                         }
                         else if (pCursor.SkipBytes(kRFC822HeaderSpace))
                         {
                             lAttribute = 0;
                             lOK = pCursor.GetNString(out lRFC822Header); 
-                            if (lOK && cHeaderFields.TryConstruct(cSection.Header, lRFC822Header, out var lTemp)) lHeaderFields = lHeaderFields + lTemp;
+                            if (lOK && cHeaderFields.TryConstruct(lRFC822Header, out var lTemp)) lHeaderFields += lTemp;
                         }
                         else if (pCursor.SkipBytes(kRFC822TextSpace))
                         {
@@ -192,7 +192,30 @@ namespace work.bacome.imapclient
                             if (lOK)
                             {
                                 lBodies.Add(lABody);
-                                if (lABody.Section.Part == null && lABody.Origin == null && cHeaderFields.TryConstruct(lABody.Section, lABody.Bytes, out var lTemp)) lHeaderFields = lHeaderFields + lTemp;
+
+                                if (lABody.Section.Part == null && lABody.Origin == null)
+                                {
+                                    cHeaderFields lTemp;
+
+                                    switch (lABody.Section.TextPart)
+                                    {
+                                        case eSectionPart.all:
+                                        case eSectionPart.header:
+
+                                            if (cHeaderFields.TryConstruct(lABody.Bytes, out lTemp)) lHeaderFields += lTemp;
+                                            break;
+
+                                        case eSectionPart.headerfields:
+
+                                            if (cHeaderFields.TryConstruct(lABody.Bytes, lABody.Section.Names, false, out lTemp)) lHeaderFields += lTemp;
+                                            break;
+
+                                        case eSectionPart.headerfieldsnot:
+
+                                            if (cHeaderFields.TryConstruct(lABody.Bytes, lABody.Section.Names, true, out lTemp)) lHeaderFields += lTemp;
+                                            break;
+                                    }
+                                }
                             }
                         }
                         else if (pCursor.SkipBytes(kUIDSpace))

@@ -47,13 +47,13 @@
     <Compile Include="client\delete.cs" />
     <Compile Include="client\disconnect.cs" />
     <Compile Include="client\expunge.cs" />
-    <Compile Include="client\fetchattributes.cs" />
     <Compile Include="client\fetchsizeinbytes.cs" />
+    <Compile Include="exposed_interfaces\message\cacheattributes.cs" />
     <Compile Include="exposed_interfaces\message\headerfieldnames.cs" />
     <Compile Include="exposed_interfaces\message\headerfields.cs" />
     <Compile Include="exposed_interfaces\message\importance.cs" />
     <Compile Include="exposed_interfaces\other\fetchconfiguration.cs" />
-    <Compile Include="client\fetchproperties.cs" />
+    <Compile Include="client\fetchcacheitems.cs" />
     <Compile Include="client\fetchbody.cs" />
     <Compile Include="client\fetchmailboxdata.cs" />
     <Compile Include="client\rename.cs" />
@@ -137,7 +137,7 @@
     <Compile Include="exposed_interfaces\message\message.cs" />
     <Compile Include="exposed_interfaces\message\messageflags.cs" />
     <Compile Include="exposed_interfaces\support\types\messagehandle.cs" />
-    <Compile Include="exposed_interfaces\support\types\fetchattributes.cs" />
+    <Compile Include="exposed_interfaces\message\cacheitems.cs" />
     <Compile Include="exposed_interfaces\message\messagepropertychangedeventargs.cs" />
     <Compile Include="exposed_interfaces\message\section.cs" />
     <Compile Include="exposed_interfaces\message\sort.cs" />

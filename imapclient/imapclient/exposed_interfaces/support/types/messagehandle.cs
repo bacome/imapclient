@@ -7,7 +7,7 @@ namespace work.bacome.imapclient.support
         iMessageCache Cache { get; }
         int CacheSequence { get; }
         bool Expunged { get; }
-        fFetchAttributes Attributes { get; }
+        fCacheAttributes CachedAttributes { get; }
         cBodyPart Body { get; }
         cBodyPart BodyStructure { get; }
         cEnvelope Envelope { get; }
@@ -19,8 +19,8 @@ namespace work.bacome.imapclient.support
         cHeaderFields HeaderFields { get; }
         cBinarySizes BinarySizes { get; }
 
-        bool ContainsAll(cFetchAttributes pAttributes);
-        bool ContainsNone(cFetchAttributes pAttributes);
-        cFetchAttributes Missing(cFetchAttributes pAttributes);
+        bool ContainsAll(cCacheItems pItems);
+        bool ContainsNone(cCacheItems pItems);
+        cCacheItems Missing(cCacheItems pItems);
     }
 }
