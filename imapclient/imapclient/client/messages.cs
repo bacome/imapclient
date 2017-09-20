@@ -137,9 +137,9 @@ namespace work.bacome.imapclient
             }
             else
             {
-                var lSortItems = pSort.Properties(out var lSortDisplay);
+                var lSortAttributes = pSort.Attributes(out var lSortDisplay);
                 if (!lSortDisplay && lSession.Capabilities.Sort || lSortDisplay && lSession.Capabilities.SortDisplay) return await ZMessagesSortAsync(pMC, lSession, pHandle, pSort, pFilter, pItems, pConfiguration, lContext).ConfigureAwait(false);
-                lItems = pItems | lSortProperties;
+                lItems = pItems | lSortAttributes;
             }
 
             cMessageHandleList lHandles;
@@ -147,7 +147,7 @@ namespace work.bacome.imapclient
             else lHandles = await lSession.SearchAsync(pMC, pHandle, pFilter, lContext).ConfigureAwait(false);
 
             // get the properties
-            await ZMessagesFetchAsync(pMC, lSession, lHandles, lProperties, pConfiguration, lContext).ConfigureAwait(false);
+            await ZMessagesFetchAsync(pMC, lSession, lHandles, lItems, pConfiguration, lContext).ConfigureAwait(false);
 
             if (ReferenceEquals(pSort, cSort.None)) return ZMessagesFlatMessageList(lHandles, lContext);
 
@@ -163,7 +163,7 @@ namespace work.bacome.imapclient
         private async Task<List<cMessage>> ZMessagesThreadAsync(cMethodControl pMC, cSession pSession, iMailboxHandle pHandle, eMessageThreadAlgorithm pAlgorithm, cFilter pFilter, cCacheItems pItems, cMessageFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             // this routine uses the thread command and then gets the properties of the returned messages (if required)
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesThreadAsync), pMC, pHandle, pAlgorithm, pFilter, pProperties);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesThreadAsync), pMC, pHandle, pAlgorithm, pFilter, pItems);
             throw new NotImplementedException();
             // TODO
             //  (this will call fetch if required)
@@ -172,26 +172,25 @@ namespace work.bacome.imapclient
 
         private async Task<List<cMessage>> ZMessagesSortAsync(cMethodControl pMC, cSession pSession, iMailboxHandle pHandle, cSort pSort, cFilter pFilter, cCacheItems pItems, cMessageFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesSortAsync), pMC, pHandle, pSort, pFilter, pProperties);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesSortAsync), pMC, pHandle, pSort, pFilter, pItems);
 
             cMessageHandleList lHandles;
             if (pSession.Capabilities.ESort) lHandles = await pSession.SortExtendedAsync(pMC, pHandle, pFilter, pSort, lContext).ConfigureAwait(false);
             else lHandles = await pSession.SortAsync(pMC, pHandle, pFilter, pSort, lContext).ConfigureAwait(false);
 
-            await ZMessagesFetchAsync(pMC, pSession, lHandles, pProperties, pConfiguration, lContext).ConfigureAwait(false);
+            await ZMessagesFetchAsync(pMC, pSession, lHandles, pItems, pConfiguration, lContext).ConfigureAwait(false);
 
             return ZMessagesFlatMessageList(lHandles, lContext);
         }
 
         private async Task ZMessagesFetchAsync(cMethodControl pMC, cSession pSession, cMessageHandleList pHandles, cCacheItems pItems, cMessageFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesFetchAsync), pMC, pHandles, pProperties);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesFetchAsync), pMC, pHandles, pItems);
 
             if (pHandles.Count == 0) return;
-            if (pProperties.IsNone) return;
+            if (pItems.IsNone) return;
 
-            var lAttributes = new cFetchAttributes(pProperties);
-            if (pHandles.AllContainAll(lAttributes)) return;
+            if (pHandles.AllContainAll(pItems)) return;
 
             cProgress lProgress;
 
@@ -202,7 +201,7 @@ namespace work.bacome.imapclient
                 lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
             }
 
-            await pSession.FetchAttributesAsync(pMC, pHandles, lAttributes, lProgress, lContext).ConfigureAwait(false);
+            await pSession.FetchAttributesAsync(pMC, pHandles, pItems, lProgress, lContext).ConfigureAwait(false);
         }
 
         private static readonly cSort kMessagesThreadOrderedSubjectSort = new cSort(cSortItem.Subject, cSortItem.Sent);

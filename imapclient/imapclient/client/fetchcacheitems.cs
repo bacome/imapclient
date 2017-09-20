@@ -149,14 +149,14 @@ namespace work.bacome.imapclient
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                     var lProgress = new cProgress();
-                    lHandles = await lSession.UIDFetchAttributesAsync(lMC, pHandle, pUIDs, pAttributes, lProgress, lContext).ConfigureAwait(false);
+                    lHandles = await lSession.UIDFetchAttributesAsync(lMC, pHandle, pUIDs, pItems, lProgress, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
                 var lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
-                lHandles = await lSession.UIDFetchAttributesAsync(lMC, pHandle, pUIDs, pAttributes, lProgress, lContext).ConfigureAwait(false);
+                lHandles = await lSession.UIDFetchAttributesAsync(lMC, pHandle, pUIDs, pItems, lProgress, lContext).ConfigureAwait(false);
             }
 
             List<cMessage> lMessages = new List<cMessage>(lHandles.Count);

@@ -31,7 +31,6 @@ namespace work.bacome.imapclient
 
         public readonly eSortItem Item;
         public readonly fCacheAttributes Attribute;
-        public readonly bool Display;
         public readonly bool Desc;
 
         public cSortItem(eSortItem pItem, bool pDesc)
@@ -43,7 +42,6 @@ namespace work.bacome.imapclient
                 case eSortItem.received:
 
                     Attribute = fCacheAttributes.received;
-                    Display = false;
                     break;
 
                 case eSortItem.cc:
@@ -51,34 +49,26 @@ namespace work.bacome.imapclient
                 case eSortItem.from:
                 case eSortItem.subject:
                 case eSortItem.to:
+                case eSortItem.displayfrom:
+                case eSortItem.displayto:
 
                     Attribute = fCacheAttributes.envelope;
-                    Display = false;
                     break;
 
                 case eSortItem.size:
 
                     Attribute = fCacheAttributes.size;
-                    Display = false;
-                    break;
-
-                case eSortItem.displayfrom:
-                case eSortItem.displayto:
-
-                    Attribute = fCacheAttributes.envelope;
-                    Display = true;
                     break;
 
                 default:
 
                     throw new ArgumentOutOfRangeException(nameof(pItem));
-
             }
 
             Desc = pDesc;
         }
 
-        public override string ToString() => $"{nameof(cSortItem)}({Item},{Attribute},{Display},{Desc})";
+        public override string ToString() => $"{nameof(cSortItem)}({Item},{Attribute},{Desc})";
     }
 
     public class cSort
@@ -197,9 +187,9 @@ namespace work.bacome.imapclient
 
         public int Comparison(cMessage pX, cMessage pY)
         {
-            var lProperties = Properties(out _);
-            pX.Fetch(lProperties);
-            pY.Fetch(lProperties);
+            var lAttributes = Attributes(out _);
+            pX.Fetch(lAttributes);
+            pY.Fetch(lAttributes);
             return Comparison(pX.Handle, pY.Handle);
         }
 
@@ -212,7 +202,7 @@ namespace work.bacome.imapclient
             foreach (var lItem in Items)
             {
                 lAttributes |= lItem.Attribute;
-                if (lItem.Display) rDisplay = true;
+                if (lItem.Item == eSortItem.displayfrom || lItem.Item == eSortItem.displayto) rDisplay = true;
             }
 
             return lAttributes;

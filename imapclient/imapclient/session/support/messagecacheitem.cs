@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
                 private readonly iMessageCache mCache;
                 private readonly int mCacheSequence;
                 private bool mExpunged = false;
-                private fFetchAttributes mAttributes;
+                private fCacheAttributes mAttributes;
                 private cBodyPart mBody = null;
                 private ulong? mModSeq;
 
@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
 
                     if (pCache.NoModSeq)
                     {
-                        mAttributes = fFetchAttributes.modseq;
+                        mAttributes = fCacheAttributes.modseq;
                         mModSeq = 0;
                     }
                     else
@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
                 public iMessageCache Cache => mCache;
                 public int CacheSequence => mCacheSequence;
                 public bool Expunged => mExpunged;
-                public fFetchAttributes Attributes => mAttributes;
+                public fCacheAttributes Attributes => mAttributes;
                 public cBodyPart Body => mBody ?? BodyStructure;
                 public cBodyPart BodyStructure { get; private set; } = null;
                 public cEnvelope Envelope { get; private set; } = null;
@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
                 public cHeaderFields HeaderFields { get; private set; } = null;
                 public cBinarySizes BinarySizes { get; private set; } = null;
 
-                public bool ContainsAll(cFetchAttributes pAttributes) => (~mAttributes & pAttributes.Attributes) == 0 && HeaderFields.ContainsAll(pAttributes.Names);
+                public bool ContainsAll(cCacheItems pItems) => (~mAttributes & pItems.Attributes) == 0 && HeaderFields.ContainsAll(pItems.Names);
                 public bool ContainsNone(cFetchAttributes pAttributes) => (~mAttributes & pAttributes.Attributes) == pAttributes.Attributes && HeaderFields.ContainsNone(pAttributes.Names);
                 public cFetchAttributes Missing(cFetchAttributes pAttributes) => new cFetchAttributes(~mAttributes & pAttributes.Attributes, HeaderFields.Missing(pAttributes.Names));
 

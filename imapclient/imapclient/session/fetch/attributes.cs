@@ -109,23 +109,23 @@ namespace work.bacome.imapclient
 
                 // uid fetch the remainder
                 var lMailboxHandle = pGroup.Handles[0].Cache.MailboxHandle;
-                await ZUIDFetchAttributesAsync(pMC, lMailboxHandle, lUIDs, pGroup.Attributes, pProgress, lContext).ConfigureAwait(false);
+                await ZUIDFetchAttributesAsync(pMC, lMailboxHandle, lUIDs, pGroup.Items, pProgress, lContext).ConfigureAwait(false);
             }
 
-            private IEnumerable<cFetchAttributesGroup> ZFetchAttributesGroups(cMessageHandleList pHandles, cFetchAttributes pAttributes)
+            private IEnumerable<cFetchCacheItemsGroup> ZFetchAttributesGroups(cMessageHandleList pHandles, cCacheItems pItems)
             {
-                Dictionary<cFetchAttributes, cFetchAttributesGroup> lGroups = new Dictionary<cFetchAttributes, cFetchAttributesGroup>();
+                Dictionary<cCacheItems, cFetchCacheItemsGroup> lGroups = new Dictionary<cCacheItems, cFetchCacheItemsGroup>();
 
                 foreach (var lHandle in pHandles)
                 {
-                    cFetchAttributes lAttributes = lHandle.Missing(pAttributes);
+                    cCacheItems lItems = lHandle.Missing(pItems);
 
-                    cFetchAttributesGroup lGroup;
+                    cFetchCacheItemsGroup lGroup;
 
-                    if (!lGroups.TryGetValue(lAttributes, out lGroup))
+                    if (!lGroups.TryGetValue(lItems, out lGroup))
                     {
-                        lGroup = new cFetchAttributesGroup(lAttributes);
-                        lGroups.Add(lAttributes, lGroup);
+                        lGroup = new cFetchCacheItemsGroup(lItems);
+                        lGroups.Add(lItems, lGroup);
                     }
 
                     if (lHandle.UID == null) lGroup.MSNHandleCount++;

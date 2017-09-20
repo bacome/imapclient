@@ -11,6 +11,8 @@ namespace work.bacome.imapclient
 {
     public class cHeaderFieldNames : IReadOnlyList<string>
     {
+        public const string InReplyTo = "IN-REPLY-TO";
+        public const string MessageId = "MESSAGE-ID";
         public const string References = "REFERENCES";
         public const string Importance = "IMPORTANCE";
 

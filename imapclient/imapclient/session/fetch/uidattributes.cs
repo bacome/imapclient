@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cMessageHandleList> UIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, cFetchAttributes pAttributes, cProgress pProgress, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> UIDFetchAttributesAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, cCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchAttributesAsync), pMC, pHandle, pUIDs, pAttributes);
 
@@ -20,11 +20,11 @@ namespace work.bacome.imapclient
 
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
-                if (pAttributes == null) throw new ArgumentNullException(nameof(pAttributes));
+                if (pItems == null) throw new ArgumentNullException(nameof(pItems));
                 if (pProgress == null) throw new ArgumentNullException(nameof(pProgress));
 
                 if (pUIDs.Count == 0) throw new ArgumentOutOfRangeException(nameof(pUIDs));
-                if (pAttributes.IsNone) throw new ArgumentOutOfRangeException(nameof(pAttributes));
+                if (pItems.IsNone) throw new ArgumentOutOfRangeException(nameof(pItems));
 
                 uint lUIDValidity = pUIDs[0].UIDValidity;
 
@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
                     {
                         var lHandle = lSelectedMailbox.GetHandle(lUID);
                         if (lHandle == null) lUIDs.Add(lUID); // don't have a handle
-                        if (lHandle.ContainsNone(pAttributes)) lUIDs.Add(lUID); // have to get all the attributes, may as well fetch them with the ones where I might need all the attributes
+                        if (lHandle.ContainsNone(pItems)) lUIDs.Add(lUID); // have to get all the attributes, may as well fetch them with the ones where I might need all the attributes
                         else lHandles.Add(lHandle);
                     }
                 }
@@ -57,7 +57,7 @@ namespace work.bacome.imapclient
                 if (lHandles.Count > 0)
                 {
                     // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                    foreach (var lGroup in ZFetchAttributesGroups(lHandles, pAttributes)) await ZFetchAttributesAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
+                    foreach (var lGroup in ZFetchAttributesGroups(lHandles, pItems)) await ZFetchAttributesAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
                 }
 
                 // for the messages only identified by UID or where I have to get all the attributes

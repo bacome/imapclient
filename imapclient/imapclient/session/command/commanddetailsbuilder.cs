@@ -75,7 +75,7 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartBodyStructure = new cCommandPart("BODYSTRUCTURE");
                 private static readonly cCommandPart kCommandPartUID = new cCommandPart("UID");
                 private static readonly cCommandPart kCommandPartModSeq = new cCommandPart("MODSEQ");
-                private static readonly cCommandPart kCommandPartHeaderFieldsPrefix = new cCommandPart("BODY.PEEK[HEADER.FIELDS ");
+                private static readonly cCommandPart kCommandPartBodyPeekLBracketHeaderFieldsSpace = new cCommandPart("BODY.PEEK[HEADER.FIELDS ");
 
                 // fetch body
                 private static readonly cCommandPart kCommandPartHeader = new cCommandPart("HEADER");
@@ -109,29 +109,29 @@ namespace work.bacome.imapclient
                 public void BeginList(eListBracketing pBracketing, cCommandPart pListName = null) => mParts.BeginList(pBracketing, pListName);
                 public void EndList() => mParts.EndList();
 
-                public void Add(cFetchAttributes pAttributes, bool pNoModSeq)
+                public void Add(cCacheItems pItems, bool pNoModSeq)
                 {
                     if (mEmitted) throw new InvalidOperationException();
 
-                    fFetchAttributes lAttributes = pAttributes.Attributes;
-                    if ((lAttributes & (fFetchAttributes.flags | fFetchAttributes.modseq)) != 0) lAttributes |= fFetchAttributes.flags | fFetchAttributes.modseq;
-                    if (pNoModSeq) lAttributes = lAttributes & ~fFetchAttributes.modseq;
+                    fCacheAttributes lAttributes = pItems.Attributes;
+                    if ((lAttributes & (fCacheAttributes.flags | fCacheAttributes.modseq)) != 0) lAttributes |= fCacheAttributes.flags | fCacheAttributes.modseq;
+                    if (pNoModSeq) lAttributes = lAttributes & ~fCacheAttributes.modseq;
 
                     mParts.BeginList(eListBracketing.ifmorethanone);
 
-                    if ((lAttributes & fFetchAttributes.flags) != 0) mParts.Add(kCommandPartFlags);
-                    if ((lAttributes & fFetchAttributes.envelope) != 0) mParts.Add(kCommandPartEnvelope);
-                    if ((lAttributes & fFetchAttributes.received) != 0) mParts.Add(kCommandPartInternalDate);
-                    if ((lAttributes & fFetchAttributes.size) != 0) mParts.Add(kCommandPartrfc822size);
-                    if ((lAttributes & fFetchAttributes.body) != 0) mParts.Add(kCommandPartBody);
-                    if ((lAttributes & fFetchAttributes.bodystructure) != 0) mParts.Add(kCommandPartBodyStructure);
-                    if ((lAttributes & fFetchAttributes.uid) != 0) mParts.Add(kCommandPartUID);
-                    if ((lAttributes & fFetchAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
+                    if ((lAttributes & fCacheAttributes.flags) != 0) mParts.Add(kCommandPartFlags);
+                    if ((lAttributes & fCacheAttributes.envelope) != 0) mParts.Add(kCommandPartEnvelope);
+                    if ((lAttributes & fCacheAttributes.received) != 0) mParts.Add(kCommandPartInternalDate);
+                    if ((lAttributes & fCacheAttributes.size) != 0) mParts.Add(kCommandPartrfc822size);
+                    if ((lAttributes & fCacheAttributes.body) != 0) mParts.Add(kCommandPartBody);
+                    if ((lAttributes & fCacheAttributes.bodystructure) != 0) mParts.Add(kCommandPartBodyStructure);
+                    if ((lAttributes & fCacheAttributes.uid) != 0) mParts.Add(kCommandPartUID);
+                    if ((lAttributes & fCacheAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
 
-                    if (pAttributes.Names.Count > 0)
+                    if (pItems.Names.Count > 0)
                     {
-                        mParts.BeginList(eListBracketing.bracketed, kCommandPartHeaderFieldsPrefix, cCommandPart.RBracket);
-                        foreach (var lName in pAttributes.Names) mParts.Add(cCommandPartFactory.AsASCIIAString(lName));
+                        mParts.BeginList(eListBracketing.bracketed, kCommandPartBodyPeekLBracketHeaderFieldsSpace, cCommandPart.RBracket);
+                        foreach (var lName in pItems.Names) mParts.Add(cCommandPartFactory.AsASCIIAString(lName));
                         mParts.EndList();
                     }
 
@@ -451,40 +451,40 @@ namespace work.bacome.imapclient
                     {
                         if (lItem.Desc) mParts.Add(kCommandPartReverse);
 
-                        switch (lItem.Property)
+                        switch (lItem.Item)
                         {
-                            case fMessageProperties.received:
+                            case eSortItem.received:
 
                                 mParts.Add(kCommandPartArrival);
                                 break;
 
-                            case fMessageProperties.cc:
+                            case eSortItem.cc:
 
                                 mParts.Add(kCommandPartCC);
                                 break;
 
-                            case fMessageProperties.sent:
+                            case eSortItem.sent:
 
                                 mParts.Add(kCommandPartDate);
                                 break;
 
-                            case fMessageProperties.from:
+                            case eSortItem.from:
 
                                 if (lItem.Display) mParts.Add(kCommandPartDisplayFrom);
                                 else mParts.Add(kCommandPartFrom);
                                 break;
 
-                            case fMessageProperties.size:
+                            case eSortItem.size:
 
                                 mParts.Add(kCommandPartSize);
                                 break;
 
-                            case fMessageProperties.subject:
+                            case eSortItem.subject:
 
                                 mParts.Add(kCommandPartSubject);
                                 break;
 
-                            case fMessageProperties.to:
+                            case eSortItem.to:
 
                                 if (lItem.Display) mParts.Add(kCommandPartDisplayTo);
                                 else mParts.Add(kCommandPartTo);

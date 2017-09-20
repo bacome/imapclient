@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
             private class cResponseDataFetch : cResponseData
             {
                 public readonly uint MSN;
-                public readonly fFetchAttributes Attributes;
+                public readonly fCacheAttributes Attributes;
                 public readonly cMessageFlags Flags;
                 public readonly cEnvelope Envelope;
                 public readonly DateTime? Received;
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
                 public readonly cBinarySizes BinarySizes;
                 public readonly ulong? ModSeq;
 
-                public cResponseDataFetch(uint pMSN, fFetchAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaderFields pHeaderFields, cBinarySizes pBinarySizes, ulong? pModSeq)
+                public cResponseDataFetch(uint pMSN, fCacheAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaderFields pHeaderFields, cBinarySizes pBinarySizes, ulong? pModSeq)
                 {
                     MSN = pMSN;
                     Attributes = pAttributes;
@@ -113,7 +113,7 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    fFetchAttributes lAttributes = 0;
+                    fCacheAttributes lAttributes = 0;
                     cMessageFlags lFlags = null;
                     cEnvelope lEnvelope = null;
                     DateTime? lReceived = null;
@@ -131,23 +131,23 @@ namespace work.bacome.imapclient
 
                     while (true)
                     {
-                        fFetchAttributes lAttribute;
+                        fCacheAttributes lAttribute;
                         bool lOK;
 
                         if (pCursor.SkipBytes(kFlagsSpace))
                         {
-                            lAttribute = fFetchAttributes.flags;
+                            lAttribute = fCacheAttributes.flags;
                             lOK = pCursor.GetFlags(out var lRawFlags);
                             if (lOK) lFlags = new cMessageFlags(lRawFlags);
                         }
                         else if (pCursor.SkipBytes(kEnvelopeSpace))
                         {
-                            lAttribute = fFetchAttributes.envelope;
+                            lAttribute = fCacheAttributes.envelope;
                             lOK = ZProcessEnvelope(pCursor, out lEnvelope);
                         }
                         else if (pCursor.SkipBytes(kInternalDateSpace))
                         {
-                            lAttribute = fFetchAttributes.received;
+                            lAttribute = fCacheAttributes.received;
                             lOK = pCursor.GetDateTime(out var lDateTime);
                             if (lOK) lReceived = lDateTime;
                         }
@@ -170,18 +170,18 @@ namespace work.bacome.imapclient
                         }
                         else if (pCursor.SkipBytes(kRFC822SizeSpace))
                         {
-                            lAttribute = fFetchAttributes.size;
+                            lAttribute = fCacheAttributes.size;
                             lOK = pCursor.GetNumber(out _, out var lNumber);
                             if (lOK) lSize = lNumber;
                         }
                         else if (pCursor.SkipBytes(kBodySpace))
                         {
-                            lAttribute = fFetchAttributes.body;
+                            lAttribute = fCacheAttributes.body;
                             lOK = ZProcessBodyStructure(pCursor, cSection.Text, false, out lBody);
                         }
                         else if (pCursor.SkipBytes(kBodyStructureSpace))
                         {
-                            lAttribute = fFetchAttributes.bodystructure;
+                            lAttribute = fCacheAttributes.bodystructure;
                             lOK = ZProcessBodyStructure(pCursor, cSection.Text, true, out lBodyStructure);
                         }
                         else if (pCursor.SkipBytes(kBodyLBracket))
@@ -220,7 +220,7 @@ namespace work.bacome.imapclient
                         }
                         else if (pCursor.SkipBytes(kUIDSpace))
                         {
-                            lAttribute = fFetchAttributes.uid;
+                            lAttribute = fCacheAttributes.uid;
                             lOK = pCursor.GetNZNumber(out _, out var lNumber);
                             if (lOK) lUID = lNumber;
                         }
@@ -238,7 +238,7 @@ namespace work.bacome.imapclient
                         }
                         else if (pCursor.SkipBytes(kModSeqSpaceLParen))
                         {
-                            lAttribute = fFetchAttributes.modseq;
+                            lAttribute = fCacheAttributes.modseq;
                             lOK = pCursor.GetNumber(out var lTemp) && pCursor.SkipByte(cASCII.RPAREN);
                             if (lOK) lModSeq = lTemp;
                         }
@@ -1164,6 +1164,7 @@ namespace work.bacome.imapclient
                     lEmailAddress = lData.Envelope.CC[1] as cEmailAddress;
                     if (lEmailAddress.DisplayName != "John Klensin" || lEmailAddress.Address != "KLENSIN@MIT.EDU") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.3");
 
+                    ;?; // tests for messageid and inreply to here
                     if (lData.Envelope.BCC != null || lData.Envelope.InReplyTo != null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.10");
 
                     if (lData.Envelope.MessageId.MsgId != "B27397-0100000@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
