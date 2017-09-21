@@ -72,7 +72,7 @@ namespace work.bacome.imapclient
         private bool mMailboxReferrals = false;
         private fMailboxCacheData mMailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount;
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
-        private cBatchSizerConfiguration mFetchAttributesReadConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
+        private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
@@ -270,16 +270,16 @@ namespace work.bacome.imapclient
 
         // controls for long running activities
 
-        public cBatchSizerConfiguration FetchAttributesReadConfiguration
+        public cBatchSizerConfiguration FetchCacheItemsConfiguration
         {
-            get => mFetchAttributesReadConfiguration;
+            get => mFetchCacheItemsConfiguration;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchAttributesReadConfiguration), value);
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchCacheItemsConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mFetchAttributesReadConfiguration = value ?? throw new ArgumentNullException();
-                mSession?.SetFetchAttributesReadConfiguration(value, lContext);
+                mFetchCacheItemsConfiguration = value ?? throw new ArgumentNullException();
+                mSession?.SetFetchCacheItemsConfiguration(value, lContext);
             }
         }
 

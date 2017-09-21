@@ -344,22 +344,20 @@ namespace testharness2
 
             txtTimeout.Text = mClient.Timeout.ToString();
 
-            ZLoadFetchConfig(mClient.FetchAttributesReadConfiguration, txtFAMin, txtFAMax, txtFAMaxTime, txtFAInitial);
+            ZLoadFetchConfig(mClient.FetchCacheItemsConfiguration, txtFAMin, txtFAMax, txtFAMaxTime, txtFAInitial);
             ZLoadFetchConfig(mClient.FetchBodyReadConfiguration, txtFRMin, txtFRMax, txtFRMaxTime, txtFRInitial);
             ZLoadFetchConfig(mClient.FetchBodyWriteConfiguration, txtFWMin, txtFWMax, txtFWMaxTime, txtFWInitial);
 
             ZSortDescriptionSet();
 
-            chkMPEnvelope.Checked = (mClient.DefaultMessageProperties.Properties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0;
-            chkMPFlags.Checked = (mClient.DefaultMessageProperties.Properties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0;
-            chkMPReceived.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.received) != 0;
-            chkMPSize.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.size) != 0;
-            chkMPUID.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.uid) != 0;
-            chkMPModSeq.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.modseq) != 0;
-            chkMPBodyStructure.Checked = (mClient.DefaultMessageProperties.Properties & (fMessageProperties.bodystructure | fMessageProperties.attachments | fMessageProperties.plaintextsizeinbytes)) != 0;
-            chkMPReferences.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.references) != 0;
-            chkMPImportance.Checked = (mClient.DefaultMessageProperties.Properties & fMessageProperties.importance) != 0;
-            txtMPHeaderFieldNames.Text = ZHeaderFieldNames(mClient.DefaultMessageProperties.Names);
+            chkMPEnvelope.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.envelope) != 0;
+            chkMPFlags.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            chkMPReceived.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            chkMPSize.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            chkMPUID.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            chkMPModSeq.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            chkMPBodyStructure.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            txtMPHeaderFieldNames.Text = ZHeaderFieldNames(mClient.DefaultCacheItems.Names);
         }
 
         private void ZLoadFetchConfig(cBatchSizerConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
@@ -410,9 +408,9 @@ namespace testharness2
             ZSetControlStateIdle();
         }
 
-        private void gbxFetchAttributes_Validating(object sender, CancelEventArgs e)
+        private void gbxFetchCacheItems_Validating(object sender, CancelEventArgs e)
         {
-            ZValFetchConfig(gbxFetchAttributes, txtFAMin, txtFAMax, txtFAInitial, e);
+            ZValFetchConfig(gbxFetchCacheItems, txtFAMin, txtFAMax, txtFAInitial, e);
         }
 
         private void gbxFetchBodyRead_Validating(object sender, CancelEventArgs e)
@@ -594,7 +592,7 @@ namespace testharness2
 
             try
             {
-                mClient.FetchAttributesReadConfiguration = new cBatchSizerConfiguration(int.Parse(txtFAMin.Text), int.Parse(txtFAMax.Text), int.Parse(txtFAMaxTime.Text), int.Parse(txtFAInitial.Text));
+                mClient.FetchCacheItemsConfiguration = new cBatchSizerConfiguration(int.Parse(txtFAMin.Text), int.Parse(txtFAMax.Text), int.Parse(txtFAMaxTime.Text), int.Parse(txtFAInitial.Text));
             }
             catch (Exception ex)
             {
@@ -688,31 +686,19 @@ namespace testharness2
         {
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
 
-            fMessageProperties lProperties = 0;
+            fCacheAttributes lAttributes = 0;
 
-            if (chkMPEnvelope.Checked) lProperties |= fMessageProperties.envelope;
-            if (chkMPFlags.Checked) lProperties |= fMessageProperties.flags;
-            if (chkMPReceived.Checked) lProperties |= fMessageProperties.received;
-            if (chkMPSize.Checked) lProperties |= fMessageProperties.size;
-            if (chkMPUID.Checked) lProperties |= fMessageProperties.uid;
-            if (chkMPModSeq.Checked) lProperties |= fMessageProperties.modseq;
-            if (chkMPBodyStructure.Checked) lProperties |= fMessageProperties.bodystructure;
-            if (chkMPReferences.Checked) lProperties |= fMessageProperties.references;
-            if (chkMPImportance.Checked) lProperties |= fMessageProperties.references;
+            if (chkMPEnvelope.Checked) lAttributes |= fCacheAttributes.envelope;
+            if (chkMPFlags.Checked) lAttributes |= fCacheAttributes.flags;
+            if (chkMPReceived.Checked) lAttributes |= fCacheAttributes.received;
+            if (chkMPSize.Checked) lAttributes |= fCacheAttributes.size;
+            if (chkMPUID.Checked) lAttributes |= fCacheAttributes.uid;
+            if (chkMPModSeq.Checked) lAttributes |= fCacheAttributes.modseq;
+            if (chkMPBodyStructure.Checked) lAttributes |= fCacheAttributes.bodystructure;
 
-            cMessageProperties lProperties = new cMessageProperties(l)
+            ZTryParseHeaderFieldNames(txtMPHeaderFieldNames.Text, out var lNames);
 
-            try
-            {
-
-                ;?;
-
-                mClient.DefaultMessageProperties = lProperties;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, $"Set default message properties error\n{ex}");
-            }
+            mClient.DefaultCacheItems = new cCacheItems(lAttributes, lNames ?? cHeaderFieldNames.None);
         }
     }
 }

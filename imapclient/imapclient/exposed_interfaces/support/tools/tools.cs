@@ -17,10 +17,10 @@ namespace work.bacome.imapclient.support
             return new string(lChars);
         }
 
-        public static string ASCIIBytesToString(byte pPrefix, IList<byte> pBytes)
+        public static string ASCIIBytesToString(char pPrefix, IList<byte> pBytes)
         {
             char[] lChars = new char[pBytes.Count + 1];
-            lChars[0] = (char)pPrefix;
+            lChars[0] = pPrefix;
             for (int i = 0, j = 1; i < pBytes.Count; i++, j++) lChars[j] = (char)pBytes[i];
             return new string(lChars);
         }

@@ -8,6 +8,9 @@ namespace work.bacome.imapclient
     public abstract class cMessageFlagsBase : IReadOnlyCollection<string>
     {
         private readonly bool mAllowRecent;
+
+        ;?; // note that the spec doesn't say that falgs are case invariant
+
         private readonly Dictionary<string, bool> mDictionary = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);
 
         public cMessageFlagsBase(bool pAllowRecent)
@@ -199,7 +202,7 @@ namespace work.bacome.imapclient
     }
 
     [Flags]
-    public enum fKnownMessageFlags
+    public enum fMessageFlags
     {
         // rfc 3501
         asterisk = 1 << 0,
@@ -222,48 +225,50 @@ namespace work.bacome.imapclient
     public class cMessageFlags : cStrings
     {
         public const string Asterisk = "\\*";
-        public const string Answered = "\\ANSWERED";
-        public const string Flagged = "\\FLAGGED";
-        public const string Deleted = "\\DELETED";
-        public const string Seen = "\\SEEN";
-        public const string Draft = "\\DRAFT";
-        public const string Recent = "\\RECENT";
-        public const string MDNSent = "$MDNSENT";
-        public const string Forwarded = "$FORWARDED";
-        public const string SubmitPending = "$SUBMITPENDING";
-        public const string Submitted = "$SUBMITTED";
+        public const string Answered = "\\AnSwErEd";
+        public const string Flagged = "\\FlAgGeD";
+        public const string Deleted = "\\DeLeTeD";
+        public const string Seen = "\\SeEn";
+        public const string Draft = "\\DrAfT";
+        public const string Recent = "\\ReCeNt";
+        public const string MDNSent = "$MdNsEnT";
+        public const string Forwarded = "$FoRwArDeD";
+        public const string SubmitPending = "$SuBmItPeNdInG";
+        public const string Submitted = "$SuBmItTeD";
 
-        public readonly fKnownMessageFlags KnownMessageFlags;
+        public readonly fMessageFlags Flags;
 
         public cMessageFlags(IEnumerable<string> pFlags) : base(ZCtor(pFlags))
         {
-            KnownMessageFlags = 0;
+            Flags = 0;
 
-            if (Contains(Asterisk)) KnownMessageFlags |= fKnownMessageFlags.asterisk;
+            if (Contains(Asterisk)) Flags |= fMessageFlags.asterisk;
 
-            if (Contains(Answered)) KnownMessageFlags |= fKnownMessageFlags.answered;
-            if (Contains(Flagged)) KnownMessageFlags |= fKnownMessageFlags.flagged;
-            if (Contains(Deleted)) KnownMessageFlags |= fKnownMessageFlags.deleted;
-            if (Contains(Seen)) KnownMessageFlags |= fKnownMessageFlags.seen;
-            if (Contains(Draft)) KnownMessageFlags |= fKnownMessageFlags.draft;
+            if (Contains(Answered)) Flags |= fMessageFlags.answered;
+            if (Contains(Flagged)) Flags |= fMessageFlags.flagged;
+            if (Contains(Deleted)) Flags |= fMessageFlags.deleted;
+            if (Contains(Seen)) Flags |= fMessageFlags.seen;
+            if (Contains(Draft)) Flags |= fMessageFlags.draft;
 
-            if (Contains(Recent)) KnownMessageFlags |= fKnownMessageFlags.recent;
+            if (Contains(Recent)) Flags |= fMessageFlags.recent;
 
-            if (Contains(MDNSent)) KnownMessageFlags |= fKnownMessageFlags.mdnsent;
-            if (Contains(Forwarded)) KnownMessageFlags |= fKnownMessageFlags.forwarded;
-            if (Contains(SubmitPending)) KnownMessageFlags |= fKnownMessageFlags.submitpending;
-            if (Contains(Submitted)) KnownMessageFlags |= fKnownMessageFlags.submitted;
+            if (Contains(MDNSent)) Flags |= fMessageFlags.mdnsent;
+            if (Contains(Forwarded)) Flags |= fMessageFlags.forwarded;
+            if (Contains(SubmitPending)) Flags |= fMessageFlags.submitpending;
+            if (Contains(Submitted)) Flags |= fMessageFlags.submitted;
         }
 
         private static List<string> ZCtor(IEnumerable<string> pFlags)
         {
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
             List<string> lFlags = new List<string>();
+            ;?;
             foreach (var lFlag in pFlags) if (lFlag != null) lFlags.Add(lFlag.ToUpperInvariant());
-            lFlags.Sort();
+            lFlags.Sort(); // case insensitive sort?
             return lFlags;
         }
 
+        /*
         public bool Contain(params string[] pFlags) => ZContain(pFlags);
         public bool Contain(IEnumerable<string> pFlags) => ZContain(pFlags);
 
@@ -271,22 +276,22 @@ namespace work.bacome.imapclient
         {
             foreach (var lFlag in pFlags) if (!Contains(lFlag)) return false;
             return true;
-        }
+        } */
 
-        public bool ContainsCreateNewPossible => (KnownMessageFlags & fKnownMessageFlags.asterisk) != 0;
+        public bool ContainsCreateNewPossible => (Flags & fMessageFlags.asterisk) != 0;
 
-        public bool ContainsAnswered => (KnownMessageFlags & fKnownMessageFlags.answered) != 0;
-        public bool ContainsFlagged => (KnownMessageFlags & fKnownMessageFlags.flagged) != 0;
-        public bool ContainsDeleted => (KnownMessageFlags & fKnownMessageFlags.deleted) != 0;
-        public bool ContainsSeen => (KnownMessageFlags & fKnownMessageFlags.seen) != 0;
-        public bool ContainsDraft => (KnownMessageFlags & fKnownMessageFlags.draft) != 0;
+        public bool ContainsAnswered => (Flags & fMessageFlags.answered) != 0;
+        public bool ContainsFlagged => (Flags & fMessageFlags.flagged) != 0;
+        public bool ContainsDeleted => (Flags & fMessageFlags.deleted) != 0;
+        public bool ContainsSeen => (Flags & fMessageFlags.seen) != 0;
+        public bool ContainsDraft => (Flags & fMessageFlags.draft) != 0;
 
-        public bool ContainsRecent => (KnownMessageFlags & fKnownMessageFlags.recent) != 0;
+        public bool ContainsRecent => (Flags & fMessageFlags.recent) != 0;
 
-        public bool ContainsMDNSent => (KnownMessageFlags & fKnownMessageFlags.mdnsent) != 0;
-        public bool ContainsForwarded => (KnownMessageFlags & fKnownMessageFlags.forwarded) != 0;
-        public bool ContainsSubmitPending => (KnownMessageFlags & fKnownMessageFlags.submitpending) != 0;
-        public bool ContainsSubmitted => (KnownMessageFlags & fKnownMessageFlags.submitted) != 0;
+        public bool ContainsMDNSent => (Flags & fMessageFlags.mdnsent) != 0;
+        public bool ContainsForwarded => (Flags & fMessageFlags.forwarded) != 0;
+        public bool ContainsSubmitPending => (Flags & fMessageFlags.submitpending) != 0;
+        public bool ContainsSubmitted => (Flags & fMessageFlags.submitted) != 0;
 
         public override bool Equals(object pObject) => (cStrings)this == pObject as cMessageFlags;
         public override int GetHashCode() => base.GetHashCode();
@@ -298,36 +303,8 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
+        ;??; // note: the system flags need to be compared case insensitive
         public static bool operator ==(cMessageFlags pA, cMessageFlags pB) => (cStrings)pA == pB;
         public static bool operator !=(cMessageFlags pA, cMessageFlags pB) => (cStrings)pA != pB;
-
-        public static fMessageProperties Differences(cMessageFlags pOld, cMessageFlags pNew)
-        {
-            if (pNew == null) throw new ArgumentNullException(nameof(pNew));
-
-            if (pOld == null) return 0;
-            if (pOld == pNew) return 0;
-
-            fMessageProperties lProperties = fMessageProperties.flags;
-
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.answered, fMessageProperties.isanswered);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.flagged, fMessageProperties.isflagged);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.deleted, fMessageProperties.isdeleted);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.seen, fMessageProperties.isseen);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.draft, fMessageProperties.isdraft);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.recent, fMessageProperties.isrecent);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.mdnsent, fMessageProperties.ismdnsent);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.forwarded, fMessageProperties.isforwarded);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.submitpending, fMessageProperties.issubmitpending);
-            lProperties |= ZPropertyIfDifferent(pOld, pNew, fKnownMessageFlags.submitted, fMessageProperties.issubmitted);
-
-            return lProperties;
-        }
-
-        private static fMessageProperties ZPropertyIfDifferent(cMessageFlags pA, cMessageFlags pB, fKnownMessageFlags pFlags, fMessageProperties pProperty)
-        {
-            if ((pA.KnownMessageFlags & pFlags) == (pB.KnownMessageFlags & pFlags)) return 0;
-            return pProperty;
-        }
     }
 }

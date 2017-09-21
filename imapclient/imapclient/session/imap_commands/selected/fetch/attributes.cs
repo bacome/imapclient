@@ -10,18 +10,18 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task ZFetchAttributesAsync(cMethodControl pMC, cMessageHandleList pHandles, cFetchAttributes pAttributes, cTrace.cContext pParentContext)
+            private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pHandles, cCacheItems pItems, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchAttributesAsync), pMC, pHandles, pAttributes);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchCacheItemsAsync), pMC, pHandles, pItems);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
 
                 if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
-                if (pAttributes == null) throw new ArgumentNullException(nameof(pAttributes));
+                if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
                 if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
-                if (pAttributes.IsNone) throw new ArgumentOutOfRangeException(nameof(pAttributes));
+                if (pItems.IsNone) throw new ArgumentOutOfRangeException(nameof(pItems));
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
                     // build command
 
                     lBuilder.Add(kFetchCommandPartFetchSpace, new cCommandPart(lMSNs.ToSequenceSet()), cCommandPart.Space);
-                    lBuilder.Add(pAttributes, lSelectedMailbox.Cache.NoModSeq);
+                    lBuilder.Add(pItems, lSelectedMailbox.Cache.NoModSeq);
 
                     // go
 

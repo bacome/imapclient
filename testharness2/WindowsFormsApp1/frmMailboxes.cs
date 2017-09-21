@@ -55,7 +55,7 @@ namespace testharness2
 
         private void ZAddInbox()
         {
-            var lNode = tvw.Nodes.Add(cMailboxName.InboxString);
+            var lNode = tvw.Nodes.Add("Inbox");
 
             TreeNode lPleaseWait;
 

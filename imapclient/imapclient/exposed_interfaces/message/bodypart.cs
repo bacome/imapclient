@@ -43,35 +43,30 @@ namespace work.bacome.imapclient
 
     public abstract class cBodyPart
     {
-        protected const string kTypeMultipart = "MULTIPART";
-        public const string TypeMessage = "MESSAGE";
-        public const string TypeText = "TEXT";
-        public const string SubTypeRFC822 = "rfc822";
+        protected const string kTypeMultipart = "MuLtIpArT";
+        protected const string kTypeMessage = "MeSsAgE";
+        protected const string kTypeText = "TeXt";
+        protected const string kSubTypeRFC822 = "RfC822";
 
         public readonly string Type;
-        public readonly eBodyPartTypeCode TypeCode;
         public readonly string SubType;
         public readonly cSection Section;
+        public readonly eBodyPartTypeCode TypeCode;
 
         public cBodyPart(string pType, string pSubType, cSection pSection)
         {
-            if (pType == null) throw new ArgumentNullException(nameof(pType));
-            if (pSubType == null) throw new ArgumentNullException(nameof(pSubType));
-            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+            Type = pType ?? throw new ArgumentNullException(nameof(pType));
+            SubType = pSubType ?? throw new ArgumentNullException(nameof(pSubType));
+            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
 
-            Type = pType.ToUpperInvariant();
-
-            if (Type == TypeText) TypeCode = eBodyPartTypeCode.text;
-            else if (Type == "IMAGE") TypeCode = eBodyPartTypeCode.image;
-            else if (Type == "AUDIO") TypeCode = eBodyPartTypeCode.audio;
-            else if (Type == "VIDEO") TypeCode = eBodyPartTypeCode.video;
-            else if (Type == "APPLICATION") TypeCode = eBodyPartTypeCode.application;
-            else if (Type == kTypeMultipart) TypeCode = eBodyPartTypeCode.multipart;
-            else if (Type == TypeMessage) TypeCode = eBodyPartTypeCode.message;
+            if (Type.Equals(kTypeText, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.text;
+            else if (Type.Equals("IMAGE", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.image;
+            else if (Type.Equals("AUDIO", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.audio;
+            else if (Type.Equals("VIDEO", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.video;
+            else if (Type.Equals("APPLICATION", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.application;
+            else if (Type.Equals(kTypeMultipart, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.multipart;
+            else if (Type.Equals(kTypeMessage, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.message;
             else TypeCode = eBodyPartTypeCode.unknown;
-
-            SubType = pSubType.ToUpperInvariant();
-            Section = pSection;
         }
 
         public abstract cBodyPartDisposition Disposition { get; }
@@ -79,7 +74,7 @@ namespace work.bacome.imapclient
         public abstract string Location { get; }
         public abstract cBodyPartExtensionValues ExtensionValues { get; }
 
-        public override string ToString() => $"{nameof(cBodyPart)}({Type},{TypeCode},{SubType},{Section})";
+        public override string ToString() => $"{nameof(cBodyPart)}({Type},{SubType},{Section},{TypeCode})";
     }
 
     public abstract class cBodyPartExtensionValue { }
@@ -205,34 +200,32 @@ namespace work.bacome.imapclient
 
         public cBodyPartDisposition(string pType, cBodyPartParameters pParameters)
         {
-            if (pType == null) throw new ArgumentNullException(nameof(pType));
+            Type = pType ?? throw new ArgumentNullException(nameof(pType));
+            Parameters = pParameters;
 
-            Type = pType.ToUpperInvariant();
-
-            if (Type == "INLINE") TypeCode = eDispositionTypeCode.inline;
-            else if (Type == "ATTACHMENT") TypeCode = eDispositionTypeCode.attachment;
+            if (Type.Equals("INLINE", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eDispositionTypeCode.inline;
+            else if (Type.Equals("ATTACHMENT", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eDispositionTypeCode.attachment;
             else TypeCode = eDispositionTypeCode.unknown;
 
-            Parameters = pParameters;
         }
 
-        public string FileName => Parameters.GetStringValue("filename");
+        public string FileName => Parameters?.GetStringValue("filename");
 
-        public DateTime? CreationDate => Parameters.GetDateTimeValue("creation-date");
-        public DateTime? ModificationDate => Parameters.GetDateTimeValue("modification-date");
-        public DateTime? ReadDate => Parameters.GetDateTimeValue("read-date");
+        public DateTime? CreationDate => Parameters?.GetDateTimeValue("creation-date");
+        public DateTime? ModificationDate => Parameters?.GetDateTimeValue("modification-date");
+        public DateTime? ReadDate => Parameters?.GetDateTimeValue("read-date");
 
         public int? Size
         {
             get
             {
-                uint? lSize = Parameters.GetUIntValue("size");
+                uint? lSize = Parameters?.GetUIntValue("size");
                 if (lSize == null) return null;
                 return (int)lSize.Value;
             }
         }
 
-        public override string ToString() => $"{nameof(cBodyPartDisposition)}({Type},{TypeCode},{Parameters})";
+        public override string ToString() => $"{nameof(cBodyPartDisposition)}({Type},{Parameters},{TypeCode})";
     }
 
     public class cSinglePartBody : cBodyPart
@@ -247,18 +240,16 @@ namespace work.bacome.imapclient
 
         public cSinglePartBody(string pType, string pSubType, cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cSinglePartExtensionData pExtensionData) : base(pType, pSubType, pSection)
         {
-            if (pContentTransferEncoding == null) throw new ArgumentNullException(nameof(pContentTransferEncoding));
-
             Parameters = pParameters;
             ContentId = pContentId;
             Description = pDescription;
-            ContentTransferEncoding = pContentTransferEncoding.ToUpperInvariant();
+            ContentTransferEncoding = pContentTransferEncoding ?? throw new ArgumentNullException(nameof(pContentTransferEncoding));
 
-            if (ContentTransferEncoding == "7BIT") DecodingRequired = eDecodingRequired.none;
-            else if (ContentTransferEncoding == "8BIT") DecodingRequired = eDecodingRequired.none;
-            else if (ContentTransferEncoding == "BINARY") DecodingRequired = eDecodingRequired.none;
-            else if (ContentTransferEncoding == "QUOTED-PRINTABLE") DecodingRequired = eDecodingRequired.quotedprintable;
-            else if (ContentTransferEncoding == "BASE64") DecodingRequired = eDecodingRequired.base64;
+            if (ContentTransferEncoding.Equals("7BIT", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.none;
+            else if (ContentTransferEncoding.Equals("8BIT", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.none;
+            else if (ContentTransferEncoding.Equals("BINARY", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.none;
+            else if (ContentTransferEncoding.Equals("QUOTED-PRINTABLE", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.quotedprintable;
+            else if (ContentTransferEncoding.Equals("BASE64", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.base64;
             else DecodingRequired = eDecodingRequired.unknown; // note that rfc 2045 section 6.4 specifies that if 'unknown' then the part has to be treated as application/octet-stream
 
             SizeInBytes = pSizeInBytes;
@@ -317,7 +308,7 @@ namespace work.bacome.imapclient
     {
         public readonly bool I18N; // true if the parameter was in rfc2231 format
         public readonly string Value;
-        public readonly string LanguageTag; // not null if a language tag was present, uppercased
+        public readonly string LanguageTag; // not null if a language tag was present
 
         public cBodyPartParameterValue(string pValue)
         {
@@ -330,9 +321,7 @@ namespace work.bacome.imapclient
         {
             I18N = true;
             Value = pValue;
-
-            if (pLanguageTag == null) LanguageTag = null;
-            else LanguageTag = pLanguageTag.ToUpperInvariant();
+            LanguageTag = pLanguageTag;
         }
 
         public override string ToString() => $"{nameof(cBodyPartParameterValue)}({I18N},{Value},{LanguageTag})";

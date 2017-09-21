@@ -1704,13 +1704,13 @@ namespace testharness2
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.1");
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageProperties.received);
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fCacheAttributes.received);
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.2");
                 foreach (var lItem in lMessageList) if (lItem.Indent != -1) throw new cTestsException("ZTestSearch4.3");
 
                 lMessage = lMessageList[0];
 
-                if (lMessage.IsExpunged || lMessage.Handle.Attributes != fFetchAttributes.received) throw new cTestsException("ZTestSearch4.4");
+                if (lMessage.IsExpunged || lMessage.Handle.Attributes != fCacheAttributes.received) throw new cTestsException("ZTestSearch4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch4.5");
 
 
@@ -1959,13 +1959,13 @@ namespace testharness2
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch2_4.1");
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageProperties.received);
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fCacheAttributes.received);
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch2_4.2");
                 foreach (var lItem in lMessageList) if (lItem.Indent != -1) throw new cTestsException("ZTestSearch2_4.3");
 
                 lMessage = lMessageList[0];
 
-                if (lMessage.IsExpunged || lMessage.Handle.Attributes != fFetchAttributes.received) throw new cTestsException("ZTestSearch2_4.4");
+                if (lMessage.IsExpunged || lMessage.Handle.Attributes != fCacheAttributes.received) throw new cTestsException("ZTestSearch2_4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch2_4.5");
 
 
@@ -2275,17 +2275,17 @@ namespace testharness2
 
                 if (lClient.Inbox.MessageCount != 171) throw new cTestsException("ZTestIdleRestart1.2");
 
-                if (lMessages[1].Fetch(fMessageProperties.uid)) throw new cTestsException("ZTestIdleRestart1.3.1"); // this should retrieve nothing (as the message has been deleted), but idle should stop
+                if (lMessages[1].Fetch(fCacheAttributes.uid)) throw new cTestsException("ZTestIdleRestart1.3.1"); // this should retrieve nothing (as the message has been deleted), but idle should stop
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched by this, as message 2 was 168 which should now be gone
                 //  1 should be UID fetched, 3 should be a normal fetch
-                if (lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.received, null)) throw new cTestsException("ZTestIdleRestart1.3.2");
+                if (lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fCacheAttributes.received, null)) throw new cTestsException("ZTestIdleRestart1.3.2");
 
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
-                if (lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fMessageProperties.flags, null)) throw new cTestsException("ZTestIdleRestart1.3.3");
+                if (lClient.Fetch(new iMessageHandle[] { lMessages[0].Handle, lMessages[1].Handle, lMessages[2].Handle }, fCacheAttributes.flags, null)) throw new cTestsException("ZTestIdleRestart1.3.3");
 
 
                 cMailbox lMailbox;
@@ -2414,7 +2414,7 @@ namespace testharness2
                 cUID[] lUIDs = new cUID[] { new cUID(3857529045, 105), new cUID(3857529045, 104), new cUID(3857529045, 103), new cUID(3857529045, 102), new cUID(3857529045, 101) };
 
                 // fetch flags
-                var lMessages = lClient.Inbox.Messages(lUIDs, fMessageProperties.flags | fMessageProperties.received);
+                var lMessages = lClient.Inbox.Messages(lUIDs, fCacheAttributes.flags | fCacheAttributes.received);
                 if (lMessages.Count != 4) throw new cTestsException($"{nameof(ZTestUIDFetch1)}.1");
 
 

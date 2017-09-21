@@ -1164,7 +1164,6 @@ namespace work.bacome.imapclient
                     lEmailAddress = lData.Envelope.CC[1] as cEmailAddress;
                     if (lEmailAddress.DisplayName != "John Klensin" || lEmailAddress.Address != "KLENSIN@MIT.EDU") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.9.3");
 
-                    ;?; // tests for messageid and inreply to here
                     if (lData.Envelope.BCC != null || lData.Envelope.InReplyTo != null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.10");
 
                     if (lData.Envelope.MessageId.MsgId != "B27397-0100000@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
@@ -1174,6 +1173,33 @@ namespace work.bacome.imapclient
                     if (lTextPart.ContentId != null || lTextPart.Description != null || lTextPart.DecodingRequired != eDecodingRequired.none) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.2");
 
                     if (lData.RFC822 != null || lData.RFC822Header != null || lData.RFC822Text != null || lData.Size != 4286 || lData.BodyStructure != null || lData.Bodies.Count != 0 || lData.UID != null || lData.BinarySizes.Count != 0) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.13");
+
+
+
+
+
+
+                    if (!cBytesCursor.TryConstruct(
+                            @"12 FETCH (FLAGS (\Seen) INTERNALDATE ""17-Jul-1996 02:44:25 -0700"" " +
+                            @"RFC822.SIZE 4286 ENVELOPE (""Wed, 17 Jul 1996 02:23:25 -0700 (PDT)"" " +
+                            @"""IMAP4rev1 WG mtg summary and minutes"" " +
+                            @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
+                            @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
+                            @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
+                            @"((NIL NIL ""imap"" ""cac.washington.edu"")) " +
+                            @"((NIL NIL ""minutes"" ""CNRI.Reston.VA.US"")" +
+                            @"(""John Klensin"" NIL ""KLENSIN"" ""MIT.EDU"")) NIL {34}<""01KF8JCEOCBS0045PS""@xxx.yyy.com> " +
+                            @"""<B27397-0100000@cac.washington.edu>"") " +
+                            @"BODY (""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 3028 92))", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.0");
+
+                    if (!lRDPF.Process(lCursor, out lRD, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.1");
+                    lData = lRD as cResponseDataFetch;
+                    if (lData == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.2");
+
+                    if (lData.Envelope.InReplyTo == null || lData.Envelope.InReplyTo.MsgIds.Count != 1 || lData.Envelope.InReplyTo.MsgIds[0] != "01KF8JCEOCBS0045PS@xxx.yyy.com") throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.3");
+
+
+
 
 
                     cBody lBody;

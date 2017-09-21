@@ -11,13 +11,14 @@ namespace work.bacome.imapclient
 {
     public class cHeaderFieldNames : IReadOnlyList<string>
     {
-        public const string InReplyTo = "IN-REPLY-TO";
-        public const string MessageId = "MESSAGE-ID";
-        public const string References = "REFERENCES";
-        public const string Importance = "IMPORTANCE";
+        public const string InReplyTo = "In-RePlY-tO";
+        public const string MessageId = "MeSsAgE-Id";
+        public const string References = "ReFeReNcEs";
+        public const string Importance = "ImPoRtAnCe";
 
         public static readonly cHeaderFieldNames None = new cHeaderFieldNames();
 
+        ;?;
         private readonly ReadOnlyCollection<string> mNames; // not null, no duplicates, no nulls, all uppercase, sorted, may be empty
 
         private cHeaderFieldNames()
@@ -32,6 +33,7 @@ namespace work.bacome.imapclient
 
         public cHeaderFieldNames(params string[] pNames)
         {
+            ;?;
             if (!ZTryNormaliseNames(pNames, out mNames)) throw new ArgumentOutOfRangeException(nameof(pNames));
         }
 
@@ -40,11 +42,11 @@ namespace work.bacome.imapclient
             if (!ZTryNormaliseNames(pNames, out mNames)) throw new ArgumentOutOfRangeException(nameof(pNames));
         }
 
-        public bool Contains(string pName) => mNames.Contains(pName.ToUpperInvariant());
+        public bool Contains(string pName) => mNames.Contains(pName, StringComparer.InvariantCultureIgnoreCase);
 
-        public cHeaderFieldNames Union(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Union(pOther.mNames));
-        public cHeaderFieldNames Intersect(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Intersect(pOther.mNames));
-        public cHeaderFieldNames Except(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Except(pOther.mNames));
+        public cHeaderFieldNames Union(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Union(pOther.mNames, StringComparer.InvariantCultureIgnoreCase));
+        public cHeaderFieldNames Intersect(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Intersect(pOther.mNames, StringComparer.InvariantCultureIgnoreCase));
+        public cHeaderFieldNames Except(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Except(pOther.mNames, StringComparer.InvariantCultureIgnoreCase));
 
         public string this[int pIndex] => mNames[pIndex];
         public int Count => mNames.Count;
@@ -93,7 +95,7 @@ namespace work.bacome.imapclient
 
             List<string> lNames = new List<string>(pNames.mNames);
             lNames.Add(lName);
-            lNames.Sort();
+            lNames.Sort(StringComparer.InvariantCultureIgnoreCase);
 
             return new cHeaderFieldNames(lNames.AsReadOnly());
         }
@@ -175,7 +177,7 @@ namespace work.bacome.imapclient
         {
             if (string.IsNullOrEmpty(pName)) { rName = null; return false; }
             foreach (char lChar in pName) if (!cCharset.FText.Contains(lChar)) { rName = null; return false; }
-            rName = pName.ToUpperInvariant();
+            rName = pName.ToUpperInvariant();?;
             return true;
         }
 

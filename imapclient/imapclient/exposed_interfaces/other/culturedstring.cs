@@ -121,13 +121,12 @@ namespace work.bacome.imapclient
     public class cCulturedStringPart
     {
         public readonly string String;
-        public readonly string LanguageTag; // may be null, uppercased
+        public readonly string LanguageTag; // may be null
 
         public cCulturedStringPart(string pString, string pLanguageTag)
         {
             String = pString ?? throw new ArgumentNullException(nameof(pString));
-            if (pLanguageTag == null) LanguageTag = null;
-            else LanguageTag = pLanguageTag.ToUpperInvariant();
+            LanguageTag = pLanguageTag;
         }
 
         public override string ToString() => $"{nameof(cCulturedStringPart)}({String},{LanguageTag})";

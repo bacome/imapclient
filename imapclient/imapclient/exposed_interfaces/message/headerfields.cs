@@ -10,13 +10,12 @@ namespace work.bacome.imapclient
 {
     public class cHeaderField
     {
-        public readonly string Name; // uppercase
+        public readonly string Name;
         public readonly cBytes Value;
 
         public cHeaderField(string pName, cBytes pValue)
         {
-            if (pName == null) throw new ArgumentNullException(nameof(pName));
-            Name = pName.ToUpperInvariant();
+            Name = pName ?? throw new ArgumentNullException(nameof(pName));
             Value = pValue ?? throw new ArgumentNullException(nameof(pValue));
         }
 
@@ -135,7 +134,7 @@ namespace work.bacome.imapclient
             mFields = new ReadOnlyCollection<cHeaderField>(pFields);
         }
 
-        public bool Contains(string pFieldName) => mNot != mNames.Contains(pFieldName);
+        public bool Contains(string pFieldName) => mNot != mNames.Contains(pFieldName, StringComparer.InvariantCultureIgnoreCase);
 
         public bool ContainsAll(cHeaderFieldNames pNames)
         {
@@ -195,6 +194,8 @@ namespace work.bacome.imapclient
                 lCursor.SkipRFC822WSP();
                 if (!lCursor.SkipByte(cASCII.COLON)) { rFields = null; return false; }
                 if (!lCursor.GetRFC822FieldValue(out var lValue)) { rFields = null; return false; }
+
+                ;?; // note that the name is not stored in invariant case???
 
                 if (lName.Equals(cHeaderFieldNames.References, StringComparison.InvariantCultureIgnoreCase))
                 {
@@ -313,8 +314,8 @@ namespace work.bacome.imapclient
             if (lFields.All("mEsSaGe-ID").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.1.12");
 
             if (!lFields.All("mEsSaGe-ID").All(h => h is cHeaderFieldMsgId lMsgId && lMsgId.MsgId == "1234@local.machine.example")) throw new cTestsException($"{nameof(cHeaderFields)}.1.13");
-
-            if (lFields.First(cHeaderFieldNames.MessageId) as c != "1234@local.machine.example") throw new cTestsException($"{nameof(cHeaderFields)}.1.14");
+            ;?;
+            if (cTools.ASCIIBytesToString(lFields.First(cHeaderFieldNames.MessageId).Value) != "1234@local.machine.example") throw new cTestsException($"{nameof(cHeaderFields)}.1.14");
 
             lStrings = lFields.InReplyTo;
             if (lStrings.Count != 3 || !lStrings.Contains("12341@local.machine.example") || !lStrings.Contains("12342@local.machine.example") || !lStrings.Contains("12343@local.machine.example")) throw new cTestsException($"{nameof(cHeaderFields)}.1.15");

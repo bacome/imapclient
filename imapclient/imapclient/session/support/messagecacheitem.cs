@@ -49,40 +49,37 @@ namespace work.bacome.imapclient
                 public cBinarySizes BinarySizes { get; private set; } = null;
 
                 public bool ContainsAll(cCacheItems pItems) => (~mAttributes & pItems.Attributes) == 0 && HeaderFields.ContainsAll(pItems.Names);
-                public bool ContainsNone(cFetchAttributes pAttributes) => (~mAttributes & pAttributes.Attributes) == pAttributes.Attributes && HeaderFields.ContainsNone(pAttributes.Names);
-                public cFetchAttributes Missing(cFetchAttributes pAttributes) => new cFetchAttributes(~mAttributes & pAttributes.Attributes, HeaderFields.Missing(pAttributes.Names));
+                public bool ContainsNone(cCacheItems pItems) => (~mAttributes & pItems.Attributes) == pItems.Attributes && HeaderFields.ContainsNone(pItems.Names);
+                public cCacheItems Missing(cCacheItems pItems) => new cCacheItems(~mAttributes & pItems.Attributes, HeaderFields.Missing(pItems.Names));
 
                 public void SetExpunged() => mExpunged = true;
 
-                public void Update(cResponseDataFetch lFetch, out fFetchAttributes rAttributesSet, out fKnownMessageFlags rKnownMessageFlagsSet, out fMessageProperties rDifferences)
+                public void Update(cResponseDataFetch lFetch, out fCacheAttributes rAttributesSet, out fMessageFlags rFlagsSet)
                 {
                     rAttributesSet = ~mAttributes & lFetch.Attributes;
-                    rKnownMessageFlagsSet = 0;
-                    rDifferences = 0;
+                    rFlagsSet = 0;
 
-                    if ((rAttributesSet & fFetchAttributes.flags) != 0) Flags = lFetch.Flags;
+                    if ((rAttributesSet & fCacheAttributes.flags) != 0) Flags = lFetch.Flags;
                     else if (lFetch.Flags != null && lFetch.Flags != Flags)
                     {
-                        rAttributesSet |= fFetchAttributes.flags;
-                        rKnownMessageFlagsSet = lFetch.Flags.KnownMessageFlags ^ Flags.KnownMessageFlags;
-                        rDifferences |= cMessageFlags.Differences(Flags, lFetch.Flags);
+                        rAttributesSet |= fCacheAttributes.flags;
+                        rFlagsSet = lFetch.Flags.KnownMessageFlags ^ Flags.KnownMessageFlags;
                         Flags = lFetch.Flags;
                     }
 
-                    if ((rAttributesSet & fFetchAttributes.envelope) != 0) Envelope = lFetch.Envelope;
-                    if ((rAttributesSet & fFetchAttributes.received) != 0) Received = lFetch.Received;
-                    if ((rAttributesSet & fFetchAttributes.size) != 0) Size = lFetch.Size;
-                    if ((rAttributesSet & fFetchAttributes.body) != 0) mBody = lFetch.Body;
-                    if ((rAttributesSet & fFetchAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
-                    if ((rAttributesSet & fFetchAttributes.uid) != 0 && mCache.UIDValidity != 0) UID = new cUID(mCache.UIDValidity, lFetch.UID.Value);
+                    if ((rAttributesSet & fCacheAttributes.envelope) != 0) Envelope = lFetch.Envelope;
+                    if ((rAttributesSet & fCacheAttributes.received) != 0) Received = lFetch.Received;
+                    if ((rAttributesSet & fCacheAttributes.size) != 0) Size = lFetch.Size;
+                    if ((rAttributesSet & fCacheAttributes.body) != 0) mBody = lFetch.Body;
+                    if ((rAttributesSet & fCacheAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
+                    if ((rAttributesSet & fCacheAttributes.uid) != 0 && mCache.UIDValidity != 0) UID = new cUID(mCache.UIDValidity, lFetch.UID.Value);
 
                     if (!mCache.NoModSeq)
                     {
-                        if ((rAttributesSet & fFetchAttributes.modseq) != 0) mModSeq = lFetch.ModSeq;
+                        if ((rAttributesSet & fCacheAttributes.modseq) != 0) mModSeq = lFetch.ModSeq;
                         else if (lFetch.ModSeq != null && lFetch.ModSeq != mModSeq)
                         {
-                            rAttributesSet |= fFetchAttributes.modseq;
-                            rDifferences |= fMessageProperties.modseq;
+                            rAttributesSet |= fCacheAttributes.modseq;
                             mModSeq = lFetch.ModSeq;
                         }
                     }

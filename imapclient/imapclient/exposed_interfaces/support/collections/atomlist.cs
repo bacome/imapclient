@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
+    /* TODO: delete
     public class cUniqueIgnoreCaseStringList
     {
         private readonly Dictionary<string, bool> mDictionary = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);
@@ -28,5 +29,5 @@ namespace work.bacome.imapclient.support
             foreach (var lAtom in mDictionary.Keys) lBuilder.Append(lAtom);
             return lBuilder.ToString();
         }
-    }
+    } */
 }

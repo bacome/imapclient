@@ -201,7 +201,7 @@ namespace work.bacome.imapclient
                 lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
             }
 
-            await pSession.FetchAttributesAsync(pMC, pHandles, pItems, lProgress, lContext).ConfigureAwait(false);
+            await pSession.FetchCacheItemsAsync(pMC, pHandles, pItems, lProgress, lContext).ConfigureAwait(false);
         }
 
         private static readonly cSort kMessagesThreadOrderedSubjectSort = new cSort(cSortItem.Subject, cSortItem.Sent);

@@ -259,13 +259,13 @@ namespace work.bacome.imapclient
 
                     var lFetchedItem = mItems[(int)pFetch.MSN - 1];
 
-                    lFetchedItem.Update(pFetch, out var lAttributesSet, out var lKnownMessageFlagsSet, out var lProperties);
+                    lFetchedItem.Update(pFetch, out var lAttributesSet, out var lKnownMessageFlagsSet);
 
                     bool lSetMailboxStatus = false;
 
-                    if ((lAttributesSet & fFetchAttributes.flags) != 0)
+                    if ((lAttributesSet & fCacheAttributes.flags) != 0)
                     {
-                        if ((pFetch.Flags.KnownMessageFlags & fKnownMessageFlags.seen) == 0)
+                        if ((pFetch.Flags.KnownMessageFlags & fMessageFlags.seen) == 0)
                         {
                             if (lFetchedItem.Unseen == null)
                             {
@@ -298,7 +298,7 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    if ((lAttributesSet & fFetchAttributes.uid) != 0 && lFetchedItem.UID != null)
+                    if ((lAttributesSet & fCacheAttributes.uid) != 0 && lFetchedItem.UID != null)
                     {
                         mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
 
@@ -312,7 +312,7 @@ namespace work.bacome.imapclient
 
                     if (lFetchedItem.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeq.Value;
 
-                    mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lProperties, lContext);
+                    mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lAttributesSet, lKnownMessageFlagsSet, lContext);
                     if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
                 }
 

@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
                 mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
             }
 
-            mSession = new cSession(mSynchroniser, mIgnoreCapabilities, mMailboxCacheData, mIdleConfiguration, mFetchAttributesReadConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
+            mSession = new cSession(mSynchroniser, mIgnoreCapabilities, mMailboxCacheData, mIdleConfiguration, mFetchCacheItemsConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
             if (lSessionReplaced)
@@ -191,7 +191,7 @@ namespace work.bacome.imapclient
                             foreach (var lName in lPersonalNamespaceNames)
                             {
                                 // special case, where the personal namespace is "INBOX/" (where "/" is the delimiter)
-                                if (lName.Delimiter != null && lName.Prefix == cMailboxName.InboxString + lName.Delimiter)
+                                if (lName.Delimiter != null && lName.Prefix.Equals(cMailboxName.InboxString + lName.Delimiter, StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     mInbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lName.Delimiter)));
                                     mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);

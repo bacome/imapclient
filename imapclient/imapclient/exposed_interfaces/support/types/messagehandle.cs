@@ -7,7 +7,7 @@ namespace work.bacome.imapclient.support
         iMessageCache Cache { get; }
         int CacheSequence { get; }
         bool Expunged { get; }
-        fCacheAttributes CachedAttributes { get; }
+        fCacheAttributes Attributes { get; }
         cBodyPart Body { get; }
         cBodyPart BodyStructure { get; }
         cEnvelope Envelope { get; }

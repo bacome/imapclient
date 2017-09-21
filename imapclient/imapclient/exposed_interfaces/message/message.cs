@@ -188,22 +188,22 @@ namespace work.bacome.imapclient
             return Handle.Flags.Contain(pFlags);
         }
 
-        public bool IsAnswered => ZFlagsContain(fKnownMessageFlags.answered);
-        public bool IsFlagged => ZFlagsContain(fKnownMessageFlags.flagged);
-        public bool IsDeleted => ZFlagsContain(fKnownMessageFlags.deleted);
-        public bool IsSeen => ZFlagsContain(fKnownMessageFlags.seen);
-        public bool IsDraft => ZFlagsContain(fKnownMessageFlags.draft);
-        public bool IsRecent => ZFlagsContain(fKnownMessageFlags.recent);
+        public bool IsAnswered => ZFlagsContain(fMessageFlags.answered);
+        public bool IsFlagged => ZFlagsContain(fMessageFlags.flagged);
+        public bool IsDeleted => ZFlagsContain(fMessageFlags.deleted);
+        public bool IsSeen => ZFlagsContain(fMessageFlags.seen);
+        public bool IsDraft => ZFlagsContain(fMessageFlags.draft);
+        public bool IsRecent => ZFlagsContain(fMessageFlags.recent);
 
-        public bool IsMDNSent => ZFlagsContain(fKnownMessageFlags.mdnsent);
-        public bool IsForwarded => ZFlagsContain(fKnownMessageFlags.forwarded);
-        public bool IsSubmitPending => ZFlagsContain(fKnownMessageFlags.submitpending);
-        public bool IsSubmitted => ZFlagsContain(fKnownMessageFlags.submitted);
+        public bool IsMDNSent => ZFlagsContain(fMessageFlags.mdnsent);
+        public bool IsForwarded => ZFlagsContain(fMessageFlags.forwarded);
+        public bool IsSubmitPending => ZFlagsContain(fMessageFlags.submitpending);
+        public bool IsSubmitted => ZFlagsContain(fMessageFlags.submitted);
 
-        private bool ZFlagsContain(fKnownMessageFlags pFlag)
+        private bool ZFlagsContain(fMessageFlags pFlag)
         {
             if (!Client.Fetch(Handle, kFlags)) throw new InvalidOperationException();
-            return (Handle.Flags.KnownMessageFlags & pFlag) != 0;
+            return (Handle.Flags.Flags & pFlag) != 0;
         }
 
         public DateTime Received

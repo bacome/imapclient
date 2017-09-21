@@ -105,7 +105,7 @@
             this.txtFRMaxTime = new System.Windows.Forms.TextBox();
             this.txtFRMax = new System.Windows.Forms.TextBox();
             this.txtFRMin = new System.Windows.Forms.TextBox();
-            this.gbxFetchAttributes = new System.Windows.Forms.GroupBox();
+            this.gbxFetchCacheItems = new System.Windows.Forms.GroupBox();
             this.cmdFASet = new System.Windows.Forms.Button();
             this.label13 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
@@ -153,6 +153,9 @@
             this.tbpSettings = new System.Windows.Forms.TabPage();
             this.tbpDefaults = new System.Windows.Forms.TabPage();
             this.gbxDefaultMessageProperties = new System.Windows.Forms.GroupBox();
+            this.cmdMPSet = new System.Windows.Forms.Button();
+            this.label26 = new System.Windows.Forms.Label();
+            this.txtMPHeaderFieldNames = new System.Windows.Forms.TextBox();
             this.chkMPBodyStructure = new System.Windows.Forms.CheckBox();
             this.chkMPModSeq = new System.Windows.Forms.CheckBox();
             this.chkMPUID = new System.Windows.Forms.CheckBox();
@@ -201,11 +204,6 @@
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
             this.cmdPoll = new System.Windows.Forms.Button();
-            this.chkMPImportance = new System.Windows.Forms.CheckBox();
-            this.chkMPReferences = new System.Windows.Forms.CheckBox();
-            this.txtMPHeaderFieldNames = new System.Windows.Forms.TextBox();
-            this.label26 = new System.Windows.Forms.Label();
-            this.cmdMPSet = new System.Windows.Forms.Button();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -214,7 +212,7 @@
             this.gbxCapabilities.SuspendLayout();
             this.gbxFetchBodyWrite.SuspendLayout();
             this.gbxFetchBodyRead.SuspendLayout();
-            this.gbxFetchAttributes.SuspendLayout();
+            this.gbxFetchCacheItems.SuspendLayout();
             this.gbxTimeout.SuspendLayout();
             this.gbxIdle.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
@@ -1055,25 +1053,25 @@
             this.txtFRMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
             this.txtFRMin.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
-            // gbxFetchAttributes
+            // gbxFetchCacheItems
             // 
-            this.gbxFetchAttributes.Controls.Add(this.cmdFASet);
-            this.gbxFetchAttributes.Controls.Add(this.label13);
-            this.gbxFetchAttributes.Controls.Add(this.label12);
-            this.gbxFetchAttributes.Controls.Add(this.label7);
-            this.gbxFetchAttributes.Controls.Add(this.label6);
-            this.gbxFetchAttributes.Controls.Add(this.txtFAInitial);
-            this.gbxFetchAttributes.Controls.Add(this.txtFAMaxTime);
-            this.gbxFetchAttributes.Controls.Add(this.txtFAMax);
-            this.gbxFetchAttributes.Controls.Add(this.txtFAMin);
-            this.gbxFetchAttributes.Location = new System.Drawing.Point(217, 91);
-            this.gbxFetchAttributes.Name = "gbxFetchAttributes";
-            this.gbxFetchAttributes.Size = new System.Drawing.Size(208, 142);
-            this.gbxFetchAttributes.TabIndex = 3;
-            this.gbxFetchAttributes.TabStop = false;
-            this.gbxFetchAttributes.Text = "Fetch Attributes";
-            this.gbxFetchAttributes.Validating += new System.ComponentModel.CancelEventHandler(this.gbxFetchAttributes_Validating);
-            this.gbxFetchAttributes.Validated += new System.EventHandler(this.ZValControlValidated);
+            this.gbxFetchCacheItems.Controls.Add(this.cmdFASet);
+            this.gbxFetchCacheItems.Controls.Add(this.label13);
+            this.gbxFetchCacheItems.Controls.Add(this.label12);
+            this.gbxFetchCacheItems.Controls.Add(this.label7);
+            this.gbxFetchCacheItems.Controls.Add(this.label6);
+            this.gbxFetchCacheItems.Controls.Add(this.txtFAInitial);
+            this.gbxFetchCacheItems.Controls.Add(this.txtFAMaxTime);
+            this.gbxFetchCacheItems.Controls.Add(this.txtFAMax);
+            this.gbxFetchCacheItems.Controls.Add(this.txtFAMin);
+            this.gbxFetchCacheItems.Location = new System.Drawing.Point(217, 91);
+            this.gbxFetchCacheItems.Name = "gbxFetchCacheItems";
+            this.gbxFetchCacheItems.Size = new System.Drawing.Size(208, 142);
+            this.gbxFetchCacheItems.TabIndex = 3;
+            this.gbxFetchCacheItems.TabStop = false;
+            this.gbxFetchCacheItems.Text = "Fetch Cache Items";
+            this.gbxFetchCacheItems.Validating += new System.ComponentModel.CancelEventHandler(this.gbxFetchCacheItems_Validating);
+            this.gbxFetchCacheItems.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // cmdFASet
             // 
@@ -1524,7 +1522,7 @@
             this.tabClient.Location = new System.Drawing.Point(383, 10);
             this.tabClient.Name = "tabClient";
             this.tabClient.SelectedIndex = 0;
-            this.tabClient.Size = new System.Drawing.Size(454, 431);
+            this.tabClient.Size = new System.Drawing.Size(454, 412);
             this.tabClient.TabIndex = 1;
             // 
             // tbpSettings
@@ -1533,11 +1531,11 @@
             this.tbpSettings.Controls.Add(this.gbxTimeout);
             this.tbpSettings.Controls.Add(this.gbxFetchBodyRead);
             this.tbpSettings.Controls.Add(this.gbxFetchBodyWrite);
-            this.tbpSettings.Controls.Add(this.gbxFetchAttributes);
+            this.tbpSettings.Controls.Add(this.gbxFetchCacheItems);
             this.tbpSettings.Location = new System.Drawing.Point(4, 22);
             this.tbpSettings.Name = "tbpSettings";
             this.tbpSettings.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpSettings.Size = new System.Drawing.Size(446, 405);
+            this.tbpSettings.Size = new System.Drawing.Size(446, 386);
             this.tbpSettings.TabIndex = 0;
             this.tbpSettings.Text = "Settings";
             this.tbpSettings.UseVisualStyleBackColor = true;
@@ -1549,7 +1547,7 @@
             this.tbpDefaults.Location = new System.Drawing.Point(4, 22);
             this.tbpDefaults.Name = "tbpDefaults";
             this.tbpDefaults.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpDefaults.Size = new System.Drawing.Size(446, 405);
+            this.tbpDefaults.Size = new System.Drawing.Size(446, 386);
             this.tbpDefaults.TabIndex = 3;
             this.tbpDefaults.Text = "Defaults";
             this.tbpDefaults.UseVisualStyleBackColor = true;
@@ -1559,8 +1557,6 @@
             this.gbxDefaultMessageProperties.Controls.Add(this.cmdMPSet);
             this.gbxDefaultMessageProperties.Controls.Add(this.label26);
             this.gbxDefaultMessageProperties.Controls.Add(this.txtMPHeaderFieldNames);
-            this.gbxDefaultMessageProperties.Controls.Add(this.chkMPReferences);
-            this.gbxDefaultMessageProperties.Controls.Add(this.chkMPImportance);
             this.gbxDefaultMessageProperties.Controls.Add(this.chkMPBodyStructure);
             this.gbxDefaultMessageProperties.Controls.Add(this.chkMPModSeq);
             this.gbxDefaultMessageProperties.Controls.Add(this.chkMPUID);
@@ -1570,19 +1566,47 @@
             this.gbxDefaultMessageProperties.Controls.Add(this.chkMPEnvelope);
             this.gbxDefaultMessageProperties.Location = new System.Drawing.Point(6, 88);
             this.gbxDefaultMessageProperties.Name = "gbxDefaultMessageProperties";
-            this.gbxDefaultMessageProperties.Size = new System.Drawing.Size(432, 311);
+            this.gbxDefaultMessageProperties.Size = new System.Drawing.Size(432, 269);
             this.gbxDefaultMessageProperties.TabIndex = 1;
             this.gbxDefaultMessageProperties.TabStop = false;
-            this.gbxDefaultMessageProperties.Text = "Message Properties";
+            this.gbxDefaultMessageProperties.Text = "Cache Items";
+            // 
+            // cmdMPSet
+            // 
+            this.cmdMPSet.Location = new System.Drawing.Point(12, 231);
+            this.cmdMPSet.Name = "cmdMPSet";
+            this.cmdMPSet.Size = new System.Drawing.Size(100, 25);
+            this.cmdMPSet.TabIndex = 11;
+            this.cmdMPSet.Text = "Set";
+            this.cmdMPSet.UseVisualStyleBackColor = true;
+            this.cmdMPSet.Click += new System.EventHandler(this.cmdMPSet_Click);
+            // 
+            // label26
+            // 
+            this.label26.AutoSize = true;
+            this.label26.Location = new System.Drawing.Point(9, 186);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(224, 13);
+            this.label26.TabIndex = 9;
+            this.label26.Text = "Header field names (separate with space or \':\')";
+            // 
+            // txtMPHeaderFieldNames
+            // 
+            this.txtMPHeaderFieldNames.Location = new System.Drawing.Point(12, 202);
+            this.txtMPHeaderFieldNames.Name = "txtMPHeaderFieldNames";
+            this.txtMPHeaderFieldNames.Size = new System.Drawing.Size(392, 20);
+            this.txtMPHeaderFieldNames.TabIndex = 10;
+            this.txtMPHeaderFieldNames.Validating += new System.ComponentModel.CancelEventHandler(this.ZValHeaderFieldNames);
+            this.txtMPHeaderFieldNames.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // chkMPBodyStructure
             // 
             this.chkMPBodyStructure.AutoSize = true;
             this.chkMPBodyStructure.Location = new System.Drawing.Point(12, 157);
             this.chkMPBodyStructure.Name = "chkMPBodyStructure";
-            this.chkMPBodyStructure.Size = new System.Drawing.Size(326, 17);
+            this.chkMPBodyStructure.Size = new System.Drawing.Size(93, 17);
             this.chkMPBodyStructure.TabIndex = 6;
-            this.chkMPBodyStructure.Text = "BodyStructure (bodystructure, attachments, plaintextsizeinbytes)";
+            this.chkMPBodyStructure.Text = "BodyStructure";
             this.chkMPBodyStructure.UseVisualStyleBackColor = true;
             // 
             // chkMPModSeq
@@ -1630,9 +1654,9 @@
             this.chkMPFlags.AutoSize = true;
             this.chkMPFlags.Location = new System.Drawing.Point(12, 42);
             this.chkMPFlags.Name = "chkMPFlags";
-            this.chkMPFlags.Size = new System.Drawing.Size(257, 17);
+            this.chkMPFlags.Size = new System.Drawing.Size(51, 17);
             this.chkMPFlags.TabIndex = 1;
-            this.chkMPFlags.Text = "Flags (isanswered, isflagged, isdeleted, isseen ...)";
+            this.chkMPFlags.Text = "Flags";
             this.chkMPFlags.UseVisualStyleBackColor = true;
             // 
             // chkMPEnvelope
@@ -1640,9 +1664,9 @@
             this.chkMPEnvelope.AutoSize = true;
             this.chkMPEnvelope.Location = new System.Drawing.Point(12, 19);
             this.chkMPEnvelope.Name = "chkMPEnvelope";
-            this.chkMPEnvelope.Size = new System.Drawing.Size(276, 17);
+            this.chkMPEnvelope.Size = new System.Drawing.Size(71, 17);
             this.chkMPEnvelope.TabIndex = 0;
-            this.chkMPEnvelope.Text = "Envelope (sent, subject, from, sender, to, cc, bcc, ...)";
+            this.chkMPEnvelope.Text = "Envelope";
             this.chkMPEnvelope.UseVisualStyleBackColor = true;
             // 
             // gbxDefaultSort
@@ -1685,7 +1709,7 @@
             this.tbpWindows.Location = new System.Drawing.Point(4, 22);
             this.tbpWindows.Name = "tbpWindows";
             this.tbpWindows.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpWindows.Size = new System.Drawing.Size(446, 405);
+            this.tbpWindows.Size = new System.Drawing.Size(446, 386);
             this.tbpWindows.TabIndex = 1;
             this.tbpWindows.Text = "Windows";
             this.tbpWindows.UseVisualStyleBackColor = true;
@@ -1806,7 +1830,7 @@
             this.tpgResponseText.Location = new System.Drawing.Point(4, 22);
             this.tpgResponseText.Name = "tpgResponseText";
             this.tpgResponseText.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgResponseText.Size = new System.Drawing.Size(446, 405);
+            this.tpgResponseText.Size = new System.Drawing.Size(446, 386);
             this.tpgResponseText.TabIndex = 2;
             this.tpgResponseText.Text = "Response Text Window";
             this.tpgResponseText.UseVisualStyleBackColor = true;
@@ -2120,54 +2144,6 @@
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
-            // chkMPImportance
-            // 
-            this.chkMPImportance.AutoSize = true;
-            this.chkMPImportance.Location = new System.Drawing.Point(12, 203);
-            this.chkMPImportance.Name = "chkMPImportance";
-            this.chkMPImportance.Size = new System.Drawing.Size(79, 17);
-            this.chkMPImportance.TabIndex = 8;
-            this.chkMPImportance.Text = "Importance";
-            this.chkMPImportance.UseVisualStyleBackColor = true;
-            // 
-            // chkMPReferences
-            // 
-            this.chkMPReferences.AutoSize = true;
-            this.chkMPReferences.Location = new System.Drawing.Point(12, 180);
-            this.chkMPReferences.Name = "chkMPReferences";
-            this.chkMPReferences.Size = new System.Drawing.Size(81, 17);
-            this.chkMPReferences.TabIndex = 7;
-            this.chkMPReferences.Text = "References";
-            this.chkMPReferences.UseVisualStyleBackColor = true;
-            // 
-            // txtMPHeaderFieldNames
-            // 
-            this.txtMPHeaderFieldNames.Location = new System.Drawing.Point(12, 246);
-            this.txtMPHeaderFieldNames.Name = "txtMPHeaderFieldNames";
-            this.txtMPHeaderFieldNames.Size = new System.Drawing.Size(392, 20);
-            this.txtMPHeaderFieldNames.TabIndex = 10;
-            this.txtMPHeaderFieldNames.Validating += new System.ComponentModel.CancelEventHandler(this.ZValHeaderFieldNames);
-            this.txtMPHeaderFieldNames.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // label26
-            // 
-            this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(9, 230);
-            this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(224, 13);
-            this.label26.TabIndex = 9;
-            this.label26.Text = "Header field names (separate with space or \':\')";
-            // 
-            // cmdMPSet
-            // 
-            this.cmdMPSet.Location = new System.Drawing.Point(12, 277);
-            this.cmdMPSet.Name = "cmdMPSet";
-            this.cmdMPSet.Size = new System.Drawing.Size(100, 25);
-            this.cmdMPSet.TabIndex = 11;
-            this.cmdMPSet.Text = "Set";
-            this.cmdMPSet.UseVisualStyleBackColor = true;
-            this.cmdMPSet.Click += new System.EventHandler(this.cmdMPSet_Click);
-            // 
             // frmClient
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2201,8 +2177,8 @@
             this.gbxFetchBodyWrite.PerformLayout();
             this.gbxFetchBodyRead.ResumeLayout(false);
             this.gbxFetchBodyRead.PerformLayout();
-            this.gbxFetchAttributes.ResumeLayout(false);
-            this.gbxFetchAttributes.PerformLayout();
+            this.gbxFetchCacheItems.ResumeLayout(false);
+            this.gbxFetchCacheItems.PerformLayout();
             this.gbxTimeout.ResumeLayout(false);
             this.gbxTimeout.PerformLayout();
             this.gbxIdle.ResumeLayout(false);
@@ -2297,7 +2273,7 @@
         private System.Windows.Forms.Button cmdDetails;
         private System.Windows.Forms.Button cmdCancel;
         private System.Windows.Forms.Label lblState;
-        private System.Windows.Forms.GroupBox gbxFetchAttributes;
+        private System.Windows.Forms.GroupBox gbxFetchCacheItems;
         private System.Windows.Forms.Button cmdMailboxes;
         private System.Windows.Forms.Button cmdIdleSet;
         private System.Windows.Forms.Button cmdConnect;
@@ -2414,8 +2390,6 @@
         private System.Windows.Forms.Button cmdSort;
         private System.Windows.Forms.Label lblSort;
         private System.Windows.Forms.TextBox txtMPHeaderFieldNames;
-        private System.Windows.Forms.CheckBox chkMPReferences;
-        private System.Windows.Forms.CheckBox chkMPImportance;
         private System.Windows.Forms.Label label26;
         private System.Windows.Forms.Button cmdMPSet;
     }

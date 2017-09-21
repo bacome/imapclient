@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
                 // note that this will fail if the UIDValidity has changed (this is different to the behaviour of standard fetch)
                 // note that the caller should have checked that pAttributes contains some attributes to fetch
 
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchAttributesAsync), pMC, pHandle, pUIDValidity, pUIDs, pItems);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchCacheItemsAsync), pMC, pHandle, pUIDValidity, pUIDs, pItems);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();

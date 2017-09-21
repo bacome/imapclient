@@ -1,50 +1,24 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
-    public class cFlags : IReadOnlyCollection<string>
-    {
-        private readonly Dictionary<string, bool> mDictionary = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);
-
-        public cFlags() { }
-
-        public bool Has(string pFlag) => mDictionary.ContainsKey(pFlag);
-
-        public void Set(string pFlag)
-        {
-            if (!mDictionary.ContainsKey(pFlag)) mDictionary.Add(pFlag, true);
-        }
-
-        public int Count => mDictionary.Count;
-        public IEnumerator<string> GetEnumerator() => mDictionary.Keys.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => mDictionary.Keys.GetEnumerator();
-
-        public override string ToString()
-        {
-            var lBuilder = new cListBuilder(nameof(cFlags));
-            foreach (var lFlag in mDictionary.Keys) lBuilder.Append(lFlag);
-            return lBuilder.ToString();
-        }
-    }
-
     public partial class cBytesCursor
     {
         private const string kGetFlagsSlashAsteriskString = @"\*";
         private static readonly cBytes kGetFlagsSlashAsteriskBytes = new cBytes(kGetFlagsSlashAsteriskString);
 
-        public bool GetFlags(out cFlags rFlags)
+        public bool GetFlags(out List<string> rFlags)
         {
             var lBookmark = Position;
 
             if (!SkipByte(cASCII.LPAREN)) { rFlags = null; return false; }
 
-            rFlags = new cFlags();
+            rFlags = new List<string>();
 
             while (true)
             {
-                if (SkipBytes(kGetFlagsSlashAsteriskBytes)) rFlags.Set(kGetFlagsSlashAsteriskString);
+                if (SkipBytes(kGetFlagsSlashAsteriskBytes)) rFlags.Add(kGetFlagsSlashAsteriskString);
                 else
                 {
                     if (SkipByte(cASCII.BACKSL))
@@ -56,12 +30,12 @@ namespace work.bacome.imapclient.support
                             return false;
                         }
 
-                        rFlags.Set(cTools.ASCIIBytesToString(cASCII.BACKSL, lAtom));
+                        rFlags.Add(cTools.ASCIIBytesToString('\\', lAtom));
                     }
                     else
                     {
                         if (!GetToken(cCharset.Atom, null, null, out cByteList lAtom)) break;
-                        rFlags.Set(cTools.ASCIIBytesToString(lAtom));
+                        rFlags.Add(cTools.ASCIIBytesToString(lAtom));
                     }
                 }
 
