@@ -131,33 +131,33 @@ namespace testharness2
 
                 mClient.MailboxCacheData = lMailboxCacheData;
 
-                fKnownCapabilities lKnownCapabilities = 0;
+                fCapabilities lKnownCapabilities = 0;
 
-                if (chkIgnoreStartTLS.Checked) lKnownCapabilities |= fKnownCapabilities.starttls;
-                if (chkIgnoreEnable.Checked) lKnownCapabilities |= fKnownCapabilities.enable;
-                if (chkIgnoreUTF8.Checked) lKnownCapabilities |= fKnownCapabilities.utf8accept | fKnownCapabilities.utf8only;
-                if (chkIgnoreId.Checked) lKnownCapabilities |= fKnownCapabilities.id;
-                if (chkIgnoreNamespace.Checked) lKnownCapabilities |= fKnownCapabilities.namespaces;
+                if (chkIgnoreStartTLS.Checked) lKnownCapabilities |= fCapabilities.starttls;
+                if (chkIgnoreEnable.Checked) lKnownCapabilities |= fCapabilities.enable;
+                if (chkIgnoreUTF8.Checked) lKnownCapabilities |= fCapabilities.utf8accept | fCapabilities.utf8only;
+                if (chkIgnoreId.Checked) lKnownCapabilities |= fCapabilities.id;
+                if (chkIgnoreNamespace.Checked) lKnownCapabilities |= fCapabilities.namespaces;
 
-                if (chkIgnoreMailboxReferrals.Checked) lKnownCapabilities |= fKnownCapabilities.mailboxreferrals;
-                if (chkIgnoreListExtended.Checked) lKnownCapabilities |= fKnownCapabilities.listextended;
-                if (chkIgnoreListStatus.Checked) lKnownCapabilities |= fKnownCapabilities.liststatus;
-                if (chkIgnoreSpecialUse.Checked) lKnownCapabilities |= fKnownCapabilities.specialuse;
+                if (chkIgnoreMailboxReferrals.Checked) lKnownCapabilities |= fCapabilities.mailboxreferrals;
+                if (chkIgnoreListExtended.Checked) lKnownCapabilities |= fCapabilities.listextended;
+                if (chkIgnoreListStatus.Checked) lKnownCapabilities |= fCapabilities.liststatus;
+                if (chkIgnoreSpecialUse.Checked) lKnownCapabilities |= fCapabilities.specialuse;
 
-                if (chkIgnoreCondStore.Checked) lKnownCapabilities |= fKnownCapabilities.condstore;
-                if (chkIgnoreQResync.Checked) lKnownCapabilities |= fKnownCapabilities.qresync;
+                if (chkIgnoreCondStore.Checked) lKnownCapabilities |= fCapabilities.condstore;
+                if (chkIgnoreQResync.Checked) lKnownCapabilities |= fCapabilities.qresync;
 
-                if (chkIgnoreLiteralPlus.Checked) lKnownCapabilities |= fKnownCapabilities.literalplus | fKnownCapabilities.literalminus;
-                if (chkIgnoreBinary.Checked) lKnownCapabilities |= fKnownCapabilities.binary;
-                if (chkIgnoreIdle.Checked) lKnownCapabilities |= fKnownCapabilities.idle;
-                if (chkIgnoreSASLIR.Checked) lKnownCapabilities |= fKnownCapabilities.sasl_ir;
+                if (chkIgnoreLiteralPlus.Checked) lKnownCapabilities |= fCapabilities.literalplus | fCapabilities.literalminus;
+                if (chkIgnoreBinary.Checked) lKnownCapabilities |= fCapabilities.binary;
+                if (chkIgnoreIdle.Checked) lKnownCapabilities |= fCapabilities.idle;
+                if (chkIgnoreSASLIR.Checked) lKnownCapabilities |= fCapabilities.sasl_ir;
 
-                if (chkIgnoreESearch.Checked) lKnownCapabilities |= fKnownCapabilities.esearch;
-                if (chkIgnoreSort.Checked) lKnownCapabilities |= fKnownCapabilities.sort;
-                if (chkIgnoreSortDisplay.Checked) lKnownCapabilities |= fKnownCapabilities.sortdisplay;
-                if (chkIgnoreThreadOrderedSubject.Checked) lKnownCapabilities |= fKnownCapabilities.threadorderedsubject;
-                if (chkIgnoreThreadReferences.Checked) lKnownCapabilities |= fKnownCapabilities.threadreferences;
-                if (chkIgnoreESort.Checked) lKnownCapabilities |= fKnownCapabilities.esort;
+                if (chkIgnoreESearch.Checked) lKnownCapabilities |= fCapabilities.esearch;
+                if (chkIgnoreSort.Checked) lKnownCapabilities |= fCapabilities.sort;
+                if (chkIgnoreSortDisplay.Checked) lKnownCapabilities |= fCapabilities.sortdisplay;
+                if (chkIgnoreThreadOrderedSubject.Checked) lKnownCapabilities |= fCapabilities.threadorderedsubject;
+                if (chkIgnoreThreadReferences.Checked) lKnownCapabilities |= fCapabilities.threadreferences;
+                if (chkIgnoreESort.Checked) lKnownCapabilities |= fCapabilities.esort;
 
                 mClient.IgnoreCapabilities = lKnownCapabilities;
 

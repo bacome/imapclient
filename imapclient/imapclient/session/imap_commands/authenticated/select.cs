@@ -42,9 +42,9 @@ namespace work.bacome.imapclient
                         return;
                     }
 
-                    fKnownCapabilities lTryIgnoring;
-                    if (mCapabilities.CondStore) lTryIgnoring = fKnownCapabilities.condstore;
-                    if (mCapabilities.QResync) lTryIgnoring = fKnownCapabilities.qresync;
+                    fCapabilities lTryIgnoring;
+                    if (mCapabilities.CondStore) lTryIgnoring = fCapabilities.condstore;
+                    if (mCapabilities.QResync) lTryIgnoring = fCapabilities.qresync;
                     else lTryIgnoring = 0;
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);

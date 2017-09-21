@@ -91,6 +91,7 @@ namespace work.bacome.imapclient
 
             if (!ZTryNormaliseName(pName, out var lName)) throw new ArgumentOutOfRangeException(nameof(pName));
 
+            ;?; // case 
             if (pNames.mNames.Contains(lName)) return pNames;
 
             List<string> lNames = new List<string>(pNames.mNames);
@@ -111,7 +112,7 @@ namespace work.bacome.imapclient
 
             lNames.AddRange(pA.mNames);
 
-            lNames.Sort();
+            lNames.Sort(); ;?; // case insen
 
             return new cHeaderFieldNames(lNames.AsReadOnly());
         }
@@ -154,7 +155,7 @@ namespace work.bacome.imapclient
                 else { rNormalisedNames = null; return false; }
             }
 
-            lNames.Sort();
+            lNames.Sort();   ?;
 
             List<string> lNormalisedNames = new List<string>();
 

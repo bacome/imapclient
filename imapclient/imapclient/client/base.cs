@@ -66,7 +66,7 @@ namespace work.bacome.imapclient
 
         // property backing storage
         private int mTimeout = -1;
-        private fKnownCapabilities mIgnoreCapabilities = 0;
+        private fCapabilities mIgnoreCapabilities = 0;
         private cServer mServer = null;
         private cCredentials mCredentials = null;
         private bool mMailboxReferrals = false;
@@ -175,7 +175,7 @@ namespace work.bacome.imapclient
         public cURL HomeServerReferral => mSession?.HomeServerReferral;
 
         // capabilities to ignore
-        public fKnownCapabilities IgnoreCapabilities
+        public fCapabilities IgnoreCapabilities
         {
             get => mIgnoreCapabilities;
 
@@ -183,7 +183,7 @@ namespace work.bacome.imapclient
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException();
-                if ((value & fKnownCapabilities.logindisabled) != 0) throw new ArgumentOutOfRangeException();
+                if ((value & fCapabilities.logindisabled) != 0) throw new ArgumentOutOfRangeException();
                 mIgnoreCapabilities = value;
             }
         } 

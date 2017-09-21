@@ -57,8 +57,8 @@ namespace work.bacome.imapclient
 
                 public cCapabilityCommandHook() { }
 
-                public cUniqueIgnoreCaseStringList Capabilities { get; private set; } = null;
-                public cUniqueIgnoreCaseStringList AuthenticationMechanisms { get; private set; } = null;
+                public cStrings Capabilities { get; private set; } = null;
+                public cStrings AuthenticationMechanisms { get; private set; } = null;
 
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {

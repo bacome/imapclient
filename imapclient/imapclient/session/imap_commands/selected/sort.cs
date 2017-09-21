@@ -49,14 +49,14 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("sort success");
-                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fKnownCapabilities.sort, "results not received on a successful sort", lContext);
+                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.sort, "results not received on a successful sort", lContext);
                         return lHook.Handles;
                     }
 
                     if (lHook.Handles != null) lContext.TraceError("results received on a failed sort");
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fKnownCapabilities.sort, lContext);
-                    throw new cProtocolErrorException(lResult, fKnownCapabilities.sort, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.sort, lContext);
+                    throw new cProtocolErrorException(lResult, fCapabilities.sort, lContext);
                 }
             }
 

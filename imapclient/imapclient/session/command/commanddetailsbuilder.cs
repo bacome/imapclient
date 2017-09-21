@@ -301,6 +301,7 @@ namespace work.bacome.imapclient
 
                             foreach (var lFlag in lFlagsContain.Flags)
                             {
+                                ;?;
                                 if (lFlag == cMessageFlags.Answered) lParts.Add(kCommandPartAnswered);
                                 else if (lFlag == cMessageFlags.Flagged) lParts.Add(kCommandPartFlagged);
                                 else if (lFlag == cMessageFlags.Deleted) lParts.Add(kCommandPartDeleted);
@@ -414,6 +415,7 @@ namespace work.bacome.imapclient
 
                                 foreach (var lFlag in lFlagsUncontain.Flags)
                                 {
+                                    ;?;
                                     if (lFlag == cMessageFlags.Answered) lParts.Add(kCommandPartUnanswered);
                                     else if (lFlag == cMessageFlags.Flagged) lParts.Add(kCommandPartUnflagged);
                                     else if (lFlag == cMessageFlags.Deleted) lParts.Add(kCommandPartUndeleted);

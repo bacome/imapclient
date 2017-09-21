@@ -821,6 +821,7 @@ namespace work.bacome.imapclient
 
                 private class cParametersBuilder
                 {
+                    ;?; // note that the spec doesn't say that the parameters must be unique
                     private readonly Dictionary<string, cBodyPartParameterValue> mDictionary = new Dictionary<string, cBodyPartParameterValue>(StringComparer.InvariantCultureIgnoreCase);
 
                     public cParametersBuilder() { }

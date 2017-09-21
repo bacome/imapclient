@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
 
                     if (lHook.EnabledExtensions != fEnableableExtensions.none) lContext.TraceError("received enabled on a failed enable");
 
-                    throw new cProtocolErrorException(lResult, fKnownCapabilities.enable, lContext);
+                    throw new cProtocolErrorException(lResult, fCapabilities.enable, lContext);
                 }
             }
 

@@ -44,9 +44,6 @@ namespace testharness2
             if (mClient.Capabilities == null) mBuilder.AppendLine("Capability not set yet.");
             else
             {
-                mBuilder.AppendLine("Known capabilities:");
-                mBuilder.AppendLine(mClient.Capabilities.KnownCapabilities.ToString());
-                mBuilder.AppendLine();
                 mBuilder.AppendLine("All capabilities:");
                 ZDisplayStrings(mBuilder, mClient.Capabilities.Capabilities);
                 mBuilder.AppendLine();

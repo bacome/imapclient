@@ -15,9 +15,9 @@ namespace work.bacome.imapclient
     public class cUnsuccessfulCompletionException : cIMAPException
     {
         public readonly cResponseText ResponseText;
-        public readonly fKnownCapabilities TryIgnoring;
+        public readonly fCapabilities TryIgnoring;
 
-        public cUnsuccessfulCompletionException(cResponseText pResponseText, fKnownCapabilities pTryIgnoring, cTrace.cContext pContext)
+        public cUnsuccessfulCompletionException(cResponseText pResponseText, fCapabilities pTryIgnoring, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
             TryIgnoring = pTryIgnoring;
@@ -38,9 +38,9 @@ namespace work.bacome.imapclient
     public class cProtocolErrorException : cIMAPException
     {
         public readonly cCommandResult CommandResult;
-        public readonly fKnownCapabilities TryIgnoring;
+        public readonly fCapabilities TryIgnoring;
 
-        public cProtocolErrorException(cCommandResult pCommandResult, fKnownCapabilities pTryIgnoring, cTrace.cContext pContext)
+        public cProtocolErrorException(cCommandResult pCommandResult, fCapabilities pTryIgnoring, cTrace.cContext pContext)
         {
             CommandResult = pCommandResult;
             TryIgnoring = pTryIgnoring;
@@ -60,9 +60,9 @@ namespace work.bacome.imapclient
     // thrown when something happens that shouldn't (according to my reading of the rfcs)
     public class cUnexpectedServerActionException : cIMAPException
     {
-        public readonly fKnownCapabilities TryIgnoring;
+        public readonly fCapabilities TryIgnoring;
 
-        public cUnexpectedServerActionException(fKnownCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
+        public cUnexpectedServerActionException(fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
         {
             TryIgnoring = pTryIgnoring;
             pContext.TraceError("{0}: {1}", nameof(cUnexpectedServerActionException), pMessage);

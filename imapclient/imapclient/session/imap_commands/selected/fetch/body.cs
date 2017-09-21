@@ -65,8 +65,8 @@ namespace work.bacome.imapclient
 
                     if (lHook.Body != null) lContext.TraceError("received body on a failed fetch body");
 
-                    fKnownCapabilities lTryIgnoring;
-                    if (pBinary) lTryIgnoring = fKnownCapabilities.binary;
+                    fCapabilities lTryIgnoring;
+                    if (pBinary) lTryIgnoring = fCapabilities.binary;
                     else lTryIgnoring = 0;
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);

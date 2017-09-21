@@ -93,11 +93,11 @@ namespace work.bacome.imapclient
                         return lHook.Handles;
                     }
 
-                    fKnownCapabilities lTryIgnoring = 0;
+                    fCapabilities lTryIgnoring = 0;
 
-                    if ((mMailboxCacheData & fMailboxCacheData.specialuse) != 0 && mCapabilities.SpecialUse) lTryIgnoring |= fKnownCapabilities.specialuse;
-                    if (pStatus) lTryIgnoring |= fKnownCapabilities.liststatus;
-                    if (lTryIgnoring == 0) lTryIgnoring |= fKnownCapabilities.listextended;
+                    if ((mMailboxCacheData & fMailboxCacheData.specialuse) != 0 && mCapabilities.SpecialUse) lTryIgnoring |= fCapabilities.specialuse;
+                    if (pStatus) lTryIgnoring |= fCapabilities.liststatus;
+                    if (lTryIgnoring == 0) lTryIgnoring |= fCapabilities.listextended;
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);
                     throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);
@@ -112,8 +112,6 @@ namespace work.bacome.imapclient
                 private readonly bool mStatus;
                 private readonly List<cMailboxName> mMailboxes = new List<cMailboxName>();
                 private int mSequence;
-
-                private readonly Dictionary<cMailboxName, iMailboxHandle> mHandles = new Dictionary<cMailboxName, iMailboxHandle>();
 
                 public cListExtendedCommandHook(cMailboxCache pCache, eListExtendedSelect pSelect, cMailboxPathPattern pPattern, bool pStatus)
                 {

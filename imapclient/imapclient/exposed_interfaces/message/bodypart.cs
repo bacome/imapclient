@@ -329,6 +329,7 @@ namespace work.bacome.imapclient
 
     public class cBodyPartParameters : ReadOnlyDictionary<string, cBodyPartParameterValue>
     {
+        ;?;
         public cBodyPartParameters(Dictionary<string, cBodyPartParameterValue> pDictionary) : base(pDictionary) { }
 
         public string GetStringValue(string pParameterName, string pDefault = null)

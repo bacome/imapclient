@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using work.bacome.imapclient.support;
+using System.Linq;
 
 namespace work.bacome.imapclient
 {
     [Flags]
-    public enum fKnownCapabilities
+    public enum fCapabilities
     {
         logindisabled = 1 << 0,
         starttls = 1 << 1,
@@ -37,84 +36,74 @@ namespace work.bacome.imapclient
 
     public class cCapabilities
     {
-        public readonly fKnownCapabilities KnownCapabilities;
-        private readonly cUniqueIgnoreCaseStringList mCapabilities;
-        private readonly cUniqueIgnoreCaseStringList mAuthenticationMechanisms;
-        public readonly fKnownCapabilities IgnoreCapabilities;
-        public readonly fKnownCapabilities EffectiveCapabilities;
+        public readonly cStrings Capabilities;
+        public readonly cStrings AuthenticationMechanisms;
+        public readonly fCapabilities EffectiveCapabilities;
 
-        public cCapabilities(cUniqueIgnoreCaseStringList pCapabilities, cUniqueIgnoreCaseStringList pAuthenticationMechanisms, fKnownCapabilities pIgnoreCapabilities)
+        public cCapabilities(cStrings pCapabilities, cStrings pAuthenticationMechanisms, fCapabilities pIgnoreCapabilities)
         {
-            if (pCapabilities == null) throw new ArgumentNullException(nameof(pCapabilities));
-            if (pAuthenticationMechanisms == null) throw new ArgumentNullException(nameof(pAuthenticationMechanisms));
+            Capabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
+            AuthenticationMechanisms = pAuthenticationMechanisms ?? throw new ArgumentNullException(nameof(pAuthenticationMechanisms));
 
-            KnownCapabilities = 0;
+            fCapabilities lCapabilities = 0;
 
-            if (pCapabilities.Contains("LoginDisabled")) KnownCapabilities |= fKnownCapabilities.logindisabled;
-            if (pCapabilities.Contains("StartTLS")) KnownCapabilities |= fKnownCapabilities.starttls;
-            if (pCapabilities.Contains("Idle")) KnownCapabilities |= fKnownCapabilities.idle;
-            if (pCapabilities.Contains("Literal+")) KnownCapabilities |= fKnownCapabilities.literalplus;
-            if (pCapabilities.Contains("Literal-")) KnownCapabilities |= fKnownCapabilities.literalminus;
-            if (pCapabilities.Contains("Enable")) KnownCapabilities |= fKnownCapabilities.enable;
-            if (pCapabilities.Contains("UTF8=Accept")) KnownCapabilities |= fKnownCapabilities.utf8accept;
-            if (pCapabilities.Contains("UTF8=Only")) KnownCapabilities |= fKnownCapabilities.utf8only;
-            if (pCapabilities.Contains("List-Extended")) KnownCapabilities |= fKnownCapabilities.listextended;
-            if (pCapabilities.Contains("Children")) KnownCapabilities |= fKnownCapabilities.children;
-            if (pCapabilities.Contains("SASL-IR")) KnownCapabilities |= fKnownCapabilities.sasl_ir;
-            if (pCapabilities.Contains("Login-Referrals")) KnownCapabilities |= fKnownCapabilities.loginreferrals;
-            if (pCapabilities.Contains("Mailbox-Referrals")) KnownCapabilities |= fKnownCapabilities.mailboxreferrals;
-            if (pCapabilities.Contains("Id")) KnownCapabilities |= fKnownCapabilities.id;
-            if (pCapabilities.Contains("Binary")) KnownCapabilities |= fKnownCapabilities.binary;
-            if (pCapabilities.Contains("Namespace")) KnownCapabilities |= fKnownCapabilities.namespaces;
-            if (pCapabilities.Contains("List-Status")) KnownCapabilities |= fKnownCapabilities.liststatus;
-            if (pCapabilities.Contains("Special-Use")) KnownCapabilities |= fKnownCapabilities.specialuse;
-            if (pCapabilities.Contains("ESearch")) KnownCapabilities |= fKnownCapabilities.esearch;
-            if (pCapabilities.Contains("Sort")) KnownCapabilities |= fKnownCapabilities.sort;
-            if (pCapabilities.Contains("Sort=Display")) KnownCapabilities |= fKnownCapabilities.sortdisplay;
-            if (pCapabilities.Contains("ESort")) KnownCapabilities |= fKnownCapabilities.esort;
-            if (pCapabilities.Contains("Thread=OrderedSubject")) KnownCapabilities |= fKnownCapabilities.threadorderedsubject;
-            if (pCapabilities.Contains("Thread=References")) KnownCapabilities |= fKnownCapabilities.threadreferences;
-            if (pCapabilities.Contains("CondStore")) KnownCapabilities |= fKnownCapabilities.condstore;
-            if (pCapabilities.Contains("QResync")) KnownCapabilities |= fKnownCapabilities.qresync | fKnownCapabilities.condstore;
+            if (pCapabilities.Contains("LoginDisabled", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.logindisabled;
+            if (pCapabilities.Contains("StartTLS", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.starttls;
+            if (pCapabilities.Contains("Idle", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.idle;
+            if (pCapabilities.Contains("Literal+", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.literalplus;
+            if (pCapabilities.Contains("Literal-", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.literalminus;
+            if (pCapabilities.Contains("Enable", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.enable;
+            if (pCapabilities.Contains("UTF8=Accept", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.utf8accept;
+            if (pCapabilities.Contains("UTF8=Only", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.utf8only;
+            if (pCapabilities.Contains("List-Extended", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.listextended;
+            if (pCapabilities.Contains("Children", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.children;
+            if (pCapabilities.Contains("SASL-IR", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.sasl_ir;
+            if (pCapabilities.Contains("Login-Referrals", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.loginreferrals;
+            if (pCapabilities.Contains("Mailbox-Referrals", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.mailboxreferrals;
+            if (pCapabilities.Contains("Id", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.id;
+            if (pCapabilities.Contains("Binary", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.binary;
+            if (pCapabilities.Contains("Namespace", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.namespaces;
+            if (pCapabilities.Contains("List-Status", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.liststatus;
+            if (pCapabilities.Contains("Special-Use", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.specialuse;
+            if (pCapabilities.Contains("ESearch", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.esearch;
+            if (pCapabilities.Contains("Sort", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.sort;
+            if (pCapabilities.Contains("Sort=Display", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.sortdisplay;
+            if (pCapabilities.Contains("ESort", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.esort;
+            if (pCapabilities.Contains("Thread=OrderedSubject", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.threadorderedsubject;
+            if (pCapabilities.Contains("Thread=References", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.threadreferences;
+            if (pCapabilities.Contains("CondStore", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.condstore;
+            if (pCapabilities.Contains("QResync", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.qresync | fCapabilities.condstore;
 
-            mCapabilities = pCapabilities;
-            mAuthenticationMechanisms = pAuthenticationMechanisms;
-
-            IgnoreCapabilities = pIgnoreCapabilities;
-
-            EffectiveCapabilities = KnownCapabilities & ~pIgnoreCapabilities;
+            EffectiveCapabilities = lCapabilities & ~pIgnoreCapabilities;
         }
 
-        public ICollection<string> Capabilities => mCapabilities.AsReadOnly();
-        public ICollection<string> AuthenticationMechanisms => mAuthenticationMechanisms.AsReadOnly();
+        public bool LoginDisabled => (EffectiveCapabilities & fCapabilities.logindisabled) != 0;
+        public bool StartTLS => (EffectiveCapabilities & fCapabilities.starttls) != 0;
+        public bool Idle => (EffectiveCapabilities & fCapabilities.idle) != 0;
+        public bool LiteralPlus => (EffectiveCapabilities & fCapabilities.literalplus) != 0;
+        public bool LiteralMinus => (EffectiveCapabilities & fCapabilities.literalminus) != 0;
+        public bool Enable => (EffectiveCapabilities & fCapabilities.enable) != 0;
+        public bool UTF8Accept => (EffectiveCapabilities & fCapabilities.utf8accept) != 0;
+        public bool UTF8Only => (EffectiveCapabilities & fCapabilities.utf8only) != 0;
+        public bool ListExtended => (EffectiveCapabilities & fCapabilities.listextended) != 0;
+        public bool Children => (EffectiveCapabilities & fCapabilities.children) != 0;
+        public bool SASL_IR => (EffectiveCapabilities & fCapabilities.sasl_ir) != 0;
+        public bool LoginReferrals => (EffectiveCapabilities & fCapabilities.loginreferrals) != 0;
+        public bool MailboxReferrals => (EffectiveCapabilities & fCapabilities.mailboxreferrals) != 0;
+        public bool Id => (EffectiveCapabilities & fCapabilities.id) != 0;
+        public bool Binary => (EffectiveCapabilities & fCapabilities.binary) != 0;
+        public bool Namespace => (EffectiveCapabilities & fCapabilities.namespaces) != 0;
+        public bool ListStatus => (EffectiveCapabilities & fCapabilities.liststatus) != 0;
+        public bool SpecialUse => (EffectiveCapabilities & fCapabilities.specialuse) != 0;
+        public bool ESearch => (EffectiveCapabilities & fCapabilities.esearch) != 0;
+        public bool Sort => (EffectiveCapabilities & fCapabilities.sort) != 0;
+        public bool SortDisplay => (EffectiveCapabilities & fCapabilities.sortdisplay) != 0;
+        public bool ESort => (EffectiveCapabilities & fCapabilities.esort) != 0;
+        public bool ThreadOrderedSubject => (EffectiveCapabilities & fCapabilities.threadorderedsubject) != 0;
+        public bool ThreadReferences => (EffectiveCapabilities & fCapabilities.threadreferences) != 0;
+        public bool CondStore => (EffectiveCapabilities & fCapabilities.condstore) != 0;
+        public bool QResync => (EffectiveCapabilities & fCapabilities.qresync) != 0;
 
-        public bool LoginDisabled => (EffectiveCapabilities & fKnownCapabilities.logindisabled) != 0;
-        public bool StartTLS => (EffectiveCapabilities & fKnownCapabilities.starttls) != 0;
-        public bool Idle => (EffectiveCapabilities & fKnownCapabilities.idle) != 0;
-        public bool LiteralPlus => (EffectiveCapabilities & fKnownCapabilities.literalplus) != 0;
-        public bool LiteralMinus => (EffectiveCapabilities & fKnownCapabilities.literalminus) != 0;
-        public bool Enable => (EffectiveCapabilities & fKnownCapabilities.enable) != 0;
-        public bool UTF8Accept => (EffectiveCapabilities & fKnownCapabilities.utf8accept) != 0;
-        public bool UTF8Only => (EffectiveCapabilities & fKnownCapabilities.utf8only) != 0;
-        public bool ListExtended => (EffectiveCapabilities & fKnownCapabilities.listextended) != 0;
-        public bool Children => (EffectiveCapabilities & fKnownCapabilities.children) != 0;
-        public bool SASL_IR => (EffectiveCapabilities & fKnownCapabilities.sasl_ir) != 0;
-        public bool LoginReferrals => (EffectiveCapabilities & fKnownCapabilities.loginreferrals) != 0;
-        public bool MailboxReferrals => (EffectiveCapabilities & fKnownCapabilities.mailboxreferrals) != 0;
-        public bool Id => (EffectiveCapabilities & fKnownCapabilities.id) != 0;
-        public bool Binary => (EffectiveCapabilities & fKnownCapabilities.binary) != 0;
-        public bool Namespace => (EffectiveCapabilities & fKnownCapabilities.namespaces) != 0;
-        public bool ListStatus => (EffectiveCapabilities & fKnownCapabilities.liststatus) != 0;
-        public bool SpecialUse => (EffectiveCapabilities & fKnownCapabilities.specialuse) != 0;
-        public bool ESearch => (EffectiveCapabilities & fKnownCapabilities.esearch) != 0;
-        public bool Sort => (EffectiveCapabilities & fKnownCapabilities.sort) != 0;
-        public bool SortDisplay => (EffectiveCapabilities & fKnownCapabilities.sortdisplay) != 0;
-        public bool ESort => (EffectiveCapabilities & fKnownCapabilities.esort) != 0;
-        public bool ThreadOrderedSubject => (EffectiveCapabilities & fKnownCapabilities.threadorderedsubject) != 0;
-        public bool ThreadReferences => (EffectiveCapabilities & fKnownCapabilities.threadreferences) != 0;
-        public bool CondStore => (EffectiveCapabilities & fKnownCapabilities.condstore) != 0;
-        public bool QResync => (EffectiveCapabilities & fKnownCapabilities.qresync) != 0;
-
-        public override string ToString() => $"{nameof(cCapabilities)}([{KnownCapabilities}],{mCapabilities},{mAuthenticationMechanisms},[{IgnoreCapabilities}],[{EffectiveCapabilities}])";
+        public override string ToString() => $"{nameof(cCapabilities)}({Capabilities},{AuthenticationMechanisms},{EffectiveCapabilities})";
     }
 }

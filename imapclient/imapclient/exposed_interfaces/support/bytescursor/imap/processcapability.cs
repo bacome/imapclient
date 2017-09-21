@@ -89,7 +89,7 @@ namespace work.bacome.imapclient.support
             if (lCapabilities.LoginDisabled || !lCapabilities.Idle || lCapabilities.LiteralPlus || !lCapabilities.LiteralMinus || lCapabilities.Enable || !lCapabilities.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
             if (!lAuthenticationMechanisms.Contains("ANGUS") || !lAuthenticationMechanisms.Contains("FRED") || lAuthenticationMechanisms.Contains("fr€d")) throw new cTestsException("properties not as expected", lContext);
 
-            lCapabilities = new cCapabilities(lCapabilityList, lAuthenticationMechanisms, fKnownCapabilities.idle | fKnownCapabilities.literalminus);
+            lCapabilities = new cCapabilities(lCapabilityList, lAuthenticationMechanisms, fCapabilities.idle | fCapabilities.literalminus);
             if (lCapabilities.LoginDisabled || lCapabilities.Idle || lCapabilities.LiteralPlus || lCapabilities.LiteralMinus || lCapabilities.Enable || !lCapabilities.UTF8Accept) throw new cTestsException("properties not as expected", lContext);
 
             lCursor = new cBytesCursor(new cBytes("auth=angus idle auth=(fred literal- imap4rev1 charlie utf8=accept bob"));

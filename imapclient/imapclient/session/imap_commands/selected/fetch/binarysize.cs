@@ -47,8 +47,8 @@ namespace work.bacome.imapclient
                         return;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fKnownCapabilities.binary, lContext);
-                    throw new cProtocolErrorException(lResult, fKnownCapabilities.binary, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.binary, lContext);
+                    throw new cProtocolErrorException(lResult, fCapabilities.binary, lContext);
                 }
             }
 
@@ -88,8 +88,8 @@ namespace work.bacome.imapclient
                         return;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fKnownCapabilities.binary, lContext);
-                    throw new cProtocolErrorException(lResult, fKnownCapabilities.binary, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.binary, lContext);
+                    throw new cProtocolErrorException(lResult, fCapabilities.binary, lContext);
                 }
             }
         }

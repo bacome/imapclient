@@ -48,14 +48,14 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("extended sort success");
-                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fKnownCapabilities.esort, "results not received on a successful extended sort", lContext);
+                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.esort, "results not received on a successful extended sort", lContext);
                         return lHook.Handles;
                     }
 
                     if (lHook.Handles != null) lContext.TraceError("results received on a failed extended sort");
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fKnownCapabilities.esort, lContext);
-                    throw new cProtocolErrorException(lResult, fKnownCapabilities.esort, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.esort, lContext);
+                    throw new cProtocolErrorException(lResult, fCapabilities.esort, lContext);
                 }
             }
         }

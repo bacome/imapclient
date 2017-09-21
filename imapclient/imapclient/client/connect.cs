@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.trace;
@@ -111,7 +112,7 @@ namespace work.bacome.imapclient
                         {
                             foreach (var lSASL in Credentials.SASLs)
                             {
-                                if (lCurrentCapabilities.AuthenticationMechanisms.Contains(lSASL.MechanismName))
+                                if (lCurrentCapabilities.AuthenticationMechanisms.Contains(lSASL.MechanismName, StringComparer.InvariantCultureIgnoreCase))
                                 {
                                     if ((lSASL.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lSASL.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
                                     else

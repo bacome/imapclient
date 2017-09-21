@@ -5,11 +5,42 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public abstract class cMessageFlagsBase : IReadOnlyCollection<string>
+    public interface iMessageFlags : IReadOnlyCollection<string>
     {
+        bool IsAnswered { get; }
+        bool IsFlagged { get; }
+        bool IsDeleted { get; }
+        bool IsSeen { get; }
+        bool IsDraft { get; }
+        bool IsRecent { get; }
+        bool IsMDNSent { get; }
+        bool IsForwarded { get; }
+        bool IsSubmitPending { get; }
+        bool IsSubmitted { get; }
+    }
+
+    public abstract class cMessageFlagsBase 
+    {
+        public const string Asterisk = "\\*";
+        public const string Answered = "\\AnSwErEd";
+        public const string Flagged = "\\FlAgGeD";
+        public const string Deleted = "\\DeLeTeD";
+        public const string Seen = "\\SeEn";
+        public const string Draft = "\\DrAfT";
+        public const string Recent = "\\ReCeNt";
+        public const string MDNSent = "$MdNsEnT";
+        public const string Forwarded = "$FoRwArDeD";
+        public const string SubmitPending = "$SuBmItPeNdInG";
+        public const string Submitted = "$SuBmItTeD";
+    }
+
+    public abstract class cMessageFlagsBuilderBase
+    { 
+
         private readonly bool mAllowRecent;
 
-        ;?; // note that the spec doesn't say that falgs are case invariant
+        ;?; // note that the spec doesn't say that falgs are case 
+
 
         private readonly Dictionary<string, bool> mDictionary = new Dictionary<string, bool>(StringComparer.InvariantCultureIgnoreCase);
 
@@ -224,17 +255,6 @@ namespace work.bacome.imapclient
 
     public class cMessageFlags : cStrings
     {
-        public const string Asterisk = "\\*";
-        public const string Answered = "\\AnSwErEd";
-        public const string Flagged = "\\FlAgGeD";
-        public const string Deleted = "\\DeLeTeD";
-        public const string Seen = "\\SeEn";
-        public const string Draft = "\\DrAfT";
-        public const string Recent = "\\ReCeNt";
-        public const string MDNSent = "$MdNsEnT";
-        public const string Forwarded = "$FoRwArDeD";
-        public const string SubmitPending = "$SuBmItPeNdInG";
-        public const string Submitted = "$SuBmItTeD";
 
         public readonly fMessageFlags Flags;
 
@@ -244,6 +264,7 @@ namespace work.bacome.imapclient
 
             if (Contains(Asterisk)) Flags |= fMessageFlags.asterisk;
 
+            ;?; // all case ins
             if (Contains(Answered)) Flags |= fMessageFlags.answered;
             if (Contains(Flagged)) Flags |= fMessageFlags.flagged;
             if (Contains(Deleted)) Flags |= fMessageFlags.deleted;

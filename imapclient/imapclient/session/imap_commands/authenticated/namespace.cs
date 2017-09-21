@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
                         return;
                     }
 
-                    throw new cProtocolErrorException(lResult, fKnownCapabilities.namespaces, lContext);
+                    throw new cProtocolErrorException(lResult, fCapabilities.namespaces, lContext);
                 }
             }
 

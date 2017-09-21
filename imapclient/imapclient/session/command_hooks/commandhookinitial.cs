@@ -15,8 +15,8 @@ namespace work.bacome.imapclient
 
                 public cCommandHookInitial() { }
 
-                public cUniqueIgnoreCaseStringList Capabilities { get; private set; } = null;
-                public cUniqueIgnoreCaseStringList AuthenticationMechanisms { get; private set; } = null;
+                public cStrings Capabilities { get; private set; } = null;
+                public cStrings AuthenticationMechanisms { get; private set; } = null;
 
                 public override bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
