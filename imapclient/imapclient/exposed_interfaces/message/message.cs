@@ -179,31 +179,22 @@ namespace work.bacome.imapclient
             }
         }
 
-        public bool FlagsContain(params string[] pFlags) => ZFlagsContain(pFlags);
-        public bool FlagsContain(IEnumerable<string> pFlags) => ZFlagsContain(pFlags);
+        public bool IsAnswered => ZFlagsContain(cMessageFlags.Answered);
+        public bool IsFlagged => ZFlagsContain(cMessageFlags.Flagged);
+        public bool IsDeleted => ZFlagsContain(cMessageFlags.Deleted);
+        public bool IsSeen => ZFlagsContain(cMessageFlags.Seen);
+        public bool IsDraft => ZFlagsContain(cMessageFlags.Draft);
+        public bool IsRecent => ZFlagsContain(cMessageFlags.Recent);
 
-        private bool ZFlagsContain(IEnumerable<string> pFlags)
+        public bool IsMDNSent => ZFlagsContain(cMessageFlags.MDNSent);
+        public bool IsForwarded => ZFlagsContain(cMessageFlags.Forwarded);
+        public bool IsSubmitPending => ZFlagsContain(cMessageFlags.SubmitPending);
+        public bool IsSubmitted => ZFlagsContain(cMessageFlags.Submitted);
+
+        private bool ZFlagsContain(string pFlag)
         {
             if (!Client.Fetch(Handle, kFlags)) throw new InvalidOperationException();
-            return Handle.Flags.Contain(pFlags);
-        }
-
-        public bool IsAnswered => ZFlagsContain(fMessageFlags.answered);
-        public bool IsFlagged => ZFlagsContain(fMessageFlags.flagged);
-        public bool IsDeleted => ZFlagsContain(fMessageFlags.deleted);
-        public bool IsSeen => ZFlagsContain(fMessageFlags.seen);
-        public bool IsDraft => ZFlagsContain(fMessageFlags.draft);
-        public bool IsRecent => ZFlagsContain(fMessageFlags.recent);
-
-        public bool IsMDNSent => ZFlagsContain(fMessageFlags.mdnsent);
-        public bool IsForwarded => ZFlagsContain(fMessageFlags.forwarded);
-        public bool IsSubmitPending => ZFlagsContain(fMessageFlags.submitpending);
-        public bool IsSubmitted => ZFlagsContain(fMessageFlags.submitted);
-
-        private bool ZFlagsContain(fMessageFlags pFlag)
-        {
-            if (!Client.Fetch(Handle, kFlags)) throw new InvalidOperationException();
-            return (Handle.Flags.Flags & pFlag) != 0;
+            return Handle.Flags.Contains(pFlag);
         }
 
         public DateTime Received

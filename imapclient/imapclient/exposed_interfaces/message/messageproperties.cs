@@ -2,7 +2,6 @@
 
 namespace work.bacome.imapclient
 {
-    /*
     [Flags]
     public enum fMessageProperties
     {
@@ -43,45 +42,8 @@ namespace work.bacome.imapclient
         references = 1 << 30,
         importance = 1 << 31
 
-        // addig one will require conversion to a long AND use of 1L in the shift
+        // adding one will require conversion to a long AND use of 1L in the shift
         //    public enum fMessageProperties : long
         //         importance = 1L << 31
     }
-
-    public class cCacheProperties
-    {
-        public static readonly cMessageProperties None = new cMessageProperties(0, cHeaderFieldNames.None);
-        public static readonly cMessageProperties Envelope = fMessageProperties.envelope;
-        public static readonly cMessageProperties Flags = fMessageProperties.flags;
-        public static readonly cMessageProperties Received = fMessageProperties.received;
-        public static readonly cMessageProperties Size = fMessageProperties.size;
-        public static readonly cMessageProperties UID = fMessageProperties.uid;
-        public static readonly cMessageProperties ModSeq = fMessageProperties.modseq;
-        public static readonly cMessageProperties BodyStructure = fMessageProperties.bodystructure;
-        public static readonly cMessageProperties References = fMessageProperties.references;
-        public static readonly cMessageProperties Importance = fMessageProperties.importance;
-
-        public readonly fMessageProperties Properties;
-        public readonly cHeaderFieldNames Names;
-
-        public cMessageProperties(fMessageProperties pProperties, cHeaderFieldNames pNames)
-        {
-            Properties = pProperties;
-            Names = pNames ?? throw new ArgumentNullException(nameof(pNames));
-        }
-
-        public bool IsNone => Properties == 0 && Names.Count == 0;
-
-        public static cMessageProperties operator |(cMessageProperties pProperties, fMessageProperties pPropertiesToAdd)
-        {
-            if (pProperties == null) return null;
-            fMessageProperties lProperties = pProperties.Properties | pPropertiesToAdd;
-            if (lProperties == pProperties.Properties) return pProperties;
-            return new cMessageProperties(lProperties, pProperties.Names);
-        }
-
-        public override string ToString() => $"{nameof(cMessageProperties)}({Properties},{Names})";
-
-        public static implicit operator cMessageProperties(fMessageProperties pProperties) => new cMessageProperties(pProperties, cHeaderFieldNames.None);
-    } */
 }

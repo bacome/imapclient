@@ -112,7 +112,7 @@ namespace work.bacome.imapclient
                         {
                             foreach (var lSASL in Credentials.SASLs)
                             {
-                                if (lCurrentCapabilities.AuthenticationMechanisms.Contains(lSASL.MechanismName, StringComparer.InvariantCultureIgnoreCase))
+                                if (lCurrentCapabilities.AuthenticationMechanisms.Contains(lSASL.MechanismName)) // no case-invariance required because SASL (rfc 2222) says only uppercase is allowed
                                 {
                                     if ((lSASL.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lSASL.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
                                     else

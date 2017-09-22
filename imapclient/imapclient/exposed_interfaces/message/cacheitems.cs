@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace work.bacome.imapclient
 {
@@ -13,6 +14,25 @@ namespace work.bacome.imapclient
         {
             Attributes = pAttributes;
             Names = pNames ?? throw new ArgumentNullException(nameof(pNames));
+        }
+
+        public cCacheItems(fMessageProperties pProperties)
+        {
+            Attributes = 0;
+            if ((pProperties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0) Attributes |= fCacheAttributes.flags;
+            if ((pProperties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0) Attributes |= fCacheAttributes.envelope;
+            if ((pProperties & fMessageProperties.received) != 0) Attributes |= fCacheAttributes.received;
+            if ((pProperties & fMessageProperties.size) != 0) Attributes |= fCacheAttributes.size;
+            if ((pProperties & fMessageProperties.bodystructure | fMessageProperties.attachments | fMessageProperties.plaintextsizeinbytes) != 0) Attributes |= fCacheAttributes.bodystructure;
+            if ((pProperties & fMessageProperties.uid) != 0) Attributes |= fCacheAttributes.uid;
+            if ((pProperties & fMessageProperties.modseq) != 0) Attributes |= fCacheAttributes.modseq;
+
+            List<string> lNames = new List<string>();
+
+            if ((pProperties & fMessageProperties.references) != 0) lNames.Add(cHeaderFieldNames.References);
+            if ((pProperties & fMessageProperties.importance) != 0) lNames.Add(cHeaderFieldNames.Importance);
+
+            Names = new cHeaderFieldNames(lNames);
         }
 
         public bool IsNone => Attributes == 0 && Names.Count == 0;
@@ -70,5 +90,6 @@ namespace work.bacome.imapclient
 
         public static implicit operator cCacheItems(fCacheAttributes pAttributes) => new cCacheItems(pAttributes, cHeaderFieldNames.None);
         public static implicit operator cCacheItems(cHeaderFieldNames pNames) => new cCacheItems(0, pNames);
+        public static implicit operator cCacheItems(fMessageProperties pProperties) => new cCacheItems(pProperties);
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient.support
@@ -8,15 +10,15 @@ namespace work.bacome.imapclient.support
     {
         private static readonly cBytes kCapabilityAuthEquals = new cBytes("AUTH=");
 
-        public bool ProcessCapability(out cUniqueIgnoreCaseStringList rCapabilities, out cUniqueIgnoreCaseStringList rAuthenticationMechanisms, cTrace.cContext pParentContext)
+        public bool ProcessCapability(out cStrings rCapabilities, out cStrings rAuthenticationMechanisms, cTrace.cContext pParentContext)
         {
             // NOTE: this routine does not return the cursor to its original position if it fails
             //  (that is why it is called PROCESScapablity not GETcapability)
 
             var lContext = pParentContext.NewMethod(nameof(cBytesCursor), nameof(ProcessCapability));
 
-            rCapabilities = new cUniqueIgnoreCaseStringList();
-            rAuthenticationMechanisms = new cUniqueIgnoreCaseStringList();
+            var lCapabilities = new List<string>();
+            var lAuthenticationMechanisms = new List<string>();
 
             while (true)
             {
@@ -30,7 +32,7 @@ namespace work.bacome.imapclient.support
                         return false;
                     }
 
-                    rAuthenticationMechanisms.Add(lAtom);
+                    lAuthenticationMechanisms.Add(lAtom);
                 }
                 else
                 {
@@ -42,13 +44,13 @@ namespace work.bacome.imapclient.support
                         return false;
                     }
 
-                    rCapabilities.Add(lAtom);
+                    lCapabilities.Add(lAtom);
                 }
 
                 if (!SkipByte(cASCII.SPACE)) break;
             }
 
-            if (!rCapabilities.Contains("IMAP4rev1"))
+            if (!lCapabilities.Contains("IMAP4rev1", StringComparer.InvariantCultureIgnoreCase))
             {
                 lContext.TraceWarning("likely malformed capability: not imap4rev1?");
                 rCapabilities = null;
@@ -56,6 +58,8 @@ namespace work.bacome.imapclient.support
                 return false;
             }
 
+            rCapabilities = new cStrings(lCapabilities);
+            rAuthenticationMechanisms = new cStrings(lAuthenticationMechanisms);
             return true;
         }
 
@@ -66,8 +70,8 @@ namespace work.bacome.imapclient.support
 
             cBytesCursor lCursor;
             cCapabilities lCapabilities;
-            cUniqueIgnoreCaseStringList lCapabilityList;
-            cUniqueIgnoreCaseStringList lAuthenticationMechanisms;
+            cStrings lCapabilityList;
+            cStrings lAuthenticationMechanisms;
 
             lCursor = new cBytesCursor(new cBytes("auth=angus auth=fred charlie bob"));
             if (lCursor.ProcessCapability(out _, out _, lContext)) throw new cTestsException("should have failed", lContext);
