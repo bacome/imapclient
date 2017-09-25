@@ -10,9 +10,9 @@ namespace work.bacome.imapclient
         public cMessageHandleList(iMessageHandle pHandle) : base(new iMessageHandle[] { pHandle }) { }
         public cMessageHandleList(IEnumerable<iMessageHandle> pHandles) : base(pHandles) { }
 
-        public bool AllContainAll(cCacheItems pItems)
+        public bool AllContain(cCacheItems pItems)
         {
-            foreach (var lHandle in this) if (!lHandle.ContainsAll(pItems)) return false;
+            foreach (var lHandle in this) if (!lHandle.Contains(pItems)) return false;
             return true;
         }
 

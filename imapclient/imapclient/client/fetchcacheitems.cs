@@ -16,12 +16,12 @@ namespace work.bacome.imapclient
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-            if (pHandle.ContainsAll(pItems)) return true;
+            if (pHandle.Contains(pItems)) return true;
 
             var lTask = ZFetchCacheItemsAsync(ZFetchHandles(pHandle), pItems, null, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
-            return pHandle.ContainsAll(pItems);
+            return pHandle.Contains(pItems);
         }
 
         public bool Fetch(IList<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
@@ -33,12 +33,12 @@ namespace work.bacome.imapclient
 
             var lHandles = ZFetchHandles(pHandles);
 
-            if (lHandles.AllContainAll(pItems)) return true;
+            if (lHandles.AllContain(pItems)) return true;
 
             var lTask = ZFetchCacheItemsAsync(lHandles, pItems, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
-            return lHandles.AllContainAll(pItems);
+            return lHandles.AllContain(pItems);
         }
 
         public async Task<bool> FetchAsync(iMessageHandle pHandle, cCacheItems pItems)
@@ -48,11 +48,11 @@ namespace work.bacome.imapclient
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-            if (pHandle.ContainsAll(pItems)) return true;
+            if (pHandle.Contains(pItems)) return true;
 
             await ZFetchCacheItemsAsync(ZFetchHandles(pHandle), pItems, null, lContext).ConfigureAwait(false);
 
-            return pHandle.ContainsAll(pItems);
+            return pHandle.Contains(pItems);
         }
 
         public async Task<bool> FetchAsync(IList<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
@@ -64,11 +64,11 @@ namespace work.bacome.imapclient
 
             var lHandles = ZFetchHandles(pHandles);
 
-            if (lHandles.AllContainAll(pItems)) return true;
+            if (lHandles.AllContain(pItems)) return true;
 
             await ZFetchCacheItemsAsync(lHandles, pItems, pConfiguration, lContext).ConfigureAwait(false);
 
-            return lHandles.AllContainAll(pItems);
+            return lHandles.AllContain(pItems);
         }
 
         private cMessageHandleList ZFetchHandles(iMessageHandle pHandle)

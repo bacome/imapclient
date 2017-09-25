@@ -62,6 +62,8 @@ namespace work.bacome.imapclient
 
         public static bool operator !=(cCacheItems pA, cCacheItems pB) => !(pA == pB);
 
+                /*
+
         public static cCacheItems operator |(cCacheItems pItems, fCacheAttributes pAttributes)
         {
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -74,7 +76,11 @@ namespace work.bacome.imapclient
         {
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
             if (pName == null) throw new ArgumentNullException(nameof(pName));
+            if (pItems.Names.Contains(pName)) return pItems;
+            lNames = pItems.Names.Union()
+
             cHeaderFieldNames lNames = pItems.Names | pName;
+            ;?; // nope
             if (lNames == pItems.Names) return pItems;
             return new cCacheItems(pItems.Attributes, lNames);
         }
@@ -84,9 +90,10 @@ namespace work.bacome.imapclient
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
             if (pNames == null) throw new ArgumentNullException(nameof(pNames));
             cHeaderFieldNames lNames = pItems.Names | pNames;
+            ;?; // nope
             if (lNames == pItems.Names) return pItems;
             return new cCacheItems(pItems.Attributes, lNames);
-        }
+        } */
 
         public static implicit operator cCacheItems(fCacheAttributes pAttributes) => new cCacheItems(pAttributes, cHeaderFieldNames.None);
         public static implicit operator cCacheItems(cHeaderFieldNames pNames) => new cCacheItems(0, pNames);
