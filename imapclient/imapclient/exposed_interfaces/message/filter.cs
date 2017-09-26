@@ -70,7 +70,7 @@ namespace work.bacome.imapclient
         }
 
         public static cFilter FlagsContain(params string[] pFlags) => new cFilterFlagsContain(pFlags);
-        public static cFilter FlagsContain(cFetchableFlags pFlags) => new cFilterFlagsContain(pFlags);
+        public static cFilter FlagsContain(cMessageFlags pFlags) => new cFilterFlagsContain(pFlags);
 
         public static cFilter HeaderFieldContains(string pHeaderField, string pContains) => new cFilterHeaderFieldContains(pHeaderField, pContains);
         public static cFilter HasHeaderField(string pHeaderField) => new cFilterHeaderFieldContains(pHeaderField, string.Empty);

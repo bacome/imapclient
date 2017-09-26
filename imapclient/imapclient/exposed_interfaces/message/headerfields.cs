@@ -120,32 +120,31 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cHeaderFieldImportance)}({Importance})";
     }
 
-    public class cHeaderFields
+    public class cHeaderFields : ReadOnlyCollection<cHeaderField>
     {
-        private readonly cHeaderFieldNames mNames; // not null (may be empty)
+        private readonly cHeaderFieldNames mNames;
         private readonly bool mNot;
-        private readonly ReadOnlyCollection<cHeaderField> mFields; // not null (may be empty)
 
-        private cHeaderFields(cHeaderFieldNames pNames, bool pNot, IList<cHeaderField> pFields)
+        private cHeaderFields(cHeaderFieldNames pNames, bool pNot, IList<cHeaderField> pFields) : base(pFields)
         {
             mNames = pNames ?? throw new ArgumentNullException(nameof(pNames));
             mNot = pNot;
-            if (pFields == null) throw new ArgumentNullException(nameof(pFields));
-            mFields = new ReadOnlyCollection<cHeaderField>(pFields);
         }
 
-        public bool Contains(string pFieldName) => mNot != mNames.Contains(pFieldName);
+        public bool Contains(string pName) => mNot != mNames.Contains(pName);
 
         public bool Contains(cHeaderFieldNames pNames)
         {
-            if (mNot) return pNames.Intersect(mNames).Count == 0;
-            else return mNames.Contains(pNames);
+            if (!mNot) return mNames.Contains(pNames);
+            foreach (var lName in pNames) if (mNames.Contains(lName)) return false;
+            return true;
         }
 
         public bool ContainsNone(cHeaderFieldNames pNames)
         {
             if (mNot) return mNames.Contains(pNames);
-            else return pNames.Intersect(mNames).Count == 0;
+            foreach (var lName in pNames) if (mNames.Contains(lName)) return false;
+            return true;
         }
 
         public cHeaderFieldNames Missing(cHeaderFieldNames pNames)
@@ -154,16 +153,16 @@ namespace work.bacome.imapclient
             else return pNames.Except(mNames);
         }
 
-        public cHeaderField First(string pFieldName)
+        public cHeaderField First(string pName)
         {
-            if (!Contains(pFieldName)) throw new InvalidOperationException();
-            return mFields.FirstOrDefault(f => f.Name.Equals(pFieldName, StringComparison.InvariantCultureIgnoreCase));
+            if (!Contains(pName)) throw new InvalidOperationException();
+            return this.FirstOrDefault(f => f.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
         }
 
-        public IEnumerable<cHeaderField> All(string pFieldName)
+        public IEnumerable<cHeaderField> All(string pName)
         {
-            if (!Contains(pFieldName)) throw new InvalidOperationException();
-            return from f in mFields where f.Name.Equals(pFieldName, StringComparison.InvariantCultureIgnoreCase) select f;
+            if (!Contains(pName)) throw new InvalidOperationException();
+            return from f in this where f.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase) select f;
         }
 
         public cStrings References => (First(cHeaderFieldNames.References) as cHeaderFieldMsgIds)?.MsgIds;
@@ -174,7 +173,7 @@ namespace work.bacome.imapclient
             var lBuilder = new cListBuilder(nameof(cHeaderFields));
             lBuilder.Append(mNames);
             lBuilder.Append(mNot);
-            foreach (var lField in mFields) lBuilder.Append(lField);
+            foreach (var lField in this) lBuilder.Append(lField);
             return lBuilder.ToString();
         }
 
@@ -229,15 +228,15 @@ namespace work.bacome.imapclient
                 if (pB.mNot)
                 {
                     // pA contains all headers except some, pB contains all headers except some
-                    List<cHeaderField> lFields = new List<cHeaderField>(pA.mFields);
-                    foreach (var lFieldName in pA.mNames.Except(pB.mNames)) lFields.AddRange(pB.All(lFieldName));
+                    List<cHeaderField> lFields = new List<cHeaderField>(pA);
+                    foreach (var lName in pA.mNames.Except(pB.mNames)) lFields.AddRange(pB.All(lName));
                     return new cHeaderFields(pA.mNames.Intersect(pB.mNames), true, lFields);
                 }
                 else
                 {
                     // pA contains all headers except some, pB contains a named list 
-                    List<cHeaderField> lFields = new List<cHeaderField>(pA.mFields);
-                    foreach (var lFieldName in pA.mNames.Intersect(pB.mNames)) lFields.AddRange(pB.All(lFieldName));
+                    List<cHeaderField> lFields = new List<cHeaderField>(pA);
+                    foreach (var lName in pA.mNames.Intersect(pB.mNames)) lFields.AddRange(pB.All(lName));
                     return new cHeaderFields(pA.mNames.Except(pB.mNames), true, lFields);
                 }
             }
@@ -246,15 +245,15 @@ namespace work.bacome.imapclient
                 if (pB.mNot)
                 {
                     // pA contains a named list, pB contains all headers except some
-                    List<cHeaderField> lFields = new List<cHeaderField>(pB.mFields);
-                    foreach (var lFieldName in pA.mNames.Intersect(pB.mNames)) lFields.AddRange(pA.All(lFieldName));
+                    List<cHeaderField> lFields = new List<cHeaderField>(pB);
+                    foreach (var lName in pA.mNames.Intersect(pB.mNames)) lFields.AddRange(pA.All(lName));
                     return new cHeaderFields(pB.mNames.Except(pA.mNames), true, lFields);
                 }
                 else
                 {
                     // pA contains a subset of header values and pB does too, add them together
-                    List<cHeaderField> lFields = new List<cHeaderField>(pA.mFields);
-                    foreach (var lFieldName in pB.mNames.Except(pA.mNames)) lFields.AddRange(pB.All(lFieldName));
+                    List<cHeaderField> lFields = new List<cHeaderField>(pA);
+                    foreach (var lName in pB.mNames.Except(pA.mNames)) lFields.AddRange(pB.All(lName));
                     return new cHeaderFields(pA.mNames.Union(pB.mNames), false, lFields);
                 }
             }
@@ -294,7 +293,7 @@ namespace work.bacome.imapclient
 
             if (!TryConstruct(lBytes, out var lFields)) throw new cTestsException($"{nameof(cHeaderFields)}.1.1");
 
-            if (lFields.mFields.Count != 9) throw new cTestsException($"{nameof(cHeaderFields)}.1.1.1");
+            if (lFields.Count != 9) throw new cTestsException($"{nameof(cHeaderFields)}.1.1.1");
 
             if (!lFields.Contains("a")) throw new cTestsException($"{nameof(cHeaderFields)}.1.2");
             if (!lFields.Contains(lABCDE)) throw new cTestsException($"{nameof(cHeaderFields)}.1.3");
@@ -312,11 +311,9 @@ namespace work.bacome.imapclient
             if (lFields.All("mEsSaGe-ID").Count() != 2) throw new cTestsException($"{nameof(cHeaderFields)}.1.12");
 
             if (!lFields.All("mEsSaGe-ID").All(h => h is cHeaderFieldMsgId lMsgId && lMsgId.MsgId == "1234@local.machine.example")) throw new cTestsException($"{nameof(cHeaderFields)}.1.13");
-            ;?;
-            if (cTools.ASCIIBytesToString(lFields.First(cHeaderFieldNames.MessageId).Value) != "1234@local.machine.example") throw new cTestsException($"{nameof(cHeaderFields)}.1.14");
 
 
-            lStrings = lFields.InReplyTo;
+            lStrings = (lFields.First(cHeaderFieldNames.InReplyTo) as cHeaderFieldMsgIds)?.MsgIds;
             if (lStrings.Count != 3 || !lStrings.Contains("12341@local.machine.example") || !lStrings.Contains("12342@local.machine.example") || !lStrings.Contains("12343@local.machine.example")) throw new cTestsException($"{nameof(cHeaderFields)}.1.15");
 
             lStrings = lFields.References;
@@ -376,7 +373,7 @@ namespace work.bacome.imapclient
             catch { lFailed = true; }
             if (!lFailed) throw new cTestsException($"{nameof(cHeaderFields)}.2.10");
 
-            if (lNotABCDE.MessageId != null || lNotABCDE.InReplyTo != null || lNotABCDE.Importance != eImportance.normal) throw new cTestsException($"{nameof(cHeaderFields)}.2.11");
+            if (lNotABCDE.First(cHeaderFieldNames.MessageId) != null || lNotABCDE.First(cHeaderFieldNames.InReplyTo) != null || lNotABCDE.Importance != eImportance.normal) throw new cTestsException($"{nameof(cHeaderFields)}.2.11");
             if (lNotDEFGH.Importance != eImportance.high) throw new cTestsException($"{nameof(cHeaderFields)}.2.12");
             if (lNotGHIJK.Importance != null) throw new cTestsException($"{nameof(cHeaderFields)}.2.13");
 

@@ -21,14 +21,15 @@ namespace work.bacome.imapclient
 
         private readonly cHeaderFieldNameList mNames;
 
-        public cHeaderFieldNames(params string[] pNames) => mNames = new cHeaderFieldNameList(pNames);
-        public cHeaderFieldNames(IEnumerable<string> pNames) => mNames = new cHeaderFieldNameList(pNames);
-        public cHeaderFieldNames(cHeaderFieldNameList pNames) => mNames = new cHeaderFieldNameList(pNames);
-        private cHeaderFieldNames(cHeaderFieldNameList pNames, bool pNew) => mNames = pNames;
+        private cHeaderFieldNames() => mNames = new cHeaderFieldNameList();
+        public cHeaderFieldNames(params string[] pNames) => mNames = new cHeaderFieldNameList(pNames); // validates, duplicates, removes duplicates
+        public cHeaderFieldNames(IEnumerable<string> pNames) => mNames = new cHeaderFieldNameList(pNames); // validates, duplicates, removes duplicates
+        public cHeaderFieldNames(cHeaderFieldNameList pNames) => mNames = new cHeaderFieldNameList(pNames); // duplicates
+        private cHeaderFieldNames(cHeaderFieldNameList pNames, bool pWrap) => mNames = pNames; // wraps
 
         public bool Contains(string pName) => mNames.Contains(pName);
-        public bool Contains(params string[] pFlags) => mNames.Contains(pFlags);
-        public bool Contains(IEnumerable<string> pFlags) => mNames.Contains(pFlags);
+        public bool Contains(params string[] pNames) => mNames.Contains(pNames);
+        public bool Contains(IEnumerable<string> pNames) => mNames.Contains(pNames);
 
         public cHeaderFieldNames Union(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Union(pOther.mNames), true);
         public cHeaderFieldNames Intersect(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Intersect(pOther.mNames), true);
@@ -54,6 +55,14 @@ namespace work.bacome.imapclient
 
         public static bool operator !=(cHeaderFieldNames pA, cHeaderFieldNames pB) => !(pA == pB);
 
+        public static implicit operator cHeaderFieldNames(cHeaderFieldNameList pNames) => new cHeaderFieldNames(pNames);
+
+        public static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNames rNames)
+        {
+            if (!cHeaderFieldNameList.TryConstruct(pNames, out var lNames)) { rNames = null; return false; }
+            rNames = new cHeaderFieldNames(lNames, true);
+            return true;
+        }
 
 
 
@@ -208,21 +217,34 @@ namespace work.bacome.imapclient
 
         private readonly List<string> mNames;
 
-        public cHeaderFieldNameList(IEnumerable<string> pNames = null)
+        public cHeaderFieldNameList()
         {
             mNames = new List<string>();
-            if (pNames == null) return;
+        }
+
+        public cHeaderFieldNameList(params string[] pNames) // validates, duplicates, removes duplicates
+        {
+            if (pNames == null) throw new ArgumentNullException(nameof(pNames));
             foreach (var lName in pNames) if (!ZIsValidName(lName)) throw new ArgumentOutOfRangeException(nameof(pNames));
+            mNames = new List<string>();
             foreach (var lName in pNames) if (!Contains(lName)) mNames.Add(lName);
         }
 
-        public cHeaderFieldNameList(cHeaderFieldNameList pNames)
+        public cHeaderFieldNameList(IEnumerable<string> pNames) // validates, duplicates, removes duplicates
+        {
+            if (pNames == null) throw new ArgumentNullException(nameof(pNames));
+            foreach (var lName in pNames) if (!ZIsValidName(lName)) throw new ArgumentOutOfRangeException(nameof(pNames));
+            mNames = new List<string>();
+            foreach (var lName in pNames) if (!Contains(lName)) mNames.Add(lName);
+        }
+
+        public cHeaderFieldNameList(cHeaderFieldNameList pNames) // duplicates
         {
             if (pNames == null) throw new ArgumentNullException(nameof(pNames));
             mNames = new List<string>(pNames.mNames);
         }
 
-        private cHeaderFieldNameList(IEnumerable<string> pNames, bool pUnique)
+        private cHeaderFieldNameList(IEnumerable<string> pNames, bool pUnique) // duplicates, optionally removes duplicates
         {
             if (pUnique)
             {
@@ -245,7 +267,7 @@ namespace work.bacome.imapclient
 
         private bool ZContains(IEnumerable<string> pNames)
         {
-            if (pNames == null) return false;
+            if (pNames == null) throw new ArgumentNullException(nameof(pNames));
             foreach (var lName in pNames) if (!Contains(lName)) return false;
             return true;
         }
@@ -253,9 +275,8 @@ namespace work.bacome.imapclient
         public void Add(string pName)
         {
             if (pName == null) throw new ArgumentNullException(nameof(pName));
-            if (Contains(pName)) return;
             if (!ZIsValidName(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
-            mNames.Add(pName);
+            if (!Contains(pName)) mNames.Add(pName);
         }
 
         public void Add(params string[] pNames) => ZAdd(pNames);
@@ -298,22 +319,6 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
-        public static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNameList rNames)
-        {
-            if (pNames == null) { rNames = null; return false; }
-            foreach (var lName in pNames) if (!ZIsValidName(lName)) { rNames = null; return false; }
-            rNames = new cHeaderFieldNameList(pNames, false);
-            return true;
-        }
-
-        private static bool ZIsValidName(string pName)
-        {
-            if (pName == null) return false;
-            if (pName.Length == 0) return false;
-            foreach (char lChar in pName) if (!cCharset.FText.Contains(lChar)) return false;
-            return true;
-        }
-
         public override bool Equals(object pObject) => this == pObject as cHeaderFieldNameList;
 
         public override int GetHashCode()
@@ -338,7 +343,21 @@ namespace work.bacome.imapclient
 
         public static bool operator !=(cHeaderFieldNameList pA, cHeaderFieldNameList pB) => !(pA == pB);
 
+        private static bool ZIsValidName(string pName)
+        {
+            if (pName == null) return false;
+            if (pName.Length == 0) return false;
+            foreach (char lChar in pName) if (!cCharset.FText.Contains(lChar)) return false;
+            return true;
+        }
 
+        public static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNameList rNames)
+        {
+            if (pNames == null) { rNames = null; return false; }
+            foreach (var lName in pNames) if (!ZIsValidName(lName)) { rNames = null; return false; }
+            rNames = new cHeaderFieldNameList(pNames, false);
+            return true;
+        }
 
 
 
