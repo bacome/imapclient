@@ -64,6 +64,7 @@ namespace work.bacome.imapclient
                     if ((rAttributesSet & fCacheAttributes.flags) != 0) Flags = lFetch.Flags;
                     else if (lFetch.Flags != null)
                     {
+                        ;?; // rewrite to two loops
                         foreach (var lFlag in lFetch.Flags.SymmetricDifference(Flags))
                         {
                             rAttributesSet |= fCacheAttributes.flags;

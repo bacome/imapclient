@@ -54,6 +54,10 @@ namespace work.bacome.imapclient
         public static implicit operator cSettableFlags(cSettableFlagsList pFlags) => new cSettableFlags(pFlags);
     }
 
+    ;?; // create flag comparer and use that instead of the invariant...
+
+    ;?; // TESTS
+
     public class cFetchableFlags : cMessageFlags
     {
         // immutable (for passing in and out)
@@ -63,6 +67,7 @@ namespace work.bacome.imapclient
         public cFetchableFlags(cFetchableFlagsList pFlags) : base(new cFetchableFlagsList(pFlags)) { } // duplicates
         private cFetchableFlags(cFetchableFlagsList pFlags, bool pWrap) : base(pFlags) { } // wraps
 
+        ;?; // remove it does a string difference not a flag difference
         public IEnumerable<string> SymmetricDifference(cFetchableFlags pOther) => this.Except(pOther, StringComparer.InvariantCultureIgnoreCase).Union(pOther.Except(this, StringComparer.InvariantCultureIgnoreCase), StringComparer.InvariantCultureIgnoreCase);
 
         public static implicit operator cFetchableFlags(cFetchableFlagsList pFlags) => new cFetchableFlags(pFlags);
