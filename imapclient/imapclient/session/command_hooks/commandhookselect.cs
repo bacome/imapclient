@@ -19,10 +19,10 @@ namespace work.bacome.imapclient
                 private readonly iMailboxHandle mHandle;
                 private readonly bool mForUpdate;
 
-                private cMessageFlags mFlags = null;
+                private cFetchableFlags mFlags = null;
                 private int mExists = 0;
                 private int mRecent = 0;
-                private cMessageFlags mPermanentFlags = null;
+                private cPermanentFlags mPermanentFlags = null;
                 private uint mUIDNext = 0;
                 private uint mUIDValidity = 0;
                 private uint mHighestModSeq = 0;

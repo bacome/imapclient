@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
         public string Type => Part.Type;
         public eBodyPartTypeCode TypeCode => Part.TypeCode;
         public string SubType => Part.SubType;
-        public cBodyPartParameters Parameters => Part.Parameters;
+        public cBodyStructureParameters Parameters => Part.Parameters;
         public string ContentId => Part.ContentId;
         public cCulturedString Description => Part.Description;
         public string ContentTransferEncoding => Part.ContentTransferEncoding;

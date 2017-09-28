@@ -10,8 +10,8 @@ namespace work.bacome.imapclient
         {
             private class cResponseDataFlags : cResponseData
             {
-                public readonly cMessageFlags Flags;
-                public cResponseDataFlags(cFlags pFlags) { Flags = new cMessageFlags(pFlags); }
+                public readonly cFetchableFlags Flags;
+                public cResponseDataFlags(cFetchableFlags pFlags) { Flags = pFlags; }
                 public override string ToString() => $"{nameof(cResponseDataFlags)}({Flags})";
             }
 
@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
 
                     if (pCursor.SkipBytes(kFlagsSpace))
                     {
-                        if (pCursor.GetFlags(out var lFlags) && pCursor.Position.AtEnd) rResponseData = new cResponseDataFlags(lFlags);
+                        if (pCursor.GetFlags(out var lRawFlags) && pCursor.Position.AtEnd && cFetchableFlags.TryConstruct(lRawFlags, out var lFlags)) rResponseData = new cResponseDataFlags(lFlags);
                         else
                         {
                             lContext.TraceWarning("likely malformed flags response");

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -91,24 +92,24 @@ namespace work.bacome.imapclient
                         {
                             fListFlags lListFlags = 0;
 
-                            if (lFlags.Has(@"\Noinferiors")) lListFlags |= fListFlags.noinferiors | fListFlags.hasnochildren;
-                            if (lFlags.Has(@"\Noselect")) lListFlags |= fListFlags.noselect;
-                            if (lFlags.Has(@"\Marked")) lListFlags |= fListFlags.marked;
-                            if (lFlags.Has(@"\Unmarked")) lListFlags |= fListFlags.unmarked;
+                            if (lFlags.Contains(@"\Noinferiors", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.noinferiors | fListFlags.hasnochildren;
+                            if (lFlags.Contains(@"\Noselect", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.noselect;
+                            if (lFlags.Contains(@"\Marked", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.marked;
+                            if (lFlags.Contains(@"\Unmarked", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.unmarked;
 
-                            if (lFlags.Has(@"\NonExistent")) lListFlags |= fListFlags.noselect | fListFlags.nonexistent;
-                            if (lFlags.Has(@"\Subscribed")) lListFlags |= fListFlags.subscribed;
-                            if (lFlags.Has(@"\Remote")) lListFlags |= fListFlags.remote;
-                            if (lFlags.Has(@"\HasChildren")) lListFlags |= fListFlags.haschildren;
-                            if (lFlags.Has(@"\HasNoChildren")) lListFlags |= fListFlags.hasnochildren;
+                            if (lFlags.Contains(@"\NonExistent", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.noselect | fListFlags.nonexistent;
+                            if (lFlags.Contains(@"\Subscribed", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.subscribed;
+                            if (lFlags.Contains(@"\Remote", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.remote;
+                            if (lFlags.Contains(@"\HasChildren", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.haschildren;
+                            if (lFlags.Contains(@"\HasNoChildren", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.hasnochildren;
 
-                            if (lFlags.Has(@"\All")) lListFlags |= fListFlags.all;
-                            if (lFlags.Has(@"\Archive")) lListFlags |= fListFlags.archive;
-                            if (lFlags.Has(@"\Drafts")) lListFlags |= fListFlags.drafts;
-                            if (lFlags.Has(@"\Flagged")) lListFlags |= fListFlags.flagged;
-                            if (lFlags.Has(@"\Junk")) lListFlags |= fListFlags.junk;
-                            if (lFlags.Has(@"\Sent")) lListFlags |= fListFlags.sent;
-                            if (lFlags.Has(@"\Trash")) lListFlags |= fListFlags.trash;
+                            if (lFlags.Contains(@"\All", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.all;
+                            if (lFlags.Contains(@"\Archive", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.archive;
+                            if (lFlags.Contains(@"\Drafts", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.drafts;
+                            if (lFlags.Contains(@"\Flagged", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.flagged;
+                            if (lFlags.Contains(@"\Junk", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.junk;
+                            if (lFlags.Contains(@"\Sent", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.sent;
+                            if (lFlags.Contains(@"\Trash", StringComparer.InvariantCultureIgnoreCase)) lListFlags |= fListFlags.trash;
 
                             bool lHasSubscribedChildren = false;
 

@@ -22,23 +22,25 @@ namespace work.bacome.imapclient
         string Environment { get; }
     }
 
-    public abstract class cIdBase
+    public static class cIdKey
     {
-        protected const string kName = "name";
-        protected const string kVersion = "version";
-        protected const string kOS = "os";
-        protected const string kOSVersion = "os-version";
-        protected const string kVendor = "vendor";
-        protected const string kSupportURL = "support-url";
-        protected const string kAddress = "address";
-        protected const string kDate = "date";
-        protected const string kCommand = "command";
-        protected const string kArguments = "arguments";
-        protected const string kEnvironment = "environment";
+        public const string Name = "name";
+        public const string Version = "version";
+        public const string OS = "os";
+        public const string OSVersion = "os-version";
+        public const string Vendor = "vendor";
+        public const string SupportURL = "support-url";
+        public const string Address = "address";
+        public const string Date = "date";
+        public const string Command = "command";
+        public const string Arguments = "arguments";
+        public const string Environment = "environment";
     }
 
-    public class cId : cIdBase, iId
+    public class cId : iId
     {
+        // immutable (for passing in and out)
+
         protected readonly ReadOnlyDictionary<string, string> mDictionary;
 
         public cId(IDictionary<string, string> pDictionary)
@@ -65,17 +67,17 @@ namespace work.bacome.imapclient
             return null;
         }
 
-        public string Name => ZGetValue(kName);
-        public string Version => ZGetValue(kVersion);
-        public string OS => ZGetValue(kOS);
-        public string OSVersion => ZGetValue(kOSVersion);
-        public string Vendor => ZGetValue(kVendor);
-        public string SupportURL => ZGetValue(kSupportURL);
-        public string Address => ZGetValue(kAddress);
-        public string Date => ZGetValue(kDate);
-        public string Command => ZGetValue(kCommand);
-        public string Arguments => ZGetValue(kArguments);
-        public string Environment => ZGetValue(kEnvironment);
+        public string Name => ZGetValue(cIdKey.Name);
+        public string Version => ZGetValue(cIdKey.Version);
+        public string OS => ZGetValue(cIdKey.OS);
+        public string OSVersion => ZGetValue(cIdKey.OSVersion);
+        public string Vendor => ZGetValue(cIdKey.Vendor);
+        public string SupportURL => ZGetValue(cIdKey.SupportURL);
+        public string Address => ZGetValue(cIdKey.Address);
+        public string Date => ZGetValue(cIdKey.Date);
+        public string Command => ZGetValue(cIdKey.Command);
+        public string Arguments => ZGetValue(cIdKey.Arguments);
+        public string Environment => ZGetValue(cIdKey.Environment);
 
         public override string ToString()
         {
@@ -123,7 +125,7 @@ namespace work.bacome.imapclient
         }
     }
 
-    public class cIdDictionary : cIdBase, iId, IDictionary<string, string>
+    public class cIdDictionary : iId, IDictionary<string, string>
     {
         private readonly Dictionary<string, string> mDictionary = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
@@ -131,20 +133,20 @@ namespace work.bacome.imapclient
         {
             if (pDefault)
             {
-                mDictionary[kName] = "work.bacome.imapclient";
-                mDictionary[kVersion] = cIMAPClient.Version.ToString();
+                mDictionary[cIdKey.Name] = "work.bacome.imapclient";
+                mDictionary[cIdKey.Version] = cIMAPClient.Version.ToString();
 
                 try
                 {
                     OperatingSystem lOS = System.Environment.OSVersion;
-                    mDictionary[kOS] = lOS.Platform.ToString();
-                    mDictionary[kOSVersion] = lOS.Version.ToString();
+                    mDictionary[cIdKey.OS] = lOS.Platform.ToString();
+                    mDictionary[cIdKey.OSVersion] = lOS.Version.ToString();
                 }
                 catch { }
 
-                mDictionary[kVendor] = "bacome";
-                mDictionary[kSupportURL] = @"http:\\bacome.work";
-                mDictionary[kDate] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(cIMAPClient.ReleaseDate).Bytes);
+                mDictionary[cIdKey.Vendor] = "bacome";
+                mDictionary[cIdKey.SupportURL] = @"http:\\bacome.work";
+                mDictionary[cIdKey.Date] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(cIMAPClient.ReleaseDate).Bytes);
 
                 /* not safe: the command line could contain anything
                 try
@@ -155,7 +157,7 @@ namespace work.bacome.imapclient
                 }
                 catch { } */
 
-                mDictionary[kEnvironment] = System.Environment.Version.ToString();
+                mDictionary[cIdKey.Environment] = System.Environment.Version.ToString();
             }
         }
 
@@ -195,65 +197,65 @@ namespace work.bacome.imapclient
 
         public string Name
         {
-            get => ZGetValue(kName);
-            set => mDictionary[kName] = value;
+            get => ZGetValue(cIdKey.Name);
+            set => mDictionary[cIdKey.Name] = value;
         }
 
         public string Version
         {
-            get => ZGetValue(kVersion);
-            set => mDictionary[kVersion] = value;
+            get => ZGetValue(cIdKey.Version);
+            set => mDictionary[cIdKey.Version] = value;
         }
 
         public string OS
         {
-            get => ZGetValue(kOS);
-            set => mDictionary[kOS] = value;
+            get => ZGetValue(cIdKey.OS);
+            set => mDictionary[cIdKey.OS] = value;
         }
 
         public string OSVersion
         {
-            get => ZGetValue(kOSVersion);
-            set => mDictionary[kOSVersion] = value;
+            get => ZGetValue(cIdKey.OSVersion);
+            set => mDictionary[cIdKey.OSVersion] = value;
         }
 
         public string Vendor
         {
-            get => ZGetValue(kVendor);
-            set => mDictionary[kVendor] = value;
+            get => ZGetValue(cIdKey.Vendor);
+            set => mDictionary[cIdKey.Vendor] = value;
         }
 
         public string SupportURL
         {
-            get => ZGetValue(kSupportURL);
-            set => mDictionary[kSupportURL] = value;
+            get => ZGetValue(cIdKey.SupportURL);
+            set => mDictionary[cIdKey.SupportURL] = value;
         }
 
         public string Address
         {
-            get => ZGetValue(kAddress);
-            set => mDictionary[kAddress] = value;
+            get => ZGetValue(cIdKey.Address);
+            set => mDictionary[cIdKey.Address] = value;
         }
 
-        public string Date => ZGetValue(kDate);
-        public void SetDate(DateTime pDate) => mDictionary[kDate] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(pDate).Bytes);
+        public string Date => ZGetValue(cIdKey.Date);
+        public void SetDate(DateTime pDate) => mDictionary[cIdKey.Date] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(pDate).Bytes);
 
         public string Command
         {
-            get => ZGetValue(kCommand);
-            set => mDictionary[kCommand] = value;
+            get => ZGetValue(cIdKey.Command);
+            set => mDictionary[cIdKey.Command] = value;
         }
 
         public string Arguments
         {
-            get => ZGetValue(kArguments);
-            set => mDictionary[kArguments] = value;
+            get => ZGetValue(cIdKey.Arguments);
+            set => mDictionary[cIdKey.Arguments] = value;
         }
 
         public string Environment
         {
-            get => ZGetValue(kEnvironment);
-            set => mDictionary[kEnvironment] = value;
+            get => ZGetValue(cIdKey.Environment);
+            set => mDictionary[cIdKey.Environment] = value;
         }
 
         public override string ToString()

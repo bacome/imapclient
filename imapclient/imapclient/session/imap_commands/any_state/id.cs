@@ -124,8 +124,7 @@ namespace work.bacome.imapclient
                             if (!pCursor.GetString(out string lField) || !pCursor.SkipByte(cASCII.SPACE)) { rServerId = null; return false; }
                             if (!pCursor.GetNString(out string lValue)) { rServerId = null; return false; }
 
-                            ;?; // do I want to be more tolerant here
-                            lDictionary.Add(lField, lValue);
+                            lDictionary[lField] = lValue;
                         }
 
                         rServerId = new cId(lDictionary);

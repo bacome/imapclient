@@ -259,13 +259,28 @@ namespace work.bacome.imapclient
 
                     var lFetchedItem = mItems[(int)pFetch.MSN - 1];
 
-                    lFetchedItem.Update(pFetch, out var lAttributesSet, out var lKnownMessageFlagsSet);
+                    lFetchedItem.Update(pFetch, out var lAttributesSet, out var lPropertiesChanged);
 
                     bool lSetMailboxStatus = false;
 
                     if ((lAttributesSet & fCacheAttributes.flags) != 0)
                     {
-                        if ((pFetch.Flags.KnownMessageFlags & fMessageFlags.seen) == 0)
+                        if (pFetch.Flags.Contains(kFlagName.Seen))
+                        {
+                            if (lFetchedItem.Unseen == null)
+                            {
+                                lFetchedItem.Unseen = false;
+                                mUnseenUnknownCount--;
+                                lSetMailboxStatus = true;
+                            }
+                            else if (lFetchedItem.Unseen.Value)
+                            {
+                                lFetchedItem.Unseen = false;
+                                mUnseenCount--;
+                                lSetMailboxStatus = true;
+                            }
+                        }
+                        else
                         {
                             if (lFetchedItem.Unseen == null)
                             {
@@ -278,21 +293,6 @@ namespace work.bacome.imapclient
                             {
                                 lFetchedItem.Unseen = true;
                                 mUnseenCount++;
-                                lSetMailboxStatus = true;
-                            }
-                        }
-                        else
-                        {
-                            if (lFetchedItem.Unseen == null)
-                            {
-                                lFetchedItem.Unseen = false;
-                                mUnseenUnknownCount--;
-                                lSetMailboxStatus = true;
-                            }
-                            else if (lFetchedItem.Unseen.Value)
-                            {
-                                lFetchedItem.Unseen = false;
-                                mUnseenCount--;
                                 lSetMailboxStatus = true;
                             }
                         }
@@ -312,7 +312,7 @@ namespace work.bacome.imapclient
 
                     if (lFetchedItem.ModSeq > mPendingHighestModSeq) mPendingHighestModSeq = lFetchedItem.ModSeq.Value;
 
-                    mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lAttributesSet, lKnownMessageFlagsSet, lContext);
+                    mSynchroniser.InvokeMessagePropertiesChanged(lFetchedItem, lPropertiesChanged, lContext);
                     if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
                 }
 

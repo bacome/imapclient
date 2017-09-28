@@ -155,14 +155,16 @@ namespace work.bacome.imapclient.support
 
         public static bool TryCharsetBytesToString(string pCharset, IList<byte> pBytes, out string rString)
         {
-            if (pBytes == null) { rString = null; return true; }
+            // the null handling here is for rfc 2231 format where the charset and the value are optional
 
+            if (pBytes == null) { rString = null; return true; }
             if (pCharset == null) { rString = UTF8BytesToString(pBytes); return true; }
+
+            byte[] lBytes = new byte[pBytes.Count];
+            pBytes.CopyTo(lBytes, 0);
 
             try
             {
-                byte[] lBytes = new byte[pBytes.Count];
-                pBytes.CopyTo(lBytes, 0);
                 rString = new string(Encoding.GetEncoding(pCharset).GetChars(lBytes));
                 return true;
             }

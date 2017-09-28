@@ -15,17 +15,17 @@ namespace work.bacome.imapclient
         public static readonly cFilterEnd First = new cFilterEnd(eFilterEnd.first);
         public static readonly cFilterEnd Last = new cFilterEnd(eFilterEnd.last);
 
-        public static readonly cFilter IsAnswered = new cFilterFlagsContain(cMessageFlags.Answered);
-        public static readonly cFilter IsFlagged = new cFilterFlagsContain(cMessageFlags.Flagged);
-        public static readonly cFilter IsDeleted = new cFilterFlagsContain(cMessageFlags.Deleted);
-        public static readonly cFilter IsSeen = new cFilterFlagsContain(cMessageFlags.Seen);
-        public static readonly cFilter IsDraft = new cFilterFlagsContain(cMessageFlags.Draft);
-        public static readonly cFilter IsRecent = new cFilterFlagsContain(cMessageFlags.Recent);
+        public static readonly cFilter IsAnswered = new cFilterFlagsContain(kFlagName.Answered);
+        public static readonly cFilter IsFlagged = new cFilterFlagsContain(kFlagName.Flagged);
+        public static readonly cFilter IsDeleted = new cFilterFlagsContain(kFlagName.Deleted);
+        public static readonly cFilter IsSeen = new cFilterFlagsContain(kFlagName.Seen);
+        public static readonly cFilter IsDraft = new cFilterFlagsContain(kFlagName.Draft);
+        public static readonly cFilter IsRecent = new cFilterFlagsContain(kFlagName.Recent);
 
-        public static readonly cFilter IsMDNSent = new cFilterFlagsContain(cMessageFlags.MDNSent);
-        public static readonly cFilter IsForwarded = new cFilterFlagsContain(cMessageFlags.Forwarded);
-        public static readonly cFilter IsSubmitPending = new cFilterFlagsContain(cMessageFlags.SubmitPending);
-        public static readonly cFilter IsSubmitted = new cFilterFlagsContain(cMessageFlags.Submitted);
+        public static readonly cFilter IsMDNSent = new cFilterFlagsContain(kFlagName.MDNSent);
+        public static readonly cFilter IsForwarded = new cFilterFlagsContain(kFlagName.Forwarded);
+        public static readonly cFilter IsSubmitPending = new cFilterFlagsContain(kFlagName.SubmitPending);
+        public static readonly cFilter IsSubmitted = new cFilterFlagsContain(kFlagName.Submitted);
 
         public static readonly cFilterPart BCC = new cFilterPart(eFilterPart.bcc);
         public static readonly cFilterPart Body = new cFilterPart(eFilterPart.body);
@@ -70,7 +70,7 @@ namespace work.bacome.imapclient
         }
 
         public static cFilter FlagsContain(params string[] pFlags) => new cFilterFlagsContain(pFlags);
-        public static cFilter FlagsContain(cMessageFlags pFlags) => new cFilterFlagsContain(pFlags);
+        public static cFilter FlagsContain(cFetchableFlags pFlags) => new cFilterFlagsContain(pFlags);
 
         public static cFilter HeaderFieldContains(string pHeaderField, string pContains) => new cFilterHeaderFieldContains(pHeaderField, pContains);
         public static cFilter HasHeaderField(string pHeaderField) => new cFilterHeaderFieldContains(pHeaderField, string.Empty);
@@ -82,7 +82,7 @@ namespace work.bacome.imapclient
 
             if (pA is cFilterFlagsContain lFCA && pB is cFilterFlagsContain lFCB)
             {
-                cFetchableFlags lFlags = new cFetchableFlags();
+                cFetchableFlagsList lFlags = new cFetchableFlagsList();
                 lFlags.Add(lFCA.Flags);
                 lFlags.Add(lFCB.Flags);
                 return new cFilterFlagsContain(lFlags);
@@ -287,18 +287,18 @@ namespace work.bacome.imapclient
 
     public class cFilterFlagsContain : cFilter
     {
-        public readonly cMessageFlags Flags;
+        public readonly cFetchableFlags Flags;
 
         public cFilterFlagsContain(params string[] pFlags)
         {
             if (pFlags == null || pFlags.Length == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-            Flags = new cMessageFlags(new cFetchableFlags(pFlags));
+            Flags = new cFetchableFlags(pFlags);
         }
 
         public cFilterFlagsContain(cFetchableFlags pFlags)
         {
             if (pFlags == null || pFlags.Count == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-            Flags = new cMessageFlags(pFlags);
+            Flags = pFlags;
         }
 
         public override string ToString() => $"{nameof(cFilterFlagsContain)}({Flags})";

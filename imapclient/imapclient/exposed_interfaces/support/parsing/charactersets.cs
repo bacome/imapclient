@@ -616,6 +616,30 @@ namespace work.bacome.imapclient.support
             }
         }
 
+        private class cCharsetNameDash : cCharset
+        {
+            // rfc 2978 modified for rfc 2231
+
+            private const string cCharsetNameSome = "!#$%&+-^_`{}~"; // note: excludes "'" which is actually a legal character in a charset name
+            private static readonly cBytes aCharsetNameSome = new cBytes(cCharsetNameSome);
+
+            public override bool Contains(byte pByte)
+            {
+                if (ZIsAlpha(pByte)) return true;
+                if (ZIsDigit(pByte)) return true;
+                if (ZIsOneOf(pByte, aCharsetNameSome)) return true;
+                return false;
+            }
+
+            public override bool Contains(char pChar)
+            {
+                if (ZIsAlpha(pChar)) return true;
+                if (ZIsDigit(pChar)) return true;
+                if (ZIsOneOf(pChar, cCharsetNameSome)) return true;
+                return false;
+            }
+        }
+
         private class cAll : cCharset
         {
             public override bool Contains(byte pByte) => true;
@@ -776,6 +800,7 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset UAuthMechanism = new cUAuthMechanism();
         public static readonly cCharset Hexidecimal = new cHexidecimal();
         public static readonly cCharset CharsetName = new cCharsetName();
+        public static readonly cCharset CharsetNameDash = new cCharsetNameDash();
         public static readonly cCharset All = new cAll();
         public static readonly cCharset Base64 = new cBase64();
         public static readonly cCharset QEncoding = new cQEncoding();

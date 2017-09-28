@@ -8,16 +8,21 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
-    public class cHeaderFieldNames : IReadOnlyCollection<string>
+    public static class kHeaderFieldName
     {
-        // immutable (for passing in and out)
-
         public const string InReplyTo = "In-RePlY-tO";
         public const string MessageId = "MeSsAgE-Id";
         public const string References = "ReFeReNcEs";
         public const string Importance = "ImPoRtAnCe";
+    }
+
+    public class cHeaderFieldNames : IReadOnlyCollection<string>
+    {
+        // immutable (for passing in and out)
 
         public static readonly cHeaderFieldNames None = new cHeaderFieldNames();
+        public static readonly cHeaderFieldNames References = new cHeaderFieldNames(kHeaderFieldName.References);
+        public static readonly cHeaderFieldNames Importance = new cHeaderFieldNames(kHeaderFieldName.Importance);
 
         private readonly cHeaderFieldNameList mNames;
 
@@ -63,150 +68,6 @@ namespace work.bacome.imapclient
             rNames = new cHeaderFieldNames(lNames, true);
             return true;
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        /*
-        public static cHeaderFieldNames operator |(cHeaderFieldNames pNames, string pName)
-        {
-            if (pNames == null) throw new ArgumentNullException(nameof(pNames));
-            if (pName == null) throw new ArgumentNullException(nameof(pName));
-
-            if (!ZTryNormaliseName(pName, out var lName)) throw new ArgumentOutOfRangeException(nameof(pName));
-
-            ;?; // case 
-            if (pNames.mNames.Contains(lName)) return pNames;
-
-            List<string> lNames = new List<string>(pNames.mNames);
-            lNames.Add(lName);
-            lNames.Sort(StringComparer.InvariantCultureIgnoreCase);
-
-            return new cHeaderFieldNames(lNames.AsReadOnly());
-        }
-
-        public static cHeaderFieldNames operator |(cHeaderFieldNames pA, cHeaderFieldNames pB)
-        {
-            if (pA == null) throw new ArgumentNullException(nameof(pA));
-            if (pB == null) throw new ArgumentNullException(nameof(pB));
-
-            List<string> lNames = new List<string>(pB.mNames.Except(pA.mNames));
-            if (lNames.Count == 0) return pA;
-            if (lNames.Count == pB.mNames.Count) return pB;
-
-            lNames.AddRange(pA.mNames);
-
-            lNames.Sort(); ;?; // case insen
-
-            return new cHeaderFieldNames(lNames.AsReadOnly());
-        } 
-
-        public static bool TryConstruct(string pName, out cHeaderFieldNames rNames)
-        {
-            if (ZTryNormaliseName(pName, out var lName))
-            {
-                List<string> lNames = new List<string>(1);
-                lNames.Add(lName);
-                rNames = new cHeaderFieldNames(lNames.AsReadOnly());
-                return true;
-            }
-
-            rNames = null;
-            return false;
-        }
-
-        public static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNames rNames)
-        {
-            if (ZTryNormaliseNames(pNames, out var lNames))
-            {
-                rNames = new cHeaderFieldNames(lNames);
-                return true;
-            }
-
-            rNames = null;
-            return false;
-        }
-
-
-
-        public static implicit operator cSettableFlags(cSettableFlagList pFlags) => new cSettableFlags(pFlags);
-
-
-
-
-
-
-        [Conditional("DEBUG")]
-        public static void _Tests(cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cHeaderFieldNames), nameof(_Tests));
-
-            cHeaderFieldNameList lNames1;
-            cHeaderFieldNames lNames2;
-            cHeaderFieldNames lNames3;
-            cHeaderFieldNames lNames4;
-
-            if (!TryConstruct(new string[] { }, out lNames1) || lNames1 != None) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.1");
-            if (!TryConstruct(new string[] { "fred", "angus"  }, out lNames1) || !TryConstruct(new string[] { "AnGuS", "ANGUS", "FrEd" }, out lNames2) || lNames1 != lNames2) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.2");
-            if (!TryConstruct(new string[] { "fred", "charlie" }, out lNames3) || !TryConstruct(new string[] { "CHARLie", "mAx" }, out lNames4) || lNames3 == lNames4) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.3");
-            if (lNames2.Contains("max") || !lNames2.Contains("FREd") || !lNames4.Contains("max") || lNames4.Contains("FREd")) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.4");
-
-            lNames2 = lNames1 | "fReD";
-            if (!ReferenceEquals(lNames1, lNames2)) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.5");
-
-            lNames2 = lNames1 | "charlie";
-            if (ReferenceEquals(lNames1, lNames2) || !lNames2.Contains("Fred") || !lNames2.Contains("ANgUS") || !lNames2.Contains("CHArLIE") || lNames2.Count != 3) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.6");
-
-            var lNames5 = lNames1.Union(lNames3);
-            if (lNames5 != lNames2) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.7");
-
-            lNames2 = lNames1.Intersect(lNames3);
-            if (lNames2.Count != 1 || !lNames2.Contains("fReD")) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.8");
-
-            lNames2 = lNames5.Except(lNames4);
-            if (lNames2.Count != 2 || lNames2 != lNames1) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.9");
-
-
-            cHeaderFieldNames lABC = new cHeaderFieldNames("a", "b", "c");
-            cHeaderFieldNames lBC = new cHeaderFieldNames("b", "c");
-            cHeaderFieldNames lCDE = new cHeaderFieldNames("c", "d", "e");
-            cHeaderFieldNames lEFG = new cHeaderFieldNames("e", "f", "g");
-
-            if (!ReferenceEquals(lABC | lBC, lABC)) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.10");
-            if (!ReferenceEquals(lBC | lABC, lABC)) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.11");
-
-            var lABCDE = lABC | lCDE;
-            var lABCDE2 = lCDE | lABC | lBC;
-            if (lABCDE.Count != 5 || lABCDE != lABCDE2) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.12");
-
-            bool lFailed = false;
-            try { cHeaderFieldNames lF = new cHeaderFieldNames("dd ff"); }
-            catch { lFailed = true; }
-            if (!lFailed) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.13");
-
-            lFailed = false;
-            try { cHeaderFieldNames lF = new cHeaderFieldNames("dd:ff"); }
-            catch { lFailed = true; }
-            if (!lFailed) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.14");
-        }
-    */
-
     }
 
     public class cHeaderFieldNameList : IReadOnlyCollection<string>
@@ -226,16 +87,14 @@ namespace work.bacome.imapclient
         {
             if (pNames == null) throw new ArgumentNullException(nameof(pNames));
             foreach (var lName in pNames) if (!ZIsValidName(lName)) throw new ArgumentOutOfRangeException(nameof(pNames));
-            mNames = new List<string>();
-            foreach (var lName in pNames) if (!Contains(lName)) mNames.Add(lName);
+            mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
         public cHeaderFieldNameList(IEnumerable<string> pNames) // validates, duplicates, removes duplicates
         {
             if (pNames == null) throw new ArgumentNullException(nameof(pNames));
             foreach (var lName in pNames) if (!ZIsValidName(lName)) throw new ArgumentOutOfRangeException(nameof(pNames));
-            mNames = new List<string>();
-            foreach (var lName in pNames) if (!Contains(lName)) mNames.Add(lName);
+            mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
         public cHeaderFieldNameList(cHeaderFieldNameList pNames) // duplicates
@@ -246,21 +105,11 @@ namespace work.bacome.imapclient
 
         private cHeaderFieldNameList(IEnumerable<string> pNames, bool pUnique) // duplicates, optionally removes duplicates
         {
-            if (pUnique)
-            {
-                mNames = new List<string>(pNames);
-                return;
-            }
-
-            mNames = new List<string>();
-            foreach (var lName in pNames) if (!Contains(lName)) mNames.Add(lName);
+            if (pUnique) mNames = new List<string>(pNames);
+            else mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
-        public bool Contains(string pName)
-        {
-            if (pName == null || pName.Length == 0) return false;
-            return mNames.Contains(pName, StringComparer.InvariantCultureIgnoreCase);
-        }
+        public bool Contains(string pName) => mNames.Contains(pName, StringComparer.InvariantCultureIgnoreCase);
 
         public bool Contains(params string[] pNames) => ZContains(pNames);
         public bool Contains(IEnumerable<string> pNames) => ZContains(pNames);
@@ -289,11 +138,7 @@ namespace work.bacome.imapclient
             foreach (var lName in pNames) if (!Contains(lName)) mNames.Add(lName);
         }
 
-        public void Remove(string pName)
-        {
-            if (pName == null || pName.Length == 0) return;
-            mNames.RemoveAll(n => n.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
-        }
+        public void Remove(string pName) => mNames.RemoveAll(n => n.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
 
         public void Remove(params string[] pNames) => ZRemove(pNames);
         public void Remove(IEnumerable<string> pNames) => ZRemove(pNames);
@@ -397,19 +242,6 @@ namespace work.bacome.imapclient
 
             lNames2 = lNames5.Except(lNames4);
             if (lNames2.Count != 2 || lNames2 != lNames1) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.9");
-
-            /*
-            cHeaderFieldNames lABC = new cHeaderFieldNames("a", "b", "c");
-            cHeaderFieldNames lBC = new cHeaderFieldNames("b", "c");
-            cHeaderFieldNames lCDE = new cHeaderFieldNames("c", "d", "e");
-            cHeaderFieldNames lEFG = new cHeaderFieldNames("e", "f", "g");
-
-            if (!ReferenceEquals(lABC | lBC, lABC)) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.10");
-            if (!ReferenceEquals(lBC | lABC, lABC)) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.11");
-
-            var lABCDE = lABC | lCDE;
-            var lABCDE2 = lCDE | lABC | lBC;
-            if (lABCDE.Count != 5 || lABCDE != lABCDE2) throw new cTestsException($"{nameof(cHeaderFieldNames)}.1.12"); */
 
             bool lFailed = false;
             try { cHeaderFieldNames lF = new cHeaderFieldNames("dd ff"); }

@@ -5,8 +5,7 @@ namespace work.bacome.imapclient.support
 {
     public partial class cBytesCursor
     {
-        private const string kGetFlagsSlashAsteriskString = @"\*";
-        private static readonly cBytes kGetFlagsSlashAsteriskBytes = new cBytes(kGetFlagsSlashAsteriskString);
+        private static readonly cBytes kCreateNewIsPossibleBytes = new cBytes(kFlagName.CreateNewIsPossible);
 
         public bool GetFlags(out List<string> rFlags)
         {
@@ -18,7 +17,7 @@ namespace work.bacome.imapclient.support
 
             while (true)
             {
-                if (SkipBytes(kGetFlagsSlashAsteriskBytes)) rFlags.Add(kGetFlagsSlashAsteriskString);
+                if (SkipBytes(kCreateNewIsPossibleBytes)) rFlags.Add(kFlagName.CreateNewIsPossible);
                 else
                 {
                     if (SkipByte(cASCII.BACKSL))

@@ -17,8 +17,8 @@ namespace work.bacome.imapclient
         private static readonly cCacheItems kUID = fCacheAttributes.uid;
         private static readonly cCacheItems kModSeq = fCacheAttributes.modseq;
         private static readonly cCacheItems kBodyStructure = fCacheAttributes.bodystructure;
-        private static readonly cCacheItems kReferences = new cHeaderFieldNames(cHeaderFieldNames.References);
-        private static readonly cCacheItems kImportance = new cHeaderFieldNames(cHeaderFieldNames.Importance);
+        private static readonly cCacheItems kReferences = cHeaderFieldNames.References;
+        private static readonly cCacheItems kImportance = cHeaderFieldNames.Importance;
 
         private PropertyChangedEventHandler mPropertyChanged;
         private object mPropertyChangedLock = new object();
@@ -179,17 +179,17 @@ namespace work.bacome.imapclient
             }
         }
 
-        public bool IsAnswered => ZFlagsContain(cMessageFlags.Answered);
-        public bool IsFlagged => ZFlagsContain(cMessageFlags.Flagged);
-        public bool IsDeleted => ZFlagsContain(cMessageFlags.Deleted);
-        public bool IsSeen => ZFlagsContain(cMessageFlags.Seen);
-        public bool IsDraft => ZFlagsContain(cMessageFlags.Draft);
-        public bool IsRecent => ZFlagsContain(cMessageFlags.Recent);
+        public bool IsAnswered => ZFlagsContain(kFlagName.Answered);
+        public bool IsFlagged => ZFlagsContain(kFlagName.Flagged);
+        public bool IsDeleted => ZFlagsContain(kFlagName.Deleted);
+        public bool IsSeen => ZFlagsContain(kFlagName.Seen);
+        public bool IsDraft => ZFlagsContain(kFlagName.Draft);
+        public bool IsRecent => ZFlagsContain(kFlagName.Recent);
 
-        public bool IsMDNSent => ZFlagsContain(cMessageFlags.MDNSent);
-        public bool IsForwarded => ZFlagsContain(cMessageFlags.Forwarded);
-        public bool IsSubmitPending => ZFlagsContain(cMessageFlags.SubmitPending);
-        public bool IsSubmitted => ZFlagsContain(cMessageFlags.Submitted);
+        public bool IsMDNSent => ZFlagsContain(kFlagName.MDNSent);
+        public bool IsForwarded => ZFlagsContain(kFlagName.Forwarded);
+        public bool IsSubmitPending => ZFlagsContain(kFlagName.SubmitPending);
+        public bool IsSubmitted => ZFlagsContain(kFlagName.Submitted);
 
         private bool ZFlagsContain(string pFlag)
         {
@@ -326,22 +326,6 @@ namespace work.bacome.imapclient
                 if (!Client.Fetch(Handle, kImportance)) throw new InvalidOperationException();
                 return Handle.HeaderFields.Importance;
             }
-        }
-
-        public cHeaderField FirstHeaderField(string pFieldName)
-        {
-            if (pFieldName == null) throw new ArgumentNullException(nameof(pFieldName));
-            if (!cHeaderFieldNames.TryConstruct(pFieldName, out var lNames)) throw new ArgumentOutOfRangeException(nameof(pFieldName));
-            if (!Client.Fetch(Handle, lNames)) throw new InvalidOperationException();
-            return Handle.HeaderFields.First(pFieldName);
-        }
-
-        public IEnumerable<cHeaderField> AllHeaderFields(string pFieldName)
-        {
-            if (pFieldName == null) throw new ArgumentNullException(nameof(pFieldName));
-            if (!cHeaderFieldNames.TryConstruct(pFieldName, out var lNames)) throw new ArgumentOutOfRangeException(nameof(pFieldName));
-            if (!Client.Fetch(Handle, lNames)) throw new InvalidOperationException();
-            return Handle.HeaderFields.All(pFieldName);
         }
 
         public bool Fetch(cCacheItems pItems) => Client.Fetch(Handle, pItems);

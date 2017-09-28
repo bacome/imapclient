@@ -9,9 +9,9 @@ namespace work.bacome.imapclient.support
         private bool mBeenSelected;
         private bool mBeenSelectedForUpdate;
         private bool mBeenSelectedReadOnly;
-        private cMessageFlags mMessageFlags;
-        private cMessageFlags mForUpdatePermanentFlags;
-        private cMessageFlags mReadOnlyPermanentFlags;
+        private cFetchableFlags mMessageFlags;
+        private cPermanentFlags mForUpdatePermanentFlags;
+        private cPermanentFlags mReadOnlyPermanentFlags;
 
         private cMailboxSelectedProperties()
         {
@@ -23,7 +23,7 @@ namespace work.bacome.imapclient.support
             mReadOnlyPermanentFlags = null;
         }
 
-        public cMailboxSelectedProperties(cMailboxSelectedProperties pSelectedProperties, cMessageFlags pMessageFlags, bool pSelectedForUpdate, cMessageFlags pPermanentFlags)
+        public cMailboxSelectedProperties(cMailboxSelectedProperties pSelectedProperties, cFetchableFlags pMessageFlags, bool pSelectedForUpdate, cPermanentFlags pPermanentFlags)
         {
             if (pSelectedProperties == null) throw new ArgumentNullException(nameof(pSelectedProperties));
             if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
@@ -48,7 +48,7 @@ namespace work.bacome.imapclient.support
             mMessageFlags = pMessageFlags;
         }
 
-        public cMailboxSelectedProperties(cMailboxSelectedProperties pSelectedProperties, cMessageFlags pMessageFlags)
+        public cMailboxSelectedProperties(cMailboxSelectedProperties pSelectedProperties, cFetchableFlags pMessageFlags)
         {
             if (pSelectedProperties == null) throw new ArgumentNullException(nameof(pSelectedProperties));
             if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
@@ -61,7 +61,7 @@ namespace work.bacome.imapclient.support
             mReadOnlyPermanentFlags = pSelectedProperties.mReadOnlyPermanentFlags;
         }
 
-        public cMailboxSelectedProperties(cMailboxSelectedProperties pSelectedProperties, bool pSelectedForUpdate, cMessageFlags pPermanentFlags)
+        public cMailboxSelectedProperties(cMailboxSelectedProperties pSelectedProperties, bool pSelectedForUpdate, cPermanentFlags pPermanentFlags)
         {
             if (pSelectedProperties == null) throw new ArgumentNullException(nameof(pSelectedProperties));
 
@@ -88,9 +88,9 @@ namespace work.bacome.imapclient.support
         public bool HasBeenSelected => mBeenSelected;
         public bool HasBeenSelectedForUpdate => mBeenSelectedForUpdate;
         public bool HasBeenSelectedReadOnly => mBeenSelectedReadOnly;
-        public cMessageFlags MessageFlags => mMessageFlags;
-        public cMessageFlags ForUpdatePermanentFlags => mForUpdatePermanentFlags ?? mMessageFlags;
-        public cMessageFlags ReadOnlyPermanentFlags => mReadOnlyPermanentFlags ?? mMessageFlags;
+        public cFetchableFlags MessageFlags => mMessageFlags;
+        public cMessageFlags ForUpdatePermanentFlags => (cMessageFlags)mForUpdatePermanentFlags ?? mMessageFlags;
+        public cMessageFlags ReadOnlyPermanentFlags => (cMessageFlags)mReadOnlyPermanentFlags ?? mMessageFlags;
 
         public override string ToString() => $"{nameof(cMailboxSelectedProperties)}({mBeenSelected},{mBeenSelectedForUpdate},{mBeenSelectedReadOnly},{mMessageFlags},{mForUpdatePermanentFlags},{mReadOnlyPermanentFlags})";
 

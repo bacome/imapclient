@@ -128,18 +128,18 @@ namespace work.bacome.imapclient
             else if (ReferenceEquals(pSort, cSort.ThreadOrderedSubject))
             {
                 if (lSession.Capabilities.ThreadOrderedSubject) return await ZMessagesThreadAsync(pMC, lSession, pHandle, eMessageThreadAlgorithm.orderedsubject, pFilter, pItems, pConfiguration, lContext).ConfigureAwait(false);
-                lItems = pItems | (fCacheAttributes.envelope | fCacheAttributes.received);
+                lItems = new cCacheItems(pItems.Attributes | fCacheAttributes.envelope | fCacheAttributes.received, pItems.Names);
             }
             else if (ReferenceEquals(pSort, cSort.ThreadReferences))
             {
                 if (lSession.Capabilities.ThreadReferences) return await ZMessagesThreadAsync(pMC, lSession, pHandle, eMessageThreadAlgorithm.references, pFilter, pItems, pConfiguration, lContext).ConfigureAwait(false);
-                lItems = pItems | (fCacheAttributes.envelope | fCacheAttributes.received) | cHeaderFieldNames.References;
+                lItems = new cCacheItems(pItems.Attributes | fCacheAttributes.envelope | fCacheAttributes.received, pItems.Names.Union(cHeaderFieldNames.References));
             }
             else
             {
                 var lSortAttributes = pSort.Attributes(out var lSortDisplay);
                 if (!lSortDisplay && lSession.Capabilities.Sort || lSortDisplay && lSession.Capabilities.SortDisplay) return await ZMessagesSortAsync(pMC, lSession, pHandle, pSort, pFilter, pItems, pConfiguration, lContext).ConfigureAwait(false);
-                lItems = pItems | lSortAttributes;
+                lItems = new cCacheItems(pItems.Attributes | lSortAttributes, pItems.Names);
             }
 
             cMessageHandleList lHandles;
@@ -190,7 +190,7 @@ namespace work.bacome.imapclient
             if (pHandles.Count == 0) return;
             if (pItems.IsNone) return;
 
-            if (pHandles.AllContainAll(pItems)) return;
+            if (pHandles.AllContain(pItems)) return;
 
             cProgress lProgress;
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -53,7 +54,7 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    rResponseData = new cResponseDataLSub(lMailboxName, !lFlags.Has(@"\Noselect"));
+                    rResponseData = new cResponseDataLSub(lMailboxName, !lFlags.Contains(@"\Noselect", StringComparer.InvariantCultureIgnoreCase));
                     return true;
                 }
             }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace work.bacome.imapclient
 {
@@ -19,6 +18,7 @@ namespace work.bacome.imapclient
         public cCacheItems(fMessageProperties pProperties)
         {
             Attributes = 0;
+
             if ((pProperties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0) Attributes |= fCacheAttributes.flags;
             if ((pProperties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0) Attributes |= fCacheAttributes.envelope;
             if ((pProperties & fMessageProperties.received) != 0) Attributes |= fCacheAttributes.received;
@@ -27,10 +27,10 @@ namespace work.bacome.imapclient
             if ((pProperties & fMessageProperties.uid) != 0) Attributes |= fCacheAttributes.uid;
             if ((pProperties & fMessageProperties.modseq) != 0) Attributes |= fCacheAttributes.modseq;
 
-            List<string> lNames = new List<string>();
+            cHeaderFieldNameList lNames = new cHeaderFieldNameList();
 
-            if ((pProperties & fMessageProperties.references) != 0) lNames.Add(cHeaderFieldNames.References);
-            if ((pProperties & fMessageProperties.importance) != 0) lNames.Add(cHeaderFieldNames.Importance);
+            if ((pProperties & fMessageProperties.references) != 0) lNames.Add(kHeaderFieldName.References);
+            if ((pProperties & fMessageProperties.importance) != 0) lNames.Add(kHeaderFieldName.Importance);
 
             Names = new cHeaderFieldNames(lNames);
         }

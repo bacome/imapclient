@@ -11,7 +11,7 @@ namespace work.bacome.imapclient.support
         cBodyPart Body { get; }
         cBodyPart BodyStructure { get; }
         cEnvelope Envelope { get; }
-        cMessageFlags Flags { get; }
+        cFetchableFlags Flags { get; }
         ulong? ModSeq { get; }
         DateTime? Received { get; }
         uint? Size { get; }

@@ -699,7 +699,6 @@ namespace work.bacome.imapclient.support
             public int Byte;
             public bool AtEnd;
 
-            /*
             public override bool Equals(object pObject) => pObject is sPosition && this == (sPosition)pObject;
 
             public override int GetHashCode()
@@ -720,7 +719,7 @@ namespace work.bacome.imapclient.support
             {
                 if (AtEnd) return $"{nameof(sPosition)}({nameof(AtEnd)})";
                 return $"{nameof(sPosition)}({LineNumber},{Byte})";
-            } */
+            }
         }
     }
 }

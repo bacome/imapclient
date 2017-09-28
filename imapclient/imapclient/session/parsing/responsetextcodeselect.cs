@@ -10,8 +10,8 @@ namespace work.bacome.imapclient
         {
             private class cResponseDataPermanentFlags : cResponseData
             {
-                public readonly cMessageFlags Flags;
-                public cResponseDataPermanentFlags(cFlags pFlags) { Flags = new cMessageFlags(pFlags); }
+                public readonly cPermanentFlags Flags;
+                public cResponseDataPermanentFlags(cPermanentFlags pFlags) { Flags = pFlags; }
                 public override string ToString() => $"{nameof(cResponseDataPermanentFlags)}({Flags})";
             }
 
@@ -65,7 +65,7 @@ namespace work.bacome.imapclient
 
                     if (pCursor.SkipBytes(kPermanentFlagsSpace))
                     {
-                        if (pCursor.GetFlags(out var lFlags) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                        if (pCursor.GetFlags(out var lRawFlags) && pCursor.SkipBytes(cBytesCursor.RBracketSpace) && cPermanentFlags.TryConstruct(lRawFlags, out var lFlags))
                         {
                             rResponseData = new cResponseDataPermanentFlags(lFlags);
                             return true;

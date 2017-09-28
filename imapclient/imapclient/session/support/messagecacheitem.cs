@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -40,7 +42,7 @@ namespace work.bacome.imapclient
                 public cBodyPart Body => mBody ?? BodyStructure;
                 public cBodyPart BodyStructure { get; private set; } = null;
                 public cEnvelope Envelope { get; private set; } = null;
-                public cMessageFlags Flags { get; private set; } = null;
+                public cFetchableFlags Flags { get; private set; } = null;
                 public ulong? ModSeq => mModSeq;
                 public DateTime? Received { get; private set; } = null;
                 public uint? Size { get; private set; } = null;
@@ -54,16 +56,31 @@ namespace work.bacome.imapclient
 
                 public void SetExpunged() => mExpunged = true;
 
-                public void Update(cResponseDataFetch lFetch, out fCacheAttributes rAttributesSet, out fMessageFlags rFlagsSet)
+                public void Update(cResponseDataFetch lFetch, out fCacheAttributes rAttributesSet, out fMessageProperties rPropertiesChanged)
                 {
                     rAttributesSet = ~mAttributes & lFetch.Attributes;
-                    rFlagsSet = 0;
+                    rPropertiesChanged = 0;
 
                     if ((rAttributesSet & fCacheAttributes.flags) != 0) Flags = lFetch.Flags;
-                    else if (lFetch.Flags != null && lFetch.Flags != Flags)
+                    else if (lFetch.Flags != null)
                     {
-                        rAttributesSet |= fCacheAttributes.flags;
-                        rFlagsSet = lFetch.Flags.KnownMessageFlags ^ Flags.KnownMessageFlags;
+                        foreach (var lFlag in lFetch.Flags.SymmetricDifference(Flags))
+                        {
+                            rAttributesSet |= fCacheAttributes.flags;
+                            rPropertiesChanged |= fMessageProperties.flags;
+
+                            if (lFlag.Equals(kFlagName.Answered, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isanswered;
+                            if (lFlag.Equals(kFlagName.Flagged, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isflagged;
+                            if (lFlag.Equals(kFlagName.Deleted, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isdeleted;
+                            if (lFlag.Equals(kFlagName.Seen, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isseen;
+                            if (lFlag.Equals(kFlagName.Draft, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isdraft;
+                            if (lFlag.Equals(kFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isrecent;
+                            if (lFlag.Equals(kFlagName.MDNSent, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.ismdnsent;
+                            if (lFlag.Equals(kFlagName.Forwarded, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isforwarded;
+                            if (lFlag.Equals(kFlagName.SubmitPending, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.issubmitpending;
+                            if (lFlag.Equals(kFlagName.Submitted, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.issubmitted;
+                        }
+
                         Flags = lFetch.Flags;
                     }
 
@@ -80,15 +97,16 @@ namespace work.bacome.imapclient
                         else if (lFetch.ModSeq != null && lFetch.ModSeq != mModSeq)
                         {
                             rAttributesSet |= fCacheAttributes.modseq;
+                            rPropertiesChanged |= fMessageProperties.modseq;
                             mModSeq = lFetch.ModSeq;
                         }
                     }
 
                     if (HeaderFields == null) HeaderFields = lFetch.HeaderFields;
-                    else if (lFetch.HeaderFields != null) HeaderFields = HeaderFields + lFetch.HeaderFields;
+                    else if (lFetch.HeaderFields != null) HeaderFields += lFetch.HeaderFields;
 
                     if (BinarySizes == null) BinarySizes = lFetch.BinarySizes;
-                    else if (lFetch.BinarySizes != null) BinarySizes = BinarySizes + lFetch.BinarySizes;
+                    else if (lFetch.BinarySizes != null) BinarySizes += lFetch.BinarySizes;
 
                     mAttributes |= lFetch.Attributes;
                 }

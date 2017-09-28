@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
             {
                 public readonly uint MSN;
                 public readonly fCacheAttributes Attributes;
-                public readonly cMessageFlags Flags;
+                public readonly cFetchableFlags Flags;
                 public readonly cEnvelope Envelope;
                 public readonly DateTime? Received;
                 public readonly cBytes RFC822; // un-parsed
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
                 public readonly cBinarySizes BinarySizes;
                 public readonly ulong? ModSeq;
 
-                public cResponseDataFetch(uint pMSN, fCacheAttributes pAttributes, cMessageFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaderFields pHeaderFields, cBinarySizes pBinarySizes, ulong? pModSeq)
+                public cResponseDataFetch(uint pMSN, fCacheAttributes pAttributes, cFetchableFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaderFields pHeaderFields, cBinarySizes pBinarySizes, ulong? pModSeq)
                 {
                     MSN = pMSN;
                     Attributes = pAttributes;
@@ -114,7 +114,7 @@ namespace work.bacome.imapclient
                     }
 
                     fCacheAttributes lAttributes = 0;
-                    cMessageFlags lFlags = null;
+                    cFetchableFlags lFlags = null;
                     cEnvelope lEnvelope = null;
                     DateTime? lReceived = null;
                     IList<byte> lRFC822 = null;
@@ -137,8 +137,7 @@ namespace work.bacome.imapclient
                         if (pCursor.SkipBytes(kFlagsSpace))
                         {
                             lAttribute = fCacheAttributes.flags;
-                            lOK = pCursor.GetFlags(out var lRawFlags);
-                            if (lOK) lFlags = new cMessageFlags(lRawFlags);
+                            lOK = pCursor.GetFlags(out var lRawFlags) && cFetchableFlags.TryConstruct(lRawFlags, out lFlags);
                         }
                         else if (pCursor.SkipBytes(kEnvelopeSpace))
                         {
@@ -207,12 +206,12 @@ namespace work.bacome.imapclient
 
                                         case eSectionPart.headerfields:
 
-                                            if (cHeaderFields.TryConstruct(lABody.Bytes, lABody.Section.Names, false, out lTemp)) lHeaderFields += lTemp;
+                                            if (cHeaderFields.TryConstruct(lABody.Section.Names, false, lABody.Bytes, out lTemp)) lHeaderFields += lTemp;
                                             break;
 
                                         case eSectionPart.headerfieldsnot:
 
-                                            if (cHeaderFields.TryConstruct(lABody.Bytes, lABody.Section.Names, true, out lTemp)) lHeaderFields += lTemp;
+                                            if (cHeaderFields.TryConstruct(lABody.Section.Names, true, lABody.Bytes, out lTemp)) lHeaderFields += lTemp;
                                             break;
                                     }
                                 }
@@ -320,8 +319,8 @@ namespace work.bacome.imapclient
                         lBaseSubject = cBaseSubject.Calculate(lSubject);
                     }
 
-                    cHeaderFieldMsgIds.TryConstruct(cHeaderFieldNames.InReplyTo, lInReplyToBytes, out var lInReplyTo);
-                    cHeaderFieldMsgId.TryConstruct(cHeaderFieldNames.MessageId, lMessageIdBytes, out var lMessageId);
+                    cHeaderFieldMsgIds.TryConstruct(kHeaderFieldName.InReplyTo, lInReplyToBytes, out var lInReplyTo);
+                    cHeaderFieldMsgId.TryConstruct(kHeaderFieldName.MessageId, lMessageIdBytes, out var lMessageId);
 
                     rEnvelope = new cEnvelope(lSent, lSubject, lBaseSubject, lFrom, lSender, lReplyTo, lTo, lCC, lBCC, lInReplyTo, lMessageId);
                     return true;
@@ -510,7 +509,7 @@ namespace work.bacome.imapclient
                     if (lDescriptionBytes == null) lDescription = null;
                     else lDescription = new cCulturedString(lDescriptionBytes);
 
-                    if (lType.Equals(cBodyPart.TypeText, StringComparison.InvariantCultureIgnoreCase))
+                    if (lType.Equals(kMimeType.Text, StringComparison.InvariantCultureIgnoreCase))
                     {
                         if (!pCursor.SkipByte(cASCII.SPACE) || !pCursor.GetNumber(out _, out var lSizeInLines)) { rBodyPart = null; return false; }
 
@@ -526,7 +525,7 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    if (lType.Equals(cBodyPart.TypeMessage, StringComparison.InvariantCultureIgnoreCase) && lSubType.Equals(cBodyPart.SubTypeRFC822, StringComparison.InvariantCultureIgnoreCase))
+                    if (lType.Equals(kMimeType.Message, StringComparison.InvariantCultureIgnoreCase) && lSubType.Equals(kMimeSubType.RFC822, StringComparison.InvariantCultureIgnoreCase))
                     {
                         if (!pCursor.SkipByte(cASCII.SPACE) || 
                             !ZProcessEnvelope(pCursor, out var lEnvelope) ||
@@ -569,24 +568,24 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                private static bool ZProcessBodyStructureParameters(cBytesCursor pCursor, out cBodyPartParameters rParameters)
+                private static bool ZProcessBodyStructureParameters(cBytesCursor pCursor, out cBodyStructureParameters rParameters)
                 {
                     if (pCursor.SkipBytes(cBytesCursor.Nil)) { rParameters = null; return true; }
 
                     if (!pCursor.SkipByte(cASCII.LPAREN)) { rParameters = null; return false; }
 
-                    cParametersBuilder lBuilder = new cParametersBuilder();
+                    cBodyStructureParametersBuilder lBuilder = new cBodyStructureParametersBuilder();
 
                     while (true)
                     {
-                        if (!pCursor.GetString(out IList<byte> lParameter) || !pCursor.SkipByte(cASCII.SPACE) || !pCursor.GetString(out IList<byte> lValue)) { rParameters = null; return false; }
-                        if (!lBuilder.TryAdd(lParameter, lValue)) { rParameters = null; return false; }
+                        if (!pCursor.GetString(out IList<byte> lName) || !pCursor.SkipByte(cASCII.SPACE) || !pCursor.GetString(out IList<byte> lValue)) { rParameters = null; return false; }
+                        lBuilder.Add(lName, lValue);
                         if (!pCursor.SkipByte(cASCII.SPACE)) break;
                     }
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rParameters = null; return false; }
 
-                    rParameters = lBuilder.ToParameters();
+                    rParameters = lBuilder.ToBodyStructureParameters();
                     return true;
                 }
 
@@ -819,75 +818,72 @@ namespace work.bacome.imapclient
                     return true;
                 }
 
-                private class cParametersBuilder
+                private class cBodyStructureParametersBuilder
                 {
-                    ;?; // note that the spec doesn't say that the parameters must be unique
-                    private readonly Dictionary<string, cBodyPartParameterValue> mDictionary = new Dictionary<string, cBodyPartParameterValue>(StringComparer.InvariantCultureIgnoreCase);
+                    private readonly List<cBodyStructureParameter> mParameters = new List<cBodyStructureParameter>();
 
-                    public cParametersBuilder() { }
+                    public cBodyStructureParametersBuilder() { }
 
-                    public bool TryAdd(IList<byte> pParameter, IList<byte> pValue)
+                    public void Add(IList<byte> pName, IList<byte> pValue)
                     {
-                        string lParameter;
-                        cBodyPartParameterValue lValue;
+                        cBytes lRawValue = new cBytes(pValue);
 
-                        if (pParameter.Count > 0 && pParameter[pParameter.Count - 1] == cASCII.ASTERISK)
+                        if (pName.Count == 0 || pName[pName.Count - 1] != cASCII.ASTERISK)
                         {
-                            byte[] lParameterWork = new byte[pParameter.Count - 1];
-                            for (int i = 0; i < pParameter.Count - 1; i++) lParameterWork[i] = pParameter[i];
-                            lParameter = cTools.UTF8BytesToString(lParameterWork);
+                            // just plain name=value
+                            mParameters.Add(new cBodyStructureParameter(pName, pValue));
+                            return;
+                        }
+                        
+                        // should be rfc 2231 syntax ... we will attempt to decode it if the IMAP server has decoded the parameter value continuations as per rfc 2231.6
 
-                            // find the second "'" from the end (because amazingly, the grammar for charsetname allows the ' character to be used)
-
-                            int lMaxCharsetLength = pValue.Count - 1;
-                            int lQuoteCount = 0;
-
-                            while (lMaxCharsetLength > -1)
+                        // check if there is another '*' in the name
+                        for (int i = 0; i < pName.Count - 1; i++)
+                            if (pName[i] == cASCII.ASTERISK)
                             {
-                                if (pValue[lMaxCharsetLength] == cASCII.QUOTE)
-                                {
-                                    lQuoteCount++;
-                                    if (lQuoteCount == 2) break;
-                                }
-
-                                lMaxCharsetLength--;
+                                // not decoded rfc 2231, store name=value
+                                mParameters.Add(new cBodyStructureParameter(pName, pValue));
+                                return;
                             }
 
-                            lValue = null;
+                        // try to parse the value
 
-                            if (lMaxCharsetLength > -1)
+                        cBytesCursor lCursor = new cBytesCursor(pValue);
+
+                        // note that the code to get the charset is not strictly correct, as only registered charset names should be extracted
+                        //  also note that "'" is a valid character in a charset name but it is also the rfc 2231 delimiter, so if there were a charset with a "'" in the name this code would garble it
+                        //   (that is why charsetnamedash is used rather than charsetname)
+
+                        lCursor.GetToken(cCharset.CharsetNameDash, null, null, out var lCharsetName); // charset is optional
+
+                        if (lCursor.SkipByte(cASCII.QUOTE))
+                        {
+                            lCursor.GetLanguageTag(out var lLanguageTag); // language tag is optional
+
+                            if (lCursor.SkipByte(cASCII.QUOTE))
                             {
-                                cBytesCursor lCursor = new cBytesCursor(pValue);
+                                lCursor.GetToken(cCharset.All, cASCII.PERCENT, null, out cByteList lValueBytes); // the value itself is optional (!)
 
-                                lCursor.GetToken(cCharset.CharsetName, null, null, out var lCharsetBytes, 1, lMaxCharsetLength);
-
-                                if (lCursor.SkipByte(cASCII.QUOTE))
+                                if (lCursor.Position.AtEnd && cTools.TryCharsetBytesToString(lCharsetName, lValueBytes, out var lValue))
                                 {
-                                    lCursor.GetLanguageTag(out var lLanguageTag);
+                                    // successful decode of rfc 2231 syntax
 
-                                    if (lCursor.SkipByte(cASCII.QUOTE))
-                                    {
-                                        lCursor.GetToken(cCharset.All, cASCII.PERCENT, null, out cByteList lValueBytes);
-                                        if (lCursor.Position.AtEnd && cTools.TryCharsetBytesToString(cTools.UTF8BytesToString(lCharsetBytes), lValueBytes, out var lValueWork)) lValue = new cBodyPartParameterValue(lValueWork, lLanguageTag);
-                                    }
+                                    // trim off the asterisk at the end of the name
+                                    byte[] lName = new byte[pName.Count - 1];
+                                    for (int i = 0; i < pName.Count - 1; i++) lName[i] = pName[i];
+
+                                    // store the decoded name and the decoded value
+                                    mParameters.Add(new cBodyStructureParameter(lName, pValue, lValue, lLanguageTag));
+                                    return;
                                 }
                             }
-
-                            if (lValue == null) lValue = new cBodyPartParameterValue(cTools.UTF8BytesToString(pValue), null);
-                        }
-                        else
-                        {
-                            lParameter = cTools.UTF8BytesToString(pParameter);
-                            lValue = new cBodyPartParameterValue(cTools.UTF8BytesToString(pValue));
                         }
 
-                        if (mDictionary.ContainsKey(lParameter)) return false;
-
-                        mDictionary.Add(lParameter, lValue);
-                        return true;
+                        // failed to decode rfc 2231 syntax: store name=value
+                        mParameters.Add(new cBodyStructureParameter(pName, pValue));
                     }
 
-                    public cBodyPartParameters ToParameters() => new cBodyPartParameters(mDictionary);
+                    public cBodyStructureParameters ToBodyStructureParameters() => new cBodyStructureParameters(mParameters);
                 }
 
                 private class cBaseSubject
@@ -1146,7 +1142,7 @@ namespace work.bacome.imapclient
                     lData = lRD as cResponseDataFetch;
                     if (lData == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1.1");
 
-                    if (lData.Flags.Count != 1 || !lData.Flags.ContainsSeen) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
+                    if (lData.Flags.Count != 1 || !lData.Flags.Contains(@"\SeEn")) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
                     if (lData.Received != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
                     if (lData.Envelope.Sent != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
                     if (lData.Envelope.Subject != "IMAP4rev1 WG mtg summary and minutes") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.5");
@@ -1170,7 +1166,7 @@ namespace work.bacome.imapclient
                     if (lData.Envelope.MessageId.MsgId != "B27397-0100000@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
 
                     lTextPart = lData.Body as cTextBodyPart;
-                    if (lTextPart.SubType != "PLAIN" || lTextPart.Parameters.Count != 1 || lTextPart.Parameters["charset"].Value != "US-ASCII" || lTextPart.SizeInBytes != 3028 || lTextPart.SizeInLines != 92) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.1");
+                    if (lTextPart.SubType != "PLAIN" || lTextPart.Parameters.Count != 1 || lTextPart.Charset != "US-ASCII" || lTextPart.SizeInBytes != 3028 || lTextPart.SizeInLines != 92) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.1");
                     if (lTextPart.ContentId != null || lTextPart.Description != null || lTextPart.DecodingRequired != eDecodingRequired.none) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.2");
 
                     if (lData.RFC822 != null || lData.RFC822Header != null || lData.RFC822Text != null || lData.Size != 4286 || lData.BodyStructure != null || lData.Bodies.Count != 0 || lData.UID != null || lData.BinarySizes.Count != 0) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.13");
@@ -1278,7 +1274,7 @@ namespace work.bacome.imapclient
 
                     lTextPart = lMultiPart.Parts[1] as cTextBodyPart;
                     if (lTextPart.DecodingRequired != eDecodingRequired.base64 || lTextPart.SizeInBytes != 4554 || lTextPart.SizeInLines != 73 || lTextPart.Section != new cSection("2")) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.3");
-                    if (lTextPart.Parameters["name"].Value != "cc.diff" || lTextPart.ContentId != "<960723163407.20117h@cac.washington.edu>" || lTextPart.Description != "Compiler diff") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.4");
+                    if (lTextPart.Parameters.First("name").StringValue != "cc.diff" || lTextPart.ContentId != "<960723163407.20117h@cac.washington.edu>" || lTextPart.Description != "Compiler diff") throw new cTestsException($"{nameof(cResponseDataFetch)}.4.4");
 
 
 
@@ -1299,8 +1295,8 @@ namespace work.bacome.imapclient
                     if (!cBytesCursor.TryConstruct(@"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""fred*"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"" ""angus"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"") NIL NIL ""7BIT"" 3028 92)", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.0");
                     if (!ZProcessBodyStructure(lCursor, cSection.Text, false, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.1");
                     lTextPart = lPart as cTextBodyPart;
-                    if (lTextPart.Parameters["fred"].Value != "This is ***fun***" || lTextPart.Parameters["fred"].LanguageTag != "EN-US" || !lTextPart.Parameters["fred"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
-                    if (lTextPart.Parameters["angus"].Value != "us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A" || lTextPart.Parameters["angus"].LanguageTag != null || lTextPart.Parameters["angus"].I18N) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
+                    if (lTextPart.Parameters.First("fred").StringValue != "This is ***fun***" || lTextPart.Parameters.First("FRED").LanguageTag != "en-us") throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
+                    if (lTextPart.Parameters.First("anGus").StringValue != "us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A") throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
 
                     // TODO : more tests: in particular, missing language tag, missing charset and invalid cases
 
@@ -1363,8 +1359,9 @@ namespace work.bacome.imapclient
                         if (lSection.Part != pExpectedPart || lSection.TextPart != pExpectedTextPart) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.3");
                         if (pExpectedHeaderFields == null && lSection.Names == null) return;
                         if (pExpectedHeaderFields == null || lSection.Names == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.4");
-                        if (pExpectedHeaderFields.Length != lSection.Names.Count) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.5");
-                        for (int i = 0; i < pExpectedHeaderFields.Length; i++) if (lSection.Names[i] != pExpectedHeaderFields[i]) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.6");
+
+                        cHeaderFieldNames lNames = new cHeaderFieldNames(pExpectedHeaderFields);
+                        if (lSection.Names != lNames) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.6");
                     }
 
                     void LTestSectionFail(string pText, bool pBinary)
