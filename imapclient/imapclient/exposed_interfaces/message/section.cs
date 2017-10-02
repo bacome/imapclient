@@ -47,7 +47,7 @@ namespace work.bacome.imapclient
 
         private bool ZValidPart(string pPart)
         {
-            if (!cBytesCursor.TryConstruct(pPart, out var lCursor)) return false;
+            var lCursor = new cBytesCursor(pPart);
 
             while (true)
             {

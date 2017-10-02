@@ -179,17 +179,17 @@ namespace work.bacome.imapclient
             }
         }
 
-        public bool IsAnswered => ZFlagsContain(kFlagName.Answered);
-        public bool IsFlagged => ZFlagsContain(kFlagName.Flagged);
-        public bool IsDeleted => ZFlagsContain(kFlagName.Deleted);
-        public bool IsSeen => ZFlagsContain(kFlagName.Seen);
-        public bool IsDraft => ZFlagsContain(kFlagName.Draft);
-        public bool IsRecent => ZFlagsContain(kFlagName.Recent);
+        public bool IsAnswered => ZFlagsContain(kMessageFlagName.Answered);
+        public bool IsFlagged => ZFlagsContain(kMessageFlagName.Flagged);
+        public bool IsDeleted => ZFlagsContain(kMessageFlagName.Deleted);
+        public bool IsSeen => ZFlagsContain(kMessageFlagName.Seen);
+        public bool IsDraft => ZFlagsContain(kMessageFlagName.Draft);
+        public bool IsRecent => ZFlagsContain(kMessageFlagName.Recent);
 
-        public bool IsMDNSent => ZFlagsContain(kFlagName.MDNSent);
-        public bool IsForwarded => ZFlagsContain(kFlagName.Forwarded);
-        public bool IsSubmitPending => ZFlagsContain(kFlagName.SubmitPending);
-        public bool IsSubmitted => ZFlagsContain(kFlagName.Submitted);
+        public bool IsMDNSent => ZFlagsContain(kMessageFlagName.MDNSent);
+        public bool IsForwarded => ZFlagsContain(kMessageFlagName.Forwarded);
+        public bool IsSubmitPending => ZFlagsContain(kMessageFlagName.SubmitPending);
+        public bool IsSubmitted => ZFlagsContain(kMessageFlagName.Submitted);
 
         private bool ZFlagsContain(string pFlag)
         {

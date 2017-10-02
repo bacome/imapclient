@@ -146,17 +146,17 @@ namespace work.bacome.imapclient
                     cId lId;
                     cBytesCursor lCursor;
 
-                    cBytesCursor.TryConstruct("(\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")", out lCursor);
+                    lCursor = new cBytesCursor("(\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")");
                     if (!ZGetId(lCursor, out lId, lContext)) throw new cTestsException("should be ok");
                     if (!lCursor.Position.AtEnd) throw new cTestsException("should be at end");
                     if (lId.Name != "Cyrus" || lId.Version != "1.5" || lId.OS != "sunos" || lId.OSVersion != "5.5" || lId.SupportURL != "mailto:cyrus-bugs+@andrew.cmu.edu" || lId.Vendor != null || lId.Address != null || lId.Arguments != null || lId.Command != null || lId.Date != null || lId.Environment != null || lId.Count != 5) throw new cTestsException("unexpected id values");
 
-                    cBytesCursor.TryConstruct("()", out lCursor);
+                    lCursor = new cBytesCursor("()");
                     if (!ZGetId(lCursor, out lId, lContext)) throw new cTestsException("should be ok");
                     if (!lCursor.Position.AtEnd) throw new cTestsException("should be at end");
                     if (lId.Count != 0) throw new cTestsException("unexpected values");
 
-                    cBytesCursor.TryConstruct("nil", out lCursor);
+                    lCursor = new cBytesCursor("nil");
                     if (!ZGetId(lCursor, out lId, lContext)) throw new cTestsException("should be ok");
                     if (!lCursor.Position.AtEnd) throw new cTestsException("should be at end");
                     if (lId != null) throw new cTestsException("unexpected value");
@@ -169,16 +169,16 @@ namespace work.bacome.imapclient
                     if (!lCursor.Position.AtEnd) throw new cTestsException("should be at end");
                     if (lId.Name != null || lId.Version != null || lId.Count != 2 || lId["versionx"] != "fr€d") throw new cTestsException("unexpected id values");
 
-                    cBytesCursor.TryConstruct("(\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\"", out lCursor);
+                    lCursor = new cBytesCursor("(\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\"");
                     if (ZGetId(lCursor, out lId, lContext)) throw new cTestsException("should not be ok");
 
-                    cBytesCursor.TryConstruct("\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")", out lCursor);
+                    lCursor = new cBytesCursor("\"name\" \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")");
                     if (ZGetId(lCursor, out lId, lContext)) throw new cTestsException("should not be ok");
 
-                    cBytesCursor.TryConstruct("(nil \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")", out lCursor);
+                    lCursor = new cBytesCursor("(nil \"Cyrus\" \"version\" \"1.5\" \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")");
                     if (ZGetId(lCursor, out lId, lContext)) throw new cTestsException("should not be ok");
 
-                    cBytesCursor.TryConstruct("(\"name\" \"Cyrus\" \"version\" \"1.5\"  \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")", out lCursor);
+                    lCursor = new cBytesCursor("(\"name\" \"Cyrus\" \"version\" \"1.5\"  \"os\" \"sunos\" \"os-version\" \"5.5\" \"support-url\" \"mailto:cyrus-bugs+@andrew.cmu.edu\")");
                     if (ZGetId(lCursor, out lId, lContext)) throw new cTestsException("should not be ok");
                 }
             }

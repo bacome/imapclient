@@ -876,7 +876,7 @@ namespace work.bacome.imapclient.support
 
             bool LTryParse(string pURL, out cURLParts rParts)
             {
-                if (!cBytesCursor.TryConstruct(pURL, out var lCursor)) { rParts = null; return false; }
+                var lCursor = new cBytesCursor(pURL);
                 if (!Process(lCursor, out rParts, lContext)) return false;
                 if (!lCursor.Position.AtEnd) return false;
                 return true;

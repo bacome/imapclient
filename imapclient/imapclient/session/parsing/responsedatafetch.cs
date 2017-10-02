@@ -1125,7 +1125,7 @@ namespace work.bacome.imapclient
                     cEmailAddress lEmailAddress;
                     cTextBodyPart lTextPart;
 
-                    if (!cBytesCursor.TryConstruct(
+                    lCursor = new cBytesCursor(
                             @"12 FETCH (FLAGS (\Seen) INTERNALDATE ""17-Jul-1996 02:44:25 -0700"" " +
                             @"RFC822.SIZE 4286 ENVELOPE (""Wed, 17 Jul 1996 02:23:25 -0700 (PDT)"" " +
                             @"""IMAP4rev1 WG mtg summary and minutes"" " +
@@ -1136,7 +1136,7 @@ namespace work.bacome.imapclient
                             @"((NIL NIL ""minutes"" ""CNRI.Reston.VA.US"")" +
                             @"(""John Klensin"" NIL ""KLENSIN"" ""MIT.EDU"")) NIL NIL " +
                             @"""<B27397-0100000@cac.washington.edu>"") " +
-                            @"BODY (""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 3028 92))", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.0");
+                            @"BODY (""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 3028 92))");
 
                     if (!lRDPF.Process(lCursor, out lRD, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1");
                     lData = lRD as cResponseDataFetch;
@@ -1171,12 +1171,7 @@ namespace work.bacome.imapclient
 
                     if (lData.RFC822 != null || lData.RFC822Header != null || lData.RFC822Text != null || lData.Size != 4286 || lData.BodyStructure != null || lData.Bodies.Count != 0 || lData.UID != null || lData.BinarySizes.Count != 0) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.13");
 
-
-
-
-
-
-                    if (!cBytesCursor.TryConstruct(
+                    lCursor = new cBytesCursor(
                             @"12 FETCH (FLAGS (\Seen) INTERNALDATE ""17-Jul-1996 02:44:25 -0700"" " +
                             @"RFC822.SIZE 4286 ENVELOPE (""Wed, 17 Jul 1996 02:23:25 -0700 (PDT)"" " +
                             @"""IMAP4rev1 WG mtg summary and minutes"" " +
@@ -1185,9 +1180,9 @@ namespace work.bacome.imapclient
                             @"((""Terry Gray"" NIL ""gray"" ""cac.washington.edu"")) " +
                             @"((NIL NIL ""imap"" ""cac.washington.edu"")) " +
                             @"((NIL NIL ""minutes"" ""CNRI.Reston.VA.US"")" +
-                            @"(""John Klensin"" NIL ""KLENSIN"" ""MIT.EDU"")) NIL {34}<""01KF8JCEOCBS0045PS""@xxx.yyy.com> " +
+                            @"(""John Klensin"" NIL ""KLENSIN"" ""MIT.EDU"")) NIL ""<\""01KF8JCEOCBS0045PS\""@xxx.yyy.com>"" " +
                             @"""<B27397-0100000@cac.washington.edu>"") " +
-                            @"BODY (""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 3028 92))", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.0");
+                            @"BODY (""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 3028 92))");
 
                     if (!lRDPF.Process(lCursor, out lRD, lContext) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.1a.1");
                     lData = lRD as cResponseDataFetch;
@@ -1260,9 +1255,9 @@ namespace work.bacome.imapclient
                     cBodyPart lPart;
                     cMultiPartBody lMultiPart;
 
-                    if (!cBytesCursor.TryConstruct(
-                            @"((""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 1152 23)" + 
-                            @"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""NAME"" ""cc.diff"") ""<960723163407.20117h@cac.washington.edu>"" ""Compiler diff"" ""BASE64"" 4554 73) ""MIXED"")", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.0");
+                    lCursor = new cBytesCursor(
+                            @"((""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"") NIL NIL ""7BIT"" 1152 23)" +
+                            @"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""NAME"" ""cc.diff"") ""<960723163407.20117h@cac.washington.edu>"" ""Compiler diff"" ""BASE64"" 4554 73) ""MIXED"")");
 
                     if (!ZProcessBodyStructure(lCursor, cSection.Text, false, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.4.1");
 
@@ -1292,7 +1287,7 @@ namespace work.bacome.imapclient
 
                     // parameters
 
-                    if (!cBytesCursor.TryConstruct(@"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""fred*"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"" ""angus"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"") NIL NIL ""7BIT"" 3028 92)", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.0");
+                    lCursor = new cBytesCursor(@"(""TEXT"" ""PLAIN"" (""CHARSET"" ""US-ASCII"" ""fred*"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"" ""angus"" ""us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A"") NIL NIL ""7BIT"" 3028 92)");
                     if (!ZProcessBodyStructure(lCursor, cSection.Text, false, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.5.1");
                     lTextPart = lPart as cTextBodyPart;
                     if (lTextPart.Parameters.First("fred").StringValue != "This is ***fun***" || lTextPart.Parameters.First("FRED").LanguageTag != "en-us") throw new cTestsException($"{nameof(cResponseDataFetch)}.5.2");
@@ -1304,7 +1299,7 @@ namespace work.bacome.imapclient
 
 
 
-                    if (!cBytesCursor.TryConstruct(@"(((""TEXT"" ""PLAIN"" (""CHARSET"" ""UTF-8"") NIL NIL ""7BIT"" 2 1 NIL NIL NIL)(""TEXT"" ""HTML"" (""CHARSET"" ""UTF-8"") NIL NIL ""7BIT"" 2 1 NIL NIL NIL) ""ALTERNATIVE"" (""BOUNDARY"" ""94eb2c14e866ddee50054fb3cf4b"") NIL NIL)(""IMAGE"" ""JPEG"" (""NAME"" ""IMG_20170517_194711.jpg"") NIL NIL ""BASE64"" 6619412 NIL (""ATTACHMENT"" (""FILENAME"" ""IMG_20170517_194711.jpg"")) NIL) ""MIXED"" (""BOUNDARY"" ""94eb2c14e866ddee56054fb3cf4d"") NIL NIL)", out lCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.6.0");
+                    lCursor = new cBytesCursor(@"(((""TEXT"" ""PLAIN"" (""CHARSET"" ""UTF-8"") NIL NIL ""7BIT"" 2 1 NIL NIL NIL)(""TEXT"" ""HTML"" (""CHARSET"" ""UTF-8"") NIL NIL ""7BIT"" 2 1 NIL NIL NIL) ""ALTERNATIVE"" (""BOUNDARY"" ""94eb2c14e866ddee50054fb3cf4b"") NIL NIL)(""IMAGE"" ""JPEG"" (""NAME"" ""IMG_20170517_194711.jpg"") NIL NIL ""BASE64"" 6619412 NIL (""ATTACHMENT"" (""FILENAME"" ""IMG_20170517_194711.jpg"")) NIL) ""MIXED"" (""BOUNDARY"" ""94eb2c14e866ddee56054fb3cf4d"") NIL NIL)");
                     if (!ZProcessBodyStructure(lCursor, cSection.Text, true, out lPart) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.6.1");
                     if (!(lPart is cMultiPartBody lMultiPartBody)) throw new cTestsException($"{nameof(cResponseDataFetch)}.6.2");
                     if (lMultiPartBody.Parts[1].Disposition?.FileName != "IMG_20170517_194711.jpg") throw new cTestsException($"{nameof(cResponseDataFetch)}.6.3");
@@ -1354,7 +1349,7 @@ namespace work.bacome.imapclient
 
                     void LTestSection(string pText, bool pBinary, string pExpectedPart, eSectionPart pExpectedTextPart, params string[] pExpectedHeaderFields)
                     {
-                        if (!cBytesCursor.TryConstruct(pText, out var lxCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.1.{pText}.{pBinary}.1");
+                        var lxCursor = new cBytesCursor(pText);
                         if (!ZProcessSection(lxCursor, pBinary, out var lSection) || !lxCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.2");
                         if (lSection.Part != pExpectedPart || lSection.TextPart != pExpectedTextPart) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSection)}.{pText}.3");
                         if (pExpectedHeaderFields == null && lSection.Names == null) return;
@@ -1366,7 +1361,7 @@ namespace work.bacome.imapclient
 
                     void LTestSectionFail(string pText, bool pBinary)
                     {
-                        if (!cBytesCursor.TryConstruct(pText, out var lxCursor)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSectionFail)}.2.{pText}.{pBinary}.1");
+                        var lxCursor = new cBytesCursor(pText);
                         if (ZProcessSection(lxCursor, pBinary, out var lSection)) throw new cTestsException($"{nameof(cResponseDataFetch)}.{nameof(LTestSectionFail)}.2.{pText}.{pBinary}.2");
                     }
 

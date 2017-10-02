@@ -21,7 +21,7 @@ namespace work.bacome.imapclient.support
 
         public cBytesCursor(cBytesLines pLines)
         {
-            mLines = pLines;
+            mLines = pLines ?? throw new ArgumentNullException(nameof(pLines));
 
             if (mLines.Count == 0)
             {
@@ -39,7 +39,23 @@ namespace work.bacome.imapclient.support
 
         public cBytesCursor(IList<byte> pBytes)
         {
+            if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
+
             mLines = new cBytesLines(new cBytesLine[] { new cBytesLine(false, pBytes) });
+
+            Position.BytesLine = mLines[0];
+            Position.LineNumber = 0;
+            Position.Byte = -1;
+            Position.AtEnd = false;
+
+            ZAdvance(ref Position);
+        }
+
+        public cBytesCursor(string pString)
+        {
+            if (pString == null) throw new ArgumentNullException(nameof(pString));
+
+            mLines = new cBytesLines(new cBytesLine[] { new cBytesLine(false, Encoding.UTF8.GetBytes(pString)) });
 
             Position.BytesLine = mLines[0];
             Position.LineNumber = 0;
@@ -675,6 +691,7 @@ namespace work.bacome.imapclient.support
             return lBuilder.ToString();
         }
 
+        /*
         public static bool TryConstruct(string pString, out cBytesCursor rBytesCursor)
         {
             cByteList lBytes = new cByteList(pString.Length);
@@ -690,7 +707,7 @@ namespace work.bacome.imapclient.support
 
             rBytesCursor = new cBytesCursor(new cBytesLines(lLines));
             return true;
-        }
+        } */
 
         public struct sPosition
         {

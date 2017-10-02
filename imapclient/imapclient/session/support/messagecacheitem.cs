@@ -64,22 +64,18 @@ namespace work.bacome.imapclient
                     if ((rAttributesSet & fCacheAttributes.flags) != 0) Flags = lFetch.Flags;
                     else if (lFetch.Flags != null)
                     {
-                        ;?; // rewrite to two loops
-                        foreach (var lFlag in lFetch.Flags.SymmetricDifference(Flags))
+                        // symmetricdifference of flags
+
+                        foreach (var lFlag in Flags.Except(lFetch.Flags, kMessageFlagName.Comparer))
                         {
                             rAttributesSet |= fCacheAttributes.flags;
-                            rPropertiesChanged |= fMessageProperties.flags;
+                            rPropertiesChanged |= LMessageProperty(lFlag);
+                        }
 
-                            if (lFlag.Equals(kFlagName.Answered, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isanswered;
-                            if (lFlag.Equals(kFlagName.Flagged, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isflagged;
-                            if (lFlag.Equals(kFlagName.Deleted, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isdeleted;
-                            if (lFlag.Equals(kFlagName.Seen, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isseen;
-                            if (lFlag.Equals(kFlagName.Draft, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isdraft;
-                            if (lFlag.Equals(kFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isrecent;
-                            if (lFlag.Equals(kFlagName.MDNSent, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.ismdnsent;
-                            if (lFlag.Equals(kFlagName.Forwarded, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.isforwarded;
-                            if (lFlag.Equals(kFlagName.SubmitPending, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.issubmitpending;
-                            if (lFlag.Equals(kFlagName.Submitted, StringComparison.InvariantCultureIgnoreCase)) rPropertiesChanged |= fMessageProperties.issubmitted;
+                        foreach (var lFlag in lFetch.Flags.Except(Flags, kMessageFlagName.Comparer))
+                        {
+                            rAttributesSet |= fCacheAttributes.flags;
+                            rPropertiesChanged |= LMessageProperty(lFlag);
                         }
 
                         Flags = lFetch.Flags;
@@ -110,6 +106,21 @@ namespace work.bacome.imapclient
                     else if (lFetch.BinarySizes != null) BinarySizes += lFetch.BinarySizes;
 
                     mAttributes |= lFetch.Attributes;
+
+                    fMessageProperties LMessageProperty(string pFlag)
+                    {
+                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Answered)) return fMessageProperties.isanswered;
+                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Flagged)) return fMessageProperties.isflagged;
+                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Deleted)) return fMessageProperties.isdeleted;
+                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Seen)) return fMessageProperties.isseen;
+                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Draft)) return fMessageProperties.isdraft;
+                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Recent)) return fMessageProperties.isrecent;
+                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.MDNSent)) return fMessageProperties.ismdnsent;
+                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Forwarded)) return fMessageProperties.isforwarded;
+                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.SubmitPending)) return fMessageProperties.issubmitpending;
+                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Submitted)) return fMessageProperties.issubmitted;
+                        return 0;
+                    }
                 }
 
                 public override string ToString() => $"{nameof(cMessageCacheItem)}({mCache},{mCacheSequence})";

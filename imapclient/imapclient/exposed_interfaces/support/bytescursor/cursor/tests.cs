@@ -154,7 +154,7 @@ namespace work.bacome.imapclient.support
             if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1968, 4, 28, 21, 59, 59, DateTimeKind.Utc)) throw new cTestsException("timestamp 1.4");
 
             // examples from rfc3339
-            cBytesCursor.TryConstruct("1985-04-12T23:20:50.52Z,1996-12-19T16:39:57-08:00,1990-12-31T23:59:60Z,1990-12-31T15:59:60-08:00,1937-01-01T12:00:27.87+00:20", out lCursor);
+            lCursor = new cBytesCursor("1985-04-12T23:20:50.52Z,1996-12-19T16:39:57-08:00,1990-12-31T23:59:60Z,1990-12-31T15:59:60-08:00,1937-01-01T12:00:27.87+00:20");
             if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1985, 04, 12, 23, 20, 50, 520, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.1");
             if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1996, 12, 20, 00, 39, 57, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.2");
             if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1990, 12, 31, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.3");

@@ -15,17 +15,17 @@ namespace work.bacome.imapclient
         public static readonly cFilterEnd First = new cFilterEnd(eFilterEnd.first);
         public static readonly cFilterEnd Last = new cFilterEnd(eFilterEnd.last);
 
-        public static readonly cFilter IsAnswered = new cFilterFlagsContain(kFlagName.Answered);
-        public static readonly cFilter IsFlagged = new cFilterFlagsContain(kFlagName.Flagged);
-        public static readonly cFilter IsDeleted = new cFilterFlagsContain(kFlagName.Deleted);
-        public static readonly cFilter IsSeen = new cFilterFlagsContain(kFlagName.Seen);
-        public static readonly cFilter IsDraft = new cFilterFlagsContain(kFlagName.Draft);
-        public static readonly cFilter IsRecent = new cFilterFlagsContain(kFlagName.Recent);
+        public static readonly cFilter IsAnswered = new cFilterFlagsContain(kMessageFlagName.Answered);
+        public static readonly cFilter IsFlagged = new cFilterFlagsContain(kMessageFlagName.Flagged);
+        public static readonly cFilter IsDeleted = new cFilterFlagsContain(kMessageFlagName.Deleted);
+        public static readonly cFilter IsSeen = new cFilterFlagsContain(kMessageFlagName.Seen);
+        public static readonly cFilter IsDraft = new cFilterFlagsContain(kMessageFlagName.Draft);
+        public static readonly cFilter IsRecent = new cFilterFlagsContain(kMessageFlagName.Recent);
 
-        public static readonly cFilter IsMDNSent = new cFilterFlagsContain(kFlagName.MDNSent);
-        public static readonly cFilter IsForwarded = new cFilterFlagsContain(kFlagName.Forwarded);
-        public static readonly cFilter IsSubmitPending = new cFilterFlagsContain(kFlagName.SubmitPending);
-        public static readonly cFilter IsSubmitted = new cFilterFlagsContain(kFlagName.Submitted);
+        public static readonly cFilter IsMDNSent = new cFilterFlagsContain(kMessageFlagName.MDNSent);
+        public static readonly cFilter IsForwarded = new cFilterFlagsContain(kMessageFlagName.Forwarded);
+        public static readonly cFilter IsSubmitPending = new cFilterFlagsContain(kMessageFlagName.SubmitPending);
+        public static readonly cFilter IsSubmitted = new cFilterFlagsContain(kMessageFlagName.Submitted);
 
         public static readonly cFilterPart BCC = new cFilterPart(eFilterPart.bcc);
         public static readonly cFilterPart Body = new cFilterPart(eFilterPart.body);
@@ -82,7 +82,7 @@ namespace work.bacome.imapclient
 
             if (pA is cFilterFlagsContain lFCA && pB is cFilterFlagsContain lFCB)
             {
-                cFetchableFlagsList lFlags = new cFetchableFlagsList();
+                cFetchableFlagList lFlags = new cFetchableFlagList();
                 lFlags.Add(lFCA.Flags);
                 lFlags.Add(lFCB.Flags);
                 return new cFilterFlagsContain(lFlags);

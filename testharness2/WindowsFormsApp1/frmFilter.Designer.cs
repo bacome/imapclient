@@ -76,6 +76,8 @@
             this.label8 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
+            this.chkFredD = new System.Windows.Forms.CheckBox();
+            this.chkUnfredD = new System.Windows.Forms.CheckBox();
             this.tab.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -157,6 +159,7 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.chkUnfredD);
             this.groupBox2.Controls.Add(this.chkUnseen);
             this.groupBox2.Controls.Add(this.chkUnrecent);
             this.groupBox2.Controls.Add(this.chkUnflagged);
@@ -164,9 +167,9 @@
             this.groupBox2.Controls.Add(this.chkUndraft);
             this.groupBox2.Controls.Add(this.chkUndeleted);
             this.groupBox2.Controls.Add(this.chkUnanswered);
-            this.groupBox2.Location = new System.Drawing.Point(6, 84);
+            this.groupBox2.Location = new System.Drawing.Point(6, 99);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(302, 72);
+            this.groupBox2.Size = new System.Drawing.Size(302, 86);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Not Set";
@@ -204,7 +207,7 @@
             // chkUnfred
             // 
             this.chkUnfred.AutoSize = true;
-            this.chkUnfred.Location = new System.Drawing.Point(236, 43);
+            this.chkUnfred.Location = new System.Drawing.Point(12, 66);
             this.chkUnfred.Name = "chkUnfred";
             this.chkUnfred.Size = new System.Drawing.Size(47, 17);
             this.chkUnfred.TabIndex = 6;
@@ -243,6 +246,7 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.chkFredD);
             this.groupBox1.Controls.Add(this.chkSeen);
             this.groupBox1.Controls.Add(this.chkRecent);
             this.groupBox1.Controls.Add(this.chkFlagged);
@@ -252,7 +256,7 @@
             this.groupBox1.Controls.Add(this.chkAnswered);
             this.groupBox1.Location = new System.Drawing.Point(6, 6);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(302, 72);
+            this.groupBox1.Size = new System.Drawing.Size(302, 87);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Set";
@@ -290,7 +294,7 @@
             // chkFred
             // 
             this.chkFred.AutoSize = true;
-            this.chkFred.Location = new System.Drawing.Point(236, 43);
+            this.chkFred.Location = new System.Drawing.Point(12, 66);
             this.chkFred.Name = "chkFred";
             this.chkFred.Size = new System.Drawing.Size(47, 17);
             this.chkFred.TabIndex = 6;
@@ -608,6 +612,26 @@
             // 
             this.erp.ContainerControl = this;
             // 
+            // chkFredD
+            // 
+            this.chkFredD.AutoSize = true;
+            this.chkFredD.Location = new System.Drawing.Point(91, 66);
+            this.chkFredD.Name = "chkFredD";
+            this.chkFredD.Size = new System.Drawing.Size(49, 17);
+            this.chkFredD.TabIndex = 7;
+            this.chkFredD.Text = "FreD";
+            this.chkFredD.UseVisualStyleBackColor = true;
+            // 
+            // chkUnfredD
+            // 
+            this.chkUnfredD.AutoSize = true;
+            this.chkUnfredD.Location = new System.Drawing.Point(91, 66);
+            this.chkUnfredD.Name = "chkUnfredD";
+            this.chkUnfredD.Size = new System.Drawing.Size(49, 17);
+            this.chkUnfredD.TabIndex = 7;
+            this.chkUnfredD.Text = "FreD";
+            this.chkUnfredD.UseVisualStyleBackColor = true;
+            // 
             // frmFilter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -695,5 +719,7 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.ErrorProvider erp;
+        private System.Windows.Forms.CheckBox chkUnfredD;
+        private System.Windows.Forms.CheckBox chkFredD;
     }
 }

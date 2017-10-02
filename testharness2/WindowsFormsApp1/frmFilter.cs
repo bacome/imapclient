@@ -32,26 +32,30 @@ namespace testharness2
 
             // build
 
-            cFetchableFlags lFlags;
+            var lFlags = new cFetchableFlagList();
 
-            lFlags = new cFetchableFlags();
-            lFlags.IsAnswered = chkAnswered.Checked;
-            lFlags.IsDeleted = chkDeleted.Checked;
-            lFlags.IsDraft = chkDraft.Checked;
-            lFlags.IsFlagged = chkFlagged.Checked;
-            lFlags.IsRecent = chkRecent.Checked;
-            lFlags.IsSeen = chkSeen.Checked;
+            if (chkAnswered.Checked) lFlags.Add(kMessageFlagName.Answered);
+            if (chkDeleted.Checked) lFlags.Add(kMessageFlagName.Deleted);
+            if (chkDraft.Checked) lFlags.Add(kMessageFlagName.Draft);
+            if (chkFlagged.Checked) lFlags.Add(kMessageFlagName.Flagged);
+            if (chkRecent.Checked) lFlags.Add(kMessageFlagName.Recent);
+            if (chkSeen.Checked) lFlags.Add(kMessageFlagName.Seen);
             if (chkFred.Checked) lFlags.Add(Program.FlagFred);
+            if (chkFredD.Checked) lFlags.Add(Program.FlagFreD);
+
             if (lFlags.Count != 0) lTerms.Add(cFilter.FlagsContain(lFlags));
 
-            lFlags = new cFetchableFlags();
-            lFlags.IsAnswered = chkUnanswered.Checked;
-            lFlags.IsDeleted = chkUndeleted.Checked;
-            lFlags.IsDraft = chkUndraft.Checked;
-            lFlags.IsFlagged = chkUnflagged.Checked;
-            lFlags.IsRecent = chkUnrecent.Checked;
-            lFlags.IsSeen = chkUnseen.Checked;
+            lFlags = new cFetchableFlagList();
+
+            if (chkUnanswered.Checked) lFlags.Add(kMessageFlagName.Answered);
+            if (chkUndeleted.Checked) lFlags.Add(kMessageFlagName.Deleted);
+            if (chkUndraft.Checked) lFlags.Add(kMessageFlagName.Draft);
+            if (chkUnflagged.Checked) lFlags.Add(kMessageFlagName.Flagged);
+            if (chkUnrecent.Checked) lFlags.Add(kMessageFlagName.Recent);
+            if (chkUnseen.Checked) lFlags.Add(kMessageFlagName.Seen);
             if (chkUnfred.Checked) lFlags.Add(Program.FlagFred);
+            if (chkUnfredD.Checked) lFlags.Add(Program.FlagFreD);
+
             if (lFlags.Count != 0) lTerms.Add(!cFilter.FlagsContain(lFlags));
 
             lTerms.AddRange(from r in mPartsBindingList where !string.IsNullOrWhiteSpace(r.Contains) select r.FilterPartContains);

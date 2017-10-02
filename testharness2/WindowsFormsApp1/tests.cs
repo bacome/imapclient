@@ -1662,10 +1662,10 @@ namespace testharness2
                 if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 4392 || lClient.Inbox.UIDValidity != 3857529045 || lClient.Inbox.UnseenCount != 0 || lClient.Inbox.UnseenUnknownCount != 172) throw new cTestsException("ZTestSearch1.3");
 
                 lFlags = lClient.Inbox.MessageFlags;
-                if (lFlags.Count != 5 || !lFlags.Contains(cMessageFlags.Answered) || !lFlags.Contains(cMessageFlags.Flagged) || !lFlags.Contains(cMessageFlags.Deleted) || !lFlags.Contains(cMessageFlags.Seen) || !lFlags.Contains(cMessageFlags.Draft)) throw new cTestsException("ZTestSearch1.4");
+                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlagName.Answered) || !lFlags.Contains(kMessageFlagName.Flagged) || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.Draft)) throw new cTestsException("ZTestSearch1.4");
 
                 lFlags = lClient.Inbox.ForUpdatePermanentFlags;
-                if (lFlags.Count != 3 || !lFlags.Contains(cMessageFlags.Deleted) || !lFlags.Contains(cMessageFlags.Seen) || !lFlags.Contains(cMessageFlags.CreateNewIsPossible) || lFlags.Contains(cMessageFlags.Draft) || lFlags.Contains(cMessageFlags.Flagged)) throw new cTestsException("ZTestSearch1.5");
+                if (lFlags.Count != 3 || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.CreateNewIsPossible) || lFlags.Contains(kMessageFlagName.Draft) || lFlags.Contains(kMessageFlagName.Flagged)) throw new cTestsException("ZTestSearch1.5");
 
                 if (!lClient.Inbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch1.6");
 
@@ -1691,7 +1691,7 @@ namespace testharness2
                 if (lMailbox.MessageCount != 17 || lMailbox.RecentCount != 2 || lMailbox.UIDNext != 4392 || lMailbox.UIDValidity != 3857529045 || lMailbox.UnseenCount != 0 || lMailbox.UnseenUnknownCount != 17) throw new cTestsException("ZTestSearch3.2");
 
                 lFlags = lMailbox.MessageFlags;
-                if (lFlags.Count != 5 || !lFlags.Contains(cMessageFlags.Answered) || !lFlags.Contains(cMessageFlags.Flagged) || !lFlags.Contains(cMessageFlags.Deleted) || !lFlags.Contains(cMessageFlags.Seen) || !lFlags.Contains(cMessageFlags.Draft)) throw new cTestsException("ZTestSearch3.3");
+                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlagName.Answered) || !lFlags.Contains(kMessageFlagName.Flagged) || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.Draft)) throw new cTestsException("ZTestSearch3.3");
 
                 lFlags = lMailbox.ReadOnlyPermanentFlags;
                 if (lFlags.Count != 0) throw new cTestsException("ZTestSearch3.4");
@@ -1917,10 +1917,10 @@ namespace testharness2
                 if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 4392 || lClient.Inbox.UIDValidity != 3857529045 || lClient.Inbox.UnseenCount != 0 || lClient.Inbox.UnseenUnknownCount != 172) throw new cTestsException("ZTestSearch1.3");
 
                 lFlags = lClient.Inbox.MessageFlags;
-                if (lFlags.Count != 5 || !lFlags.Contains(cMessageFlags.Answered) || !lFlags.Contains(cMessageFlags.Flagged) || !lFlags.Contains(cMessageFlags.Deleted) || !lFlags.Contains(cMessageFlags.Seen) || !lFlags.Contains(cMessageFlags.Draft)) throw new cTestsException("ZTestSearch2_1.4");
+                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlagName.Answered) || !lFlags.Contains(kMessageFlagName.Flagged) || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.Draft)) throw new cTestsException("ZTestSearch2_1.4");
 
                 lFlags = lClient.Inbox.ForUpdatePermanentFlags;
-                if (lFlags.Count != 3 || !lFlags.Contains(cMessageFlags.Deleted) || !lFlags.Contains(cMessageFlags.Seen) || !lFlags.Contains(cMessageFlags.CreateNewIsPossible) || lFlags.Contains(cMessageFlags.Draft) || lFlags.Contains(cMessageFlags.Flagged)) throw new cTestsException("ZTestSearch2_1.5");
+                if (lFlags.Count != 3 || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.CreateNewIsPossible) || lFlags.Contains(kMessageFlagName.Draft) || lFlags.Contains(kMessageFlagName.Flagged)) throw new cTestsException("ZTestSearch2_1.5");
 
                 if (!lClient.Inbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch2_1.6");
 
@@ -1946,7 +1946,7 @@ namespace testharness2
                 if (lMailbox.MessageCount != 17 || lMailbox.RecentCount != 2 || lMailbox.UIDNext != 4392 || lMailbox.UIDValidity != 3857529045 || lMailbox.UnseenCount != 0 || lMailbox.UnseenUnknownCount != 17) throw new cTestsException("ZTestSearch2_3.2");
 
                 lFlags = lMailbox.MessageFlags;
-                if (lFlags.Count != 5 || !lFlags.Contains(cMessageFlags.Answered) || !lFlags.Contains(cMessageFlags.Flagged) || !lFlags.Contains(cMessageFlags.Deleted) || !lFlags.Contains(cMessageFlags.Seen) || !lFlags.Contains(cMessageFlags.Draft)) throw new cTestsException("ZTestSearch2_3.3");
+                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlagName.Answered) || !lFlags.Contains(kMessageFlagName.Flagged) || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.Draft)) throw new cTestsException("ZTestSearch2_3.3");
 
                 lFlags = lMailbox.ReadOnlyPermanentFlags;
                 if (lFlags.Count != 0) throw new cTestsException("ZTestSearch2_3.4");
@@ -2118,7 +2118,7 @@ namespace testharness2
                 if (lMailbox.MessageCount != 17 || lMailbox.RecentCount != 2 || lMailbox.UIDNext != 4392 || lMailbox.UIDValidity != 3857529045 || lMailbox.UnseenCount != 0 || lMailbox.UnseenUnknownCount != 17) throw new cTestsException("ZTestSearch3_3.2");
 
                 lFlags = lMailbox.MessageFlags;
-                if (lFlags.Count != 5 || !lFlags.Contains(cMessageFlags.Answered) || !lFlags.Contains(cMessageFlags.Flagged) || !lFlags.Contains(cMessageFlags.Deleted) || !lFlags.Contains(cMessageFlags.Seen) || !lFlags.Contains(cMessageFlags.Draft)) throw new cTestsException("ZTestSearch3_3.3");
+                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlagName.Answered) || !lFlags.Contains(kMessageFlagName.Flagged) || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.Draft)) throw new cTestsException("ZTestSearch3_3.3");
 
                 lFlags = lMailbox.ReadOnlyPermanentFlags;
                 if (lFlags.Count != 0) throw new cTestsException("ZTestSearch3_3.4");

@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using work.bacome.imapclient.support;
+using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
-    public static class kFlagName
+    public static class kMessageFlagName
     {
+        public static readonly StringComparer Comparer = new cComparer();
+
         public const string CreateNewIsPossible = @"\*";
         public const string Recent = @"\ReCeNt";
 
@@ -24,13 +28,31 @@ namespace work.bacome.imapclient
 
         // rfc 3503/ 5550
         public const string MDNSent = "$MdNsEnT";
+
+        private class cComparer : StringComparer
+        {
+            // add more to this list as they become known
+            private static readonly string[] kCaseInsensitiveKeywords = new string[] { kMessageFlagName.MDNSent };
+
+            public cComparer() { }
+
+            public override int Compare(string pA, string pB) => ZConditionalToUpperInvariant(pA).CompareTo(ZConditionalToUpperInvariant(pB));
+            public override int GetHashCode(string pFlag) => ZConditionalToUpperInvariant(pFlag).GetHashCode();
+            public override bool Equals(string pA, string pB) => ZConditionalToUpperInvariant(pA).Equals(ZConditionalToUpperInvariant(pB));
+
+            private string ZConditionalToUpperInvariant(string pString)
+            {
+                if (pString != null && pString.Length != 0 && (pString[0] == '\\' || kCaseInsensitiveKeywords.Contains(pString, StringComparer.InvariantCultureIgnoreCase))) return pString.ToUpperInvariant();
+                return pString;
+            }
+        }
     }
 
     public abstract class cMessageFlags : IReadOnlyCollection<string>
     {
-        private readonly cMessageFlagsList mFlags;
+        private readonly cMessageFlagList mFlags;
 
-        public cMessageFlags(cMessageFlagsList pFlags) => mFlags = pFlags;
+        public cMessageFlags(cMessageFlagList pFlags) => mFlags = pFlags;
 
         public bool Contains(string pFlag) => mFlags.Contains(pFlag);
         public bool Contains(params string[] pFlags) => mFlags.Contains(pFlags);
@@ -47,34 +69,27 @@ namespace work.bacome.imapclient
     {
         // immutable (for passing in)
 
-        public cSettableFlags(params string[] pFlags) : base(new cSettableFlagsList(pFlags)) { } // validates, duplicates, removes duplicates
-        public cSettableFlags(IEnumerable<string> pFlags) : base(new cSettableFlagsList(pFlags)) { } // validates, duplicates, removes duplicates
-        public cSettableFlags(cSettableFlagsList pFlags) : base(new cSettableFlagsList(pFlags)) { } // duplicates
+        public cSettableFlags(params string[] pFlags) : base(new cSettableFlagList(pFlags)) { } // validates, duplicates, removes duplicates
+        public cSettableFlags(IEnumerable<string> pFlags) : base(new cSettableFlagList(pFlags)) { } // validates, duplicates, removes duplicates
+        public cSettableFlags(cSettableFlagList pFlags) : base(new cSettableFlagList(pFlags)) { } // duplicates
 
-        public static implicit operator cSettableFlags(cSettableFlagsList pFlags) => new cSettableFlags(pFlags);
+        public static implicit operator cSettableFlags(cSettableFlagList pFlags) => new cSettableFlags(pFlags);
     }
-
-    ;?; // create flag comparer and use that instead of the invariant...
-
-    ;?; // TESTS
 
     public class cFetchableFlags : cMessageFlags
     {
         // immutable (for passing in and out)
 
-        public cFetchableFlags(params string[] pFlags) : base(new cFetchableFlagsList(pFlags)) { } // validates, duplicates, removes duplicates
-        public cFetchableFlags(IEnumerable<string> pFlags) : base(new cFetchableFlagsList(pFlags)) { } // validates, duplicates, removes duplicates
-        public cFetchableFlags(cFetchableFlagsList pFlags) : base(new cFetchableFlagsList(pFlags)) { } // duplicates
-        private cFetchableFlags(cFetchableFlagsList pFlags, bool pWrap) : base(pFlags) { } // wraps
+        public cFetchableFlags(params string[] pFlags) : base(new cFetchableFlagList(pFlags)) { } // validates, duplicates, removes duplicates
+        public cFetchableFlags(IEnumerable<string> pFlags) : base(new cFetchableFlagList(pFlags)) { } // validates, duplicates, removes duplicates
+        public cFetchableFlags(cFetchableFlagList pFlags) : base(new cFetchableFlagList(pFlags)) { } // duplicates
+        private cFetchableFlags(cFetchableFlagList pFlags, bool pWrap) : base(pFlags) { } // wraps
 
-        ;?; // remove it does a string difference not a flag difference
-        public IEnumerable<string> SymmetricDifference(cFetchableFlags pOther) => this.Except(pOther, StringComparer.InvariantCultureIgnoreCase).Union(pOther.Except(this, StringComparer.InvariantCultureIgnoreCase), StringComparer.InvariantCultureIgnoreCase);
-
-        public static implicit operator cFetchableFlags(cFetchableFlagsList pFlags) => new cFetchableFlags(pFlags);
+        public static implicit operator cFetchableFlags(cFetchableFlagList pFlags) => new cFetchableFlags(pFlags);
 
         public static bool TryConstruct(IEnumerable<string> pFlags, out cFetchableFlags rFlags)
         {
-            if (!cFetchableFlagsList.TryConstruct(pFlags, out var lFlags)) { rFlags = null; return false; }
+            if (!cFetchableFlagList.TryConstruct(pFlags, out var lFlags)) { rFlags = null; return false; }
             rFlags = new cFetchableFlags(lFlags, true);
             return true;
         }
@@ -84,47 +99,45 @@ namespace work.bacome.imapclient
     {
         // read only wrapper (for passing out)
 
-        private cPermanentFlags(cPermanentFlagsList pFlags) : base(pFlags) { }
+        private cPermanentFlags(cPermanentFlagList pFlags) : base(pFlags) { }
 
         public static bool TryConstruct(IEnumerable<string> pFlags, out cPermanentFlags rFlags)
         {
-            if (!cPermanentFlagsList.TryConstruct(pFlags, out var lFlags)) { rFlags = null; return false; }
+            if (!cPermanentFlagList.TryConstruct(pFlags, out var lFlags)) { rFlags = null; return false; }
             rFlags = new cPermanentFlags(lFlags);
             return true;
         }
     }
 
-    public abstract class cMessageFlagsList : IReadOnlyCollection<string>
+    public abstract class cMessageFlagList : IReadOnlyCollection<string>
     {
-        // implements case insensitivity (note that the specs do NOT say that keywords are case insensitive OTHER than the spec for MDNSent)
+        // implements case insensitivity (note that the specs do NOT say that keywords are case insensitive OTHER than the spec for MDNSent) via the Comparer
         //  implements uniqueness (via mutation, not via construct)
         //  implements validity (via mutation, not via construct)
 
-        // add more as they become known
-        private static readonly string[] kCaseInsensitiveFlags = new string[] { kFlagName.MDNSent };
 
         private readonly List<string> mFlags;
 
-        public cMessageFlagsList(List<string> pFlags)
+        public cMessageFlagList(List<string> pFlags)
         {
             mFlags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
         }
 
-        public bool Contains(string pFlag) => ZContains(mFlags, pFlag);
+        public bool Contains(string pFlag) => mFlags.Contains(pFlag, kMessageFlagName.Comparer);
         public bool Contains(params string[] pFlags) => ZContains(pFlags);
         public bool Contains(IEnumerable<string> pFlags) => ZContains(pFlags);
 
         private bool ZContains(IEnumerable<string> pFlags)
         {
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
-            foreach (var lFlag in pFlags) if (!ZContains(mFlags, lFlag)) return false;
+            foreach (var lFlag in pFlags) if (!mFlags.Contains(lFlag, kMessageFlagName.Comparer)) return false;
             return true;
         }
 
         public void Add(string pFlag)
         {
             if (!YIsValidFlag(pFlag)) throw new ArgumentOutOfRangeException(nameof(pFlag));
-            if (!ZContains(mFlags, pFlag)) mFlags.Add(pFlag);
+            if (!mFlags.Contains(pFlag, kMessageFlagName.Comparer)) mFlags.Add(pFlag);
         }
 
         public void Add(params string[] pFlags) => ZAdd(pFlags);
@@ -134,22 +147,17 @@ namespace work.bacome.imapclient
         {
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
             foreach (var lFlag in pFlags) if (!YIsValidFlag(lFlag)) throw new ArgumentOutOfRangeException(nameof(pFlags));
-            foreach (var lFlag in pFlags) if (!ZContains(mFlags, lFlag)) mFlags.Add(lFlag);
+            foreach (var lFlag in pFlags) if (!mFlags.Contains(lFlag, kMessageFlagName.Comparer)) mFlags.Add(lFlag);
         }
 
-        public void Remove(string pFlag)
-        {
-            if (pFlag != null && pFlag.Length != 0 && (pFlag[0] == '\\' || kCaseInsensitiveFlags.Contains(pFlag, StringComparer.InvariantCultureIgnoreCase))) mFlags.RemoveAll(f => f.Equals(pFlag, StringComparison.InvariantCultureIgnoreCase));
-            mFlags.Remove(pFlag);
-        }
-
+        public void Remove(string pFlag) => mFlags.RemoveAll(f => Comparer.Equals(f, pFlag));
         public void Remove(params string[] pFlags) => ZRemove(pFlags);
         public void Remove(IEnumerable<string> pFlags) => ZRemove(pFlags);
 
         private void ZRemove(IEnumerable<string> pFlags)
         {
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
-            foreach (var lFlag in pFlags) Remove(lFlag);
+            foreach (var lFlag in pFlags) mFlags.RemoveAll(f => Comparer.Equals(f, lFlag));
         }
 
         public int Count => mFlags.Count;
@@ -160,31 +168,18 @@ namespace work.bacome.imapclient
 
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cMessageFlagsList));
+            var lBuilder = new cListBuilder(nameof(cMessageFlagList));
             foreach (var lFlag in mFlags) lBuilder.Append(lFlag);
             return lBuilder.ToString();
         }
-
-        private static bool ZContains(List<string> pFlags, string pFlag)
-        {
-            if (pFlag != null && pFlag.Length != 0 && (pFlag[0] == '\\' || kCaseInsensitiveFlags.Contains(pFlag, StringComparer.InvariantCultureIgnoreCase))) return pFlags.Contains(pFlag, StringComparer.InvariantCultureIgnoreCase);
-            return pFlags.Contains(pFlag);
-        }
-
-        protected static List<string> YDistinctFlagList(IEnumerable<string> pFlags)
-        {
-            var lFlags = new List<string>();
-            foreach (string lFlag in pFlags) if (!ZContains(lFlags, lFlag)) lFlags.Add(lFlag);
-            return lFlags;
-        }
     }
 
-    public class cSettableFlagsList : cMessageFlagsList
+    public class cSettableFlagList : cMessageFlagList
     {
-        public cSettableFlagsList() : base(new List<string>()) { }
-        public cSettableFlagsList(params string[] pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
-        public cSettableFlagsList(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
-        public cSettableFlagsList(cSettableFlagsList pFlags) : base(new List<string>(pFlags)) { } // duplicates
+        public cSettableFlagList() : base(new List<string>()) { }
+        public cSettableFlagList(params string[] pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
+        public cSettableFlagList(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
+        public cSettableFlagList(cSettableFlagList pFlags) : base(new List<string>(pFlags)) { } // duplicates
 
         protected override bool YIsValidFlag(string pFlag) => ZIsValidFlag(pFlag);
 
@@ -193,7 +188,7 @@ namespace work.bacome.imapclient
             if (pFlag == null) return false;
             if (pFlag.Length == 0) return false;
 
-            if (pFlag.Equals(kFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) return false;
+            if (pFlag.Equals(kMessageFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) return false;
 
             string lFlag;
             if (pFlag[0] == '\\') lFlag = pFlag.Remove(0, 1);
@@ -206,17 +201,57 @@ namespace work.bacome.imapclient
         {
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
             foreach (var lFlag in pFlags) if (!ZIsValidFlag(lFlag)) throw new ArgumentOutOfRangeException(nameof(pFlags));
-            return YDistinctFlagList(pFlags);
+            return new List<string>(pFlags.Distinct(kMessageFlagName.Comparer));
+        }
+
+        [Conditional("DEBUG")]
+        public static void _Tests(cTrace.cContext pParentContext)
+        {
+            bool lFailed;
+
+            var lFlags = new cSettableFlagList();
+
+            lFlags.Add("a");
+            lFlags.Add("b");
+            lFlags.Add(kMessageFlagName.Answered, kMessageFlagName.Deleted);
+            lFlags.Add(kMessageFlagName.Answered, kMessageFlagName.Deleted, kMessageFlagName.Forwarded);
+            lFlags.Add(@"\answereD");
+            lFlags.Add(@"\ansWereD", "A", @"\deleteD");
+
+            lFailed = false;
+            try { lFlags.Add("fr ed"); }
+            catch { lFailed = true; }
+            if (!lFailed) throw new cTestsException($"{nameof(cSettableFlagList)}.1");
+
+            lFailed = false;
+            try { lFlags.Add(kMessageFlagName.Answered, kMessageFlagName.Deleted, kMessageFlagName.Draft, kMessageFlagName.Recent); }
+            catch { lFailed = true; }
+            if (!lFailed) throw new cTestsException($"{nameof(cSettableFlagList)}.1");
+
+            if (lFlags.Count != 6) throw new cTestsException($"{nameof(cSettableFlagList)}.2");
+            if (!lFlags.Contains("A") || lFlags.Contains("B") || !lFlags.Contains(@"\aNswereD") || lFlags.Contains(kMessageFlagName.Draft) || lFlags.Contains("$forwarded")) throw new cTestsException($"{nameof(cSettableFlagList)}.3");
+
+            cSettableFlags lF1 = new cSettableFlags("a", "A", "b", @"\answered", "\\deleted", kMessageFlagName.Forwarded);
+            cFetchableFlags lF2 = new cFetchableFlags("a", "A", "b", @"\answered", "\\deleted", kMessageFlagName.Recent);
+            cSettableFlags lF3 = new cSettableFlags("a", "b", "\\deleted", kMessageFlagName.Forwarded);
+
+            if (!lFlags.Contains(lF1) || lFlags.Contains(lF2) || !lFlags.Contains(lF3)) throw new cTestsException($"{nameof(cSettableFlagList)}.4");
+
+            lFlags.Remove("A");
+            if (lFlags.Count != 5 || lFlags.Contains(lF1) || !lFlags.Contains(lF3)) throw new cTestsException($"{nameof(cSettableFlagList)}.5");
+
+            lFlags.Remove("B", "$forwarded", @"\answered");
+            if (lFlags.Count != 4 || !lFlags.Contains(lF3)) throw new cTestsException($"{nameof(cSettableFlagList)}.6");
         }
     }
 
-    public class cFetchableFlagsList : cMessageFlagsList
+    public class cFetchableFlagList : cMessageFlagList
     {
-        public cFetchableFlagsList() : base(new List<string>()) { }
-        public cFetchableFlagsList(params string[] pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
-        public cFetchableFlagsList(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
-        public cFetchableFlagsList(cFetchableFlagsList pFlags) : base(new List<string>(pFlags)) { } // duplicates
-        private cFetchableFlagsList(List<string> pFlags) : base(pFlags) { } // wraps
+        public cFetchableFlagList() : base(new List<string>()) { }
+        public cFetchableFlagList(params string[] pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
+        public cFetchableFlagList(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
+        public cFetchableFlagList(cFetchableFlagList pFlags) : base(new List<string>(pFlags)) { } // duplicates
+        private cFetchableFlagList(List<string> pFlags) : base(pFlags) { } // wraps
 
         protected override bool YIsValidFlag(string pFlag) => ZIsValidFlag(pFlag);
 
@@ -236,21 +271,21 @@ namespace work.bacome.imapclient
         {
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
             foreach (var lFlag in pFlags) if (!ZIsValidFlag(lFlag)) throw new ArgumentOutOfRangeException(nameof(pFlags));
-            return YDistinctFlagList(pFlags);
+            return new List<string>(pFlags.Distinct(kMessageFlagName.Comparer));
         }
 
-        public static bool TryConstruct(IEnumerable<string> pFlags, out cFetchableFlagsList rFlags)
+        public static bool TryConstruct(IEnumerable<string> pFlags, out cFetchableFlagList rFlags)
         {
             if (pFlags == null) { rFlags = null; return false; }
             foreach (var lFlag in pFlags) if (!ZIsValidFlag(lFlag)) { rFlags = null; return false; }
-            rFlags = new cFetchableFlagsList(YDistinctFlagList(pFlags));
+            rFlags = new cFetchableFlagList(new List<string>(pFlags.Distinct(kMessageFlagName.Comparer)));
             return true;
         }
     }
 
-    public class cPermanentFlagsList : cMessageFlagsList
+    public class cPermanentFlagList : cMessageFlagList
     {
-        private cPermanentFlagsList(List<string> pFlags) : base(pFlags) { } // wraps
+        private cPermanentFlagList(List<string> pFlags) : base(pFlags) { } // wraps
 
         protected override bool YIsValidFlag(string pFlag) => ZIsValidFlag(pFlag);
 
@@ -259,7 +294,7 @@ namespace work.bacome.imapclient
             if (pFlag == null) return false;
             if (pFlag.Length == 0) return false;
 
-            if (pFlag == kFlagName.CreateNewIsPossible) return true;
+            if (pFlag == kMessageFlagName.CreateNewIsPossible) return true;
 
             string lFlag;
             if (pFlag[0] == '\\') lFlag = pFlag.Remove(0, 1);
@@ -268,11 +303,11 @@ namespace work.bacome.imapclient
             return cCommandPartFactory.TryAsAtom(lFlag, out _);
         }
 
-        public static bool TryConstruct(IEnumerable<string> pFlags, out cPermanentFlagsList rFlags)
+        public static bool TryConstruct(IEnumerable<string> pFlags, out cPermanentFlagList rFlags)
         {
             if (pFlags == null) { rFlags = null; return false; }
             foreach (var lFlag in pFlags) if (!ZIsValidFlag(lFlag)) { rFlags = null; return false; }
-            rFlags = new cPermanentFlagsList(YDistinctFlagList(pFlags));
+            rFlags = new cPermanentFlagList(new List<string>(pFlags.Distinct(kMessageFlagName.Comparer)));
             return true;
         }
     }

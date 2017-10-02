@@ -131,7 +131,7 @@ namespace work.bacome.imapclient
 
                     void LTest(string pResponse, string pTest)
                     {
-                        if (!cBytesCursor.TryConstruct(pResponse, out var lCursor)) throw new cTestsException($"{nameof(cResponseDataESearch)}.{pTest}.c1");
+                        var lCursor = new cBytesCursor(pResponse);
                         if (!lRDP.Process(lCursor, out var lRD, lContext)) throw new cTestsException($"{nameof(cResponseDataESearch)}.{pTest}.c2");
                         if (!lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cResponseDataESearch)}.{pTest}.c3");
                         lRDES = lRD as cResponseDataESearch;

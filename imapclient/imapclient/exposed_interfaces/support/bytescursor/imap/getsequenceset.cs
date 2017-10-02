@@ -80,7 +80,7 @@ namespace work.bacome.imapclient.support
 
             void LTest(string pCursor, string pExpSeqSet, string pExpRemainder, cUIntList pExpList, string pExpSeqSet2)
             {
-                TryConstruct(pCursor, out var lCursor);
+                var lCursor = new cBytesCursor(pCursor);
 
                 if (lCursor.GetSequenceSet(out var lSequenceSet))
                 {

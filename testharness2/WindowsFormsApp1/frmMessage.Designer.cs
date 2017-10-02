@@ -59,6 +59,7 @@
             this.tpgOther = new System.Windows.Forms.TabPage();
             this.rtxOther = new System.Windows.Forms.RichTextBox();
             this.lblQueryError = new System.Windows.Forms.Label();
+            this.chkFredD = new System.Windows.Forms.CheckBox();
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
@@ -200,6 +201,7 @@
             // 
             // tpgFlags
             // 
+            this.tpgFlags.Controls.Add(this.chkFredD);
             this.tpgFlags.Controls.Add(this.chkFred);
             this.tpgFlags.Controls.Add(this.chkDeleted);
             this.tpgFlags.Controls.Add(this.chkSeen);
@@ -216,7 +218,7 @@
             // 
             this.chkFred.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkFred.AutoSize = true;
-            this.chkFred.Location = new System.Drawing.Point(132, 489);
+            this.chkFred.Location = new System.Drawing.Point(146, 489);
             this.chkFred.Name = "chkFred";
             this.chkFred.Size = new System.Drawing.Size(47, 17);
             this.chkFred.TabIndex = 3;
@@ -227,7 +229,7 @@
             // 
             this.chkDeleted.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkDeleted.AutoSize = true;
-            this.chkDeleted.Location = new System.Drawing.Point(63, 489);
+            this.chkDeleted.Location = new System.Drawing.Point(76, 489);
             this.chkDeleted.Name = "chkDeleted";
             this.chkDeleted.Size = new System.Drawing.Size(63, 17);
             this.chkDeleted.TabIndex = 2;
@@ -443,6 +445,17 @@
             this.lblQueryError.TabIndex = 3;
             this.lblQueryError.Text = "Query Error";
             // 
+            // chkFredD
+            // 
+            this.chkFredD.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chkFredD.AutoSize = true;
+            this.chkFredD.Location = new System.Drawing.Point(216, 489);
+            this.chkFredD.Name = "chkFredD";
+            this.chkFredD.Size = new System.Drawing.Size(49, 17);
+            this.chkFredD.TabIndex = 4;
+            this.chkFredD.Text = "FreD";
+            this.chkFredD.UseVisualStyleBackColor = true;
+            // 
             // frmMessage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -514,5 +527,6 @@
         private System.Windows.Forms.Button cmdDownloadDecoded;
         private System.Windows.Forms.PictureBox pbx;
         private System.Windows.Forms.DataGridView dgv;
+        private System.Windows.Forms.CheckBox chkFredD;
     }
 }

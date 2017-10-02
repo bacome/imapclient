@@ -26,6 +26,7 @@ namespace work.bacome.imapclient
             //cHeaderFieldNames._Tests(lContext);
             cHeaderFieldNameList._Tests(lContext);
             cHeaderFields._Tests(lContext);
+            cSettableFlagList._Tests(lContext);
         }
 
         private partial class cSession
@@ -44,7 +45,7 @@ namespace work.bacome.imapclient
                 cResponseDataParserESearch._Tests(lContext);
                 //_Tests_ListExtendedCommandParts(lContext);
                 cCommandDetailsBuilder._Tests(lContext);
-                cQuotedPrintableDecoder._Tests(lContext);
+                cQuotedPrintableDecoder._Tests(lContext);               
             }
         }
     }

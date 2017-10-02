@@ -142,7 +142,7 @@ namespace testharness2
                 }
                 else lConfiguration = null;
 
-                lMessages = await mSelectedMailbox.MessagesAsync(e.Handles, mClient.DefaultMessageProperties, lConfiguration);
+                lMessages = await mSelectedMailbox.MessagesAsync(e.Handles, mClient.DefaultCacheItems, lConfiguration);
             }
             catch (OperationCanceledException) { return; }
             catch (Exception ex)
@@ -288,16 +288,16 @@ namespace testharness2
                 if (mSelectedMailbox.MessageCount > mMaxMessages)
                 {
                     // first get the messages, sorted, but don't get the requested properties yet (as this would be wasteful)
-                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, 0, lConfiguration);
+                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, cCacheItems.None, lConfiguration);
                     if (IsDisposed || lQueryMessagesAsyncEntryNumber != mQueryMessagesAsyncEntryNumber) return;
 
                     // remove any excess messages (the filter may have removed enough or the mailbox may have changed in the meantime)
                     if (lMessages.Count > mMaxMessages) lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
 
                     // get any missing attributes
-                    await mSelectedMailbox.FetchAsync(lMessages, fMessageProperties.clientdefault, lConfiguration);
+                    await mSelectedMailbox.FetchAsync(lMessages, mClient.DefaultCacheItems, lConfiguration);
                 }
-                else if (mFilter != null || mOverrideSort != null || lConfiguration != null) lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, fMessageProperties.clientdefault, lConfiguration); // demonstrate the full API (note that we could have specified additional message properties if required)
+                else if (mFilter != null || mOverrideSort != null || lConfiguration != null) lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
                 else lMessages = await mSelectedMailbox.MessagesAsync(); // show that getting the full set of messages in a mailbox is trivial if no restrictions are required and the defaults are set correctly
             }
             catch (Exception e)

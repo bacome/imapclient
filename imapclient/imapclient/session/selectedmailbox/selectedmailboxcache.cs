@@ -265,7 +265,7 @@ namespace work.bacome.imapclient
 
                     if ((lAttributesSet & fCacheAttributes.flags) != 0)
                     {
-                        if (pFetch.Flags.Contains(kFlagName.Seen))
+                        if (pFetch.Flags.Contains(kMessageFlagName.Seen))
                         {
                             if (lFetchedItem.Unseen == null)
                             {

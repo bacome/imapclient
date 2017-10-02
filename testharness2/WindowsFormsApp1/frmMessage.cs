@@ -67,7 +67,7 @@ namespace testharness2
             {
                 chkSeen.Enabled = true;
                 chkDeleted.Enabled = true;
-                chkFred.Enabled = mMailbox.MessageFlags.ContainsCreateNewPossible;
+                chkFred.Enabled = mMailbox.MessageFlags.Contains(kMessageFlagName.CreateNewIsPossible);
             }
             else
             {
@@ -184,7 +184,8 @@ namespace testharness2
 
                         chkSeen.Checked = mMessage.IsSeen;
                         chkDeleted.Checked = mMessage.IsDeleted;
-                        chkFred.Checked = mMessage.FlagsContain(Program.FlagFred);
+                        chkFred.Checked = mMessage.Flags.Contains(Program.FlagFred);
+                        chkFredD.Checked = mMessage.Flags.Contains(Program.FlagFreD);
                     }
 
                     return;
