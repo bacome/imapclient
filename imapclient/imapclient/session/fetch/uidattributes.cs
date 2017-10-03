@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
                     {
                         var lHandle = lSelectedMailbox.GetHandle(lUID);
                         if (lHandle == null) lUIDs.Add(lUID); // don't have a handle
-                        if (lHandle.ContainsNone(pItems)) lUIDs.Add(lUID); // have to get all the attributes, may as well fetch them with the ones where I might need all the attributes
+                        else if (lHandle.ContainsNone(pItems)) lUIDs.Add(lUID); // have to get all the attributes, may as well fetch them with the ones where I might need all the attributes
                         else lHandles.Add(lHandle);
                     }
                 }

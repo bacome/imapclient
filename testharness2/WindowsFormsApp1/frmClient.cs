@@ -273,7 +273,7 @@ namespace testharness2
         {
             if (!(sender is TextBox lTextBox)) return;
 
-            if (ZTryParseHeaderFieldNames(txtMPHeaderFieldNames.Text, out var lNames)) lTextBox.Text = ZHeaderFieldNames(lNames);
+            if (ZTryParseHeaderFieldNames(lTextBox.Text, out var lNames)) lTextBox.Text = ZHeaderFieldNames(lNames);
             else
             {
                 e.Cancel = true;
@@ -350,14 +350,14 @@ namespace testharness2
 
             ZSortDescriptionSet();
 
-            chkMPEnvelope.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.envelope) != 0;
-            chkMPFlags.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            chkMPReceived.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            chkMPSize.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            chkMPUID.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            chkMPModSeq.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            chkMPBodyStructure.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            txtMPHeaderFieldNames.Text = ZHeaderFieldNames(mClient.DefaultCacheItems.Names);
+            chkAHEnvelope.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.envelope) != 0;
+            chkAHFlags.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            chkAHReceived.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            chkAHSize.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            chkAHUID.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            chkAHModSeq.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            chkAHBodyStructure.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
+            txtAHHeaderFieldNames.Text = ZHeaderFieldNames(mClient.DefaultCacheItems.Names);
         }
 
         private void ZLoadFetchConfig(cBatchSizerConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
@@ -682,23 +682,48 @@ namespace testharness2
             lblSort.Text = mClient.DefaultSort.ToString();
         }
 
-        private void cmdMPSet_Click(object sender, EventArgs e)
+        private void cmdAHSet_Click(object sender, EventArgs e)
         {
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
 
             fCacheAttributes lAttributes = 0;
 
-            if (chkMPEnvelope.Checked) lAttributes |= fCacheAttributes.envelope;
-            if (chkMPFlags.Checked) lAttributes |= fCacheAttributes.flags;
-            if (chkMPReceived.Checked) lAttributes |= fCacheAttributes.received;
-            if (chkMPSize.Checked) lAttributes |= fCacheAttributes.size;
-            if (chkMPUID.Checked) lAttributes |= fCacheAttributes.uid;
-            if (chkMPModSeq.Checked) lAttributes |= fCacheAttributes.modseq;
-            if (chkMPBodyStructure.Checked) lAttributes |= fCacheAttributes.bodystructure;
+            if (chkAHEnvelope.Checked) lAttributes |= fCacheAttributes.envelope;
+            if (chkAHFlags.Checked) lAttributes |= fCacheAttributes.flags;
+            if (chkAHReceived.Checked) lAttributes |= fCacheAttributes.received;
+            if (chkAHSize.Checked) lAttributes |= fCacheAttributes.size;
+            if (chkAHUID.Checked) lAttributes |= fCacheAttributes.uid;
+            if (chkAHModSeq.Checked) lAttributes |= fCacheAttributes.modseq;
+            if (chkAHBodyStructure.Checked) lAttributes |= fCacheAttributes.bodystructure;
 
-            ZTryParseHeaderFieldNames(txtMPHeaderFieldNames.Text, out var lNames);
+            ZTryParseHeaderFieldNames(txtAHHeaderFieldNames.Text, out var lNames);
 
             mClient.DefaultCacheItems = new cCacheItems(lAttributes, lNames ?? cHeaderFieldNames.None);
+        }
+
+        private void cmdPSet_Click(object sender, EventArgs e)
+        {
+            fMessageProperties lProperties = 0;
+
+            if (chkPEnvelope.Checked) lProperties |= fMessageProperties.envelope;
+            if (chkPSent.Checked) lProperties |= fMessageProperties.sent;
+            if (chkPSubject.Checked) lProperties |= fMessageProperties.subject;
+            if (chkPMessageId.Checked) lProperties |= fMessageProperties.messageid;
+            if (chkPFlags.Checked) lProperties |= fMessageProperties.flags;
+            if (chkPIsAnswered.Checked) lProperties |= fMessageProperties.isanswered;
+            if (chkPIsFlagged.Checked) lProperties |= fMessageProperties.isflagged;
+            if (chkPIsSubmitted.Checked) lProperties |= fMessageProperties.issubmitted;
+            if (chkPReceived.Checked) lProperties |= fMessageProperties.received;
+            if (chkPSize.Checked) lProperties |= fMessageProperties.size;
+            if (chkPUID.Checked) lProperties |= fMessageProperties.uid;
+            if (chkPModSeq.Checked) lProperties |= fMessageProperties.modseq;
+            if (chkPBodyStructure.Checked) lProperties |= fMessageProperties.bodystructure;
+            if (chkPAttachments.Checked) lProperties |= fMessageProperties.attachments;
+            if (chkPPlainTextSize.Checked) lProperties |= fMessageProperties.plaintextsizeinbytes;
+            if (chkPReferences.Checked) lProperties |= fMessageProperties.references;
+            if (chkPImportance.Checked) lProperties |= fMessageProperties.importance;
+
+            mClient.DefaultCacheItems = lProperties;
         }
     }
 }

@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -67,13 +65,16 @@ namespace testharness2
             {
                 chkSeen.Enabled = true;
                 chkDeleted.Enabled = true;
+
                 chkFred.Enabled = mMailbox.MessageFlags.Contains(kMessageFlagName.CreateNewIsPossible);
+                chkFredD.Enabled = mMailbox.MessageFlags.Contains(kMessageFlagName.CreateNewIsPossible);
             }
             else
             {
                 chkSeen.Enabled = false;
                 chkDeleted.Enabled = false;
                 chkFred.Enabled = false;
+                chkFredD.Enabled = false;
             }
 
             ZQueryAsync(true);
@@ -211,6 +212,8 @@ namespace testharness2
 
                         lBuilder.AppendLine("Received: " + mMessage.Received);
                         lBuilder.AppendLine("UID: " + mMessage.UID);
+                        lBuilder.AppendLine("References: " + mMessage.References);
+                        lBuilder.AppendLine("Importance: " + mMessage.Importance);
 
                         rtxOther.Text = lBuilder.ToString();
                     }

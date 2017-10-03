@@ -25,8 +25,6 @@ namespace work.bacome.imapclient
             Sort(pSort.Comparison);
         }
 
-        private static int ZCompareCacheSequence(iMessageHandle pX, iMessageHandle pY) => pX.CacheSequence.CompareTo(pY.CacheSequence);
-
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cMessageHandleList));
@@ -45,6 +43,30 @@ namespace work.bacome.imapclient
             }
 
             return lBuilder.ToString();
+        }
+
+        private static int ZCompareCacheSequence(iMessageHandle pX, iMessageHandle pY) => pX.CacheSequence.CompareTo(pY.CacheSequence);
+
+        public static cMessageHandleList FromHandle(iMessageHandle pHandle)
+        {
+            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            return new cMessageHandleList(pHandle);
+        }
+
+        public static cMessageHandleList FromHandles(IList<iMessageHandle> pHandles)
+        {
+            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+
+            object lCache = null;
+
+            foreach (var lHandle in pHandles)
+            {
+                if (lHandle == null) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains nulls");
+                if (lCache == null) lCache = lHandle.Cache;
+                else if (!ReferenceEquals(lHandle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains mixed caches");
+            }
+
+            return new cMessageHandleList(pHandles);
         }
     }
 }

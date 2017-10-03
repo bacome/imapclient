@@ -48,6 +48,8 @@
     <Compile Include="client\disconnect.cs" />
     <Compile Include="client\expunge.cs" />
     <Compile Include="client\fetchsizeinbytes.cs" />
+    <Compile Include="client\store.cs" />
+    <Compile Include="client\uidstore.cs" />
     <Compile Include="exposed_interfaces\message\cacheattributes.cs" />
     <Compile Include="exposed_interfaces\message\headerfieldnames.cs" />
     <Compile Include="exposed_interfaces\message\headerfields.cs" />
@@ -178,7 +180,6 @@
     <Compile Include="exposed_interfaces\support\parsing\charactersets.cs" />
     <Compile Include="exposed_interfaces\support\parsing\uriparts.cs" />
     <Compile Include="exposed_interfaces\support\parsing\urlparts.cs" />
-    <Compile Include="exposed_interfaces\support\tools\binarysizesbuilder.cs" />
     <Compile Include="exposed_interfaces\support\collections\atomlist.cs" />
     <Compile Include="exposed_interfaces\support\tools\listbuilder.cs" />
     <Compile Include="exposed_interfaces\support\tools\tools.cs" />

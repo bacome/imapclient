@@ -150,14 +150,14 @@ namespace work.bacome.imapclient
             foreach (var lFlag in pFlags) if (!mFlags.Contains(lFlag, kMessageFlagName.Comparer)) mFlags.Add(lFlag);
         }
 
-        public void Remove(string pFlag) => mFlags.RemoveAll(f => Comparer.Equals(f, pFlag));
+        public void Remove(string pFlag) => mFlags.RemoveAll(f => kMessageFlagName.Comparer.Equals(f, pFlag));
         public void Remove(params string[] pFlags) => ZRemove(pFlags);
         public void Remove(IEnumerable<string> pFlags) => ZRemove(pFlags);
 
         private void ZRemove(IEnumerable<string> pFlags)
         {
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
-            foreach (var lFlag in pFlags) mFlags.RemoveAll(f => Comparer.Equals(f, lFlag));
+            foreach (var lFlag in pFlags) mFlags.RemoveAll(f => kMessageFlagName.Comparer.Equals(f, lFlag));
         }
 
         public int Count => mFlags.Count;

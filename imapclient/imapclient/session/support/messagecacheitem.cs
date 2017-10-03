@@ -47,8 +47,8 @@ namespace work.bacome.imapclient
                 public DateTime? Received { get; private set; } = null;
                 public uint? Size { get; private set; } = null;
                 public cUID UID { get; private set; } = null;
-                public cHeaderFields HeaderFields { get; private set; } = null;
-                public cBinarySizes BinarySizes { get; private set; } = null;
+                public cHeaderFields HeaderFields { get; private set; } = cHeaderFields.None;
+                public cBinarySizes BinarySizes { get; private set; } = cBinarySizes.None;
 
                 public bool Contains(cCacheItems pItems) => (~mAttributes & pItems.Attributes) == 0 && HeaderFields.Contains(pItems.Names);
                 public bool ContainsNone(cCacheItems pItems) => (~mAttributes & pItems.Attributes) == pItems.Attributes && HeaderFields.ContainsNone(pItems.Names);
@@ -99,11 +99,8 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    if (HeaderFields == null) HeaderFields = lFetch.HeaderFields;
-                    else if (lFetch.HeaderFields != null) HeaderFields += lFetch.HeaderFields;
-
-                    if (BinarySizes == null) BinarySizes = lFetch.BinarySizes;
-                    else if (lFetch.BinarySizes != null) BinarySizes += lFetch.BinarySizes;
+                    HeaderFields += lFetch.HeaderFields;
+                    BinarySizes += lFetch.BinarySizes;
 
                     mAttributes |= lFetch.Attributes;
 

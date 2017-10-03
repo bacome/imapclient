@@ -9,6 +9,7 @@ namespace work.bacome.imapclient.support
         private bool mBeenSelected;
         private bool mBeenSelectedForUpdate;
         private bool mBeenSelectedReadOnly;
+        private bool? mUIDNotSticky;
         private cFetchableFlags mMessageFlags;
         private cPermanentFlags mForUpdatePermanentFlags;
         private cPermanentFlags mReadOnlyPermanentFlags;
@@ -18,12 +19,13 @@ namespace work.bacome.imapclient.support
             mBeenSelected = false;
             mBeenSelectedForUpdate = false;
             mBeenSelectedReadOnly = false;
+            mUIDNotSticky = null;
             mMessageFlags = null;
             mForUpdatePermanentFlags = null;
             mReadOnlyPermanentFlags = null;
         }
 
-        public cMailboxSelectedProperties(cMailboxSelectedProperties pSelectedProperties, cFetchableFlags pMessageFlags, bool pSelectedForUpdate, cPermanentFlags pPermanentFlags)
+        public cMailboxSelectedProperties(cMailboxSelectedProperties pSelectedProperties, bool pUIDNotSticky, cFetchableFlags pMessageFlags, bool pSelectedForUpdate, cPermanentFlags pPermanentFlags)
         {
             if (pSelectedProperties == null) throw new ArgumentNullException(nameof(pSelectedProperties));
             if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
@@ -45,6 +47,7 @@ namespace work.bacome.imapclient.support
                 mReadOnlyPermanentFlags = pPermanentFlags;
             }
 
+            mUIDNotSticky = pUIDNotSticky;
             mMessageFlags = pMessageFlags;
         }
 
@@ -56,6 +59,7 @@ namespace work.bacome.imapclient.support
             mBeenSelected = true;
             mBeenSelectedForUpdate = pSelectedProperties.mBeenSelectedForUpdate;
             mBeenSelectedReadOnly = pSelectedProperties.mBeenSelectedReadOnly;
+            mUIDNotSticky = pSelectedProperties.mUIDNotSticky;
             mMessageFlags = pMessageFlags;
             mForUpdatePermanentFlags = pSelectedProperties.mForUpdatePermanentFlags;
             mReadOnlyPermanentFlags = pSelectedProperties.mReadOnlyPermanentFlags;
@@ -82,17 +86,19 @@ namespace work.bacome.imapclient.support
                 mReadOnlyPermanentFlags = pPermanentFlags;
             }
 
+            mUIDNotSticky = pSelectedProperties.mUIDNotSticky;
             mMessageFlags = pSelectedProperties.mMessageFlags;
         }
 
         public bool HasBeenSelected => mBeenSelected;
         public bool HasBeenSelectedForUpdate => mBeenSelectedForUpdate;
         public bool HasBeenSelectedReadOnly => mBeenSelectedReadOnly;
+        public bool? UIDNotSticky => mUIDNotSticky;
         public cFetchableFlags MessageFlags => mMessageFlags;
         public cMessageFlags ForUpdatePermanentFlags => (cMessageFlags)mForUpdatePermanentFlags ?? mMessageFlags;
         public cMessageFlags ReadOnlyPermanentFlags => (cMessageFlags)mReadOnlyPermanentFlags ?? mMessageFlags;
 
-        public override string ToString() => $"{nameof(cMailboxSelectedProperties)}({mBeenSelected},{mBeenSelectedForUpdate},{mBeenSelectedReadOnly},{mMessageFlags},{mForUpdatePermanentFlags},{mReadOnlyPermanentFlags})";
+        public override string ToString() => $"{nameof(cMailboxSelectedProperties)}({mBeenSelected},{mBeenSelectedForUpdate},{mBeenSelectedReadOnly},{mUIDNotSticky},{mMessageFlags},{mForUpdatePermanentFlags},{mReadOnlyPermanentFlags})";
 
         public static fMailboxProperties Differences(cMailboxSelectedProperties pOld, cMailboxSelectedProperties pNew)
         {
@@ -104,6 +110,7 @@ namespace work.bacome.imapclient.support
             if (pOld.mBeenSelected != pNew.mBeenSelected) lProperties |= fMailboxProperties.hasbeenselected;
             if (pOld.mBeenSelectedForUpdate != pNew.mBeenSelectedForUpdate) lProperties |= fMailboxProperties.hasbeenselectedforupdate;
             if (pOld.mBeenSelectedReadOnly != pNew.mBeenSelectedReadOnly) lProperties |= fMailboxProperties.hasbeenselectedreadonly;
+            if (pOld.mUIDNotSticky != pNew.mUIDNotSticky) lProperties |= fMailboxProperties.uidnotsticky;
             if (pOld.mMessageFlags != pNew.mMessageFlags) lProperties |= fMailboxProperties.messageflags;
             if (pOld.ForUpdatePermanentFlags != pNew.ForUpdatePermanentFlags) lProperties |= fMailboxProperties.forupdatepermanentflags;
             if (pOld.ReadOnlyPermanentFlags != pNew.ReadOnlyPermanentFlags) lProperties |= fMailboxProperties.readonlypermanentflags;

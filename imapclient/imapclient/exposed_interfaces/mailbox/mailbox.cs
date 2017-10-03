@@ -341,6 +341,7 @@ namespace work.bacome.imapclient
         public bool HasBeenSelected => Handle.SelectedProperties.HasBeenSelected;
         public bool HasBeenSelectedForUpdate => Handle.SelectedProperties.HasBeenSelectedForUpdate;
         public bool HasBeenSelectedReadOnly => Handle.SelectedProperties.HasBeenSelectedReadOnly;
+        public bool? UIDNotSticky => Handle.SelectedProperties.UIDNotSticky;
 
         public cMessageFlags MessageFlags
         {
@@ -379,7 +380,7 @@ namespace work.bacome.imapclient
             get
             {
                 var lDetails = Client.SelectedMailboxDetails;
-                if (lDetails == null | lDetails.Handle != Handle) return false;
+                if (lDetails == null || !ReferenceEquals(lDetails.Handle, Handle)) return false;
                 return lDetails.SelectedForUpdate;
             }
         }
@@ -389,7 +390,7 @@ namespace work.bacome.imapclient
             get
             {
                 var lDetails = Client.SelectedMailboxDetails;
-                if (lDetails == null | lDetails.Handle != Handle) return false;
+                if (lDetails == null || !ReferenceEquals(lDetails.Handle, Handle)) return false;
                 return lDetails.AccessReadOnly;
             }
         }

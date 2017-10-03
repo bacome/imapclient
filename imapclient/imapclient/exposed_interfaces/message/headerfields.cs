@@ -122,6 +122,8 @@ namespace work.bacome.imapclient
 
     public class cHeaderFields : ReadOnlyCollection<cHeaderField>
     {
+        public static readonly cHeaderFields None = new cHeaderFields(cHeaderFieldNames.None, false, new List<cHeaderField>());
+
         private readonly cHeaderFieldNames mNames;
         private readonly bool mNot;
 
@@ -215,8 +217,8 @@ namespace work.bacome.imapclient
 
         public static cHeaderFields operator +(cHeaderFields pA, cHeaderFields pB)
         {
-            if (pA == null) return pB;
-            if (pB == null) return pA;
+            if (pA == null || (pA.mNames.Count == 0 && !pA.mNot)) return pB ?? None; // pA is null or None
+            if (pB == null || (pB.mNames.Count == 0 && !pB.mNot)) return pA; // pB is null or None
 
             if (pA.mNames.Count == 0 && pA.mNot) return pA; // pA has all headers
             if (pB.mNames.Count == 0 && pB.mNot) return pB; // pB has all headers

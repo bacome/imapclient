@@ -13,6 +13,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kClosedRBracketSpace = new cBytes("CLOSED] ");
                 private static readonly cBytes kUnseenSpace = new cBytes("UNSEEN ");
                 private static readonly cBytes kNoModSeqRBracketSpace = new cBytes("NOMODSEQ] ");
+                private static readonly cBytes kUIDNotStickyRBracketSpace = new cBytes("UIDNOTSTICKY] ");
 
                 private readonly cMailboxCache mMailboxCache;
                 private readonly cCapabilities mCapabilities;
@@ -26,6 +27,7 @@ namespace work.bacome.imapclient
                 private uint mUIDNext = 0;
                 private uint mUIDValidity = 0;
                 private uint mHighestModSeq = 0;
+                private bool mUIDNotSticky = false;
                 private bool mAccessReadOnly = false;
 
                 public cCommandHookSelect(cMailboxCache pMailboxCache, cCapabilities pCapabilities, iMailboxHandle pHandle, bool pForUpdate)
@@ -126,6 +128,12 @@ namespace work.bacome.imapclient
                             mHighestModSeq = 0;
                             return true;
                         }
+
+                        if (pCursor.SkipBytes(kUIDNotStickyRBracketSpace))
+                        {
+                            mUIDNotSticky = true;
+                            return true;
+                        }
                     }
                     else
                     {
@@ -143,7 +151,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eCommandResultType.ok) return;
-                    mMailboxCache.Select(mHandle, mForUpdate, mAccessReadOnly, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
+                    mMailboxCache.Select(mHandle, mForUpdate, mAccessReadOnly, mUIDNotSticky, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
                 }
             }
         }

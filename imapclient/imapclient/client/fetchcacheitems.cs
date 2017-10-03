@@ -18,12 +18,13 @@ namespace work.bacome.imapclient
 
             if (pHandle.Contains(pItems)) return true;
 
-            var lTask = ZFetchCacheItemsAsync(ZFetchHandles(pHandle), pItems, null, lContext);
+            var lTask = ZFetchCacheItemsAsync(cMessageHandleList.FromHandle(pHandle), pItems, null, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
             return pHandle.Contains(pItems);
         }
 
+        ;?; // to be consistant with store this has to return a list of messages that weren't fetched
         public bool Fetch(IList<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
@@ -31,7 +32,7 @@ namespace work.bacome.imapclient
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-            var lHandles = ZFetchHandles(pHandles);
+            var lHandles = cMessageHandleList.FromHandles(pHandles);
 
             if (lHandles.AllContain(pItems)) return true;
 
@@ -50,7 +51,7 @@ namespace work.bacome.imapclient
 
             if (pHandle.Contains(pItems)) return true;
 
-            await ZFetchCacheItemsAsync(ZFetchHandles(pHandle), pItems, null, lContext).ConfigureAwait(false);
+            await ZFetchCacheItemsAsync(cMessageHandleList.FromHandle(pHandle), pItems, null, lContext).ConfigureAwait(false);
 
             return pHandle.Contains(pItems);
         }
@@ -62,35 +63,13 @@ namespace work.bacome.imapclient
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-            var lHandles = ZFetchHandles(pHandles);
+            var lHandles = cMessageHandleList.FromHandles(pHandles);
 
             if (lHandles.AllContain(pItems)) return true;
 
             await ZFetchCacheItemsAsync(lHandles, pItems, pConfiguration, lContext).ConfigureAwait(false);
 
             return lHandles.AllContain(pItems);
-        }
-
-        private cMessageHandleList ZFetchHandles(iMessageHandle pHandle)
-        {
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-            return new cMessageHandleList(pHandle);
-        }
-
-        private cMessageHandleList ZFetchHandles(IList<iMessageHandle> pHandles)
-        {
-            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
-
-            object lCache = null;
-
-            foreach (var lHandle in pHandles)
-            {
-                if (lHandle == null) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains nulls");
-                if (lCache == null) lCache = lHandle.Cache;
-                else if (!ReferenceEquals(lHandle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains mixed caches");
-            }
-
-            return new cMessageHandleList(pHandles);
         }
 
         private async Task ZFetchCacheItemsAsync(cMessageHandleList pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
@@ -163,7 +142,5 @@ namespace work.bacome.imapclient
             foreach (var lHandle in lHandles) lMessages.Add(new cMessage(this, lHandle));
             return lMessages;
         }
-
-
     }
 }

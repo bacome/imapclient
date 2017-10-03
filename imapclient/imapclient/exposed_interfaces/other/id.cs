@@ -91,7 +91,7 @@ namespace work.bacome.imapclient
     {
         public cClientIdUTF8(IDictionary<string, string> pDictionary) : base(pDictionary)
         {
-            if (pDictionary.Count < 1 || pDictionary.Count > 30) throw new ArgumentOutOfRangeException(nameof(pDictionary));
+            if (pDictionary.Count > 30) throw new ArgumentOutOfRangeException(nameof(pDictionary));
 
             foreach (var lEntry in pDictionary)
             {
@@ -105,6 +105,8 @@ namespace work.bacome.imapclient
                 }
             }
         }
+
+        public static implicit operator cClientIdUTF8(cIdDictionary pDictionary) => new cClientIdUTF8(pDictionary);
     }
 
     public class cClientId : cClientIdUTF8
@@ -123,6 +125,8 @@ namespace work.bacome.imapclient
                 }
             }
         }
+
+        public static implicit operator cClientId(cIdDictionary pDictionary) => new cClientId(pDictionary);
     }
 
     public class cIdDictionary : iId, IDictionary<string, string>

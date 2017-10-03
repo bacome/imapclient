@@ -34,12 +34,13 @@ namespace work.bacome.imapclient.support
         hasbeenselected = 1 << 22,
         hasbeenselectedforupdate = 1 << 23,
         hasbeenselectedreadonly = 1 << 24,
-        messageflags = 1 << 25,
-        forupdatepermanentflags = 1 << 26,
-        readonlypermanentflags = 1 << 27,
+        uidnotsticky = 1 << 25,
+        messageflags = 1 << 26,
+        forupdatepermanentflags = 1 << 27,
+        readonlypermanentflags = 1 << 28,
 
-        isselected = 1 << 28,
-        isselectedforupdate = 1 << 29,
-        isaccessreadonly = 1 << 30
+        isselected = 1 << 29,
+        isselectedforupdate = 1 << 30,
+        isaccessreadonly = 1 << 31
     }
 }

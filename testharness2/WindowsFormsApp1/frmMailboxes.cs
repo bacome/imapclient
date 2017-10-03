@@ -21,7 +21,6 @@ namespace testharness2
         private readonly fMailboxCacheDataSets mDataSets;
         private readonly Action<Form> mDisplaySelectedMailbox;
         private cMailbox mSubscribedMailbox = null;
-        private TreeNode mSubscribedMailboxNode = null;
 
         public frmMailboxes(cIMAPClient pClient, bool pSubscriptions, fMailboxCacheDataSets pDataSets, Action<Form> pDisplaySelectedMailbox)
         {
@@ -136,10 +135,13 @@ namespace testharness2
 
             if (!(e.Node.Tag is cNodeTag lTag))
             {
+                cmdSubscriptions.Enabled = false;
                 gbxMailbox.Enabled = false;
                 gbxCreate.Enabled = false;
                 return;
             }
+
+            cmdSubscriptions.Enabled = true;
 
             if (lTag.Namespace == null)
             {
@@ -165,7 +167,6 @@ namespace testharness2
             mSubscribedMailbox = pMailbox;
             mSubscribedMailbox.MessageDelivery += ZSubscribedMailboxMessageDelivery;
             mSubscribedMailbox.PropertyChanged += ZSubscribedMailboxPropertyChanged;
-            mSubscribedMailboxNode = pNode;
         }
 
         private void ZUnsubscribeMailbox()
@@ -228,6 +229,9 @@ namespace testharness2
                     if (mSubscribedMailbox.HighestModSeq != null) lBuilder.AppendLine("HighestModSeq: " + mSubscribedMailbox.HighestModSeq);
 
                     lBuilder.AppendLine();
+
+                    if (mSubscribedMailbox.UIDNotSticky == false) lBuilder.AppendLine("UID is sticky");
+                    if (mSubscribedMailbox.UIDNotSticky == true) lBuilder.AppendLine("UID is NOT sticky");
 
                     if (mSubscribedMailbox.MessageFlags != null)
                     {
@@ -356,10 +360,14 @@ namespace testharness2
 
         private async void cmdRename_Click(object sender, EventArgs e)
         {
+            var lNode = tvw.SelectedNode;
+            if (lNode == null) return;
+            var lTag = tvw.SelectedNode.Tag as cNodeTag;
+            if (lTag?.Mailbox == null) return;
+
             try
             {
-                var lNode = mSubscribedMailboxNode;
-                var lMailbox = await mSubscribedMailbox.RenameAsync(txtRename.Text.Trim());
+                var lMailbox = await lTag.Mailbox.RenameAsync(txtRename.Text.Trim());
                 if (IsDisposed) return;
                 ZAddMailbox(lNode.Parent, lMailbox);
             }
@@ -371,22 +379,59 @@ namespace testharness2
 
         private async void cmdCreate_Click(object sender, EventArgs e)
         {
-            try
+            var lNode = tvw.SelectedNode;
+            if (lNode == null) return;
+            var lTag = tvw.SelectedNode.Tag as cNodeTag;
+            if (lTag == null) return;
+
+            if (lTag.Mailbox != null)
             {
-                var lNode = mSubscribedMailboxNode;
-                var lMailbox = await mSubscribedMailbox.CreateChildAsync(txtCreate.Text.Trim(), chkCreate.Checked);
-                if (IsDisposed) return;
-                ZAddMailbox(lNode, lMailbox);
+                try
+                {
+                    var lMailbox = await lTag.Mailbox.CreateChildAsync(txtCreate.Text.Trim(), chkCreate.Checked);
+                    if (IsDisposed) return;
+                    if (lTag.State == cNodeTag.eState.expanded) ZAddMailbox(lNode, lMailbox);
+                }
+                catch (Exception ex)
+                {
+                    if (!IsDisposed) MessageBox.Show(this, $"an error occurred while creating: {ex}");
+                }
+
+                return;
             }
-            catch (Exception ex)
+
+            if (lTag.Namespace != null)
             {
-                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while creating: {ex}");
+                try
+                {
+                    var lMailbox = await lTag.Namespace.CreateChildAsync(txtCreate.Text.Trim(), chkCreate.Checked);
+                    if (IsDisposed) return;
+                    if (lTag.State == cNodeTag.eState.expanded) ZAddMailbox(lNode, lMailbox);
+                }
+                catch (Exception ex)
+                {
+                    if (!IsDisposed) MessageBox.Show(this, $"an error occurred while creating: {ex}");
+                }
+
+                return;
             }
         }
 
         private void cmdSubscriptions_Click(object sender, EventArgs e)
         {
-            // TODO
+            var lTag = tvw.SelectedNode?.Tag as cNodeTag;
+            if (lTag == null) return;
+
+            List<cMailbox> lMailboxes;
+
+            if (lTag.Namespace != null) lMailboxes = lTag.Namespace.Subscribed(true);
+            else if (lTag.Mailbox != null) lMailboxes = lTag.Mailbox.Subscribed(true);
+            else return;
+
+            StringBuilder lBuilder = new StringBuilder();
+            lBuilder.AppendLine("Subscribed mailboxes;");
+            foreach (var lMailbox in lMailboxes) lBuilder.AppendLine(lMailbox.Path);
+            MessageBox.Show(lBuilder.ToString());
         }
 
         public class cNodeTag

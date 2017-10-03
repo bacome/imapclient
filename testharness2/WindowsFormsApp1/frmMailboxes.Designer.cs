@@ -30,6 +30,7 @@
         {
             this.tvw = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.cmdSubscriptions = new System.Windows.Forms.Button();
             this.gbxMailbox = new System.Windows.Forms.GroupBox();
             this.cmdExamine = new System.Windows.Forms.Button();
             this.gbxRename = new System.Windows.Forms.GroupBox();
@@ -44,7 +45,6 @@
             this.chkCreate = new System.Windows.Forms.CheckBox();
             this.txtCreate = new System.Windows.Forms.TextBox();
             this.rtx = new System.Windows.Forms.RichTextBox();
-            this.cmdSubscriptions = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -87,6 +87,17 @@
             this.splitContainer1.Size = new System.Drawing.Size(792, 571);
             this.splitContainer1.SplitterDistance = 315;
             this.splitContainer1.TabIndex = 1;
+            // 
+            // cmdSubscriptions
+            // 
+            this.cmdSubscriptions.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdSubscriptions.Location = new System.Drawing.Point(361, 273);
+            this.cmdSubscriptions.Name = "cmdSubscriptions";
+            this.cmdSubscriptions.Size = new System.Drawing.Size(100, 25);
+            this.cmdSubscriptions.TabIndex = 1;
+            this.cmdSubscriptions.Text = "Subscriptions";
+            this.cmdSubscriptions.UseVisualStyleBackColor = true;
+            this.cmdSubscriptions.Click += new System.EventHandler(this.cmdSubscriptions_Click);
             // 
             // gbxMailbox
             // 
@@ -243,17 +254,6 @@
             this.rtx.Size = new System.Drawing.Size(473, 262);
             this.rtx.TabIndex = 0;
             this.rtx.Text = "";
-            // 
-            // cmdSubscriptions
-            // 
-            this.cmdSubscriptions.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdSubscriptions.Location = new System.Drawing.Point(361, 273);
-            this.cmdSubscriptions.Name = "cmdSubscriptions";
-            this.cmdSubscriptions.Size = new System.Drawing.Size(100, 25);
-            this.cmdSubscriptions.TabIndex = 1;
-            this.cmdSubscriptions.Text = "Subscriptions";
-            this.cmdSubscriptions.UseVisualStyleBackColor = true;
-            this.cmdSubscriptions.Click += new System.EventHandler(this.cmdSubscriptions_Click);
             // 
             // frmMailboxes
             // 

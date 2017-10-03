@@ -219,7 +219,7 @@ namespace work.bacome.imapclient
 
             public void InvokeMailboxPropertiesChanged(iMailboxHandle pHandle, fMailboxProperties pProperties, cTrace.cContext pParentContext)
             {
-                if (MailboxPropertyChanged == null | pProperties == 0) return; // pre-checks for efficiency
+                if (MailboxPropertyChanged == null || pProperties == 0) return; // pre-checks for efficiency
 
                 var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMailboxPropertiesChanged), pHandle, pProperties);
 
@@ -254,6 +254,7 @@ namespace work.bacome.imapclient
                 if ((pProperties & fMailboxProperties.hasbeenselected) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasBeenSelected)));
                 if ((pProperties & fMailboxProperties.hasbeenselectedforupdate) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasBeenSelectedForUpdate)));
                 if ((pProperties & fMailboxProperties.hasbeenselectedreadonly) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasBeenSelectedReadOnly)));
+                if ((pProperties & fMailboxProperties.uidnotsticky) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UIDNotSticky)));
                 if ((pProperties & fMailboxProperties.messageflags) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.MessageFlags)));
                 if ((pProperties & fMailboxProperties.forupdatepermanentflags) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ForUpdatePermanentFlags)));
                 if ((pProperties & fMailboxProperties.readonlypermanentflags) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ReadOnlyPermanentFlags)));

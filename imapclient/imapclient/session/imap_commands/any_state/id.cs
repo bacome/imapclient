@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(kIdCommandPart);
 
-                    if (pClientId == null) lBuilder.Add(cCommandPart.Nil);
+                    if (pClientId == null || pClientId.Count == 0) lBuilder.Add(cCommandPart.Nil);
                     else
                     {
                         lBuilder.BeginList(eListBracketing.bracketed);

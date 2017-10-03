@@ -162,9 +162,9 @@ namespace work.bacome.imapclient
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
                 }
 
-                public void Select(iMailboxHandle pHandle, bool pForUpdate, bool pAccessReadOnly, cFetchableFlags pFlags, cPermanentFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public void Select(iMailboxHandle pHandle, bool pForUpdate, bool pAccessReadOnly, bool pUIDNotSticky, cFetchableFlags pFlags, cPermanentFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pHandle, pForUpdate, pAccessReadOnly, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pHandle, pForUpdate, pAccessReadOnly, pUIDNotSticky, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
 
                     if (mSelectedMailbox != null) throw new InvalidOperationException();
 
@@ -178,7 +178,7 @@ namespace work.bacome.imapclient
 
                     mSelectedMailbox = new cSelectedMailbox(mSynchroniser, lItem, pForUpdate, pAccessReadOnly, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq, lContext);
 
-                    lItem.SetSelectedProperties(pFlags, pForUpdate, pPermanentFlags, lContext);
+                    lItem.SetSelectedProperties(pUIDNotSticky, pFlags, pForUpdate, pPermanentFlags, lContext);
 
                     fMailboxProperties lProperties = fMailboxProperties.isselected;
                     if (pForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;

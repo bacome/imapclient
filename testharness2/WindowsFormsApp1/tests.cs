@@ -218,9 +218,9 @@ namespace testharness2
             lClient.SetServer("localhost");
             lClient.SetPlainCredentials("fred", "angus");
 
-            cIdDictionary lIdDictionary = new cIdDictionary();
+            cIdDictionary lIdDictionary = new cIdDictionary(false);
             lIdDictionary.Name = "fred";
-            lClient.ClientId = new cClientId(lIdDictionary);
+            lClient.ClientId = lIdDictionary;
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
             lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
@@ -284,13 +284,13 @@ namespace testharness2
             lIdDictionary.Name = "fr€d";
 
             bool lFailed = false;
-            try { lClient.ClientId = new cClientId(lIdDictionary); }
+            try { lClient.ClientId = lIdDictionary; }
             catch (Exception) { lFailed = true; }
             if (!lFailed) throw new cTestsException("ZTestPreauthAtStartup1_2: utf8 client id should have failed");
 
-            lIdDictionary = new cIdDictionary();
+            lIdDictionary = new cIdDictionary(false);
             lIdDictionary.Name = "fr?d";
-            lClient.ClientId = new cClientId(lIdDictionary);
+            lClient.ClientId = lIdDictionary;
 
             lClient.IdleConfiguration = null;
 
@@ -359,9 +359,9 @@ namespace testharness2
             lClient.SetServer("localhost");
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
-            cIdDictionary lIdDictionary = new cIdDictionary();
+            cIdDictionary lIdDictionary = new cIdDictionary(false);
             lIdDictionary.Name = "fr€d";
-            lClient.ClientIdUTF8 = new cClientIdUTF8(lIdDictionary);
+            lClient.ClientIdUTF8 = lIdDictionary;
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
             lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
@@ -1710,7 +1710,7 @@ namespace testharness2
 
                 lMessage = lMessageList[0];
 
-                if (lMessage.IsExpunged || lMessage.Handle.Attributes != fCacheAttributes.received) throw new cTestsException("ZTestSearch4.4");
+                if (lMessage.IsExpunged || lMessage.Handle.Attributes != (fCacheAttributes.received | fCacheAttributes.modseq)) throw new cTestsException("ZTestSearch4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch4.5");
 
 
@@ -1965,7 +1965,7 @@ namespace testharness2
 
                 lMessage = lMessageList[0];
 
-                if (lMessage.IsExpunged || lMessage.Handle.Attributes != fCacheAttributes.received) throw new cTestsException("ZTestSearch2_4.4");
+                if (lMessage.IsExpunged || lMessage.Handle.Attributes != (fCacheAttributes.received | fCacheAttributes.modseq)) throw new cTestsException("ZTestSearch2_4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch2_4.5");
 
 

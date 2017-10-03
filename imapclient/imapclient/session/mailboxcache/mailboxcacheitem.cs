@@ -153,11 +153,11 @@ namespace work.bacome.imapclient
 
                 public cMailboxSelectedProperties SelectedProperties => mSelectedProperties;
 
-                public void SetSelectedProperties(cFetchableFlags pMessageFlags, bool pSelectedForUpdate, cPermanentFlags pPermanentFlags, cTrace.cContext pParentContext)
+                public void SetSelectedProperties(bool pUIDNotSticky, cFetchableFlags pMessageFlags, bool pSelectedForUpdate, cPermanentFlags pPermanentFlags, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetMessageFlags), pMessageFlags, pSelectedForUpdate, pPermanentFlags);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCacheItem), nameof(SetMessageFlags), pUIDNotSticky, pMessageFlags, pSelectedForUpdate, pPermanentFlags);
                     if (pMessageFlags == null) throw new ArgumentNullException(nameof(pMessageFlags));
-                    ZSetSelectedProperties(new cMailboxSelectedProperties(mSelectedProperties, pMessageFlags, pSelectedForUpdate, pPermanentFlags), lContext);
+                    ZSetSelectedProperties(new cMailboxSelectedProperties(mSelectedProperties, pUIDNotSticky, pMessageFlags, pSelectedForUpdate, pPermanentFlags), lContext);
                 }
 
                 public void SetMessageFlags(cFetchableFlags pMessageFlags, cTrace.cContext pParentContext)

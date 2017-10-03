@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
                 public readonly cBinarySizes BinarySizes;
                 public readonly ulong? ModSeq;
 
-                public cResponseDataFetch(uint pMSN, fCacheAttributes pAttributes, cFetchableFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaderFields pHeaderFields, cBinarySizes pBinarySizes, ulong? pModSeq)
+                public cResponseDataFetch(uint pMSN, fCacheAttributes pAttributes, cFetchableFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaderFields pHeaderFields, IDictionary<string, uint> pBinarySizes, ulong? pModSeq)
                 {
                     MSN = pMSN;
                     Attributes = pAttributes;
@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
                     Bodies = new ReadOnlyCollection<cBody>(pBodies);
                     UID = pUID;
                     HeaderFields = pHeaderFields;
-                    BinarySizes = pBinarySizes;
+                    BinarySizes = new cBinarySizes(pBinarySizes);
                     ModSeq = pModSeq;
                 }
 
@@ -126,7 +126,7 @@ namespace work.bacome.imapclient
                     List<cBody> lBodies = new List<cBody>();
                     uint? lUID = null;
                     cHeaderFields lHeaderFields = null;
-                    cBinarySizesBuilder lBinarySizesBuilder = new cBinarySizesBuilder();
+                    Dictionary<string, uint> lBinarySizes = new Dictionary<string, uint>();
                     ulong? lModSeq = null;
 
                     while (true)
@@ -233,7 +233,7 @@ namespace work.bacome.imapclient
                         {
                             lAttribute = 0;
                             lOK = ZProcessBinarySize(pCursor, out var lPart, out var lBytes);
-                            if (lOK) lBinarySizesBuilder.Set(lPart, lBytes);
+                            if (lOK) lBinarySizes[lPart] = lBytes;
                         }
                         else if (pCursor.SkipBytes(kModSeqSpaceLParen))
                         {
@@ -262,7 +262,7 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    rResponseData = new cResponseDataFetch(lMSN, lAttributes, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lHeaderFields, lBinarySizesBuilder.AsBinarySizes(), lModSeq);
+                    rResponseData = new cResponseDataFetch(lMSN, lAttributes, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lHeaderFields, lBinarySizes, lModSeq);
                     return true;
                 }
 
