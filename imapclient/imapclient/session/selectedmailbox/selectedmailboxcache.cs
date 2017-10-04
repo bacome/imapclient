@@ -340,8 +340,8 @@ namespace work.bacome.imapclient
                 }
 
                 public override string ToString() => $"{nameof(cSelectedMailboxCache)}({mMailboxCacheItem},{mUIDValidity})";
-
-                private class cItem : cMessageCacheItem, IComparable<cItem>
+                
+                private class cItem : cMessageCacheItem, IComparable<cItem> // icomparable is implemented for binary search => no need for iequatable
                 {
                     public bool? Unseen = null; // is this message unseen (null = don't know)
 

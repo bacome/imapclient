@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
@@ -12,7 +13,7 @@ namespace work.bacome.imapclient
         public cMessage Message(iMailboxHandle pHandle, cUID pUID, cCacheItems pItems)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Message));
-            var lTask = ZUIDFetchCacheItemsAsync(pHandle, ZMessageUIDs(pUID), pItems, null, lContext);
+            var lTask = ZUIDFetchCacheItemsAsync(pHandle, cUIDList.FromUID(pUID), pItems, null, lContext);
             mSynchroniser.Wait(lTask, lContext);
             var lResult = lTask.Result;
             if (lResult.Count == 0) return null;
@@ -23,46 +24,24 @@ namespace work.bacome.imapclient
         public async Task<cMessage> MessageAsync(iMailboxHandle pHandle, cUID pUID, cCacheItems pItems)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessageAsync));
-            var lResult = await ZUIDFetchCacheItemsAsync(pHandle, ZMessageUIDs(pUID), pItems, null, lContext).ConfigureAwait(false);
+            var lResult = await ZUIDFetchCacheItemsAsync(pHandle, cUIDList.FromUID(pUID), pItems, null, lContext).ConfigureAwait(false);
             if (lResult.Count == 0) return null;
             if (lResult.Count == 1) return lResult[0];
             throw new cInternalErrorException(lContext);
         }
 
-        public List<cMessage> Messages(iMailboxHandle pHandle, IList<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
+        public List<cMessage> Messages(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));
-            var lTask = ZUIDFetchCacheItemsAsync(pHandle, ZMessageUIDs(pUIDs), pItems, pConfiguration, lContext);
+            var lTask = ZUIDFetchCacheItemsAsync(pHandle, cUIDList.FromUIDs(pUIDs), pItems, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<List<cMessage>> MessagesAsync(iMailboxHandle pHandle, IList<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
+        public Task<List<cMessage>> MessagesAsync(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessagesAsync));
-            return ZUIDFetchCacheItemsAsync(pHandle, ZMessageUIDs(pUIDs), pItems, pConfiguration, lContext);
-        }
-
-        private cUIDList ZMessageUIDs(cUID pUID)
-        {
-            if (pUID == null) throw new ArgumentNullException(nameof(pUID));
-            return new cUIDList(pUID);
-        }
-
-        private cUIDList ZMessageUIDs(IList<cUID> pUIDs)
-        {
-            if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
-
-            uint? lUIDValidity = null;
-
-            foreach (var lUID in pUIDs)
-            {
-                if (lUID == null) throw new ArgumentOutOfRangeException(nameof(pUIDs), "contains nulls");
-                if (lUIDValidity == null) lUIDValidity = lUID.UIDValidity;
-                else if (lUID.UIDValidity != lUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDs), "contains mixed uidvalidities");
-            }
-
-            return new cUIDList(pUIDs);
+            return ZUIDFetchCacheItemsAsync(pHandle, cUIDList.FromUIDs(pUIDs), pItems, pConfiguration, lContext);
         }
 
         private cSort mDefaultSort = cSort.None;
@@ -190,7 +169,7 @@ namespace work.bacome.imapclient
             if (pHandles.Count == 0) return;
             if (pItems.IsNone) return;
 
-            if (pHandles.AllContain(pItems)) return;
+            if (pHandles.TrueForAll(h => h.Contains(pItems))) return;
 
             cProgress lProgress;
 

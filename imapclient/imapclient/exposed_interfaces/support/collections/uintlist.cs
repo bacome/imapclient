@@ -5,6 +5,17 @@ namespace work.bacome.imapclient.support
 {
     public class cUIntList : List<uint>
     {
+
+
+
+
+        ;?; // linq this
+
+
+
+
+
+
         public cUIntList() : base() { }
 
         public cUIntList(IEnumerable<uint> pUInts) : base(pUInts) { }

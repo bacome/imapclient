@@ -64,7 +64,7 @@ namespace work.bacome.imapclient.support
         }
     }
 
-    public abstract class cSequenceSetRangePart : cSequenceSetItem, IComparable<cSequenceSetRangePart>
+    public abstract class cSequenceSetRangePart : cSequenceSetItem
     {
         public abstract int CompareTo(cSequenceSetRangePart pOther);
     }

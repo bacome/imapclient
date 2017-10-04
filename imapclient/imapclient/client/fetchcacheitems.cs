@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
@@ -24,8 +25,7 @@ namespace work.bacome.imapclient
             return pHandle.Contains(pItems);
         }
 
-        ;?; // to be consistant with store this has to return a list of messages that weren't fetched
-        public bool Fetch(IList<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
+        public cMessageHandleList Fetch(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
 
@@ -34,12 +34,12 @@ namespace work.bacome.imapclient
 
             var lHandles = cMessageHandleList.FromHandles(pHandles);
 
-            if (lHandles.AllContain(pItems)) return true;
+            if (lHandles.All(h => h.Contains(pItems))) return new cMessageHandleList();
 
             var lTask = ZFetchCacheItemsAsync(lHandles, pItems, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
-            return lHandles.AllContain(pItems);
+            return new cMessageHandleList(from h in lHandles where !h.Contains(pItems) select h);
         }
 
         public async Task<bool> FetchAsync(iMessageHandle pHandle, cCacheItems pItems)
@@ -56,7 +56,7 @@ namespace work.bacome.imapclient
             return pHandle.Contains(pItems);
         }
 
-        public async Task<bool> FetchAsync(IList<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
+        public async Task<cMessageHandleList> FetchAsync(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
 
@@ -65,11 +65,11 @@ namespace work.bacome.imapclient
 
             var lHandles = cMessageHandleList.FromHandles(pHandles);
 
-            if (lHandles.AllContain(pItems)) return true;
+            if (lHandles.All(h => h.Contains(pItems))) return new cMessageHandleList();
 
             await ZFetchCacheItemsAsync(lHandles, pItems, pConfiguration, lContext).ConfigureAwait(false);
 
-            return lHandles.AllContain(pItems);
+            return new cMessageHandleList(from h in lHandles where !h.Contains(pItems) select h);
         }
 
         private async Task ZFetchCacheItemsAsync(cMessageHandleList pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)

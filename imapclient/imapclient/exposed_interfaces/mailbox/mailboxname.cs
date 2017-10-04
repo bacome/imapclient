@@ -7,7 +7,7 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
-    public class cMailboxName : IComparable<cMailboxName>
+    public class cMailboxName : IComparable<cMailboxName>, IEquatable<cMailboxName>
     {
         public const string InboxString = "INBOX";
         public static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
@@ -65,6 +65,54 @@ namespace work.bacome.imapclient
 
         public bool IsInbox => ReferenceEquals(Path, InboxString);
 
+        public int CompareTo(cMailboxName pOther)
+        {
+            if (pOther == null) return 1;
+
+            var lCompareTo = Path.CompareTo(pOther.Path);
+
+            if (lCompareTo != 0) return lCompareTo;
+
+            // should never get here
+
+            if (Delimiter == null)
+            {
+                if (pOther.Delimiter == null) return 0;
+                return -1;
+            }
+
+            if (pOther.Delimiter == null) return 1;
+
+            return Delimiter.Value.CompareTo(pOther.Delimiter.Value);
+        }
+
+        public bool Equals(cMailboxName pOther) => this == pOther;
+
+        public override bool Equals(object pObject) => this == pObject as cMailboxName;
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash * 23 + Path.GetHashCode();
+                if (Delimiter != null) lHash = lHash * 23 + Delimiter.GetHashCode();
+                return lHash;
+            }
+        }
+
+        public override string ToString() => $"{nameof(cMailboxName)}({Path},{Delimiter})";
+
+        public static bool operator ==(cMailboxName pA, cMailboxName pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return pA.Path == pB.Path && pA.Delimiter == pB.Delimiter;
+        }
+
+        public static bool operator !=(cMailboxName pA, cMailboxName pB) => !(pA == pB);
+
         public static bool TryConstruct(string pPath, char? pDelimiter, out cMailboxName rResult)
         {
             if (string.IsNullOrEmpty(pPath)) { rResult = null; return false; }
@@ -99,52 +147,6 @@ namespace work.bacome.imapclient
             else lDelimiter = (char)pDelimiter.Value;
 
             return TryConstruct(lPath, lDelimiter, out rResult);
-        }
-
-        public override bool Equals(object pObject) => this == pObject as cMailboxName;
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int lHash = 17;
-                lHash = lHash * 23 + Path.GetHashCode();
-                if (Delimiter != null) lHash = lHash * 23 + Delimiter.GetHashCode();
-                return lHash;
-            }
-        }
-
-        public override string ToString() => $"{nameof(cMailboxName)}({Path},{Delimiter})";
-
-        public static bool operator ==(cMailboxName pA, cMailboxName pB)
-        {
-            if (ReferenceEquals(pA, pB)) return true;
-            if (ReferenceEquals(pA, null)) return false;
-            if (ReferenceEquals(pB, null)) return false;
-            return pA.Path == pB.Path && pA.Delimiter == pB.Delimiter;
-        }
-
-        public static bool operator !=(cMailboxName pA, cMailboxName pB) => !(pA == pB);
-
-        public int CompareTo(cMailboxName pOther)
-        {
-            if (pOther == null) return 1;
-
-            var lCompareTo = Path.CompareTo(pOther.Path);
-
-            if (lCompareTo != 0) return lCompareTo;
-
-            // should never get here
-
-            if (Delimiter == null)
-            {
-                if (pOther.Delimiter == null) return 0;
-                return -1;
-            }
-
-            if (pOther.Delimiter == null) return 1;
-
-            return Delimiter.Value.CompareTo(pOther.Delimiter.Value);
         }
 
         [Conditional("DEBUG")]

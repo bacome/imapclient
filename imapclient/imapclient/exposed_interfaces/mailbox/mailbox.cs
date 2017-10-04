@@ -456,19 +456,19 @@ namespace work.bacome.imapclient
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, cCacheItems pItems = null, cMessageFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultCacheItems, pConfiguration);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, cCacheItems pItems = null, cMessageFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultCacheItems, pConfiguration);
 
-        public List<cMessage> Messages(IList<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null)
+        public List<cMessage> Messages(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null)
         {
             Client.Fetch(pHandles, pItems, pConfiguration);
             return ZMessages(pHandles);
         }
 
-        public async Task<List<cMessage>> MessagesAsync(IList<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null)
+        public async Task<List<cMessage>> MessagesAsync(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null)
         {
             await Client.FetchAsync(pHandles, pItems, pConfiguration).ConfigureAwait(false);
             return ZMessages(pHandles);
         }
 
-        private List<cMessage> ZMessages(IList<iMessageHandle> pHandles)
+        private List<cMessage> ZMessages(IEnumerable<iMessageHandle> pHandles)
         {
             List<cMessage> lMessages = new List<cMessage>();
             foreach (var lHandle in pHandles) lMessages.Add(new cMessage(Client, lHandle));
@@ -480,27 +480,14 @@ namespace work.bacome.imapclient
 
         public cMessage Message(cUID pUID, cCacheItems pItems) => Client.Message(Handle, pUID, pItems);
         public Task<cMessage> MessageAsync(cUID pUID, cCacheItems pItems) => Client.MessageAsync(Handle, pUID, pItems);
-        public List<cMessage> Messages(IList<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pUIDs, pItems, pConfiguration);
-        public Task<List<cMessage>> MessagesAsync(IList<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pUIDs, pItems, pConfiguration);
+        public List<cMessage> Messages(IEnumerable<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pUIDs, pItems, pConfiguration);
+        public Task<List<cMessage>> MessagesAsync(IEnumerable<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pUIDs, pItems, pConfiguration);
 
         public void Fetch(fMailboxCacheDataSets pDataSets) => Client.Fetch(Handle, pDataSets);
         public Task FetchAsync(fMailboxCacheDataSets pDataSets) => Client.FetchAsync(Handle, pDataSets);
 
-        public bool Fetch(IList<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.Fetch(ZHandles(pMessages), pItems, pConfiguration);
-        public Task<bool> FetchAsync(IList<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.FetchAsync(ZHandles(pMessages), pItems, pConfiguration);
-
-        private List<iMessageHandle> ZHandles(IList<cMessage> pMessages)
-        {
-            List<iMessageHandle> lHandles = new List<iMessageHandle>();
-
-            foreach (var lMessage in pMessages)
-            {
-                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages));
-                lHandles.Add(lMessage.Handle);
-            }
-
-            return lHandles;
-        }
+        public cMessageHandleList Fetch(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.Fetch(cMessageHandleList.FromMessages(pMessages), pItems, pConfiguration);
+        public Task<cMessageHandleList> FetchAsync(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.FetchAsync(cMessageHandleList.FromMessages(pMessages), pItems, pConfiguration);
 
         public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetch(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);
         public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetchAsync(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);

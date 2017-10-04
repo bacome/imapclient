@@ -104,6 +104,9 @@
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
     <Compile Include="session\imap_commands\selected\fetch\binarysize.cs" />
+    <Compile Include="session\imap_commands\selected\store.cs" />
+    <Compile Include="session\session\store.cs" />
+    <Compile Include="session\support\storefeedbackitem.cs" />
     <Compile Include="support\progress.cs" />
     <Compile Include="session\imap_commands\authenticated\create.cs" />
     <Compile Include="session\imap_commands\authenticated\delete.cs" />

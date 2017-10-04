@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -10,20 +11,7 @@ namespace work.bacome.imapclient
         public cMessageHandleList(iMessageHandle pHandle) : base(new iMessageHandle[] { pHandle }) { }
         public cMessageHandleList(IEnumerable<iMessageHandle> pHandles) : base(pHandles) { }
 
-        public bool AllContain(cCacheItems pItems)
-        {
-            foreach (var lHandle in this) if (!lHandle.Contains(pItems)) return false;
-            return true;
-        }
-
         public void SortByCacheSequence() => Sort(ZCompareCacheSequence);
-
-        public void Sort(cSort pSort)
-        {
-            if (pSort == null) throw new ArgumentNullException(nameof(pSort));
-            if (pSort.Items == null) throw new ArgumentOutOfRangeException(nameof(pSort));
-            Sort(pSort.Comparison);
-        }
 
         public override string ToString()
         {
@@ -33,19 +21,34 @@ namespace work.bacome.imapclient
 
             foreach (var lHandle in this)
             {
-                if (!ReferenceEquals(lHandle.Cache, lLastCache))
+                if (lHandle == null) lBuilder.Append(lHandle);
+                else
                 {
-                    lLastCache = lHandle.Cache;
-                    lBuilder.Append(lHandle.Cache);
-                }
+                    if (!ReferenceEquals(lHandle.Cache, lLastCache))
+                    {
+                        lLastCache = lHandle.Cache;
+                        lBuilder.Append(lHandle.Cache);
+                    }
 
-                lBuilder.Append(lHandle.CacheSequence);
+                    lBuilder.Append(lHandle.CacheSequence);
+                }
             }
 
             return lBuilder.ToString();
         }
 
-        private static int ZCompareCacheSequence(iMessageHandle pX, iMessageHandle pY) => pX.CacheSequence.CompareTo(pY.CacheSequence);
+        private static int ZCompareCacheSequence(iMessageHandle pX, iMessageHandle pY)
+        {
+            if (pX == null)
+            {
+                if (pY == null) return 0;
+                return -1;
+            }
+
+            if (pY == null) return 1;
+
+            return pX.CacheSequence.CompareTo(pY.CacheSequence);
+        }
 
         public static cMessageHandleList FromHandle(iMessageHandle pHandle)
         {
@@ -53,7 +56,7 @@ namespace work.bacome.imapclient
             return new cMessageHandleList(pHandle);
         }
 
-        public static cMessageHandleList FromHandles(IList<iMessageHandle> pHandles)
+        public static cMessageHandleList FromHandles(IEnumerable<iMessageHandle> pHandles)
         {
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
 
@@ -66,7 +69,25 @@ namespace work.bacome.imapclient
                 else if (!ReferenceEquals(lHandle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains mixed caches");
             }
 
-            return new cMessageHandleList(pHandles);
+            return new cMessageHandleList(pHandles.Distinct());
+        }
+
+        public static cMessageHandleList FromMessages(IEnumerable<cMessage> pMessages)
+        {
+            if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
+
+            object lCache = null;
+            cMessageHandleList lHandles = new cMessageHandleList();
+
+            foreach (var lMessage in pMessages)
+            {
+                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains nulls");
+                if (lCache == null) lCache = lMessage.Handle.Cache;
+                else if (!ReferenceEquals(lMessage.Handle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains mixed caches");
+                lHandles.Add(lMessage.Handle);
+            }
+
+            return new cMessageHandleList(lHandles.Distinct());
         }
     }
 }

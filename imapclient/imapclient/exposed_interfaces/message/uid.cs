@@ -2,7 +2,7 @@
 
 namespace work.bacome.imapclient
 {
-    public class cUID : IComparable<cUID>
+    public class cUID : IComparable<cUID>, IEquatable<cUID>
     {
         public readonly uint UIDValidity;
         public readonly uint UID;
@@ -22,6 +22,8 @@ namespace work.bacome.imapclient
             if (lCompareTo == 0) return UID.CompareTo(pOther.UID);
             return lCompareTo;
         }
+
+        public bool Equals(cUID pOther) => this == pOther;
 
         public override bool Equals(object pObject) => this == pObject as cUID;
 

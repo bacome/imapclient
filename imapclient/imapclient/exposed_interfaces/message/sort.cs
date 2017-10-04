@@ -71,7 +71,7 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cSortItem)}({Item},{Attribute},{Desc})";
     }
 
-    public class cSort
+    public class cSort : IComparer<iMessageHandle>, IComparer<cMessage>
     {
         public static readonly cSort None = new cSort("none");
         public static readonly cSort ThreadOrderedSubject = new cSort("thread:orderedsubject");
@@ -82,7 +82,7 @@ namespace work.bacome.imapclient
 
         private cSort(string pName)
         {
-            mName = pName;
+            mName = pName ?? throw new ArgumentNullException(nameof(pName));
             Items = null;
         }
 
@@ -115,8 +115,18 @@ namespace work.bacome.imapclient
             Items = new ReadOnlyCollection<cSortItem>(pItems);
         }
 
-        public int Comparison(iMessageHandle pX, iMessageHandle pY)
+        public int Compare(iMessageHandle pX, iMessageHandle pY)
         {
+            if (Items == null) throw new InvalidOperationException();
+
+            if (pX == null)
+            {
+                if (pY == null) return 0;
+                return -1;
+            }
+
+            if (pY == null) return 1;
+
             foreach (var lItem in Items)
             {
                 int lCompareTo;
@@ -185,16 +195,28 @@ namespace work.bacome.imapclient
             return pX.CacheSequence.CompareTo(pY.CacheSequence);
         }
 
-        public int Comparison(cMessage pX, cMessage pY)
+        public int Compare(cMessage pX, cMessage pY)
         {
-            var lAttributes = Attributes(out _);
-            pX.Fetch(lAttributes);
-            pY.Fetch(lAttributes);
-            return Comparison(pX.Handle, pY.Handle);
+            if (Items == null) throw new InvalidOperationException();
+
+            if (pX == null)
+            {
+                if (pY == null) return 0;
+                return -1;
+            }
+
+            if (pY == null) return 1;
+
+            cCacheItems lItems = Attributes(out _);
+            pX.Fetch(lItems);
+            pY.Fetch(lItems);
+            return Compare(pX.Handle, pY.Handle);
         }
 
         public fCacheAttributes Attributes(out bool rDisplay)
         {
+            if (Items == null) throw new InvalidOperationException();
+
             rDisplay = false;
 
             fCacheAttributes lAttributes = 0;
