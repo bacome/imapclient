@@ -1,5 +1,4 @@
 ﻿using System;
-using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -8,14 +7,14 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private abstract class cCommandHookFetchBase : cCommandHook
+            private abstract class cCommandHookFetchBody : cCommandHook
             {
                 private readonly bool mBinary;
                 private readonly cSection mSection;
                 private readonly uint mOrigin;
                 private uint mTo = 0;
 
-                public cCommandHookFetchBase(bool pBinary, cSection pSection, uint pOrigin)
+                public cCommandHookFetchBody(bool pBinary, cSection pSection, uint pOrigin)
                 {
                     mBinary = pBinary;
                     mSection = pSection;
@@ -26,7 +25,7 @@ namespace work.bacome.imapclient
 
                 public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookFetchBase), nameof(ProcessData));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookFetchBody), nameof(ProcessData));
 
                     if (!(pData is cResponseDataFetch lFetch)) return eProcessDataResult.notprocessed;
                     if (!IsThisTheMessageThatIAmInterestedIn(lFetch)) return eProcessDataResult.notprocessed;
@@ -60,11 +59,11 @@ namespace work.bacome.imapclient
                 protected abstract bool IsThisTheMessageThatIAmInterestedIn(cResponseDataFetch pFetch);
             }
 
-            private class cCommandHookFetchMSN : cCommandHookFetchBase
+            private class cCommandHookFetchBodyMSN : cCommandHookFetchBody
             {
                 private readonly uint mMSN;
 
-                public cCommandHookFetchMSN(bool pBinary, cSection pSection, uint pOrigin, uint pMSN) : base (pBinary, pSection, pOrigin)
+                public cCommandHookFetchBodyMSN(bool pBinary, cSection pSection, uint pOrigin, uint pMSN) : base (pBinary, pSection, pOrigin)
                 {
                     mMSN = pMSN;
                 }
@@ -72,11 +71,11 @@ namespace work.bacome.imapclient
                 protected override bool IsThisTheMessageThatIAmInterestedIn(cResponseDataFetch pFetch) => pFetch.MSN == mMSN;
             }
 
-            private class cCommandHookFetchUID : cCommandHookFetchBase
+            private class cCommandHookFetchBodyUID : cCommandHookFetchBody
             {
                 private readonly uint mUID;
 
-                public cCommandHookFetchUID(bool pBinary, cSection pSection, uint pOrigin, uint pUID) : base (pBinary, pSection, pOrigin)
+                public cCommandHookFetchBodyUID(bool pBinary, cSection pSection, uint pOrigin, uint pUID) : base (pBinary, pSection, pOrigin)
                 {
                     mUID = pUID;
                 }

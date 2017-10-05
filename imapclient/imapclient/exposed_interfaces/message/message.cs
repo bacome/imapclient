@@ -179,13 +179,20 @@ namespace work.bacome.imapclient
             }
         }
 
-        public bool IsAnswered => ZFlagsContain(kMessageFlagName.Answered);
+        public bool IsAnswered
+        {
+            get => ZFlagsContain(kMessageFlagName.Answered);
+            set => ZFlagSet(cSettableFlags.Answered, value);
+        }
+
+        ;?; // TODO setters on these ...
         public bool IsFlagged => ZFlagsContain(kMessageFlagName.Flagged);
         public bool IsDeleted => ZFlagsContain(kMessageFlagName.Deleted);
         public bool IsSeen => ZFlagsContain(kMessageFlagName.Seen);
         public bool IsDraft => ZFlagsContain(kMessageFlagName.Draft);
         public bool IsRecent => ZFlagsContain(kMessageFlagName.Recent);
 
+        ;?; // TODO setters on these ...
         public bool IsMDNSent => ZFlagsContain(kMessageFlagName.MDNSent);
         public bool IsForwarded => ZFlagsContain(kMessageFlagName.Forwarded);
         public bool IsSubmitPending => ZFlagsContain(kMessageFlagName.SubmitPending);
@@ -195,6 +202,18 @@ namespace work.bacome.imapclient
         {
             if (!Client.Fetch(Handle, kFlags)) throw new InvalidOperationException();
             return Handle.Flags.Contains(pFlag);
+        }
+
+        private void ZFlagSet(cSettableFlags pFlags, bool pValue)
+        {
+            if (pValue)
+            {
+                if (!Client.Store(Handle, eStoreOperation.add, pFlags)) throw new InvalidOperationException();
+            }
+            else
+            {
+                if (!Client.Store(Handle, eStoreOperation.remove, pFlags)) throw new InvalidOperationException();
+            }
         }
 
         public DateTime Received
@@ -401,6 +420,16 @@ namespace work.bacome.imapclient
         public Task FetchAsync(cSinglePartBody pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
         public void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.Fetch(Handle, pSection, pDecoding, pStream, pConfiguration);
         public Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, pSection, pDecoding, pStream, pConfiguration);
+
+        // set data
+        ;?; // asunc version to do
+
+        // these throw on failure
+        ;?; // TODO + Async versions
+        public void Store(eStoreOperation pOperation, cSettableFlags pFlags) { }
+
+        // these return success/ failure
+        public bool Store(eStoreOperation pOperation, cSettableFlags pFlags, ulong pIfUnchangedSinceModSeq) { }
 
         // debugging
         public override string ToString() => $"{nameof(cMessage)}({Handle},{Indent})";

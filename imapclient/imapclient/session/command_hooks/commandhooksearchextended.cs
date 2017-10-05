@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -48,14 +49,9 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSearchExtended), nameof(CommandCompleted), pResult);
-
                     if (pResult.ResultType != eCommandResultType.ok || mSequenceSets == null) return;
-
-                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.Count);
-                    if (!mSort) lMSNs = lMSNs.ToSortedUniqueList();
-                    var lHandles = new cMessageHandleList();
-                    foreach (var lMSN in lMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
-                    Handles = lHandles;
+                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, mSelectedMailbox.Cache.Count, !mSort);
+                    Handles = new cMessageHandleList(lMSNs.Select(lMSN => mSelectedMailbox.GetHandle(lMSN)));
                 }
             }
         }

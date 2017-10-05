@@ -645,7 +645,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZResponseIsContinuation));
                     if (!pCursor.SkipBytes(kPlusSpace)) return false;
                     lContext.TraceVerbose("got a continuation");
-                    mResponseTextProcessor.Process(pCursor, eResponseTextType.continuerequest, pTextCodeProcessor, lContext);
+                    mResponseTextProcessor.Process(eResponseTextType.continuerequest, pCursor, pTextCodeProcessor, lContext);
                     return true;
                 }
 
@@ -720,21 +720,21 @@ namespace work.bacome.imapclient
                     if (pCursor.SkipBytes(kOKSpace))
                     {
                         lContext.TraceVerbose("got information");
-                        mResponseTextProcessor.Process(pCursor, eResponseTextType.information, mActiveCommands, lContext);
+                        mResponseTextProcessor.Process(eResponseTextType.information, pCursor, mActiveCommands, lContext);
                         return true;
                     }
 
                     if (pCursor.SkipBytes(kNoSpace))
                     {
                         lContext.TraceVerbose("got a warning");
-                        mResponseTextProcessor.Process(pCursor, eResponseTextType.warning, mActiveCommands, lContext);
+                        mResponseTextProcessor.Process(eResponseTextType.warning, pCursor, mActiveCommands, lContext);
                         return true;
                     }
 
                     if (pCursor.SkipBytes(kBadSpace))
                     {
                         lContext.TraceVerbose("got a protocol error");
-                        mResponseTextProcessor.Process(pCursor, eResponseTextType.protocolerror, mActiveCommands, lContext);
+                        mResponseTextProcessor.Process(eResponseTextType.protocolerror, pCursor, mActiveCommands, lContext);
                         return true;
                     }
 
@@ -780,7 +780,7 @@ namespace work.bacome.imapclient
                         if (pCursor.SkipBytes(kByeSpace))
                         {
                             lContext.TraceVerbose("got a unilateral bye");
-                            cResponseText lResponseText = mResponseTextProcessor.Process(pCursor, eResponseTextType.bye, null, lContext);
+                            cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.bye, pCursor, null, lContext);
                             mConnection.Disconnect(lContext);
                             throw new cUnilateralByeException(lResponseText, lContext);
                         }
@@ -864,7 +864,7 @@ namespace work.bacome.imapclient
                         return null;
                     }
 
-                    var lResult = new cCommandResult(lResultType, mResponseTextProcessor.Process(pCursor, lTextType, pTextCodeProcessor, lContext));
+                    var lResult = new cCommandResult(lResultType, mResponseTextProcessor.Process(lTextType, pCursor, pTextCodeProcessor, lContext));
 
                     if (mMailboxCache != null) mMailboxCache.CommandCompletion(lContext);
 

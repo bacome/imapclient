@@ -25,9 +25,9 @@ namespace work.bacome.imapclient
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCache.ProcessData(pCursor, pParentContext);
 
-                public bool ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
+                public bool ProcessTextCode(eResponseTextType pTextType, cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(ProcessTextCode));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(ProcessTextCode), pTextType, pData);
 
                     switch (pData)
                     {
@@ -52,7 +52,7 @@ namespace work.bacome.imapclient
                             return true;
                     }
 
-                    return mCache.ProcessTextCode(pData, lContext);
+                    return mCache.ProcessTextCode(pTextType, pData, lContext);
                 }
             }
 
@@ -99,21 +99,23 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public bool ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
+                public bool ProcessTextCode(eResponseTextType pTextType, cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ProcessTextCode));
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ProcessTextCode), pTextType, pData);
 
-                    switch (pData)
+                    if (pData is cResponseDataUIDNext lUIDNext)
                     {
-                        case cResponseDataUIDNext lUIDNext:
+                        ZUIDNext(lUIDNext.UIDNext, lContext);
+                        return true;
+                    }
 
-                            ZUIDNext(lUIDNext.UIDNext, lContext);
-                            return true;
-
-                        case cResponseDataHighestModSeq lHighestModSeq:
-
+                    if (pTextType == eResponseTextType.success)
+                    {
+                        if (pData is cResponseDataHighestModSeq lHighestModSeq)
+                        {
                             ZHighestModSeq(lHighestModSeq.HighestModSeq, lContext);
                             return true;
+                        }
                     }
 
                     return false;

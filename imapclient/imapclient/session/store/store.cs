@@ -31,10 +31,10 @@ namespace work.bacome.imapclient
 
                 if (pHandles.TrueForAll(h => h.UID != null))
                 {
-                    Dictionary<uint, cStoreFeedbackItem> lDictionary = new Dictionary<uint, cStoreFeedbackItem>();
-                    foreach (var lHandle in pHandles) lDictionary[lHandle.UID.UID] = new cStoreFeedbackItem(lHandle);
-                    await ZUIDStoreAsync(pMC, lSelectedMailbox.Handle, pHandles[0].UID.UIDValidity, lDictionary, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
-                    return new cMessageHandleList(from i in lDictionary.Values where !i.Fetched || i.Modified select i.Handle);
+                    cStoreFeedback lFeedback = new cStoreFeedback(true);
+                    foreach (var lHandle in pHandles) lFeedback.Add(lHandle.UID.UID, lHandle);
+                    await ZUIDStoreAsync(pMC, lSelectedMailbox.Handle, pHandles[0].UID.UIDValidity, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+                    return new cMessageHandleList(from i in lFeedback.Items where !i.Fetched || i.Modified select i.Handle);
                 }
                 else return await ZStoreAsync(pMC, pHandles, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             }
@@ -56,10 +56,10 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckIsSelectedMailbox(pHandle, pUIDs[0].UIDValidity); // to be repeated inside the select lock
 
-                Dictionary<uint, cStoreFeedbackItem> lDictionary = new Dictionary<uint, cStoreFeedbackItem>();
-                foreach (var lUID in pUIDs) lDictionary[lUID.UID] = new cStoreFeedbackItem(lUID);
-                await ZUIDStoreAsync(pMC, pHandle, pUIDs[0].UIDValidity, lDictionary, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
-                return new cUIDList(from i in lDictionary.Values where !i.Fetched || i.Modified select i.UID);
+                cStoreFeedback lFeedback = new cStoreFeedback(true);
+                foreach (var lUID in pUIDs) lFeedback.Add(lUID);
+                await ZUIDStoreAsync(pMC, pHandle, pUIDs[0].UIDValidity, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+                return new cUIDList(from i in lFeedback.Items where !i.Fetched || i.Modified select i.UID);
             }
         }
     }

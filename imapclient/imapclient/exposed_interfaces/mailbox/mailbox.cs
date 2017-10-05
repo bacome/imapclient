@@ -492,6 +492,15 @@ namespace work.bacome.imapclient
         public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetch(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);
         public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetchAsync(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);
 
+        ;?; // store + async
+        public void Store(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cSettableFlags pFlags) { }
+
+        public bool Store(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cSettableFlags pFlags, ulong pIfUnchangedSinceModSeq)
+        { }
+
+
+        ;?; // uidstore & async
+
         // uid/store TODO
 
         // blah

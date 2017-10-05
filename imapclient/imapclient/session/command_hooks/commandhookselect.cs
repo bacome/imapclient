@@ -71,72 +71,82 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public override bool ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
+                public override bool ProcessTextCode(eResponseTextType pTextType, cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode), pTextType, pData);
 
                     if (mMailboxCache.SelectedMailboxDetails != null) return false;
 
-                    switch (pData)
+                    if (pTextType == eResponseTextType.information)
                     {
-                        case cResponseDataPermanentFlags lFlags:
+                        switch (pData)
+                        {
+                            case cResponseDataPermanentFlags lFlags:
 
-                            mPermanentFlags = lFlags.Flags;
-                            return true;
+                                mPermanentFlags = lFlags.Flags;
+                                return true;
 
-                        case cResponseDataUIDNext lUIDNext:
+                            case cResponseDataUIDNext lUIDNext:
 
-                            mUIDNext = lUIDNext.UIDNext;
-                            return true;
+                                mUIDNext = lUIDNext.UIDNext;
+                                return true;
 
-                        case cResponseDataUIDValidity lUIDValidity:
+                            case cResponseDataUIDValidity lUIDValidity:
 
-                            mUIDValidity = lUIDValidity.UIDValidity;
-                            return true;
+                                mUIDValidity = lUIDValidity.UIDValidity;
+                                return true;
 
-                        case cResponseDataHighestModSeq lHighestModSeq:
+                            case cResponseDataHighestModSeq lHighestModSeq:
 
-                            mHighestModSeq = lHighestModSeq.HighestModSeq;
-                            return true;
-
-                        case cResponseDataAccess lAccess:
-
+                                mHighestModSeq = lHighestModSeq.HighestModSeq;
+                                return true;
+                        }
+                    }
+                    else if (pTextType == eResponseTextType.success)
+                    {
+                        if (pData is cResponseDataAccess lAccess)
+                        {
                             mAccessReadOnly = lAccess.ReadOnly;
                             return true;
-
-                        default:
-
-                            return false;
+                        }
                     }
+
+                    return false;
                 }
 
-                public override bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override bool ProcessTextCode(eResponseTextType pTextType, cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode), pTextType);
 
                     if (mMailboxCache.SelectedMailboxDetails == null)
                     {
-                        if (pCursor.SkipBytes(kUnseenSpace))
+                        if (pTextType == eResponseTextType.information)
                         {
-                            if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace)) return true;
-                            lContext.TraceWarning("likely malformed unseen response");
-                            return false;
-                        }
+                            if (pCursor.SkipBytes(kUnseenSpace))
+                            {
+                                if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace)) return true;
+                                lContext.TraceWarning("likely malformed unseen response");
+                                return false;
+                            }
 
-                        if (pCursor.SkipBytes(kNoModSeqRBracketSpace))
-                        {
-                            mHighestModSeq = 0;
-                            return true;
+                            if (pCursor.SkipBytes(kNoModSeqRBracketSpace))
+                            {
+                                mHighestModSeq = 0;
+                                return true;
+                            }
                         }
-
-                        if (pCursor.SkipBytes(kUIDNotStickyRBracketSpace))
+                        else if (pTextType == eResponseTextType.warning)
                         {
-                            mUIDNotSticky = true;
-                            return true;
+                            if (pCursor.SkipBytes(kUIDNotStickyRBracketSpace))
+                            {
+                                mUIDNotSticky = true;
+                                return true;
+                            }
                         }
                     }
                     else
                     {
+                        // the spec (rfc 7162) doesn't specify where this comes - although the only example is of an untagged OK
                         if (pCursor.SkipBytes(kClosedRBracketSpace))
                         {
                             mMailboxCache.Deselect(lContext);

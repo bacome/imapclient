@@ -7,10 +7,10 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
+    public enum eStoreOperation { add, remove, replace }
+
     public partial class cIMAPClient
     {
-        public enum eStoreOperation { add, remove, replace }
-
         public bool Store(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Store));

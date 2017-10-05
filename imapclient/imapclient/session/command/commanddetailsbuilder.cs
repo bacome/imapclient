@@ -92,6 +92,11 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartUIDValidity = new cCommandPart("UIDVALIDITY");
                 private static readonly cCommandPart kCommandPartHighestModSeq = new cCommandPart("HIGHESTMODSEQ");
 
+                // store
+                private static readonly cCommandPart kCommandPartPlusFlagsSpace = new cCommandPart("+FLAGS ");
+                private static readonly cCommandPart kCommandPartMinusFlagsSpace = new cCommandPart("-FLAGS ");
+                private static readonly cCommandPart kCommandPartFlagsSpace = new cCommandPart("FLAGS ");
+
                 // members
                 public readonly cCommandTag Tag = new cCommandTag();
                 private readonly cCommandPartsBuilder mParts = new cCommandPartsBuilder();
@@ -565,6 +570,37 @@ namespace work.bacome.imapclient
                         foreach (var lName in pNames) mParts.Add(cCommandPartFactory.AsASCIIAString(lName));
                         mParts.EndList();
                     }
+                }
+
+                public void Add(eStoreOperation pOperation, cSettableFlags pFlags)
+                {
+                    if (mEmitted) throw new InvalidOperationException();
+
+                    switch (pOperation)
+                    {
+                        case eStoreOperation.add:
+
+                            mParts.Add(kCommandPartPlusFlagsSpace);
+                            break;
+
+                        case eStoreOperation.remove:
+
+                            mParts.Add(kCommandPartMinusFlagsSpace);
+                            break;
+
+                        case eStoreOperation.replace:
+
+                            mParts.Add(kCommandPartFlagsSpace);
+                            break;
+
+                        default:
+
+                            throw new ArgumentOutOfRangeException(nameof(pOperation));
+                    }
+
+                    mParts.BeginList(eListBracketing.bracketed);
+                    foreach (var lFlag in pFlags) mParts.Add(new cCommandPart(lFlag));
+                    mParts.EndList();
                 }
 
                 public void Add(cExclusiveAccess.cToken pToken)

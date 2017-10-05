@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
 using work.bacome.trace;
 
@@ -87,11 +88,11 @@ namespace work.bacome.imapclient.support
                     string lSeqSet = lSequenceSet.ToString();
                     if (lSeqSet != pExpSeqSet) throw new cTestsException($"failed to get expected sequence set from {pCursor}: '{lSeqSet}' vs '{pExpSeqSet}'");
 
-                    var lList = cUIntList.FromSequenceSet(lSequenceSet, 15).ToSortedUniqueList();
+                    var lList = new cUIntList(cUIntList.FromSequenceSet(lSequenceSet, 15, true).OrderBy(i => i));
                     if (pExpList.Count != lList.Count) throw new cTestsException($"failed to get expected uintlist from {lSequenceSet}");
                     for (int i = 0; i < pExpList.Count; i++) if (pExpList[i] != lList[i]) throw new cTestsException($"failed to get expected uintlist from {lSequenceSet}");
 
-                    string lSeqSet2 = lList.ToSequenceSet().ToString();
+                    string lSeqSet2 = cSequenceSet.FromUInts(lList).ToString();
                     if (lSeqSet2 != pExpSeqSet2) throw new cTestsException($"failed to get expected sequence set from {lList}: '{lSeqSet2}' vs '{pExpSeqSet2}'");
                 }
                 else if (pExpSeqSet != null) throw new cTestsException($"failed to get a sequence set from {pCursor}");

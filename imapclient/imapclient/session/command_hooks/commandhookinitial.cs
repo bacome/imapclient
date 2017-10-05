@@ -18,21 +18,24 @@ namespace work.bacome.imapclient
                 public cStrings Capabilities { get; private set; } = null;
                 public cStrings AuthenticationMechanisms { get; private set; } = null;
 
-                public override bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override bool ProcessTextCode(eResponseTextType pTextType, cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookInitial), nameof(ProcessTextCode));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookInitial), nameof(ProcessTextCode), pTextType);
 
-                    if (pCursor.SkipBytes(kCapabilitySpace))
+                    if (pTextType == eResponseTextType.greeting || pTextType == eResponseTextType.success)
                     {
-                        if (pCursor.ProcessCapability(out var lCapabilities, out var lAuthenticationMechanisms, lContext) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                        if (pCursor.SkipBytes(kCapabilitySpace))
                         {
-                            lContext.TraceVerbose("received capabilities: {0} {1}", lCapabilities, lAuthenticationMechanisms);
-                            Capabilities = lCapabilities;
-                            AuthenticationMechanisms = lAuthenticationMechanisms;
-                            return true;
-                        }
+                            if (pCursor.ProcessCapability(out var lCapabilities, out var lAuthenticationMechanisms, lContext) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                            {
+                                lContext.TraceVerbose("received capabilities: {0} {1}", lCapabilities, lAuthenticationMechanisms);
+                                Capabilities = lCapabilities;
+                                AuthenticationMechanisms = lAuthenticationMechanisms;
+                                return true;
+                            }
 
-                        lContext.TraceWarning("likely malformed capability response");
+                            lContext.TraceWarning("likely malformed capability response");
+                        }
                     }
 
                     return false;

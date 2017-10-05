@@ -12,8 +12,8 @@ namespace work.bacome.imapclient
 
             private interface iTextCodeProcessor
             {
-                bool ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext);
-                bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext);
+                bool ProcessTextCode(eResponseTextType pTextType, cResponseData pData, cTrace.cContext pParentContext);
+                bool ProcessTextCode(eResponseTextType pTextType, cBytesCursor pCursor, cTrace.cContext pParentContext);
             }
 
             private abstract class cUnsolicitedDataProcessor

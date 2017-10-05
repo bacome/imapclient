@@ -64,7 +64,7 @@ namespace work.bacome.imapclient
 
                     if (pCursor.SkipBytes(kByeSpace))
                     {
-                        cResponseText lResponseText = mResponseTextProcessor.Process(pCursor, eResponseTextType.bye, null, lContext);
+                        cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.bye, pCursor, null, lContext);
                         lContext.TraceVerbose("got bye: {0}", lResponseText);
                         GotBye = true;
                         return eProcessDataResult.processed;

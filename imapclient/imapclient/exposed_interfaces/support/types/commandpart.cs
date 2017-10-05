@@ -74,6 +74,18 @@ namespace work.bacome.imapclient.support
             LiteralLengthBytes = null;
         }
 
+        public cCommandPart(ulong pNumber)
+        {
+            var lBytes = cTools.ULongToBytesReverse(pNumber);
+            lBytes.Reverse();
+
+            Bytes = new cBytes(lBytes);
+            Type = eCommandPartType.text;
+            Secret = false;
+            Encoded = false;
+            LiteralLengthBytes = null;
+        }
+
         public cCommandPart(cSequenceSet pSequenceSet)
         {
             cByteList lBytes = new cByteList();

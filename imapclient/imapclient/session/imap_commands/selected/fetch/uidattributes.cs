@@ -31,14 +31,14 @@ namespace work.bacome.imapclient
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, pUIDValidity);
+                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, pUIDValidity);
 
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
-                    lBuilder.Add(kFetchCommandPartUIDFetchSpace, new cCommandPart(pUIDs.ToSequenceSet()), cCommandPart.Space);
-                    lBuilder.Add(pItems, lSelectedMailbox.Cache.NoModSeq);
-
                     lBuilder.AddUIDValidity(pUIDValidity); // the command is sensitive to UIDValidity changes
+
+                    lBuilder.Add(kFetchCommandPartUIDFetchSpace, new cCommandPart(cSequenceSet.FromUInts(pUIDs)), cCommandPart.Space);
+                    lBuilder.Add(pItems, lSelectedMailbox.Cache.NoModSeq);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
@@ -65,11 +66,8 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSetUnseenExtendedCommandHook), nameof(CommandCompleted), pResult);
-
                     if (pResult.ResultType != eCommandResultType.ok || mSequenceSets == null) return;
-
-                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, (uint)mSelectedMailbox.Cache.Count);
-                    lMSNs = lMSNs.ToSortedUniqueList();
+                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, mSelectedMailbox.Cache.Count, true);
                     Handles = mSelectedMailbox.SetUnseen(mMessageCount, lMSNs, lContext);
                 }
             }

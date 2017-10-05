@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace work.bacome.imapclient.support
 {
@@ -42,6 +43,45 @@ namespace work.bacome.imapclient.support
             else lItems[0] = new cSequenceSetRange(new cSequenceSetNumber(pFrom), new cSequenceSetNumber(pTo));
 
             return lItems;
+        }
+
+        public static cSequenceSet FromUInts(IEnumerable<uint> pUInts)
+        {
+            List<cSequenceSetItem> lItems = new List<cSequenceSetItem>();
+
+            bool lFirst = true;
+            uint lFrom = 0;
+            uint lTo = 0;
+
+            foreach (var lUInt in pUInts.Distinct().OrderBy(i => i))
+            {
+                if (lFirst)
+                {
+                    lFrom = lUInt;
+                    lTo = lUInt;
+                    lFirst = false;
+                }
+                else
+                {
+                    if (lUInt == lTo + 1) lTo = lUInt;
+                    else
+                    {
+                        LAddItem();
+                        lFrom = lUInt;
+                        lTo = lUInt;
+                    }
+                }
+            }
+
+            if (!lFirst) LAddItem();
+
+            return new cSequenceSet(lItems);
+
+            void LAddItem()
+            {
+                if (lFrom == lTo) lItems.Add(new cSequenceSetNumber(lFrom));
+                else lItems.Add(new cSequenceSetRange(lFrom, lTo));
+            }
         }
     }
 

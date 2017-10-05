@@ -42,7 +42,7 @@ namespace work.bacome.imapclient
 
                             if (lCursor.SkipBytes(kConnectAsteriskSpaceOKSpace))
                             {
-                                cResponseText lResponseText = mResponseTextProcessor.Process(lCursor, eResponseTextType.greeting, lHook, lContext);
+                                cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
 
                                 lContext.TraceVerbose("got ok: {0}", lResponseText);
 
@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
                             
                             if (lCursor.SkipBytes(kConnectAsteriskSpacePreAuthSpace))
                             {
-                                cResponseText lResponseText = mResponseTextProcessor.Process(lCursor, eResponseTextType.greeting, lHook, lContext);
+                                cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
 
                                 lContext.TraceVerbose("got preauth: {0}", lResponseText);
 
@@ -79,7 +79,7 @@ namespace work.bacome.imapclient
 
                             if (lCursor.SkipBytes(kConnectAsteriskSpaceBYESpace))
                             {
-                                cResponseText lResponseText = mResponseTextProcessor.Process(lCursor, eResponseTextType.greeting, lHook, lContext);
+                                cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
 
                                 lContext.TraceError("got bye: {0}", lResponseText);
 

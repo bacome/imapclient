@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(pSection, pOrigin, pLength);
 
                     // hook
-                    var lHook = new cCommandHookFetchUID(pBinary, pSection, pOrigin, pUID.UID);
+                    var lHook = new cCommandHookFetchBodyUID(pBinary, pSection, pOrigin, pUID.UID);
                     lBuilder.Add(lHook);
 
                     // go

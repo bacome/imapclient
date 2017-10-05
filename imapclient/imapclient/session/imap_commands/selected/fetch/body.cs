@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(pSection, pOrigin, pLength);
 
                     // hook
-                    var lHook = new cCommandHookFetchMSN(pBinary, pSection, pOrigin, lMSN);
+                    var lHook = new cCommandHookFetchBodyMSN(pBinary, pSection, pOrigin, lMSN);
                     lBuilder.Add(lHook);
 
                     // go

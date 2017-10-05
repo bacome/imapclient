@@ -65,7 +65,7 @@ namespace work.bacome.imapclient
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                 }
 
-                public cResponseText Process(cBytesCursor pCursor, eResponseTextType pTextType, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
+                public cResponseText Process(eResponseTextType pTextType, cBytesCursor pCursor, iTextCodeProcessor pTextCodeProcessor, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(Process), pTextType);
 
@@ -175,8 +175,8 @@ namespace work.bacome.imapclient
                             {
                                 bool lProcessed = false;
 
-                                if (mMailboxCache != null) if (mMailboxCache.ProcessTextCode(lData, lContext)) lProcessed = true;
-                                if (pTextCodeProcessor != null) if (pTextCodeProcessor.ProcessTextCode(lData, lContext)) lProcessed = true;
+                                if (mMailboxCache != null) if (mMailboxCache.ProcessTextCode(pTextType, lData, lContext)) lProcessed = true;
+                                if (pTextCodeProcessor != null) if (pTextCodeProcessor.ProcessTextCode(pTextType, lData, lContext)) lProcessed = true;
 
                                 if (!lProcessed) lContext.TraceWarning("unprocessed response text code: {0}", lData);
 
@@ -191,7 +191,7 @@ namespace work.bacome.imapclient
 
                         if (pTextCodeProcessor != null)
                         {
-                            if (pTextCodeProcessor.ProcessTextCode(pCursor, lContext))
+                            if (pTextCodeProcessor.ProcessTextCode(pTextType, pCursor, lContext))
                             {
                                 lResponseText = new cResponseText(pCursor.GetRestAsString());
                                 lContext.TraceVerbose("response text received: {0}", lResponseText);

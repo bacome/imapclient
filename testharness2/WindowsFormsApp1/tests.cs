@@ -671,7 +671,7 @@ namespace testharness2
             lServer.AddExpectData("fred {5}\r\n");
             lServer.AddSendData("+ ready\r\n");
             lServer.AddExpectData("angus\r\n");
-            lServer.AddSendTagged("NO [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] incorrect password again\r\n"); // should generate an error in the log file
+            lServer.AddSendTagged("NO [CAPABILITY ENABLE IDLE LITERAL+ IMAP4rev1 XSOMEFEATURE XSOMEOTHERFEATURE] incorrect password again\r\n");
 
             lServer.AddExpectTagged("LOGOUT\r\n");
             lServer.AddSendData("* BYE logging out\r\n");
@@ -687,7 +687,7 @@ namespace testharness2
             lExpecter.Expect(eResponseTextType.failure, eResponseTextCode.none, "incorrect password");
             lExpecter.Expect(eResponseTextType.continuerequest, eResponseTextCode.none, "ready");
             lExpecter.Expect(eResponseTextType.continuerequest, eResponseTextCode.none, "ready");
-            lExpecter.Expect(eResponseTextType.failure, eResponseTextCode.none, "incorrect password again");
+            lExpecter.Expect(eResponseTextType.failure, eResponseTextCode.unknown, "incorrect password again"); // the CAPABILITY on a NO is not allowed by the base spec
             lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
             lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
 

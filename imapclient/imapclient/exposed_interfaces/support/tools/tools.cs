@@ -126,6 +126,22 @@ namespace work.bacome.imapclient.support
             return lBytes;
         }
 
+        public static cByteList ULongToBytesReverse(ulong pNumber)
+        {
+            cByteList lBytes = new cByteList(20);
+
+            ulong lNumber = pNumber;
+
+            do
+            {
+                int lDigit = (int)(lNumber % 10);
+                lBytes.Add((byte)(cASCII.ZERO + lDigit));
+                lNumber = lNumber / 10;
+            } while (lNumber > 0);
+
+            return lBytes;
+        }
+
         public static cByteList IntToBytesReverse(int pNumber)
         {
             if (pNumber < 0) throw new ArgumentOutOfRangeException(nameof(pNumber));

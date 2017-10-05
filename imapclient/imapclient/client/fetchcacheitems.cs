@@ -103,7 +103,7 @@ namespace work.bacome.imapclient
                 await lSession.FetchCacheItemsAsync(lMC, pHandles, pItems, lProgress, lContext).ConfigureAwait(false);
             }
         }
-
+    
         private async Task<List<cMessage>> ZUIDFetchCacheItemsAsync(iMailboxHandle pHandle, cUIDList pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchCacheItemsAsync), pHandle, pUIDs, pItems);

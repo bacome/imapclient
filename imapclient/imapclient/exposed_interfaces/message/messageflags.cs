@@ -69,6 +69,18 @@ namespace work.bacome.imapclient
     {
         // immutable (for passing in)
 
+        public static readonly cSettableFlags Answered = new cSettableFlags(kMessageFlagName.Answered);
+        public static readonly cSettableFlags Flagged = new cSettableFlags(kMessageFlagName.Flagged);
+        public static readonly cSettableFlags Deleted = new cSettableFlags(kMessageFlagName.Deleted);
+        public static readonly cSettableFlags Seen = new cSettableFlags(kMessageFlagName.Seen);
+        public static readonly cSettableFlags Draft = new cSettableFlags(kMessageFlagName.Draft);
+
+        public static readonly cSettableFlags Forwarded = new cSettableFlags(kMessageFlagName.Forwarded);
+        public static readonly cSettableFlags SubmitPending = new cSettableFlags(kMessageFlagName.SubmitPending);
+        public static readonly cSettableFlags Submitted = new cSettableFlags(kMessageFlagName.Submitted);
+
+        public static readonly cSettableFlags MDNSent = new cSettableFlags(kMessageFlagName.MDNSent);
+
         public cSettableFlags(params string[] pFlags) : base(new cSettableFlagList(pFlags)) { } // validates, duplicates, removes duplicates
         public cSettableFlags(IEnumerable<string> pFlags) : base(new cSettableFlagList(pFlags)) { } // validates, duplicates, removes duplicates
         public cSettableFlags(cSettableFlagList pFlags) : base(new cSettableFlagList(pFlags)) { } // duplicates

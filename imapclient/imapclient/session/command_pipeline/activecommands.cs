@@ -15,17 +15,17 @@ namespace work.bacome.imapclient
                 {
                     public cActiveCommands() { }
 
-                    public bool ProcessTextCode(cResponseData pData, cTrace.cContext pParentContext)
+                    public bool ProcessTextCode(eResponseTextType pTextType, cResponseData pData, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode));
+                        var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode), pTextType, pData);
                         bool lProcessed = false;
-                        foreach (var lCommand in this) if (lCommand.Hook.ProcessTextCode(pData, lContext)) lProcessed = true;
+                        foreach (var lCommand in this) if (lCommand.Hook.ProcessTextCode(pTextType, pData, lContext)) lProcessed = true;
                         return lProcessed;
                     }
 
-                    public bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                    public bool ProcessTextCode(eResponseTextType pTextType, cBytesCursor pCursor, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode));
+                        var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode), pTextType);
 
                         bool lProcessed = false;
                         var lBookmark = pCursor.Position;
@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
 
                         foreach (var lCommand in this)
                         {
-                            if (lCommand.Hook.ProcessTextCode(pCursor, lContext) && !lProcessed)
+                            if (lCommand.Hook.ProcessTextCode(pTextType, pCursor, lContext) && !lProcessed)
                             {
                                 lProcessed = true;
                                 lPositionAtEnd = pCursor.Position;

@@ -104,9 +104,12 @@
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
     <Compile Include="session\imap_commands\selected\fetch\binarysize.cs" />
-    <Compile Include="session\imap_commands\selected\store.cs" />
-    <Compile Include="session\session\store.cs" />
-    <Compile Include="session\support\storefeedbackitem.cs" />
+    <Compile Include="session\imap_commands\selected\store\commandhook.cs" />
+    <Compile Include="session\imap_commands\selected\store\constants.cs" />
+    <Compile Include="session\imap_commands\selected\store\store.cs" />
+    <Compile Include="session\imap_commands\selected\store\uidstore.cs" />
+    <Compile Include="session\store\store.cs" />
+    <Compile Include="session\store\storefeedback.cs" />
     <Compile Include="support\progress.cs" />
     <Compile Include="session\imap_commands\authenticated\create.cs" />
     <Compile Include="session\imap_commands\authenticated\delete.cs" />
@@ -174,7 +177,7 @@
     <Compile Include="exposed_interfaces\support\bytescursor\rfc822\base.cs" />
     <Compile Include="exposed_interfaces\support\bytescursor\rfc822\getdatetime.cs" />
     <Compile Include="exposed_interfaces\support\collections\bytes.cs" />
-    <Compile Include="exposed_interfaces\support\collections\bytesline.cs" />
+    <Compile Include="exposed_interfaces\support\collections\byteslines.cs" />
     <Compile Include="exposed_interfaces\support\collections\byteslist.cs" />
     <Compile Include="exposed_interfaces\support\collections\sequencesets.cs" />
     <Compile Include="exposed_interfaces\support\collections\uintlist.cs" />
@@ -183,7 +186,6 @@
     <Compile Include="exposed_interfaces\support\parsing\charactersets.cs" />
     <Compile Include="exposed_interfaces\support\parsing\uriparts.cs" />
     <Compile Include="exposed_interfaces\support\parsing\urlparts.cs" />
-    <Compile Include="exposed_interfaces\support\collections\atomlist.cs" />
     <Compile Include="exposed_interfaces\support\tools\listbuilder.cs" />
     <Compile Include="exposed_interfaces\support\tools\tools.cs" />
     <Compile Include="exposed_interfaces\support\types\commandpart.cs" />
@@ -193,7 +195,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="session\command\commandhook.cs" />
     <Compile Include="session\command_hooks\commandhookbasesearch.cs" />
-    <Compile Include="session\command_hooks\commandhookfetch.cs" />
+    <Compile Include="session\imap_commands\selected\fetch\commandhookbody.cs" />
     <Compile Include="support\namespacenames.cs" />
     <Compile Include="tools\cancellationmanager.cs" />
     <Compile Include="session\command_hooks\commandhooksearchextended.cs" />
@@ -211,7 +213,7 @@
     <Compile Include="session\imap_commands\authenticated\examine.cs" />
     <Compile Include="session\imap_commands\selected\fetch\body.cs" />
     <Compile Include="session\imap_commands\selected\fetch\attributes.cs" />
-    <Compile Include="session\fetch\base.cs" />
+    <Compile Include="session\imap_commands\selected\fetch\constants.cs" />
     <Compile Include="session\imap_commands\selected\fetch\uidbody.cs" />
     <Compile Include="session\imap_commands\any_state\id.cs" />
     <Compile Include="session\imap_commands\authenticated\listmailboxes.cs" />
