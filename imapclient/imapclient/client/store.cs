@@ -7,11 +7,9 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
-    public enum eStoreOperation { add, remove, replace }
-
     public partial class cIMAPClient
     {
-        public bool Store(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
+        public bool Store(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Store));
             var lTask = ZStoreAsync(cMessageHandleList.FromHandle(pHandle), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
@@ -19,7 +17,7 @@ namespace work.bacome.imapclient
             return lTask.Result.Count == 0;
         }
 
-        public cMessageHandleList Store(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
+        public cMessageHandleList Store(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Store));
             var lTask = ZStoreAsync(cMessageHandleList.FromHandles(pHandles), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
@@ -27,14 +25,14 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public async Task<bool> StoreAsync(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
+        public async Task<bool> StoreAsync(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Store));
-            var lHandles = await ZStoreAsync(cMessageHandleList.FromHandle(pHandle), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
-            return lHandles.Count == 0;
+            var lFailedToStore = await ZStoreAsync(cMessageHandleList.FromHandle(pHandle), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+            return lFailedToStore.Count == 0;
         }
 
-        public Task<cMessageHandleList> StoreAsync(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
+        public Task<cMessageHandleList> StoreAsync(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Store));
             return ZStoreAsync(cMessageHandleList.FromHandles(pHandles), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
@@ -47,7 +45,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+            if (lSession == null || lSession.SelectedMailboxDetails?.SelectedForUpdate != true) throw new InvalidOperationException();
 
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));

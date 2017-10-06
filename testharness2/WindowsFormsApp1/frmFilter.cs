@@ -32,31 +32,35 @@ namespace testharness2
 
             // build
 
-            var lFlags = new cFetchableFlagList();
+            if (chkAnswered.Checked) lTerms.Add(cFilter.IsAnswered);
+            if (chkDeleted.Checked) lTerms.Add(cFilter.IsDeleted);
+            if (chkDraft.Checked) lTerms.Add(cFilter.IsDraft);
+            if (chkFlagged.Checked) lTerms.Add(cFilter.IsFlagged);
+            if (chkRecent.Checked) lTerms.Add(cFilter.IsRecent);
+            if (chkSeen.Checked) lTerms.Add(cFilter.IsSeen);
 
-            if (chkAnswered.Checked) lFlags.Add(kMessageFlagName.Answered);
-            if (chkDeleted.Checked) lFlags.Add(kMessageFlagName.Deleted);
-            if (chkDraft.Checked) lFlags.Add(kMessageFlagName.Draft);
-            if (chkFlagged.Checked) lFlags.Add(kMessageFlagName.Flagged);
-            if (chkRecent.Checked) lFlags.Add(kMessageFlagName.Recent);
-            if (chkSeen.Checked) lFlags.Add(kMessageFlagName.Seen);
-            if (chkFred.Checked) lFlags.Add(Program.FlagFred);
-            if (chkFredD.Checked) lFlags.Add(Program.FlagFreD);
+            if (chkForwarded.Checked) lTerms.Add(cFilter.IsForwarded);
+            if (chkSubmitPending.Checked) lTerms.Add(cFilter.IsSubmitPending);
+            if (chkSubmitted.Checked) lTerms.Add(cFilter.IsSubmitted);
 
-            if (lFlags.Count != 0) lTerms.Add(cFilter.FlagsContain(lFlags));
+            if (chkMDNSent.Checked) lTerms.Add(cFilter.IsMDNSent);
 
-            lFlags = new cFetchableFlagList();
+            if (ZTryParseFlagNames(txtSet.Text, out var lSet) && lSet != null) lTerms.Add(cFilter.FlagsContain(lSet));
 
-            if (chkUnanswered.Checked) lFlags.Add(kMessageFlagName.Answered);
-            if (chkUndeleted.Checked) lFlags.Add(kMessageFlagName.Deleted);
-            if (chkUndraft.Checked) lFlags.Add(kMessageFlagName.Draft);
-            if (chkUnflagged.Checked) lFlags.Add(kMessageFlagName.Flagged);
-            if (chkUnrecent.Checked) lFlags.Add(kMessageFlagName.Recent);
-            if (chkUnseen.Checked) lFlags.Add(kMessageFlagName.Seen);
-            if (chkUnfred.Checked) lFlags.Add(Program.FlagFred);
-            if (chkUnfredD.Checked) lFlags.Add(Program.FlagFreD);
+            if (chkUnanswered.Checked) lTerms.Add(!cFilter.IsAnswered);
+            if (chkUndeleted.Checked) lTerms.Add(!cFilter.IsDeleted);
+            if (chkUnDraft.Checked) lTerms.Add(!cFilter.IsDraft);
+            if (chkUnflagged.Checked) lTerms.Add(!cFilter.IsFlagged);
+            if (chkUnrecent.Checked) lTerms.Add(!cFilter.IsRecent);
+            if (chkUnseen.Checked) lTerms.Add(!cFilter.IsSeen);
 
-            if (lFlags.Count != 0) lTerms.Add(!cFilter.FlagsContain(lFlags));
+            if (chkUnforwarded.Checked) lTerms.Add(!cFilter.IsForwarded);
+            if (chkUnsubmitPending.Checked) lTerms.Add(!cFilter.IsSubmitPending);
+            if (chkUnsubmitted.Checked) lTerms.Add(!cFilter.IsSubmitted);
+
+            if (chkUnMDNSent.Checked) lTerms.Add(!cFilter.IsMDNSent);
+
+            if (ZTryParseFlagNames(txtNotSet.Text, out var lNotSet) && lNotSet != null) lTerms.Add(!cFilter.FlagsContain(lNotSet));
 
             lTerms.AddRange(from r in mPartsBindingList where !string.IsNullOrWhiteSpace(r.Contains) select r.FilterPartContains);
 
@@ -196,6 +200,50 @@ namespace testharness2
                 e.Cancel = true;
                 erp.SetError(lSender, "should be a uint");
             }
+        }
+
+        private void ZValFlagNames(object sender, CancelEventArgs e)
+        {
+            if (!(sender is TextBox lTextBox)) return;
+
+            if (ZTryParseFlagNames(lTextBox.Text, out var lFlags)) lTextBox.Text = ZFlagNames(lFlags);
+            else
+            {
+                e.Cancel = true;
+                erp.SetError((Control)sender, "must be valid rfc3501 flag names separated by spaces");
+            }
+        }
+
+        private bool ZTryParseFlagNames(string pText, out cFetchableFlags rFlags)
+        {
+            if (pText == null) { rFlags = null; return true; }
+
+            List<string> lFlags = new List<string>();
+            foreach (var lFlag in pText.Trim().Split(' ')) if (!string.IsNullOrWhiteSpace(lFlag)) lFlags.Add(lFlag);
+
+            if (lFlags.Count == 0) { rFlags = null; return true; }
+
+            try { rFlags = new cFetchableFlags(lFlags); }
+            catch { rFlags = null; return false; }
+
+            return true;
+        }
+
+        private string ZFlagNames(cFetchableFlags pFlags)
+        {
+            if (pFlags == null) return string.Empty;
+
+            StringBuilder lBuilder = new StringBuilder();
+            bool lFirst = true;
+
+            foreach (var lFlag in pFlags)
+            {
+                if (lFirst) lFirst = false;
+                else lBuilder.Append(" ");
+                lBuilder.Append(lFlag);
+            }
+
+            return lBuilder.ToString();
         }
 
         private void ZValControlValidated(object sender, EventArgs e)

@@ -34,19 +34,10 @@
             this.cmdApply = new System.Windows.Forms.Button();
             this.tab = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.chkUnseen = new System.Windows.Forms.CheckBox();
-            this.chkUnrecent = new System.Windows.Forms.CheckBox();
-            this.chkUnflagged = new System.Windows.Forms.CheckBox();
-            this.chkUnfred = new System.Windows.Forms.CheckBox();
-            this.chkUndraft = new System.Windows.Forms.CheckBox();
-            this.chkUndeleted = new System.Windows.Forms.CheckBox();
-            this.chkUnanswered = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.chkSeen = new System.Windows.Forms.CheckBox();
             this.chkRecent = new System.Windows.Forms.CheckBox();
             this.chkFlagged = new System.Windows.Forms.CheckBox();
-            this.chkFred = new System.Windows.Forms.CheckBox();
             this.chkDraft = new System.Windows.Forms.CheckBox();
             this.chkDeleted = new System.Windows.Forms.CheckBox();
             this.chkAnswered = new System.Windows.Forms.CheckBox();
@@ -76,11 +67,27 @@
             this.label8 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
-            this.chkFredD = new System.Windows.Forms.CheckBox();
-            this.chkUnfredD = new System.Windows.Forms.CheckBox();
+            this.chkSubmitted = new System.Windows.Forms.CheckBox();
+            this.chkSubmitPending = new System.Windows.Forms.CheckBox();
+            this.chkForwarded = new System.Windows.Forms.CheckBox();
+            this.chkMDNSent = new System.Windows.Forms.CheckBox();
+            this.txtSet = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.label10 = new System.Windows.Forms.Label();
+            this.txtNotSet = new System.Windows.Forms.TextBox();
+            this.chkUnsubmitted = new System.Windows.Forms.CheckBox();
+            this.chkUnsubmitPending = new System.Windows.Forms.CheckBox();
+            this.chkUnforwarded = new System.Windows.Forms.CheckBox();
+            this.chkUnMDNSent = new System.Windows.Forms.CheckBox();
+            this.chkUnseen = new System.Windows.Forms.CheckBox();
+            this.chkUnrecent = new System.Windows.Forms.CheckBox();
+            this.chkUnflagged = new System.Windows.Forms.CheckBox();
+            this.chkUnDraft = new System.Windows.Forms.CheckBox();
+            this.chkUndeleted = new System.Windows.Forms.CheckBox();
+            this.chkUnanswered = new System.Windows.Forms.CheckBox();
             this.tab.SuspendLayout();
             this.tabPage1.SuspendLayout();
-            this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvParts)).BeginInit();
@@ -92,13 +99,14 @@
             this.tabPage5.SuspendLayout();
             this.groupBox5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
+            this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // chkInvert
             // 
             this.chkInvert.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkInvert.AutoSize = true;
-            this.chkInvert.Location = new System.Drawing.Point(5, 233);
+            this.chkInvert.Location = new System.Drawing.Point(5, 297);
             this.chkInvert.Name = "chkInvert";
             this.chkInvert.Size = new System.Drawing.Size(53, 17);
             this.chkInvert.TabIndex = 1;
@@ -108,7 +116,7 @@
             // cmdOr
             // 
             this.cmdOr.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdOr.Location = new System.Drawing.Point(64, 228);
+            this.cmdOr.Location = new System.Drawing.Point(64, 292);
             this.cmdOr.Name = "cmdOr";
             this.cmdOr.Size = new System.Drawing.Size(100, 25);
             this.cmdOr.TabIndex = 2;
@@ -119,7 +127,7 @@
             // cmdApply
             // 
             this.cmdApply.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdApply.Location = new System.Drawing.Point(356, 228);
+            this.cmdApply.Location = new System.Drawing.Point(528, 292);
             this.cmdApply.Name = "cmdApply";
             this.cmdApply.Size = new System.Drawing.Size(100, 25);
             this.cmdApply.TabIndex = 3;
@@ -140,7 +148,7 @@
             this.tab.Location = new System.Drawing.Point(5, 5);
             this.tab.Name = "tab";
             this.tab.SelectedIndex = 0;
-            this.tab.Size = new System.Drawing.Size(451, 217);
+            this.tab.Size = new System.Drawing.Size(623, 281);
             this.tab.TabIndex = 0;
             this.tab.Validating += new System.ComponentModel.CancelEventHandler(this.tab_Validating);
             this.tab.Validated += new System.EventHandler(this.ZValControlValidated);
@@ -152,111 +160,28 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(443, 191);
+            this.tabPage1.Size = new System.Drawing.Size(615, 255);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Flags";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.chkUnfredD);
-            this.groupBox2.Controls.Add(this.chkUnseen);
-            this.groupBox2.Controls.Add(this.chkUnrecent);
-            this.groupBox2.Controls.Add(this.chkUnflagged);
-            this.groupBox2.Controls.Add(this.chkUnfred);
-            this.groupBox2.Controls.Add(this.chkUndraft);
-            this.groupBox2.Controls.Add(this.chkUndeleted);
-            this.groupBox2.Controls.Add(this.chkUnanswered);
-            this.groupBox2.Location = new System.Drawing.Point(6, 99);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(302, 86);
-            this.groupBox2.TabIndex = 1;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Not Set";
-            // 
-            // chkUnseen
-            // 
-            this.chkUnseen.AutoSize = true;
-            this.chkUnseen.Location = new System.Drawing.Point(170, 43);
-            this.chkUnseen.Name = "chkUnseen";
-            this.chkUnseen.Size = new System.Drawing.Size(51, 17);
-            this.chkUnseen.TabIndex = 5;
-            this.chkUnseen.Text = "Seen";
-            this.chkUnseen.UseVisualStyleBackColor = true;
-            // 
-            // chkUnrecent
-            // 
-            this.chkUnrecent.AutoSize = true;
-            this.chkUnrecent.Location = new System.Drawing.Point(91, 43);
-            this.chkUnrecent.Name = "chkUnrecent";
-            this.chkUnrecent.Size = new System.Drawing.Size(61, 17);
-            this.chkUnrecent.TabIndex = 4;
-            this.chkUnrecent.Text = "Recent";
-            this.chkUnrecent.UseVisualStyleBackColor = true;
-            // 
-            // chkUnflagged
-            // 
-            this.chkUnflagged.AutoSize = true;
-            this.chkUnflagged.Location = new System.Drawing.Point(12, 43);
-            this.chkUnflagged.Name = "chkUnflagged";
-            this.chkUnflagged.Size = new System.Drawing.Size(64, 17);
-            this.chkUnflagged.TabIndex = 3;
-            this.chkUnflagged.Text = "Flagged";
-            this.chkUnflagged.UseVisualStyleBackColor = true;
-            // 
-            // chkUnfred
-            // 
-            this.chkUnfred.AutoSize = true;
-            this.chkUnfred.Location = new System.Drawing.Point(12, 66);
-            this.chkUnfred.Name = "chkUnfred";
-            this.chkUnfred.Size = new System.Drawing.Size(47, 17);
-            this.chkUnfred.TabIndex = 6;
-            this.chkUnfred.Text = "Fred";
-            this.chkUnfred.UseVisualStyleBackColor = true;
-            // 
-            // chkUndraft
-            // 
-            this.chkUndraft.AutoSize = true;
-            this.chkUndraft.Location = new System.Drawing.Point(170, 20);
-            this.chkUndraft.Name = "chkUndraft";
-            this.chkUndraft.Size = new System.Drawing.Size(49, 17);
-            this.chkUndraft.TabIndex = 2;
-            this.chkUndraft.Text = "Draft";
-            this.chkUndraft.UseVisualStyleBackColor = true;
-            // 
-            // chkUndeleted
-            // 
-            this.chkUndeleted.AutoSize = true;
-            this.chkUndeleted.Location = new System.Drawing.Point(91, 20);
-            this.chkUndeleted.Name = "chkUndeleted";
-            this.chkUndeleted.Size = new System.Drawing.Size(63, 17);
-            this.chkUndeleted.TabIndex = 1;
-            this.chkUndeleted.Text = "Deleted";
-            this.chkUndeleted.UseVisualStyleBackColor = true;
-            // 
-            // chkUnanswered
-            // 
-            this.chkUnanswered.AutoSize = true;
-            this.chkUnanswered.Location = new System.Drawing.Point(12, 20);
-            this.chkUnanswered.Name = "chkUnanswered";
-            this.chkUnanswered.Size = new System.Drawing.Size(73, 17);
-            this.chkUnanswered.TabIndex = 0;
-            this.chkUnanswered.Text = "Answered";
-            this.chkUnanswered.UseVisualStyleBackColor = true;
-            // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.chkFredD);
+            this.groupBox1.Controls.Add(this.label7);
+            this.groupBox1.Controls.Add(this.txtSet);
+            this.groupBox1.Controls.Add(this.chkSubmitted);
+            this.groupBox1.Controls.Add(this.chkSubmitPending);
+            this.groupBox1.Controls.Add(this.chkForwarded);
+            this.groupBox1.Controls.Add(this.chkMDNSent);
             this.groupBox1.Controls.Add(this.chkSeen);
             this.groupBox1.Controls.Add(this.chkRecent);
             this.groupBox1.Controls.Add(this.chkFlagged);
-            this.groupBox1.Controls.Add(this.chkFred);
             this.groupBox1.Controls.Add(this.chkDraft);
             this.groupBox1.Controls.Add(this.chkDeleted);
             this.groupBox1.Controls.Add(this.chkAnswered);
             this.groupBox1.Location = new System.Drawing.Point(6, 6);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(302, 87);
+            this.groupBox1.Size = new System.Drawing.Size(603, 117);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Set";
@@ -264,7 +189,7 @@
             // chkSeen
             // 
             this.chkSeen.AutoSize = true;
-            this.chkSeen.Location = new System.Drawing.Point(170, 43);
+            this.chkSeen.Location = new System.Drawing.Point(542, 20);
             this.chkSeen.Name = "chkSeen";
             this.chkSeen.Size = new System.Drawing.Size(51, 17);
             this.chkSeen.TabIndex = 5;
@@ -274,7 +199,7 @@
             // chkRecent
             // 
             this.chkRecent.AutoSize = true;
-            this.chkRecent.Location = new System.Drawing.Point(91, 43);
+            this.chkRecent.Location = new System.Drawing.Point(436, 20);
             this.chkRecent.Name = "chkRecent";
             this.chkRecent.Size = new System.Drawing.Size(61, 17);
             this.chkRecent.TabIndex = 4;
@@ -284,27 +209,17 @@
             // chkFlagged
             // 
             this.chkFlagged.AutoSize = true;
-            this.chkFlagged.Location = new System.Drawing.Point(12, 43);
+            this.chkFlagged.Location = new System.Drawing.Point(330, 20);
             this.chkFlagged.Name = "chkFlagged";
             this.chkFlagged.Size = new System.Drawing.Size(64, 17);
             this.chkFlagged.TabIndex = 3;
             this.chkFlagged.Text = "Flagged";
             this.chkFlagged.UseVisualStyleBackColor = true;
             // 
-            // chkFred
-            // 
-            this.chkFred.AutoSize = true;
-            this.chkFred.Location = new System.Drawing.Point(12, 66);
-            this.chkFred.Name = "chkFred";
-            this.chkFred.Size = new System.Drawing.Size(47, 17);
-            this.chkFred.TabIndex = 6;
-            this.chkFred.Text = "Fred";
-            this.chkFred.UseVisualStyleBackColor = true;
-            // 
             // chkDraft
             // 
             this.chkDraft.AutoSize = true;
-            this.chkDraft.Location = new System.Drawing.Point(170, 20);
+            this.chkDraft.Location = new System.Drawing.Point(224, 20);
             this.chkDraft.Name = "chkDraft";
             this.chkDraft.Size = new System.Drawing.Size(49, 17);
             this.chkDraft.TabIndex = 2;
@@ -314,7 +229,7 @@
             // chkDeleted
             // 
             this.chkDeleted.AutoSize = true;
-            this.chkDeleted.Location = new System.Drawing.Point(91, 20);
+            this.chkDeleted.Location = new System.Drawing.Point(118, 20);
             this.chkDeleted.Name = "chkDeleted";
             this.chkDeleted.Size = new System.Drawing.Size(63, 17);
             this.chkDeleted.TabIndex = 1;
@@ -337,7 +252,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(443, 191);
+            this.tabPage2.Size = new System.Drawing.Size(615, 255);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Parts Contain";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -352,7 +267,7 @@
             this.dgvParts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvParts.Location = new System.Drawing.Point(3, 6);
             this.dgvParts.Name = "dgvParts";
-            this.dgvParts.Size = new System.Drawing.Size(437, 182);
+            this.dgvParts.Size = new System.Drawing.Size(609, 246);
             this.dgvParts.TabIndex = 0;
             // 
             // tabPage3
@@ -362,7 +277,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(443, 191);
+            this.tabPage3.Size = new System.Drawing.Size(641, 255);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Dates";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -529,7 +444,7 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(443, 191);
+            this.tabPage4.Size = new System.Drawing.Size(641, 255);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Headers Contain";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -543,7 +458,7 @@
             this.dgvHeaders.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvHeaders.Location = new System.Drawing.Point(3, 4);
             this.dgvHeaders.Name = "dgvHeaders";
-            this.dgvHeaders.Size = new System.Drawing.Size(437, 182);
+            this.dgvHeaders.Size = new System.Drawing.Size(635, 246);
             this.dgvHeaders.TabIndex = 1;
             this.dgvHeaders.RowValidated += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvHeaders_RowValidated);
             this.dgvHeaders.RowValidating += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgvHeaders_RowValidating);
@@ -554,7 +469,7 @@
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(443, 191);
+            this.tabPage5.Size = new System.Drawing.Size(641, 255);
             this.tabPage5.TabIndex = 4;
             this.tabPage5.Text = "Other";
             this.tabPage5.UseVisualStyleBackColor = true;
@@ -612,32 +527,209 @@
             // 
             this.erp.ContainerControl = this;
             // 
-            // chkFredD
+            // chkSubmitted
             // 
-            this.chkFredD.AutoSize = true;
-            this.chkFredD.Location = new System.Drawing.Point(91, 66);
-            this.chkFredD.Name = "chkFredD";
-            this.chkFredD.Size = new System.Drawing.Size(49, 17);
-            this.chkFredD.TabIndex = 7;
-            this.chkFredD.Text = "FreD";
-            this.chkFredD.UseVisualStyleBackColor = true;
+            this.chkSubmitted.AutoSize = true;
+            this.chkSubmitted.Location = new System.Drawing.Point(224, 43);
+            this.chkSubmitted.Name = "chkSubmitted";
+            this.chkSubmitted.Size = new System.Drawing.Size(73, 17);
+            this.chkSubmitted.TabIndex = 11;
+            this.chkSubmitted.Text = "Submitted";
+            this.chkSubmitted.UseVisualStyleBackColor = true;
             // 
-            // chkUnfredD
+            // chkSubmitPending
             // 
-            this.chkUnfredD.AutoSize = true;
-            this.chkUnfredD.Location = new System.Drawing.Point(91, 66);
-            this.chkUnfredD.Name = "chkUnfredD";
-            this.chkUnfredD.Size = new System.Drawing.Size(49, 17);
-            this.chkUnfredD.TabIndex = 7;
-            this.chkUnfredD.Text = "FreD";
-            this.chkUnfredD.UseVisualStyleBackColor = true;
+            this.chkSubmitPending.AutoSize = true;
+            this.chkSubmitPending.Location = new System.Drawing.Point(118, 43);
+            this.chkSubmitPending.Name = "chkSubmitPending";
+            this.chkSubmitPending.Size = new System.Drawing.Size(100, 17);
+            this.chkSubmitPending.TabIndex = 10;
+            this.chkSubmitPending.Text = "Submit Pending";
+            this.chkSubmitPending.UseVisualStyleBackColor = true;
+            // 
+            // chkForwarded
+            // 
+            this.chkForwarded.AutoSize = true;
+            this.chkForwarded.Location = new System.Drawing.Point(12, 43);
+            this.chkForwarded.Name = "chkForwarded";
+            this.chkForwarded.Size = new System.Drawing.Size(76, 17);
+            this.chkForwarded.TabIndex = 9;
+            this.chkForwarded.Text = "Forwarded";
+            this.chkForwarded.UseVisualStyleBackColor = true;
+            // 
+            // chkMDNSent
+            // 
+            this.chkMDNSent.AutoSize = true;
+            this.chkMDNSent.Location = new System.Drawing.Point(436, 43);
+            this.chkMDNSent.Name = "chkMDNSent";
+            this.chkMDNSent.Size = new System.Drawing.Size(73, 17);
+            this.chkMDNSent.TabIndex = 12;
+            this.chkMDNSent.Text = "MDNSent";
+            this.chkMDNSent.UseVisualStyleBackColor = true;
+            // 
+            // txtSet
+            // 
+            this.txtSet.Location = new System.Drawing.Point(12, 85);
+            this.txtSet.Name = "txtSet";
+            this.txtSet.Size = new System.Drawing.Size(581, 20);
+            this.txtSet.TabIndex = 13;
+            this.txtSet.Validating += new System.ComponentModel.CancelEventHandler(this.ZValFlagNames);
+            this.txtSet.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(9, 69);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(120, 13);
+            this.label7.TabIndex = 14;
+            this.label7.Text = "Flags (space separated)";
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.label10);
+            this.groupBox2.Controls.Add(this.txtNotSet);
+            this.groupBox2.Controls.Add(this.chkUnsubmitted);
+            this.groupBox2.Controls.Add(this.chkUnsubmitPending);
+            this.groupBox2.Controls.Add(this.chkUnforwarded);
+            this.groupBox2.Controls.Add(this.chkUnMDNSent);
+            this.groupBox2.Controls.Add(this.chkUnseen);
+            this.groupBox2.Controls.Add(this.chkUnrecent);
+            this.groupBox2.Controls.Add(this.chkUnflagged);
+            this.groupBox2.Controls.Add(this.chkUnDraft);
+            this.groupBox2.Controls.Add(this.chkUndeleted);
+            this.groupBox2.Controls.Add(this.chkUnanswered);
+            this.groupBox2.Location = new System.Drawing.Point(6, 129);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(603, 117);
+            this.groupBox2.TabIndex = 1;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Not Set";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(9, 69);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(120, 13);
+            this.label10.TabIndex = 14;
+            this.label10.Text = "Flags (space separated)";
+            // 
+            // txtNotSet
+            // 
+            this.txtNotSet.Location = new System.Drawing.Point(12, 85);
+            this.txtNotSet.Name = "txtNotSet";
+            this.txtNotSet.Size = new System.Drawing.Size(581, 20);
+            this.txtNotSet.TabIndex = 13;
+            this.txtNotSet.Validating += new System.ComponentModel.CancelEventHandler(this.ZValFlagNames);
+            this.txtNotSet.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // chkUnsubmitted
+            // 
+            this.chkUnsubmitted.AutoSize = true;
+            this.chkUnsubmitted.Location = new System.Drawing.Point(224, 43);
+            this.chkUnsubmitted.Name = "chkUnsubmitted";
+            this.chkUnsubmitted.Size = new System.Drawing.Size(73, 17);
+            this.chkUnsubmitted.TabIndex = 11;
+            this.chkUnsubmitted.Text = "Submitted";
+            this.chkUnsubmitted.UseVisualStyleBackColor = true;
+            // 
+            // chkUnsubmitPending
+            // 
+            this.chkUnsubmitPending.AutoSize = true;
+            this.chkUnsubmitPending.Location = new System.Drawing.Point(118, 43);
+            this.chkUnsubmitPending.Name = "chkUnsubmitPending";
+            this.chkUnsubmitPending.Size = new System.Drawing.Size(100, 17);
+            this.chkUnsubmitPending.TabIndex = 10;
+            this.chkUnsubmitPending.Text = "Submit Pending";
+            this.chkUnsubmitPending.UseVisualStyleBackColor = true;
+            // 
+            // chkUnforwarded
+            // 
+            this.chkUnforwarded.AutoSize = true;
+            this.chkUnforwarded.Location = new System.Drawing.Point(12, 43);
+            this.chkUnforwarded.Name = "chkUnforwarded";
+            this.chkUnforwarded.Size = new System.Drawing.Size(76, 17);
+            this.chkUnforwarded.TabIndex = 9;
+            this.chkUnforwarded.Text = "Forwarded";
+            this.chkUnforwarded.UseVisualStyleBackColor = true;
+            // 
+            // chkUnMDNSent
+            // 
+            this.chkUnMDNSent.AutoSize = true;
+            this.chkUnMDNSent.Location = new System.Drawing.Point(436, 43);
+            this.chkUnMDNSent.Name = "chkUnMDNSent";
+            this.chkUnMDNSent.Size = new System.Drawing.Size(73, 17);
+            this.chkUnMDNSent.TabIndex = 12;
+            this.chkUnMDNSent.Text = "MDNSent";
+            this.chkUnMDNSent.UseVisualStyleBackColor = true;
+            // 
+            // chkUnseen
+            // 
+            this.chkUnseen.AutoSize = true;
+            this.chkUnseen.Location = new System.Drawing.Point(542, 20);
+            this.chkUnseen.Name = "chkUnseen";
+            this.chkUnseen.Size = new System.Drawing.Size(51, 17);
+            this.chkUnseen.TabIndex = 5;
+            this.chkUnseen.Text = "Seen";
+            this.chkUnseen.UseVisualStyleBackColor = true;
+            // 
+            // chkUnrecent
+            // 
+            this.chkUnrecent.AutoSize = true;
+            this.chkUnrecent.Location = new System.Drawing.Point(436, 20);
+            this.chkUnrecent.Name = "chkUnrecent";
+            this.chkUnrecent.Size = new System.Drawing.Size(61, 17);
+            this.chkUnrecent.TabIndex = 4;
+            this.chkUnrecent.Text = "Recent";
+            this.chkUnrecent.UseVisualStyleBackColor = true;
+            // 
+            // chkUnflagged
+            // 
+            this.chkUnflagged.AutoSize = true;
+            this.chkUnflagged.Location = new System.Drawing.Point(330, 20);
+            this.chkUnflagged.Name = "chkUnflagged";
+            this.chkUnflagged.Size = new System.Drawing.Size(64, 17);
+            this.chkUnflagged.TabIndex = 3;
+            this.chkUnflagged.Text = "Flagged";
+            this.chkUnflagged.UseVisualStyleBackColor = true;
+            // 
+            // chkUnDraft
+            // 
+            this.chkUnDraft.AutoSize = true;
+            this.chkUnDraft.Location = new System.Drawing.Point(224, 20);
+            this.chkUnDraft.Name = "chkUnDraft";
+            this.chkUnDraft.Size = new System.Drawing.Size(49, 17);
+            this.chkUnDraft.TabIndex = 2;
+            this.chkUnDraft.Text = "Draft";
+            this.chkUnDraft.UseVisualStyleBackColor = true;
+            // 
+            // chkUndeleted
+            // 
+            this.chkUndeleted.AutoSize = true;
+            this.chkUndeleted.Location = new System.Drawing.Point(118, 20);
+            this.chkUndeleted.Name = "chkUndeleted";
+            this.chkUndeleted.Size = new System.Drawing.Size(63, 17);
+            this.chkUndeleted.TabIndex = 1;
+            this.chkUndeleted.Text = "Deleted";
+            this.chkUndeleted.UseVisualStyleBackColor = true;
+            // 
+            // chkUnanswered
+            // 
+            this.chkUnanswered.AutoSize = true;
+            this.chkUnanswered.Location = new System.Drawing.Point(12, 20);
+            this.chkUnanswered.Name = "chkUnanswered";
+            this.chkUnanswered.Size = new System.Drawing.Size(73, 17);
+            this.chkUnanswered.TabIndex = 0;
+            this.chkUnanswered.Text = "Answered";
+            this.chkUnanswered.UseVisualStyleBackColor = true;
             // 
             // frmFilter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(480, 257);
+            this.ClientSize = new System.Drawing.Size(652, 321);
             this.Controls.Add(this.tab);
             this.Controls.Add(this.cmdApply);
             this.Controls.Add(this.cmdOr);
@@ -648,8 +740,6 @@
             this.Load += new System.EventHandler(this.frmFilter_Load);
             this.tab.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.tabPage2.ResumeLayout(false);
@@ -665,6 +755,8 @@
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -677,19 +769,10 @@
         private System.Windows.Forms.Button cmdApply;
         private System.Windows.Forms.TabControl tab;
         private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.CheckBox chkUnseen;
-        private System.Windows.Forms.CheckBox chkUnrecent;
-        private System.Windows.Forms.CheckBox chkUnflagged;
-        private System.Windows.Forms.CheckBox chkUnfred;
-        private System.Windows.Forms.CheckBox chkUndraft;
-        private System.Windows.Forms.CheckBox chkUndeleted;
-        private System.Windows.Forms.CheckBox chkUnanswered;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.CheckBox chkSeen;
         private System.Windows.Forms.CheckBox chkRecent;
         private System.Windows.Forms.CheckBox chkFlagged;
-        private System.Windows.Forms.CheckBox chkFred;
         private System.Windows.Forms.CheckBox chkDraft;
         private System.Windows.Forms.CheckBox chkDeleted;
         private System.Windows.Forms.CheckBox chkAnswered;
@@ -719,7 +802,24 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.ErrorProvider erp;
-        private System.Windows.Forms.CheckBox chkUnfredD;
-        private System.Windows.Forms.CheckBox chkFredD;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.TextBox txtNotSet;
+        private System.Windows.Forms.CheckBox chkUnsubmitted;
+        private System.Windows.Forms.CheckBox chkUnsubmitPending;
+        private System.Windows.Forms.CheckBox chkUnforwarded;
+        private System.Windows.Forms.CheckBox chkUnMDNSent;
+        private System.Windows.Forms.CheckBox chkUnseen;
+        private System.Windows.Forms.CheckBox chkUnrecent;
+        private System.Windows.Forms.CheckBox chkUnflagged;
+        private System.Windows.Forms.CheckBox chkUnDraft;
+        private System.Windows.Forms.CheckBox chkUndeleted;
+        private System.Windows.Forms.CheckBox chkUnanswered;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox txtSet;
+        private System.Windows.Forms.CheckBox chkSubmitted;
+        private System.Windows.Forms.CheckBox chkSubmitPending;
+        private System.Windows.Forms.CheckBox chkForwarded;
+        private System.Windows.Forms.CheckBox chkMDNSent;
     }
 }

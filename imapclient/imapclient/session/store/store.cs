@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.async;
@@ -28,6 +27,7 @@ namespace work.bacome.imapclient
                 if (pIfUnchangedSinceModSeq != null && !mCapabilities.CondStore) throw new InvalidOperationException();
 
                 cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pHandles); // to be repeated inside the select lock
+                if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException(); // to be repeated inside the select lock
 
                 if (pHandles.TrueForAll(h => h.UID != null))
                 {
@@ -46,6 +46,7 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
 
+                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
                 if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
@@ -54,7 +55,8 @@ namespace work.bacome.imapclient
                 if (pIfUnchangedSinceModSeq == 0) throw new ArgumentOutOfRangeException(nameof(pIfUnchangedSinceModSeq));
                 if (pIfUnchangedSinceModSeq != null && !mCapabilities.CondStore) throw new InvalidOperationException();
 
-                mMailboxCache.CheckIsSelectedMailbox(pHandle, pUIDs[0].UIDValidity); // to be repeated inside the select lock
+                cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, pUIDs[0].UIDValidity); // to be repeated inside the select lock
+                if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException(); // to be repeated inside the select lock
 
                 cStoreFeedback lFeedback = new cStoreFeedback(true);
                 foreach (var lUID in pUIDs) lFeedback.Add(lUID);

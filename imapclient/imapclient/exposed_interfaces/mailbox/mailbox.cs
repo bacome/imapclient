@@ -450,21 +450,21 @@ namespace work.bacome.imapclient
         public void Select(bool pForUpdate = false) => Client.Select(Handle, pForUpdate);
         public Task SelectAsync(bool pForUpdate = false) => Client.SelectAsync(Handle, pForUpdate);
 
-        public void Expunge(bool pAndClose = false) => Client.Expunge(Handle, pAndClose);
-        public Task ExpungeAsync(bool pAndClose = false) => Client.ExpungeAsync(Handle, pAndClose);
+        public void Expunge(bool pAndUnselect = false) => Client.Expunge(Handle, pAndUnselect);
+        public Task ExpungeAsync(bool pAndUnselect = false) => Client.ExpungeAsync(Handle, pAndUnselect);
 
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, cCacheItems pItems = null, cMessageFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultCacheItems, pConfiguration);
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, cCacheItems pItems = null, cMessageFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultCacheItems, pConfiguration);
 
-        public List<cMessage> Messages(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null)
+        public List<cMessage> Messages(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems = null, cPropertyFetchConfiguration pConfiguration = null)
         {
-            Client.Fetch(pHandles, pItems, pConfiguration);
+            Client.Fetch(pHandles, pItems ?? Client.DefaultCacheItems, pConfiguration);
             return ZMessages(pHandles);
         }
 
-        public async Task<List<cMessage>> MessagesAsync(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null)
+        public async Task<List<cMessage>> MessagesAsync(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems = null, cPropertyFetchConfiguration pConfiguration = null)
         {
-            await Client.FetchAsync(pHandles, pItems, pConfiguration).ConfigureAwait(false);
+            await Client.FetchAsync(pHandles, pItems ?? Client.DefaultCacheItems, pConfiguration).ConfigureAwait(false);
             return ZMessages(pHandles);
         }
 
@@ -492,16 +492,22 @@ namespace work.bacome.imapclient
         public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetch(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);
         public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetchAsync(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);
 
-        ;?; // store + async
-        public void Store(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cSettableFlags pFlags) { }
+        public List<cMessage> Store(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
+        {
+            var lFailedToStore = Client.Store(cMessageHandleList.FromMessages(pMessages), pOperation, pFlags, pIfUnchangedSinceModSeq);
+            return ZMessages(lFailedToStore);
+        }
 
-        public bool Store(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cSettableFlags pFlags, ulong pIfUnchangedSinceModSeq)
-        { }
+        public async Task<List<cMessage>> StoreAsync(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
+        {
+            var lFailedToStore = await Client.StoreAsync(cMessageHandleList.FromMessages(pMessages), pOperation, pFlags, pIfUnchangedSinceModSeq);
+            return ZMessages(lFailedToStore);
+        }
 
-
-        ;?; // uidstore & async
-
-        // uid/store TODO
+        public bool UIDStore(cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStore(Handle, pUID, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public Task<bool> UIDStoreAsync(cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStoreAsync(Handle, pUID, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public cUIDList UIDStore(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStore(Handle, pUIDs, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public Task<cUIDList> UIDStoreAsync(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStoreAsync(Handle, pUIDs, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         // blah
         public override string ToString() => $"{nameof(cMailbox)}({Handle})";

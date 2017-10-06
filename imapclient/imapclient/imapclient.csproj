@@ -50,6 +50,8 @@
     <Compile Include="client\fetchsizeinbytes.cs" />
     <Compile Include="client\store.cs" />
     <Compile Include="client\uidstore.cs" />
+    <Compile Include="exposed_interfaces\enums\mailboxdatasets.cs" />
+    <Compile Include="exposed_interfaces\enums\storeoperation.cs" />
     <Compile Include="exposed_interfaces\message\cacheattributes.cs" />
     <Compile Include="exposed_interfaces\message\headerfieldnames.cs" />
     <Compile Include="exposed_interfaces\message\headerfields.cs" />
@@ -250,7 +252,7 @@
     <Compile Include="support\body.cs" />
     <Compile Include="support\callbacksynchroniser.cs" />
     <Compile Include="support\mailboxnamepattern.cs" />
-    <Compile Include="support\uidlist.cs" />
+    <Compile Include="exposed_interfaces\collections\uidlist.cs" />
     <Compile Include="tests\tests.cs" />
     <Compile Include="tools\countdowntimer.cs" />
     <Compile Include="tools\exclusiveaccess.cs" />

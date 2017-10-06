@@ -66,16 +66,16 @@ namespace work.bacome.imapclient
                     {
                         // symmetricdifference of flags
 
-                        foreach (var lFlag in Flags.Except(lFetch.Flags, kMessageFlagName.Comparer))
+                        foreach (var lFlag in Flags.Except(lFetch.Flags, StringComparer.InvariantCultureIgnoreCase))
                         {
                             rAttributesSet |= fCacheAttributes.flags;
-                            rPropertiesChanged |= LMessageProperty(lFlag);
+                            rPropertiesChanged |= fMessageProperties.flags | LMessageProperty(lFlag);
                         }
 
-                        foreach (var lFlag in lFetch.Flags.Except(Flags, kMessageFlagName.Comparer))
+                        foreach (var lFlag in lFetch.Flags.Except(Flags, StringComparer.InvariantCultureIgnoreCase))
                         {
                             rAttributesSet |= fCacheAttributes.flags;
-                            rPropertiesChanged |= LMessageProperty(lFlag);
+                            rPropertiesChanged |= fMessageProperties.flags | LMessageProperty(lFlag);
                         }
 
                         Flags = lFetch.Flags;
@@ -106,16 +106,16 @@ namespace work.bacome.imapclient
 
                     fMessageProperties LMessageProperty(string pFlag)
                     {
-                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Answered)) return fMessageProperties.isanswered;
-                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Flagged)) return fMessageProperties.isflagged;
-                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Deleted)) return fMessageProperties.isdeleted;
-                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Seen)) return fMessageProperties.isseen;
-                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Draft)) return fMessageProperties.isdraft;
-                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Recent)) return fMessageProperties.isrecent;
-                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.MDNSent)) return fMessageProperties.ismdnsent;
-                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Forwarded)) return fMessageProperties.isforwarded;
-                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.SubmitPending)) return fMessageProperties.issubmitpending;
-                        if (kMessageFlagName.Comparer.Equals(pFlag, kMessageFlagName.Submitted)) return fMessageProperties.issubmitted;
+                        if (pFlag.Equals(kMessageFlagName.Answered, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.isanswered;
+                        if (pFlag.Equals(kMessageFlagName.Flagged, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.isflagged;
+                        if (pFlag.Equals(kMessageFlagName.Deleted, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.isdeleted;
+                        if (pFlag.Equals(kMessageFlagName.Seen, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.isseen;
+                        if (pFlag.Equals(kMessageFlagName.Draft, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.isdraft;
+                        if (pFlag.Equals(kMessageFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.isrecent;
+                        if (pFlag.Equals(kMessageFlagName.MDNSent, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.ismdnsent;
+                        if (pFlag.Equals(kMessageFlagName.Forwarded, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.isforwarded;
+                        if (pFlag.Equals(kMessageFlagName.SubmitPending, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.issubmitpending;
+                        if (pFlag.Equals(kMessageFlagName.Submitted, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.issubmitted;
                         return 0;
                     }
                 }

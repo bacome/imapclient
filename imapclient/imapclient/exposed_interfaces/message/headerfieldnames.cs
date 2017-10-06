@@ -85,7 +85,12 @@ namespace work.bacome.imapclient
 
         public cHeaderFieldNameList(params string[] pNames) // validates, duplicates, removes duplicates
         {
-            if (pNames == null) throw new ArgumentNullException(nameof(pNames));
+            if (pNames == null)
+            {
+                mNames = new List<string>();
+                return;
+            }
+
             foreach (var lName in pNames) if (!ZIsValidName(lName)) throw new ArgumentOutOfRangeException(nameof(pNames));
             mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }

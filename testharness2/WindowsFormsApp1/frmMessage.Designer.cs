@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.cmdPrevious = new System.Windows.Forms.Button();
             this.cmdNext = new System.Windows.Forms.Button();
-            this.chkAutoRefresh = new System.Windows.Forms.CheckBox();
             this.tab = new System.Windows.Forms.TabControl();
             this.tpgEnvelope = new System.Windows.Forms.TabPage();
             this.rtxEnvelope = new System.Windows.Forms.RichTextBox();
@@ -39,9 +39,25 @@
             this.tpgAttachments = new System.Windows.Forms.TabPage();
             this.dgv = new System.Windows.Forms.DataGridView();
             this.tpgFlags = new System.Windows.Forms.TabPage();
-            this.chkFred = new System.Windows.Forms.CheckBox();
-            this.chkDeleted = new System.Windows.Forms.CheckBox();
+            this.gbxFlags = new System.Windows.Forms.GroupBox();
+            this.chkSubmitted = new System.Windows.Forms.CheckBox();
+            this.chkSubmitPending = new System.Windows.Forms.CheckBox();
+            this.chkForwarded = new System.Windows.Forms.CheckBox();
+            this.chkDraft = new System.Windows.Forms.CheckBox();
             this.chkSeen = new System.Windows.Forms.CheckBox();
+            this.chkDeleted = new System.Windows.Forms.CheckBox();
+            this.chkFlagged = new System.Windows.Forms.CheckBox();
+            this.chkMDNSent = new System.Windows.Forms.CheckBox();
+            this.chkAnswered = new System.Windows.Forms.CheckBox();
+            this.gbxStore = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.rdoReplace = new System.Windows.Forms.RadioButton();
+            this.rdoRemove = new System.Windows.Forms.RadioButton();
+            this.rdoAdd = new System.Windows.Forms.RadioButton();
+            this.txtFlags = new System.Windows.Forms.TextBox();
+            this.cmdStore = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.txtIfUnchangedSinceModSeq = new System.Windows.Forms.TextBox();
             this.rtxFlags = new System.Windows.Forms.RichTextBox();
             this.tpgBodyStructure = new System.Windows.Forms.TabPage();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
@@ -59,13 +75,15 @@
             this.tpgOther = new System.Windows.Forms.TabPage();
             this.rtxOther = new System.Windows.Forms.RichTextBox();
             this.lblQueryError = new System.Windows.Forms.Label();
-            this.chkFredD = new System.Windows.Forms.CheckBox();
+            this.erp = new System.Windows.Forms.ErrorProvider(this.components);
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
             this.tpgAttachments.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).BeginInit();
             this.tpgFlags.SuspendLayout();
+            this.gbxFlags.SuspendLayout();
+            this.gbxStore.SuspendLayout();
             this.tpgBodyStructure.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -77,6 +95,7 @@
             this.tpgDecoded.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbx)).BeginInit();
             this.tpgOther.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
             this.SuspendLayout();
             // 
             // cmdPrevious
@@ -98,19 +117,6 @@
             this.cmdNext.Text = "Next";
             this.cmdNext.UseVisualStyleBackColor = true;
             this.cmdNext.Click += new System.EventHandler(this.cmdNext_Click);
-            // 
-            // chkAutoRefresh
-            // 
-            this.chkAutoRefresh.AutoSize = true;
-            this.chkAutoRefresh.Checked = true;
-            this.chkAutoRefresh.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAutoRefresh.Location = new System.Drawing.Point(217, 10);
-            this.chkAutoRefresh.Name = "chkAutoRefresh";
-            this.chkAutoRefresh.Size = new System.Drawing.Size(88, 17);
-            this.chkAutoRefresh.TabIndex = 2;
-            this.chkAutoRefresh.Text = "Auto Refresh";
-            this.chkAutoRefresh.UseVisualStyleBackColor = true;
-            this.chkAutoRefresh.CheckedChanged += new System.EventHandler(this.chkAutoRefresh_CheckedChanged);
             // 
             // tab
             // 
@@ -201,10 +207,8 @@
             // 
             // tpgFlags
             // 
-            this.tpgFlags.Controls.Add(this.chkFredD);
-            this.tpgFlags.Controls.Add(this.chkFred);
-            this.tpgFlags.Controls.Add(this.chkDeleted);
-            this.tpgFlags.Controls.Add(this.chkSeen);
+            this.tpgFlags.Controls.Add(this.gbxFlags);
+            this.tpgFlags.Controls.Add(this.gbxStore);
             this.tpgFlags.Controls.Add(this.rtxFlags);
             this.tpgFlags.Location = new System.Drawing.Point(4, 22);
             this.tpgFlags.Name = "tpgFlags";
@@ -214,38 +218,225 @@
             this.tpgFlags.Text = "Flags";
             this.tpgFlags.UseVisualStyleBackColor = true;
             // 
-            // chkFred
+            // gbxFlags
             // 
-            this.chkFred.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.chkFred.AutoSize = true;
-            this.chkFred.Location = new System.Drawing.Point(146, 489);
-            this.chkFred.Name = "chkFred";
-            this.chkFred.Size = new System.Drawing.Size(47, 17);
-            this.chkFred.TabIndex = 3;
-            this.chkFred.Text = "Fred";
-            this.chkFred.UseVisualStyleBackColor = true;
+            this.gbxFlags.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbxFlags.Controls.Add(this.chkSubmitted);
+            this.gbxFlags.Controls.Add(this.chkSubmitPending);
+            this.gbxFlags.Controls.Add(this.chkForwarded);
+            this.gbxFlags.Controls.Add(this.chkDraft);
+            this.gbxFlags.Controls.Add(this.chkSeen);
+            this.gbxFlags.Controls.Add(this.chkDeleted);
+            this.gbxFlags.Controls.Add(this.chkFlagged);
+            this.gbxFlags.Controls.Add(this.chkMDNSent);
+            this.gbxFlags.Controls.Add(this.chkAnswered);
+            this.gbxFlags.Location = new System.Drawing.Point(6, 275);
+            this.gbxFlags.Name = "gbxFlags";
+            this.gbxFlags.Size = new System.Drawing.Size(761, 92);
+            this.gbxFlags.TabIndex = 1;
+            this.gbxFlags.TabStop = false;
+            this.gbxFlags.Text = "Flags";
             // 
-            // chkDeleted
+            // chkSubmitted
             // 
-            this.chkDeleted.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.chkDeleted.AutoSize = true;
-            this.chkDeleted.Location = new System.Drawing.Point(76, 489);
-            this.chkDeleted.Name = "chkDeleted";
-            this.chkDeleted.Size = new System.Drawing.Size(63, 17);
-            this.chkDeleted.TabIndex = 2;
-            this.chkDeleted.Text = "Deleted";
-            this.chkDeleted.UseVisualStyleBackColor = true;
+            this.chkSubmitted.AutoSize = true;
+            this.chkSubmitted.Location = new System.Drawing.Point(227, 42);
+            this.chkSubmitted.Name = "chkSubmitted";
+            this.chkSubmitted.Size = new System.Drawing.Size(73, 17);
+            this.chkSubmitted.TabIndex = 7;
+            this.chkSubmitted.Text = "Submitted";
+            this.chkSubmitted.UseVisualStyleBackColor = true;
+            this.chkSubmitted.CheckedChanged += new System.EventHandler(this.chkSubmitted_CheckedChanged);
+            // 
+            // chkSubmitPending
+            // 
+            this.chkSubmitPending.AutoSize = true;
+            this.chkSubmitPending.Location = new System.Drawing.Point(121, 42);
+            this.chkSubmitPending.Name = "chkSubmitPending";
+            this.chkSubmitPending.Size = new System.Drawing.Size(100, 17);
+            this.chkSubmitPending.TabIndex = 6;
+            this.chkSubmitPending.Text = "Submit Pending";
+            this.chkSubmitPending.UseVisualStyleBackColor = true;
+            this.chkSubmitPending.CheckedChanged += new System.EventHandler(this.chkSubmitPending_CheckedChanged);
+            // 
+            // chkForwarded
+            // 
+            this.chkForwarded.AutoSize = true;
+            this.chkForwarded.Location = new System.Drawing.Point(15, 42);
+            this.chkForwarded.Name = "chkForwarded";
+            this.chkForwarded.Size = new System.Drawing.Size(76, 17);
+            this.chkForwarded.TabIndex = 5;
+            this.chkForwarded.Text = "Forwarded";
+            this.chkForwarded.UseVisualStyleBackColor = true;
+            this.chkForwarded.CheckedChanged += new System.EventHandler(this.chkForwarded_CheckedChanged);
+            // 
+            // chkDraft
+            // 
+            this.chkDraft.AutoSize = true;
+            this.chkDraft.Location = new System.Drawing.Point(227, 19);
+            this.chkDraft.Name = "chkDraft";
+            this.chkDraft.Size = new System.Drawing.Size(49, 17);
+            this.chkDraft.TabIndex = 2;
+            this.chkDraft.Text = "Draft";
+            this.chkDraft.UseVisualStyleBackColor = true;
+            this.chkDraft.CheckedChanged += new System.EventHandler(this.chkDraft_CheckedChanged);
             // 
             // chkSeen
             // 
-            this.chkSeen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkSeen.AutoSize = true;
-            this.chkSeen.Location = new System.Drawing.Point(6, 489);
+            this.chkSeen.Location = new System.Drawing.Point(439, 19);
             this.chkSeen.Name = "chkSeen";
             this.chkSeen.Size = new System.Drawing.Size(51, 17);
-            this.chkSeen.TabIndex = 1;
+            this.chkSeen.TabIndex = 4;
             this.chkSeen.Text = "Seen";
             this.chkSeen.UseVisualStyleBackColor = true;
+            this.chkSeen.CheckedChanged += new System.EventHandler(this.chkSeen_CheckedChanged);
+            // 
+            // chkDeleted
+            // 
+            this.chkDeleted.AutoSize = true;
+            this.chkDeleted.Location = new System.Drawing.Point(121, 19);
+            this.chkDeleted.Name = "chkDeleted";
+            this.chkDeleted.Size = new System.Drawing.Size(63, 17);
+            this.chkDeleted.TabIndex = 1;
+            this.chkDeleted.Text = "Deleted";
+            this.chkDeleted.UseVisualStyleBackColor = true;
+            this.chkDeleted.CheckedChanged += new System.EventHandler(this.chkDeleted_CheckedChanged);
+            // 
+            // chkFlagged
+            // 
+            this.chkFlagged.AutoSize = true;
+            this.chkFlagged.Location = new System.Drawing.Point(333, 19);
+            this.chkFlagged.Name = "chkFlagged";
+            this.chkFlagged.Size = new System.Drawing.Size(64, 17);
+            this.chkFlagged.TabIndex = 3;
+            this.chkFlagged.Text = "Flagged";
+            this.chkFlagged.UseVisualStyleBackColor = true;
+            this.chkFlagged.CheckedChanged += new System.EventHandler(this.chkFlagged_CheckedChanged);
+            // 
+            // chkMDNSent
+            // 
+            this.chkMDNSent.AutoSize = true;
+            this.chkMDNSent.Location = new System.Drawing.Point(15, 65);
+            this.chkMDNSent.Name = "chkMDNSent";
+            this.chkMDNSent.Size = new System.Drawing.Size(73, 17);
+            this.chkMDNSent.TabIndex = 8;
+            this.chkMDNSent.Text = "MDNSent";
+            this.chkMDNSent.UseVisualStyleBackColor = true;
+            this.chkMDNSent.CheckedChanged += new System.EventHandler(this.chkMDNSent_CheckedChanged);
+            // 
+            // chkAnswered
+            // 
+            this.chkAnswered.AutoSize = true;
+            this.chkAnswered.Location = new System.Drawing.Point(15, 19);
+            this.chkAnswered.Name = "chkAnswered";
+            this.chkAnswered.Size = new System.Drawing.Size(73, 17);
+            this.chkAnswered.TabIndex = 0;
+            this.chkAnswered.Text = "Answered";
+            this.chkAnswered.UseVisualStyleBackColor = true;
+            this.chkAnswered.CheckedChanged += new System.EventHandler(this.chkAnswered_CheckedChanged);
+            // 
+            // gbxStore
+            // 
+            this.gbxStore.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbxStore.Controls.Add(this.label2);
+            this.gbxStore.Controls.Add(this.rdoReplace);
+            this.gbxStore.Controls.Add(this.rdoRemove);
+            this.gbxStore.Controls.Add(this.rdoAdd);
+            this.gbxStore.Controls.Add(this.txtFlags);
+            this.gbxStore.Controls.Add(this.cmdStore);
+            this.gbxStore.Controls.Add(this.label1);
+            this.gbxStore.Controls.Add(this.txtIfUnchangedSinceModSeq);
+            this.gbxStore.Location = new System.Drawing.Point(6, 373);
+            this.gbxStore.Name = "gbxStore";
+            this.gbxStore.Size = new System.Drawing.Size(761, 127);
+            this.gbxStore.TabIndex = 2;
+            this.gbxStore.TabStop = false;
+            this.gbxStore.Text = "Store";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 45);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(120, 13);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Flags (space separated)";
+            // 
+            // rdoReplace
+            // 
+            this.rdoReplace.AutoSize = true;
+            this.rdoReplace.Location = new System.Drawing.Point(439, 19);
+            this.rdoReplace.Name = "rdoReplace";
+            this.rdoReplace.Size = new System.Drawing.Size(65, 17);
+            this.rdoReplace.TabIndex = 2;
+            this.rdoReplace.Text = "Replace";
+            this.rdoReplace.UseVisualStyleBackColor = true;
+            // 
+            // rdoRemove
+            // 
+            this.rdoRemove.AutoSize = true;
+            this.rdoRemove.Location = new System.Drawing.Point(333, 19);
+            this.rdoRemove.Name = "rdoRemove";
+            this.rdoRemove.Size = new System.Drawing.Size(65, 17);
+            this.rdoRemove.TabIndex = 1;
+            this.rdoRemove.Text = "Remove";
+            this.rdoRemove.UseVisualStyleBackColor = true;
+            // 
+            // rdoAdd
+            // 
+            this.rdoAdd.AutoSize = true;
+            this.rdoAdd.Checked = true;
+            this.rdoAdd.Location = new System.Drawing.Point(227, 19);
+            this.rdoAdd.Name = "rdoAdd";
+            this.rdoAdd.Size = new System.Drawing.Size(44, 17);
+            this.rdoAdd.TabIndex = 0;
+            this.rdoAdd.TabStop = true;
+            this.rdoAdd.Text = "Add";
+            this.rdoAdd.UseVisualStyleBackColor = true;
+            // 
+            // txtFlags
+            // 
+            this.txtFlags.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtFlags.Location = new System.Drawing.Point(227, 42);
+            this.txtFlags.Name = "txtFlags";
+            this.txtFlags.Size = new System.Drawing.Size(511, 20);
+            this.txtFlags.TabIndex = 4;
+            this.txtFlags.Validating += new System.ComponentModel.CancelEventHandler(this.ZValFlagNames);
+            this.txtFlags.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // cmdStore
+            // 
+            this.cmdStore.Location = new System.Drawing.Point(227, 90);
+            this.cmdStore.Name = "cmdStore";
+            this.cmdStore.Size = new System.Drawing.Size(100, 25);
+            this.cmdStore.TabIndex = 7;
+            this.cmdStore.Text = "Store";
+            this.cmdStore.UseVisualStyleBackColor = true;
+            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 67);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(187, 13);
+            this.label1.TabIndex = 5;
+            this.label1.Text = "Store only if unchanged since modseq";
+            // 
+            // txtIfUnchangedSinceModSeq
+            // 
+            this.txtIfUnchangedSinceModSeq.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtIfUnchangedSinceModSeq.Location = new System.Drawing.Point(227, 64);
+            this.txtIfUnchangedSinceModSeq.Name = "txtIfUnchangedSinceModSeq";
+            this.txtIfUnchangedSinceModSeq.Size = new System.Drawing.Size(511, 20);
+            this.txtIfUnchangedSinceModSeq.TabIndex = 6;
+            this.txtIfUnchangedSinceModSeq.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsModSeqOrNull);
+            this.txtIfUnchangedSinceModSeq.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // rtxFlags
             // 
@@ -254,7 +445,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtxFlags.Location = new System.Drawing.Point(6, 6);
             this.rtxFlags.Name = "rtxFlags";
-            this.rtxFlags.Size = new System.Drawing.Size(761, 477);
+            this.rtxFlags.Size = new System.Drawing.Size(761, 263);
             this.rtxFlags.TabIndex = 0;
             this.rtxFlags.Text = "";
             // 
@@ -439,22 +630,15 @@
             // lblQueryError
             // 
             this.lblQueryError.AutoSize = true;
-            this.lblQueryError.Location = new System.Drawing.Point(311, 11);
+            this.lblQueryError.Location = new System.Drawing.Point(217, 11);
             this.lblQueryError.Name = "lblQueryError";
             this.lblQueryError.Size = new System.Drawing.Size(60, 13);
             this.lblQueryError.TabIndex = 3;
             this.lblQueryError.Text = "Query Error";
             // 
-            // chkFredD
+            // erp
             // 
-            this.chkFredD.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.chkFredD.AutoSize = true;
-            this.chkFredD.Location = new System.Drawing.Point(216, 489);
-            this.chkFredD.Name = "chkFredD";
-            this.chkFredD.Size = new System.Drawing.Size(49, 17);
-            this.chkFredD.TabIndex = 4;
-            this.chkFredD.Text = "FreD";
-            this.chkFredD.UseVisualStyleBackColor = true;
+            this.erp.ContainerControl = this;
             // 
             // frmMessage
             // 
@@ -463,7 +647,6 @@
             this.ClientSize = new System.Drawing.Size(792, 573);
             this.Controls.Add(this.lblQueryError);
             this.Controls.Add(this.tab);
-            this.Controls.Add(this.chkAutoRefresh);
             this.Controls.Add(this.cmdNext);
             this.Controls.Add(this.cmdPrevious);
             this.Name = "frmMessage";
@@ -477,7 +660,10 @@
             this.tpgAttachments.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();
             this.tpgFlags.ResumeLayout(false);
-            this.tpgFlags.PerformLayout();
+            this.gbxFlags.ResumeLayout(false);
+            this.gbxFlags.PerformLayout();
+            this.gbxStore.ResumeLayout(false);
+            this.gbxStore.PerformLayout();
             this.tpgBodyStructure.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
@@ -489,6 +675,7 @@
             this.tpgDecoded.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pbx)).EndInit();
             this.tpgOther.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -498,7 +685,6 @@
 
         private System.Windows.Forms.Button cmdPrevious;
         private System.Windows.Forms.Button cmdNext;
-        private System.Windows.Forms.CheckBox chkAutoRefresh;
         private System.Windows.Forms.TabControl tab;
         private System.Windows.Forms.TabPage tpgText;
         private System.Windows.Forms.TabPage tpgAttachments;
@@ -509,9 +695,6 @@
         private System.Windows.Forms.RichTextBox rtxText;
         private System.Windows.Forms.TabPage tpgOther;
         private System.Windows.Forms.RichTextBox rtxOther;
-        private System.Windows.Forms.CheckBox chkFred;
-        private System.Windows.Forms.CheckBox chkDeleted;
-        private System.Windows.Forms.CheckBox chkSeen;
         private System.Windows.Forms.RichTextBox rtxFlags;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.TreeView tvwBodyStructure;
@@ -527,6 +710,25 @@
         private System.Windows.Forms.Button cmdDownloadDecoded;
         private System.Windows.Forms.PictureBox pbx;
         private System.Windows.Forms.DataGridView dgv;
-        private System.Windows.Forms.CheckBox chkFredD;
+        private System.Windows.Forms.GroupBox gbxStore;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.RadioButton rdoReplace;
+        private System.Windows.Forms.RadioButton rdoRemove;
+        private System.Windows.Forms.RadioButton rdoAdd;
+        private System.Windows.Forms.TextBox txtFlags;
+        private System.Windows.Forms.Button cmdStore;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox txtIfUnchangedSinceModSeq;
+        private System.Windows.Forms.ErrorProvider erp;
+        private System.Windows.Forms.GroupBox gbxFlags;
+        private System.Windows.Forms.CheckBox chkSubmitted;
+        private System.Windows.Forms.CheckBox chkSubmitPending;
+        private System.Windows.Forms.CheckBox chkForwarded;
+        private System.Windows.Forms.CheckBox chkDraft;
+        private System.Windows.Forms.CheckBox chkSeen;
+        private System.Windows.Forms.CheckBox chkDeleted;
+        private System.Windows.Forms.CheckBox chkFlagged;
+        private System.Windows.Forms.CheckBox chkMDNSent;
+        private System.Windows.Forms.CheckBox chkAnswered;
     }
 }

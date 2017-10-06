@@ -16,12 +16,4 @@ namespace work.bacome.imapclient
         highestmodseq = 1 << 8,
         allstatus = messagecount | recentcount | uidnext | uidvalidity | unseencount | highestmodseq
     }
-
-    [Flags]
-    public enum fMailboxCacheDataSets
-    {
-        list = 1 << 0,
-        lsub = 1 << 1,
-        status = 1 << 2
-    }
 }

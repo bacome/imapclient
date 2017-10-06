@@ -1559,7 +1559,7 @@
             this.tbpSettings.Location = new System.Drawing.Point(4, 22);
             this.tbpSettings.Name = "tbpSettings";
             this.tbpSettings.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpSettings.Size = new System.Drawing.Size(446, 386);
+            this.tbpSettings.Size = new System.Drawing.Size(446, 405);
             this.tbpSettings.TabIndex = 0;
             this.tbpSettings.Text = "Settings";
             this.tbpSettings.UseVisualStyleBackColor = true;
@@ -1616,7 +1616,7 @@
             this.tbpWindows.Location = new System.Drawing.Point(4, 22);
             this.tbpWindows.Name = "tbpWindows";
             this.tbpWindows.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpWindows.Size = new System.Drawing.Size(446, 386);
+            this.tbpWindows.Size = new System.Drawing.Size(446, 405);
             this.tbpWindows.TabIndex = 1;
             this.tbpWindows.Text = "Windows";
             this.tbpWindows.UseVisualStyleBackColor = true;
@@ -2136,6 +2136,8 @@
             this.txtAHHeaderFieldNames.Name = "txtAHHeaderFieldNames";
             this.txtAHHeaderFieldNames.Size = new System.Drawing.Size(395, 20);
             this.txtAHHeaderFieldNames.TabIndex = 8;
+            this.txtAHHeaderFieldNames.Validating += new System.ComponentModel.CancelEventHandler(this.ZValHeaderFieldNames);
+            this.txtAHHeaderFieldNames.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // chkAHBodyStructure
             // 

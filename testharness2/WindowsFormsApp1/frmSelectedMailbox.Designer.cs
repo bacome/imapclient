@@ -32,19 +32,20 @@
             this.cmdClose = new System.Windows.Forms.Button();
             this.rtx = new System.Windows.Forms.RichTextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.cmdFilterClear = new System.Windows.Forms.Button();
+            this.gbxOverrideSort = new System.Windows.Forms.GroupBox();
+            this.cmdOverrideSortClear = new System.Windows.Forms.Button();
+            this.lblOverrideSort = new System.Windows.Forms.Label();
             this.cmdOverrideSortSet = new System.Windows.Forms.Button();
             this.cmdFilter = new System.Windows.Forms.Button();
             this.dgvMessages = new System.Windows.Forms.DataGridView();
-            this.lblOverrideSort = new System.Windows.Forms.Label();
-            this.gbxOverrideSort = new System.Windows.Forms.GroupBox();
-            this.cmdOverrideSortClear = new System.Windows.Forms.Button();
-            this.cmdFilterClear = new System.Windows.Forms.Button();
+            this.cmdStore = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dgvMessages)).BeginInit();
             this.gbxOverrideSort.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvMessages)).BeginInit();
             this.SuspendLayout();
             // 
             // cmdExpunge
@@ -76,7 +77,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtx.Location = new System.Drawing.Point(3, 3);
             this.rtx.Name = "rtx";
-            this.rtx.Size = new System.Drawing.Size(314, 422);
+            this.rtx.Size = new System.Drawing.Size(314, 391);
             this.rtx.TabIndex = 0;
             this.rtx.Text = "";
             // 
@@ -90,6 +91,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.cmdStore);
             this.splitContainer1.Panel1.Controls.Add(this.cmdFilterClear);
             this.splitContainer1.Panel1.Controls.Add(this.gbxOverrideSort);
             this.splitContainer1.Panel1.Controls.Add(this.cmdFilter);
@@ -104,6 +106,51 @@
             this.splitContainer1.SplitterDistance = 320;
             this.splitContainer1.TabIndex = 0;
             // 
+            // cmdFilterClear
+            // 
+            this.cmdFilterClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdFilterClear.Location = new System.Drawing.Point(121, 400);
+            this.cmdFilterClear.Name = "cmdFilterClear";
+            this.cmdFilterClear.Size = new System.Drawing.Size(100, 25);
+            this.cmdFilterClear.TabIndex = 2;
+            this.cmdFilterClear.Text = "Clear";
+            this.cmdFilterClear.UseVisualStyleBackColor = true;
+            this.cmdFilterClear.Click += new System.EventHandler(this.cmdFilterClear_Click);
+            // 
+            // gbxOverrideSort
+            // 
+            this.gbxOverrideSort.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbxOverrideSort.Controls.Add(this.cmdOverrideSortClear);
+            this.gbxOverrideSort.Controls.Add(this.lblOverrideSort);
+            this.gbxOverrideSort.Controls.Add(this.cmdOverrideSortSet);
+            this.gbxOverrideSort.Location = new System.Drawing.Point(3, 431);
+            this.gbxOverrideSort.Name = "gbxOverrideSort";
+            this.gbxOverrideSort.Size = new System.Drawing.Size(314, 76);
+            this.gbxOverrideSort.TabIndex = 3;
+            this.gbxOverrideSort.TabStop = false;
+            this.gbxOverrideSort.Text = "Override Sort";
+            // 
+            // cmdOverrideSortClear
+            // 
+            this.cmdOverrideSortClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdOverrideSortClear.Location = new System.Drawing.Point(118, 40);
+            this.cmdOverrideSortClear.Name = "cmdOverrideSortClear";
+            this.cmdOverrideSortClear.Size = new System.Drawing.Size(100, 25);
+            this.cmdOverrideSortClear.TabIndex = 2;
+            this.cmdOverrideSortClear.Text = "Clear";
+            this.cmdOverrideSortClear.UseVisualStyleBackColor = true;
+            this.cmdOverrideSortClear.Click += new System.EventHandler(this.cmdOverrideSortClear_Click);
+            // 
+            // lblOverrideSort
+            // 
+            this.lblOverrideSort.AutoSize = true;
+            this.lblOverrideSort.Location = new System.Drawing.Point(9, 18);
+            this.lblOverrideSort.Name = "lblOverrideSort";
+            this.lblOverrideSort.Size = new System.Drawing.Size(79, 13);
+            this.lblOverrideSort.TabIndex = 0;
+            this.lblOverrideSort.Text = "<using default>";
+            // 
             // cmdOverrideSortSet
             // 
             this.cmdOverrideSortSet.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -111,18 +158,18 @@
             this.cmdOverrideSortSet.Name = "cmdOverrideSortSet";
             this.cmdOverrideSortSet.Size = new System.Drawing.Size(100, 25);
             this.cmdOverrideSortSet.TabIndex = 1;
-            this.cmdOverrideSortSet.Text = "Set";
+            this.cmdOverrideSortSet.Text = "Set ...";
             this.cmdOverrideSortSet.UseVisualStyleBackColor = true;
             this.cmdOverrideSortSet.Click += new System.EventHandler(this.cmdOverrideSort_Click);
             // 
             // cmdFilter
             // 
             this.cmdFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdFilter.Location = new System.Drawing.Point(15, 431);
+            this.cmdFilter.Location = new System.Drawing.Point(15, 400);
             this.cmdFilter.Name = "cmdFilter";
             this.cmdFilter.Size = new System.Drawing.Size(100, 25);
             this.cmdFilter.TabIndex = 1;
-            this.cmdFilter.Text = "Filter";
+            this.cmdFilter.Text = "Filter ...";
             this.cmdFilter.UseVisualStyleBackColor = true;
             this.cmdFilter.Click += new System.EventHandler(this.cmdFilter_Click);
             // 
@@ -143,50 +190,16 @@
             this.dgvMessages.TabIndex = 0;
             this.dgvMessages.RowHeaderMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgv_RowHeaderMouseDoubleClick);
             // 
-            // lblOverrideSort
+            // cmdStore
             // 
-            this.lblOverrideSort.AutoSize = true;
-            this.lblOverrideSort.Location = new System.Drawing.Point(9, 18);
-            this.lblOverrideSort.Name = "lblOverrideSort";
-            this.lblOverrideSort.Size = new System.Drawing.Size(79, 13);
-            this.lblOverrideSort.TabIndex = 0;
-            this.lblOverrideSort.Text = "<using default>";
-            // 
-            // gbxOverrideSort
-            // 
-            this.gbxOverrideSort.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbxOverrideSort.Controls.Add(this.cmdOverrideSortClear);
-            this.gbxOverrideSort.Controls.Add(this.lblOverrideSort);
-            this.gbxOverrideSort.Controls.Add(this.cmdOverrideSortSet);
-            this.gbxOverrideSort.Location = new System.Drawing.Point(3, 462);
-            this.gbxOverrideSort.Name = "gbxOverrideSort";
-            this.gbxOverrideSort.Size = new System.Drawing.Size(314, 76);
-            this.gbxOverrideSort.TabIndex = 3;
-            this.gbxOverrideSort.TabStop = false;
-            this.gbxOverrideSort.Text = "Override Sort";
-            // 
-            // cmdOverrideSortClear
-            // 
-            this.cmdOverrideSortClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdOverrideSortClear.Location = new System.Drawing.Point(118, 40);
-            this.cmdOverrideSortClear.Name = "cmdOverrideSortClear";
-            this.cmdOverrideSortClear.Size = new System.Drawing.Size(100, 25);
-            this.cmdOverrideSortClear.TabIndex = 2;
-            this.cmdOverrideSortClear.Text = "Clear";
-            this.cmdOverrideSortClear.UseVisualStyleBackColor = true;
-            this.cmdOverrideSortClear.Click += new System.EventHandler(this.cmdOverrideSortClear_Click);
-            // 
-            // cmdFilterClear
-            // 
-            this.cmdFilterClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdFilterClear.Location = new System.Drawing.Point(121, 431);
-            this.cmdFilterClear.Name = "cmdFilterClear";
-            this.cmdFilterClear.Size = new System.Drawing.Size(100, 25);
-            this.cmdFilterClear.TabIndex = 2;
-            this.cmdFilterClear.Text = "Clear";
-            this.cmdFilterClear.UseVisualStyleBackColor = true;
-            this.cmdFilterClear.Click += new System.EventHandler(this.cmdFilterClear_Click);
+            this.cmdStore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdStore.Location = new System.Drawing.Point(15, 513);
+            this.cmdStore.Name = "cmdStore";
+            this.cmdStore.Size = new System.Drawing.Size(100, 25);
+            this.cmdStore.TabIndex = 6;
+            this.cmdStore.Text = "Store ...";
+            this.cmdStore.UseVisualStyleBackColor = true;
+            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
             // 
             // frmSelectedMailbox
             // 
@@ -203,9 +216,9 @@
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dgvMessages)).EndInit();
             this.gbxOverrideSort.ResumeLayout(false);
             this.gbxOverrideSort.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvMessages)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -222,5 +235,6 @@
         private System.Windows.Forms.GroupBox gbxOverrideSort;
         private System.Windows.Forms.Button cmdOverrideSortClear;
         private System.Windows.Forms.Button cmdFilterClear;
+        private System.Windows.Forms.Button cmdStore;
     }
 }

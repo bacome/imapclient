@@ -104,7 +104,7 @@ namespace testharness2
 
             try
             {
-                mClient.SetServer(txtHost.Text.Trim(), int.Parse(txtPort.Text.Trim()), chkSSL.Checked);
+                mClient.SetServer(txtHost.Text.Trim(), int.Parse(txtPort.Text), chkSSL.Checked);
 
                 if (rdoCredNone.Checked) mClient.SetNoCredentials();
                 else

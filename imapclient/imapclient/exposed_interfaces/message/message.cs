@@ -185,18 +185,55 @@ namespace work.bacome.imapclient
             set => ZFlagSet(cSettableFlags.Answered, value);
         }
 
-        ;?; // TODO setters on these ...
-        public bool IsFlagged => ZFlagsContain(kMessageFlagName.Flagged);
-        public bool IsDeleted => ZFlagsContain(kMessageFlagName.Deleted);
-        public bool IsSeen => ZFlagsContain(kMessageFlagName.Seen);
-        public bool IsDraft => ZFlagsContain(kMessageFlagName.Draft);
+        public bool IsFlagged
+        {
+            get => ZFlagsContain(kMessageFlagName.Flagged);
+            set => ZFlagSet(cSettableFlags.Flagged, value);
+        }
+
+        public bool IsDeleted
+        {
+            get => ZFlagsContain(kMessageFlagName.Deleted);
+            set => ZFlagSet(cSettableFlags.Deleted, value);
+        }
+
+        public bool IsSeen
+        {
+            get => ZFlagsContain(kMessageFlagName.Seen);
+            set => ZFlagSet(cSettableFlags.Seen, value);
+        }
+
+        public bool IsDraft
+        {
+            get => ZFlagsContain(kMessageFlagName.Draft);
+            set => ZFlagSet(cSettableFlags.Draft, value);
+        }
+
         public bool IsRecent => ZFlagsContain(kMessageFlagName.Recent);
 
-        ;?; // TODO setters on these ...
-        public bool IsMDNSent => ZFlagsContain(kMessageFlagName.MDNSent);
-        public bool IsForwarded => ZFlagsContain(kMessageFlagName.Forwarded);
-        public bool IsSubmitPending => ZFlagsContain(kMessageFlagName.SubmitPending);
-        public bool IsSubmitted => ZFlagsContain(kMessageFlagName.Submitted);
+        public bool IsMDNSent
+        {
+            get => ZFlagsContain(kMessageFlagName.MDNSent);
+            set => ZFlagSet(cSettableFlags.MDNSent, value);
+        }
+
+        public bool IsForwarded
+        {
+            get => ZFlagsContain(kMessageFlagName.Forwarded);
+            set => ZFlagSet(cSettableFlags.Forwarded, value);
+        }
+
+        public bool IsSubmitPending
+        {
+            get => ZFlagsContain(kMessageFlagName.SubmitPending);
+            set => ZFlagSet(cSettableFlags.SubmitPending, value);
+        }
+
+        public bool IsSubmitted
+        {
+            get => ZFlagsContain(kMessageFlagName.Submitted);
+            set => ZFlagSet(cSettableFlags.Submitted, value);
+        }
 
         private bool ZFlagsContain(string pFlag)
         {
@@ -208,11 +245,11 @@ namespace work.bacome.imapclient
         {
             if (pValue)
             {
-                if (!Client.Store(Handle, eStoreOperation.add, pFlags)) throw new InvalidOperationException();
+                if (!Client.Store(Handle, eStoreOperation.add, pFlags, null)) throw new InvalidOperationException();
             }
             else
             {
-                if (!Client.Store(Handle, eStoreOperation.remove, pFlags)) throw new InvalidOperationException();
+                if (!Client.Store(Handle, eStoreOperation.remove, pFlags, null)) throw new InvalidOperationException();
             }
         }
 
@@ -422,14 +459,9 @@ namespace work.bacome.imapclient
         public Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, pSection, pDecoding, pStream, pConfiguration);
 
         // set data
-        ;?; // asunc version to do
 
-        // these throw on failure
-        ;?; // TODO + Async versions
-        public void Store(eStoreOperation pOperation, cSettableFlags pFlags) { }
-
-        // these return success/ failure
-        public bool Store(eStoreOperation pOperation, cSettableFlags pFlags, ulong pIfUnchangedSinceModSeq) { }
+        public bool Store(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public Task<bool> StoreAsync(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         // debugging
         public override string ToString() => $"{nameof(cMessage)}({Handle},{Indent})";

@@ -19,9 +19,6 @@ namespace testharness2
             Application.Run(new frmStart());
         }
 
-        public const string FlagFred = "Fred";
-        public const string FlagFreD = "FreD";
-
         private const int kCentreStep = 20;
 
         public static void Centre(Form pThis, Form pOnThis, List<Form> pGivenThese = null)

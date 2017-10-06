@@ -47,6 +47,7 @@ namespace testharness2
 
         public void Increment(int pCount)
         {
+            if (mCancellationTokenSource.IsCancellationRequested) return;
             mTotal += pCount;
             lblTotal.Text = mTotal.ToString();
             prg.Increment(pCount);
@@ -54,8 +55,8 @@ namespace testharness2
 
         public void Cancel()
         {
-            prg.Style = ProgressBarStyle.Marquee;
             mCancellationTokenSource.Cancel();
+            prg.Style = ProgressBarStyle.Marquee;
             cmdCancel.Enabled = false;
         }
 

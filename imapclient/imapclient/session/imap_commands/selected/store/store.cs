@@ -24,6 +24,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
                     cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pHandles);
+                    if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException();
 
                     lBuilder.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
                     lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
@@ -33,18 +34,18 @@ namespace work.bacome.imapclient
 
                     // working storage
                     cStoreFeedback lFeedback = new cStoreFeedback(false);
-                    cMessageHandleList lFailed = new cMessageHandleList();
+                    cMessageHandleList lFailedToStore = new cMessageHandleList();
 
                     // resolve the handles to MSNs
                     foreach (var lHandle in pHandles)
                     {
                         var lMSN = lSelectedMailbox.GetMSN(lHandle);
-                        if (lMSN == 0) lFailed.Add(lHandle);
+                        if (lMSN == 0) lFailedToStore.Add(lHandle);
                         else lFeedback.Add(lMSN, lHandle);
                     }
 
                     // if no handles were resolved, we are done
-                    if (lFeedback.Count == 0) return lFailed;
+                    if (lFeedback.Count == 0) return lFailedToStore;
 
                     // build the command
                     lBuilder.Add(kStoreCommandPartStoreSpace, new cCommandPart(cSequenceSet.FromUInts(lFeedback.UInts)), cCommandPart.Space);
@@ -71,9 +72,9 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok) lContext.TraceInformation("store success");
                     else lContext.TraceInformation("store possible partial success");
 
-                    lFailed.AddRange(from i in lFeedback.Items where !i.Fetched || i.Modified select i.Handle);
+                    lFailedToStore.AddRange(from i in lFeedback.Items where !i.Fetched || i.Modified select i.Handle);
 
-                    return lFailed;
+                    return lFailedToStore;
                 }
             }
         }

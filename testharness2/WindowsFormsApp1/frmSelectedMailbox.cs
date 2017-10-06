@@ -28,7 +28,6 @@ namespace testharness2
         private cFilter mFilter = null;
         private cSort mOverrideSort = null;
 
-
         public frmSelectedMailbox(cIMAPClient pClient, int pMaxMessages, int pMaxTextBytes, bool pTrackUIDNext, bool pTrackUnseen, bool pProgressBar)
         {
             mClient = pClient;
@@ -130,19 +129,16 @@ namespace testharness2
 
             try
             {
-                cMessageFetchConfiguration lConfiguration;
-
                 if (mProgressBar)
                 {
                     lProgress = new frmProgress("loading new messages");
                     Program.Centre(lProgress, this);
                     lProgress.Show();
-                    lConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, lProgress.SetCount, lProgress.Increment);
+                    cMessageFetchConfiguration lConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, lProgress.SetCount, lProgress.Increment);
                     ZMessagesLoadingAdd(lProgress); // so it can be cancelled from code
+                    lMessages = await mSelectedMailbox.MessagesAsync(e.Handles, mClient.DefaultCacheItems, lConfiguration);
                 }
-                else lConfiguration = null;
-
-                lMessages = await mSelectedMailbox.MessagesAsync(e.Handles, mClient.DefaultCacheItems, lConfiguration);
+                else lMessages = await mSelectedMailbox.MessagesAsync(e.Handles);
             }
             catch (OperationCanceledException) { return; }
             catch (Exception ex)
@@ -209,6 +205,7 @@ namespace testharness2
             if (mSelectedMailbox == null)
             {
                 rtx.Text = "no selected mailbox";
+                cmdStore.Enabled = false;
                 cmdExpunge.Enabled = false;
                 cmdClose.Enabled = false;
                 return;
@@ -245,6 +242,7 @@ namespace testharness2
             }
 
             rtx.Text = lBuilder.ToString();
+            cmdStore.Enabled = mSelectedMailbox.IsSelectedForUpdate;
             cmdExpunge.Enabled = mSelectedMailbox.IsSelectedForUpdate && !mSelectedMailbox.IsAccessReadOnly;
             cmdClose.Enabled = mSelectedMailbox.IsSelectedForUpdate && !mSelectedMailbox.IsAccessReadOnly;
         }
@@ -299,6 +297,12 @@ namespace testharness2
                 }
                 else if (mFilter != null || mOverrideSort != null || lConfiguration != null) lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
                 else lMessages = await mSelectedMailbox.MessagesAsync(); // show that getting the full set of messages in a mailbox is trivial if no restrictions are required and the defaults are set correctly
+            }
+            catch (OperationCanceledException e)
+            {
+                if (lProgress != null && lProgress.CancellationToken.IsCancellationRequested) return; // ignore the cancellation if we cancelled it
+                if (!IsDisposed) MessageBox.Show(this, $"a problem occurred: {e}");
+                return;
             }
             catch (Exception e)
             {
@@ -546,6 +550,42 @@ namespace testharness2
             ZQueryMessagesAsync();
         }
 
+        private async void cmdStore_Click(object sender, EventArgs e)
+        {
+            var lBindingSource = dgvMessages.DataSource as BindingSource;
+
+            if (lBindingSource == null) return;
+            if (lBindingSource.Count == 0) MessageBox.Show("there have to be some messages to update");
+
+            // get them now: some could be delivered while the dialog is up (TODO: test that theory)
+            List<cMessage> lMessages = new List<cMessage>(from cGridRowData lItem in lBindingSource select lItem.Message);
+
+            eStoreOperation lOperation;
+            cSettableFlags lFlags;
+            ulong? lIfUnchangedSinceModSeq;
+
+            List<cMessage> lFailed;
+
+            using (frmStoreDialog lStoreDialog = new frmStoreDialog())
+            {
+                if (lStoreDialog.ShowDialog(this) != DialogResult.OK) return;
+                lOperation = lStoreDialog.Operation;
+
+
+
+                try { lFailed = await mSelectedMailbox.StoreAsync(lMessages, , lStoreDialog.SettableFlags, lStoreDialog.IfUnchangedSinceModSeq); }
+                catch (Exception ex)
+                {
+                    if (!IsDisposed) MessageBox.Show(this, $"an error occurred while storing: {ex}");
+                    return;
+                }
+            }
+
+            ;?; // display the failed ones somehow
+        }
+
+
+
         private void frmSelectedMailbox_FormClosing(object sender, FormClosingEventArgs e)
         {
             ZMessagesLoadingClose();
@@ -579,7 +619,7 @@ namespace testharness2
 
             public cGridRowData(cMessage pMessage)
             {
-                Message = pMessage;
+                Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
             }
 
             public event PropertyChangedEventHandler PropertyChanged

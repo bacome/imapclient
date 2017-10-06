@@ -33,6 +33,7 @@ namespace testharness2
         private bool mDecodedDisplayed = false;
         private string mRawSectionData = null;
 
+        private bool mQueryingFlagCheckboxes = false;
         private frmProgress mImageLoadProgress = null;
         private MemoryStream mImageStream = null;
 
@@ -63,18 +64,13 @@ namespace testharness2
 
             if (mMailbox.IsSelectedForUpdate)
             {
-                chkSeen.Enabled = true;
-                chkDeleted.Enabled = true;
-
-                chkFred.Enabled = mMailbox.MessageFlags.Contains(kMessageFlagName.CreateNewIsPossible);
-                chkFredD.Enabled = mMailbox.MessageFlags.Contains(kMessageFlagName.CreateNewIsPossible);
+                gbxFlags.Enabled = true;
+                gbxStore.Enabled = true;
             }
             else
             {
-                chkSeen.Enabled = false;
-                chkDeleted.Enabled = false;
-                chkFred.Enabled = false;
-                chkFredD.Enabled = false;
+                gbxFlags.Enabled = false;
+                gbxStore.Enabled = false;
             }
 
             ZQueryAsync(true);
@@ -115,7 +111,12 @@ namespace testharness2
                 mEnvelopeDisplayed = false;
                 mTextDisplayed = false;
                 mAttachmentsDisplayed = false;
+
                 mFlagsDisplayed = false;
+                rdoAdd.Checked = true;
+                txtFlags.Text = null;
+                txtIfUnchangedSinceModSeq.Text = null;
+
                 mBodyStructureDisplayed = false;
                 mOtherDisplayed = false;
 
@@ -176,17 +177,28 @@ namespace testharness2
                     {
                         mFlagsDisplayed = true;
 
-                        ZSubscribe(chkAutoRefresh.Checked);
+                        ZSubscribe(true);
 
                         if (mMailbox.HighestModSeq != 0) lBuilder.AppendLine("Modseq: " + mMessage.ModSeq);
                         lBuilder.AppendLine("Flags: " + mMessage.Flags);
 
                         rtxFlags.Text = lBuilder.ToString();
 
-                        chkSeen.Checked = mMessage.IsSeen;
+                        mQueryingFlagCheckboxes = true;
+
+                        chkAnswered.Checked = mMessage.IsAnswered;
+                        chkFlagged.Checked = mMessage.IsFlagged;
                         chkDeleted.Checked = mMessage.IsDeleted;
-                        chkFred.Checked = mMessage.Flags.Contains(Program.FlagFred);
-                        chkFredD.Checked = mMessage.Flags.Contains(Program.FlagFreD);
+                        chkSeen.Checked = mMessage.IsSeen;
+                        chkDraft.Checked = mMessage.IsDraft;
+
+                        chkForwarded.Checked = mMessage.IsForwarded;
+                        chkSubmitPending.Checked = mMessage.IsSubmitPending;
+                        chkSubmitted.Checked = mMessage.IsSubmitted;
+
+                        chkMDNSent.Checked = mMessage.IsMDNSent;
+
+                        mQueryingFlagCheckboxes = false;
                     }
 
                     return;
@@ -572,12 +584,6 @@ namespace testharness2
             ZSubscribe(false);
         }
 
-        private void chkAutoRefresh_CheckedChanged(object sender, EventArgs e)
-        {
-            mFlagsDisplayed = false;
-            ZQueryAsync(false);
-        }
-
         private void ZSubscribe(bool pSubscribe)
         {
             if (mSubscribed == pSubscribe) return;
@@ -880,6 +886,148 @@ namespace testharness2
                 Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
                 ApproximateSizeInBytes = pApproximateSizeInBytes;
             }
+        }
+
+        private void chkAnswered_CheckedChanged(object sender, EventArgs e)
+        {
+            if (mQueryingFlagCheckboxes) return;
+            mMessage.IsAnswered = chkAnswered.Checked;
+        }
+
+        private void chkFlagged_CheckedChanged(object sender, EventArgs e)
+        {
+            if (mQueryingFlagCheckboxes) return;
+            mMessage.IsFlagged = chkFlagged.Checked;
+        }
+
+        private void chkDeleted_CheckedChanged(object sender, EventArgs e)
+        {
+            if (mQueryingFlagCheckboxes) return;
+            mMessage.IsDeleted = chkDeleted.Checked;
+        }
+
+        private void chkSeen_CheckedChanged(object sender, EventArgs e)
+        {
+            if (mQueryingFlagCheckboxes) return;
+            mMessage.IsSeen = chkSeen.Checked;
+        }
+
+        private void chkDraft_CheckedChanged(object sender, EventArgs e)
+        {
+            if (mQueryingFlagCheckboxes) return;
+            mMessage.IsDraft = chkDraft.Checked;
+        }
+
+        private void chkForwarded_CheckedChanged(object sender, EventArgs e)
+        {
+            if (mQueryingFlagCheckboxes) return;
+            mMessage.IsForwarded = chkForwarded.Checked;
+        }
+
+        private void chkSubmitPending_CheckedChanged(object sender, EventArgs e)
+        {
+            if (mQueryingFlagCheckboxes) return;
+            mMessage.IsSubmitPending = chkSubmitPending.Checked;
+        }
+
+        private void chkSubmitted_CheckedChanged(object sender, EventArgs e)
+        {
+            if (mQueryingFlagCheckboxes) return;
+            mMessage.IsSubmitted = chkSubmitted.Checked;
+        }
+
+        private void chkMDNSent_CheckedChanged(object sender, EventArgs e)
+        {
+            if (mQueryingFlagCheckboxes) return;
+            mMessage.IsMDNSent = chkMDNSent.Checked;
+        }
+
+        private void ZValTextBoxIsModSeqOrNull(object sender, CancelEventArgs e)
+        {
+            if (!(sender is TextBox lSender)) return;
+
+            if (string.IsNullOrWhiteSpace(lSender.Text)) return;
+
+            if (!ulong.TryParse(lSender.Text, out var l) || l < 1)
+            {
+                e.Cancel = true;
+                erp.SetError(lSender, "modseq should be an unsigned long greater than zero");
+            }
+        }
+
+        private void ZValFlagNames(object sender, CancelEventArgs e)
+        {
+            if (!(sender is TextBox lTextBox)) return;
+
+            if (ZTryParseFlagNames(lTextBox.Text, out var lFlags)) lTextBox.Text = ZFlagNames(lFlags);
+            else
+            {
+                e.Cancel = true;
+                erp.SetError((Control)sender, "must be valid rfc3501 flag names separated by spaces");
+            }
+        }
+
+        private bool ZTryParseFlagNames(string pText, out cSettableFlags rFlags)
+        {
+            if (pText == null) { rFlags = cSettableFlags.None; return true; }
+
+            List<string> lFlags = new List<string>();
+            foreach (var lFlag in pText.Trim().Split(' ')) if (!string.IsNullOrWhiteSpace(lFlag)) lFlags.Add(lFlag);
+
+            if (lFlags.Count == 0) { rFlags = cSettableFlags.None; return true; }
+
+            try { rFlags = new cSettableFlags(lFlags); }
+            catch { rFlags = null; return false; }
+
+            return true;
+        }
+
+        private string ZFlagNames(cSettableFlags pFlags)
+        {
+            if (pFlags == null || pFlags.Count == 0) return string.Empty;
+
+            StringBuilder lBuilder = new StringBuilder();
+            bool lFirst = true;
+
+            foreach (var lFlag in pFlags)
+            {
+                if (lFirst) lFirst = false;
+                else lBuilder.Append(" ");
+                lBuilder.Append(lFlag);
+            }
+
+            return lBuilder.ToString();
+        }
+
+        private void ZValControlValidated(object sender, EventArgs e)
+        {
+            erp.SetError((Control)sender, null);
+        }
+
+        private void cmdStore_Click(object sender, EventArgs e)
+        {
+            eStoreOperation lOperation;
+
+            if (rdoAdd.Checked) lOperation = eStoreOperation.add;
+            else if (rdoRemove.Checked) lOperation = eStoreOperation.remove;
+            else lOperation = eStoreOperation.replace;
+
+            ZTryParseFlagNames(txtFlags.Text, out var lFlags);
+
+            bool lUpdated;
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(txtIfUnchangedSinceModSeq.Text) || !ulong.TryParse(txtIfUnchangedSinceModSeq.Text, out var lIfUnchangedSinceModSeq)) lUpdated = mMessage.Store(lOperation, lFlags ?? cSettableFlags.None);
+                else lUpdated = mMessage.Store(lOperation, lFlags ?? cSettableFlags.None, lIfUnchangedSinceModSeq);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Store error\n{ex}");
+                return;
+            }
+
+            if (!lUpdated) MessageBox.Show(this, "the store did not succeed");
         }
     }
 }
