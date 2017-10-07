@@ -149,6 +149,7 @@
             this.Name = "frmSortDialog";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "frmSort";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmSortDialog_FormClosing);
             this.Load += new System.EventHandler(this.frmSort_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();

@@ -49,15 +49,6 @@
             this.chkFlagged = new System.Windows.Forms.CheckBox();
             this.chkMDNSent = new System.Windows.Forms.CheckBox();
             this.chkAnswered = new System.Windows.Forms.CheckBox();
-            this.gbxStore = new System.Windows.Forms.GroupBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.rdoReplace = new System.Windows.Forms.RadioButton();
-            this.rdoRemove = new System.Windows.Forms.RadioButton();
-            this.rdoAdd = new System.Windows.Forms.RadioButton();
-            this.txtFlags = new System.Windows.Forms.TextBox();
-            this.cmdStore = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.txtIfUnchangedSinceModSeq = new System.Windows.Forms.TextBox();
             this.rtxFlags = new System.Windows.Forms.RichTextBox();
             this.tpgBodyStructure = new System.Windows.Forms.TabPage();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
@@ -76,6 +67,7 @@
             this.rtxOther = new System.Windows.Forms.RichTextBox();
             this.lblQueryError = new System.Windows.Forms.Label();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
+            this.cmdStore = new System.Windows.Forms.Button();
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
@@ -83,7 +75,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).BeginInit();
             this.tpgFlags.SuspendLayout();
             this.gbxFlags.SuspendLayout();
-            this.gbxStore.SuspendLayout();
             this.tpgBodyStructure.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -207,8 +198,8 @@
             // 
             // tpgFlags
             // 
+            this.tpgFlags.Controls.Add(this.cmdStore);
             this.tpgFlags.Controls.Add(this.gbxFlags);
-            this.tpgFlags.Controls.Add(this.gbxStore);
             this.tpgFlags.Controls.Add(this.rtxFlags);
             this.tpgFlags.Location = new System.Drawing.Point(4, 22);
             this.tpgFlags.Name = "tpgFlags";
@@ -231,7 +222,7 @@
             this.gbxFlags.Controls.Add(this.chkFlagged);
             this.gbxFlags.Controls.Add(this.chkMDNSent);
             this.gbxFlags.Controls.Add(this.chkAnswered);
-            this.gbxFlags.Location = new System.Drawing.Point(6, 275);
+            this.gbxFlags.Location = new System.Drawing.Point(6, 377);
             this.gbxFlags.Name = "gbxFlags";
             this.gbxFlags.Size = new System.Drawing.Size(761, 92);
             this.gbxFlags.TabIndex = 1;
@@ -337,107 +328,6 @@
             this.chkAnswered.UseVisualStyleBackColor = true;
             this.chkAnswered.CheckedChanged += new System.EventHandler(this.chkAnswered_CheckedChanged);
             // 
-            // gbxStore
-            // 
-            this.gbxStore.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbxStore.Controls.Add(this.label2);
-            this.gbxStore.Controls.Add(this.rdoReplace);
-            this.gbxStore.Controls.Add(this.rdoRemove);
-            this.gbxStore.Controls.Add(this.rdoAdd);
-            this.gbxStore.Controls.Add(this.txtFlags);
-            this.gbxStore.Controls.Add(this.cmdStore);
-            this.gbxStore.Controls.Add(this.label1);
-            this.gbxStore.Controls.Add(this.txtIfUnchangedSinceModSeq);
-            this.gbxStore.Location = new System.Drawing.Point(6, 373);
-            this.gbxStore.Name = "gbxStore";
-            this.gbxStore.Size = new System.Drawing.Size(761, 127);
-            this.gbxStore.TabIndex = 2;
-            this.gbxStore.TabStop = false;
-            this.gbxStore.Text = "Store";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 45);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(120, 13);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Flags (space separated)";
-            // 
-            // rdoReplace
-            // 
-            this.rdoReplace.AutoSize = true;
-            this.rdoReplace.Location = new System.Drawing.Point(439, 19);
-            this.rdoReplace.Name = "rdoReplace";
-            this.rdoReplace.Size = new System.Drawing.Size(65, 17);
-            this.rdoReplace.TabIndex = 2;
-            this.rdoReplace.Text = "Replace";
-            this.rdoReplace.UseVisualStyleBackColor = true;
-            // 
-            // rdoRemove
-            // 
-            this.rdoRemove.AutoSize = true;
-            this.rdoRemove.Location = new System.Drawing.Point(333, 19);
-            this.rdoRemove.Name = "rdoRemove";
-            this.rdoRemove.Size = new System.Drawing.Size(65, 17);
-            this.rdoRemove.TabIndex = 1;
-            this.rdoRemove.Text = "Remove";
-            this.rdoRemove.UseVisualStyleBackColor = true;
-            // 
-            // rdoAdd
-            // 
-            this.rdoAdd.AutoSize = true;
-            this.rdoAdd.Checked = true;
-            this.rdoAdd.Location = new System.Drawing.Point(227, 19);
-            this.rdoAdd.Name = "rdoAdd";
-            this.rdoAdd.Size = new System.Drawing.Size(44, 17);
-            this.rdoAdd.TabIndex = 0;
-            this.rdoAdd.TabStop = true;
-            this.rdoAdd.Text = "Add";
-            this.rdoAdd.UseVisualStyleBackColor = true;
-            // 
-            // txtFlags
-            // 
-            this.txtFlags.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtFlags.Location = new System.Drawing.Point(227, 42);
-            this.txtFlags.Name = "txtFlags";
-            this.txtFlags.Size = new System.Drawing.Size(511, 20);
-            this.txtFlags.TabIndex = 4;
-            this.txtFlags.Validating += new System.ComponentModel.CancelEventHandler(this.ZValFlagNames);
-            this.txtFlags.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // cmdStore
-            // 
-            this.cmdStore.Location = new System.Drawing.Point(227, 90);
-            this.cmdStore.Name = "cmdStore";
-            this.cmdStore.Size = new System.Drawing.Size(100, 25);
-            this.cmdStore.TabIndex = 7;
-            this.cmdStore.Text = "Store";
-            this.cmdStore.UseVisualStyleBackColor = true;
-            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 67);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(187, 13);
-            this.label1.TabIndex = 5;
-            this.label1.Text = "Store only if unchanged since modseq";
-            // 
-            // txtIfUnchangedSinceModSeq
-            // 
-            this.txtIfUnchangedSinceModSeq.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtIfUnchangedSinceModSeq.Location = new System.Drawing.Point(227, 64);
-            this.txtIfUnchangedSinceModSeq.Name = "txtIfUnchangedSinceModSeq";
-            this.txtIfUnchangedSinceModSeq.Size = new System.Drawing.Size(511, 20);
-            this.txtIfUnchangedSinceModSeq.TabIndex = 6;
-            this.txtIfUnchangedSinceModSeq.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsModSeqOrNull);
-            this.txtIfUnchangedSinceModSeq.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
             // rtxFlags
             // 
             this.rtxFlags.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -445,7 +335,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtxFlags.Location = new System.Drawing.Point(6, 6);
             this.rtxFlags.Name = "rtxFlags";
-            this.rtxFlags.Size = new System.Drawing.Size(761, 263);
+            this.rtxFlags.Size = new System.Drawing.Size(761, 365);
             this.rtxFlags.TabIndex = 0;
             this.rtxFlags.Text = "";
             // 
@@ -640,6 +530,17 @@
             // 
             this.erp.ContainerControl = this;
             // 
+            // cmdStore
+            // 
+            this.cmdStore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdStore.Location = new System.Drawing.Point(6, 475);
+            this.cmdStore.Name = "cmdStore";
+            this.cmdStore.Size = new System.Drawing.Size(100, 25);
+            this.cmdStore.TabIndex = 2;
+            this.cmdStore.Text = "Store ...";
+            this.cmdStore.UseVisualStyleBackColor = true;
+            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
+            // 
             // frmMessage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -662,8 +563,6 @@
             this.tpgFlags.ResumeLayout(false);
             this.gbxFlags.ResumeLayout(false);
             this.gbxFlags.PerformLayout();
-            this.gbxStore.ResumeLayout(false);
-            this.gbxStore.PerformLayout();
             this.tpgBodyStructure.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
@@ -710,15 +609,6 @@
         private System.Windows.Forms.Button cmdDownloadDecoded;
         private System.Windows.Forms.PictureBox pbx;
         private System.Windows.Forms.DataGridView dgv;
-        private System.Windows.Forms.GroupBox gbxStore;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.RadioButton rdoReplace;
-        private System.Windows.Forms.RadioButton rdoRemove;
-        private System.Windows.Forms.RadioButton rdoAdd;
-        private System.Windows.Forms.TextBox txtFlags;
-        private System.Windows.Forms.Button cmdStore;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.TextBox txtIfUnchangedSinceModSeq;
         private System.Windows.Forms.ErrorProvider erp;
         private System.Windows.Forms.GroupBox gbxFlags;
         private System.Windows.Forms.CheckBox chkSubmitted;
@@ -730,5 +620,6 @@
         private System.Windows.Forms.CheckBox chkFlagged;
         private System.Windows.Forms.CheckBox chkMDNSent;
         private System.Windows.Forms.CheckBox chkAnswered;
+        private System.Windows.Forms.Button cmdStore;
     }
 }

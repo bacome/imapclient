@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.chkSubmitted = new System.Windows.Forms.CheckBox();
             this.chkSubmitPending = new System.Windows.Forms.CheckBox();
             this.chkForwarded = new System.Windows.Forms.CheckBox();
@@ -45,6 +46,9 @@
             this.txtIfUnchangedSinceModSeq = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
+            this.erp = new System.Windows.Forms.ErrorProvider(this.components);
+            this.cmdCancel = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
             this.SuspendLayout();
             // 
             // chkSubmitted
@@ -177,6 +181,8 @@
             this.txtFlags.Name = "txtFlags";
             this.txtFlags.Size = new System.Drawing.Size(246, 20);
             this.txtFlags.TabIndex = 21;
+            this.txtFlags.Validating += new System.ComponentModel.CancelEventHandler(this.ZValFlagNames);
+            this.txtFlags.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // cmdStore
             // 
@@ -186,6 +192,7 @@
             this.cmdStore.TabIndex = 23;
             this.cmdStore.Text = "Store";
             this.cmdStore.UseVisualStyleBackColor = true;
+            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
             // 
             // txtIfUnchangedSinceModSeq
             // 
@@ -193,6 +200,8 @@
             this.txtIfUnchangedSinceModSeq.Name = "txtIfUnchangedSinceModSeq";
             this.txtIfUnchangedSinceModSeq.Size = new System.Drawing.Size(161, 20);
             this.txtIfUnchangedSinceModSeq.TabIndex = 22;
+            this.txtIfUnchangedSinceModSeq.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsModSeqOrNull);
+            this.txtIfUnchangedSinceModSeq.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // label2
             // 
@@ -212,11 +221,27 @@
             this.label1.TabIndex = 25;
             this.label1.Text = "Store only if unchanged since modseq";
             // 
+            // erp
+            // 
+            this.erp.ContainerControl = this;
+            // 
+            // cmdCancel
+            // 
+            this.cmdCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.cmdCancel.Location = new System.Drawing.Point(330, 161);
+            this.cmdCancel.Name = "cmdCancel";
+            this.cmdCancel.Size = new System.Drawing.Size(100, 25);
+            this.cmdCancel.TabIndex = 26;
+            this.cmdCancel.Text = "Cancel";
+            this.cmdCancel.UseVisualStyleBackColor = true;
+            // 
             // frmStoreDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(493, 190);
+            this.Controls.Add(this.cmdCancel);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtFlags);
@@ -236,6 +261,9 @@
             this.Controls.Add(this.chkAnswered);
             this.Name = "frmStoreDialog";
             this.Text = "frmStoreDialog";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmStoreDialog_FormClosing);
+            this.Load += new System.EventHandler(this.frmStoreDialog_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -260,5 +288,7 @@
         private System.Windows.Forms.TextBox txtIfUnchangedSinceModSeq;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ErrorProvider erp;
+        private System.Windows.Forms.Button cmdCancel;
     }
 }

@@ -569,6 +569,7 @@ namespace testharness2
             using (frmStoreDialog lStoreDialog = new frmStoreDialog())
             {
                 if (lStoreDialog.ShowDialog(this) != DialogResult.OK) return;
+
                 lOperation = lStoreDialog.Operation;
 
 

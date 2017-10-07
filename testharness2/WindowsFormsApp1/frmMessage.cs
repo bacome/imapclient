@@ -65,12 +65,12 @@ namespace testharness2
             if (mMailbox.IsSelectedForUpdate)
             {
                 gbxFlags.Enabled = true;
-                gbxStore.Enabled = true;
+                cmdStore.Enabled = true;
             }
             else
             {
                 gbxFlags.Enabled = false;
-                gbxStore.Enabled = false;
+                cmdStore.Enabled = false;
             }
 
             ZQueryAsync(true);
@@ -111,12 +111,7 @@ namespace testharness2
                 mEnvelopeDisplayed = false;
                 mTextDisplayed = false;
                 mAttachmentsDisplayed = false;
-
                 mFlagsDisplayed = false;
-                rdoAdd.Checked = true;
-                txtFlags.Text = null;
-                txtIfUnchangedSinceModSeq.Text = null;
-
                 mBodyStructureDisplayed = false;
                 mOtherDisplayed = false;
 
@@ -577,6 +572,9 @@ namespace testharness2
         {
             ZImageLoadCancel();
             ZDownloadsClose();
+
+            // to allow closing with validation errors
+            e.Cancel = false;
         }
 
         private void frmMessage_FormClosed(object sender, FormClosedEventArgs e)
@@ -891,139 +889,87 @@ namespace testharness2
         private void chkAnswered_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            mMessage.IsAnswered = chkAnswered.Checked;
+            try { mMessage.IsAnswered = chkAnswered.Checked; }
+            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkFlagged_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            mMessage.IsFlagged = chkFlagged.Checked;
+            try { mMessage.IsFlagged = chkFlagged.Checked; }
+            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkDeleted_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            mMessage.IsDeleted = chkDeleted.Checked;
+            try { mMessage.IsDeleted = chkDeleted.Checked; }
+            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkSeen_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            mMessage.IsSeen = chkSeen.Checked;
+            try { mMessage.IsSeen = chkSeen.Checked; }
+            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkDraft_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            mMessage.IsDraft = chkDraft.Checked;
+            try { mMessage.IsDraft = chkDraft.Checked; }
+            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkForwarded_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            mMessage.IsForwarded = chkForwarded.Checked;
+            try { mMessage.IsForwarded = chkForwarded.Checked; }
+            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkSubmitPending_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            mMessage.IsSubmitPending = chkSubmitPending.Checked;
+            try { mMessage.IsSubmitPending = chkSubmitPending.Checked; }
+            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkSubmitted_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            mMessage.IsSubmitted = chkSubmitted.Checked;
+            try { mMessage.IsSubmitted = chkSubmitted.Checked; }
+            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkMDNSent_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            mMessage.IsMDNSent = chkMDNSent.Checked;
+            try { mMessage.IsMDNSent = chkMDNSent.Checked; }
+            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
-        private void ZValTextBoxIsModSeqOrNull(object sender, CancelEventArgs e)
-        {
-            if (!(sender is TextBox lSender)) return;
-
-            if (string.IsNullOrWhiteSpace(lSender.Text)) return;
-
-            if (!ulong.TryParse(lSender.Text, out var l) || l < 1)
-            {
-                e.Cancel = true;
-                erp.SetError(lSender, "modseq should be an unsigned long greater than zero");
-            }
-        }
-
-        private void ZValFlagNames(object sender, CancelEventArgs e)
-        {
-            if (!(sender is TextBox lTextBox)) return;
-
-            if (ZTryParseFlagNames(lTextBox.Text, out var lFlags)) lTextBox.Text = ZFlagNames(lFlags);
-            else
-            {
-                e.Cancel = true;
-                erp.SetError((Control)sender, "must be valid rfc3501 flag names separated by spaces");
-            }
-        }
-
-        private bool ZTryParseFlagNames(string pText, out cSettableFlags rFlags)
-        {
-            if (pText == null) { rFlags = cSettableFlags.None; return true; }
-
-            List<string> lFlags = new List<string>();
-            foreach (var lFlag in pText.Trim().Split(' ')) if (!string.IsNullOrWhiteSpace(lFlag)) lFlags.Add(lFlag);
-
-            if (lFlags.Count == 0) { rFlags = cSettableFlags.None; return true; }
-
-            try { rFlags = new cSettableFlags(lFlags); }
-            catch { rFlags = null; return false; }
-
-            return true;
-        }
-
-        private string ZFlagNames(cSettableFlags pFlags)
-        {
-            if (pFlags == null || pFlags.Count == 0) return string.Empty;
-
-            StringBuilder lBuilder = new StringBuilder();
-            bool lFirst = true;
-
-            foreach (var lFlag in pFlags)
-            {
-                if (lFirst) lFirst = false;
-                else lBuilder.Append(" ");
-                lBuilder.Append(lFlag);
-            }
-
-            return lBuilder.ToString();
-        }
-
-        private void ZValControlValidated(object sender, EventArgs e)
-        {
-            erp.SetError((Control)sender, null);
-        }
-
-        private void cmdStore_Click(object sender, EventArgs e)
+        private async void cmdStore_Click(object sender, EventArgs e)
         {
             eStoreOperation lOperation;
+            cSettableFlags lFlags;
+            ulong? lIfUnchangedSinceModSeq;
 
-            if (rdoAdd.Checked) lOperation = eStoreOperation.add;
-            else if (rdoRemove.Checked) lOperation = eStoreOperation.remove;
-            else lOperation = eStoreOperation.replace;
+            using (frmStoreDialog lStoreDialog = new frmStoreDialog())
+            {
+                if (lStoreDialog.ShowDialog(this) != DialogResult.OK) return;
 
-            ZTryParseFlagNames(txtFlags.Text, out var lFlags);
+                lOperation = lStoreDialog.Operation;
+                lFlags = lStoreDialog.Flags;
+                lIfUnchangedSinceModSeq = lStoreDialog.IfUnchangedSinceModSeq;
+            }
 
             bool lUpdated;
 
-            try
-            {
-                if (string.IsNullOrWhiteSpace(txtIfUnchangedSinceModSeq.Text) || !ulong.TryParse(txtIfUnchangedSinceModSeq.Text, out var lIfUnchangedSinceModSeq)) lUpdated = mMessage.Store(lOperation, lFlags ?? cSettableFlags.None);
-                else lUpdated = mMessage.Store(lOperation, lFlags ?? cSettableFlags.None, lIfUnchangedSinceModSeq);
-            }
+            try { lUpdated = await mMessage.StoreAsync(lOperation, lFlags, lIfUnchangedSinceModSeq); }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"Store error\n{ex}");
+                if (!IsDisposed) MessageBox.Show(this, $"store error\n{ex}");
                 return;
             }
 
