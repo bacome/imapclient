@@ -8,7 +8,6 @@ namespace work.bacome.imapclient
     public class cUIDList : List<cUID>
     {
         public cUIDList() { }
-        public cUIDList(cUID pUID) : base(new cUID[] { pUID }) { }
         public cUIDList(IEnumerable<cUID> pUIDs) : base(pUIDs) { }
 
         public override string ToString()
@@ -21,7 +20,9 @@ namespace work.bacome.imapclient
         public static cUIDList FromUID(cUID pUID)
         {
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
-            return new cUIDList(pUID);
+            var lResult = new cUIDList();
+            lResult.Add(pUID);
+            return lResult;
         }
 
         public static cUIDList FromUIDs(IEnumerable<cUID> pUIDs)

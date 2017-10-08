@@ -93,6 +93,14 @@ namespace work.bacome.imapclient
                     return mSelectedMailbox;
                 }
 
+                public cSelectedMailbox CheckInSelectedMailbox(cStoreFeedback pFeedback)
+                {
+                    if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
+                    if (pFeedback.Count == 0) throw new ArgumentOutOfRangeException(nameof(pFeedback));
+                    if (mSelectedMailbox == null || !ReferenceEquals(pFeedback[0].Handle.Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException();
+                    return mSelectedMailbox;
+                }
+
                 public int Sequence => mSequence++;
 
                 public iMailboxHandle Create(cMailboxName pMailboxName, cTrace.cContext pParentContext)

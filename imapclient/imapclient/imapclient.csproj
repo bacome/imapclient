@@ -82,6 +82,7 @@
     <Compile Include="exposed_interfaces\enums\mailboxcachedata.cs" />
     <Compile Include="exposed_interfaces\other\callbackexceptioneventargs.cs" />
     <Compile Include="exposed_interfaces\other\networkactivity.cs" />
+    <Compile Include="exposed_interfaces\other\storefeedback.cs" />
     <Compile Include="exposed_interfaces\support\bytescursor\rfc822\getdomain.cs" />
     <Compile Include="exposed_interfaces\support\bytescursor\rfc822\getlocalpart.cs" />
     <Compile Include="exposed_interfaces\support\bytescursor\rfc822\getmsgid.cs" />

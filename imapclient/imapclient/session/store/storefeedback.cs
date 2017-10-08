@@ -8,23 +8,40 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private class cStoreFeedback
+            private class cStoreFeedbacker
             {
-                public readonly bool UID;
-                private Dictionary<uint, cStoreFeedbackItem> mDictionary = new Dictionary<uint, cStoreFeedbackItem>();
+                public enum eKeyType { msn, uid }
 
-                public cStoreFeedback(bool pUID)
+                public readonly eKeyType KeyType;
+                private Dictionary<uint, cStoreFeedbackItemBase> mDictionary = new Dictionary<uint, cStoreFeedbackItemBase>();
+
+                public cStoreFeedbacker()
                 {
-                    UID = pUID;
+                    KeyType = eKeyType.msn;
                 }
 
-                public void Add(cUID pUID)
+                public cStoreFeedbacker(cStoreFeedback pItems)
                 {
-                    if (!UID) throw new InvalidOperationException();
-                    mDictionary[pUID.UID] = new cStoreFeedbackItem(pUID);
+                    KeyType = eKeyType.uid;
+
+                    foreach (var lItem in pItems)
+                    {
+                        if (lItem.Handle.UID == null) throw new InvalidOperationException();
+                        mDictionary[lItem.Handle.UID.UID] = lItem;
+                    }
                 }
 
-                public void Add(uint pUInt, iMessageHandle pHandle) => mDictionary[pUInt] = new cStoreFeedbackItem(pHandle); // either mapping from a UID to a handle, or an MSN to a handle
+                public cStoreFeedbacker(cUIDStoreFeedback pItems)
+                {
+                    KeyType = eKeyType.uid;
+                    foreach (var lItem in pItems) mDictionary[lItem.UID.UID] = lItem;
+                }
+
+                public void Add(uint pMSN, cStoreFeedbackItem pItem)
+                {
+                    if (KeyType != eKeyType.msn) throw new InvalidOperationException();
+                    mDictionary[pMSN] = pItem;
+                }
 
                 public int Count => mDictionary.Count;
 
@@ -51,7 +68,6 @@ namespace work.bacome.imapclient
                 }
 
                 public IEnumerable<uint> UInts => mDictionary.Keys;
-                public IEnumerable<cStoreFeedbackItem> Items => mDictionary.Values;
 
                 public override string ToString()
                 {
@@ -76,27 +92,8 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private class cStoreFeedbackItem
-            {
-                public readonly cUID UID;
-                public readonly iMessageHandle Handle;
-                public bool Fetched = false;
-                public bool Modified = false;
 
-                public cStoreFeedbackItem(cUID pUID)
-                {
-                    UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
-                    Handle = null;
-                }
 
-                public cStoreFeedbackItem(iMessageHandle pHandle)
-                {
-                    UID = null;
-                    Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
-                }
-
-                public override string ToString() => $"{nameof(cStoreFeedbackItem)}({UID},{Handle},{Fetched},{Modified})";
-            }
         }
     }
 }

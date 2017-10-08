@@ -11,30 +11,35 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cMessageHandleList> StoreAsync(cMethodControl pMC, cMessageHandleList pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
+            public async Task<bool> StoreAsync(cMethodControl pMC, cStoreFeedback pFeedback, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StoreAsync), pMC, pHandles, pOperation, pFlags, pIfUnchangedSinceModSeq);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StoreAsync), pMC, pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
 
-                if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+                if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
                 if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
-                if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
+                if (pFeedback.Count == 0) throw new ArgumentOutOfRangeException(nameof(pFeedback));
 
                 if (pIfUnchangedSinceModSeq == 0) throw new ArgumentOutOfRangeException(nameof(pIfUnchangedSinceModSeq));
                 if (pIfUnchangedSinceModSeq != null && !mCapabilities.CondStore) throw new InvalidOperationException();
 
-                cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pHandles); // to be repeated inside the select lock
+                cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pFeedback); // to be repeated inside the select lock
                 if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException(); // to be repeated inside the select lock
 
-                if (pHandles.TrueForAll(h => h.UID != null))
+                if (pFeedback.TrueForAll(i => i.Handle.UID != null))
                 {
-                    cStoreFeedback lFeedback = new cStoreFeedback(true);
-                    foreach (var lHandle in pHandles) lFeedback.Add(lHandle.UID.UID, lHandle);
-                    await ZUIDStoreAsync(pMC, lSelectedMailbox.Handle, pHandles[0].UID.UIDValidity, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
-                    return new cMessageHandleList(from i in lFeedback.Items where !i.Fetched || i.Modified select i.Handle);
+                    cStoreFeedbacker lFeedbacker = new cStoreFeedbacker(pFeedback);
+                    await ZUIDStoreAsync(pMC, lSelectedMailbox.Handle, pFeedback[0].Handle.UID.UIDValidity, lFeedbacker, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+                    // note: if some of the messages were deleted then this will succeed
+
+                    ;?; // now for each handle check that it has had the operation done: 
+                    // if ANY has modified, return false
+                    //  if ANY doesn't have the falgs set as we think they shoul dbe return false
+                    // NOTE: if any message was deleted this won't fail, where as the standard store will fail
+
                 }
                 else return await ZStoreAsync(pMC, pHandles, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             }

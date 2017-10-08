@@ -8,7 +8,6 @@ namespace work.bacome.imapclient
     public class cMessageHandleList : List<iMessageHandle>
     {
         public cMessageHandleList() { }
-        public cMessageHandleList(iMessageHandle pHandle) : base(new iMessageHandle[] { pHandle }) { }
         public cMessageHandleList(IEnumerable<iMessageHandle> pHandles) : base(pHandles) { }
 
         public void SortByCacheSequence() => Sort(ZCompareCacheSequence);
@@ -53,7 +52,9 @@ namespace work.bacome.imapclient
         public static cMessageHandleList FromHandle(iMessageHandle pHandle)
         {
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-            return new cMessageHandleList(pHandle);
+            var lResult = new cMessageHandleList();
+            lResult.Add(pHandle);
+            return lResult;
         }
 
         public static cMessageHandleList FromHandles(IEnumerable<iMessageHandle> pHandles)

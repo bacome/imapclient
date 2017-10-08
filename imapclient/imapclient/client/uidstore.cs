@@ -9,15 +9,19 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public bool UIDStore(iMailboxHandle pHandle, cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        public cUIDStoreFeedbackItem UIDStore(iMailboxHandle pHandle, cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
+            ;?;
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
+
+
+
             var lTask = ZUIDStoreAsync(pHandle, cUIDList.FromUID(pUID), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result.Count == 0;
         }
 
-        public cUIDList UIDStore(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        public bool UIDStore(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
             var lTask = ZUIDStoreAsync(pHandle, cUIDList.FromUIDs(pUIDs), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
@@ -38,7 +42,7 @@ namespace work.bacome.imapclient
             return ZUIDStoreAsync(pHandle, cUIDList.FromUIDs(pUIDs), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
         }
 
-        private async Task<cUIDList> ZUIDStoreAsync(iMailboxHandle pHandle, cUIDList pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
+        private async Task ZUIDStoreAsync(iMailboxHandle pHandle, cUIDList pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDStoreAsync), pUIDs, pOperation, pFlags, pIfUnchangedSinceModSeq);
 

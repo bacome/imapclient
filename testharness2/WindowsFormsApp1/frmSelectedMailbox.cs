@@ -72,14 +72,32 @@ namespace testharness2
             }
         }
 
+        private object mQueriedMessageCache = new object();
+
         private void ZQuery()
         {
+            // defend against querying the same mailbox twice in a row
+            //
+            //  (note that this will regularly happen without this code as 
+            //    1) events from the client object are delivered asyncronously - therefore two events may arrive after two changes
+            //    2) the client object is updated on an independant thread to the UI therefore as far as UI code is concerned all of the client object properties may dynamically change
+            //
+            //    as an example: consider that the client may become selected whilst we are processing the unselect (e.g. before the setting of the mSelectedMailbox below)
+            //  )
+            //
+            if (ReferenceEquals(mClient.SelectedMailboxDetails?.Cache, mQueriedMessageCache)) return;
+
             ZMessageFormsClose();
 
             ZUnsubscribeMailbox();
 
             if (mClient.IsConnected) mSelectedMailbox = mClient.SelectedMailbox;
             else mSelectedMailbox = null;
+
+            // defense part two
+            var lDetails = mClient.SelectedMailboxDetails;
+            if (!ReferenceEquals(lDetails?.Handle, mSelectedMailbox.Handle)) return;
+            mQueriedMessageCache = lDetails?.Cache;
 
             ZSubscribeMailbox();
 
@@ -298,12 +316,13 @@ namespace testharness2
                 else if (mFilter != null || mOverrideSort != null || lConfiguration != null) lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
                 else lMessages = await mSelectedMailbox.MessagesAsync(); // show that getting the full set of messages in a mailbox is trivial if no restrictions are required and the defaults are set correctly
             }
+            /* this is commented out as it hides problems in the gating code 
             catch (OperationCanceledException e)
             {
                 if (lProgress != null && lProgress.CancellationToken.IsCancellationRequested) return; // ignore the cancellation if we cancelled it
                 if (!IsDisposed) MessageBox.Show(this, $"a problem occurred: {e}");
                 return;
-            }
+            } */
             catch (Exception e)
             {
                 if (!IsDisposed) MessageBox.Show(this, $"a problem occurred: {e}");
@@ -346,20 +365,9 @@ namespace testharness2
             }
         }
 
-        private object mClient_PropertyChanged_CurrentMessageCache = new object();
-
         private void mClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(cIMAPClient.IsConnected) || e.PropertyName == nameof(cIMAPClient.SelectedMailbox))
-            {
-                // defend against being called twice in a row with the same settings
-                //  (note this is inevitable as events from the client are delivered asyncronously - therefore two events may arrive together after two changes)
-                //
-                var lCache = mClient.SelectedMailboxDetails?.Cache;
-                if (ReferenceEquals(lCache, mClient_PropertyChanged_CurrentMessageCache)) return;
-                mClient_PropertyChanged_CurrentMessageCache = lCache;
-                ZQuery();
-            }
+            if (e.PropertyName == nameof(cIMAPClient.IsConnected) || e.PropertyName == nameof(cIMAPClient.SelectedMailbox)) ZQuery();
         }
 
         private void ZMessagesLoadingAdd(frmProgress pProgress)
@@ -564,28 +572,85 @@ namespace testharness2
             cSettableFlags lFlags;
             ulong? lIfUnchangedSinceModSeq;
 
-            List<cMessage> lFailed;
-
             using (frmStoreDialog lStoreDialog = new frmStoreDialog())
             {
                 if (lStoreDialog.ShowDialog(this) != DialogResult.OK) return;
 
                 lOperation = lStoreDialog.Operation;
+                lFlags = lStoreDialog.Flags;
+                lIfUnchangedSinceModSeq = lStoreDialog.IfUnchangedSinceModSeq;
+            }
 
+            List<cMessage> lFailed;
 
+            try { lFailed = await mSelectedMailbox.StoreAsync(lMessages, lOperation, lFlags, lIfUnchangedSinceModSeq); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"store error\n{ex}");
+                return;
+            }
 
-                try { lFailed = await mSelectedMailbox.StoreAsync(lMessages, , lStoreDialog.SettableFlags, lStoreDialog.IfUnchangedSinceModSeq); }
+            if (lFailed.Count == 0) return;
+
+            StringBuilder lBuilder = new StringBuilder();
+
+            lBuilder.AppendLine($"the store did not succeed for {lFailed.Count} messages;");
+
+            cUIDList lExpunged = new cUIDList();
+            cUIDList lChanged = new cUIDList();
+
+            List<cMessage> lTemporarilyUnknown = new List<cMessage>();
+
+            // note that the direct use of the handle in the following code is to avoid asking the server for the data
+            //  if we don't have the UID or the ModSeq then we won't go get it
+            //
+            try
+            {
+                foreach (var lMessage in lFailed)
+                {
+                    if (lMessage.IsExpunged) lExpunged.Add(lMessage.Handle.UID);
+                    else if (lIfUnchangedSinceModSeq != null && lMessage.Handle.ModSeq != null && lIfUnchangedSinceModSeq != lMessage.Handle.ModSeq) lChanged.Add(lMessage.Handle.UID);
+                    else lTemporarilyUnknown.Add(lMessage);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                lBuilder.AppendLine($"an error occurred while generating the list of failures (1);");
+                lBuilder.Append(ex);
+            }
+
+            cUIDList lReallyUnknown = new cUIDList();
+
+            if (lTemporarilyUnknown.Count > 0)
+            {
+                try
+                {
+                    // poll the server in case we haven't received the updates that caused the failures
+                    await mClient.PollAsync();
+
+                    // recheck
+                    foreach (var lMessage in lTemporarilyUnknown)
+                    {
+                        if (lMessage.IsExpunged) lExpunged.Add(lMessage.Handle.UID);
+                        else if (lIfUnchangedSinceModSeq != null && lMessage.Handle.ModSeq != null && lIfUnchangedSinceModSeq != lMessage.Handle.ModSeq) lChanged.Add(lMessage.Handle.UID);
+                        else lReallyUnknown.Add(lMessage.Handle.UID);
+                    }
+
+                }
                 catch (Exception ex)
                 {
-                    if (!IsDisposed) MessageBox.Show(this, $"an error occurred while storing: {ex}");
-                    return;
+                    lBuilder.AppendLine($"an error occurred while generating the list of failures (2);");
+                    lBuilder.Append(ex);
                 }
             }
 
-            ;?; // display the failed ones somehow
+            if (lExpunged.Count > 0) lBuilder.AppendLine($"{lExpunged.Count} messages were expunged: {lExpunged}");
+            if (lChanged.Count > 0) lBuilder.AppendLine($"{lChanged.Count} messages had changes after {lIfUnchangedSinceModSeq}: {lChanged}");
+            if (lReallyUnknown.Count > 0) lBuilder.AppendLine($"{lReallyUnknown.Count} messages failed for unknown reasons: {lReallyUnknown}");
+
+            if (!IsDisposed) MessageBox.Show(this, lBuilder.ToString());
         }
-
-
 
         private void frmSelectedMailbox_FormClosing(object sender, FormClosingEventArgs e)
         {
