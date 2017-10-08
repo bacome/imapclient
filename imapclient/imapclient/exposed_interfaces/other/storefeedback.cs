@@ -7,8 +7,9 @@ namespace work.bacome.imapclient
 {
     public abstract class cStoreFeedbackItemBase
     {
-        public bool Fetched = false;
-        public bool Modified = false;
+        public bool ReceivedFlagsUpdate = false;
+        public bool WasNotUnchangedSince = false;
+        public bool Updated => ReceivedFlagsUpdate && !WasNotUnchangedSince;
     }
 
     public class cStoreFeedbackItem : cStoreFeedbackItemBase
@@ -20,7 +21,104 @@ namespace work.bacome.imapclient
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
         }
 
-        public override string ToString() => $"{nameof(cStoreFeedbackItem)}({Handle},{Fetched},{Modified})";
+        public bool? Reflects(eStoreOperation pOperation, cSettableFlags pFlags)
+        {
+            if (Handle.Flags == null) return null; // unknown
+
+            switch (pOperation)
+            {
+                case eStoreOperation.add:
+
+                    if (Handle.Flags.Contains(pFlags)) return true; // tried to add them, there were there already
+                    return false;
+
+                case eStoreOperation.remove:
+
+                    if (Handle.Flags.Contains(pFlags)) return false;
+                    return true; // tried to remove them, they weren't there
+
+                case eStoreOperation.replace:
+
+                    if (Handle.Flags.SymmetricDifference(pFlags, kMessageFlagName.Recent).Count() == 0) return true; // tried to replace them, those were the flags that were set
+                    return false;
+            }
+
+            return null; // should never happen
+        }
+
+        public override string ToString() => $"{nameof(cStoreFeedbackItem)}({Handle},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
+    }
+
+    public class cStoreFeedback : List<cStoreFeedbackItem>
+    {
+        private cStoreFeedback() { }
+        private cStoreFeedback(IEnumerable<cStoreFeedbackItem> pItems) : base(pItems) { }
+
+        public bool AllUpdated => TrueForAll(i => i.Updated);
+
+        public sStoreFeedbackSummary Summary(eStoreOperation pOperation, cSettableFlags pFlags)
+        {
+            sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();
+
+            foreach (var lItem in this)
+            {
+                if (lItem.WasNotUnchangedSince) lSummary.WasNotUnchangedSince++;
+                else if (lItem.Handle.Expunged) lSummary.Expunged++;
+                else if (lItem.Handle.Flags == null) lSummary.ReflectsUnknown++;
+                else if (lItem.Reflects(pOperation, pFlags) == true) lSummary.Reflects++;
+                else lSummary.DoesNotReflect++;
+            }
+
+            return lSummary;
+        }
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cStoreFeedback));
+
+            if (Count > 0)
+            {
+                lBuilder.Append(this[0].Handle.Cache);
+                foreach (var lItem in this) lBuilder.Append(lItem.Handle.CacheSequence);
+            }
+
+            return lBuilder.ToString();
+        }
+
+        public static cStoreFeedback FromHandle(iMessageHandle pHandle)
+        {
+            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            var lResult = new cStoreFeedback();
+            lResult.Add(new cStoreFeedbackItem(pHandle));
+            return lResult;
+        }
+
+        public static cStoreFeedback FromHandles(IEnumerable<iMessageHandle> pHandles)
+        {
+            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+
+            object lCache = null;
+            cMessageHandleList lHandles = new cMessageHandleList();
+
+            foreach (var lHandle in pHandles)
+            {
+                if (lHandle == null) throw new ArgumentOutOfRangeException(nameof(lHandle), "contains nulls");
+                if (lCache == null) lCache = lHandle.Cache;
+                else if (!ReferenceEquals(lHandle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains mixed caches");
+                lHandles.Add(lHandle);
+            }
+
+            return new cStoreFeedback(from lHandle in lHandles.Distinct() select new cStoreFeedbackItem(lHandle));
+        }
+    }
+
+    public struct sStoreFeedbackSummary
+    {
+        public int WasNotUnchangedSince; // condstore failed
+        public int Expunged; // message is expunged
+        public int ReflectsUnknown; // the handle does not contain the flags
+        public int Reflects; // the flags in the handle reflect the update
+        public int DoesNotReflect; // the flags in the handle do not reflect the update
     }
 
     public class cUIDStoreFeedbackItem : cStoreFeedbackItemBase
@@ -32,18 +130,26 @@ namespace work.bacome.imapclient
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
         }
 
-        public override string ToString() => $"{nameof(cUIDStoreFeedbackItem)}({UID},{Fetched},{Modified})";
+        public override string ToString() => $"{nameof(cUIDStoreFeedbackItem)}({UID},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
     }
 
     public class cUIDStoreFeedback : List<cUIDStoreFeedbackItem>
     {
-        public cUIDStoreFeedback() { }
-        public cUIDStoreFeedback(IEnumerable<cUIDStoreFeedbackItem> pItems) : base(pItems) { }
+        private cUIDStoreFeedback() { }
+        private cUIDStoreFeedback(IEnumerable<cUIDStoreFeedbackItem> pItems) : base(pItems) { }
+
+        public bool AllUpdated => TrueForAll(i => i.Updated);
 
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUIDStoreFeedback));
-            foreach (var lItem in this) lBuilder.Append(lItem);
+
+            if (Count > 0)
+            {
+                lBuilder.Append(this[0].UID.UIDValidity);
+                foreach (var lItem in this) lBuilder.Append(lItem.UID.UID);
+            }
+
             return lBuilder.ToString();
         }
 
@@ -69,45 +175,6 @@ namespace work.bacome.imapclient
             }
 
             return new cUIDStoreFeedback(from lUID in pUIDs.Distinct() select new cUIDStoreFeedbackItem(lUID));
-        }
-    }
-
-    public class cStoreFeedback : List<cStoreFeedbackItem>
-    {
-        public cStoreFeedback() { }
-        public cStoreFeedback(IEnumerable<cStoreFeedbackItem> pItems) : base(pItems) { }
-
-        public override string ToString()
-        {
-            var lBuilder = new cListBuilder(nameof(cStoreFeedback));
-            foreach (var lItem in this) lBuilder.Append(lItem);
-            return lBuilder.ToString();
-        }
-
-        public static cStoreFeedback FromMessage(cMessage pMessage)
-        {
-            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-            var lResult = new cStoreFeedback();
-            lResult.Add(new cStoreFeedbackItem(pMessage.Handle));
-            return lResult;
-        }
-
-        public static cStoreFeedback FromMessages(IEnumerable<cMessage> pMessages)
-        {
-            if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
-
-            object lCache = null;
-            cMessageHandleList lHandles = new cMessageHandleList();
-
-            foreach (var lMessage in pMessages)
-            {
-                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains nulls");
-                if (lCache == null) lCache = lMessage.Handle.Cache;
-                else if (!ReferenceEquals(lMessage.Handle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains mixed caches");
-                lHandles.Add(lMessage.Handle);
-            }
-
-            return new cStoreFeedback(from lHandle in lHandles.Distinct() select new cStoreFeedbackItem(lHandle));
         }
     }
 }

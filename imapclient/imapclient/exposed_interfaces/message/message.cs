@@ -170,7 +170,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        public cMessageFlags Flags
+        public cFetchableFlags Flags
         {
             get
             {
@@ -243,14 +243,8 @@ namespace work.bacome.imapclient
 
         private void ZFlagSet(cSettableFlags pFlags, bool pValue)
         {
-            if (pValue)
-            {
-                if (!Client.Store(Handle, eStoreOperation.add, pFlags, null)) throw new InvalidOperationException();
-            }
-            else
-            {
-                if (!Client.Store(Handle, eStoreOperation.remove, pFlags, null)) throw new InvalidOperationException();
-            }
+            if (pValue) Client.Store(Handle, eStoreOperation.add, pFlags, null);
+            else Client.Store(Handle, eStoreOperation.remove, pFlags, null);
         }
 
         public DateTime Received
@@ -460,8 +454,8 @@ namespace work.bacome.imapclient
 
         // set data
 
-        public bool Store(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
-        public Task<bool> StoreAsync(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public cStoreFeedbackItem Store(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public Task<cStoreFeedbackItem> StoreAsync(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         // debugging
         public override string ToString() => $"{nameof(cMessage)}({Handle},{Indent})";

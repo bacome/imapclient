@@ -12,33 +12,38 @@ namespace work.bacome.imapclient
         public cStoreFeedbackItem Store(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Store));
-            var lTask = ZStoreAsync(cMessageHandleList.FromHandle(pHandle), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
+            var lFeedback = cStoreFeedback.FromHandle(pHandle);
+            var lTask = ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
             mSynchroniser.Wait(lTask, lContext);
-            return lTask.Result.Count == 0;
+            return lFeedback[0];
         }
 
-        public bool Store(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        public cStoreFeedback Store(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Store));
-            var lTask = ZStoreAsync(cMessageHandleList.FromHandles(pHandles), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
+            var lFeedback = cStoreFeedback.FromHandles(pHandles);
+            var lTask = ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
             mSynchroniser.Wait(lTask, lContext);
-            return lTask.Result;
+            return lFeedback;
         }
 
-        public async Task<bool> StoreAsync(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        public async Task<cStoreFeedbackItem> StoreAsync(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Store));
-            var lFailedToStore = await ZStoreAsync(cMessageHandleList.FromHandle(pHandle), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
-            return lFailedToStore.Count == 0;
+            var lFeedback = cStoreFeedback.FromHandle(pHandle);
+            await ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+            return lFeedback[0];
         }
 
-        public Task<bool> StoreAsync(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        public async Task<cStoreFeedback> StoreAsync(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Store));
-            return ZStoreAsync(cMessageHandleList.FromHandles(pHandles), pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
+            var lFeedback = cStoreFeedback.FromHandles(pHandles);
+            await ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
+            return lFeedback;
         }
 
-        private async Task<bool> ZStoreAsync(cStoreFeedback pFeedback, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
+        private async Task ZStoreAsync(cStoreFeedback pFeedback, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZStoreAsync), pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
@@ -53,13 +58,13 @@ namespace work.bacome.imapclient
             if (pIfUnchangedSinceModSeq == 0) throw new ArgumentOutOfRangeException(nameof(pIfUnchangedSinceModSeq));
             if (pIfUnchangedSinceModSeq != null && !lSession.Capabilities.CondStore) throw new InvalidOperationException();
 
-            if (pFeedback.Count == 0) return true;
+            if (pFeedback.Count == 0) return;
             // it is valid to add or remove zero flags according to the ABNF (!)
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                return await lSession.StoreAsync(lMC, pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+                await lSession.StoreAsync(lMC, pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             }
         }
     }

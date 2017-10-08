@@ -61,6 +61,13 @@ namespace work.bacome.imapclient
         public bool Contains(params string[] pFlags) => mFlags.Contains(pFlags);
         public bool Contains(IEnumerable<string> pFlags) => mFlags.Contains(pFlags);
 
+        public IEnumerable<string> SymmetricDifference(cMessageFlags pOther, params string[] pExcept)
+        {
+            var lSymmetricDifference = mFlags.Except(pOther.mFlags, StringComparer.InvariantCultureIgnoreCase).Union(pOther.mFlags.Except(mFlags, StringComparer.InvariantCultureIgnoreCase), StringComparer.InvariantCultureIgnoreCase);
+            if (pExcept == null || pExcept.Length == 0) return lSymmetricDifference;
+            return lSymmetricDifference.Except(pExcept);
+        }
+
         public int Count => mFlags.Count;
         public IEnumerator<string> GetEnumerator() => mFlags.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mFlags.GetEnumerator();

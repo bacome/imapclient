@@ -581,75 +581,33 @@ namespace testharness2
                 lIfUnchangedSinceModSeq = lStoreDialog.IfUnchangedSinceModSeq;
             }
 
-            List<cMessage> lFailed;
+            cStoreFeedback lFeedback;
 
-            try { lFailed = await mSelectedMailbox.StoreAsync(lMessages, lOperation, lFlags, lIfUnchangedSinceModSeq); }
+            try { lFeedback = await mSelectedMailbox.StoreAsync(lMessages, lOperation, lFlags, lIfUnchangedSinceModSeq); }
             catch (Exception ex)
             {
                 if (!IsDisposed) MessageBox.Show(this, $"store error\n{ex}");
                 return;
             }
 
-            if (lFailed.Count == 0) return;
+            if (lFeedback.AllUpdated) return;
 
-            StringBuilder lBuilder = new StringBuilder();
+            if (IsDisposed) return;
 
-            lBuilder.AppendLine($"the store did not succeed for {lFailed.Count} messages;");
+            var lSummary = lFeedback.Summary(lOperation, lFlags);
 
-            cUIDList lExpunged = new cUIDList();
-            cUIDList lChanged = new cUIDList();
+            if (lSummary.WasNotUnchangedSince == 0 && lSummary.Reflects == lFeedback.Count) return;
 
-            List<cMessage> lTemporarilyUnknown = new List<cMessage>();
-
-            // note that the direct use of the handle in the following code is to avoid asking the server for the data
-            //  if we don't have the UID or the ModSeq then we won't go get it
-            //
-            try
+            if (lSummary.DoesNotReflect > 0)
             {
-                foreach (var lMessage in lFailed)
-                {
-                    if (lMessage.IsExpunged) lExpunged.Add(lMessage.Handle.UID);
-                    else if (lIfUnchangedSinceModSeq != null && lMessage.Handle.ModSeq != null && lIfUnchangedSinceModSeq != lMessage.Handle.ModSeq) lChanged.Add(lMessage.Handle.UID);
-                    else lTemporarilyUnknown.Add(lMessage);
-                }
-
-            }
-            catch (Exception ex)
-            {
-                lBuilder.AppendLine($"an error occurred while generating the list of failures (1);");
-                lBuilder.Append(ex);
+                // see if polling the server helps explain the does not reflect ones
+                try { await mClient.PollAsync(); }
+                catch { }
+                if (IsDisposed) return;
+                lSummary = lFeedback.Summary(lOperation, lFlags);
             }
 
-            cUIDList lReallyUnknown = new cUIDList();
-
-            if (lTemporarilyUnknown.Count > 0)
-            {
-                try
-                {
-                    // poll the server in case we haven't received the updates that caused the failures
-                    await mClient.PollAsync();
-
-                    // recheck
-                    foreach (var lMessage in lTemporarilyUnknown)
-                    {
-                        if (lMessage.IsExpunged) lExpunged.Add(lMessage.Handle.UID);
-                        else if (lIfUnchangedSinceModSeq != null && lMessage.Handle.ModSeq != null && lIfUnchangedSinceModSeq != lMessage.Handle.ModSeq) lChanged.Add(lMessage.Handle.UID);
-                        else lReallyUnknown.Add(lMessage.Handle.UID);
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    lBuilder.AppendLine($"an error occurred while generating the list of failures (2);");
-                    lBuilder.Append(ex);
-                }
-            }
-
-            if (lExpunged.Count > 0) lBuilder.AppendLine($"{lExpunged.Count} messages were expunged: {lExpunged}");
-            if (lChanged.Count > 0) lBuilder.AppendLine($"{lChanged.Count} messages had changes after {lIfUnchangedSinceModSeq}: {lChanged}");
-            if (lReallyUnknown.Count > 0) lBuilder.AppendLine($"{lReallyUnknown.Count} messages failed for unknown reasons: {lReallyUnknown}");
-
-            if (!IsDisposed) MessageBox.Show(this, lBuilder.ToString());
+            ;?; // present the summary
         }
 
         private void frmSelectedMailbox_FormClosing(object sender, FormClosingEventArgs e)

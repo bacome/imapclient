@@ -151,9 +151,9 @@ namespace work.bacome.imapclient
                             }
                 }
 
-                public void Deselect(cTrace.cContext pParentContext)
+                public void Unselect(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Deselect));
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Unselect));
 
                     if (mSelectedMailbox == null) return;
 

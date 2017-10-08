@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -964,16 +965,34 @@ namespace testharness2
                 lIfUnchangedSinceModSeq = lStoreDialog.IfUnchangedSinceModSeq;
             }
 
-            bool lUpdated;
+            cStoreFeedbackItem lFeedback;
 
-            try { lUpdated = await mMessage.StoreAsync(lOperation, lFlags, lIfUnchangedSinceModSeq); }
+            try { lFeedback = await mMessage.StoreAsync(lOperation, lFlags, lIfUnchangedSinceModSeq); }
             catch (Exception ex)
             {
                 if (!IsDisposed) MessageBox.Show(this, $"store error\n{ex}");
                 return;
             }
 
-            if (!lUpdated) MessageBox.Show(this, "the store did not succeed");
+            if (lFeedback.Updated) return;
+
+            if (IsDisposed) return;
+
+            if (lFeedback.WasNotUnchangedSince)
+            {
+                MessageBox.Show(this, $"the message has been modified since {lIfUnchangedSinceModSeq}");
+                return;
+            }
+
+            if (lFeedback.Reflects(lOperation, lFlags) == true) return;
+
+            if (mMessage.IsExpunged)
+            {
+                MessageBox.Show(this, $"the message has been expunged (so the store failed)");
+                return;
+            }
+
+            MessageBox.Show(this, "the flags don't appear to have been updated - try polling the server to see if the message has been deleted");
         }
     }
 }

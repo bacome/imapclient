@@ -13,12 +13,12 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kModifiedSpace = new cBytes("MODIFIED ");
 
-                private readonly cStoreFeedback mFeedback;
+                private readonly cStoreFeedbacker mFeedbacker;
                 private readonly cSelectedMailbox mSelectedMailbox;
 
-                public cCommandHookStore(cStoreFeedback pFeedback, cSelectedMailbox pSelectedMailbox)
+                public cCommandHookStore(cStoreFeedbacker pFeedbacker, cSelectedMailbox pSelectedMailbox)
                 {
-                    mFeedback = pFeedback ?? throw new ArgumentNullException(nameof(pFeedback));
+                    mFeedbacker = pFeedbacker ?? throw new ArgumentNullException(nameof(pFeedbacker));
                     mSelectedMailbox = pSelectedMailbox ?? throw new ArgumentNullException(nameof(pSelectedMailbox));
                 }
 
@@ -31,14 +31,14 @@ namespace work.bacome.imapclient
 
                     uint lUInt;
 
-                    if (mFeedback.UID)
+                    if (mFeedbacker.KeyType == cStoreFeedbacker.eKeyType.uid)
                     {
                         if (lFetch.UID == null) return eProcessDataResult.notprocessed;
                         lUInt = lFetch.UID.Value;
                     }
                     else lUInt = lFetch.MSN;
 
-                    if (mFeedback.Fetched(lUInt)) return eProcessDataResult.observed;
+                    if (mFeedbacker.ReceivedFlagsUpdate(lUInt)) return eProcessDataResult.observed;
                     return eProcessDataResult.notprocessed;
                 }
 
@@ -53,7 +53,7 @@ namespace work.bacome.imapclient
                             if (pCursor.GetSequenceSet(out var lSequenceSet) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                             {
                                 cUIntList lUInts = cUIntList.FromSequenceSet(lSequenceSet, mSelectedMailbox.Cache.Count, true);
-                                foreach (var lUInt in lUInts) if (!mFeedback.Modified(lUInt)) lContext.TraceWarning("likely malformed modified response: message number not recognised: ", lUInt);
+                                foreach (var lUInt in lUInts) if (!mFeedbacker.WasNotUnchangedSince(lUInt)) lContext.TraceWarning("likely malformed modified response: message number not recognised: ", lUInt);
                                 return true;
                             }
 

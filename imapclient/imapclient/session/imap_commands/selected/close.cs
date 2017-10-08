@@ -57,7 +57,7 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCloseCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType == eCommandResultType.ok) mMailboxCache.Deselect(lContext);
+                    if (pResult.ResultType == eCommandResultType.ok) mMailboxCache.Unselect(lContext);
                 }
             }
         }

@@ -13,9 +13,9 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kStoreCommandPartStoreSpace = new cCommandPart("STORE ");
 
-            public async Task<bool> ZStoreAsync(cMethodControl pMC, cMessageHandleList pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
+            public async Task ZStoreAsync(cMethodControl pMC, cStoreFeedback pFeedback, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZStoreAsync), pMC, pHandles, pOperation, pFlags, pIfUnchangedSinceModSeq);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZStoreAsync), pMC, pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
                 // no validation ... all the parameters have been validated already by the cSession by the time we get here
 
@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pHandles);
+                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pFeedback);
                     if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException();
 
                     lBuilder.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
@@ -33,32 +33,30 @@ namespace work.bacome.imapclient
                     lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
 
                     // working storage
-                    cStoreFeedback lFeedback = new cStoreFeedback(false);
-                    cMessageHandleList lFailedToStore = new cMessageHandleList();
+                    cStoreFeedbacker lFeedbacker = new cStoreFeedbacker();
 
                     // resolve the handles to MSNs
-                    foreach (var lHandle in pHandles)
+                    foreach (var lItem in pFeedback)
                     {
-                        var lMSN = lSelectedMailbox.GetMSN(lHandle);
-                        if (lMSN == 0) lFailedToStore.Add(lHandle);
-                        else lFeedback.Add(lMSN, lHandle);
+                        var lMSN = lSelectedMailbox.GetMSN(lItem.Handle);
+                        if (lMSN != 0) lFeedbacker.Add(lMSN, lItem);
                     }
 
                     // if no handles were resolved, we are done
-                    if (lFeedback.Count == 0) return lFailedToStore;
+                    if (lFeedbacker.Count == 0) return;
 
                     // build the command
-                    lBuilder.Add(kStoreCommandPartStoreSpace, new cCommandPart(cSequenceSet.FromUInts(lFeedback.UInts)), cCommandPart.Space);
+                    lBuilder.Add(kStoreCommandPartStoreSpace, new cCommandPart(cSequenceSet.FromUInts(lFeedbacker.UInts)), cCommandPart.Space);
                     if (pIfUnchangedSinceModSeq != null) lBuilder.Add(kStoreCommandPartLParenUnchangedSinceSpace, new cCommandPart(pIfUnchangedSinceModSeq.Value), kStoreCommandPartRParenSpace);
                     lBuilder.Add(pOperation, pFlags);
 
                     // add the hook
-                    var lHook = new cCommandHookStore(lFeedback, lSelectedMailbox);
+                    var lHook = new cCommandHookStore(lFeedbacker, lSelectedMailbox);
                     lBuilder.Add(lHook);
 
                     // submit the command                
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
-                    // NOTE: both OK and NO responses may indicate that updates have occurred (see rfc 2180/ 7162) so we can't throw on a NO for this command ... NO MAY be indicating that some (or all) of the messages have been deleted
+                    // NOTE: updates may have been done on both OK and NO responses (see rfc 2180/ 7162) so we can't throw on a NO for this command ... NO indicates that some (or all) of the messages have pending deletes
 
                     // throw on a bad
                     if (lResult.ResultType == eCommandResultType.bad)
@@ -71,10 +69,6 @@ namespace work.bacome.imapclient
 
                     if (lResult.ResultType == eCommandResultType.ok) lContext.TraceInformation("store success");
                     else lContext.TraceInformation("store possible partial success");
-
-                    lFailedToStore.AddRange(from i in lFeedback.Items where !i.Fetched || i.Modified select i.Handle);
-
-                    return lFailedToStore;
                 }
             }
         }

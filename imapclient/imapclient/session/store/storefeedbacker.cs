@@ -45,22 +45,22 @@ namespace work.bacome.imapclient
 
                 public int Count => mDictionary.Count;
 
-                public bool Fetched(uint pUInt)
+                public bool ReceivedFlagsUpdate(uint pUInt)
                 {
                     if (mDictionary.TryGetValue(pUInt, out var lItem))
                     {
-                        lItem.Fetched = true;
+                        lItem.ReceivedFlagsUpdate = true;
                         return true;
                     }
 
                     return false;
                 }
 
-                public bool Modified(uint pUInt)
+                public bool WasNotUnchangedSince(uint pUInt)
                 {
                     if (mDictionary.TryGetValue(pUInt, out var lItem))
                     {
-                        lItem.Modified = true;
+                        lItem.WasNotUnchangedSince = true;
                         return true;
                     }
 
@@ -71,29 +71,11 @@ namespace work.bacome.imapclient
 
                 public override string ToString()
                 {
-                    var lBuilder = new cListBuilder(nameof(cStoreFeedback));
-
-                    bool lFirst = true;
-
-                    foreach (var lItem in mDictionary.Values)
-                    {
-                        if (lFirst)
-                        {
-                            lFirst = false;
-                            if (lItem.UID == null) lBuilder.Append(lItem.Handle.Cache);
-                            else lBuilder.Append(lItem.UID.UIDValidity);
-                        }
-
-                        if (lItem.UID == null) lBuilder.Append(lItem.Handle.CacheSequence);
-                        else lBuilder.Append(lItem.UID.UID);
-                    }
-
+                    var lBuilder = new cListBuilder(nameof(cStoreFeedbacker));
+                    foreach (var lItem in mDictionary) lBuilder.Append($"({lItem.Key},{lItem.Value.ReceivedFlagsUpdate},{lItem.Value.WasNotUnchangedSince})");
                     return lBuilder.ToString();
                 }
             }
-
-
-
         }
     }
 }

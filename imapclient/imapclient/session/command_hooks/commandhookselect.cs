@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandStarted));
-                    if (mMailboxCache.SelectedMailboxDetails != null && !mCapabilities.QResync) mMailboxCache.Deselect(lContext);
+                    if (mMailboxCache.SelectedMailboxDetails != null && !mCapabilities.QResync) mMailboxCache.Unselect(lContext);
                 }
 
                 public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
@@ -149,7 +149,7 @@ namespace work.bacome.imapclient
                         // the spec (rfc 7162) doesn't specify where this comes - although the only example is of an untagged OK
                         if (pCursor.SkipBytes(kClosedRBracketSpace))
                         {
-                            mMailboxCache.Deselect(lContext);
+                            mMailboxCache.Unselect(lContext);
                             return true;
                         }
                     }

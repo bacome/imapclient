@@ -64,15 +64,7 @@ namespace work.bacome.imapclient
                     if ((rAttributesSet & fCacheAttributes.flags) != 0) Flags = lFetch.Flags;
                     else if (lFetch.Flags != null)
                     {
-                        // symmetricdifference of flags
-
-                        foreach (var lFlag in Flags.Except(lFetch.Flags, StringComparer.InvariantCultureIgnoreCase))
-                        {
-                            rAttributesSet |= fCacheAttributes.flags;
-                            rPropertiesChanged |= fMessageProperties.flags | LMessageProperty(lFlag);
-                        }
-
-                        foreach (var lFlag in lFetch.Flags.Except(Flags, StringComparer.InvariantCultureIgnoreCase))
+                        foreach (var lFlag in Flags.SymmetricDifference(lFetch.Flags))
                         {
                             rAttributesSet |= fCacheAttributes.flags;
                             rPropertiesChanged |= fMessageProperties.flags | LMessageProperty(lFlag);
