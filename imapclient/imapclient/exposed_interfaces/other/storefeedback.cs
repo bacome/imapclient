@@ -62,11 +62,11 @@ namespace work.bacome.imapclient
 
             foreach (var lItem in this)
             {
-                if (lItem.WasNotUnchangedSince) lSummary.WasNotUnchangedSince++;
-                else if (lItem.Handle.Expunged) lSummary.Expunged++;
-                else if (lItem.Handle.Flags == null) lSummary.ReflectsUnknown++;
-                else if (lItem.Reflects(pOperation, pFlags) == true) lSummary.Reflects++;
-                else lSummary.DoesNotReflect++;
+                if (lItem.WasNotUnchangedSince) lSummary.WasNotUnchangedSinceCount++;
+                else if (lItem.Handle.Expunged) lSummary.ExpungedCount++;
+                else if (lItem.Handle.Flags == null) lSummary.UnknownCount++;
+                else if (lItem.Reflects(pOperation, pFlags) == true) lSummary.ReflectsOperationCount++;
+                else lSummary.NotReflectsOperationCount++;
             }
 
             return lSummary;
@@ -114,11 +114,13 @@ namespace work.bacome.imapclient
 
     public struct sStoreFeedbackSummary
     {
-        public int WasNotUnchangedSince; // condstore failed
-        public int Expunged; // message is expunged
-        public int ReflectsUnknown; // the handle does not contain the flags
-        public int Reflects; // the flags in the handle reflect the update
-        public int DoesNotReflect; // the flags in the handle do not reflect the update
+        public int WasNotUnchangedSinceCount; // condstore failed
+        public int ExpungedCount; // message is expunged
+        public int UnknownCount; // the handle does not contain the flags
+        public int ReflectsOperationCount; // the flags in the handle reflect the update
+        public int NotReflectsOperationCount; // the flags in the handle do not reflect the update
+
+        public override string ToString() => $"{nameof(sStoreFeedbackSummary)}(WasNotUnchangedSince:{WasNotUnchangedSinceCount}, Expunged:{ExpungedCount}, Unknown:{UnknownCount}, ReflectsOperation:{ReflectsOperationCount}, NotReflects:{NotReflectsOperationCount})";
     }
 
     public class cUIDStoreFeedbackItem : cStoreFeedbackItemBase

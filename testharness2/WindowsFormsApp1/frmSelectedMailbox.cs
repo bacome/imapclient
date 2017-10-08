@@ -596,18 +596,18 @@ namespace testharness2
 
             var lSummary = lFeedback.Summary(lOperation, lFlags);
 
-            if (lSummary.WasNotUnchangedSince == 0 && lSummary.Reflects == lFeedback.Count) return;
+            if (lSummary.WasNotUnchangedSinceCount == 0 && lSummary.ReflectsOperationCount == lFeedback.Count) return;
 
-            if (lSummary.DoesNotReflect > 0)
+            if (lSummary.NotReflectsOperationCount > 0)
             {
-                // see if polling the server helps explain the does not reflect ones
+                // see if polling the server helps explain the "not reflects" ones (maybe the message is expunged, maybe there are pending changes to be sent)
                 try { await mClient.PollAsync(); }
                 catch { }
                 if (IsDisposed) return;
                 lSummary = lFeedback.Summary(lOperation, lFlags);
             }
 
-            ;?; // present the summary
+            MessageBox.Show(this, $"(some of) the messages don't appear to have been updated - {lSummary}");
         }
 
         private void frmSelectedMailbox_FormClosing(object sender, FormClosingEventArgs e)
