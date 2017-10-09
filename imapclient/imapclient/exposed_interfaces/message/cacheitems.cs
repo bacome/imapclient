@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
         {
             Attributes = 0;
 
-            if ((pProperties & (fMessageProperties.flags | fMessageProperties.isanswered | fMessageProperties.isflagged | fMessageProperties.isdeleted | fMessageProperties.isseen | fMessageProperties.isdraft | fMessageProperties.isrecent | fMessageProperties.ismdnsent | fMessageProperties.isforwarded | fMessageProperties.issubmitpending | fMessageProperties.issubmitted)) != 0) Attributes |= fCacheAttributes.flags;
+            if ((pProperties & (fMessageProperties.flags | fMessageProperties.answered | fMessageProperties.flagged | fMessageProperties.deleted | fMessageProperties.seen | fMessageProperties.draft | fMessageProperties.recent | fMessageProperties.mdnsent | fMessageProperties.forwarded | fMessageProperties.submitpending | fMessageProperties.submitted)) != 0) Attributes |= fCacheAttributes.flags;
             if ((pProperties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0) Attributes |= fCacheAttributes.envelope;
             if ((pProperties & fMessageProperties.received) != 0) Attributes |= fCacheAttributes.received;
             if ((pProperties & fMessageProperties.size) != 0) Attributes |= fCacheAttributes.size;

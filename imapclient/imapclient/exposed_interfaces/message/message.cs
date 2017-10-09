@@ -179,61 +179,45 @@ namespace work.bacome.imapclient
             }
         }
 
-        public bool IsAnswered
-        {
-            get => ZFlagsContain(kMessageFlagName.Answered);
-            set => ZFlagSet(cSettableFlags.Answered, value);
-        }
+        public bool Answered => ZFlagsContain(kMessageFlagName.Answered);
+        public void SetAnswered() { ZFlagSet(cSettableFlags.Answered, true); }
 
-        public bool IsFlagged
+        public bool Flagged
         {
             get => ZFlagsContain(kMessageFlagName.Flagged);
             set => ZFlagSet(cSettableFlags.Flagged, value);
         }
 
-        public bool IsDeleted
+        public bool Deleted
         {
             get => ZFlagsContain(kMessageFlagName.Deleted);
             set => ZFlagSet(cSettableFlags.Deleted, value);
         }
 
-        public bool IsSeen
+        public bool Seen
         {
             get => ZFlagsContain(kMessageFlagName.Seen);
             set => ZFlagSet(cSettableFlags.Seen, value);
         }
 
-        public bool IsDraft
+        public bool Draft
         {
             get => ZFlagsContain(kMessageFlagName.Draft);
             set => ZFlagSet(cSettableFlags.Draft, value);
         }
 
-        public bool IsRecent => ZFlagsContain(kMessageFlagName.Recent);
+        public bool Recent => ZFlagsContain(kMessageFlagName.Recent);
 
-        public bool IsMDNSent
-        {
-            get => ZFlagsContain(kMessageFlagName.MDNSent);
-            set => ZFlagSet(cSettableFlags.MDNSent, value);
-        }
+        public bool MDNSent => ZFlagsContain(kMessageFlagName.MDNSent);
+        public void SetMDNSent() { ZFlagSet(cSettableFlags.MDNSent, true); }
 
-        public bool IsForwarded
-        {
-            get => ZFlagsContain(kMessageFlagName.Forwarded);
-            set => ZFlagSet(cSettableFlags.Forwarded, value);
-        }
+        public bool Forwarded => ZFlagsContain(kMessageFlagName.Forwarded);
+        public void SetForwarded() { ZFlagSet(cSettableFlags.Forwarded, true); }
 
-        public bool IsSubmitPending
-        {
-            get => ZFlagsContain(kMessageFlagName.SubmitPending);
-            set => ZFlagSet(cSettableFlags.SubmitPending, value);
-        }
+        public bool SubmitPending => ZFlagsContain(kMessageFlagName.SubmitPending);
+        public void SetSubmitPending() { ZFlagSet(cSettableFlags.SubmitPending, true); }
 
-        public bool IsSubmitted
-        {
-            get => ZFlagsContain(kMessageFlagName.Submitted);
-            set => ZFlagSet(cSettableFlags.Submitted, value);
-        }
+        public bool Submitted  => ZFlagsContain(kMessageFlagName.Submitted);
 
         private bool ZFlagsContain(string pFlag)
         {
@@ -243,8 +227,10 @@ namespace work.bacome.imapclient
 
         private void ZFlagSet(cSettableFlags pFlags, bool pValue)
         {
-            if (pValue) Client.Store(Handle, eStoreOperation.add, pFlags, null);
-            else Client.Store(Handle, eStoreOperation.remove, pFlags, null);
+            cStoreFeedback lFeedback;
+            if (pValue) lFeedback = Client.Store(Handle, eStoreOperation.add, pFlags, null);
+            else lFeedback = Client.Store(Handle, eStoreOperation.remove, pFlags, null);
+            if (lFeedback.Summary().FailedCount != 0) throw new InvalidOperationException(); // the assumption here is that the message has been deleted
         }
 
         public DateTime Received
@@ -454,8 +440,8 @@ namespace work.bacome.imapclient
 
         // set data
 
-        public cStoreFeedbackItem Store(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
-        public Task<cStoreFeedbackItem> StoreAsync(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public cStoreFeedback Store(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public Task<cStoreFeedback> StoreAsync(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         // debugging
         public override string ToString() => $"{nameof(cMessage)}({Handle},{Indent})";

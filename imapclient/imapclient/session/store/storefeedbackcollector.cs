@@ -8,19 +8,19 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private class cStoreFeedbacker
+            private class cStoreFeedbackCollector
             {
                 public enum eKeyType { msn, uid }
 
                 public readonly eKeyType KeyType;
                 private Dictionary<uint, cStoreFeedbackItemBase> mDictionary = new Dictionary<uint, cStoreFeedbackItemBase>();
 
-                public cStoreFeedbacker()
+                public cStoreFeedbackCollector()
                 {
                     KeyType = eKeyType.msn;
                 }
 
-                public cStoreFeedbacker(cStoreFeedback pItems)
+                public cStoreFeedbackCollector(cStoreFeedback pItems)
                 {
                     KeyType = eKeyType.uid;
 
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public cStoreFeedbacker(cUIDStoreFeedback pItems)
+                public cStoreFeedbackCollector(cUIDStoreFeedback pItems)
                 {
                     KeyType = eKeyType.uid;
                     foreach (var lItem in pItems) mDictionary[lItem.UID.UID] = lItem;
@@ -71,7 +71,7 @@ namespace work.bacome.imapclient
 
                 public override string ToString()
                 {
-                    var lBuilder = new cListBuilder(nameof(cStoreFeedbacker));
+                    var lBuilder = new cListBuilder(nameof(cStoreFeedbackCollector));
                     foreach (var lItem in mDictionary) lBuilder.Append($"({lItem.Key},{lItem.Value.ReceivedFlagsUpdate},{lItem.Value.WasNotUnchangedSince})");
                     return lBuilder.ToString();
                 }

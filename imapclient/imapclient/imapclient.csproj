@@ -112,7 +112,7 @@
     <Compile Include="session\imap_commands\selected\store\store.cs" />
     <Compile Include="session\imap_commands\selected\store\uidstore.cs" />
     <Compile Include="session\store\store.cs" />
-    <Compile Include="session\store\storefeedbacker.cs" />
+    <Compile Include="session\store\storefeedbackcollector.cs" />
     <Compile Include="support\progress.cs" />
     <Compile Include="session\imap_commands\authenticated\create.cs" />
     <Compile Include="session\imap_commands\authenticated\delete.cs" />

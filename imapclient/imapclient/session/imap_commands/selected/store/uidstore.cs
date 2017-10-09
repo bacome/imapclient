@@ -14,9 +14,9 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kUIDStoreCommandPartUIDStoreSpace = new cCommandPart("UID STORE ");
 
-            private async Task ZUIDStoreAsync(cMethodControl pMC, iMailboxHandle pHandle, uint pUIDValidity, cStoreFeedbacker pFeedbacker, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
+            private async Task ZUIDStoreAsync(cMethodControl pMC, iMailboxHandle pHandle, uint pUIDValidity, cStoreFeedbackCollector pFeedbackCollector, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cUIDStoreFeedback pFeedback, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZStoreAsync), pMC, pHandle, pUIDValidity, pFeedbacker, pOperation, pFlags, pIfUnchangedSinceModSeq);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZStoreAsync), pMC, pHandle, pUIDValidity, pFeedbackCollector, pOperation, pFlags, pIfUnchangedSinceModSeq, pFeedback);
 
                 // no validation ... all the parameters have been validated already by the cSession by the time we get here
 
@@ -32,12 +32,12 @@ namespace work.bacome.imapclient
                     lBuilder.AddUIDValidity(pUIDValidity); // the command is sensitive to UIDValidity changes
 
                     // build the command
-                    lBuilder.Add(kUIDStoreCommandPartUIDStoreSpace, new cCommandPart(cSequenceSet.FromUInts(pFeedbacker.UInts)), cCommandPart.Space);
+                    lBuilder.Add(kUIDStoreCommandPartUIDStoreSpace, new cCommandPart(cSequenceSet.FromUInts(pFeedbackCollector.UInts)), cCommandPart.Space);
                     if (pIfUnchangedSinceModSeq != null) lBuilder.Add(kStoreCommandPartLParenUnchangedSinceSpace, new cCommandPart(pIfUnchangedSinceModSeq.Value), kStoreCommandPartRParenSpace);
                     lBuilder.Add(pOperation, pFlags);
 
                     // add the hook
-                    var lHook = new cCommandHookStore(pFeedbacker, lSelectedMailbox);
+                    var lHook = new cCommandHookStore(pFeedbackCollector, pFeedback, lSelectedMailbox);
                     lBuilder.Add(lHook);
 
                     // submit the command                

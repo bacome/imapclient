@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
 
                 private int mCacheSequence = 0;
                 private readonly List<cItem> mItems;
-                private readonly SortedDictionary<cUID, iMessageHandle> mUIDIndex = new SortedDictionary<cUID, iMessageHandle>();
+                private readonly Dictionary<cUID, iMessageHandle> mUIDIndex = new Dictionary<cUID, iMessageHandle>();
 
                 private int mRecentCount;
 

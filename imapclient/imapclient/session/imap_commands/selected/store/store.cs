@@ -32,26 +32,26 @@ namespace work.bacome.imapclient
                     // uidvalidity must be captured before the handles are resolved
                     lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
 
-                    // working storage
-                    cStoreFeedbacker lFeedbacker = new cStoreFeedbacker();
+                    // collector
+                    cStoreFeedbackCollector lFeedbackCollector = new cStoreFeedbackCollector();
 
                     // resolve the handles to MSNs
                     foreach (var lItem in pFeedback)
                     {
                         var lMSN = lSelectedMailbox.GetMSN(lItem.Handle);
-                        if (lMSN != 0) lFeedbacker.Add(lMSN, lItem);
+                        if (lMSN != 0) lFeedbackCollector.Add(lMSN, lItem);
                     }
 
                     // if no handles were resolved, we are done
-                    if (lFeedbacker.Count == 0) return;
+                    if (lFeedbackCollector.Count == 0) return;
 
                     // build the command
-                    lBuilder.Add(kStoreCommandPartStoreSpace, new cCommandPart(cSequenceSet.FromUInts(lFeedbacker.UInts)), cCommandPart.Space);
+                    lBuilder.Add(kStoreCommandPartStoreSpace, new cCommandPart(cSequenceSet.FromUInts(lFeedbackCollector.UInts)), cCommandPart.Space);
                     if (pIfUnchangedSinceModSeq != null) lBuilder.Add(kStoreCommandPartLParenUnchangedSinceSpace, new cCommandPart(pIfUnchangedSinceModSeq.Value), kStoreCommandPartRParenSpace);
                     lBuilder.Add(pOperation, pFlags);
 
                     // add the hook
-                    var lHook = new cCommandHookStore(lFeedbacker, lSelectedMailbox);
+                    var lHook = new cCommandHookStore(lFeedbackCollector, null, lSelectedMailbox);
                     lBuilder.Add(lHook);
 
                     // submit the command                

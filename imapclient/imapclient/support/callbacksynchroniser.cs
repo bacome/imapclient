@@ -292,16 +292,16 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
 
                 if ((pProperties & fMessageProperties.flags) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Flags)));
-                if ((pProperties & fMessageProperties.isanswered) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsAnswered)));
-                if ((pProperties & fMessageProperties.isflagged) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsFlagged)));
-                if ((pProperties & fMessageProperties.isdeleted) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsDeleted)));
-                if ((pProperties & fMessageProperties.isseen) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsSeen)));
-                if ((pProperties & fMessageProperties.isdraft) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsDraft)));
-                if ((pProperties & fMessageProperties.isrecent) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsRecent)));
-                if ((pProperties & fMessageProperties.ismdnsent) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsMDNSent)));
-                if ((pProperties & fMessageProperties.isforwarded) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsForwarded)));
-                if ((pProperties & fMessageProperties.issubmitpending) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsSubmitPending)));
-                if ((pProperties & fMessageProperties.issubmitted) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.IsSubmitted)));
+                if ((pProperties & fMessageProperties.answered) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Answered)));
+                if ((pProperties & fMessageProperties.flagged) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Flagged)));
+                if ((pProperties & fMessageProperties.deleted) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Deleted)));
+                if ((pProperties & fMessageProperties.seen) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Seen)));
+                if ((pProperties & fMessageProperties.draft) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Draft)));
+                if ((pProperties & fMessageProperties.recent) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Recent)));
+                if ((pProperties & fMessageProperties.mdnsent) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.MDNSent)));
+                if ((pProperties & fMessageProperties.forwarded) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Forwarded)));
+                if ((pProperties & fMessageProperties.submitpending) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.SubmitPending)));
+                if ((pProperties & fMessageProperties.submitted) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Submitted)));
                 if (((pProperties & fMessageProperties.modseq) != 0)) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.ModSeq)));
 
                 ZInvokeAndForget(lContext);

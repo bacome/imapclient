@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -13,12 +12,14 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kModifiedSpace = new cBytes("MODIFIED ");
 
-                private readonly cStoreFeedbacker mFeedbacker;
+                private readonly cStoreFeedbackCollector mFeedbackCollector;
+                private readonly cUIDStoreFeedback mUIDStoreFeedback;
                 private readonly cSelectedMailbox mSelectedMailbox;
 
-                public cCommandHookStore(cStoreFeedbacker pFeedbacker, cSelectedMailbox pSelectedMailbox)
+                public cCommandHookStore(cStoreFeedbackCollector pFeedbackCollector, cUIDStoreFeedback pUIDStoreFeedback, cSelectedMailbox pSelectedMailbox)
                 {
-                    mFeedbacker = pFeedbacker ?? throw new ArgumentNullException(nameof(pFeedbacker));
+                    mFeedbackCollector = pFeedbackCollector ?? throw new ArgumentNullException(nameof(pFeedbackCollector));
+                    mUIDStoreFeedback = pUIDStoreFeedback;
                     mSelectedMailbox = pSelectedMailbox ?? throw new ArgumentNullException(nameof(pSelectedMailbox));
                 }
 
@@ -31,14 +32,14 @@ namespace work.bacome.imapclient
 
                     uint lUInt;
 
-                    if (mFeedbacker.KeyType == cStoreFeedbacker.eKeyType.uid)
+                    if (mFeedbackCollector.KeyType == cStoreFeedbackCollector.eKeyType.uid)
                     {
                         if (lFetch.UID == null) return eProcessDataResult.notprocessed;
                         lUInt = lFetch.UID.Value;
                     }
                     else lUInt = lFetch.MSN;
 
-                    if (mFeedbacker.ReceivedFlagsUpdate(lUInt)) return eProcessDataResult.observed;
+                    if (mFeedbackCollector.ReceivedFlagsUpdate(lUInt)) return eProcessDataResult.observed;
                     return eProcessDataResult.notprocessed;
                 }
 
@@ -53,7 +54,7 @@ namespace work.bacome.imapclient
                             if (pCursor.GetSequenceSet(out var lSequenceSet) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                             {
                                 cUIntList lUInts = cUIntList.FromSequenceSet(lSequenceSet, mSelectedMailbox.Cache.Count, true);
-                                foreach (var lUInt in lUInts) if (!mFeedbacker.WasNotUnchangedSince(lUInt)) lContext.TraceWarning("likely malformed modified response: message number not recognised: ", lUInt);
+                                foreach (var lUInt in lUInts) if (!mFeedbackCollector.WasNotUnchangedSince(lUInt)) lContext.TraceWarning("likely malformed modified response: message number not recognised: ", lUInt);
                                 return true;
                             }
 
@@ -62,6 +63,18 @@ namespace work.bacome.imapclient
                     }
 
                     return false;
+                }
+
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookStore), nameof(CommandCompleted), pResult);
+
+                    if (pResult.ResultType == eCommandResultType.ok && mUIDStoreFeedback != null)
+                    {
+                        // find the handles for the UIDs, if possible
+                        //  (this is to enhance the ability to tell if the store was successful or not for a UIDStore)
+                        foreach (var lItem in mUIDStoreFeedback) lItem.Handle = mSelectedMailbox.GetHandle(lItem.UID);
+                    }
                 }
             }
         }
