@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="client\base.cs" />
     <Compile Include="client\connect.cs" />
+    <Compile Include="client\copy.cs" />
     <Compile Include="client\create.cs" />
     <Compile Include="client\defaultmessageproperties.cs" />
     <Compile Include="client\delete.cs" />
@@ -56,6 +57,7 @@
     <Compile Include="exposed_interfaces\message\headerfieldnames.cs" />
     <Compile Include="exposed_interfaces\message\headerfields.cs" />
     <Compile Include="exposed_interfaces\message\importance.cs" />
+    <Compile Include="exposed_interfaces\other\copyfeedback.cs" />
     <Compile Include="exposed_interfaces\other\fetchconfiguration.cs" />
     <Compile Include="client\fetchcacheitems.cs" />
     <Compile Include="client\fetchbody.cs" />

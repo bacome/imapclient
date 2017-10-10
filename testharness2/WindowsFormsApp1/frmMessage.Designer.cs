@@ -39,8 +39,8 @@
             this.tpgAttachments = new System.Windows.Forms.TabPage();
             this.dgv = new System.Windows.Forms.DataGridView();
             this.tpgFlags = new System.Windows.Forms.TabPage();
+            this.cmdStore = new System.Windows.Forms.Button();
             this.gbxFlags = new System.Windows.Forms.GroupBox();
-            this.chkSubmitted = new System.Windows.Forms.CheckBox();
             this.chkSubmitPending = new System.Windows.Forms.CheckBox();
             this.chkForwarded = new System.Windows.Forms.CheckBox();
             this.chkDraft = new System.Windows.Forms.CheckBox();
@@ -67,7 +67,6 @@
             this.rtxOther = new System.Windows.Forms.RichTextBox();
             this.lblQueryError = new System.Windows.Forms.Label();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
-            this.cmdStore = new System.Windows.Forms.Button();
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
@@ -209,11 +208,21 @@
             this.tpgFlags.Text = "Flags";
             this.tpgFlags.UseVisualStyleBackColor = true;
             // 
+            // cmdStore
+            // 
+            this.cmdStore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdStore.Location = new System.Drawing.Point(6, 475);
+            this.cmdStore.Name = "cmdStore";
+            this.cmdStore.Size = new System.Drawing.Size(100, 25);
+            this.cmdStore.TabIndex = 2;
+            this.cmdStore.Text = "Store ...";
+            this.cmdStore.UseVisualStyleBackColor = true;
+            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
+            // 
             // gbxFlags
             // 
             this.gbxFlags.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbxFlags.Controls.Add(this.chkSubmitted);
             this.gbxFlags.Controls.Add(this.chkSubmitPending);
             this.gbxFlags.Controls.Add(this.chkForwarded);
             this.gbxFlags.Controls.Add(this.chkDraft);
@@ -222,28 +231,17 @@
             this.gbxFlags.Controls.Add(this.chkFlagged);
             this.gbxFlags.Controls.Add(this.chkMDNSent);
             this.gbxFlags.Controls.Add(this.chkAnswered);
-            this.gbxFlags.Location = new System.Drawing.Point(6, 377);
+            this.gbxFlags.Location = new System.Drawing.Point(6, 401);
             this.gbxFlags.Name = "gbxFlags";
-            this.gbxFlags.Size = new System.Drawing.Size(761, 92);
+            this.gbxFlags.Size = new System.Drawing.Size(761, 68);
             this.gbxFlags.TabIndex = 1;
             this.gbxFlags.TabStop = false;
             this.gbxFlags.Text = "Flags";
             // 
-            // chkSubmitted
-            // 
-            this.chkSubmitted.AutoSize = true;
-            this.chkSubmitted.Location = new System.Drawing.Point(227, 42);
-            this.chkSubmitted.Name = "chkSubmitted";
-            this.chkSubmitted.Size = new System.Drawing.Size(73, 17);
-            this.chkSubmitted.TabIndex = 7;
-            this.chkSubmitted.Text = "Submitted";
-            this.chkSubmitted.UseVisualStyleBackColor = true;
-            this.chkSubmitted.CheckedChanged += new System.EventHandler(this.chkSubmitted_CheckedChanged);
-            // 
             // chkSubmitPending
             // 
             this.chkSubmitPending.AutoSize = true;
-            this.chkSubmitPending.Location = new System.Drawing.Point(121, 42);
+            this.chkSubmitPending.Location = new System.Drawing.Point(227, 42);
             this.chkSubmitPending.Name = "chkSubmitPending";
             this.chkSubmitPending.Size = new System.Drawing.Size(100, 17);
             this.chkSubmitPending.TabIndex = 6;
@@ -309,7 +307,7 @@
             // chkMDNSent
             // 
             this.chkMDNSent.AutoSize = true;
-            this.chkMDNSent.Location = new System.Drawing.Point(15, 65);
+            this.chkMDNSent.Location = new System.Drawing.Point(439, 42);
             this.chkMDNSent.Name = "chkMDNSent";
             this.chkMDNSent.Size = new System.Drawing.Size(73, 17);
             this.chkMDNSent.TabIndex = 8;
@@ -335,7 +333,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtxFlags.Location = new System.Drawing.Point(6, 6);
             this.rtxFlags.Name = "rtxFlags";
-            this.rtxFlags.Size = new System.Drawing.Size(761, 365);
+            this.rtxFlags.Size = new System.Drawing.Size(761, 389);
             this.rtxFlags.TabIndex = 0;
             this.rtxFlags.Text = "";
             // 
@@ -530,17 +528,6 @@
             // 
             this.erp.ContainerControl = this;
             // 
-            // cmdStore
-            // 
-            this.cmdStore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdStore.Location = new System.Drawing.Point(6, 475);
-            this.cmdStore.Name = "cmdStore";
-            this.cmdStore.Size = new System.Drawing.Size(100, 25);
-            this.cmdStore.TabIndex = 2;
-            this.cmdStore.Text = "Store ...";
-            this.cmdStore.UseVisualStyleBackColor = true;
-            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
-            // 
             // frmMessage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -611,7 +598,6 @@
         private System.Windows.Forms.DataGridView dgv;
         private System.Windows.Forms.ErrorProvider erp;
         private System.Windows.Forms.GroupBox gbxFlags;
-        private System.Windows.Forms.CheckBox chkSubmitted;
         private System.Windows.Forms.CheckBox chkSubmitPending;
         private System.Windows.Forms.CheckBox chkForwarded;
         private System.Windows.Forms.CheckBox chkDraft;

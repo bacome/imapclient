@@ -1710,7 +1710,7 @@ namespace testharness2
 
                 lMessage = lMessageList[0];
 
-                if (lMessage.IsExpunged || lMessage.Handle.Attributes != (fCacheAttributes.received | fCacheAttributes.modseq)) throw new cTestsException("ZTestSearch4.4");
+                if (lMessage.Expunged || lMessage.Handle.Attributes != (fCacheAttributes.received | fCacheAttributes.modseq)) throw new cTestsException("ZTestSearch4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch4.5");
 
 
@@ -1965,7 +1965,7 @@ namespace testharness2
 
                 lMessage = lMessageList[0];
 
-                if (lMessage.IsExpunged || lMessage.Handle.Attributes != (fCacheAttributes.received | fCacheAttributes.modseq)) throw new cTestsException("ZTestSearch2_4.4");
+                if (lMessage.Expunged || lMessage.Handle.Attributes != (fCacheAttributes.received | fCacheAttributes.modseq)) throw new cTestsException("ZTestSearch2_4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch2_4.5");
 
 
@@ -2269,7 +2269,7 @@ namespace testharness2
 
                 if (lClient.Inbox.MessageCount != 172) throw new cTestsException("ZTestIdleRestart1.1");
 
-                var lMessages = lClient.Inbox.Messages(!cFilter.IsSeen);
+                var lMessages = lClient.Inbox.Messages(!cFilter.Seen);
 
                 Thread.Sleep(3000); // idle should start, message 168 should get deleted, and message 167 should get a UID during this wait
 

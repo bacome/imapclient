@@ -182,17 +182,21 @@ namespace testharness2
 
                         mQueryingFlagCheckboxes = true;
 
-                        chkAnswered.Checked = mMessage.IsAnswered;
-                        chkFlagged.Checked = mMessage.IsFlagged;
-                        chkDeleted.Checked = mMessage.IsDeleted;
-                        chkSeen.Checked = mMessage.IsSeen;
-                        chkDraft.Checked = mMessage.IsDraft;
+                        chkAnswered.Checked = mMessage.Answered;
+                        chkFlagged.Checked = mMessage.Flagged;
+                        chkDeleted.Checked = mMessage.Deleted;
+                        chkSeen.Checked = mMessage.Seen;
+                        chkDraft.Checked = mMessage.Draft;
 
-                        chkForwarded.Checked = mMessage.IsForwarded;
-                        chkSubmitPending.Checked = mMessage.IsSubmitPending;
-                        chkSubmitted.Checked = mMessage.IsSubmitted;
+                        chkForwarded.Checked = mMessage.Forwarded;
+                        chkSubmitPending.Checked = mMessage.SubmitPending;
 
-                        chkMDNSent.Checked = mMessage.IsMDNSent;
+                        chkMDNSent.Checked = mMessage.MDNSent;
+
+                        chkAnswered.Enabled = !mMessage.Answered;
+                        chkForwarded.Enabled = !mMessage.Forwarded;
+                        chkSubmitPending.Enabled = !mMessage.SubmitPending;
+                        chkMDNSent.Enabled = !mMessage.MDNSent;
 
                         mQueryingFlagCheckboxes = false;
                     }
@@ -890,64 +894,77 @@ namespace testharness2
         private void chkAnswered_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            try { mMessage.IsAnswered = chkAnswered.Checked; }
-            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
+
+            if (chkAnswered.Checked)
+            {
+                chkAnswered.Enabled = false;
+                try { mMessage.SetAnswered(); }
+                catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
+            }
         }
 
         private void chkFlagged_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            try { mMessage.IsFlagged = chkFlagged.Checked; }
+            try { mMessage.Flagged = chkFlagged.Checked; }
             catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkDeleted_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            try { mMessage.IsDeleted = chkDeleted.Checked; }
+            try { mMessage.Deleted = chkDeleted.Checked; }
             catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkSeen_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            try { mMessage.IsSeen = chkSeen.Checked; }
+            try { mMessage.Seen = chkSeen.Checked; }
             catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkDraft_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            try { mMessage.IsDraft = chkDraft.Checked; }
+            try { mMessage.Draft = chkDraft.Checked; }
             catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
         }
 
         private void chkForwarded_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            try { mMessage.IsForwarded = chkForwarded.Checked; }
-            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
+
+            if (chkForwarded.Checked)
+            {
+                chkForwarded.Enabled = false;
+                try { mMessage.SetForwarded(); }
+                catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
+            }
         }
 
         private void chkSubmitPending_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            try { mMessage.IsSubmitPending = chkSubmitPending.Checked; }
-            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
-        }
 
-        private void chkSubmitted_CheckedChanged(object sender, EventArgs e)
-        {
-            if (mQueryingFlagCheckboxes) return;
-            try { mMessage.IsSubmitted = chkSubmitted.Checked; }
-            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
+            if (chkSubmitPending.Checked)
+            {
+                chkSubmitPending.Enabled = false;
+                try { mMessage.SetSubmitPending(); }
+                catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
+            }
         }
 
         private void chkMDNSent_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
-            try { mMessage.IsMDNSent = chkMDNSent.Checked; }
-            catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
+
+            if (chkMDNSent.Checked)
+            {
+                chkMDNSent.Enabled = false;
+                try { mMessage.SetMDNSent(); }
+                catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
+            }
         }
 
         private async void cmdStore_Click(object sender, EventArgs e)
@@ -965,34 +982,11 @@ namespace testharness2
                 lIfUnchangedSinceModSeq = lStoreDialog.IfUnchangedSinceModSeq;
             }
 
-            cStoreFeedbackItem lFeedback;
-
-            try { lFeedback = await mMessage.StoreAsync(lOperation, lFlags, lIfUnchangedSinceModSeq); }
+            try { await mMessage.StoreAsync(lOperation, lFlags, lIfUnchangedSinceModSeq); }
             catch (Exception ex)
             {
                 if (!IsDisposed) MessageBox.Show(this, $"store error\n{ex}");
-                return;
             }
-
-            if (lFeedback.Updated) return;
-
-            if (IsDisposed) return;
-
-            if (lFeedback.WasNotUnchangedSince)
-            {
-                MessageBox.Show(this, $"the message has been modified since {lIfUnchangedSinceModSeq}");
-                return;
-            }
-
-            if (lFeedback.Reflects(lOperation, lFlags) == true) return;
-
-            if (mMessage.IsExpunged)
-            {
-                MessageBox.Show(this, $"the message has been expunged (so the store failed)");
-                return;
-            }
-
-            MessageBox.Show(this, "the flags don't appear to have been updated - try polling the server to see if the message has been deleted");
         }
     }
 }

@@ -82,9 +82,13 @@ namespace work.bacome.imapclient
 
     public class cHeaderFieldImportance : cHeaderField
     {
-        private static readonly cBytes kLow = new cBytes("low");
-        private static readonly cBytes kNormal = new cBytes("normal");
-        private static readonly cBytes kHigh = new cBytes("high");
+        public const string Low = "Low";
+        public const string Normal = "Normal";
+        public const string High = "High";
+
+        private static readonly cBytes kLow = new cBytes(Low);
+        private static readonly cBytes kNormal = new cBytes(Normal);
+        private static readonly cBytes kHigh = new cBytes(High);
 
         public readonly eImportance Importance;
 
@@ -115,6 +119,17 @@ namespace work.bacome.imapclient
 
             rImportance = null;
             return false;
+        }
+
+        public static string FieldValue(eImportance pImportance)
+        {
+            switch (pImportance)
+            {
+                case eImportance.low: return Low;
+                case eImportance.normal: return Normal;
+                case eImportance.high: return High;
+                default: throw new ArgumentOutOfRangeException(nameof(pImportance));
+            }
         }
 
         public override string ToString() => $"{nameof(cHeaderFieldImportance)}({Importance})";

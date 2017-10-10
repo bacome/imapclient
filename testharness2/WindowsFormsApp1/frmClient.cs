@@ -710,9 +710,9 @@ namespace testharness2
             if (chkPSubject.Checked) lProperties |= fMessageProperties.subject;
             if (chkPMessageId.Checked) lProperties |= fMessageProperties.messageid;
             if (chkPFlags.Checked) lProperties |= fMessageProperties.flags;
-            if (chkPIsAnswered.Checked) lProperties |= fMessageProperties.isanswered;
-            if (chkPIsFlagged.Checked) lProperties |= fMessageProperties.isflagged;
-            if (chkPIsSubmitted.Checked) lProperties |= fMessageProperties.issubmitted;
+            if (chkPAnswered.Checked) lProperties |= fMessageProperties.answered;
+            if (chkPFlagged.Checked) lProperties |= fMessageProperties.flagged;
+            if (chkPSubmitted.Checked) lProperties |= fMessageProperties.submitted;
             if (chkPReceived.Checked) lProperties |= fMessageProperties.received;
             if (chkPSize.Checked) lProperties |= fMessageProperties.size;
             if (chkPUID.Checked) lProperties |= fMessageProperties.uid;

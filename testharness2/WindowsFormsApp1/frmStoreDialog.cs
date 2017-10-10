@@ -40,16 +40,16 @@ namespace testharness2
                 cSettableFlagList lFlags = new cSettableFlagList();
 
                 if (chkAnswered.Checked) lFlags.Add(kMessageFlagName.Answered);
-                if (chkDeleted.Checked) lFlags.Add(kMessageFlagName.Answered);
-                if (chkDraft.Checked) lFlags.Add(kMessageFlagName.Answered);
-                if (chkFlagged.Checked) lFlags.Add(kMessageFlagName.Answered);
-                if (chkSeen.Checked) lFlags.Add(kMessageFlagName.Answered);
+                if (chkDeleted.Checked) lFlags.Add(kMessageFlagName.Deleted);
+                if (chkDraft.Checked) lFlags.Add(kMessageFlagName.Draft);
+                if (chkFlagged.Checked) lFlags.Add(kMessageFlagName.Flagged);
+                if (chkSeen.Checked) lFlags.Add(kMessageFlagName.Seen);
 
-                if (chkForwarded.Checked) lFlags.Add(kMessageFlagName.Answered);
-                if (chkSubmitPending.Checked) lFlags.Add(kMessageFlagName.Answered);
-                if (chkSubmitted.Checked) lFlags.Add(kMessageFlagName.Answered);
+                if (chkForwarded.Checked) lFlags.Add(kMessageFlagName.Forwarded);
+                if (chkSubmitPending.Checked) lFlags.Add(kMessageFlagName.SubmitPending);
+                if (chkSubmitted.Checked) lFlags.Add(kMessageFlagName.Submitted);
 
-                if (chkMDNSent.Checked) lFlags.Add(kMessageFlagName.Answered);
+                if (chkMDNSent.Checked) lFlags.Add(kMessageFlagName.MDNSent);
 
                 if (ZTryParseFlagNames(txtFlags.Text, out var lMoreFlags) && lMoreFlags != null) lFlags.Add(lMoreFlags);
 

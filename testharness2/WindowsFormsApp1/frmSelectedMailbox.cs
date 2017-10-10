@@ -590,24 +590,25 @@ namespace testharness2
                 return;
             }
 
-            if (lFeedback.AllUpdated) return;
+            var lSummary = lFeedback.Summary();
 
-            if (IsDisposed) return;
+            if (lSummary.LikelyOKCount == lFeedback.Count) return; // all messages were updated or didn't need updating
 
-            var lSummary = lFeedback.Summary(lOperation, lFlags);
-
-            if (lSummary.WasNotUnchangedSinceCount == 0 && lSummary.ReflectsOperationCount == lFeedback.Count) return;
-
-            if (lSummary.NotReflectsOperationCount > 0)
+            if (lSummary.LikelyWorthPolling)
             {
-                // see if polling the server helps explain the "not reflects" ones (maybe the message is expunged, maybe there are pending changes to be sent)
+                // see if polling the server helps explain any possible failures
                 try { await mClient.PollAsync(); }
                 catch { }
-                if (IsDisposed) return;
-                lSummary = lFeedback.Summary(lOperation, lFlags);
+
+                // re-get the summary
+                lSummary = lFeedback.Summary(); 
+
+                // re-check the summary
+                if (lSummary.LikelyOKCount == lFeedback.Count) return; // all messages were updated or didn't need updating
             }
 
-            MessageBox.Show(this, $"(some of) the messages don't appear to have been updated - {lSummary}");
+            if (IsDisposed) return;
+            MessageBox.Show(this, $"(some of) the messages don't appear to have been updated: {lSummary}");
         }
 
         private void frmSelectedMailbox_FormClosing(object sender, FormClosingEventArgs e)
@@ -658,7 +659,7 @@ namespace testharness2
             {
                 get
                 {
-                    try { return Message.IsSeen; }
+                    try { return Message.Seen; }
                     catch { return null; }
                 }
             }
@@ -667,12 +668,12 @@ namespace testharness2
             {
                 get
                 {
-                    try { return Message.IsDeleted; }
+                    try { return Message.Deleted; }
                     catch { return true; }
                 }
             }
 
-            public bool Expunged => Message.IsExpunged;
+            public bool Expunged => Message.Expunged;
 
             public string From
             {

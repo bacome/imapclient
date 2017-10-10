@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pArgs.Handle, Handle)) mPropertyChanged?.Invoke(this, pArgs);
         }
 
-        public bool IsExpunged => Handle.Expunged;
+        public bool Expunged => Handle.Expunged;
 
         public cEnvelope Envelope
         {
@@ -230,7 +230,7 @@ namespace work.bacome.imapclient
             cStoreFeedback lFeedback;
             if (pValue) lFeedback = Client.Store(Handle, eStoreOperation.add, pFlags, null);
             else lFeedback = Client.Store(Handle, eStoreOperation.remove, pFlags, null);
-            if (lFeedback.Summary().FailedCount != 0) throw new InvalidOperationException(); // the assumption here is that the message has been deleted
+            if (lFeedback.Summary().LikelyFailedCount != 0) throw new InvalidOperationException(); // the assumption here is that the message has been deleted
         }
 
         public DateTime Received
@@ -440,8 +440,17 @@ namespace work.bacome.imapclient
 
         // set data
 
-        public cStoreFeedback Store(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
-        public Task<cStoreFeedback> StoreAsync(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public void Store(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
+        {
+            var lFeedback = Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
+            if (lFeedback.Summary().LikelyFailedCount != 0) throw new InvalidOperationException(); // the assumption here is that the message has been deleted
+        }
+
+        public async Task StoreAsync(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
+        {
+            var lFeedback = await Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
+            if (lFeedback.Summary().LikelyFailedCount != 0) throw new InvalidOperationException(); // the assumption here is that the message has been deleted
+        }
 
         // debugging
         public override string ToString() => $"{nameof(cMessage)}({Handle},{Indent})";

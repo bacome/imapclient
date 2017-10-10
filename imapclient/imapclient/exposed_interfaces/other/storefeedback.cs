@@ -32,7 +32,6 @@ namespace work.bacome.imapclient
 
             if (pHandle.Expunged)
             {
-                pSummary.FailedCount++;
                 pSummary.ExpungedCount++;
                 return;
             }
@@ -48,34 +47,19 @@ namespace work.bacome.imapclient
                 case eStoreOperation.add:
 
                     if (pHandle.Flags.Contains(pFlags)) pSummary.ReflectsOperationCount++;
-                    else
-                    {
-                        pSummary.FailedCount++;
-                        pSummary.NotReflectsOperationCount++;
-                    }
-
+                    else pSummary.NotReflectsOperationCount++;
                     return;
 
                 case eStoreOperation.remove:
 
-                    if (pHandle.Flags.Contains(pFlags))
-                    {
-                        pSummary.FailedCount++;
-                        pSummary.NotReflectsOperationCount++;
-                    }
+                    if (pHandle.Flags.Contains(pFlags)) pSummary.NotReflectsOperationCount++;
                     else pSummary.ReflectsOperationCount++;
-
                     return;
 
                 case eStoreOperation.replace:
 
                     if (pHandle.Flags.SymmetricDifference(pFlags, kMessageFlagName.Recent).Count() == 0) pSummary.ReflectsOperationCount++;
-                    else
-                    {
-                        pSummary.FailedCount++;
-                        pSummary.NotReflectsOperationCount++;
-                    }
-
+                    else pSummary.NotReflectsOperationCount++;
                     return;
             }
 
@@ -164,17 +148,24 @@ namespace work.bacome.imapclient
 
     public struct sStoreFeedbackSummary
     {
+        // each message counts towards ONE of the counts
+        //  generally expunged + notreflects is the number of definite non-updates
+        //  generally notreflects > 0 indicates that a poll of the server may be worth trying to get any pending updates (which should convert all the notreflects to expunged or reflects)
+        //  unknown indicates that a blind update was done so there isn't enough information to say if the store happened or not
+        //
         public int UpdatedCount; // the number where a fetch was received during the command execution and no 'modified' response was received (=> _likely_ to have been updated by the command)
         public int WasNotUnchangedSinceCount; // a 'modified' response was received (=> _NOT_ updated by the command)
-        public int FailedCount; // the number where it wasn't updated or wasnotunchangedsince by the above definitions AND either the handle is marked as expunged OR the flags don't reflect the change
-        // note that the above three leave an amount of grey: if the handle is null (uid store), does not contain the flags, or does contain flags but they are old, then the result may not be counted in any of the above counts
-
-        public int ExpungedCount; // message is expunged
-        public int UnknownCount; // the handle does not contain the flags
+        public int ExpungedCount; // the number where the message handle indicates that the message is expunged
+        public int UnknownCount; // the number where the handle isn't known (uidstore) or the handle does not contain the flags
         public int ReflectsOperationCount; // the flags in the handle reflect the update
         public int NotReflectsOperationCount; // the flags in the handle do not reflect the update
 
-        public override string ToString() => $"{nameof(sStoreFeedbackSummary)}(Updated:{UpdatedCount}, WasNotUnchangedSince:{WasNotUnchangedSinceCount}, Failed:{FailedCount}, Expunged:{ExpungedCount}, Unknown:{UnknownCount}, Reflects:{ReflectsOperationCount}, NotReflects:{NotReflectsOperationCount})";
+        // calculated values
+        public int LikelyOKCount => UpdatedCount + ReflectsOperationCount;
+        public int LikelyFailedCount => ExpungedCount + NotReflectsOperationCount;
+        public bool LikelyWorthPolling => NotReflectsOperationCount > 0;
+
+        public override string ToString() => $"{nameof(sStoreFeedbackSummary)}(Updated:{UpdatedCount}, WasNotUnchangedSince:{WasNotUnchangedSinceCount}, Expunged:{ExpungedCount}, Unknown:{UnknownCount}, Reflects:{ReflectsOperationCount}, NotReflects:{NotReflectsOperationCount})";
     }
 
     public class cUIDStoreFeedbackItem : cStoreFeedbackItemBase

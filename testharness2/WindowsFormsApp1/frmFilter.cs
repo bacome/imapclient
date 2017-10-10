@@ -32,33 +32,33 @@ namespace testharness2
 
             // build
 
-            if (chkAnswered.Checked) lTerms.Add(cFilter.IsAnswered);
-            if (chkDeleted.Checked) lTerms.Add(cFilter.IsDeleted);
-            if (chkDraft.Checked) lTerms.Add(cFilter.IsDraft);
-            if (chkFlagged.Checked) lTerms.Add(cFilter.IsFlagged);
-            if (chkRecent.Checked) lTerms.Add(cFilter.IsRecent);
-            if (chkSeen.Checked) lTerms.Add(cFilter.IsSeen);
+            if (chkAnswered.Checked) lTerms.Add(cFilter.Answered);
+            if (chkDeleted.Checked) lTerms.Add(cFilter.Deleted);
+            if (chkDraft.Checked) lTerms.Add(cFilter.Draft);
+            if (chkFlagged.Checked) lTerms.Add(cFilter.Flagged);
+            if (chkRecent.Checked) lTerms.Add(cFilter.Recent);
+            if (chkSeen.Checked) lTerms.Add(cFilter.Seen);
 
-            if (chkForwarded.Checked) lTerms.Add(cFilter.IsForwarded);
-            if (chkSubmitPending.Checked) lTerms.Add(cFilter.IsSubmitPending);
-            if (chkSubmitted.Checked) lTerms.Add(cFilter.IsSubmitted);
+            if (chkForwarded.Checked) lTerms.Add(cFilter.Forwarded);
+            if (chkSubmitPending.Checked) lTerms.Add(cFilter.SubmitPending);
+            if (chkSubmitted.Checked) lTerms.Add(cFilter.Submitted);
 
-            if (chkMDNSent.Checked) lTerms.Add(cFilter.IsMDNSent);
+            if (chkMDNSent.Checked) lTerms.Add(cFilter.MDNSent);
 
             if (ZTryParseFlagNames(txtSet.Text, out var lSet) && lSet != null) lTerms.Add(cFilter.FlagsContain(lSet));
 
-            if (chkUnanswered.Checked) lTerms.Add(!cFilter.IsAnswered);
-            if (chkUndeleted.Checked) lTerms.Add(!cFilter.IsDeleted);
-            if (chkUnDraft.Checked) lTerms.Add(!cFilter.IsDraft);
-            if (chkUnflagged.Checked) lTerms.Add(!cFilter.IsFlagged);
-            if (chkUnrecent.Checked) lTerms.Add(!cFilter.IsRecent);
-            if (chkUnseen.Checked) lTerms.Add(!cFilter.IsSeen);
+            if (chkUnanswered.Checked) lTerms.Add(!cFilter.Answered);
+            if (chkUndeleted.Checked) lTerms.Add(!cFilter.Deleted);
+            if (chkUnDraft.Checked) lTerms.Add(!cFilter.Draft);
+            if (chkUnflagged.Checked) lTerms.Add(!cFilter.Flagged);
+            if (chkUnrecent.Checked) lTerms.Add(!cFilter.Recent);
+            if (chkUnseen.Checked) lTerms.Add(!cFilter.Seen);
 
-            if (chkUnforwarded.Checked) lTerms.Add(!cFilter.IsForwarded);
-            if (chkUnsubmitPending.Checked) lTerms.Add(!cFilter.IsSubmitPending);
-            if (chkUnsubmitted.Checked) lTerms.Add(!cFilter.IsSubmitted);
+            if (chkUnforwarded.Checked) lTerms.Add(!cFilter.Forwarded);
+            if (chkUnsubmitPending.Checked) lTerms.Add(!cFilter.SubmitPending);
+            if (chkUnsubmitted.Checked) lTerms.Add(!cFilter.Submitted);
 
-            if (chkUnMDNSent.Checked) lTerms.Add(!cFilter.IsMDNSent);
+            if (chkUnMDNSent.Checked) lTerms.Add(!cFilter.MDNSent);
 
             if (ZTryParseFlagNames(txtNotSet.Text, out var lNotSet) && lNotSet != null) lTerms.Add(!cFilter.FlagsContain(lNotSet));
 
@@ -78,6 +78,10 @@ namespace testharness2
 
             if (uint.TryParse(txtSizeLarger.Text, out lUInt)) lTerms.Add(cFilter.Size > lUInt);
             if (uint.TryParse(txtSizeSmaller.Text, out lUInt)) lTerms.Add(cFilter.Size < lUInt);
+
+            if (rdoImpLow.Checked) lTerms.Add(cFilter.Importance == eImportance.low);
+            if (rdoImpNormal.Checked) lTerms.Add(cFilter.Importance == eImportance.normal);
+            if (rdoImpHigh.Checked) lTerms.Add(cFilter.Importance == eImportance.high);
 
             // return
 

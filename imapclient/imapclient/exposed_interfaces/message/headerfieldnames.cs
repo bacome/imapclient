@@ -10,10 +10,10 @@ namespace work.bacome.imapclient
 {
     public static class kHeaderFieldName
     {
-        public const string InReplyTo = "In-RePlY-tO";
-        public const string MessageId = "MeSsAgE-Id";
-        public const string References = "ReFeReNcEs";
-        public const string Importance = "ImPoRtAnCe";
+        public const string InReplyTo = "In-Reply-To";
+        public const string MessageId = "Message-Id";
+        public const string References = "References";
+        public const string Importance = "Importance";
     }
 
     public class cHeaderFieldNames : IReadOnlyCollection<string>

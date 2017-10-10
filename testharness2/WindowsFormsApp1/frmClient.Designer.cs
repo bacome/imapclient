@@ -152,6 +152,39 @@
             this.tabClient = new System.Windows.Forms.TabControl();
             this.tbpSettings = new System.Windows.Forms.TabPage();
             this.tbpDefaults = new System.Windows.Forms.TabPage();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.cmdAHSet = new System.Windows.Forms.Button();
+            this.chkAHBodyStructure = new System.Windows.Forms.CheckBox();
+            this.txtAHHeaderFieldNames = new System.Windows.Forms.TextBox();
+            this.label26 = new System.Windows.Forms.Label();
+            this.chkAHModSeq = new System.Windows.Forms.CheckBox();
+            this.chkAHUID = new System.Windows.Forms.CheckBox();
+            this.chkAHSize = new System.Windows.Forms.CheckBox();
+            this.chkAHReceived = new System.Windows.Forms.CheckBox();
+            this.chkAHFlags = new System.Windows.Forms.CheckBox();
+            this.chkAHEnvelope = new System.Windows.Forms.CheckBox();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.cmdPSet = new System.Windows.Forms.Button();
+            this.label28 = new System.Windows.Forms.Label();
+            this.label27 = new System.Windows.Forms.Label();
+            this.chkPReferences = new System.Windows.Forms.CheckBox();
+            this.chkPPlainTextSize = new System.Windows.Forms.CheckBox();
+            this.chkPImportance = new System.Windows.Forms.CheckBox();
+            this.chkPAttachments = new System.Windows.Forms.CheckBox();
+            this.chkPBodyStructure = new System.Windows.Forms.CheckBox();
+            this.chkPModSeq = new System.Windows.Forms.CheckBox();
+            this.chkPUID = new System.Windows.Forms.CheckBox();
+            this.chkPSize = new System.Windows.Forms.CheckBox();
+            this.chkPReceived = new System.Windows.Forms.CheckBox();
+            this.chkPSubmitted = new System.Windows.Forms.CheckBox();
+            this.chkPFlagged = new System.Windows.Forms.CheckBox();
+            this.chkPAnswered = new System.Windows.Forms.CheckBox();
+            this.chkPFlags = new System.Windows.Forms.CheckBox();
+            this.chkPMessageId = new System.Windows.Forms.CheckBox();
+            this.chkPSubject = new System.Windows.Forms.CheckBox();
+            this.chkPSent = new System.Windows.Forms.CheckBox();
+            this.chkPEnvelope = new System.Windows.Forms.CheckBox();
             this.gbxDefaultSort = new System.Windows.Forms.GroupBox();
             this.cmdSort = new System.Windows.Forms.Button();
             this.lblSort = new System.Windows.Forms.Label();
@@ -193,39 +226,6 @@
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
             this.cmdPoll = new System.Windows.Forms.Button();
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.cmdAHSet = new System.Windows.Forms.Button();
-            this.label26 = new System.Windows.Forms.Label();
-            this.txtAHHeaderFieldNames = new System.Windows.Forms.TextBox();
-            this.chkAHBodyStructure = new System.Windows.Forms.CheckBox();
-            this.chkAHModSeq = new System.Windows.Forms.CheckBox();
-            this.chkAHUID = new System.Windows.Forms.CheckBox();
-            this.chkAHSize = new System.Windows.Forms.CheckBox();
-            this.chkAHReceived = new System.Windows.Forms.CheckBox();
-            this.chkAHFlags = new System.Windows.Forms.CheckBox();
-            this.chkAHEnvelope = new System.Windows.Forms.CheckBox();
-            this.chkPEnvelope = new System.Windows.Forms.CheckBox();
-            this.chkPSent = new System.Windows.Forms.CheckBox();
-            this.chkPSubject = new System.Windows.Forms.CheckBox();
-            this.chkPMessageId = new System.Windows.Forms.CheckBox();
-            this.chkPFlags = new System.Windows.Forms.CheckBox();
-            this.chkPIsAnswered = new System.Windows.Forms.CheckBox();
-            this.chkPIsFlagged = new System.Windows.Forms.CheckBox();
-            this.chkPIsSubmitted = new System.Windows.Forms.CheckBox();
-            this.chkPReceived = new System.Windows.Forms.CheckBox();
-            this.chkPSize = new System.Windows.Forms.CheckBox();
-            this.chkPUID = new System.Windows.Forms.CheckBox();
-            this.chkPModSeq = new System.Windows.Forms.CheckBox();
-            this.chkPBodyStructure = new System.Windows.Forms.CheckBox();
-            this.chkPAttachments = new System.Windows.Forms.CheckBox();
-            this.chkPImportance = new System.Windows.Forms.CheckBox();
-            this.chkPPlainTextSize = new System.Windows.Forms.CheckBox();
-            this.chkPReferences = new System.Windows.Forms.CheckBox();
-            this.label27 = new System.Windows.Forms.Label();
-            this.label28 = new System.Windows.Forms.Label();
-            this.cmdPSet = new System.Windows.Forms.Button();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -246,6 +246,9 @@
             this.tabClient.SuspendLayout();
             this.tbpSettings.SuspendLayout();
             this.tbpDefaults.SuspendLayout();
+            this.tabControl1.SuspendLayout();
+            this.tabPage1.SuspendLayout();
+            this.tabPage2.SuspendLayout();
             this.gbxDefaultSort.SuspendLayout();
             this.tbpWindows.SuspendLayout();
             this.gbxMailboxes.SuspendLayout();
@@ -254,9 +257,6 @@
             this.tpgResponseText.SuspendLayout();
             this.gbxResponseTextCode.SuspendLayout();
             this.gbxResponseTextType.SuspendLayout();
-            this.tabControl1.SuspendLayout();
-            this.tabPage1.SuspendLayout();
-            this.tabPage2.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbxServer
@@ -1576,6 +1576,362 @@
             this.tbpDefaults.Text = "Defaults";
             this.tbpDefaults.UseVisualStyleBackColor = true;
             // 
+            // tabControl1
+            // 
+            this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Location = new System.Drawing.Point(6, 88);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(433, 311);
+            this.tabControl1.TabIndex = 2;
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.Controls.Add(this.cmdAHSet);
+            this.tabPage1.Controls.Add(this.chkAHBodyStructure);
+            this.tabPage1.Controls.Add(this.txtAHHeaderFieldNames);
+            this.tabPage1.Controls.Add(this.label26);
+            this.tabPage1.Controls.Add(this.chkAHModSeq);
+            this.tabPage1.Controls.Add(this.chkAHUID);
+            this.tabPage1.Controls.Add(this.chkAHSize);
+            this.tabPage1.Controls.Add(this.chkAHReceived);
+            this.tabPage1.Controls.Add(this.chkAHFlags);
+            this.tabPage1.Controls.Add(this.chkAHEnvelope);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(425, 285);
+            this.tabPage1.TabIndex = 0;
+            this.tabPage1.Text = "Cache Items by Attribute & Header";
+            this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // cmdAHSet
+            // 
+            this.cmdAHSet.Location = new System.Drawing.Point(8, 254);
+            this.cmdAHSet.Name = "cmdAHSet";
+            this.cmdAHSet.Size = new System.Drawing.Size(100, 25);
+            this.cmdAHSet.TabIndex = 9;
+            this.cmdAHSet.Text = "Set";
+            this.cmdAHSet.UseVisualStyleBackColor = true;
+            this.cmdAHSet.Click += new System.EventHandler(this.cmdAHSet_Click);
+            // 
+            // chkAHBodyStructure
+            // 
+            this.chkAHBodyStructure.AutoSize = true;
+            this.chkAHBodyStructure.Location = new System.Drawing.Point(8, 144);
+            this.chkAHBodyStructure.Name = "chkAHBodyStructure";
+            this.chkAHBodyStructure.Size = new System.Drawing.Size(93, 17);
+            this.chkAHBodyStructure.TabIndex = 6;
+            this.chkAHBodyStructure.Text = "BodyStructure";
+            this.chkAHBodyStructure.UseVisualStyleBackColor = true;
+            // 
+            // txtAHHeaderFieldNames
+            // 
+            this.txtAHHeaderFieldNames.Location = new System.Drawing.Point(8, 191);
+            this.txtAHHeaderFieldNames.Name = "txtAHHeaderFieldNames";
+            this.txtAHHeaderFieldNames.Size = new System.Drawing.Size(395, 20);
+            this.txtAHHeaderFieldNames.TabIndex = 8;
+            this.txtAHHeaderFieldNames.Validating += new System.ComponentModel.CancelEventHandler(this.ZValHeaderFieldNames);
+            this.txtAHHeaderFieldNames.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // label26
+            // 
+            this.label26.AutoSize = true;
+            this.label26.Location = new System.Drawing.Point(5, 172);
+            this.label26.Name = "label26";
+            this.label26.Size = new System.Drawing.Size(224, 13);
+            this.label26.TabIndex = 7;
+            this.label26.Text = "Header field names (separate with space or \':\')";
+            // 
+            // chkAHModSeq
+            // 
+            this.chkAHModSeq.AutoSize = true;
+            this.chkAHModSeq.Location = new System.Drawing.Point(8, 121);
+            this.chkAHModSeq.Name = "chkAHModSeq";
+            this.chkAHModSeq.Size = new System.Drawing.Size(66, 17);
+            this.chkAHModSeq.TabIndex = 5;
+            this.chkAHModSeq.Text = "ModSeq";
+            this.chkAHModSeq.UseVisualStyleBackColor = true;
+            // 
+            // chkAHUID
+            // 
+            this.chkAHUID.AutoSize = true;
+            this.chkAHUID.Location = new System.Drawing.Point(8, 98);
+            this.chkAHUID.Name = "chkAHUID";
+            this.chkAHUID.Size = new System.Drawing.Size(45, 17);
+            this.chkAHUID.TabIndex = 4;
+            this.chkAHUID.Text = "UID";
+            this.chkAHUID.UseVisualStyleBackColor = true;
+            // 
+            // chkAHSize
+            // 
+            this.chkAHSize.AutoSize = true;
+            this.chkAHSize.Location = new System.Drawing.Point(8, 75);
+            this.chkAHSize.Name = "chkAHSize";
+            this.chkAHSize.Size = new System.Drawing.Size(46, 17);
+            this.chkAHSize.TabIndex = 3;
+            this.chkAHSize.Text = "Size";
+            this.chkAHSize.UseVisualStyleBackColor = true;
+            // 
+            // chkAHReceived
+            // 
+            this.chkAHReceived.AutoSize = true;
+            this.chkAHReceived.Location = new System.Drawing.Point(8, 52);
+            this.chkAHReceived.Name = "chkAHReceived";
+            this.chkAHReceived.Size = new System.Drawing.Size(72, 17);
+            this.chkAHReceived.TabIndex = 2;
+            this.chkAHReceived.Text = "Received";
+            this.chkAHReceived.UseVisualStyleBackColor = true;
+            // 
+            // chkAHFlags
+            // 
+            this.chkAHFlags.AutoSize = true;
+            this.chkAHFlags.Location = new System.Drawing.Point(8, 29);
+            this.chkAHFlags.Name = "chkAHFlags";
+            this.chkAHFlags.Size = new System.Drawing.Size(51, 17);
+            this.chkAHFlags.TabIndex = 1;
+            this.chkAHFlags.Text = "Flags";
+            this.chkAHFlags.UseVisualStyleBackColor = true;
+            // 
+            // chkAHEnvelope
+            // 
+            this.chkAHEnvelope.AutoSize = true;
+            this.chkAHEnvelope.Location = new System.Drawing.Point(8, 6);
+            this.chkAHEnvelope.Name = "chkAHEnvelope";
+            this.chkAHEnvelope.Size = new System.Drawing.Size(71, 17);
+            this.chkAHEnvelope.TabIndex = 0;
+            this.chkAHEnvelope.Text = "Envelope";
+            this.chkAHEnvelope.UseVisualStyleBackColor = true;
+            // 
+            // tabPage2
+            // 
+            this.tabPage2.Controls.Add(this.cmdPSet);
+            this.tabPage2.Controls.Add(this.label28);
+            this.tabPage2.Controls.Add(this.label27);
+            this.tabPage2.Controls.Add(this.chkPReferences);
+            this.tabPage2.Controls.Add(this.chkPPlainTextSize);
+            this.tabPage2.Controls.Add(this.chkPImportance);
+            this.tabPage2.Controls.Add(this.chkPAttachments);
+            this.tabPage2.Controls.Add(this.chkPBodyStructure);
+            this.tabPage2.Controls.Add(this.chkPModSeq);
+            this.tabPage2.Controls.Add(this.chkPUID);
+            this.tabPage2.Controls.Add(this.chkPSize);
+            this.tabPage2.Controls.Add(this.chkPReceived);
+            this.tabPage2.Controls.Add(this.chkPSubmitted);
+            this.tabPage2.Controls.Add(this.chkPFlagged);
+            this.tabPage2.Controls.Add(this.chkPAnswered);
+            this.tabPage2.Controls.Add(this.chkPFlags);
+            this.tabPage2.Controls.Add(this.chkPMessageId);
+            this.tabPage2.Controls.Add(this.chkPSubject);
+            this.tabPage2.Controls.Add(this.chkPSent);
+            this.tabPage2.Controls.Add(this.chkPEnvelope);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(425, 285);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "Cache Items by Property";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // cmdPSet
+            // 
+            this.cmdPSet.Location = new System.Drawing.Point(8, 254);
+            this.cmdPSet.Name = "cmdPSet";
+            this.cmdPSet.Size = new System.Drawing.Size(100, 25);
+            this.cmdPSet.TabIndex = 19;
+            this.cmdPSet.Text = "Set";
+            this.cmdPSet.UseVisualStyleBackColor = true;
+            this.cmdPSet.Click += new System.EventHandler(this.cmdPSet_Click);
+            // 
+            // label28
+            // 
+            this.label28.AutoSize = true;
+            this.label28.Location = new System.Drawing.Point(282, 30);
+            this.label28.Name = "label28";
+            this.label28.Size = new System.Drawing.Size(16, 13);
+            this.label28.TabIndex = 8;
+            this.label28.Text = "...";
+            // 
+            // label27
+            // 
+            this.label27.AutoSize = true;
+            this.label27.Location = new System.Drawing.Point(282, 7);
+            this.label27.Name = "label27";
+            this.label27.Size = new System.Drawing.Size(16, 13);
+            this.label27.TabIndex = 3;
+            this.label27.Text = "...";
+            // 
+            // chkPReferences
+            // 
+            this.chkPReferences.AutoSize = true;
+            this.chkPReferences.Location = new System.Drawing.Point(8, 167);
+            this.chkPReferences.Name = "chkPReferences";
+            this.chkPReferences.Size = new System.Drawing.Size(81, 17);
+            this.chkPReferences.TabIndex = 17;
+            this.chkPReferences.Text = "References";
+            this.chkPReferences.UseVisualStyleBackColor = true;
+            // 
+            // chkPPlainTextSize
+            // 
+            this.chkPPlainTextSize.AutoSize = true;
+            this.chkPPlainTextSize.Location = new System.Drawing.Point(204, 144);
+            this.chkPPlainTextSize.Name = "chkPPlainTextSize";
+            this.chkPPlainTextSize.Size = new System.Drawing.Size(90, 17);
+            this.chkPPlainTextSize.TabIndex = 16;
+            this.chkPPlainTextSize.Text = "Plain text size";
+            this.chkPPlainTextSize.UseVisualStyleBackColor = true;
+            // 
+            // chkPImportance
+            // 
+            this.chkPImportance.AutoSize = true;
+            this.chkPImportance.Location = new System.Drawing.Point(8, 190);
+            this.chkPImportance.Name = "chkPImportance";
+            this.chkPImportance.Size = new System.Drawing.Size(79, 17);
+            this.chkPImportance.TabIndex = 18;
+            this.chkPImportance.Text = "Importance";
+            this.chkPImportance.UseVisualStyleBackColor = true;
+            // 
+            // chkPAttachments
+            // 
+            this.chkPAttachments.AutoSize = true;
+            this.chkPAttachments.Location = new System.Drawing.Point(115, 144);
+            this.chkPAttachments.Name = "chkPAttachments";
+            this.chkPAttachments.Size = new System.Drawing.Size(85, 17);
+            this.chkPAttachments.TabIndex = 15;
+            this.chkPAttachments.Text = "Attachments";
+            this.chkPAttachments.UseVisualStyleBackColor = true;
+            // 
+            // chkPBodyStructure
+            // 
+            this.chkPBodyStructure.AutoSize = true;
+            this.chkPBodyStructure.Location = new System.Drawing.Point(8, 144);
+            this.chkPBodyStructure.Name = "chkPBodyStructure";
+            this.chkPBodyStructure.Size = new System.Drawing.Size(96, 17);
+            this.chkPBodyStructure.TabIndex = 14;
+            this.chkPBodyStructure.Text = "Body Structure";
+            this.chkPBodyStructure.UseVisualStyleBackColor = true;
+            // 
+            // chkPModSeq
+            // 
+            this.chkPModSeq.AutoSize = true;
+            this.chkPModSeq.Location = new System.Drawing.Point(8, 121);
+            this.chkPModSeq.Name = "chkPModSeq";
+            this.chkPModSeq.Size = new System.Drawing.Size(66, 17);
+            this.chkPModSeq.TabIndex = 13;
+            this.chkPModSeq.Text = "ModSeq";
+            this.chkPModSeq.UseVisualStyleBackColor = true;
+            // 
+            // chkPUID
+            // 
+            this.chkPUID.AutoSize = true;
+            this.chkPUID.Location = new System.Drawing.Point(8, 98);
+            this.chkPUID.Name = "chkPUID";
+            this.chkPUID.Size = new System.Drawing.Size(45, 17);
+            this.chkPUID.TabIndex = 12;
+            this.chkPUID.Text = "UID";
+            this.chkPUID.UseVisualStyleBackColor = true;
+            // 
+            // chkPSize
+            // 
+            this.chkPSize.AutoSize = true;
+            this.chkPSize.Location = new System.Drawing.Point(8, 75);
+            this.chkPSize.Name = "chkPSize";
+            this.chkPSize.Size = new System.Drawing.Size(46, 17);
+            this.chkPSize.TabIndex = 11;
+            this.chkPSize.Text = "Size";
+            this.chkPSize.UseVisualStyleBackColor = true;
+            // 
+            // chkPReceived
+            // 
+            this.chkPReceived.AutoSize = true;
+            this.chkPReceived.Location = new System.Drawing.Point(8, 52);
+            this.chkPReceived.Name = "chkPReceived";
+            this.chkPReceived.Size = new System.Drawing.Size(72, 17);
+            this.chkPReceived.TabIndex = 10;
+            this.chkPReceived.Text = "Received";
+            this.chkPReceived.UseVisualStyleBackColor = true;
+            // 
+            // chkPSubmitted
+            // 
+            this.chkPSubmitted.AutoSize = true;
+            this.chkPSubmitted.Location = new System.Drawing.Point(325, 29);
+            this.chkPSubmitted.Name = "chkPSubmitted";
+            this.chkPSubmitted.Size = new System.Drawing.Size(73, 17);
+            this.chkPSubmitted.TabIndex = 9;
+            this.chkPSubmitted.Text = "Submitted";
+            this.chkPSubmitted.UseVisualStyleBackColor = true;
+            // 
+            // chkPFlagged
+            // 
+            this.chkPFlagged.AutoSize = true;
+            this.chkPFlagged.Location = new System.Drawing.Point(204, 29);
+            this.chkPFlagged.Name = "chkPFlagged";
+            this.chkPFlagged.Size = new System.Drawing.Size(64, 17);
+            this.chkPFlagged.TabIndex = 7;
+            this.chkPFlagged.Text = "Flagged";
+            this.chkPFlagged.UseVisualStyleBackColor = true;
+            // 
+            // chkPAnswered
+            // 
+            this.chkPAnswered.AutoSize = true;
+            this.chkPAnswered.Location = new System.Drawing.Point(115, 29);
+            this.chkPAnswered.Name = "chkPAnswered";
+            this.chkPAnswered.Size = new System.Drawing.Size(73, 17);
+            this.chkPAnswered.TabIndex = 6;
+            this.chkPAnswered.Text = "Answered";
+            this.chkPAnswered.UseVisualStyleBackColor = true;
+            // 
+            // chkPFlags
+            // 
+            this.chkPFlags.AutoSize = true;
+            this.chkPFlags.Location = new System.Drawing.Point(8, 29);
+            this.chkPFlags.Name = "chkPFlags";
+            this.chkPFlags.Size = new System.Drawing.Size(51, 17);
+            this.chkPFlags.TabIndex = 5;
+            this.chkPFlags.Text = "Flags";
+            this.chkPFlags.UseVisualStyleBackColor = true;
+            // 
+            // chkPMessageId
+            // 
+            this.chkPMessageId.AutoSize = true;
+            this.chkPMessageId.Location = new System.Drawing.Point(325, 6);
+            this.chkPMessageId.Name = "chkPMessageId";
+            this.chkPMessageId.Size = new System.Drawing.Size(81, 17);
+            this.chkPMessageId.TabIndex = 4;
+            this.chkPMessageId.Text = "Message Id";
+            this.chkPMessageId.UseVisualStyleBackColor = true;
+            // 
+            // chkPSubject
+            // 
+            this.chkPSubject.AutoSize = true;
+            this.chkPSubject.Location = new System.Drawing.Point(204, 6);
+            this.chkPSubject.Name = "chkPSubject";
+            this.chkPSubject.Size = new System.Drawing.Size(62, 17);
+            this.chkPSubject.TabIndex = 2;
+            this.chkPSubject.Text = "Subject";
+            this.chkPSubject.UseVisualStyleBackColor = true;
+            // 
+            // chkPSent
+            // 
+            this.chkPSent.AutoSize = true;
+            this.chkPSent.Location = new System.Drawing.Point(115, 6);
+            this.chkPSent.Name = "chkPSent";
+            this.chkPSent.Size = new System.Drawing.Size(48, 17);
+            this.chkPSent.TabIndex = 1;
+            this.chkPSent.Text = "Sent";
+            this.chkPSent.UseVisualStyleBackColor = true;
+            // 
+            // chkPEnvelope
+            // 
+            this.chkPEnvelope.AutoSize = true;
+            this.chkPEnvelope.Location = new System.Drawing.Point(8, 6);
+            this.chkPEnvelope.Name = "chkPEnvelope";
+            this.chkPEnvelope.Size = new System.Drawing.Size(71, 17);
+            this.chkPEnvelope.TabIndex = 0;
+            this.chkPEnvelope.Text = "Envelope";
+            this.chkPEnvelope.UseVisualStyleBackColor = true;
+            // 
             // gbxDefaultSort
             // 
             this.gbxDefaultSort.Controls.Add(this.cmdSort);
@@ -1737,7 +2093,7 @@
             this.tpgResponseText.Location = new System.Drawing.Point(4, 22);
             this.tpgResponseText.Name = "tpgResponseText";
             this.tpgResponseText.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgResponseText.Size = new System.Drawing.Size(446, 386);
+            this.tpgResponseText.Size = new System.Drawing.Size(446, 405);
             this.tpgResponseText.TabIndex = 2;
             this.tpgResponseText.Text = "Response Text Window";
             this.tpgResponseText.UseVisualStyleBackColor = true;
@@ -2051,362 +2407,6 @@
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
-            // tabControl1
-            // 
-            this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Location = new System.Drawing.Point(6, 88);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(433, 311);
-            this.tabControl1.TabIndex = 2;
-            // 
-            // tabPage1
-            // 
-            this.tabPage1.Controls.Add(this.cmdAHSet);
-            this.tabPage1.Controls.Add(this.chkAHBodyStructure);
-            this.tabPage1.Controls.Add(this.txtAHHeaderFieldNames);
-            this.tabPage1.Controls.Add(this.label26);
-            this.tabPage1.Controls.Add(this.chkAHModSeq);
-            this.tabPage1.Controls.Add(this.chkAHUID);
-            this.tabPage1.Controls.Add(this.chkAHSize);
-            this.tabPage1.Controls.Add(this.chkAHReceived);
-            this.tabPage1.Controls.Add(this.chkAHFlags);
-            this.tabPage1.Controls.Add(this.chkAHEnvelope);
-            this.tabPage1.Location = new System.Drawing.Point(4, 22);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(425, 285);
-            this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "Cache Items by Attribute & Header";
-            this.tabPage1.UseVisualStyleBackColor = true;
-            // 
-            // tabPage2
-            // 
-            this.tabPage2.Controls.Add(this.cmdPSet);
-            this.tabPage2.Controls.Add(this.label28);
-            this.tabPage2.Controls.Add(this.label27);
-            this.tabPage2.Controls.Add(this.chkPReferences);
-            this.tabPage2.Controls.Add(this.chkPPlainTextSize);
-            this.tabPage2.Controls.Add(this.chkPImportance);
-            this.tabPage2.Controls.Add(this.chkPAttachments);
-            this.tabPage2.Controls.Add(this.chkPBodyStructure);
-            this.tabPage2.Controls.Add(this.chkPModSeq);
-            this.tabPage2.Controls.Add(this.chkPUID);
-            this.tabPage2.Controls.Add(this.chkPSize);
-            this.tabPage2.Controls.Add(this.chkPReceived);
-            this.tabPage2.Controls.Add(this.chkPIsSubmitted);
-            this.tabPage2.Controls.Add(this.chkPIsFlagged);
-            this.tabPage2.Controls.Add(this.chkPIsAnswered);
-            this.tabPage2.Controls.Add(this.chkPFlags);
-            this.tabPage2.Controls.Add(this.chkPMessageId);
-            this.tabPage2.Controls.Add(this.chkPSubject);
-            this.tabPage2.Controls.Add(this.chkPSent);
-            this.tabPage2.Controls.Add(this.chkPEnvelope);
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(425, 285);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Cache Items by Property";
-            this.tabPage2.UseVisualStyleBackColor = true;
-            // 
-            // cmdAHSet
-            // 
-            this.cmdAHSet.Location = new System.Drawing.Point(8, 254);
-            this.cmdAHSet.Name = "cmdAHSet";
-            this.cmdAHSet.Size = new System.Drawing.Size(100, 25);
-            this.cmdAHSet.TabIndex = 9;
-            this.cmdAHSet.Text = "Set";
-            this.cmdAHSet.UseVisualStyleBackColor = true;
-            this.cmdAHSet.Click += new System.EventHandler(this.cmdAHSet_Click);
-            // 
-            // label26
-            // 
-            this.label26.AutoSize = true;
-            this.label26.Location = new System.Drawing.Point(5, 172);
-            this.label26.Name = "label26";
-            this.label26.Size = new System.Drawing.Size(224, 13);
-            this.label26.TabIndex = 7;
-            this.label26.Text = "Header field names (separate with space or \':\')";
-            // 
-            // txtAHHeaderFieldNames
-            // 
-            this.txtAHHeaderFieldNames.Location = new System.Drawing.Point(8, 191);
-            this.txtAHHeaderFieldNames.Name = "txtAHHeaderFieldNames";
-            this.txtAHHeaderFieldNames.Size = new System.Drawing.Size(395, 20);
-            this.txtAHHeaderFieldNames.TabIndex = 8;
-            this.txtAHHeaderFieldNames.Validating += new System.ComponentModel.CancelEventHandler(this.ZValHeaderFieldNames);
-            this.txtAHHeaderFieldNames.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // chkAHBodyStructure
-            // 
-            this.chkAHBodyStructure.AutoSize = true;
-            this.chkAHBodyStructure.Location = new System.Drawing.Point(8, 144);
-            this.chkAHBodyStructure.Name = "chkAHBodyStructure";
-            this.chkAHBodyStructure.Size = new System.Drawing.Size(93, 17);
-            this.chkAHBodyStructure.TabIndex = 6;
-            this.chkAHBodyStructure.Text = "BodyStructure";
-            this.chkAHBodyStructure.UseVisualStyleBackColor = true;
-            // 
-            // chkAHModSeq
-            // 
-            this.chkAHModSeq.AutoSize = true;
-            this.chkAHModSeq.Location = new System.Drawing.Point(8, 121);
-            this.chkAHModSeq.Name = "chkAHModSeq";
-            this.chkAHModSeq.Size = new System.Drawing.Size(66, 17);
-            this.chkAHModSeq.TabIndex = 5;
-            this.chkAHModSeq.Text = "ModSeq";
-            this.chkAHModSeq.UseVisualStyleBackColor = true;
-            // 
-            // chkAHUID
-            // 
-            this.chkAHUID.AutoSize = true;
-            this.chkAHUID.Location = new System.Drawing.Point(8, 98);
-            this.chkAHUID.Name = "chkAHUID";
-            this.chkAHUID.Size = new System.Drawing.Size(45, 17);
-            this.chkAHUID.TabIndex = 4;
-            this.chkAHUID.Text = "UID";
-            this.chkAHUID.UseVisualStyleBackColor = true;
-            // 
-            // chkAHSize
-            // 
-            this.chkAHSize.AutoSize = true;
-            this.chkAHSize.Location = new System.Drawing.Point(8, 75);
-            this.chkAHSize.Name = "chkAHSize";
-            this.chkAHSize.Size = new System.Drawing.Size(46, 17);
-            this.chkAHSize.TabIndex = 3;
-            this.chkAHSize.Text = "Size";
-            this.chkAHSize.UseVisualStyleBackColor = true;
-            // 
-            // chkAHReceived
-            // 
-            this.chkAHReceived.AutoSize = true;
-            this.chkAHReceived.Location = new System.Drawing.Point(8, 52);
-            this.chkAHReceived.Name = "chkAHReceived";
-            this.chkAHReceived.Size = new System.Drawing.Size(72, 17);
-            this.chkAHReceived.TabIndex = 2;
-            this.chkAHReceived.Text = "Received";
-            this.chkAHReceived.UseVisualStyleBackColor = true;
-            // 
-            // chkAHFlags
-            // 
-            this.chkAHFlags.AutoSize = true;
-            this.chkAHFlags.Location = new System.Drawing.Point(8, 29);
-            this.chkAHFlags.Name = "chkAHFlags";
-            this.chkAHFlags.Size = new System.Drawing.Size(51, 17);
-            this.chkAHFlags.TabIndex = 1;
-            this.chkAHFlags.Text = "Flags";
-            this.chkAHFlags.UseVisualStyleBackColor = true;
-            // 
-            // chkAHEnvelope
-            // 
-            this.chkAHEnvelope.AutoSize = true;
-            this.chkAHEnvelope.Location = new System.Drawing.Point(8, 6);
-            this.chkAHEnvelope.Name = "chkAHEnvelope";
-            this.chkAHEnvelope.Size = new System.Drawing.Size(71, 17);
-            this.chkAHEnvelope.TabIndex = 0;
-            this.chkAHEnvelope.Text = "Envelope";
-            this.chkAHEnvelope.UseVisualStyleBackColor = true;
-            // 
-            // chkPEnvelope
-            // 
-            this.chkPEnvelope.AutoSize = true;
-            this.chkPEnvelope.Location = new System.Drawing.Point(8, 6);
-            this.chkPEnvelope.Name = "chkPEnvelope";
-            this.chkPEnvelope.Size = new System.Drawing.Size(71, 17);
-            this.chkPEnvelope.TabIndex = 0;
-            this.chkPEnvelope.Text = "Envelope";
-            this.chkPEnvelope.UseVisualStyleBackColor = true;
-            // 
-            // chkPSent
-            // 
-            this.chkPSent.AutoSize = true;
-            this.chkPSent.Location = new System.Drawing.Point(115, 6);
-            this.chkPSent.Name = "chkPSent";
-            this.chkPSent.Size = new System.Drawing.Size(48, 17);
-            this.chkPSent.TabIndex = 1;
-            this.chkPSent.Text = "Sent";
-            this.chkPSent.UseVisualStyleBackColor = true;
-            // 
-            // chkPSubject
-            // 
-            this.chkPSubject.AutoSize = true;
-            this.chkPSubject.Location = new System.Drawing.Point(204, 6);
-            this.chkPSubject.Name = "chkPSubject";
-            this.chkPSubject.Size = new System.Drawing.Size(62, 17);
-            this.chkPSubject.TabIndex = 2;
-            this.chkPSubject.Text = "Subject";
-            this.chkPSubject.UseVisualStyleBackColor = true;
-            // 
-            // chkPMessageId
-            // 
-            this.chkPMessageId.AutoSize = true;
-            this.chkPMessageId.Location = new System.Drawing.Point(325, 6);
-            this.chkPMessageId.Name = "chkPMessageId";
-            this.chkPMessageId.Size = new System.Drawing.Size(81, 17);
-            this.chkPMessageId.TabIndex = 4;
-            this.chkPMessageId.Text = "Message Id";
-            this.chkPMessageId.UseVisualStyleBackColor = true;
-            // 
-            // chkPFlags
-            // 
-            this.chkPFlags.AutoSize = true;
-            this.chkPFlags.Location = new System.Drawing.Point(8, 29);
-            this.chkPFlags.Name = "chkPFlags";
-            this.chkPFlags.Size = new System.Drawing.Size(51, 17);
-            this.chkPFlags.TabIndex = 5;
-            this.chkPFlags.Text = "Flags";
-            this.chkPFlags.UseVisualStyleBackColor = true;
-            // 
-            // chkPIsAnswered
-            // 
-            this.chkPIsAnswered.AutoSize = true;
-            this.chkPIsAnswered.Location = new System.Drawing.Point(115, 29);
-            this.chkPIsAnswered.Name = "chkPIsAnswered";
-            this.chkPIsAnswered.Size = new System.Drawing.Size(73, 17);
-            this.chkPIsAnswered.TabIndex = 6;
-            this.chkPIsAnswered.Text = "Answered";
-            this.chkPIsAnswered.UseVisualStyleBackColor = true;
-            // 
-            // chkPIsFlagged
-            // 
-            this.chkPIsFlagged.AutoSize = true;
-            this.chkPIsFlagged.Location = new System.Drawing.Point(204, 29);
-            this.chkPIsFlagged.Name = "chkPIsFlagged";
-            this.chkPIsFlagged.Size = new System.Drawing.Size(64, 17);
-            this.chkPIsFlagged.TabIndex = 7;
-            this.chkPIsFlagged.Text = "Flagged";
-            this.chkPIsFlagged.UseVisualStyleBackColor = true;
-            // 
-            // chkPIsSubmitted
-            // 
-            this.chkPIsSubmitted.AutoSize = true;
-            this.chkPIsSubmitted.Location = new System.Drawing.Point(325, 29);
-            this.chkPIsSubmitted.Name = "chkPIsSubmitted";
-            this.chkPIsSubmitted.Size = new System.Drawing.Size(73, 17);
-            this.chkPIsSubmitted.TabIndex = 9;
-            this.chkPIsSubmitted.Text = "Submitted";
-            this.chkPIsSubmitted.UseVisualStyleBackColor = true;
-            // 
-            // chkPReceived
-            // 
-            this.chkPReceived.AutoSize = true;
-            this.chkPReceived.Location = new System.Drawing.Point(8, 52);
-            this.chkPReceived.Name = "chkPReceived";
-            this.chkPReceived.Size = new System.Drawing.Size(72, 17);
-            this.chkPReceived.TabIndex = 10;
-            this.chkPReceived.Text = "Received";
-            this.chkPReceived.UseVisualStyleBackColor = true;
-            // 
-            // chkPSize
-            // 
-            this.chkPSize.AutoSize = true;
-            this.chkPSize.Location = new System.Drawing.Point(8, 75);
-            this.chkPSize.Name = "chkPSize";
-            this.chkPSize.Size = new System.Drawing.Size(46, 17);
-            this.chkPSize.TabIndex = 11;
-            this.chkPSize.Text = "Size";
-            this.chkPSize.UseVisualStyleBackColor = true;
-            // 
-            // chkPUID
-            // 
-            this.chkPUID.AutoSize = true;
-            this.chkPUID.Location = new System.Drawing.Point(8, 98);
-            this.chkPUID.Name = "chkPUID";
-            this.chkPUID.Size = new System.Drawing.Size(45, 17);
-            this.chkPUID.TabIndex = 12;
-            this.chkPUID.Text = "UID";
-            this.chkPUID.UseVisualStyleBackColor = true;
-            // 
-            // chkPModSeq
-            // 
-            this.chkPModSeq.AutoSize = true;
-            this.chkPModSeq.Location = new System.Drawing.Point(8, 121);
-            this.chkPModSeq.Name = "chkPModSeq";
-            this.chkPModSeq.Size = new System.Drawing.Size(66, 17);
-            this.chkPModSeq.TabIndex = 13;
-            this.chkPModSeq.Text = "ModSeq";
-            this.chkPModSeq.UseVisualStyleBackColor = true;
-            // 
-            // chkPBodyStructure
-            // 
-            this.chkPBodyStructure.AutoSize = true;
-            this.chkPBodyStructure.Location = new System.Drawing.Point(8, 144);
-            this.chkPBodyStructure.Name = "chkPBodyStructure";
-            this.chkPBodyStructure.Size = new System.Drawing.Size(96, 17);
-            this.chkPBodyStructure.TabIndex = 14;
-            this.chkPBodyStructure.Text = "Body Structure";
-            this.chkPBodyStructure.UseVisualStyleBackColor = true;
-            // 
-            // chkPAttachments
-            // 
-            this.chkPAttachments.AutoSize = true;
-            this.chkPAttachments.Location = new System.Drawing.Point(115, 144);
-            this.chkPAttachments.Name = "chkPAttachments";
-            this.chkPAttachments.Size = new System.Drawing.Size(85, 17);
-            this.chkPAttachments.TabIndex = 15;
-            this.chkPAttachments.Text = "Attachments";
-            this.chkPAttachments.UseVisualStyleBackColor = true;
-            // 
-            // chkPImportance
-            // 
-            this.chkPImportance.AutoSize = true;
-            this.chkPImportance.Location = new System.Drawing.Point(8, 190);
-            this.chkPImportance.Name = "chkPImportance";
-            this.chkPImportance.Size = new System.Drawing.Size(79, 17);
-            this.chkPImportance.TabIndex = 18;
-            this.chkPImportance.Text = "Importance";
-            this.chkPImportance.UseVisualStyleBackColor = true;
-            // 
-            // chkPPlainTextSize
-            // 
-            this.chkPPlainTextSize.AutoSize = true;
-            this.chkPPlainTextSize.Location = new System.Drawing.Point(204, 144);
-            this.chkPPlainTextSize.Name = "chkPPlainTextSize";
-            this.chkPPlainTextSize.Size = new System.Drawing.Size(90, 17);
-            this.chkPPlainTextSize.TabIndex = 16;
-            this.chkPPlainTextSize.Text = "Plain text size";
-            this.chkPPlainTextSize.UseVisualStyleBackColor = true;
-            // 
-            // chkPReferences
-            // 
-            this.chkPReferences.AutoSize = true;
-            this.chkPReferences.Location = new System.Drawing.Point(8, 167);
-            this.chkPReferences.Name = "chkPReferences";
-            this.chkPReferences.Size = new System.Drawing.Size(81, 17);
-            this.chkPReferences.TabIndex = 17;
-            this.chkPReferences.Text = "References";
-            this.chkPReferences.UseVisualStyleBackColor = true;
-            // 
-            // label27
-            // 
-            this.label27.AutoSize = true;
-            this.label27.Location = new System.Drawing.Point(282, 7);
-            this.label27.Name = "label27";
-            this.label27.Size = new System.Drawing.Size(16, 13);
-            this.label27.TabIndex = 3;
-            this.label27.Text = "...";
-            // 
-            // label28
-            // 
-            this.label28.AutoSize = true;
-            this.label28.Location = new System.Drawing.Point(282, 30);
-            this.label28.Name = "label28";
-            this.label28.Size = new System.Drawing.Size(16, 13);
-            this.label28.TabIndex = 8;
-            this.label28.Text = "...";
-            // 
-            // cmdPSet
-            // 
-            this.cmdPSet.Location = new System.Drawing.Point(8, 254);
-            this.cmdPSet.Name = "cmdPSet";
-            this.cmdPSet.Size = new System.Drawing.Size(100, 25);
-            this.cmdPSet.TabIndex = 19;
-            this.cmdPSet.Text = "Set";
-            this.cmdPSet.UseVisualStyleBackColor = true;
-            this.cmdPSet.Click += new System.EventHandler(this.cmdPSet_Click);
-            // 
             // frmClient
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2456,6 +2456,11 @@
             this.tabClient.ResumeLayout(false);
             this.tbpSettings.ResumeLayout(false);
             this.tbpDefaults.ResumeLayout(false);
+            this.tabControl1.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
+            this.tabPage1.PerformLayout();
+            this.tabPage2.ResumeLayout(false);
+            this.tabPage2.PerformLayout();
             this.gbxDefaultSort.ResumeLayout(false);
             this.gbxDefaultSort.PerformLayout();
             this.tbpWindows.ResumeLayout(false);
@@ -2471,11 +2476,6 @@
             this.gbxResponseTextCode.PerformLayout();
             this.gbxResponseTextType.ResumeLayout(false);
             this.gbxResponseTextType.PerformLayout();
-            this.tabControl1.ResumeLayout(false);
-            this.tabPage1.ResumeLayout(false);
-            this.tabPage1.PerformLayout();
-            this.tabPage2.ResumeLayout(false);
-            this.tabPage2.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2672,9 +2672,9 @@
         private System.Windows.Forms.CheckBox chkPUID;
         private System.Windows.Forms.CheckBox chkPSize;
         private System.Windows.Forms.CheckBox chkPReceived;
-        private System.Windows.Forms.CheckBox chkPIsSubmitted;
-        private System.Windows.Forms.CheckBox chkPIsFlagged;
-        private System.Windows.Forms.CheckBox chkPIsAnswered;
+        private System.Windows.Forms.CheckBox chkPSubmitted;
+        private System.Windows.Forms.CheckBox chkPFlagged;
+        private System.Windows.Forms.CheckBox chkPAnswered;
         private System.Windows.Forms.CheckBox chkPFlags;
         private System.Windows.Forms.CheckBox chkPMessageId;
         private System.Windows.Forms.CheckBox chkPSubject;

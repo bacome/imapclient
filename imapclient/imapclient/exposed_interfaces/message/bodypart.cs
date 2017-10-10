@@ -44,14 +44,14 @@ namespace work.bacome.imapclient
 
     public static class kMimeType
     {
-        public const string Multipart = "MuLtIpArT";
-        public const string Message = "MeSsAgE";
-        public const string Text = "TeXt";
+        public const string Multipart = "Multipart";
+        public const string Message = "Message";
+        public const string Text = "Text";
     }
 
     public static class kMimeSubType
     {
-        public const string RFC822 = "RfC822";
+        public const string RFC822 = "RFC822";
     }
 
     public abstract class cBodyPart

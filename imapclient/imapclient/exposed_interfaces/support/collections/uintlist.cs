@@ -16,73 +16,80 @@ namespace work.bacome.imapclient.support
             return lBuilder.ToString();
         }
 
-        public static cUIntList FromSequenceSet(cSequenceSet pSequenceSet, int pAsterisk, bool pDistinct)
+        public static bool TryConstruct(cSequenceSet pSequenceSet, int pAsterisk, bool pDistinct, out cUIntList rResult)
         {
             if (pSequenceSet == null) throw new ArgumentNullException(nameof(pSequenceSet));
-            if (pAsterisk < 0) throw new ArgumentOutOfRangeException(nameof(pAsterisk));
-
-            var lResult = ZExpand(pSequenceSet, (uint)pAsterisk);
-
-            if (pDistinct) lResult = new cUIntList(lResult.Distinct());
-            return lResult;
+            if (!ZExpand(pSequenceSet, pAsterisk, out rResult)) return false;
+            if (pDistinct) rResult = new cUIntList(rResult.Distinct());
+            return true;
         }
 
-        public static cUIntList FromSequenceSets(cSequenceSets pSequenceSets, int pAsterisk, bool pDistinct)
+        public static bool TryConstruct(cSequenceSets pSequenceSets, int pAsterisk, bool pDistinct, out cUIntList rResult)
         {
             if (pSequenceSets == null) throw new ArgumentNullException(nameof(pSequenceSets));
-            if (pAsterisk < 0) throw new ArgumentOutOfRangeException(nameof(pAsterisk));
 
-            cUIntList lResult = new cUIntList();
-            uint lAsterisk = (uint)pAsterisk;
-            foreach (var lSequenceSet in pSequenceSets) lResult.AddRange(ZExpand(lSequenceSet, lAsterisk));
+            rResult = new cUIntList();
 
-            if (pDistinct) lResult = new cUIntList(lResult.Distinct());
-            return lResult;
+            foreach (var lSequenceSet in pSequenceSets)
+            {
+                if (lSequenceSet == null) return false;
+                if (!ZExpand(lSequenceSet, pAsterisk, out var lResult)) return false;
+                rResult.AddRange(lResult);
+            }
+
+            if (pDistinct) rResult = new cUIntList(rResult.Distinct());
+            return true;
         }
 
-        private static cUIntList ZExpand(cSequenceSet pSequenceSet, uint pAsterisk)
+        private static bool ZExpand(cSequenceSet pSequenceSet, int pAsterisk, out cUIntList rResult)
         {
-            if (pSequenceSet == null) throw new ArgumentNullException(nameof(pSequenceSet));
+            if (pSequenceSet == null) { rResult = null; return false; }
 
-            cUIntList lResult = new cUIntList();
+            rResult = new cUIntList();
 
             foreach (var lItem in pSequenceSet)
             {
                 if (lItem == cSequenceSetItem.Asterisk)
                 {
-                    lResult.Add(pAsterisk);
+                    if (pAsterisk < 1) return false;
+                    rResult.Add((uint)pAsterisk);
                     continue;
                 }
 
                 if (lItem is cSequenceSetNumber lNumber)
                 {
-                    lResult.Add(lNumber.Number);
+                    rResult.Add(lNumber.Number);
                     continue;
                 }
 
-                if (!(lItem is cSequenceSetRange lRange)) throw new ArgumentException("invalid form 1", nameof(pSequenceSet));
+                if (!(lItem is cSequenceSetRange lRange)) return false;
 
                 if (lRange.From == cSequenceSetItem.Asterisk)
                 {
-                    lResult.Add(pAsterisk);
+                    if (pAsterisk < 1) return false;
+                    rResult.Add((uint)pAsterisk);
                     continue;
                 }
 
-                if (!(lRange.From is cSequenceSetNumber lFrom)) throw new ArgumentException("invalid form 2", nameof(pSequenceSet));
+                if (!(lRange.From is cSequenceSetNumber lFrom)) return false;
 
                 uint lTo;
 
-                if (lRange.To == cSequenceSetItem.Asterisk) lTo = pAsterisk;
+                if (lRange.To == cSequenceSetItem.Asterisk)
+                {
+                    if (pAsterisk < 1) return false;
+                    lTo = (uint)pAsterisk;
+                }
                 else
                 {
-                    if (!(lRange.To is cSequenceSetNumber lRangeTo)) throw new ArgumentException("invalid form 3", nameof(pSequenceSet));
+                    if (!(lRange.To is cSequenceSetNumber lRangeTo)) return false;
                     lTo = lRangeTo.Number;
                 }
 
-                for (uint i = lFrom.Number; i <= lTo; i++) lResult.Add(i);
+                for (uint i = lFrom.Number; i <= lTo; i++) rResult.Add(i);
             }
 
-            return lResult;
+            return true;
         }
     }
 }

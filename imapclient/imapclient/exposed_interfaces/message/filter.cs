@@ -40,6 +40,8 @@ namespace work.bacome.imapclient
 
         public static readonly cFilterSize Size = new cFilterSize();
 
+        public static readonly cFilterImportance Importance = new cFilterImportance();
+
         public static readonly cFilter False = Seen & !Seen;
 
         public readonly bool ContainsMessageHandles;
@@ -400,6 +402,13 @@ namespace work.bacome.imapclient
         public static cFilter operator >(cFilterSize pFitlerSize, int pSize) => new cFilterSizeCompare(eFilterSizeCompare.larger, pSize);
         public static cFilter operator <(cFilterSize pFitlerSize, uint pSize) => new cFilterSizeCompare(eFilterSizeCompare.smaller, pSize);
         public static cFilter operator >(cFilterSize pFitlerSize, uint pSize) => new cFilterSizeCompare(eFilterSizeCompare.larger, pSize);
+    }
+
+    public class cFilterImportance
+    {
+        public cFilterImportance() { }
+        public static cFilter operator ==(cFilterImportance pImportance, eImportance pValue) => new cFilterHeaderFieldContains(kHeaderFieldName.Importance, cHeaderFieldImportance.FieldValue(pValue));
+        public static cFilter operator !=(cFilterImportance pImportance, eImportance pValue) => !new cFilterHeaderFieldContains(kHeaderFieldName.Importance, cHeaderFieldImportance.FieldValue(pValue));
     }
 
     public class cFilterAnd : cFilter
