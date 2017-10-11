@@ -311,7 +311,7 @@ namespace testharness2
                     if (lMessages.Count > mMaxMessages) lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
 
                     // get any missing properties
-                    ;?; await mClient.FetchAsync(cMessageHandleList.FromMessages(lMessages), mClient.DefaultCacheItems, lConfiguration);
+                    await mClient.FetchAsync(lMessages, mClient.DefaultCacheItems, lConfiguration);
                 }
                 else if (mFilter != null || mOverrideSort != null || lConfiguration != null) lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
                 else lMessages = await mSelectedMailbox.MessagesAsync(); // show that getting the full set of messages in a mailbox is trivial if no restrictions are required and the defaults are set correctly
@@ -566,7 +566,7 @@ namespace testharness2
             if (lBindingSource.Count == 0) MessageBox.Show("there have to be some messages to update");
 
             // get them now: some could be delivered while the dialog is up (TODO: test that theory)
-            ;?; var lMessages = cMessageHandleList.FromMessages(from cGridRowData lItem in lBindingSource select lItem.Message);
+            var lMessages = new List<cMessage>(from cGridRowData lItem in lBindingSource select lItem.Message);
 
             eStoreOperation lOperation;
             cSettableFlags lFlags;
@@ -619,7 +619,7 @@ namespace testharness2
             if (lBindingSource.Count == 0) MessageBox.Show("there have to be some messages to copy");
 
             // get them now: some could be delivered while the dialog is up (TODO: test that theory)
-            ;?; var lMessages = cMessageHandleList.FromMessages(from cGridRowData lItem in lBindingSource select lItem.Message);
+            var lMessages = new List<cMessage>(from cGridRowData lItem in lBindingSource select lItem.Message);
 
             cMailbox lMailbox;
 
