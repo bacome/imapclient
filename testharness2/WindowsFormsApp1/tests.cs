@@ -2299,7 +2299,7 @@ namespace testharness2
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
-                lUnfetched = lClient.Inbox.Fetch(lMessages, fCacheAttributes.flags, null);
+                ;?;  lUnfetched = lClient.Fetch(cMessageHandleList.FromMessages(lMessages), fCacheAttributes.flags, null);
                 if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0], lMessages[1].Handle)) throw new cTestsException("ZTestIdleRestart1.3.3");
 
 

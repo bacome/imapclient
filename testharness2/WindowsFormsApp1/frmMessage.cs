@@ -988,5 +988,27 @@ namespace testharness2
                 if (!IsDisposed) MessageBox.Show(this, $"store error\n{ex}");
             }
         }
+
+        private async void cmdCopyTo_Click(object sender, EventArgs e)
+        {
+            cMailbox lMailbox;
+
+            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mMessage.Client))
+            {
+                if (lMailboxDialog.ShowDialog(this) != DialogResult.OK) return;
+                lMailbox = lMailboxDialog.Mailbox;
+            }
+
+            cUID lUID;
+
+            try { lUID = await mMessage.CopyAsync(lMailbox); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"copy error\n{ex}");
+                return;
+            }
+
+            if (!IsDisposed && lUID != null) MessageBox.Show(this, $"copied as {lUID}");
+        }
     }
 }

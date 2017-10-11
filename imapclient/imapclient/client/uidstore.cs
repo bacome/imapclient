@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         public cUIDStoreFeedback UIDStore(iMailboxHandle pHandle, cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
-            var lFeedback = cUIDStoreFeedback.FromUID(pUID, pOperation, pFlags);
+            var lFeedback = new cUIDStoreFeedback(pUID, pOperation, pFlags);
             var lTask = ZUIDStoreAsync(pHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lFeedback;
@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
         public cUIDStoreFeedback UIDStore(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
-            var lFeedback = cUIDStoreFeedback.FromUIDs(pUIDs, pOperation, pFlags);
+            var lFeedback = new cUIDStoreFeedback(pUIDs, pOperation, pFlags);
             var lTask = ZUIDStoreAsync(pHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lFeedback;
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
         public async Task<cUIDStoreFeedback> UIDStoreAsync(iMailboxHandle pHandle, cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
-            var lFeedback = cUIDStoreFeedback.FromUID(pUID, pOperation, pFlags);
+            var lFeedback = new cUIDStoreFeedback(pUID, pOperation, pFlags);
             await ZUIDStoreAsync(pHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             return lFeedback;
         }
@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
         public async Task<cUIDStoreFeedback> UIDStoreAsync(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
-            var lFeedback = cUIDStoreFeedback.FromUIDs(pUIDs, pOperation, pFlags);
+            var lFeedback = new cUIDStoreFeedback(pUIDs, pOperation, pFlags);
             await ZUIDStoreAsync(pHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             return lFeedback;
         }

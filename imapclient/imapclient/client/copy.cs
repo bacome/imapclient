@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
@@ -10,54 +9,52 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public cCopyFeedback Copy(iMessageHandle pHandle, iMailboxHandle pToHandle)
+        public cCopyFeedback Copy(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Copy), 1);
-            var lTask = ZCopyAsync(cMessageHandleList.FromHandle(pHandle), pToHandle, lContext);
+            var lTask = ZCopyAsync(cMessageHandleList.FromHandle(pSourceHandle), pDestinationHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public cCopyFeedback Copy(IEnumerable<iMessageHandle> pHandles, iMailboxHandle pToHandle)
+        public cCopyFeedback Copy(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Copy), 2);
-            var lTask = ZCopyAsync(cMessageHandleList.FromHandles(pHandles), pToHandle, lContext);
+            var lTask = ZCopyAsync(cMessageHandleList.FromHandles(pSourceHandles), pDestinationHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        public Task<cCopyFeedback> CopyAsync(iMessageHandle pHandle, iMailboxHandle pToHandle)
+        public Task<cCopyFeedback> CopyAsync(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 1);
-            return ZCopyAsync(cMessageHandleList.FromHandle(pHandle), pToHandle, lContext);
+            return ZCopyAsync(cMessageHandleList.FromHandle(pSourceHandle), pDestinationHandle, lContext);
         }
 
-        public Task<cCopyFeedback> CopyAsync(IEnumerable<iMessageHandle> pHandles, iMailboxHandle pToHandle)
+        public Task<cCopyFeedback> CopyAsync(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 2);
-            return ZCopyAsync(cMessageHandleList.FromHandles(pHandles), pToHandle, lContext);
+            return ZCopyAsync(cMessageHandleList.FromHandles(pSourceHandles), pDestinationHandle, lContext);
         }
 
-        private async Task<cCopyFeedback> ZCopyAsync(cMessageHandleList pHandles, iMailboxHandle pToHandle, cTrace.cContext pParentContext)
+        private async Task<cCopyFeedback> ZCopyAsync(cMessageHandleList pSourceHandles, iMailboxHandle pDestinationHandle, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCopyAsync), pHandles, pToHandle);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCopyAsync), pSourceHandles, pDestinationHandle);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
 
-            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
-            if (pToHandle == null) throw new ArgumentNullException(nameof(pToHandle));
+            if (pSourceHandles == null) throw new ArgumentNullException(nameof(pSourceHandles));
+            if (pDestinationHandle == null) throw new ArgumentNullException(nameof(pDestinationHandle));
 
-            if (pHandles.Count == 0) return new cCopyFeedback();
+            if (pSourceHandles.Count == 0) return null;
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
-                ;?; 
                 var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                if (pHandles.TrueForAll(h => h.UID != null)) return await lSession.UIDCopyAsync(cUIDList.FromUIDs(from h in pHandles select h.UID), pToHandle, lContext).ConfigureAwait(false);
-                else return await lSession.CopyAsync(lMC, pHandles, pToHandle, lContext).ConfigureAwait(false);
+                return await lSession.CopyAsync(lMC, pSourceHandles, pDestinationHandle, lContext).ConfigureAwait(false);
             }
         }
     }

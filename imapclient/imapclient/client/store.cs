@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         public cStoreFeedback Store(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Store), 1);
-            var lFeedback = cStoreFeedback.FromHandle(pHandle, pOperation, pFlags);
+            var lFeedback = new cStoreFeedback(pHandle, pOperation, pFlags);
             var lTask = ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lFeedback;
@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
         public cStoreFeedback Store(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Store), 2);
-            var lFeedback = cStoreFeedback.FromHandles(pHandles, pOperation, pFlags);
+            var lFeedback = new cStoreFeedback(pHandles, pOperation, pFlags);
             var lTask = ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lFeedback;
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
         public async Task<cStoreFeedback> StoreAsync(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 1);
-            var lFeedback = cStoreFeedback.FromHandle(pHandle, pOperation, pFlags);
+            var lFeedback = new cStoreFeedback(pHandle, pOperation, pFlags);
             await ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             return lFeedback;
         }
@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
         public async Task<cStoreFeedback> StoreAsync(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 2);
-            var lFeedback = cStoreFeedback.FromHandles(pHandles, pOperation, pFlags);
+            var lFeedback = new cStoreFeedback(pHandles, pOperation, pFlags);
             await ZStoreAsync(lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             return lFeedback;
         }

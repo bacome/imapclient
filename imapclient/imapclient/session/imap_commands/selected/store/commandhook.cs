@@ -51,10 +51,17 @@ namespace work.bacome.imapclient
                     {
                         if (pCursor.SkipBytes(kModifiedSpace))
                         {
-                            if (pCursor.GetSequenceSet(out var lSequenceSet) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                            if (pCursor.GetSequenceSet(out var lSequenceSet) && pCursor.SkipBytes(cBytesCursor.RBracketSpace) && cUIntList.TryConstruct(lSequenceSet, mSelectedMailbox.Cache.Count, true, out var lUInts))
                             {
-                                cUIntList lUInts = cUIntList.FromSequenceSet(lSequenceSet, mSelectedMailbox.Cache.Count, true);
-                                foreach (var lUInt in lUInts) if (!mFeedbackCollector.WasNotUnchangedSince(lUInt)) lContext.TraceWarning("likely malformed modified response: message number not recognised: ", lUInt);
+                                foreach (var lUInt in lUInts)
+                                {
+                                    if (!mFeedbackCollector.WasNotUnchangedSince(lUInt))
+                                    {
+                                        lContext.TraceWarning("likely malformed modified response: message number not recognised: ", lUInt);
+                                        return false;
+                                    }
+                                }
+
                                 return true;
                             }
 

@@ -452,6 +452,22 @@ namespace work.bacome.imapclient
             if (lFeedback.Summary().LikelyFailedCount != 0) throw new InvalidOperationException(); // the assumption here is that the message has been deleted
         }
 
+        // copy
+
+        public cUID Copy(cMailbox pDestination)
+        {
+            var lFeedback = Client.Copy(Handle, pDestination.Handle);
+            if (lFeedback?.Count == 1) return lFeedback[0].Destination;
+            return null;
+        }
+
+        public async Task<cUID> CopyAsync(cMailbox pDestination)
+        {
+            var lFeedback = await Client.CopyAsync(Handle, pDestination.Handle).ConfigureAwait(false);
+            if (lFeedback?.Count == 1) return lFeedback[0].Destination;
+            return null;
+        }
+
         // debugging
         public override string ToString() => $"{nameof(cMessage)}({Handle},{Indent})";
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using work.bacome.imapclient.support;
@@ -79,56 +80,25 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cStoreFeedbackItem)}({Handle},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
     }
 
-    public class cStoreFeedback : List<cStoreFeedbackItem>
+    public class cStoreFeedback : IReadOnlyList<cStoreFeedbackItem>
     {
+        private List<cStoreFeedbackItem> mItems;
         private eStoreOperation mOperation;
         private cSettableFlags mFlags;
 
-        private cStoreFeedback(eStoreOperation pOperation, cSettableFlags pFlags)
-        {
-            mOperation = pOperation;
-            mFlags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
-        }
-
-        private cStoreFeedback(IEnumerable<cStoreFeedbackItem> pItems, eStoreOperation pOperation, cSettableFlags pFlags) : base(pItems)
-        {
-            mOperation = pOperation;
-            mFlags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
-        }
-
-        public sStoreFeedbackSummary Summary()
-        {
-            sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();
-            foreach (var lItem in this) lItem.IncrementSummary(lItem.Handle, mOperation, mFlags, ref lSummary);
-            return lSummary;
-        }
-
-        public override string ToString()
-        {
-            var lBuilder = new cListBuilder(nameof(cStoreFeedback));
-
-            lBuilder.Append(mOperation);
-            lBuilder.Append(mFlags);
-
-            if (Count > 0)
-            {
-                lBuilder.Append(this[0].Handle.Cache);
-                foreach (var lItem in this) lBuilder.Append(lItem.Handle.CacheSequence);
-            }
-
-            return lBuilder.ToString();
-        }
-
-        public static cStoreFeedback FromHandle(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags)
+        public cStoreFeedback(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags)
         {
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
-            var lResult = new cStoreFeedback(pOperation, pFlags);
-            lResult.Add(new cStoreFeedbackItem(pHandle));
-            return lResult;
+
+            mItems = new List<cStoreFeedbackItem>();
+            mItems.Add(new cStoreFeedbackItem(pHandle));
+
+            mOperation = pOperation;
+            mFlags = pFlags;
         }
 
-        public static cStoreFeedback FromHandles(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags)
+        public cStoreFeedback(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags)
         {
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
@@ -137,12 +107,44 @@ namespace work.bacome.imapclient
 
             foreach (var lHandle in pHandles)
             {
-                if (lHandle == null) throw new ArgumentOutOfRangeException(nameof(lHandle), "contains nulls");
+                if (lHandle == null) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains nulls");
                 if (lCache == null) lCache = lHandle.Cache;
                 else if (!ReferenceEquals(lHandle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains mixed caches");
             }
 
-            return new cStoreFeedback(from lHandle in pHandles.Distinct() select new cStoreFeedbackItem(lHandle), pOperation, pFlags);
+            mItems = new List<cStoreFeedbackItem>(from lHandle in pHandles.Distinct() select new cStoreFeedbackItem(lHandle));
+            mOperation = pOperation;
+            mFlags = pFlags;
+        }
+
+        public bool AllHaveUID => mItems.TrueForAll(i => i.Handle.UID != null);
+
+        public sStoreFeedbackSummary Summary()
+        {
+            sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();
+            foreach (var lItem in mItems) lItem.IncrementSummary(lItem.Handle, mOperation, mFlags, ref lSummary);
+            return lSummary;
+        }
+
+        public cStoreFeedbackItem this[int i] => mItems[i];
+        public int Count => mItems.Count;
+        public IEnumerator<cStoreFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cStoreFeedback));
+
+            lBuilder.Append(mOperation);
+            lBuilder.Append(mFlags);
+
+            if (mItems.Count > 0)
+            {
+                lBuilder.Append(mItems[0].Handle.Cache);
+                foreach (var lItem in mItems) lBuilder.Append(lItem.Handle.CacheSequence);
+            }
+
+            return lBuilder.ToString();
         }
     }
 
@@ -181,56 +183,25 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cUIDStoreFeedbackItem)}({UID},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
     }
 
-    public class cUIDStoreFeedback : List<cUIDStoreFeedbackItem>
+    public class cUIDStoreFeedback : IReadOnlyList<cUIDStoreFeedbackItem>
     {
+        private List<cUIDStoreFeedbackItem> mItems;
         private eStoreOperation mOperation;
         private cSettableFlags mFlags;
 
-        private cUIDStoreFeedback(eStoreOperation pOperation, cSettableFlags pFlags)
-        {
-            mOperation = pOperation;
-            mFlags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
-        }
-
-        private cUIDStoreFeedback(IEnumerable<cUIDStoreFeedbackItem> pItems, eStoreOperation pOperation, cSettableFlags pFlags) : base(pItems)
-        {
-            mOperation = pOperation;
-            mFlags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
-        }
-
-        public sStoreFeedbackSummary Summary()
-        {
-            sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();
-            foreach (var lItem in this) lItem.IncrementSummary(lItem.Handle, mOperation, mFlags, ref lSummary);
-            return lSummary;
-        }
-
-        public override string ToString()
-        {
-            var lBuilder = new cListBuilder(nameof(cUIDStoreFeedback));
-
-            lBuilder.Append(mOperation);
-            lBuilder.Append(mFlags);
-
-            if (Count > 0)
-            {
-                lBuilder.Append(this[0].UID.UIDValidity);
-                foreach (var lItem in this) lBuilder.Append(lItem.UID.UID);
-            }
-
-            return lBuilder.ToString();
-        }
-
-        public static cUIDStoreFeedback FromUID(cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags)
+        public cUIDStoreFeedback(cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags)
         {
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
-            var lResult = new cUIDStoreFeedback(pOperation, pFlags);
-            lResult.Add(new cUIDStoreFeedbackItem(pUID));
-            return lResult;
+
+            mItems = new List<cUIDStoreFeedbackItem>();
+            mItems.Add(new cUIDStoreFeedbackItem(pUID));
+
+            mOperation = pOperation;
+            mFlags = pFlags;
         }
 
-        public static cUIDStoreFeedback FromUIDs(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags)
+        public cUIDStoreFeedback(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags)
         {
             if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
@@ -244,7 +215,37 @@ namespace work.bacome.imapclient
                 else if (lUID.UIDValidity != lUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDs), "contains mixed uidvalidities");
             }
 
-            return new cUIDStoreFeedback(from lUID in pUIDs.Distinct() select new cUIDStoreFeedbackItem(lUID), pOperation, pFlags);
+            mItems = new List<cUIDStoreFeedbackItem>(from lUID in pUIDs.Distinct() select new cUIDStoreFeedbackItem(lUID));
+            mOperation = pOperation;
+            mFlags = pFlags;
+        }
+
+        public sStoreFeedbackSummary Summary()
+        {
+            sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();
+            foreach (var lItem in mItems) lItem.IncrementSummary(lItem.Handle, mOperation, mFlags, ref lSummary);
+            return lSummary;
+        }
+
+        public cUIDStoreFeedbackItem this[int i] => mItems[i];
+        public int Count => mItems.Count;
+        public IEnumerator<cUIDStoreFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cUIDStoreFeedback));
+
+            lBuilder.Append(mOperation);
+            lBuilder.Append(mFlags);
+
+            if (mItems.Count > 0)
+            {
+                lBuilder.Append(mItems[0].UID.UIDValidity);
+                foreach (var lItem in mItems) lBuilder.Append(lItem.UID.UID);
+            }
+
+            return lBuilder.ToString();
         }
     }
 }

@@ -67,6 +67,7 @@
             this.rtxOther = new System.Windows.Forms.RichTextBox();
             this.lblQueryError = new System.Windows.Forms.Label();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
+            this.cmdCopyTo = new System.Windows.Forms.Button();
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
@@ -521,18 +522,30 @@
             this.lblQueryError.Location = new System.Drawing.Point(217, 11);
             this.lblQueryError.Name = "lblQueryError";
             this.lblQueryError.Size = new System.Drawing.Size(60, 13);
-            this.lblQueryError.TabIndex = 3;
+            this.lblQueryError.TabIndex = 2;
             this.lblQueryError.Text = "Query Error";
             // 
             // erp
             // 
             this.erp.ContainerControl = this;
             // 
+            // cmdCopyTo
+            // 
+            this.cmdCopyTo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdCopyTo.Location = new System.Drawing.Point(686, 5);
+            this.cmdCopyTo.Name = "cmdCopyTo";
+            this.cmdCopyTo.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopyTo.TabIndex = 3;
+            this.cmdCopyTo.Text = "Copy To ...";
+            this.cmdCopyTo.UseVisualStyleBackColor = true;
+            this.cmdCopyTo.Click += new System.EventHandler(this.cmdCopyTo_Click);
+            // 
             // frmMessage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(792, 573);
+            this.Controls.Add(this.cmdCopyTo);
             this.Controls.Add(this.lblQueryError);
             this.Controls.Add(this.tab);
             this.Controls.Add(this.cmdNext);
@@ -607,5 +620,6 @@
         private System.Windows.Forms.CheckBox chkMDNSent;
         private System.Windows.Forms.CheckBox chkAnswered;
         private System.Windows.Forms.Button cmdStore;
+        private System.Windows.Forms.Button cmdCopyTo;
     }
 }

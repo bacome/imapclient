@@ -32,6 +32,7 @@
             this.cmdClose = new System.Windows.Forms.Button();
             this.rtx = new System.Windows.Forms.RichTextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.cmdStore = new System.Windows.Forms.Button();
             this.cmdFilterClear = new System.Windows.Forms.Button();
             this.gbxOverrideSort = new System.Windows.Forms.GroupBox();
             this.cmdOverrideSortClear = new System.Windows.Forms.Button();
@@ -39,7 +40,7 @@
             this.cmdOverrideSortSet = new System.Windows.Forms.Button();
             this.cmdFilter = new System.Windows.Forms.Button();
             this.dgvMessages = new System.Windows.Forms.DataGridView();
-            this.cmdStore = new System.Windows.Forms.Button();
+            this.cmdCopyTo = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -54,7 +55,7 @@
             this.cmdExpunge.Location = new System.Drawing.Point(15, 544);
             this.cmdExpunge.Name = "cmdExpunge";
             this.cmdExpunge.Size = new System.Drawing.Size(100, 25);
-            this.cmdExpunge.TabIndex = 4;
+            this.cmdExpunge.TabIndex = 6;
             this.cmdExpunge.Text = "Expunge";
             this.cmdExpunge.UseVisualStyleBackColor = true;
             this.cmdExpunge.Click += new System.EventHandler(this.cmdExpunge_Click);
@@ -65,7 +66,7 @@
             this.cmdClose.Location = new System.Drawing.Point(121, 544);
             this.cmdClose.Name = "cmdClose";
             this.cmdClose.Size = new System.Drawing.Size(100, 25);
-            this.cmdClose.TabIndex = 5;
+            this.cmdClose.TabIndex = 7;
             this.cmdClose.Text = "Expunge && Close";
             this.cmdClose.UseVisualStyleBackColor = true;
             this.cmdClose.Click += new System.EventHandler(this.cmdClose_Click);
@@ -91,6 +92,7 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.cmdCopyTo);
             this.splitContainer1.Panel1.Controls.Add(this.cmdStore);
             this.splitContainer1.Panel1.Controls.Add(this.cmdFilterClear);
             this.splitContainer1.Panel1.Controls.Add(this.gbxOverrideSort);
@@ -105,6 +107,17 @@
             this.splitContainer1.Size = new System.Drawing.Size(792, 572);
             this.splitContainer1.SplitterDistance = 320;
             this.splitContainer1.TabIndex = 0;
+            // 
+            // cmdStore
+            // 
+            this.cmdStore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdStore.Location = new System.Drawing.Point(15, 513);
+            this.cmdStore.Name = "cmdStore";
+            this.cmdStore.Size = new System.Drawing.Size(100, 25);
+            this.cmdStore.TabIndex = 4;
+            this.cmdStore.Text = "Store ...";
+            this.cmdStore.UseVisualStyleBackColor = true;
+            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
             // 
             // cmdFilterClear
             // 
@@ -190,16 +203,16 @@
             this.dgvMessages.TabIndex = 0;
             this.dgvMessages.RowHeaderMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgv_RowHeaderMouseDoubleClick);
             // 
-            // cmdStore
+            // cmdCopyTo
             // 
-            this.cmdStore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdStore.Location = new System.Drawing.Point(15, 513);
-            this.cmdStore.Name = "cmdStore";
-            this.cmdStore.Size = new System.Drawing.Size(100, 25);
-            this.cmdStore.TabIndex = 6;
-            this.cmdStore.Text = "Store ...";
-            this.cmdStore.UseVisualStyleBackColor = true;
-            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
+            this.cmdCopyTo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdCopyTo.Location = new System.Drawing.Point(121, 513);
+            this.cmdCopyTo.Name = "cmdCopyTo";
+            this.cmdCopyTo.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopyTo.TabIndex = 5;
+            this.cmdCopyTo.Text = "Copy To ...";
+            this.cmdCopyTo.UseVisualStyleBackColor = true;
+            this.cmdCopyTo.Click += new System.EventHandler(this.cmdCopyTo_Click);
             // 
             // frmSelectedMailbox
             // 
@@ -236,5 +249,6 @@
         private System.Windows.Forms.Button cmdOverrideSortClear;
         private System.Windows.Forms.Button cmdFilterClear;
         private System.Windows.Forms.Button cmdStore;
+        private System.Windows.Forms.Button cmdCopyTo;
     }
 }

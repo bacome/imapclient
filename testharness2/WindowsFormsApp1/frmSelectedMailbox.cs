@@ -310,8 +310,8 @@ namespace testharness2
                     // remove any excess messages (the filter may have removed enough or the mailbox may have changed in the meantime)
                     if (lMessages.Count > mMaxMessages) lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
 
-                    // get any missing attributes
-                    await mSelectedMailbox.FetchAsync(lMessages, mClient.DefaultCacheItems, lConfiguration);
+                    // get any missing properties
+                    ;?; await mClient.FetchAsync(cMessageHandleList.FromMessages(lMessages), mClient.DefaultCacheItems, lConfiguration);
                 }
                 else if (mFilter != null || mOverrideSort != null || lConfiguration != null) lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
                 else lMessages = await mSelectedMailbox.MessagesAsync(); // show that getting the full set of messages in a mailbox is trivial if no restrictions are required and the defaults are set correctly
@@ -566,7 +566,7 @@ namespace testharness2
             if (lBindingSource.Count == 0) MessageBox.Show("there have to be some messages to update");
 
             // get them now: some could be delivered while the dialog is up (TODO: test that theory)
-            List<cMessage> lMessages = new List<cMessage>(from cGridRowData lItem in lBindingSource select lItem.Message);
+            ;?; var lMessages = cMessageHandleList.FromMessages(from cGridRowData lItem in lBindingSource select lItem.Message);
 
             eStoreOperation lOperation;
             cSettableFlags lFlags;
@@ -583,7 +583,7 @@ namespace testharness2
 
             cStoreFeedback lFeedback;
 
-            try { lFeedback = await mSelectedMailbox.StoreAsync(lMessages, lOperation, lFlags, lIfUnchangedSinceModSeq); }
+            try { lFeedback = await mClient.StoreAsync(lMessages, lOperation, lFlags, lIfUnchangedSinceModSeq); }
             catch (Exception ex)
             {
                 if (!IsDisposed) MessageBox.Show(this, $"store error\n{ex}");
@@ -609,6 +609,30 @@ namespace testharness2
 
             if (IsDisposed) return;
             MessageBox.Show(this, $"(some of) the messages don't appear to have been updated: {lSummary}");
+        }
+
+        private void cmdCopyTo_Click(object sender, EventArgs e)
+        {
+            var lBindingSource = dgvMessages.DataSource as BindingSource;
+
+            if (lBindingSource == null) return;
+            if (lBindingSource.Count == 0) MessageBox.Show("there have to be some messages to copy");
+
+            // get them now: some could be delivered while the dialog is up (TODO: test that theory)
+            ;?; var lMessages = cMessageHandleList.FromMessages(from cGridRowData lItem in lBindingSource select lItem.Message);
+
+            cMailbox lMailbox;
+
+            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mClient))
+            {
+                if (lMailboxDialog.ShowDialog(this) != DialogResult.OK) return;
+                lMailbox = lMailboxDialog.Mailbox;
+            }
+
+            cCopyFeedback lFeedback;
+
+            try { lFeedback = await mClient.CopyAsync(lMessages,  }
+
         }
 
         private void frmSelectedMailbox_FormClosing(object sender, FormClosingEventArgs e)

@@ -67,7 +67,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSetUnseenExtendedCommandHook), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eCommandResultType.ok || mSequenceSets == null) return;
-                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, mSelectedMailbox.Cache.Count, true);
+                    if (!cUIntList.TryConstruct(mSequenceSets, mSelectedMailbox.Cache.Count, true, out var lMSNs)) return;
                     Handles = mSelectedMailbox.SetUnseen(mMessageCount, lMSNs, lContext);
                 }
             }

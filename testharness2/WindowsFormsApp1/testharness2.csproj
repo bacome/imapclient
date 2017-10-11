@@ -72,6 +72,12 @@
     <Compile Include="frmFilter.Designer.cs">
       <DependentUpon>frmFilter.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmMailboxDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmMailboxDialog.Designer.cs">
+      <DependentUpon>frmMailboxDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmMailboxes.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -140,6 +146,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="frmFilter.resx">
       <DependentUpon>frmFilter.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmMailboxDialog.resx">
+      <DependentUpon>frmMailboxDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmMailboxes.resx">
       <DependentUpon>frmMailboxes.cs</DependentUpon>

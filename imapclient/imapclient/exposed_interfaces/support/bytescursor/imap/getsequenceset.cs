@@ -88,8 +88,9 @@ namespace work.bacome.imapclient.support
                     string lSeqSet = lSequenceSet.ToString();
                     if (lSeqSet != pExpSeqSet) throw new cTestsException($"failed to get expected sequence set from {pCursor}: '{lSeqSet}' vs '{pExpSeqSet}'");
 
-                    var lList = new cUIntList(cUIntList.FromSequenceSet(lSequenceSet, 15, true).OrderBy(i => i));
-                    if (pExpList.Count != lList.Count) throw new cTestsException($"failed to get expected uintlist from {lSequenceSet}");
+                    if (!cUIntList.TryConstruct(lSequenceSet, 15, true, out var lTemp)) throw new cTestsException($"failed to get an uintlist from {lSequenceSet}");
+                    if (pExpList.Count != lTemp.Count) throw new cTestsException($"failed to get expected uintlist from {lSequenceSet}");
+                    var lList = new cUIntList(lTemp.OrderBy(i => i));
                     for (int i = 0; i < pExpList.Count; i++) if (pExpList[i] != lList[i]) throw new cTestsException($"failed to get expected uintlist from {lSequenceSet}");
 
                     string lSeqSet2 = cSequenceSet.FromUInts(lList).ToString();

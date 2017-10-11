@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using work.bacome.imapclient.support;
 
@@ -18,49 +19,29 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cCopyFeedbackItem)}({Source},{Destination})";
     }
 
-    public class cCopyFeedback : List<cCopyFeedbackItem>
+    public class cCopyFeedback : IReadOnlyList<cCopyFeedbackItem>
     {
-        private cCopyFeedback(IEnumerable<cCopyFeedbackItem> pItems) : base(pItems) { }
+        private List<cCopyFeedbackItem> mItems = new List<cCopyFeedbackItem>();
 
-        public static bool TryConstruct(uint pSourceUIDValidity, cSequenceSet pSourceUIDs, uint pDestinationUIDValidity, cSequenceSet pDestinationUIDs, out cCopyFeedback rResult)
+        public cCopyFeedback(uint pSourceUIDValidity, cUIntList pSourceUIDs, uint pDestinationUIDValidity, cUIntList pDestinationUIDs)
         {
-            if (pSourceUIDValidity == 0) { rResult = null; return false; }
-            if (pSourceUIDs == null) { rResult = null; return false; }
-            if (pSourceUIDs.Count == 0) { rResult = null; return false; }
-            if (!cUIntList.TryConstruct(pSourceUIDs, -1, false, out var lSourceUIDs)) { rResult = null; return false; }
-
-            if (pDestinationUIDValidity == 0) { rResult = null; return false; }
-            if (pDestinationUIDs == null) { rResult = null; return false; }
-            if (pDestinationUIDs.Count == 0) { rResult = null; return false; }
-            if (!cUIntList.TryConstruct(pDestinationUIDs, -1, false, out var lDestinationUIDs)) { rResult = null; return false; }
-
-            if (lSourceUIDs.Count != lDestinationUIDs.Count) { rResult = null; return false; }
-
-            List<cCopyFeedbackItem> lItems = new List<cCopyFeedbackItem>();
-
-            for (int i = 0; i < lSourceUIDs.Count; i++) lItems.Add(new cCopyFeedbackItem(new cUID(pSourceUIDValidity, lSourceUIDs[i]), new cUID(pDestinationUIDValidity, lDestinationUIDs[i])));
-
-            rResult = new cCopyFeedback(lItems);
-            return true;
+            for (int i = 0; i < pSourceUIDs.Count; i++)
+                mItems.Add(
+                    new cCopyFeedbackItem(
+                        new cUID(pSourceUIDValidity, pSourceUIDs[i]),
+                        new cUID(pDestinationUIDValidity, pDestinationUIDs[i])));
         }
+
+        public cCopyFeedbackItem this[int i] => mItems[i];
+        public int Count => mItems.Count;
+        public IEnumerator<cCopyFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
 
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cCopyFeedback));
-
-            if (Count > 0)
-            {
-
-            }
-
-            foreach (var l)
-
-
-
-
-
-
+            foreach (var lItem in mItems) lBuilder.Append(lItem);
+            return lBuilder.ToString();
         }
     }
-
 }

@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                 cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pFeedback); // to be repeated inside the select lock
                 if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException(); // to be repeated inside the select lock
 
-                if (pFeedback.TrueForAll(i => i.Handle.UID != null))
+                if (pFeedback.AllHaveUID)
                 {
                     cStoreFeedbackCollector lFeedbackCollector = new cStoreFeedbackCollector(pFeedback);
                     await ZUIDStoreAsync(pMC, lSelectedMailbox.Handle, pFeedback[0].Handle.UID.UIDValidity, lFeedbackCollector, pOperation, pFlags, pIfUnchangedSinceModSeq, null, lContext).ConfigureAwait(false);
@@ -53,11 +53,13 @@ namespace work.bacome.imapclient
                 if (pIfUnchangedSinceModSeq == 0) throw new ArgumentOutOfRangeException(nameof(pIfUnchangedSinceModSeq));
                 if (pIfUnchangedSinceModSeq != null && !mCapabilities.CondStore) throw new InvalidOperationException();
 
-                cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, pFeedback[0].UID.UIDValidity); // to be repeated inside the select lock
+                uint lUIDValidity = pFeedback[0].UID.UIDValidity;
+
+                cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, lUIDValidity); // to be repeated inside the select lock
                 if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException(); // to be repeated inside the select lock
 
                 cStoreFeedbackCollector lFeedbackCollector = new cStoreFeedbackCollector(pFeedback);
-                await ZUIDStoreAsync(pMC, pHandle, pFeedback[0].UID.UIDValidity, lFeedbackCollector, pOperation, pFlags, pIfUnchangedSinceModSeq, pFeedback, lContext).ConfigureAwait(false);
+                await ZUIDStoreAsync(pMC, pHandle, lUIDValidity, lFeedbackCollector, pOperation, pFlags, pIfUnchangedSinceModSeq, pFeedback, lContext).ConfigureAwait(false);
             }
         }
     }

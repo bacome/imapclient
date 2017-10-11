@@ -38,18 +38,16 @@ namespace testharness2
 
             mClient.PropertyChanged += mClient_PropertyChanged;
 
+            ZAddInbox();
+
             var lNamespaces = mClient.Namespaces;
 
-            if (lNamespaces == null)
+            if (lNamespaces != null)
             {
-                tvw.Enabled = false;
-                return;
+                ZAddNamespaces("Personal", lNamespaces.Personal);
+                ZAddNamespaces("Other Users", lNamespaces.OtherUsers);
+                ZAddNamespaces("Shared", lNamespaces.Shared);
             }
-
-            ZAddInbox();
-            ZAddNamespaces("Personal", lNamespaces.Personal);
-            ZAddNamespaces("Other Users", lNamespaces.OtherUsers);
-            ZAddNamespaces("Shared", lNamespaces.Shared);
         }
 
         private void ZAddInbox()

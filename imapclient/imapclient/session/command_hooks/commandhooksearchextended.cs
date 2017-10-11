@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSearchExtended), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eCommandResultType.ok || mSequenceSets == null) return;
-                    var lMSNs = cUIntList.FromSequenceSets(mSequenceSets, mSelectedMailbox.Cache.Count, !mSort);
+                    if (!cUIntList.TryConstruct(mSequenceSets, mSelectedMailbox.Cache.Count, !mSort, out var lMSNs)) return;
                     Handles = new cMessageHandleList(lMSNs.Select(lMSN => mSelectedMailbox.GetHandle(lMSN)));
                 }
             }

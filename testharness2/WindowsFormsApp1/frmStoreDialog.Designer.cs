@@ -261,6 +261,7 @@
             this.Controls.Add(this.chkAnswered);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "frmStoreDialog";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "frmStoreDialog";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmStoreDialog_FormClosing);
             this.Load += new System.EventHandler(this.frmStoreDialog_Load);
