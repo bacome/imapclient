@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState < eConnectionState.notauthenticated || _ConnectionState > eConnectionState.selected) throw new InvalidOperationException();
 
-                // install the permanant response data processor
+                // install the permanent response data processor
                 if (mIdResponseDataProcessor == null)
                 {
                     mIdResponseDataProcessor = new cIdDataProcessor(mSynchroniser);

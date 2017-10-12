@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.notauthenticated) throw new InvalidOperationException("must be not authenticated");
-                if (mConnection.TLSInstalled) throw new InvalidOperationException("tls already installed");
+                if (mPipeline.TLSInstalled) throw new InvalidOperationException("tls already installed");
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(kStartTLSCommandPart);
 
-                    var lHook = new cStartTLSCommandHook(mConnection);
+                    var lHook = new cStartTLSCommandHook(mPipeline);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
@@ -43,14 +43,14 @@ namespace work.bacome.imapclient
 
             private class cStartTLSCommandHook : cCommandHook
             {
-                private readonly cConnection mConnection;
+                private readonly cCommandPipeline mPipeline;
 
-                public cStartTLSCommandHook(cConnection pConnection) { mConnection = pConnection; }
+                public cStartTLSCommandHook(cCommandPipeline pPipeline) { mPipeline = pPipeline; }
 
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cStartTLSCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType == eCommandResultType.ok) mConnection.InstallTLS(lContext);
+                    if (pResult.ResultType == eCommandResultType.ok) mPipeline.InstallTLS(lContext);
                 }
             }
         }

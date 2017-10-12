@@ -51,7 +51,7 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(lAuthentication);
 
-                    var lHook = new cCommandHookAuthenticate(mConnection, lAuthentication, mCapabilities.LoginReferrals);
+                    var lHook = new cCommandHookAuthenticate(mPipeline, lAuthentication, mCapabilities.LoginReferrals);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
@@ -63,7 +63,7 @@ namespace work.bacome.imapclient
                         if (lHook.Capabilities != null)
                         {
                             mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
-                            mPipeline.SetCapability(mCapabilities, lContext);
+                            mPipeline.SetCapabilities(mCapabilities, lContext);
                             mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
                         }
 
@@ -95,12 +95,12 @@ namespace work.bacome.imapclient
 
             private class cCommandHookAuthenticate : cCommandHookInitial
             {
-                private readonly cConnection mConnection;
+                private readonly cCommandPipeline mPipeline;
                 private readonly cSASLAuthentication mAuthentication;
 
-                public cCommandHookAuthenticate(cConnection pConnection, cSASLAuthentication pAuthentication, bool pHandleReferral)
+                public cCommandHookAuthenticate(cCommandPipeline pPipeline, cSASLAuthentication pAuthentication, bool pHandleReferral)
                 {
-                    mConnection = pConnection;
+                    mPipeline = pPipeline;
                     mAuthentication = pAuthentication;
                 }
 
@@ -109,7 +109,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookAuthenticate), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eCommandResultType.ok) return;
                     var lSecurity = mAuthentication.GetSecurity();
-                    if (lSecurity != null) mConnection.InstallSASLSecurity(lSecurity, lContext);
+                    if (lSecurity != null) mPipeline.InstallSASLSecurity(lSecurity, lContext);
                 }
             }
         }

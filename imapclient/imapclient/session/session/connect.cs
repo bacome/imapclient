@@ -10,10 +10,51 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cBytes kConnectAsteriskSpaceOKSpace = new cBytes("* OK ");
-            private static readonly cBytes kConnectAsteriskSpacePreAuthSpace = new cBytes("* PREAUTH ");
-            private static readonly cBytes kConnectAsteriskSpaceBYESpace = new cBytes("* BYE ");
+            public async Task ConnectAsync(cMethodControl pMC, cServer pServer, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ConnectAsync), pMC, pServer);
 
+                if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+
+                if (_ConnectionState != eConnectionState.notconnected) throw new InvalidOperationException();
+                ZSetState(eConnectionState.connecting, lContext);
+
+                sConnectResult lResult;
+
+                try { lResult = await mPipeline.ConnectAsync(pMC, pServer, lContext).ConfigureAwait(false); }
+                catch (Exception)
+                {
+                    ZSetState(eConnectionState.disconnected, lContext);
+                    throw;
+                }
+
+                if (lResult.Code == eConnectResultCode.bye)
+                {
+                    ZSetHomeServerReferral(lResult.ResponseText, lContext);
+                    ZSetState(eConnectionState.disconnected, lContext);
+                    throw new cConnectByeException(lResult.ResponseText, lContext);
+                }
+
+                if (lResult.Capabilities != null)
+                {
+                    mCapabilities = new cCapabilities(lResult.Capabilities, lResult.AuthenticationMechanisms, mIgnoreCapabilities);
+                    mPipeline.SetCapabilities(mCapabilities, lContext);
+                    mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
+                }
+
+                if (lResult.Code == eConnectResultCode.ok)
+                {
+                    ZSetState(eConnectionState.notauthenticated, lContext);
+                    return;
+                }
+
+                // preauth
+
+                ZSetHomeServerReferral(lResult.ResponseText, lContext);
+                ZSetConnectedAccountId(new cAccountId(pServer.Host, eAccountType.none), lContext);
+            }
+
+            /*
             public async Task ConnectAsync(cMethodControl pMC, cServer pServer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ConnectAsync), pMC, pServer);
@@ -100,7 +141,7 @@ namespace work.bacome.imapclient
                     Disconnect(lContext);
                     throw;
                 }
-            }
-        }
+            } */
+        } 
     }
 }

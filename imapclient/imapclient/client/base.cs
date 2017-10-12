@@ -8,7 +8,7 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
-    public enum eConnectionState { notconnected, connecting, notauthenticated, authenticated, enabled, notselected, selected, disconnecting, disconnected }
+    public enum eConnectionState { notconnected, connecting, notauthenticated, authenticated, enabled, notselected, selected, disconnected }
 
     public sealed partial class cIMAPClient : IDisposable // sealed so the disposable implementation is simpler
     {

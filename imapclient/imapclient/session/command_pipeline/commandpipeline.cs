@@ -18,14 +18,20 @@ namespace work.bacome.imapclient
                 private static readonly int[] kBufferStartPointsBeginning = new int[1] { 0 };
 
                 private bool mDisposed = false;
-                private bool mStopped = false;
+
+                // state
+                private enum eState { notconnected, connecting, connected, enabled, stopped }
+                private eState mState = eState.notconnected;
+
+                // connection
+                private readonly cConnection mConnection = new cConnection();
 
                 // stuff
                 private readonly cCallbackSynchroniser mSynchroniser;
-                private readonly cConnection mConnection;
-                private readonly cResponseTextProcessor mResponseTextProcessor;
                 private cIdleConfiguration mIdleConfiguration;
-                private readonly Action<cTrace.cContext> mDisconnect;
+
+                // response text processing
+                private readonly cResponseTextProcessor mResponseTextProcessor;
 
                 // used to control idling
                 private readonly cExclusiveAccess mIdleBlock = new cExclusiveAccess("idleblock", 100); 
@@ -34,15 +40,17 @@ namespace work.bacome.imapclient
                 private readonly List<iResponseDataParser> mResponseDataParsers = new List<iResponseDataParser>();
                 private readonly List<cUnsolicitedDataProcessor> mUnsolicitedDataProcessors = new List<cUnsolicitedDataProcessor>();
 
-                // background task objects
+                // required background task objects
                 private readonly CancellationTokenSource mBackgroundCancellationTokenSource = new CancellationTokenSource(); 
                 private readonly cMethodControl mBackgroundMC;
                 private readonly cReleaser mBackgroundReleaser;
                 private readonly cAwaiter mBackgroundAwaiter;
-                private readonly Task mBackgroundTask; // background task
+
+                // background task
+                private Task mBackgroundTask = null; // background task
                 private Exception mBackgroundTaskException = null;
 
-                // set on enable
+                // set before enabled
                 private cMailboxCache mMailboxCache = null;
                 private bool mLiteralPlus = false;
                 private bool mLiteralMinus = false;
@@ -62,44 +70,143 @@ namespace work.bacome.imapclient
                 private readonly List<int> mBufferStartPoints = new List<int>();
                 private readonly cByteList mTraceBuffer = new cByteList();
 
-                public cCommandPipeline(cCallbackSynchroniser pSynchroniser, cConnection pConnection, cResponseTextProcessor pResponseTextProcessor, cIdleConfiguration pIdleConfiguration, Action<cTrace.cContext> pDisconnect, cTrace.cContext pParentContext)
+                public cCommandPipeline(cCallbackSynchroniser pSynchroniser, cIdleConfiguration pIdleConfiguration, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cCommandPipeline), pIdleConfiguration);
 
                     mSynchroniser = pSynchroniser;
-                    mConnection = pConnection;
-                    mResponseTextProcessor = pResponseTextProcessor;
                     mIdleConfiguration = pIdleConfiguration;
-                    mDisconnect = pDisconnect;
+
+                    mResponseTextProcessor = new cResponseTextProcessor(pSynchroniser);
+                    mIdleBlock.Released += mBackgroundReleaser.Release; // when the idle block is removed, kick the background process
 
                     mBackgroundMC = new cMethodControl(System.Threading.Timeout.Infinite, mBackgroundCancellationTokenSource.Token);
                     mBackgroundReleaser = new cReleaser("commandpipeline_background", mBackgroundCancellationTokenSource.Token);
                     mBackgroundAwaiter = new cAwaiter(mBackgroundCancellationTokenSource.Token);
-                    mBackgroundTask = ZBackgroundTaskAsync(lContext);
-
-                    mIdleBlock.Released += mBackgroundReleaser.Release; // when the idle block is removed, kick the background process
                 }
 
-                public void Install(iResponseDataParser pResponseDataParser) => mResponseDataParsers.Add(pResponseDataParser);
-                public void Install(cUnsolicitedDataProcessor pUnsolicitedDataProcessor) => mUnsolicitedDataProcessors.Add(pUnsolicitedDataProcessor);
+                private static readonly cBytes kAsteriskSpaceOKSpace = new cBytes("* OK ");
+                private static readonly cBytes kAsteriskSpacePreAuthSpace = new cBytes("* PREAUTH ");
+                private static readonly cBytes kAsteriskSpaceBYESpace = new cBytes("* BYE ");
 
-                public void SetCapability(cCapabilities pCapabilities, cTrace.cContext pParentContext)
+                public async Task<sConnectResult> ConnectAsync(cMethodControl pMC, cServer pServer, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetCapability));
-                    if (mMailboxCache != null) throw new InvalidOperationException();
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ConnectAsync), pMC, pServer);
+
+                    if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
+
+                    if (mState != eState.notconnected) throw new InvalidOperationException();
+                    mState = eState.connecting;
+
+                    try
+                    {
+                        await mConnection.ConnectAsync(pMC, pServer, lContext).ConfigureAwait(false);
+
+                        var lHook = new cCommandHookInitial();
+
+                        using (var lAwaiter = new cAwaiter(pMC))
+                        {
+                            while (true)
+                            {
+                                lContext.TraceVerbose("waiting");
+                                await lAwaiter.AwaitAny(mConnection.GetBuildResponseTask(lContext)).ConfigureAwait(false);
+
+                                var lLines = mConnection.GetResponse(lContext);
+                                mSynchroniser.InvokeNetworkActivity(lLines, lContext);
+                                var lCursor = new cBytesCursor(lLines);
+
+                                if (lCursor.SkipBytes(kAsteriskSpaceOKSpace))
+                                {
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
+                                    lContext.TraceVerbose("got ok: {0}", lResponseText);
+
+                                    mState = eState.connected;
+                                    mBackgroundTask = ZBackgroundTaskAsync(lContext);
+                                    return new sConnectResult(eConnectResultCode.ok, null, lHook.Capabilities, lHook.AuthenticationMechanisms);
+                                }
+
+                                if (lCursor.SkipBytes(kAsteriskSpacePreAuthSpace))
+                                {
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
+                                    lContext.TraceVerbose("got preauth: {0}", lResponseText);
+
+                                    mState = eState.connected;
+                                    mBackgroundTask = ZBackgroundTaskAsync(lContext);
+                                    return new sConnectResult(eConnectResultCode.preauth, lResponseText, lHook.Capabilities, lHook.AuthenticationMechanisms);
+                                }
+
+                                if (lCursor.SkipBytes(kAsteriskSpaceBYESpace))
+                                {
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
+                                    lContext.TraceError("got bye: {0}", lResponseText);
+
+                                    if (lHook.Capabilities != null) lContext.TraceError("received capability on a bye greeting");
+
+                                    mConnection.Disconnect(lContext);
+
+                                    mState = eState.stopped;
+                                    return new sConnectResult(eConnectResultCode.bye, lResponseText, null, null);
+                                }
+
+                                lContext.TraceError("unrecognised response: {0}", lLines);
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        mConnection.Disconnect(lContext);
+                        mState = eState.stopped;
+                        throw;
+                    }
+                }
+
+                public void SetCapabilities(cCapabilities pCapabilities, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetCapabilities));
+
+                    if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
+                    if (mState != eState.connected) throw new InvalidOperationException();
                     if (pCapabilities == null) throw new ArgumentNullException(nameof(pCapabilities));
+
                     mLiteralPlus = pCapabilities.LiteralPlus;
                     mLiteralMinus = pCapabilities.LiteralMinus;
+                }
+
+                public bool TLSInstalled => mConnection.TLSInstalled;
+
+                public void InstallTLS(cTrace.cContext pParentContext) 
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(InstallTLS));
+
+                    if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
+                    if (mState != eState.connected) throw new InvalidOperationException();
+
+                    mConnection.InstallTLS(lContext);
+                }
+
+                public bool SASLSecurityInstalled => mConnection.SASLSecurityInstalled;
+
+                public void InstallSASLSecurity(cSASLSecurity pSASLSecurity, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(InstallSASLSecurity));
+
+                    if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
+                    if (mState != eState.connected) throw new InvalidOperationException();
+
+                    mConnection.InstallSASLSecurity(pSASLSecurity, lContext);
                 }
 
                 public void Enable(cMailboxCache pMailboxCache, cCapabilities pCapabilities, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(Enable));
 
-                    if (mMailboxCache != null) throw new InvalidOperationException();
+                    if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
+                    if (mState != eState.connected) throw new InvalidOperationException();
 
                     if (pMailboxCache == null) throw new ArgumentNullException(nameof(pMailboxCache));
                     if (pCapabilities == null) throw new ArgumentNullException(nameof(pCapabilities));
+
+                    mResponseTextProcessor.Enable(pMailboxCache, lContext);
 
                     mMailboxCache = pMailboxCache;
 
@@ -108,7 +215,16 @@ namespace work.bacome.imapclient
                     mIdleCommandSupported = pCapabilities.Idle;
 
                     mBackgroundReleaser.Release(lContext); // to allow idle to start
+
+                    lock (mPipelineLock)
+                    {
+                        if (mState == eState.connected) mState = eState.enabled;
+                    }
                 }
+
+                public void Install(iResponseTextCodeParser pResponseTextCodeParser) => mResponseTextProcessor.Install(pResponseTextCodeParser);
+                public void Install(iResponseDataParser pResponseDataParser) => mResponseDataParsers.Add(pResponseDataParser);
+                public void Install(cUnsolicitedDataProcessor pUnsolicitedDataProcessor) => mUnsolicitedDataProcessors.Add(pUnsolicitedDataProcessor);
 
                 public void SetIdleConfiguration(cIdleConfiguration pConfiguration, cTrace.cContext pParentContext)
                 {
@@ -121,6 +237,7 @@ namespace work.bacome.imapclient
                 public async Task<cExclusiveAccess.cToken> GetIdleBlockTokenAsync(cMethodControl pMC, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(GetIdleBlockTokenAsync));
+                    if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
                     var lTask = mIdleBlock.GetTokenAsync(pMC, lContext);
                     mBackgroundReleaser.Release(lContext);
                     return await lTask.ConfigureAwait(false);
@@ -138,11 +255,17 @@ namespace work.bacome.imapclient
                         throw new ObjectDisposedException(nameof(cCommandPipeline));
                     }
 
+                    if (mState < eState.connected)
+                    {
+                        pCommandDetails.Disposables?.Dispose();
+                        throw new InvalidOperationException();
+                    }
+
                     cCommand lCommand;
 
                     lock (mPipelineLock)
                     {
-                        if (mStopped)
+                        if (mState == eState.stopped)
                         {
                             pCommandDetails.Disposables.Dispose();
                             throw mBackgroundTaskException;
@@ -164,26 +287,11 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public void Stop(cTrace.cContext pParentContext)
+                public void RequestStop(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(Stop));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(RequestStop));
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
-                    if (mStopped) return;
                     mBackgroundCancellationTokenSource.Cancel();
-
-                    // note: the following line has caused problems
-                    //  the issue is that if the thread that runs it is the one that is currently running the background task then this will lock up (as it then waits for itself to exit)
-                    //   this can happen if a commandhook calls this directly
-                    //    (the change I did to discover the problem was to move the "cSession.Disconnect" from the "LogoutAsync" to the "cLogoutCommandHook")
-                    //    (I did this because the problem with not doing it on the commandhook was that the pipeline was going back to waiting for responses and then the server closed the connection on it,
-                    //      causing it to complain that something unexpected had happened - now there is an explicit check in the backgroundtask loop on the cancellationtokensource)
-                    //
-                    //  I worry that this points to a possible general problem with the task architecture I have used. It is possible that the command pipeline may have been better on a dedicated thread
-                    //   (then I could check before the wait if the current thread was the pipeline thread and not do the wait) (the explicit check would still be required in the backgroundtask loop)
-                    //
-                    //  At this stage my advice to myself is: don't call this directly from a commandhook
-                    //
-                    mBackgroundTask.Wait();
                 }
 
                 private async Task ZBackgroundTaskAsync(cTrace.cContext pParentContext)
@@ -219,8 +327,13 @@ namespace work.bacome.imapclient
                                     await mBackgroundReleaser.GetAwaitReleaseTask(lContext).ConfigureAwait(false);
                                 }
                             }
-
-                            if (mBackgroundCancellationTokenSource.IsCancellationRequested) throw new OperationCanceledException();
+                        
+                            if (mBackgroundCancellationTokenSource.IsCancellationRequested)
+                            {
+                                lContext.TraceInformation("the pipeline is stopping as requested");
+                                mBackgroundTaskException = new cPipelineStoppedException();
+                                break;
+                            }
                         }
                     }
                     catch (cUnilateralByeException e)
@@ -246,16 +359,16 @@ namespace work.bacome.imapclient
                         mBackgroundTaskException = new cPipelineStoppedException(e, lContext);
                     }
 
+                    mConnection.Disconnect(lContext);
+
                     lock (mPipelineLock)
                     {
-                        mStopped = true;
+                        mState = eState.stopped;
                     }
 
                     foreach (var lCommand in mActiveCommands) lCommand.SetException(mBackgroundTaskException, lContext);
                     if (mCurrentCommand != null) mCurrentCommand.SetException(mBackgroundTaskException, lContext);
                     foreach (var lCommand in mQueuedCommands) lCommand.SetException(mBackgroundTaskException, lContext);
-
-                    mDisconnect(lContext);
                 }
 
                 private async Task ZSendAsync(cTrace.cContext pParentContext)
@@ -943,6 +1056,12 @@ namespace work.bacome.imapclient
                     if (mBackgroundCancellationTokenSource != null)
                     {
                         try { mBackgroundCancellationTokenSource.Dispose(); }
+                        catch { }
+                    }
+
+                    if (mConnection != null)
+                    {
+                        try { mConnection.Dispose(); }
                         catch { }
                     }
 

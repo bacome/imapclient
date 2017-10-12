@@ -14,12 +14,9 @@ namespace work.bacome.imapclient
 
             private eConnectionState _ConnectionState = eConnectionState.notconnected;
 
-            private readonly cConnection mConnection = new cConnection();
-
             private readonly cCallbackSynchroniser mSynchroniser;
-            private readonly fMailboxCacheData mMailboxCacheData;
             private readonly fCapabilities mIgnoreCapabilities;
-            private readonly cResponseTextProcessor mResponseTextProcessor;
+            private readonly fMailboxCacheData mMailboxCacheData;
             private readonly cCommandPipeline mPipeline;
 
             private cBatchSizer mFetchCacheItemsSizer;
@@ -52,9 +49,8 @@ namespace work.bacome.imapclient
                 mSynchroniser = pSynchroniser;
                 mIgnoreCapabilities = pIgnoreCapabilities;
                 mMailboxCacheData = pMailboxCacheData;
-                mResponseTextProcessor = new cResponseTextProcessor(mSynchroniser);
 
-                mPipeline = new cCommandPipeline(pSynchroniser, mConnection, mResponseTextProcessor, pIdleConfiguration, Disconnect, lContext);
+                mPipeline = new cCommandPipeline(pSynchroniser, pIdleConfiguration, lContext);
 
                 mFetchCacheItemsSizer = new cBatchSizer(pFetchCacheItemsConfiguration);
                 mFetchBodyReadSizer = new cBatchSizer(pFetchBodyReadConfiguration);
@@ -65,7 +61,7 @@ namespace work.bacome.imapclient
                 else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
             }
 
-            public bool TLSInstalled => mConnection.TLSInstalled;
+            public bool TLSInstalled => mPipeline.TLSInstalled;
 
             public void SetEnabled(cTrace.cContext pParentContext)
             {
@@ -87,9 +83,7 @@ namespace work.bacome.imapclient
 
                 mMailboxCache = new cMailboxCache(mSynchroniser, mMailboxCacheData, mCommandPartFactory, mCapabilities, ZSetState);
 
-                mResponseTextProcessor.Install(new cResponseTextCodeParserSelect(mCapabilities));
-                mResponseTextProcessor.Enable(mMailboxCache, lContext);
-
+                mPipeline.Install(new cResponseTextCodeParserSelect(mCapabilities));
                 mPipeline.Install(new cResponseDataParserSelect());
                 mPipeline.Install(new cResponseDataParserFetch());
                 mPipeline.Install(new cResponseDataParserList(lUTF8Enabled));
@@ -185,7 +179,7 @@ namespace work.bacome.imapclient
                 mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.ConnectedAccountId), lContext);
             }
 
-            public bool SASLSecurityInstalled => mConnection?.SASLSecurityInstalled ?? false;
+            public bool SASLSecurityInstalled => mPipeline.SASLSecurityInstalled;
 
             public cNamespaceNames NamespaceNames => mNamespaceDataProcessor?.NamespaceNames;
 
@@ -202,24 +196,9 @@ namespace work.bacome.imapclient
             public void Disconnect(cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(Disconnect));
-
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState >= eConnectionState.disconnecting) return;
-
-                ZSetState(eConnectionState.disconnecting, lContext);
-
-                if (mPipeline != null)
-                {
-                    try { mPipeline.Stop(lContext); }
-                    catch { }
-                }
-
-                if (mConnection != null)
-                {
-                    try { mConnection.Disconnect(lContext); }
-                    catch { }
-                }
-
+                if (_ConnectionState == eConnectionState.disconnected) return;
+                mPipeline.RequestStop(lContext);
                 ZSetState(eConnectionState.disconnected, lContext);
             }
 
@@ -254,12 +233,6 @@ namespace work.bacome.imapclient
                 if (mPipeline != null)
                 {
                     try { mPipeline.Dispose(); }
-                    catch { }
-                }
-
-                if (mConnection != null)
-                {
-                    try { mConnection.Dispose(); }
                     catch { }
                 }
 

@@ -109,6 +109,7 @@
     <Compile Include="session\command_hooks\commandhookinitial.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
+    <Compile Include="session\support\connectresult.cs" />
     <Compile Include="session\imap_commands\selected\copy\commandhook.cs" />
     <Compile Include="session\imap_commands\selected\copy\copy.cs" />
     <Compile Include="session\imap_commands\selected\copy\uidcopy.cs" />
@@ -212,8 +213,8 @@
     <Compile Include="session\command_hooks\commandhookselect.cs" />
     <Compile Include="session\command_pipeline\commandpipeline.cs" />
     <Compile Include="session\command_pipeline\activecommands.cs" />
-    <Compile Include="session\connection\connection.cs" />
-    <Compile Include="session\connection\responsebuilder.cs" />
+    <Compile Include="session\command_pipeline\connection.cs" />
+    <Compile Include="session\command_pipeline\responsebuilder.cs" />
     <Compile Include="session\fetch\decoder.cs" />
     <Compile Include="session\imap_commands\not_authenticated\authenticate.cs" />
     <Compile Include="session\imap_commands\any_state\capability.cs" />
@@ -255,7 +256,7 @@
     <Compile Include="support\batchsizer.cs" />
     <Compile Include="session\support\messagecacheitem.cs" />
     <Compile Include="session\support\processors.cs" />
-    <Compile Include="session\support\responsetextprocessor.cs" />
+    <Compile Include="session\command_pipeline\responsetextprocessor.cs" />
     <Compile Include="exposed_interfaces\support\types\status.cs" />
     <Compile Include="support\body.cs" />
     <Compile Include="support\callbacksynchroniser.cs" />
