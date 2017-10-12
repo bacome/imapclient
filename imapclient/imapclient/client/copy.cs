@@ -25,6 +25,15 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        public cCopyFeedback Copy(IEnumerable<cMessage> pSourceMessages, cMailbox pDestinationMailbox)
+        {
+            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Copy), 3);
+            if (pDestinationMailbox == null) throw new ArgumentNullException(nameof(pDestinationMailbox));
+            var lTask = ZCopyAsync(cMessageHandleList.FromMessages(pSourceMessages), pDestinationMailbox.Handle, lContext);
+            mSynchroniser.Wait(lTask, lContext);
+            return lTask.Result;
+        }
+
         public Task<cCopyFeedback> CopyAsync(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 1);
@@ -35,6 +44,13 @@ namespace work.bacome.imapclient
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 2);
             return ZCopyAsync(cMessageHandleList.FromHandles(pSourceHandles), pDestinationHandle, lContext);
+        }
+
+        public Task<cCopyFeedback> CopyAsync(IEnumerable<cMessage> pSourceMessages, cMailbox pDestinationMailbox)
+        {
+            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 3);
+            if (pDestinationMailbox == null) throw new ArgumentNullException(nameof(pDestinationMailbox));
+            return ZCopyAsync(cMessageHandleList.FromMessages(pSourceMessages), pDestinationMailbox.Handle, lContext);
         }
 
         private async Task<cCopyFeedback> ZCopyAsync(cMessageHandleList pSourceHandles, iMailboxHandle pDestinationHandle, cTrace.cContext pParentContext)

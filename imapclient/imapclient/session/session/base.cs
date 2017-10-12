@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Text;
 using work.bacome.async;
 using work.bacome.imapclient.support;

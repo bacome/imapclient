@@ -170,6 +170,19 @@ namespace work.bacome.imapclient
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
                     if (mStopped) return;
                     mBackgroundCancellationTokenSource.Cancel();
+
+                    // note: the following line has caused problems
+                    //  the issue is that if the thread that runs it is the one that is currently running the background task then this will lock up (as it then waits for itself to exit)
+                    //   this can happen if a commandhook calls this directly
+                    //    (the change I did to discover the problem was to move the "cSession.Disconnect" from the "LogoutAsync" to the "cLogoutCommandHook")
+                    //    (I did this because the problem with not doing it on the commandhook was that the pipeline was going back to waiting for responses and then the server closed the connection on it,
+                    //      causing it to complain that something unexpected had happened - now there is an explicit check in the backgroundtask loop on the cancellationtokensource)
+                    //
+                    //  I worry that this points to a possible general problem with the task architecture I have used. It is possible that the command pipeline may have been better on a dedicated thread
+                    //   (then I could check before the wait if the current thread was the pipeline thread and not do the wait) (the explicit check would still be required in the backgroundtask loop)
+                    //
+                    //  At this stage my advice to myself is: don't call this directly from a commandhook
+                    //
                     mBackgroundTask.Wait();
                 }
 
@@ -206,6 +219,8 @@ namespace work.bacome.imapclient
                                     await mBackgroundReleaser.GetAwaitReleaseTask(lContext).ConfigureAwait(false);
                                 }
                             }
+
+                            if (mBackgroundCancellationTokenSource.IsCancellationRequested) throw new OperationCanceledException();
                         }
                     }
                     catch (cUnilateralByeException e)

@@ -117,6 +117,30 @@ namespace work.bacome.imapclient
             mFlags = pFlags;
         }
 
+        public cStoreFeedback(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cSettableFlags pFlags)
+        {
+            if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
+            if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
+
+            object lCache = null;
+
+            cMessageHandleList lHandles = new cMessageHandleList();
+
+            foreach (var lMessage in pMessages)
+            {
+                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains nulls");
+                var lHandle = lMessage.Handle;
+                if (lCache == null) lCache = lHandle.Cache;
+                else if (!ReferenceEquals(lHandle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains mixed caches");
+                lHandles.Add(lHandle);
+
+            }
+
+            mItems = new List<cStoreFeedbackItem>(from lHandle in lHandles.Distinct() select new cStoreFeedbackItem(lHandle));
+            mOperation = pOperation;
+            mFlags = pFlags;
+        }
+
         public bool AllHaveUID => mItems.TrueForAll(i => i.Handle.UID != null);
 
         public sStoreFeedbackSummary Summary()

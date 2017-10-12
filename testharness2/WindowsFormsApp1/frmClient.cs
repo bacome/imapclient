@@ -429,7 +429,8 @@ namespace testharness2
 
             try
             {
-                mClient.IdleConfiguration = new cIdleConfiguration(int.Parse(txtIdleStartDelay.Text), int.Parse(txtIdleRestartInterval.Text), int.Parse(txtIdlePollInterval.Text));
+                if (chkIdleAuto.Checked) mClient.IdleConfiguration = new cIdleConfiguration(int.Parse(txtIdleStartDelay.Text), int.Parse(txtIdleRestartInterval.Text), int.Parse(txtIdlePollInterval.Text));
+                else mClient.IdleConfiguration = null;
             }
             catch (Exception ex)
             {

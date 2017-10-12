@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cCopyFeedback));
-            foreach (var lItem in mItems) lBuilder.Append(lItem);
+            foreach (var lItem in mItems) lBuilder.Append($"{lItem.Source}->{lItem.Destination}");
             return lBuilder.ToString();
         }
     }

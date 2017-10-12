@@ -149,10 +149,10 @@ namespace testharness2
             {
                 if (mProgressBar)
                 {
-                    lProgress = new frmProgress("loading new messages");
+                    lProgress = new frmProgress("loading new messages", e.Handles.Count);
                     Program.Centre(lProgress, this);
                     lProgress.Show();
-                    cMessageFetchConfiguration lConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, lProgress.SetCount, lProgress.Increment);
+                    cPropertyFetchConfiguration lConfiguration = new cPropertyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
                     ZMessagesLoadingAdd(lProgress); // so it can be cancelled from code
                     lMessages = await mSelectedMailbox.MessagesAsync(e.Handles, mClient.DefaultCacheItems, lConfiguration);
                 }
@@ -611,7 +611,7 @@ namespace testharness2
             MessageBox.Show(this, $"(some of) the messages don't appear to have been updated: {lSummary}");
         }
 
-        private void cmdCopyTo_Click(object sender, EventArgs e)
+        private async void cmdCopyTo_Click(object sender, EventArgs e)
         {
             var lBindingSource = dgvMessages.DataSource as BindingSource;
 
@@ -631,8 +631,14 @@ namespace testharness2
 
             cCopyFeedback lFeedback;
 
-            try { lFeedback = await mClient.CopyAsync(lMessages,  }
+            try { lFeedback = await mClient.CopyAsync(lMessages, lMailbox); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"copy error\n{ex}");
+                return;
+            }
 
+            if (!IsDisposed && lFeedback != null) MessageBox.Show(this, $"copied {lFeedback}");
         }
 
         private void frmSelectedMailbox_FormClosing(object sender, FormClosingEventArgs e)
