@@ -307,7 +307,7 @@ namespace testharness2
             {
                 await mSubscribedMailbox.SelectAsync();
                 if (IsDisposed) return;
-                mDisplaySelectedMailbox(this);
+                if (chkOpenOnSelect.Checked) mDisplaySelectedMailbox(this);
             }
             catch (Exception ex)
             {
@@ -321,7 +321,7 @@ namespace testharness2
             {
                 await mSubscribedMailbox.SelectAsync(true);
                 if (IsDisposed) return;
-                mDisplaySelectedMailbox(this);
+                if (chkOpenOnSelect.Checked) mDisplaySelectedMailbox(this);
             }
             catch (Exception ex)
             {

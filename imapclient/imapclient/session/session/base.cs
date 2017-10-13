@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
 
             public cSession(cCallbackSynchroniser pSynchroniser, fCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cIdleConfiguration pIdleConfiguration, cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pIdleConfiguration, pFetchCacheItemsConfiguration, pFetchBodyReadConfiguration);
+                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pMailboxCacheData, pIdleConfiguration, pFetchCacheItemsConfiguration, pFetchBodyReadConfiguration);
 
                 mSynchroniser = pSynchroniser;
                 mIgnoreCapabilities = pIgnoreCapabilities;

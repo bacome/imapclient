@@ -631,7 +631,7 @@ namespace testharness2
 
             cCopyFeedback lFeedback;
 
-            try { lFeedback = await mClient.CopyAsync(lMessages, lMailbox); }
+            try { lFeedback = await lMailbox.CopyAsync(lMessages); }
             catch (Exception ex)
             {
                 if (!IsDisposed) MessageBox.Show(this, $"copy error\n{ex}");

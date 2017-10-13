@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
             public static void _Tests(cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(_Tests));
-                cConnection._Tests(lContext);
+                cCommandPipeline._Tests(lContext);
                 cIdDataProcessor._Tests(lContext);
                 cNamespaceDataProcessor._Tests(lContext);
                 //cCommandHookList._Tests(lContext);

@@ -6,18 +6,18 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public enum eConnectResultCode { ok, preauth, bye }
+            public enum eGreetingType { ok, preauth, bye }
 
-            public struct sConnectResult
+            public struct sGreeting
             {
-                public readonly eConnectResultCode Code;
+                public readonly eGreetingType Type;
                 public readonly cResponseText ResponseText;
                 public readonly cStrings Capabilities;
                 public readonly cStrings AuthenticationMechanisms;
 
-                public sConnectResult(eConnectResultCode pCode, cResponseText pResponseText, cStrings pCapabilities, cStrings pAuthenticationMechanisms)
+                public sGreeting(eGreetingType pType, cResponseText pResponseText, cStrings pCapabilities, cStrings pAuthenticationMechanisms)
                 {
-                    Code = pCode;
+                    Type = pType;
                     ResponseText = pResponseText;
                     Capabilities = pCapabilities;
                     AuthenticationMechanisms = pAuthenticationMechanisms;

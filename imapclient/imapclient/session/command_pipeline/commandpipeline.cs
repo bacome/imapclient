@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.async;
@@ -50,10 +51,12 @@ namespace work.bacome.imapclient
                 private Task mBackgroundTask = null; // background task
                 private Exception mBackgroundTaskException = null;
 
-                // set before enabled
-                private cMailboxCache mMailboxCache = null;
+                // can be set only before and on enable
                 private bool mLiteralPlus = false;
                 private bool mLiteralMinus = false;
+
+                // set on enable
+                private cMailboxCache mMailboxCache = null;
                 private bool mIdleCommandSupported = false;
 
                 // non-null when authenticating
@@ -78,18 +81,21 @@ namespace work.bacome.imapclient
                     mIdleConfiguration = pIdleConfiguration;
 
                     mResponseTextProcessor = new cResponseTextProcessor(pSynchroniser);
-                    mIdleBlock.Released += mBackgroundReleaser.Release; // when the idle block is removed, kick the background process
 
+                    // these depend on the cancellationtokensource being constructed
                     mBackgroundMC = new cMethodControl(System.Threading.Timeout.Infinite, mBackgroundCancellationTokenSource.Token);
                     mBackgroundReleaser = new cReleaser("commandpipeline_background", mBackgroundCancellationTokenSource.Token);
                     mBackgroundAwaiter = new cAwaiter(mBackgroundCancellationTokenSource.Token);
+
+                    // plumbing
+                    mIdleBlock.Released += mBackgroundReleaser.Release; // when the idle block is removed, kick the background process
                 }
 
                 private static readonly cBytes kAsteriskSpaceOKSpace = new cBytes("* OK ");
                 private static readonly cBytes kAsteriskSpacePreAuthSpace = new cBytes("* PREAUTH ");
                 private static readonly cBytes kAsteriskSpaceBYESpace = new cBytes("* BYE ");
 
-                public async Task<sConnectResult> ConnectAsync(cMethodControl pMC, cServer pServer, cTrace.cContext pParentContext)
+                public async Task<sGreeting> ConnectAsync(cMethodControl pMC, cServer pServer, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ConnectAsync), pMC, pServer);
 
@@ -122,7 +128,7 @@ namespace work.bacome.imapclient
 
                                     mState = eState.connected;
                                     mBackgroundTask = ZBackgroundTaskAsync(lContext);
-                                    return new sConnectResult(eConnectResultCode.ok, null, lHook.Capabilities, lHook.AuthenticationMechanisms);
+                                    return new sGreeting(eGreetingType.ok, null, lHook.Capabilities, lHook.AuthenticationMechanisms);
                                 }
 
                                 if (lCursor.SkipBytes(kAsteriskSpacePreAuthSpace))
@@ -132,7 +138,7 @@ namespace work.bacome.imapclient
 
                                     mState = eState.connected;
                                     mBackgroundTask = ZBackgroundTaskAsync(lContext);
-                                    return new sConnectResult(eConnectResultCode.preauth, lResponseText, lHook.Capabilities, lHook.AuthenticationMechanisms);
+                                    return new sGreeting(eGreetingType.preauth, lResponseText, lHook.Capabilities, lHook.AuthenticationMechanisms);
                                 }
 
                                 if (lCursor.SkipBytes(kAsteriskSpaceBYESpace))
@@ -145,7 +151,7 @@ namespace work.bacome.imapclient
                                     mConnection.Disconnect(lContext);
 
                                     mState = eState.stopped;
-                                    return new sConnectResult(eConnectResultCode.bye, lResponseText, null, null);
+                                    return new sGreeting(eGreetingType.bye, lResponseText, null, null);
                                 }
 
                                 lContext.TraceError("unrecognised response: {0}", lLines);
@@ -244,6 +250,8 @@ namespace work.bacome.imapclient
                 }
 
                 private void ZIdleBlockReleased(cTrace.cContext pParentContext) => mBackgroundReleaser.Release(pParentContext);
+
+                public cResponseText ProcessLogoutByeResponseText(cBytesCursor pCursor, cTrace.cContext pParentContext) => mResponseTextProcessor.Process(eResponseTextType.bye, pCursor, null, pParentContext);
 
                 public async Task<cCommandResult> ExecuteAsync(cMethodControl pMC, sCommandDetails pCommandDetails, cTrace.cContext pParentContext)
                 {
@@ -909,7 +917,6 @@ namespace work.bacome.imapclient
                         {
                             lContext.TraceVerbose("got a unilateral bye");
                             cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.bye, pCursor, null, lContext);
-                            mConnection.Disconnect(lContext);
                             throw new cUnilateralByeException(lResponseText, lContext);
                         }
 
@@ -1066,6 +1073,13 @@ namespace work.bacome.imapclient
                     }
 
                     mDisposed = true;
+                }
+
+                [Conditional("DEBUG")]
+                public static void _Tests(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(_Tests));
+                    cConnection._Tests(lContext);
                 }
             }
         }

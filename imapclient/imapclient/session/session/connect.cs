@@ -19,30 +19,30 @@ namespace work.bacome.imapclient
                 if (_ConnectionState != eConnectionState.notconnected) throw new InvalidOperationException();
                 ZSetState(eConnectionState.connecting, lContext);
 
-                sConnectResult lResult;
+                sGreeting lGreeting;
 
-                try { lResult = await mPipeline.ConnectAsync(pMC, pServer, lContext).ConfigureAwait(false); }
+                try { lGreeting = await mPipeline.ConnectAsync(pMC, pServer, lContext).ConfigureAwait(false); }
                 catch (Exception)
                 {
                     ZSetState(eConnectionState.disconnected, lContext);
                     throw;
                 }
 
-                if (lResult.Code == eConnectResultCode.bye)
+                if (lGreeting.Type == eGreetingType.bye)
                 {
-                    ZSetHomeServerReferral(lResult.ResponseText, lContext);
                     ZSetState(eConnectionState.disconnected, lContext);
-                    throw new cConnectByeException(lResult.ResponseText, lContext);
+                    if (ZSetHomeServerReferral(lGreeting.ResponseText, lContext)) throw new cHomeServerReferralException(lGreeting.ResponseText, lContext);
+                    throw new cConnectByeException(lGreeting.ResponseText, lContext);
                 }
 
-                if (lResult.Capabilities != null)
+                if (lGreeting.Capabilities != null)
                 {
-                    mCapabilities = new cCapabilities(lResult.Capabilities, lResult.AuthenticationMechanisms, mIgnoreCapabilities);
+                    mCapabilities = new cCapabilities(lGreeting.Capabilities, lGreeting.AuthenticationMechanisms, mIgnoreCapabilities);
                     mPipeline.SetCapabilities(mCapabilities, lContext);
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
                 }
 
-                if (lResult.Code == eConnectResultCode.ok)
+                if (lGreeting.Type == eGreetingType.ok)
                 {
                     ZSetState(eConnectionState.notauthenticated, lContext);
                     return;
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
 
                 // preauth
 
-                ZSetHomeServerReferral(lResult.ResponseText, lContext);
+                ZSetHomeServerReferral(lGreeting.ResponseText, lContext);
                 ZSetConnectedAccountId(new cAccountId(pServer.Host, eAccountType.none), lContext);
             }
 

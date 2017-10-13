@@ -109,7 +109,7 @@
     <Compile Include="session\command_hooks\commandhookinitial.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
-    <Compile Include="session\support\connectresult.cs" />
+    <Compile Include="session\support\greeting.cs" />
     <Compile Include="session\imap_commands\selected\copy\commandhook.cs" />
     <Compile Include="session\imap_commands\selected\copy\copy.cs" />
     <Compile Include="session\imap_commands\selected\copy\uidcopy.cs" />

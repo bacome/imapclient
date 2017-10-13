@@ -185,8 +185,10 @@ namespace testharness2
             ZSetControlStateCredentials();
         }
 
-        private void ZValTextBoxNotBlank(object sender, CancelEventArgs e)
+        private void ZValTextBoxNotBlank(object sender, CancelEventArgs e) 
         {
+            cValidation.TextBoxNotBlank(sender, e);
+
             if (!(sender is TextBox lSender)) return;
 
             if (string.IsNullOrWhiteSpace(lSender.Text))

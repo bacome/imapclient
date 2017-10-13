@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(kLogoutCommandPart);
 
-                    var lHook = new cLogoutCommandHook(mResponseTextProcessor);
+                    var lHook = new cLogoutCommandHook(mPipeline);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
@@ -49,11 +49,11 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kByeSpace = new cBytes("BYE ");
 
-                private readonly cResponseTextProcessor mResponseTextProcessor;
+                private readonly cCommandPipeline mPipeline;
 
-                public cLogoutCommandHook(cResponseTextProcessor pResponseTextProcessor)
+                public cLogoutCommandHook(cCommandPipeline pPipeline)
                 {
-                    mResponseTextProcessor = pResponseTextProcessor;
+                    mPipeline = pPipeline;
                 }
 
                 public bool GotBye { get; private set; } = false;
@@ -64,7 +64,7 @@ namespace work.bacome.imapclient
 
                     if (pCursor.SkipBytes(kByeSpace))
                     {
-                        cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.bye, pCursor, null, lContext);
+                        cResponseText lResponseText = mPipeline.ProcessLogoutByeResponseText(pCursor, lContext);
                         lContext.TraceVerbose("got bye: {0}", lResponseText);
                         GotBye = true;
                         return eProcessDataResult.processed;
@@ -76,8 +76,7 @@ namespace work.bacome.imapclient
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cLogoutCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType = eCommandResultType.ok) return;
-                    mco
+                    if (pResult.ResultType == eCommandResultType.ok) mPipeline.RequestStop(lContext);
                 }
             }
         }
