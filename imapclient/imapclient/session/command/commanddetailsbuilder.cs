@@ -16,86 +16,86 @@ namespace work.bacome.imapclient
             private sealed class cCommandDetailsBuilder : IDisposable
             {
                 // search
-                private static readonly cCommandPart kCommandPartCharsetSpace = new cCommandPart("CHARSET ");
-                private static readonly cCommandPart kCommandPartUSASCIISpace = new cCommandPart("US-ASCII ");
-                private static readonly cCommandPart kCommandPartUTF8Space = new cCommandPart("UTF-8 ");
-                private static readonly cCommandPart kCommandPartAll = new cCommandPart("ALL");
-                private static readonly cCommandPart kCommandPartUIDSpace = new cCommandPart("UID ");
-                private static readonly cCommandPart kCommandPartAnswered = new cCommandPart("ANSWERED");
-                private static readonly cCommandPart kCommandPartFlagged = new cCommandPart("FLAGGED");
-                private static readonly cCommandPart kCommandPartDeleted = new cCommandPart("DELETED");
-                private static readonly cCommandPart kCommandPartSeen = new cCommandPart("SEEN");
-                private static readonly cCommandPart kCommandPartDraft = new cCommandPart("DRAFT");
-                private static readonly cCommandPart kCommandPartRecent = new cCommandPart("RECENT");
-                private static readonly cCommandPart kCommandPartUnanswered = new cCommandPart("UNANSWERED");
-                private static readonly cCommandPart kCommandPartUnflagged = new cCommandPart("UNFLAGGED");
-                private static readonly cCommandPart kCommandPartUndeleted = new cCommandPart("UNDELETED");
-                private static readonly cCommandPart kCommandPartUnseen = new cCommandPart("UNSEEN");
-                private static readonly cCommandPart kCommandPartUndraft = new cCommandPart("UNDRAFT");
-                private static readonly cCommandPart kCommandPartOld = new cCommandPart("OLD");
-                private static readonly cCommandPart kCommandPartKeywordSpace = new cCommandPart("KEYWORD ");
-                private static readonly cCommandPart kCommandPartUnkeywordSpace = new cCommandPart("UNKEYWORD ");
-                private static readonly cCommandPart kCommandPartBCCSpace = new cCommandPart("BCC ");
-                private static readonly cCommandPart kCommandPartBodySpace = new cCommandPart("BODY ");
-                private static readonly cCommandPart kCommandPartCCSpace = new cCommandPart("CC ");
-                private static readonly cCommandPart kCommandPartFromSpace = new cCommandPart("FROM ");
-                private static readonly cCommandPart kCommandPartSubjectSpace = new cCommandPart("SUBJECT ");
-                private static readonly cCommandPart kCommandPartTextSpace = new cCommandPart("TEXT ");
-                private static readonly cCommandPart kCommandPartToSpace = new cCommandPart("TO ");
-                private static readonly cCommandPart kCommandPartBeforeSpace = new cCommandPart("BEFORE ");
-                private static readonly cCommandPart kCommandPartOnSpace = new cCommandPart("ON ");
-                private static readonly cCommandPart kCommandPartSinceSpace = new cCommandPart("SINCE ");
-                private static readonly cCommandPart kCommandPartSentBeforeSpace = new cCommandPart("SENTBEFORE ");
-                private static readonly cCommandPart kCommandPartSentOnSpace = new cCommandPart("SENTON ");
-                private static readonly cCommandPart kCommandPartSentSinceSpace = new cCommandPart("SENTSINCE ");
-                private static readonly cCommandPart kCommandPartHeaderSpace = new cCommandPart("HEADER ");
-                private static readonly cCommandPart kCommandPartLargerSpace = new cCommandPart("LARGER ");
-                private static readonly cCommandPart kCommandPartSmallerSpace = new cCommandPart("SMALLER ");
-                private static readonly cCommandPart kCommandPartOrSpace = new cCommandPart("OR ");
-                private static readonly cCommandPart kCommandPartNotSpace = new cCommandPart("NOT ");
+                private static readonly cCommandPart kCommandPartCharsetSpace = new cMemoryCommandPart("CHARSET ");
+                private static readonly cCommandPart kCommandPartUSASCIISpace = new cMemoryCommandPart("US-ASCII ");
+                private static readonly cCommandPart kCommandPartUTF8Space = new cMemoryCommandPart("UTF-8 ");
+                private static readonly cCommandPart kCommandPartAll = new cMemoryCommandPart("ALL");
+                private static readonly cCommandPart kCommandPartUIDSpace = new cMemoryCommandPart("UID ");
+                private static readonly cCommandPart kCommandPartAnswered = new cMemoryCommandPart("ANSWERED");
+                private static readonly cCommandPart kCommandPartFlagged = new cMemoryCommandPart("FLAGGED");
+                private static readonly cCommandPart kCommandPartDeleted = new cMemoryCommandPart("DELETED");
+                private static readonly cCommandPart kCommandPartSeen = new cMemoryCommandPart("SEEN");
+                private static readonly cCommandPart kCommandPartDraft = new cMemoryCommandPart("DRAFT");
+                private static readonly cCommandPart kCommandPartRecent = new cMemoryCommandPart("RECENT");
+                private static readonly cCommandPart kCommandPartUnanswered = new cMemoryCommandPart("UNANSWERED");
+                private static readonly cCommandPart kCommandPartUnflagged = new cMemoryCommandPart("UNFLAGGED");
+                private static readonly cCommandPart kCommandPartUndeleted = new cMemoryCommandPart("UNDELETED");
+                private static readonly cCommandPart kCommandPartUnseen = new cMemoryCommandPart("UNSEEN");
+                private static readonly cCommandPart kCommandPartUndraft = new cMemoryCommandPart("UNDRAFT");
+                private static readonly cCommandPart kCommandPartOld = new cMemoryCommandPart("OLD");
+                private static readonly cCommandPart kCommandPartKeywordSpace = new cMemoryCommandPart("KEYWORD ");
+                private static readonly cCommandPart kCommandPartUnkeywordSpace = new cMemoryCommandPart("UNKEYWORD ");
+                private static readonly cCommandPart kCommandPartBCCSpace = new cMemoryCommandPart("BCC ");
+                private static readonly cCommandPart kCommandPartBodySpace = new cMemoryCommandPart("BODY ");
+                private static readonly cCommandPart kCommandPartCCSpace = new cMemoryCommandPart("CC ");
+                private static readonly cCommandPart kCommandPartFromSpace = new cMemoryCommandPart("FROM ");
+                private static readonly cCommandPart kCommandPartSubjectSpace = new cMemoryCommandPart("SUBJECT ");
+                private static readonly cCommandPart kCommandPartTextSpace = new cMemoryCommandPart("TEXT ");
+                private static readonly cCommandPart kCommandPartToSpace = new cMemoryCommandPart("TO ");
+                private static readonly cCommandPart kCommandPartBeforeSpace = new cMemoryCommandPart("BEFORE ");
+                private static readonly cCommandPart kCommandPartOnSpace = new cMemoryCommandPart("ON ");
+                private static readonly cCommandPart kCommandPartSinceSpace = new cMemoryCommandPart("SINCE ");
+                private static readonly cCommandPart kCommandPartSentBeforeSpace = new cMemoryCommandPart("SENTBEFORE ");
+                private static readonly cCommandPart kCommandPartSentOnSpace = new cMemoryCommandPart("SENTON ");
+                private static readonly cCommandPart kCommandPartSentSinceSpace = new cMemoryCommandPart("SENTSINCE ");
+                private static readonly cCommandPart kCommandPartHeaderSpace = new cMemoryCommandPart("HEADER ");
+                private static readonly cCommandPart kCommandPartLargerSpace = new cMemoryCommandPart("LARGER ");
+                private static readonly cCommandPart kCommandPartSmallerSpace = new cMemoryCommandPart("SMALLER ");
+                private static readonly cCommandPart kCommandPartOrSpace = new cMemoryCommandPart("OR ");
+                private static readonly cCommandPart kCommandPartNotSpace = new cMemoryCommandPart("NOT ");
 
                 // sort
-                private static readonly cCommandPart kCommandPartReverse = new cCommandPart("REVERSE");
-                private static readonly cCommandPart kCommandPartArrival = new cCommandPart("ARRIVAL");
-                private static readonly cCommandPart kCommandPartCC = new cCommandPart("CC");
-                private static readonly cCommandPart kCommandPartDate = new cCommandPart("DATE");
-                private static readonly cCommandPart kCommandPartFrom = new cCommandPart("FROM");
-                private static readonly cCommandPart kCommandPartSize = new cCommandPart("SIZE");
-                private static readonly cCommandPart kCommandPartSubject = new cCommandPart("SUBJECT");
-                private static readonly cCommandPart kCommandPartTo = new cCommandPart("TO");
-                private static readonly cCommandPart kCommandPartDisplayFrom = new cCommandPart("DISPLAYFROM");
-                private static readonly cCommandPart kCommandPartDisplayTo = new cCommandPart("DISPLAYTO");
+                private static readonly cCommandPart kCommandPartReverse = new cMemoryCommandPart("REVERSE");
+                private static readonly cCommandPart kCommandPartArrival = new cMemoryCommandPart("ARRIVAL");
+                private static readonly cCommandPart kCommandPartCC = new cMemoryCommandPart("CC");
+                private static readonly cCommandPart kCommandPartDate = new cMemoryCommandPart("DATE");
+                private static readonly cCommandPart kCommandPartFrom = new cMemoryCommandPart("FROM");
+                private static readonly cCommandPart kCommandPartSize = new cMemoryCommandPart("SIZE");
+                private static readonly cCommandPart kCommandPartSubject = new cMemoryCommandPart("SUBJECT");
+                private static readonly cCommandPart kCommandPartTo = new cMemoryCommandPart("TO");
+                private static readonly cCommandPart kCommandPartDisplayFrom = new cMemoryCommandPart("DISPLAYFROM");
+                private static readonly cCommandPart kCommandPartDisplayTo = new cMemoryCommandPart("DISPLAYTO");
 
                 // fetch
-                private static readonly cCommandPart kCommandPartFlags = new cCommandPart("FLAGS");
-                private static readonly cCommandPart kCommandPartEnvelope = new cCommandPart("ENVELOPE");
-                private static readonly cCommandPart kCommandPartInternalDate = new cCommandPart("INTERNALDATE");
-                private static readonly cCommandPart kCommandPartrfc822size = new cCommandPart("RFC822.SIZE");
-                private static readonly cCommandPart kCommandPartBody = new cCommandPart("BODY");
-                private static readonly cCommandPart kCommandPartBodyStructure = new cCommandPart("BODYSTRUCTURE");
-                private static readonly cCommandPart kCommandPartUID = new cCommandPart("UID");
-                private static readonly cCommandPart kCommandPartModSeq = new cCommandPart("MODSEQ");
-                private static readonly cCommandPart kCommandPartBodyPeekLBracketHeaderFieldsSpace = new cCommandPart("BODY.PEEK[HEADER.FIELDS ");
+                private static readonly cCommandPart kCommandPartFlags = new cMemoryCommandPart("FLAGS");
+                private static readonly cCommandPart kCommandPartEnvelope = new cMemoryCommandPart("ENVELOPE");
+                private static readonly cCommandPart kCommandPartInternalDate = new cMemoryCommandPart("INTERNALDATE");
+                private static readonly cCommandPart kCommandPartrfc822size = new cMemoryCommandPart("RFC822.SIZE");
+                private static readonly cCommandPart kCommandPartBody = new cMemoryCommandPart("BODY");
+                private static readonly cCommandPart kCommandPartBodyStructure = new cMemoryCommandPart("BODYSTRUCTURE");
+                private static readonly cCommandPart kCommandPartUID = new cMemoryCommandPart("UID");
+                private static readonly cCommandPart kCommandPartModSeq = new cMemoryCommandPart("MODSEQ");
+                private static readonly cCommandPart kCommandPartBodyPeekLBracketHeaderFieldsSpace = new cMemoryCommandPart("BODY.PEEK[HEADER.FIELDS ");
 
                 // fetch body
-                private static readonly cCommandPart kCommandPartHeader = new cCommandPart("HEADER");
-                private static readonly cCommandPart kCommandPartHeaderFieldsSpaceLParen = new cCommandPart("HEADER.FIELDS (");
-                private static readonly cCommandPart kCommandPartHeaderFieldsNotSpaceLParen = new cCommandPart("HEADER.FIELDS.NOT (");
-                private static readonly cCommandPart kCommandPartText = new cCommandPart("TEXT");
-                private static readonly cCommandPart kCommandPartMime = new cCommandPart("MIME");
-                private static readonly cCommandPart kCommandPartLessThan = new cCommandPart("<");
-                private static readonly cCommandPart kCommandPartGreaterThan = new cCommandPart(">");
+                private static readonly cCommandPart kCommandPartHeader = new cMemoryCommandPart("HEADER");
+                private static readonly cCommandPart kCommandPartHeaderFieldsSpaceLParen = new cMemoryCommandPart("HEADER.FIELDS (");
+                private static readonly cCommandPart kCommandPartHeaderFieldsNotSpaceLParen = new cMemoryCommandPart("HEADER.FIELDS.NOT (");
+                private static readonly cCommandPart kCommandPartText = new cMemoryCommandPart("TEXT");
+                private static readonly cCommandPart kCommandPartMime = new cMemoryCommandPart("MIME");
+                private static readonly cCommandPart kCommandPartLessThan = new cMemoryCommandPart("<");
+                private static readonly cCommandPart kCommandPartGreaterThan = new cMemoryCommandPart(">");
 
                 // status
-                private static readonly cCommandPart kCommandPartMessages = new cCommandPart("MESSAGES");
-                private static readonly cCommandPart kCommandPartUIDNext = new cCommandPart("UIDNEXT");
-                private static readonly cCommandPart kCommandPartUIDValidity = new cCommandPart("UIDVALIDITY");
-                private static readonly cCommandPart kCommandPartHighestModSeq = new cCommandPart("HIGHESTMODSEQ");
+                private static readonly cCommandPart kCommandPartMessages = new cMemoryCommandPart("MESSAGES");
+                private static readonly cCommandPart kCommandPartUIDNext = new cMemoryCommandPart("UIDNEXT");
+                private static readonly cCommandPart kCommandPartUIDValidity = new cMemoryCommandPart("UIDVALIDITY");
+                private static readonly cCommandPart kCommandPartHighestModSeq = new cMemoryCommandPart("HIGHESTMODSEQ");
 
                 // store
-                private static readonly cCommandPart kCommandPartPlusFlagsSpace = new cCommandPart("+FLAGS ");
-                private static readonly cCommandPart kCommandPartMinusFlagsSpace = new cCommandPart("-FLAGS ");
-                private static readonly cCommandPart kCommandPartFlagsSpace = new cCommandPart("FLAGS ");
+                private static readonly cCommandPart kCommandPartPlusFlagsSpace = new cMemoryCommandPart("+FLAGS ");
+                private static readonly cCommandPart kCommandPartMinusFlagsSpace = new cMemoryCommandPart("-FLAGS ");
+                private static readonly cCommandPart kCommandPartFlagsSpace = new cMemoryCommandPart("FLAGS ");
 
                 // members
                 public readonly cCommandTag Tag = new cCommandTag();

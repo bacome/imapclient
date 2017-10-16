@@ -1,49 +1,84 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace work.bacome.imapclient.support
 {
-    public enum eCommandPartType
+    public abstract class cCommandPart
+    {
+        public static readonly cCommandPart Space = new cMemoryCommandPart(" ");
+        public static readonly cCommandPart Nil = new cMemoryCommandPart("NIL");
+        public static readonly cCommandPart NilSecret = new cMemoryCommandPart("NIL", true);
+        public static readonly cCommandPart LParen = new cMemoryCommandPart("(");
+        public static readonly cCommandPart RParen = new cMemoryCommandPart(")");
+        public static readonly cCommandPart RBracket = new cMemoryCommandPart("]");
+        public static readonly cCommandPart Dot = new cMemoryCommandPart(".");
+
+        public cCommandPart() { }
+
+        public abstract bool Encoded { get; }
+    }
+
+    public class cStreamCommandPart : cCommandPart
+    {
+        public readonly Stream mStream;
+
+        ;?; // and read config
+        ;?; // and optional length (for non-seeking streams)
+
+        public cStreamCommandPart(Stream pStream)
+        {
+            if (pStream == null) throw new ArgumentNullException(nameof(pStream));
+            if (!pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
+            mStream = pStream;
+        }
+
+        public override bool Encoded => false;
+    }
+
+    public class cFileCommandPart : cCommandPart
+    {
+        public readonly x;
+
+
+        public override bool Encoded => false;
+    }
+
+    public enum eMemoryCommandPartType
     {
         text,
         literal,
         literal8
     }
 
-    public class cCommandPart
+    public class cMemoryCommandPart : cCommandPart
     {
-        public static readonly cCommandPart Space = new cCommandPart(" ");
-        public static readonly cCommandPart Nil = new cCommandPart("NIL");
-        public static readonly cCommandPart NilSecret = new cCommandPart("NIL", true);
-        public static readonly cCommandPart LParen = new cCommandPart("(");
-        public static readonly cCommandPart RParen = new cCommandPart(")");
-        public static readonly cCommandPart RBracket = new cCommandPart("]");
-        public static readonly cCommandPart Dot = new cCommandPart(".");
-
         public readonly cBytes Bytes;
-        public readonly eCommandPartType Type;
+        public readonly eMemoryCommandPartType Type;
         public readonly bool Secret;
-        public readonly bool Encoded;
         public readonly cBytes LiteralLengthBytes;
 
-        public cCommandPart(IList<byte> pBytes, eCommandPartType pType = eCommandPartType.text, bool pSecret = false, bool pEncoded = false)
+        private readonly bool mEncoded;
+
+        public cMemoryCommandPart(IList<byte> pBytes, eMemoryCommandPartType pType = eMemoryCommandPartType.text, bool pSecret = false, bool pEncoded = false)
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
             Bytes = new cBytes(pBytes);
             Type = pType;
             Secret = pSecret;
-            Encoded = pEncoded;
 
-            if (pType == eCommandPartType.text) LiteralLengthBytes = null;
+            if (pType == eMemoryCommandPartType.text) LiteralLengthBytes = null;
             else
             {
                 cByteList lBytes = cTools.IntToBytesReverse(pBytes.Count);
                 lBytes.Reverse();
                 LiteralLengthBytes = new cBytes(lBytes);
             }
+
+            mEncoded = pEncoded;
         }
 
-        public cCommandPart(string pString, bool pSecret = false)
+        public cMemoryCommandPart(string pString, bool pSecret = false)
         {
             if (string.IsNullOrEmpty(pString)) throw new ArgumentOutOfRangeException(nameof(pString));
 
@@ -56,37 +91,37 @@ namespace work.bacome.imapclient.support
             }
 
             Bytes = new cBytes(lBytes);
-            Type = eCommandPartType.text;
+            Type = eMemoryCommandPartType.text;
             Secret = pSecret;
-            Encoded = false;
             LiteralLengthBytes = null;
+            mEncoded = false;
         }
 
-        public cCommandPart(uint pNumber)
+        public cMemoryCommandPart(uint pNumber)
         {
             var lBytes = cTools.UIntToBytesReverse(pNumber);
             lBytes.Reverse();
 
             Bytes = new cBytes(lBytes);
-            Type = eCommandPartType.text;
+            Type = eMemoryCommandPartType.text;
             Secret = false;
-            Encoded = false;
             LiteralLengthBytes = null;
+            mEncoded = false;
         }
 
-        public cCommandPart(ulong pNumber)
+        public cMemoryCommandPart(ulong pNumber)
         {
             var lBytes = cTools.ULongToBytesReverse(pNumber);
             lBytes.Reverse();
 
             Bytes = new cBytes(lBytes);
-            Type = eCommandPartType.text;
+            Type = eMemoryCommandPartType.text;
             Secret = false;
-            Encoded = false;
             LiteralLengthBytes = null;
+            mEncoded = false;
         }
 
-        public cCommandPart(cSequenceSet pSequenceSet)
+        public cMemoryCommandPart(cSequenceSet pSequenceSet)
         {
             cByteList lBytes = new cByteList();
             cByteList lTemp = new cByteList();
@@ -142,15 +177,17 @@ namespace work.bacome.imapclient.support
             }
 
             Bytes = new cBytes(lBytes);
-            Type = eCommandPartType.text;
+            Type = eMemoryCommandPartType.text;
             Secret = false;
-            Encoded = false;
             LiteralLengthBytes = null;
+            mEncoded = false;
         }
+
+        public override bool Encoded => mEncoded;
 
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cCommandPart));
+            var lBuilder = new cListBuilder(nameof(cMemoryCommandPart));
 
             if (Secret) lBuilder.Append("secret");
             else

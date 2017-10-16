@@ -75,6 +75,7 @@ namespace work.bacome.imapclient
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mAppendLiteralSendConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
         private cClientIdUTF8 mClientIdUTF8 = null;
@@ -305,6 +306,18 @@ namespace work.bacome.imapclient
                 var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchBodyWriteConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 mFetchBodyWriteConfiguration = value ?? throw new ArgumentNullException();
+            }
+        }
+
+        public cBatchSizerConfiguration AppendLiteralSendConfiguration
+        {
+            get => mAppendLiteralSendConfiguration;
+
+            set
+            {
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendLiteralSendConfiguration), value);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                mAppendLiteralSendConfiguration = value ?? throw new ArgumentNullException();
             }
         }
 

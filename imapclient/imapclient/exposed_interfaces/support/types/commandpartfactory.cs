@@ -118,7 +118,7 @@ namespace work.bacome.imapclient.support
         {
             if (pString.Equals(cMailboxName.InboxString, StringComparison.InvariantCultureIgnoreCase))
             {
-                rCommandPart = new cCommandPart(cMailboxName.InboxBytes);
+                rCommandPart = new cMemoryCommandPart(cMailboxName.InboxBytes);
                 rEncodedMailboxPath = cMailboxName.InboxString;
             }
 
@@ -181,7 +181,7 @@ namespace work.bacome.imapclient.support
             lBytes.Add(cASCII.HYPEN);
             lBytes.AddRange(ZIntToBytes(pDate.Year, 4));
 
-            return new cCommandPart(lBytes);
+            return new cMemoryCommandPart(lBytes);
         }
 
         public static cCommandPart AsDateTime(DateTime pDate)
@@ -223,10 +223,10 @@ namespace work.bacome.imapclient.support
                 foreach (var lChar in lOffsetChars) lBytes.Add((byte)lChar);
             }
 
-            return new cCommandPart(lBytes);
+            return new cMemoryCommandPart(lBytes);
         }
 
-        public static cCommandPart AsLiteral8(IList<byte> pBytes) => new cCommandPart(pBytes, eCommandPartType.literal8);
+        public static cCommandPart AsLiteral8(IList<byte> pBytes) => new cMemoryCommandPart(pBytes, eMemoryCommandPartType.literal8);
 
         public static bool TryAsAtom(string pString, out cCommandPart rResult) => ZTryAsBytesInCharset(pString, cCharset.Atom, false, out rResult);
 
@@ -248,7 +248,7 @@ namespace work.bacome.imapclient.support
                 lBytes.Add((byte)lChar);
             }
 
-            rResult = new cCommandPart(lBytes, eCommandPartType.literal, pSecret);
+            rResult = new cMemoryCommandPart(lBytes, eMemoryCommandPartType.literal, pSecret);
             return true;
         }
 
@@ -328,7 +328,7 @@ namespace work.bacome.imapclient.support
                 lBytes.Add((byte)lChar);
             }
 
-            rResult = new cCommandPart(lBytes, eCommandPartType.text, pSecret);
+            rResult = new cMemoryCommandPart(lBytes, eMemoryCommandPartType.text, pSecret);
             return true;
         }
 
@@ -336,7 +336,7 @@ namespace work.bacome.imapclient.support
         {
             if (pBytes == null || pBytes.Count == 0) { rResult = null; return false; }
             foreach (byte lByte in pBytes) if (!pCharset.Contains(lByte)) { rResult = null; return false; }
-            rResult = new cCommandPart(pBytes, eCommandPartType.text, pSecret, pEncoded);
+            rResult = new cMemoryCommandPart(pBytes, eMemoryCommandPartType.text, pSecret, pEncoded);
             return true;
         }
 
@@ -344,7 +344,7 @@ namespace work.bacome.imapclient.support
         {
             if (pBytes == null) { rResult = null; return false; }
             foreach (byte lByte in pBytes) if (lByte == cASCII.NUL || lByte > cASCII.DEL) { rResult = null; return false; }
-            rResult = new cCommandPart(pBytes, eCommandPartType.literal, pSecret);
+            rResult = new cMemoryCommandPart(pBytes, eMemoryCommandPartType.literal, pSecret);
             return true;
         }
 
@@ -352,7 +352,7 @@ namespace work.bacome.imapclient.support
         {
             if (pBytes == null) { rResult = null; return false; }
             foreach (byte lByte in pBytes) if (lByte == cASCII.NUL) { rResult = null; return false; }
-            rResult = new cCommandPart(pBytes, eCommandPartType.literal, pSecret, pEncoded);
+            rResult = new cMemoryCommandPart(pBytes, eMemoryCommandPartType.literal, pSecret, pEncoded);
             return true;
         }
 
@@ -373,7 +373,7 @@ namespace work.bacome.imapclient.support
 
             lBytes.Add(cASCII.DQUOTE);
 
-            rResult = new cCommandPart(lBytes, eCommandPartType.text, pSecret);
+            rResult = new cMemoryCommandPart(lBytes, eMemoryCommandPartType.text, pSecret);
             return true;
         }
 
@@ -394,7 +394,7 @@ namespace work.bacome.imapclient.support
 
             lBytes.Add(cASCII.DQUOTE);
 
-            rResult = new cCommandPart(lBytes, eCommandPartType.text, pSecret, pEncoded);
+            rResult = new cMemoryCommandPart(lBytes, eMemoryCommandPartType.text, pSecret, pEncoded);
             return true;
         }
 
@@ -417,7 +417,7 @@ namespace work.bacome.imapclient.support
 
             lBytes.Add(cASCII.DQUOTE);
 
-            rResult = new cCommandPart(lBytes, eCommandPartType.text, pSecret);
+            rResult = new cMemoryCommandPart(lBytes, eMemoryCommandPartType.text, pSecret);
             return true;
         }
     }

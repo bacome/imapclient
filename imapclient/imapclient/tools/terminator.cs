@@ -29,6 +29,9 @@ namespace work.bacome.async
         {
             if (pTask == null) throw new ArgumentNullException(nameof(pTask));
 
+            ;?; // null task processing required
+
+
             Task[] lTasks;
 
             if (pTasks == null)
