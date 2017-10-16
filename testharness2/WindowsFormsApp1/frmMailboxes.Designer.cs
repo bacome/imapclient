@@ -280,6 +280,7 @@
             this.cmdUID.TabIndex = 3;
             this.cmdUID.Text = "UID ...";
             this.cmdUID.UseVisualStyleBackColor = true;
+            this.cmdUID.Click += new System.EventHandler(this.cmdUID_Click);
             // 
             // frmMailboxes
             // 

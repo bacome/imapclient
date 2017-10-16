@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
                 if (!pStream.CanWrite) throw new ArgumentOutOfRangeException(nameof(pStream));
 
                 // work out if binary can/should be used or not
-                bool lBinary = mCapabilities.Binary && pSection.TextPart == eSectionPart.all && pDecoding != eDecodingRequired.none;
+                bool lBinary = mCapabilities.Binary && pSection.TextPart == eSectionTextPart.all && pDecoding != eDecodingRequired.none;
 
                 cDecoder lDecoder;
 

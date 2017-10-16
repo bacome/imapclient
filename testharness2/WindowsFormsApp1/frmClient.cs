@@ -187,8 +187,6 @@ namespace testharness2
 
         private void ZValTextBoxNotBlank(object sender, CancelEventArgs e) 
         {
-            cValidation.TextBoxNotBlank(sender, e);
-
             if (!(sender is TextBox lSender)) return;
 
             if (string.IsNullOrWhiteSpace(lSender.Text))
@@ -643,7 +641,7 @@ namespace testharness2
             if (chkMLSub.Checked) lDataSets |= fMailboxCacheDataSets.lsub;
             if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
 
-            ZUnnamedChildAdd(new frmMailboxes(mClient, false, lDataSets, ZDisplaySelectedMailbox));
+            ZUnnamedChildAdd(new frmMailboxes(mClient, false, lDataSets, ZDisplaySelectedMailbox, ZDisplayUID));
         }
 
         private void cmdSubscriptions_Click(object sender, EventArgs e)
@@ -654,7 +652,7 @@ namespace testharness2
             if (chkMLSub.Checked) lDataSets |= fMailboxCacheDataSets.lsub;
             if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
 
-            ZUnnamedChildAdd(new frmMailboxes(mClient, true, lDataSets, ZDisplaySelectedMailbox));
+            ZUnnamedChildAdd(new frmMailboxes(mClient, true, lDataSets, ZDisplaySelectedMailbox, ZDisplayUID));
         }
 
         private void cmdSelectedMailbox_Click(object sender, EventArgs e)
@@ -666,6 +664,17 @@ namespace testharness2
         {
             if (mNamedChildren.TryGetValue(nameof(frmSelectedMailbox), out var lForm)) Program.Focus(lForm);
             else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSMMessages.Text), int.Parse(txtSMTextBytes.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked));
+        }
+
+        private void cmdUID_Click(object sender, EventArgs e)
+        {
+            ZDisplayUID(this);
+        }
+
+        private void ZDisplayUID(Form pForm)
+        {
+            if (mNamedChildren.TryGetValue(nameof(frmUID), out var lForm)) Program.Focus(lForm);
+            else ZNamedChildAdd(new frmUID(mClient));
         }
 
         private void cmdSort_Click(object sender, EventArgs e)

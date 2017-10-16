@@ -12,6 +12,7 @@ namespace work.bacome.imapclient
         {
             private bool mDisposed = false;
 
+            private object mConnectionStateLock = new object();
             private eConnectionState _ConnectionState = eConnectionState.notconnected;
 
             private readonly cCallbackSynchroniser mSynchroniser;
@@ -50,7 +51,7 @@ namespace work.bacome.imapclient
                 mIgnoreCapabilities = pIgnoreCapabilities;
                 mMailboxCacheData = pMailboxCacheData;
 
-                mPipeline = new cCommandPipeline(pSynchroniser, pIdleConfiguration, lContext);
+                mPipeline = new cCommandPipeline(pSynchroniser, ZDisconnected, pIdleConfiguration, lContext);
 
                 mFetchCacheItemsSizer = new cBatchSizer(pFetchCacheItemsConfiguration);
                 mFetchBodyReadSizer = new cBatchSizer(pFetchBodyReadConfiguration);
@@ -139,10 +140,27 @@ namespace work.bacome.imapclient
             private void ZSetState(eConnectionState pConnectionState, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetState), pConnectionState);
-                if (pConnectionState == _ConnectionState) return;
-                bool lIsUnconnected = IsUnconnected;
-                bool lIsConnected = IsConnected;
-                _ConnectionState = pConnectionState;
+
+                bool lIsUnconnected;
+                bool lIsConnected;
+
+                // the lock is required because state can be changed by;
+                //  the user's thread (via calls to Connect or Disconnect), and by
+                //  the command pipeline's thread (via a response from the server)
+                //  (note that a unilateral bye which can arrive at any time (e.g. during connect) will disconnect)
+                //  (note that the user may call Disconnect at any time (e.g. during connectasync))
+                //
+                lock (mConnectionStateLock)
+                {
+                    if (pConnectionState == _ConnectionState) return;
+                    if (_ConnectionState == eConnectionState.disconnected) return;
+
+                    lIsUnconnected = IsUnconnected;
+                    lIsConnected = IsConnected;
+
+                    _ConnectionState = pConnectionState;
+                }
+
                 mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.ConnectionState), lContext);
                 if (IsConnected != lIsConnected) mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.IsConnected), lContext);
                 if (IsUnconnected != lIsUnconnected) mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.IsUnconnected), lContext);
@@ -197,8 +215,15 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(Disconnect));
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState == eConnectionState.disconnected) return;
                 mPipeline.RequestStop(lContext);
+                ZSetState(eConnectionState.disconnected, lContext);
+            }
+
+            private void ZDisconnected(cTrace.cContext pParentContext)
+            {
+                // called by the command pipeline when the background task exits
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZDisconnected));
+                if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 ZSetState(eConnectionState.disconnected, lContext);
             }
 

@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pPart == null) throw new ArgumentNullException(nameof(pPart));
 
-            if (lSession.Capabilities.Binary && pPart.Section.TextPart == eSectionPart.all && pPart.DecodingRequired != eDecodingRequired.none)
+            if (lSession.Capabilities.Binary && pPart.Section.TextPart == eSectionTextPart.all && pPart.DecodingRequired != eDecodingRequired.none)
             {
                 uint lSizeInBytes;
 

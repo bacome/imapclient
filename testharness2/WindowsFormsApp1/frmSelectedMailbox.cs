@@ -94,7 +94,7 @@ namespace testharness2
             if (mClient.IsConnected) mSelectedMailbox = mClient.SelectedMailbox;
             else mSelectedMailbox = null;
 
-            // defense part two
+            // defence part two
             var lDetails = mClient.SelectedMailboxDetails;
             if (!ReferenceEquals(lDetails?.Handle, mSelectedMailbox.Handle)) return;
             mQueriedMessageCache = lDetails?.Cache;

@@ -109,6 +109,20 @@
     <Compile Include="session\command_hooks\commandhookinitial.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
+    <Compile Include="session\response\data\access.cs" />
+    <Compile Include="session\response\data\bye.cs" />
+    <Compile Include="session\response\data\esearch.cs" />
+    <Compile Include="session\response\data\exists.cs" />
+    <Compile Include="session\response\data\fetch.cs" />
+    <Compile Include="session\response\data\highestmodseq.cs" />
+    <Compile Include="session\response\data\listdelimiter.cs" />
+    <Compile Include="session\response\data\listmailbox.cs" />
+    <Compile Include="session\response\data\lsub.cs" />
+    <Compile Include="session\response\data\flags.cs" />
+    <Compile Include="session\response\data\permanentflags.cs" />
+    <Compile Include="session\response\data\recent.cs" />
+    <Compile Include="session\response\data\uidnext.cs" />
+    <Compile Include="session\response\data\uidvalidity.cs" />
     <Compile Include="session\support\greeting.cs" />
     <Compile Include="session\imap_commands\selected\copy\commandhook.cs" />
     <Compile Include="session\imap_commands\selected\copy\copy.cs" />
@@ -130,15 +144,15 @@
     <Compile Include="session\imap_commands\authenticated\subscribe.cs" />
     <Compile Include="session\imap_commands\not_authenticated\starttls.cs" />
     <Compile Include="session\imap_commands\selected\expunge.cs" />
-    <Compile Include="session\parsing\responsedataselect.cs" />
-    <Compile Include="session\parsing\responseparser.cs" />
-    <Compile Include="session\parsing\responsetextcodeselect.cs" />
+    <Compile Include="session\response\parsers\select_data.cs" />
+    <Compile Include="session\response\responseparser.cs" />
+    <Compile Include="session\response\parsers\select_textcode.cs" />
     <Compile Include="session\imap_commands\selected\setunseenextended.cs" />
     <Compile Include="session\support\listextendeditems.cs" />
     <Compile Include="session\mailboxcache\mailboxcacheitem.cs" />
     <Compile Include="session\mailboxcache\processing.cs" />
-    <Compile Include="session\parsing\responsedatalist.cs" />
-    <Compile Include="session\parsing\responsedatalsub.cs" />
+    <Compile Include="session\response\parsers\list.cs" />
+    <Compile Include="session\response\parsers\lsub.cs" />
     <Compile Include="session\selectedmailbox\processing.cs" />
     <Compile Include="session\imap_commands\selected\setunseen.cs" />
     <Compile Include="session\mailboxcache\mailboxcache.cs" />
@@ -242,8 +256,8 @@
     <Compile Include="session\imap_commands\selected\sortextended.cs" />
     <Compile Include="session\imap_commands\authenticated\status.cs" />
     <Compile Include="session\imap_commands\selected\fetch\uidattributes.cs" />
-    <Compile Include="session\parsing\responsedataesearch.cs" />
-    <Compile Include="session\parsing\responsedatafetch.cs" />
+    <Compile Include="session\response\parsers\esearch.cs" />
+    <Compile Include="session\response\parsers\fetch.cs" />
     <Compile Include="session\selectedmailbox\selectedmailbox.cs" />
     <Compile Include="session\selectedmailbox\selectedmailboxcache.cs" />
     <Compile Include="session\session\base.cs" />
@@ -270,5 +284,6 @@
     <Compile Include="tools\terminator.cs" />
     <Compile Include="tools\trace.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

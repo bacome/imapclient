@@ -226,6 +226,7 @@
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
             this.cmdPoll = new System.Windows.Forms.Button();
+            this.cmdUID = new System.Windows.Forms.Button();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -1964,6 +1965,7 @@
             // 
             // tbpWindows
             // 
+            this.tbpWindows.Controls.Add(this.cmdUID);
             this.tbpWindows.Controls.Add(this.gbxMailboxes);
             this.tbpWindows.Controls.Add(this.gbxEvents);
             this.tbpWindows.Controls.Add(this.gbxNetworkActivity);
@@ -1987,7 +1989,7 @@
             this.gbxMailboxes.Location = new System.Drawing.Point(6, 307);
             this.gbxMailboxes.Name = "gbxMailboxes";
             this.gbxMailboxes.Size = new System.Drawing.Size(249, 73);
-            this.gbxMailboxes.TabIndex = 4;
+            this.gbxMailboxes.TabIndex = 5;
             this.gbxMailboxes.TabStop = false;
             this.gbxMailboxes.Text = "Mailboxes";
             // 
@@ -2407,6 +2409,16 @@
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
+            // cmdUID
+            // 
+            this.cmdUID.Location = new System.Drawing.Point(21, 276);
+            this.cmdUID.Name = "cmdUID";
+            this.cmdUID.Size = new System.Drawing.Size(100, 25);
+            this.cmdUID.TabIndex = 4;
+            this.cmdUID.Text = "UID ...";
+            this.cmdUID.UseVisualStyleBackColor = true;
+            this.cmdUID.Click += new System.EventHandler(this.cmdUID_Click);
+            // 
             // frmClient
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2680,5 +2692,6 @@
         private System.Windows.Forms.CheckBox chkPSubject;
         private System.Windows.Forms.CheckBox chkPSent;
         private System.Windows.Forms.CheckBox chkPEnvelope;
+        private System.Windows.Forms.Button cmdUID;
     }
 }

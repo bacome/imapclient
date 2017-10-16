@@ -20,14 +20,16 @@ namespace testharness2
         private readonly bool mSubscriptions;
         private readonly fMailboxCacheDataSets mDataSets;
         private readonly Action<Form> mDisplaySelectedMailbox;
+        private readonly Action<Form> mDisplayUID;
         private cMailbox mSubscribedMailbox = null;
 
-        public frmMailboxes(cIMAPClient pClient, bool pSubscriptions, fMailboxCacheDataSets pDataSets, Action<Form> pDisplaySelectedMailbox)
+        public frmMailboxes(cIMAPClient pClient, bool pSubscriptions, fMailboxCacheDataSets pDataSets, Action<Form> pDisplaySelectedMailbox, Action<Form> pDisplayUID)
         {
             mClient = pClient;
             mSubscriptions = pSubscriptions;
             mDataSets = pDataSets;
             mDisplaySelectedMailbox = pDisplaySelectedMailbox;
+            mDisplayUID = pDisplayUID;
             InitializeComponent();
         }
 
@@ -327,6 +329,11 @@ namespace testharness2
             {
                 if (!IsDisposed) MessageBox.Show(this, $"an error occurred while selecting for update: {ex}");
             }
+        }
+
+        private void cmdUID_Click(object sender, EventArgs e)
+        {
+            mDisplayUID(this);
         }
 
         private async void cmdSubscribe_Click(object sender, EventArgs e)

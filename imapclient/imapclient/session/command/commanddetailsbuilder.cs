@@ -519,40 +519,40 @@ namespace work.bacome.imapclient
                     if (pSection.Part != null)
                     {
                         mParts.Add(cCommandPartFactory.AsAtom(pSection.Part));
-                        if (pSection.TextPart != eSectionPart.all) mParts.Add(cCommandPart.Dot);
+                        if (pSection.TextPart != eSectionTextPart.all) mParts.Add(cCommandPart.Dot);
                     }
 
                     switch (pSection.TextPart)
                     {
-                        case eSectionPart.all:
+                        case eSectionTextPart.all:
 
                             break;
 
-                        case eSectionPart.header:
+                        case eSectionTextPart.header:
 
                             mParts.Add(kCommandPartHeader);
                             break;
 
-                        case eSectionPart.headerfields:
+                        case eSectionTextPart.headerfields:
 
                             mParts.Add(kCommandPartHeaderFieldsSpaceLParen);
                             LAdd(pSection.Names);
                             mParts.Add(cCommandPart.RParen);
                             break;
 
-                        case eSectionPart.headerfieldsnot:
+                        case eSectionTextPart.headerfieldsnot:
 
                             mParts.Add(kCommandPartHeaderFieldsNotSpaceLParen);
                             LAdd(pSection.Names);
                             mParts.Add(cCommandPart.RParen);
                             break;
 
-                        case eSectionPart.text:
+                        case eSectionTextPart.text:
 
                             mParts.Add(kCommandPartText);
                             break;
 
-                        case eSectionPart.mime:
+                        case eSectionTextPart.mime:
 
                             mParts.Add(kCommandPartMime);
                             break;

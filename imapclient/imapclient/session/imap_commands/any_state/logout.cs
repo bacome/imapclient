@@ -58,14 +58,12 @@ namespace work.bacome.imapclient
 
                 public bool GotBye { get; private set; } = false;
 
-                public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cLogoutCommandHook), nameof(ProcessData));
 
-                    if (pCursor.SkipBytes(kByeSpace))
+                    if (pData is cResponseDataBye lBye)
                     {
-                        cResponseText lResponseText = mPipeline.ProcessLogoutByeResponseText(pCursor, lContext);
-                        lContext.TraceVerbose("got bye: {0}", lResponseText);
                         GotBye = true;
                         return eProcessDataResult.processed;
                     }

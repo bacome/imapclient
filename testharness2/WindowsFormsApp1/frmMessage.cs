@@ -269,9 +269,9 @@ namespace testharness2
             if (pBodyPart.Section.Part == null) lPart = pBodyPart.Section.TextPart.ToString();
             else
             {
-                if (pBodyPart.Section.TextPart == eSectionPart.all)
+                if (pBodyPart.Section.TextPart == eSectionTextPart.all)
                 {
-                    ZQueryBodyStructureAddSection(pParent, pBodyPart.Section.Part + ".mime", new cSection(pBodyPart.Section.Part, eSectionPart.mime), 0);
+                    ZQueryBodyStructureAddSection(pParent, pBodyPart.Section.Part + ".mime", new cSection(pBodyPart.Section.Part, eSectionTextPart.mime), 0);
                     lPart = pBodyPart.Section.Part;
                 }
                 else lPart = pBodyPart.Section.Part + "." + pBodyPart.Section.TextPart.ToString();
@@ -282,7 +282,7 @@ namespace testharness2
 
             if (pBodyPart is cMessageBodyPart lMessage)
             {
-                ZQueryBodyStructureAddSection(lNode, pBodyPart.Section.Part + ".header", new cSection(pBodyPart.Section.Part, eSectionPart.header), 0);
+                ZQueryBodyStructureAddSection(lNode, pBodyPart.Section.Part + ".header", new cSection(pBodyPart.Section.Part, eSectionTextPart.header), 0);
                 ZQueryBodyStructureAddPart(lNode, lMessage.BodyStructure);
                 lApproximateSizeInBytes = (int)lMessage.SizeInBytes;
             }
@@ -752,7 +752,7 @@ namespace testharness2
         {
             string lFileName = mMessage.UID.UID.ToString();
             if (pSection.Part != null) lFileName += "." + pSection.Part;
-            if (pSection.TextPart != eSectionPart.all) lFileName += "." + pSection.TextPart;
+            if (pSection.TextPart != eSectionTextPart.all) lFileName += "." + pSection.TextPart;
             return lFileName;
         }
 

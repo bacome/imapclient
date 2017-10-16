@@ -29,6 +29,7 @@ namespace work.bacome.imapclient
 
                 // stuff
                 private readonly cCallbackSynchroniser mSynchroniser;
+                private readonly Action<cTrace.cContext> mDisconnected;
                 private cIdleConfiguration mIdleConfiguration;
 
                 // response text processing
@@ -73,11 +74,12 @@ namespace work.bacome.imapclient
                 private readonly List<int> mBufferStartPoints = new List<int>();
                 private readonly cByteList mTraceBuffer = new cByteList();
 
-                public cCommandPipeline(cCallbackSynchroniser pSynchroniser, cIdleConfiguration pIdleConfiguration, cTrace.cContext pParentContext)
+                public cCommandPipeline(cCallbackSynchroniser pSynchroniser, Action<cTrace.cContext> pDisconnected, cIdleConfiguration pIdleConfiguration, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cCommandPipeline), pIdleConfiguration);
 
-                    mSynchroniser = pSynchroniser;
+                    mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
+                    mDisconnected = pDisconnected ?? throw new ArgumentNullException(nameof(pDisconnected));
                     mIdleConfiguration = pIdleConfiguration;
 
                     mResponseTextProcessor = new cResponseTextProcessor(pSynchroniser);
@@ -251,8 +253,6 @@ namespace work.bacome.imapclient
 
                 private void ZIdleBlockReleased(cTrace.cContext pParentContext) => mBackgroundReleaser.Release(pParentContext);
 
-                public cResponseText ProcessLogoutByeResponseText(cBytesCursor pCursor, cTrace.cContext pParentContext) => mResponseTextProcessor.Process(eResponseTextType.bye, pCursor, null, pParentContext);
-
                 public async Task<cCommandResult> ExecuteAsync(cMethodControl pMC, sCommandDetails pCommandDetails, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ExecuteAsync), pMC, pCommandDetails);
@@ -377,6 +377,8 @@ namespace work.bacome.imapclient
                     foreach (var lCommand in mActiveCommands) lCommand.SetException(mBackgroundTaskException, lContext);
                     if (mCurrentCommand != null) mCurrentCommand.SetException(mBackgroundTaskException, lContext);
                     foreach (var lCommand in mQueuedCommands) lCommand.SetException(mBackgroundTaskException, lContext);
+
+                    mDisconnected(lContext);
                 }
 
                 private async Task ZSendAsync(cTrace.cContext pParentContext)
@@ -874,8 +876,27 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    var lBookmark = pCursor.Position;
                     var lResult = eProcessDataResult.notprocessed;
+
+                    if (pCursor.SkipBytes(kByeSpace))
+                    {
+                        lContext.TraceVerbose("got a bye");
+
+                        cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.bye, pCursor, null, lContext);
+                        cResponseDataBye lData = new cResponseDataBye(lResponseText);
+
+                        foreach (var lCommand in mActiveCommands) ZProcessDataWorker(ref lResult, lCommand.Hook.ProcessData(lData, lContext), lContext);
+
+                        if (lResult == eProcessDataResult.notprocessed)
+                        {
+                            lContext.TraceVerbose("got a unilateral bye");
+                            throw new cUnilateralByeException(lResponseText, lContext);
+                        }
+
+                        return true;
+                    }
+
+                    var lBookmark = pCursor.Position;
 
                     foreach (var lParser in mResponseDataParsers)
                     {
@@ -911,17 +932,7 @@ namespace work.bacome.imapclient
                         pCursor.Position = lBookmark;
                     }
 
-                    if (lResult == eProcessDataResult.notprocessed)
-                    {
-                        if (pCursor.SkipBytes(kByeSpace))
-                        {
-                            lContext.TraceVerbose("got a unilateral bye");
-                            cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.bye, pCursor, null, lContext);
-                            throw new cUnilateralByeException(lResponseText, lContext);
-                        }
-
-                        lContext.TraceWarning("unrecognised data response: {0}", pCursor);
-                    }
+                    if (lResult == eProcessDataResult.notprocessed) lContext.TraceWarning("unrecognised data response: {0}", pCursor);
 
                     return true;
                 }
