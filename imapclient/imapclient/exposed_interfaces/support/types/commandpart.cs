@@ -28,7 +28,7 @@ namespace work.bacome.imapclient.support
     {
         public readonly bool Binary;
 
-        public cLiteralCommandPartBase(bool pSecret, bool pEncoded, bool pBinary) : base(pSecret, pEncoded)
+        public cLiteralCommandPartBase(bool pBinary, bool pSecret, bool pEncoded) : base(pSecret, pEncoded)
         {
             Binary = pBinary;
         }
@@ -38,16 +38,16 @@ namespace work.bacome.imapclient.support
 
     public class cStreamCommandPart : cLiteralCommandPartBase
     {
-        private readonly int mLength;
         public readonly Stream Stream;
+        private readonly int mLength;
 
-        public cStreamCommandPart(bool pBinary, int pLength, Stream pStream) : base(false, false, pBinary)
+        public cStreamCommandPart(Stream pStream, int pLength, bool pBinary) : base(pBinary, false, false)
         {
-            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             if (pStream == null) throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
-            mLength = pLength;
+            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             Stream = pStream;
+            mLength = pLength;
         }
 
         public override int Length => mLength;
@@ -55,7 +55,7 @@ namespace work.bacome.imapclient.support
         public override string ToString()
         {
             if (Secret) return $"{nameof(cStreamCommandPart)}()";
-            else return $"{nameof(cStreamCommandPart)}({Encoded},{Binary},{Length})";
+            else return $"{nameof(cStreamCommandPart)}({Length},{Binary},{Encoded})";
         }
     }
 
@@ -63,7 +63,7 @@ namespace work.bacome.imapclient.support
     {
         public readonly cBytes Bytes;
 
-        public cLiteralCommandPart(bool pSecret, bool pEncoded, bool pBinary, IList<byte> pBytes) : base(pSecret, pEncoded, pBinary)
+        public cLiteralCommandPart(IList<byte> pBytes, bool pBinary, bool pSecret, bool pEncoded) : base(pBinary, pSecret, pEncoded)
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
             Bytes = new cBytes(pBytes);
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient.support
         public override string ToString()
         {
             if (Secret) return $"{nameof(cLiteralCommandPart)}()";
-            else return $"{nameof(cLiteralCommandPart)}({Encoded},{Binary},{Bytes})";
+            else return $"{nameof(cLiteralCommandPart)}({Bytes},{Binary},{Encoded})";
         }
     }
 
@@ -82,28 +82,13 @@ namespace work.bacome.imapclient.support
     {
         public readonly cBytes Bytes;
 
-        public cTextCommandPart(bool pSecret, bool pEncoded, IList<byte> pBytes) : base(pSecret, pEncoded)
+        public cTextCommandPart(IList<byte> pBytes, bool pSecret, bool pEncoded) : base(pSecret, pEncoded)
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
             Bytes = new cBytes(pBytes);
         }
 
-        public cTextCommandPart(string pString) : base(false, false)
-        {
-            if (string.IsNullOrEmpty(pString)) throw new ArgumentOutOfRangeException(nameof(pString));
-
-            var lBytes = new cByteList(pString.Length);
-
-            foreach (char lChar in pString)
-            {
-                if (lChar < ' ' || lChar > '~') throw new ArgumentOutOfRangeException(nameof(pString));
-                lBytes.Add((byte)lChar);
-            }
-
-            Bytes = new cBytes(lBytes);
-        }
-
-        public cTextCommandPart(string pString) : base(false, false)
+        public cTextCommandPart(string pString, bool pSecret = false) : base(pSecret, false)
         {
             if (string.IsNullOrEmpty(pString)) throw new ArgumentOutOfRangeException(nameof(pString));
 
@@ -193,7 +178,7 @@ namespace work.bacome.imapclient.support
         public override string ToString()
         {
             if (Secret) return $"{nameof(cTextCommandPart)}()";
-            else return $"{nameof(cTextCommandPart)}({Encoded},{Bytes})";
+            else return $"{nameof(cTextCommandPart)}({Bytes},{Encoded})";
         }
     }
 }

@@ -93,8 +93,6 @@ namespace work.bacome.imapclient
                         return ++mCurrentPart < mParts.Count;
                     }
 
-                    public bool IsWaitingForContinuationOrChallenges { get; set; }                    
-
                     public bool IsAuthentication => mSASLAuthentication != null;
 
                     public IList<byte> GetAuthenticationResponse(cByteList pChallenge)
