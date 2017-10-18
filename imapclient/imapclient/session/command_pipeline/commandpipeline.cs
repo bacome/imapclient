@@ -367,7 +367,7 @@ namespace work.bacome.imapclient
                             {
                                 await ZProcessResponsesAsync(null, lContext).ConfigureAwait(false);
 
-                                // check for logoff
+                                // this check here to make sure logoff is handled correctly
                                 if (mBackgroundCancellationTokenSource.IsCancellationRequested)
                                 {
                                     lContext.TraceInformation("the pipeline is stopping as requested");
@@ -451,7 +451,7 @@ namespace work.bacome.imapclient
                             }
                         }
 
-                        if (ZSendAppendCurrentPartLiteralHeader()) break; // have to wait for continuation before sending the data
+                        if (ZBackgroundSenderAppendCurrentPartLiteralHeader()) break; // have to wait for continuation before sending the data
 
                         if (ZSendAppendCurrentPartDataAndMoveNextPart(lContext))
                         {
@@ -464,12 +464,11 @@ namespace work.bacome.imapclient
                     await ZBackgroundSenderSendAsync(lContext).ConfigureAwait(false);
                 }
 
-                private Task ZSendAppendCurrentPartDataAndMoveNextPartAsync(cTrace.cContext pParentContext)
+                private Task ZBackgroundSenderSendDataAndMoveNextPartAsync(cTrace.cContext pParentContext)
                 {
                     // appends the current part of the current command to the buffer to send
-                    //  if that was the last part of the current command
-                    //   if this is authentication true is returned
-                    //   else the command gets added to the active commands and the current command is nulled
+                    //  if that was the last part of the current command the command gets added to the active commands and the current command is nulled
+                    //  (note: that this routine CANNOT be used for the authentication command)
 
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZSendAppendCurrentPartDataAndMoveNextPart));
 
@@ -557,7 +556,7 @@ namespace work.bacome.imapclient
                     mTraceBuffer.Add(cASCII.SPACE);
                 }
 
-                private Task<bool> ZBackgroundSenderAppendCurrentPartLiteralHeaderAsync()
+                private bool ZBackgroundSenderAppendCurrentPartLiteralHeader()
                 {
                     // if the current part is a literal, appends the literal header
                     //  if the current part is a synchronising literal, returns true
