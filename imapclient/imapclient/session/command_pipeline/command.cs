@@ -28,6 +28,7 @@ namespace work.bacome.imapclient
                     private readonly SemaphoreSlim mSemaphore = new SemaphoreSlim(0, 1);
 
                     private eCommandState mState = eCommandState.queued;
+                    private bool mWaitingForContinuationRequest = false;
 
                     private int mCurrentPart = 0;
                     private cCommandResult mResult = null;
@@ -91,6 +92,18 @@ namespace work.bacome.imapclient
                     {
                         if (mState != eCommandState.current) throw new InvalidOperationException();
                         return ++mCurrentPart < mParts.Count;
+                    }
+
+                    public bool WaitingForContinuationRequest
+                    {
+                        get => mWaitingForContinuationRequest;
+
+                        set
+                        {
+                            if (mState != eCommandState.current) throw new InvalidOperationException();
+                            if (value == mWaitingForContinuationRequest) throw new InvalidOperationException();
+                            mWaitingForContinuationRequest = value;
+                        }
                     }
 
                     public bool IsAuthentication => mSASLAuthentication != null;

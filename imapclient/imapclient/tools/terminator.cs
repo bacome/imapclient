@@ -29,24 +29,10 @@ namespace work.bacome.async
         {
             if (pTask == null) throw new ArgumentNullException(nameof(pTask));
 
-            ;?; // null task processing required
-
-
-            Task[] lTasks;
-
-            if (pTasks == null)
-            {
-                lTasks = new Task[2];
-                lTasks[0] = pTask;
-                lTasks[1] = mTask;
-            }
-            else
-            {
-                lTasks = new Task[pTasks.Length + 2];
-                for (int i = 0; i < pTasks.Length; i++) lTasks[i] = pTasks[i];
-                lTasks[pTasks.Length] = pTask;
-                lTasks[pTasks.Length + 1] = mTask;
-            }
+            List<Task> lTasks = new List<Task>();
+            lTasks.Add(pTask);
+            lTasks.Add(mTask);
+            if (pTasks != null) foreach (var t in pTasks) if (t != null) lTasks.Add(t);
 
             Task lTask = await Task.WhenAny(lTasks).ConfigureAwait(false);
 
