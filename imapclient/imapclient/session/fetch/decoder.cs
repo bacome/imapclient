@@ -16,6 +16,7 @@ namespace work.bacome.imapclient
             private abstract class cDecoder
             {
                 private readonly Stream mStream;
+                private readonly Stopwatch mStopwatch = new Stopwatch();
                 private byte[] mBuffer = null;
                 private int mCount = 0;
 
@@ -45,12 +46,12 @@ namespace work.bacome.imapclient
 
                     pContext.TraceVerbose("writing {0} bytes to stream", mCount);
 
-                    Stopwatch lStopwatch = Stopwatch.StartNew();
+                    mStopwatch.Restart();
                     await mStream.WriteAsync(mBuffer, 0, mCount, pMC.CancellationToken).ConfigureAwait(false);
-                    lStopwatch.Stop();
+                    mStopwatch.Stop();
 
                     // store the time taken so the next write is a better size
-                    pWriteSizer.AddSample(mCount, lStopwatch.ElapsedMilliseconds, pContext);
+                    pWriteSizer.AddSample(mCount, mStopwatch.ElapsedMilliseconds);
 
                     mCount = 0;
                 }

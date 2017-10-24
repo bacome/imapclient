@@ -38,14 +38,13 @@ namespace work.bacome.imapclient
                 }
             }
 
-            public void AddSample(int pN, long pTime, cTrace.cContext pParentContext)
+            public void AddSample(int pN, long pTime)
             {
-                var lContext = pParentContext.NewMethod(nameof(cBatchSizer), nameof(AddSample), pN, pTime);
-
                 if (pN < 0) throw new ArgumentOutOfRangeException(nameof(pN));
                 if (pTime < 0) throw new ArgumentOutOfRangeException(nameof(pTime));
 
                 if (pN == 0) return;
+                if (pTime == 0 && pN < _Current) return; // don't count zero times if the amount in the batch was small
 
                 lock (mSamples)
                 {
@@ -141,35 +140,35 @@ namespace work.bacome.imapclient
                 cBatchSizer lSizer = new cBatchSizer(new cBatchSizerConfiguration(1, 100, 1000, 10));
 
                 if (lSizer.Current != 10) throw new cTestsException($"{nameof(cBatchSizer)}.1.1");
-                lSizer.AddSample(10, 1000, lContext);
+                lSizer.AddSample(10, 1000);
                 if (lSizer.Current != 10) throw new cTestsException($"{nameof(cBatchSizer)}.1.2");
-                lSizer.AddSample(5, 500, lContext);
+                lSizer.AddSample(5, 500);
                 if (lSizer.Current != 10) throw new cTestsException($"{nameof(cBatchSizer)}.1.3");
-                lSizer.AddSample(150, 1500, lContext); // 10 times faster
+                lSizer.AddSample(150, 1500); // 10 times faster
                 if (lSizer.Current != 20) throw new cTestsException($"{nameof(cBatchSizer)}.1.4");
-                lSizer.AddSample(235, 1000, lContext);
+                lSizer.AddSample(235, 1000);
                 if (lSizer.Current != 40) throw new cTestsException($"{nameof(cBatchSizer)}.1.5");
-                lSizer.AddSample(10, 100, lContext);
+                lSizer.AddSample(10, 100);
                 if (lSizer.Current != 80) throw new cTestsException($"{nameof(cBatchSizer)}.1.6");
-                lSizer.AddSample(10, 100, lContext);
+                lSizer.AddSample(10, 100);
                 if (lSizer.Current != 100) throw new cTestsException($"{nameof(cBatchSizer)}.1.7");
-                lSizer.AddSample(10, 100, lContext);
+                lSizer.AddSample(10, 100);
                 if (lSizer.Current != 100) throw new cTestsException($"{nameof(cBatchSizer)}.1.8");
-                lSizer.AddSample(1, 1000, lContext);
+                lSizer.AddSample(1, 1000);
                 if (lSizer.Current != 1) throw new cTestsException($"{nameof(cBatchSizer)}.1.9");
-                lSizer.AddSample(10, 1000, lContext);
+                lSizer.AddSample(10, 1000);
                 if (lSizer.Current != 2) throw new cTestsException($"{nameof(cBatchSizer)}.1.10");
-                lSizer.AddSample(10, 1000, lContext);
+                lSizer.AddSample(10, 1000);
                 if (lSizer.Current != 4) throw new cTestsException($"{nameof(cBatchSizer)}.1.11");
-                lSizer.AddSample(10, 1000, lContext);
+                lSizer.AddSample(10, 1000);
                 if (lSizer.Current != 8) throw new cTestsException($"{nameof(cBatchSizer)}.1.12");
-                lSizer.AddSample(10, 1000, lContext);
+                lSizer.AddSample(10, 1000);
                 if (lSizer.Current != 8) throw new cTestsException($"{nameof(cBatchSizer)}.1.13");
-                lSizer.AddSample(10, 1000, lContext);
+                lSizer.AddSample(10, 1000);
                 if (lSizer.Current != 10) throw new cTestsException($"{nameof(cBatchSizer)}.1.14");
-                lSizer.AddSample(100, 1000, lContext);
+                lSizer.AddSample(100, 1000);
                 if (lSizer.Current != 20) throw new cTestsException($"{nameof(cBatchSizer)}.1.15");
-                lSizer.AddSample(100, 1000, lContext);
+                lSizer.AddSample(100, 1000);
                 if (lSizer.Current != 33) throw new cTestsException($"{nameof(cBatchSizer)}.1.16");
 
 
@@ -179,22 +178,22 @@ namespace work.bacome.imapclient
                 int lCurrent;
 
                 lSizer = new cBatchSizer(new cBatchSizerConfiguration(1000, 1000000, 10000, 1000));
-                lSizer.AddSample(1000, 0, lContext);
-                lSizer.AddSample(2000, 0, lContext);
-                lSizer.AddSample(4000, 1, lContext);
-                lSizer.AddSample(8000, 0, lContext);
-                lSizer.AddSample(16000, 0, lContext);
-                lSizer.AddSample(32000, 0, lContext);
-                lSizer.AddSample(64000, 0, lContext);
-                lSizer.AddSample(128000, 0, lContext);
+                lSizer.AddSample(1000, 0);
+                lSizer.AddSample(2000, 0);
+                lSizer.AddSample(4000, 1);
+                lSizer.AddSample(8000, 0);
+                lSizer.AddSample(16000, 0);
+                lSizer.AddSample(32000, 0);
+                lSizer.AddSample(64000, 0);
+                lSizer.AddSample(128000, 0);
                 lCurrent = lSizer.Current;
-                lSizer.AddSample(256000, 0, lContext);
+                lSizer.AddSample(256000, 0);
                 lCurrent = lSizer.Current;
-                lSizer.AddSample(512000, 1, lContext);
+                lSizer.AddSample(512000, 1);
                 lCurrent = lSizer.Current;
-                lSizer.AddSample(1000000, 0, lContext);
+                lSizer.AddSample(1000000, 0);
                 lCurrent = lSizer.Current;
-                lSizer.AddSample(1000000, 0, lContext);
+                lSizer.AddSample(1000000, 0);
                 lCurrent = lSizer.Current;
 
 

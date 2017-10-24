@@ -95,6 +95,7 @@ namespace work.bacome.imapclient
                 pUIDs.Sort();
 
                 int lIndex = 0;
+                Stopwatch lStopwatch = new Stopwatch();
 
                 while (lIndex < pUIDs.Count)
                 {
@@ -106,12 +107,12 @@ namespace work.bacome.imapclient
                     while (lIndex < pUIDs.Count && lUIDs.Count < lFetchCount) lUIDs.Add(pUIDs[lIndex++].UID);
 
                     // fetch
-                    Stopwatch lStopwatch = Stopwatch.StartNew();
+                    lStopwatch.Restart();
                     await ZUIDFetchCacheItemsAsync(pMC, pHandle, lUIDValidity, lUIDs, pItems, lContext).ConfigureAwait(false);
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size
-                    mFetchCacheItemsSizer.AddSample(lUIDs.Count, lStopwatch.ElapsedMilliseconds, lContext);
+                    mFetchCacheItemsSizer.AddSample(lUIDs.Count, lStopwatch.ElapsedMilliseconds);
 
                     // update progress
                     pProgress.Increment(lUIDs.Count, lContext);

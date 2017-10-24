@@ -51,8 +51,9 @@ namespace work.bacome.imapclient
                     // sort the handles so we might get good sequence sets
                     pGroup.Handles.SortByCacheSequence();
 
-                    int lMSNHandleCount = pGroup.MSNHandleCount;
                     int lIndex = 0;
+                    int lMSNHandleCount = pGroup.MSNHandleCount;
+                    Stopwatch lStopwatch = new Stopwatch();
 
                     while (lIndex < pGroup.Handles.Count && lMSNHandleCount != 0)
                     {
@@ -91,12 +92,12 @@ namespace work.bacome.imapclient
                         if (lHandles.Count > 0)
                         {
                             // fetch
-                            Stopwatch lStopwatch = Stopwatch.StartNew();
+                            lStopwatch.Restart();
                             await ZFetchCacheItemsAsync(pMC, lHandles, pGroup.Items, lContext).ConfigureAwait(false);
                             lStopwatch.Stop();
 
                             // store the time taken so the next fetch is a better size
-                            mFetchCacheItemsSizer.AddSample(lHandles.Count, lStopwatch.ElapsedMilliseconds, lContext);
+                            mFetchCacheItemsSizer.AddSample(lHandles.Count, lStopwatch.ElapsedMilliseconds);
 
                             // update progress
                             pProgress.Increment(lHandles.Count, lContext);

@@ -26,15 +26,12 @@ namespace work.bacome.imapclient
                 private enum eState { notconnected, connecting, connected, enabled, stopped }
                 private eState mState = eState.notconnected;
 
-                // connection
-                private readonly cConnection mConnection = new cConnection();
-
                 // stuff
                 private readonly cCallbackSynchroniser mSynchroniser;
                 private readonly Action<cTrace.cContext> mDisconnected;
+                private readonly cConnection mConnection;
                 private cIdleConfiguration mIdleConfiguration;
-                private cBatchSizerConfiguration mAppendReadConfiguration;
-                private cBatchSizer mAppendWriteSizer;
+                private cBatchSizerConfiguration mReadConfiguration;
 
                 // response text processing
                 private readonly cResponseTextProcessor mResponseTextProcessor;
@@ -75,15 +72,16 @@ namespace work.bacome.imapclient
                 private readonly List<int> mBufferStartPoints = new List<int>();
                 private readonly cByteList mTraceBuffer = new cByteList();
 
-                public cCommandPipeline(cCallbackSynchroniser pSynchroniser, Action<cTrace.cContext> pDisconnected, cIdleConfiguration pIdleConfiguration, cBatchSizerConfiguration pAppendReadConfiguration, cBatchSizerConfiguration pAppendWriteConfiguration, cTrace.cContext pParentContext)
+                public cCommandPipeline(cCallbackSynchroniser pSynchroniser, Action<cTrace.cContext> pDisconnected, cBatchSizerConfiguration pWriteConfiguration, cIdleConfiguration pIdleConfiguration, cBatchSizerConfiguration pReadConfiguration, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewObject(nameof(cCommandPipeline), pIdleConfiguration);
 
                     mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                     mDisconnected = pDisconnected ?? throw new ArgumentNullException(nameof(pDisconnected));
+                    if (pWriteConfiguration == null) throw new ArgumentNullException(nameof(pWriteConfiguration));
+                    mConnection = new cConnection(pWriteConfiguration);
                     mIdleConfiguration = pIdleConfiguration;
-                    mAppendReadConfiguration = pAppendReadConfiguration;
-                    mAppendWriteSizer = new cBatchSizer(pAppendWriteConfiguration);
+                    mReadConfiguration = pReadConfiguration ?? throw new ArgumentNullException(nameof(pReadConfiguration));
 
                     mResponseTextProcessor = new cResponseTextProcessor(pSynchroniser);
 
@@ -245,17 +243,10 @@ namespace work.bacome.imapclient
                     mBackgroundReleaser.Release(lContext);
                 }
 
-                public void SetAppendReadConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)
+                public void SetReadConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetAppendReadConfiguration), pConfiguration);
-                    mAppendReadConfiguration = pConfiguration ?? throw new ArgumentNullException(nameof(pConfiguration));
-                }
-
-                public void SetAppendWriteConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetAppendWriteConfiguration), pConfiguration);
-                    if (pConfiguration == null) throw new ArgumentNullException(nameof(pConfiguration));
-                    mAppendWriteSizer = new cBatchSizer(pConfiguration);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetReadConfiguration), pConfiguration);
+                    mReadConfiguration = pConfiguration ?? throw new ArgumentNullException(nameof(pConfiguration));
                 }
 
                 public async Task<cExclusiveAccess.cToken> GetIdleBlockTokenAsync(cMethodControl pMC, cTrace.cContext pParentContext)
@@ -322,7 +313,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewRootMethod(nameof(cCommandPipeline), nameof(ZBackgroundTaskAsync));
 
-                    Task lBackgroundSenderTask = null;
+                    Task lBackgroundSendTask = null;
 
                     try
                     {
@@ -330,21 +321,21 @@ namespace work.bacome.imapclient
                         {
                             mBackgroundReleaser.Reset(lContext);
 
-                            if (lBackgroundSenderTask != null && lBackgroundSenderTask.IsCompleted)
+                            if (lBackgroundSendTask != null && lBackgroundSendTask.IsCompleted)
                             {
-                                lContext.TraceVerbose("sender is completed");
-                                lBackgroundSenderTask.Wait(); // will throw if there was an error
-                                lBackgroundSenderTask.Dispose();
-                                lBackgroundSenderTask = null;
+                                lContext.TraceVerbose("send is complete");
+                                lBackgroundSendTask.Wait(); // will throw if there was an error
+                                lBackgroundSendTask.Dispose();
+                                lBackgroundSendTask = null;
                             }
 
-                            if (lBackgroundSenderTask == null &&
+                            if (lBackgroundSendTask == null &&
                                 ((mCurrentCommand == null && mQueuedCommands.Count > 0) ||
                                  (mCurrentCommand != null && !mCurrentCommand.WaitingForContinuationRequest)
                                 )
-                               ) lBackgroundSenderTask = ZBackgroundSenderAsync(lContext);
+                               ) lBackgroundSendTask = ZBackgroundSendAsync(lContext);
 
-                            if (lBackgroundSenderTask == null && mCurrentCommand == null && mActiveCommands.Count == 0)
+                            if (lBackgroundSendTask == null && mCurrentCommand == null && mActiveCommands.Count == 0)
                             {
                                 var lIdleConfiguration = mIdleConfiguration;
 
@@ -368,67 +359,19 @@ namespace work.bacome.imapclient
                                 Task lBuildResponseTask = mConnection.GetBuildResponseTask(lContext);
                                 Task lBackgroundReleaserTask = mBackgroundReleaser.GetAwaitReleaseTask(lContext);
 
-                                Task lCompleted = await mBackgroundAwaiter.AwaitAny(lBuildResponseTask, lBackgroundReleaserTask, lBackgroundSenderTask).ConfigureAwait(false);
+                                Task lCompleted = await Task.WhenAny(lBuildResponseTask, lBackgroundReleaserTask, lBackgroundSendTask).ConfigureAwait(false);
 
                                 if (ReferenceEquals(lCompleted, lBuildResponseTask))
                                 {
-                                    var lLines = mConnection.GetResponse(lContext);
-                                    mSynchroniser.InvokeNetworkActivity(lLines, lContext);
-                                    var lCursor = new cBytesCursor(lLines);
+                                    await ZProcessResponseAsync(lContext).ConfigureAwait(false);
 
-                                    if (lCursor.SkipBytes(kPlusSpace))
+                                    // this check here to make sure logoff is handled correctly
+                                    if (mBackgroundCancellationTokenSource.IsCancellationRequested)
                                     {
-                                        if (mCurrentCommand == null) throw new cUnexpectedServerActionException(0, "unexpected continuation request (1)", lContext);
-
-                                        if (!mCurrentCommand.WaitingForContinuationRequest) throw new cUnexpectedServerActionException(0, "unexpected continuation request (2)", lContext);
-
-                                        if (mCurrentCommand.IsAuthentication)
-                                        {
-                                            await ZProcessChallengeAsync(lCursor, lContext).ConfigureAwait(false);
-                                            continue;
-                                        }
-                                        else
-                                        {
-                                            mCurrentCommand.WaitingForContinuationRequest = false;
-                                            return; // have to exit so that the sender has a chance to restart
-                                        }
+                                        lContext.TraceInformation("the pipeline is stopping as requested");
+                                        mBackgroundTaskException = new cPipelineStoppedException();
+                                        break;
                                     }
-
-                                    if (ZProcessData(lCursor, lContext)) continue;
-
-                                    if (ZProcessActiveCommandCompletion(lCursor, lContext))
-                                    {
-                                        ;?; // log off exit
-
-                                        if (mCurrentCommand == null && mActiveCommands.Count == 0)
-                                        {
-                                            lContext.TraceVerbose("there are no more commands to process responses for");
-                                            return;
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (mCurrentCommand != null)
-                                    {
-                                        ;?; // log off exit
-
-                                        if (ZProcessCommandCompletion(lCursor, mCurrentCommand, lContext))
-                                        {
-                                            mCurrentCommand = null;
-                                            return;
-                                        }
-                                    }
-
-                                    lContext.TraceError("unrecognised response: {0}", lLines);
-                                }
-
-                                // this check here to make sure logoff is handled correctly
-                                if (mBackgroundCancellationTokenSource.IsCancellationRequested)
-                                {
-                                    lContext.TraceInformation("the pipeline is stopping as requested");
-                                    mBackgroundTaskException = new cPipelineStoppedException();
-                                    break;
                                 }
                             }
                         }
@@ -456,15 +399,15 @@ namespace work.bacome.imapclient
                         mBackgroundTaskException = new cPipelineStoppedException(e, lContext);
                     }
 
-                    // if the sender is still going this will kill it 
+                    // if the send is still going this will kill it 
                     mConnection.Disconnect(lContext);
 
-                    if (lBackgroundSenderTask != null)
+                    if (lBackgroundSendTask != null)
                     {
-                        lContext.TraceVerbose("waiting for the sender to complete");
-                        try { await lBackgroundSenderTask.ConfigureAwait(false); }
-                        catch (Exception e) { lContext.TraceException("the sender had an exception at pipeline stop", e); }
-                        lBackgroundSenderTask.Dispose();
+                        lContext.TraceVerbose("waiting for send to complete");
+                        try { await lBackgroundSendTask.ConfigureAwait(false); }
+                        catch (Exception e) { lContext.TraceException("send reported an exception at pipeline stop", e); }
+                        lBackgroundSendTask.Dispose();
                     }
 
                     lock (mPipelineLock)
@@ -479,156 +422,79 @@ namespace work.bacome.imapclient
                     mDisconnected(lContext);
                 }
 
-
-
-
-
-
-
-
-                private async Task ZBackgroundSenderAsync(cTrace.cContext pParentContext)
+                private async Task ZProcessResponseAsync(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSenderAsync));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZProcessResponseAsync));
+
+                    var lLines = mConnection.GetResponse(lContext);
+                    mSynchroniser.InvokeNetworkActivity(lLines, lContext);
+                    var lCursor = new cBytesCursor(lLines);
+
+                    if (lCursor.SkipBytes(kPlusSpace))
+                    {
+                        var lCurrentCommand = mCurrentCommand;
+
+                        if (lCurrentCommand == null || !lCurrentCommand.WaitingForContinuationRequest) throw new cUnexpectedServerActionException(0, "unexpected continuation request", lContext);
+
+                        if (lCurrentCommand.IsAuthentication) await ZProcessChallengeAsync(lCursor, lContext).ConfigureAwait(false);
+                        else lCurrentCommand.WaitingForContinuationRequest = false;
+
+                        return;
+                    }
+
+                    lock (mPipelineLock)
+                    {
+                        if (ZProcessData(lCursor, lContext)) return;
+
+                        if (ZProcessActiveCommandCompletion(lCursor, lContext)) return;
+
+                        if (mCurrentCommand != null && ZProcessCommandCompletion(lCursor, mCurrentCommand, lContext))
+                        {
+                            mCurrentCommand = null;
+                            return;
+                        }
+                    }
+
+                    lContext.TraceError("unrecognised response: {0}", lLines);
+                }
+
+                private async Task ZBackgroundSendAsync(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewRootMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAsync));
 
                     if (mCurrentCommand != null)
                     {
                         mBufferStartPoints.Add(0);
-                        ZBackgroundSenderSendDataAsync(lContext);
-
-                        ;?; // this is the sending of the data
-
-                        x = ZSendAppendCurrentPartDataAndMoveNextPart(lContext);
+                        await ZBackgroundSendAppendDataAndMoveNextPartAsync(lContext).ConfigureAwait(false);
                     }
 
                     while (true)
                     {
                         if (mCurrentCommand == null)
                         {
-                            ZBackgroundSenderMoveNextCommandAndAppendTag(lContext);
+                            ZBackgroundSendDequeueAndAppendTag(lContext);
                             if (mCurrentCommand == null) break;
 
                             if (mCurrentCommand.IsAuthentication)
                             {
-                                // authentication can have no literal command parts
-
-                                do
-                                {
-                                    ;?;
-                                }
-                                while (mCurrentCommand.MoveNext());
-
-
-                                // waiting for challenge communication
-
-                                ;?; // if it is authentication handle it specially to make it explicit that the handling is different
-
-                                ;?; // the return value must specify that we are waiting for 
-
+                                ZBackgroundSendAppendAllTextParts(lContext);
                                 break;
                             }
                         }
 
-                        if (ZBackgroundSenderAppendCurrentPartLiteralHeader()) break; // have to wait for continuation before sending the data
+                        if (ZBackgroundSendAppendLiteralHeader()) break; // have to wait for continuation before sending the data
 
-                        if (ZSendAppendCurrentPartDataAndMoveNextPart(lContext))
-                        {
-                            // this is authentication - have to wait for a challenge before sending more
-                            mAuthenticateState = new cAuthenticateState();
-                            break; 
-                        }
+                        await ZBackgroundSendAppendDataAndMoveNextPartAsync(lContext).ConfigureAwait(false);
                     }
 
-                    await ZBackgroundSenderSendAsync(lContext).ConfigureAwait(false);
+                    await ZWriteAndClearBufferAsync(lContext).ConfigureAwait(false);
                 }
 
-                private Task ZBackgroundSenderSendDataAndMoveNextPartAsync(cTrace.cContext pParentContext)
-                {
-                    // appends the current part of the current command to the buffer to send
-                    //  if that was the last part of the current command the command gets added to the active commands and the current command is nulled
-                    //  (note: that this routine CANNOT be used for the authentication command)
-
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZSendAppendCurrentPartDataAndMoveNextPart));
-
-                    var lPart = mCurrentCommand.CurrentPart();
-
-                    switch (lPart)
-                    {
-                        case cStreamCommandPart lStream:
-
-                            ;?; // loop with calls to write buffer IF the buffer needs to be sent in parts
-                            break;
-
-                        case cLiteralCommandPart lLiteral:
-
-                            
-                            break;
-
-                        case cTextCommandPart lText:
-
-                            break;
-
-                        default:
-
-                            throw new cInternalErrorException(lContext);
-                    }
-
-
-
-
-
-                    ;?; // if the part is a stream part
-                    // ask the part how much to get
-                    // ask myself how much to send
-                    //  choose the minimum
-                    //  start a timer
-                    //   getasync using the cancellation token
-
-                    // reduce the number of bytes to go by the buffer we got
-                    //  if there are bytes to go return true
-                    //   (NOTE: that this means that this rouinte does the authenticate state)
-
-
-
-
-
-
-                    mSendBuffer.AddRange(lPart.Bytes);
-
-                    if (lPart.Secret) mTraceBuffer.Add(cASCII.NUL);
-                    else mTraceBuffer.AddRange(lPart.Bytes);
-
-                    if (mCurrentCommand.MoveNext()) return false;
-
-                    mSendBuffer.Add(cASCII.CR);
-                    mSendBuffer.Add(cASCII.LF);
-
-                    mTraceBuffer.Add(cASCII.CR);
-                    mTraceBuffer.Add(cASCII.LF);
-
-                    if (mCurrentCommand.IsAuthentication) return true;
-
-                    // the current command can be added to the list of active commands now
-                    lock (mPipelineLock)
-                    {
-                        mActiveCommands.Add(mCurrentCommand);
-                        mCurrentCommand.SetActive(lContext);
-                        mCurrentCommand = null;
-                    }
-
-                    return false;
-                }
-
-                private ZBackgroundSenderSendDataWorker()
-                {
-
-                }
-
-
-                private void ZBackgroundSenderMoveNextCommandAndAppendTag(cTrace.cContext pParentContext)
+                private void ZBackgroundSendDequeueAndAppendTag(cTrace.cContext pParentContext)
                 {
                     // gets the next command (if there is one) appends the tag part and returns true if it did
 
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSenderMoveNextCommandAndAppendTag));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendDequeueAndAppendTag));
 
                     lock (mPipelineLock)
                     {
@@ -660,11 +526,11 @@ namespace work.bacome.imapclient
                     mTraceBuffer.Add(cASCII.SPACE);
                 }
 
-                private bool ZBackgroundSenderAppendCurrentPartLiteralHeader()
+                private bool ZBackgroundSendAppendLiteralHeader()
                 {
                     // if the current part is a literal, appends the literal header
                     //  if the current part is a synchronising literal, returns true
-
+                    
                     if (!(mCurrentCommand.CurrentPart() is cLiteralCommandPartBase lLiteral)) return false;
                     
                     if (lLiteral.Binary) mSendBuffer.Add(cASCII.TILDA);
@@ -700,16 +566,115 @@ namespace work.bacome.imapclient
                     return lSynchronising;
                 }
 
-                public async Task ZBackgroundSenderWriteAsync(cTrace.cContext pParentContext)
+                private void ZBackgroundSendAppendAllTextParts(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSenderWriteAsync));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendAllTextParts));
+
+                    do
+                    {
+                        if (mCurrentCommand.CurrentPart() is cTextCommandPart lText) ZBackgroundSendAppendBytes(lText.Secret, lText.Bytes, lContext);
+                        else throw new cInternalErrorException();
+                    }
+                    while (mCurrentCommand.MoveNext());
+
+                    mCurrentCommand.WaitingForContinuationRequest = true;
+                }
+
+                private async Task ZBackgroundSendAppendDataAndMoveNextPartAsync(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAndMoveNextPartAsync));
+
+                    var lPart = mCurrentCommand.CurrentPart();
+
+                    if (lPart is cLiteralCommandPart lLiteral)
+                    {
+                        ZBackgroundSendAppendBytes(lLiteral.Secret, lLiteral.Bytes, lContext);
+                        ZBackgroundSendMoveNext(lContext);
+                        return;
+                    }
+
+                    if (lPart is cTextCommandPart lText)
+                    {
+                        ZBackgroundSendAppendBytes(lText.Secret, lText.Bytes, lContext);
+                        ZBackgroundSendMoveNext(lContext);
+                        return;
+                    }
+
+                    if (!(lPart is cStreamCommandPart lStream)) throw new cInternalErrorException();
+
+                    int lBytesRemaining = lStream.Length;
+                    Stopwatch lStopwatch = new Stopwatch();
+
+                    if (lBytesRemaining > 0)
+                    {
+                        await ZWriteAndClearBufferAsync(lContext).ConfigureAwait(false);
+
+                        cBatchSizer lReadSizer = new cBatchSizer(mReadConfiguration);
+
+                        while (lBytesRemaining > 0)
+                        {
+                            int lCount = Math.Min(lReadSizer.Current, mConnection.CurrentWriteSize);
+                            if (lCount > lBytesRemaining) lCount = lBytesRemaining;
+                            byte[] lBuffer = new byte[lCount];
+
+                            lStopwatch.Restart();
+                            await lStream.Stream.ReadAsync(lBuffer, 0, lCount, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false);
+                            lStopwatch.Stop();
+
+                            // store the time taken so the next read is a better size
+                            lReadSizer.AddSample(lCount, lStopwatch.ElapsedMilliseconds);
+
+                            await mConnection.WriteAsync(lBuffer, mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
+
+                            lBytesRemaining -= lCount;
+                        }
+                    }
+
+                    ZBackgroundSendMoveNext(lContext);
+                }
+
+                private void ZBackgroundSendAppendBytes(bool pSecret, cBytes pBytes, cTrace.cContext pParentContext)
+                {
+                    // DO NOT LOG THE parameters: the bytes may be secret
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendBytes));
+
+                    mSendBuffer.AddRange(pBytes);
+
+                    if (pSecret) mTraceBuffer.Add(cASCII.NUL);
+                    else mTraceBuffer.AddRange(pBytes);
+                }
+
+                private void ZBackgroundSendMoveNext(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendMoveNext));
+
+                    if (mCurrentCommand.MoveNext()) return;
+
+                    mSendBuffer.Add(cASCII.CR);
+                    mSendBuffer.Add(cASCII.LF);
+
+                    mTraceBuffer.Add(cASCII.CR);
+                    mTraceBuffer.Add(cASCII.LF);
+
+                    // the current command can be added to the list of active commands now
+                    lock (mPipelineLock)
+                    {
+                        mActiveCommands.Add(mCurrentCommand);
+                        mCurrentCommand.SetActive(lContext);
+                        mCurrentCommand = null;
+                    }
+                }
+
+                public async Task ZWriteAndClearBufferAsync(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZWriteAndClearBufferAsync));
 
                     if (mSendBuffer.Count == 0) return;
 
                     lContext.TraceVerbose("sending {0}", mTraceBuffer);
                     mSynchroniser.InvokeNetworkActivity(mBufferStartPoints, mTraceBuffer, lContext);
 
-                    await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
+                    await mConnection.WriteAsync(mSendBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
 
                     mSendBuffer.Clear();
                     mBufferStartPoints.Clear();
@@ -735,10 +700,30 @@ namespace work.bacome.imapclient
                     using (cCountdownTimer lCountdownTimer = new cCountdownTimer(pDelay, lContext))
                     {
                         lContext.TraceVerbose("waiting");
-                        ;?; // need a special version for here
-                        if (await ZProcessResponsesAsync(lCountdownTimer.GetAwaitCountdownTask(), lContext).ConfigureAwait(false)) return true;
-                        lContext.TraceVerbose("idle terminated during start delay");
-                        return false;
+                        ;?;
+                        Task lCountdownTask = lCountdownTimer.GetAwaitCountdownTask();
+                        Task lBackgroundReleaserTask = mBackgroundReleaser.GetAwaitReleaseTask(lContext);
+
+                        while (true)
+                        {
+                            Task lBuildResponseTask = mConnection.GetBuildResponseTask(lContext);
+
+                            Task lCompleted = await Task.WhenAny(lBuildResponseTask, lBackgroundReleaserTask, lCountdownTask).ConfigureAwait(false);
+
+                            if (ReferenceEquals(lCompleted, lCountdownTask)) return true;
+
+                            if (!ReferenceEquals(lCompleted, lBuildResponseTask))
+                            {
+                                lContext.TraceVerbose("idle terminated during start delay");
+                                return false;
+                            }
+
+                            var lLines = mConnection.GetResponse(lContext);
+                            mSynchroniser.InvokeNetworkActivity(lLines, lContext);
+                            var lCursor = new cBytesCursor(lLines);
+
+                            if (!ZProcessData(lCursor, lContext)) lContext.TraceError("unrecognised response: {0}", lLines);
+                        }
                     }
                 }
 
@@ -767,7 +752,7 @@ namespace work.bacome.imapclient
 
                             lContext.TraceVerbose("sending {0}", mSendBuffer);
                             mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, mSendBuffer, lContext);
-                            await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
+                            await mConnection.WriteAsync(mSendBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
 
                             // wait for continuation
                             await ZIdleProcessResponsesAsync(lTag, true, lContext).ConfigureAwait(false);
@@ -785,7 +770,7 @@ namespace work.bacome.imapclient
 
                             lContext.TraceVerbose("sending {0}", mSendBuffer);
                             mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, mSendBuffer, lContext);
-                            await mConnection.WriteAsync(mBackgroundMC, mSendBuffer.ToArray(), lContext).ConfigureAwait(false);
+                            await mConnection.WriteAsync(mSendBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
 
                             // process responses until the command completion is received
                             await ZIdleProcessResponsesAsync(lTag, false, lContext).ConfigureAwait(false);

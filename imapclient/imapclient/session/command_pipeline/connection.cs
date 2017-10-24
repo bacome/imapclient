@@ -23,6 +23,10 @@ namespace work.bacome.imapclient
                     private enum eState { notconnected, connecting, connected, disconnecting, disconnected }
                     private eState mState = eState.notconnected;
 
+                    // sizing
+                    private readonly cBatchSizer mWriteSizer;
+                    private readonly Stopwatch mStopwatch = new Stopwatch();
+
                     // host
                     private string mHost = null;
 
@@ -47,7 +51,10 @@ namespace work.bacome.imapclient
                     // task that is getting the next response
                     private Task<cBytesLines> mBuildResponseTask = null;
 
-                    public cConnection() { }
+                    public cConnection(cBatchSizerConfiguration pWriteConfiguration)
+                    {
+                        mWriteSizer = new cBatchSizer(pWriteConfiguration);
+                    }
 
                     public async Task ConnectAsync(cMethodControl pMC, cServer pServer, cTrace.cContext pParentContext)
                     {
@@ -91,6 +98,9 @@ namespace work.bacome.imapclient
                                 mStream = mSSLStream;
                             }
                             else mStream = lStream;
+
+                            mStream.ReadTimeout = -1;
+                            mStream.WriteTimeout = -1;
 
                             mState = eState.connected;
                         }
@@ -167,9 +177,9 @@ namespace work.bacome.imapclient
                         return lResult;
                     }
 
-                    public Task WriteAsync(cMethodControl pMC, byte[] pBuffer, cTrace.cContext pParentContext)
+                    public async Task WriteAsync(byte[] pBuffer, CancellationToken pCancellationToken, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(WriteAsync), pMC);
+                        var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(WriteAsync));
 
                         if (mState != eState.connected) throw new InvalidOperationException("must be connected");
 
@@ -192,10 +202,15 @@ namespace work.bacome.imapclient
                             }
                         }
 
-                        mStream.WriteTimeout = pMC.Timeout;
+                        mStopwatch.Restart();
+                        await mStream.WriteAsync(lBuffer, 0, lBuffer.Length, pCancellationToken).ConfigureAwait(false);
+                        mStopwatch.Stop();
 
-                        return mStream.WriteAsync(lBuffer, 0, lBuffer.Length, pMC.CancellationToken);
+                        // store the time taken so the next write is a better size
+                        mWriteSizer.AddSample(lBuffer.Length, mStopwatch.ElapsedMilliseconds);
                     }
+
+                    public int CurrentWriteSize => mWriteSizer.Current;
 
                     private void ZLogResponse(cBytesLines pResponse, cTrace.cContext pParentContext)
                     {

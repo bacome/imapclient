@@ -60,11 +60,13 @@ namespace work.bacome.imapclient
 
                 uint lOrigin = 0;
 
+                Stopwatch lStopwatch = new Stopwatch();
+
                 while (true)
                 {
                     int lLength = mFetchBodyReadSizer.Current;
 
-                    Stopwatch lStopwatch = Stopwatch.StartNew();
+                    lStopwatch.Restart();
 
                     cBody lBody;
                     if (pUID == null) lBody = await ZFetchBodyAsync(pMC, pMessageHandle, lBinary, pSection, lOrigin, (uint)lLength, lContext).ConfigureAwait(false);
@@ -73,7 +75,7 @@ namespace work.bacome.imapclient
                     lStopwatch.Stop();
 
                     // store the time taken so the next fetch is a better size
-                    mFetchBodyReadSizer.AddSample(lBody.Bytes.Count, lStopwatch.ElapsedMilliseconds, lContext);
+                    mFetchBodyReadSizer.AddSample(lBody.Bytes.Count, lStopwatch.ElapsedMilliseconds);
 
                     uint lBodyOrigin = lBody.Origin ?? 0;
 
