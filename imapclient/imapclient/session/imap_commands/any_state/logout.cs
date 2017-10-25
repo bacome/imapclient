@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kLogoutCommandPart = new cCommandPart("LOGOUT");
+            private static readonly cCommandPart kLogoutCommandPart = new cTextCommandPart("LOGOUT");
 
             public async Task LogoutAsync(cMethodControl pMC, cTrace.cContext pParentContext)
             {

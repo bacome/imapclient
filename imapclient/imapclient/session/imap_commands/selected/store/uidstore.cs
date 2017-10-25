@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kUIDStoreCommandPartUIDStoreSpace = new cCommandPart("UID STORE ");
+            private static readonly cCommandPart kUIDStoreCommandPartUIDStoreSpace = new cTextCommandPart("UID STORE ");
 
             private async Task ZUIDStoreAsync(cMethodControl pMC, iMailboxHandle pHandle, uint pUIDValidity, cStoreFeedbackCollector pFeedbackCollector, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cUIDStoreFeedback pFeedback, cTrace.cContext pParentContext)
             {
@@ -32,8 +32,8 @@ namespace work.bacome.imapclient
                     lBuilder.AddUIDValidity(pUIDValidity); // the command is sensitive to UIDValidity changes
 
                     // build the command
-                    lBuilder.Add(kUIDStoreCommandPartUIDStoreSpace, new cCommandPart(cSequenceSet.FromUInts(pFeedbackCollector.UInts)), cCommandPart.Space);
-                    if (pIfUnchangedSinceModSeq != null) lBuilder.Add(kStoreCommandPartLParenUnchangedSinceSpace, new cCommandPart(pIfUnchangedSinceModSeq.Value), kStoreCommandPartRParenSpace);
+                    lBuilder.Add(kUIDStoreCommandPartUIDStoreSpace, new cTextCommandPart(cSequenceSet.FromUInts(pFeedbackCollector.UInts)), cCommandPart.Space);
+                    if (pIfUnchangedSinceModSeq != null) lBuilder.Add(kStoreCommandPartLParenUnchangedSinceSpace, new cTextCommandPart(pIfUnchangedSinceModSeq.Value), kStoreCommandPartRParenSpace);
                     lBuilder.Add(pOperation, pFlags);
 
                     // add the hook

@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kLSubCommandPart = new cCommandPart("LSUB \"\" ");
+            private static readonly cCommandPart kLSubCommandPart = new cTextCommandPart("LSUB \"\" ");
 
             public async Task<List<iMailboxHandle>> LSubAsync(cMethodControl pMC, string pListMailbox, char? pDelimiter, cMailboxPathPattern pPattern, bool pHasSubscribedChildren, cTrace.cContext pParentContext)
             {

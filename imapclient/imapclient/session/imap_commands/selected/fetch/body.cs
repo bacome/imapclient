@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
 
                     // build command
 
-                    lBuilder.Add(kFetchCommandPartFetchSpace, new cCommandPart(lMSN));
+                    lBuilder.Add(kFetchCommandPartFetchSpace, new cTextCommandPart(lMSN));
 
                     if (pBinary) lBuilder.Add(kFetchCommandPartSpaceBinaryPeekLBracket);
                     else lBuilder.Add(kFetchCommandPartSpaceBodyPeekLBracket);

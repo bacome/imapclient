@@ -13,6 +13,7 @@ namespace work.bacome.imapclient.support
         public static readonly cCommandPart RParen = new cTextCommandPart(")");
         public static readonly cCommandPart RBracket = new cTextCommandPart("]");
         public static readonly cCommandPart Dot = new cTextCommandPart(".");
+        public static readonly cCommandPart Inbox = new cTextCommandPart(cMailboxName.InboxBytes);
 
         public readonly bool Secret;
         public readonly bool Encoded;
@@ -40,22 +41,25 @@ namespace work.bacome.imapclient.support
     {
         public readonly Stream Stream;
         private readonly int mLength;
+        public readonly cBatchSizerConfiguration ReadConfiguration;
 
-        public cStreamCommandPart(Stream pStream, int pLength, bool pBinary) : base(pBinary, false, false)
+        public cStreamCommandPart(Stream pStream, int pLength, bool pBinary, cBatchSizerConfiguration pReadConfiguration) : base(pBinary, false, false)
         {
             if (pStream == null) throw new ArgumentNullException(nameof(pStream));
+            if (pReadConfiguration == null) throw new ArgumentNullException(nameof(pReadConfiguration));
             if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
             if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             Stream = pStream;
             mLength = pLength;
+            ReadConfiguration = pReadConfiguration;
         }
 
         public override int Length => mLength;
 
         public override string ToString()
         {
-            if (Secret) return $"{nameof(cStreamCommandPart)}()";
-            else return $"{nameof(cStreamCommandPart)}({Length},{Binary},{Encoded})";
+            if (Secret) return $"{nameof(cStreamCommandPart)}({ReadConfiguration})";
+            else return $"{nameof(cStreamCommandPart)}({Length},{Binary},{Encoded},{ReadConfiguration})";
         }
     }
 
@@ -63,7 +67,7 @@ namespace work.bacome.imapclient.support
     {
         public readonly cBytes Bytes;
 
-        public cLiteralCommandPart(IList<byte> pBytes, bool pBinary, bool pSecret, bool pEncoded) : base(pBinary, pSecret, pEncoded)
+        public cLiteralCommandPart(IList<byte> pBytes, bool pBinary = false, bool pSecret = false, bool pEncoded = false) : base(pBinary, pSecret, pEncoded)
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
             Bytes = new cBytes(pBytes);
@@ -82,7 +86,7 @@ namespace work.bacome.imapclient.support
     {
         public readonly cBytes Bytes;
 
-        public cTextCommandPart(IList<byte> pBytes, bool pSecret, bool pEncoded) : base(pSecret, pEncoded)
+        public cTextCommandPart(IList<byte> pBytes, bool pSecret = false, bool pEncoded = false) : base(pSecret, pEncoded)
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
             Bytes = new cBytes(pBytes);

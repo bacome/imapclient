@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kIdCommandPart = new cCommandPart("ID ");
+            private static readonly cCommandPart kIdCommandPart = new cTextCommandPart("ID ");
 
             private cIdDataProcessor mIdResponseDataProcessor;
 

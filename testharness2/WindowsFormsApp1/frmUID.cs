@@ -16,6 +16,8 @@ namespace testharness2
     {
         private readonly cIMAPClient mClient;
 
+        private List<Form> mDownloads = new List<Form>();
+
         public frmUID(cIMAPClient pClient)
         {
             mClient = pClient;
@@ -55,7 +57,7 @@ namespace testharness2
 
         private void ZEnableFetch()
         {
-            if (string.IsNullOrEmpty(txtPart.Text))
+            if (string.IsNullOrWhiteSpace(txtPart.Text))
             {
                 rdoFields.Enabled = false;
                 rdoFieldsNot.Enabled = false;
@@ -171,80 +173,103 @@ namespace testharness2
             ZEnableFetch();
         }
 
+        private void ZDownloadAdd(frmProgress pProgress)
+        {
+            mDownloads.Add(pProgress);
+            pProgress.FormClosed += ZDownloadClosed;
+            Program.Centre(pProgress, this, mDownloads);
+            pProgress.Show();
+        }
+
+        private void ZDownloadClosed(object sender, EventArgs e)
+        {
+            if (!(sender is frmProgress lForm)) return;
+            lForm.FormClosed -= ZDownloadClosed;
+            mDownloads.Remove(lForm);
+        }
+
+        private void ZDownloadsClose()
+        {
+            List<Form> lForms = new List<Form>();
+
+            foreach (var lForm in mDownloads)
+            {
+                lForms.Add(lForm);
+                lForm.FormClosed -= ZDownloadClosed;
+            }
+
+            mDownloads.Clear();
+
+            foreach (var lForm in lForms)
+            {
+                try { lForm.Close(); }
+                catch { }
+            }
+        }
+
         private async void cmdSaveAs_Click(object sender, EventArgs e)
         {
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
-
-            var lUIDValidity = t
-
-
-            string lPart = txtPart.Text.Trim();
-
-            eSectionTextPart lTextPart;
-
-            if (rdoAll.Checked) lTextPart = eSectionTextPart.all;
-            else if (rdoHeader.Checked) lTextPart = eSectionTextPart.header;
-            else if (rdoFields.Checked) lTextPart = eSectionTextPart.headerfields;
-            else if (rdoFieldsNot.Checked) lTextPart = eSectionTextPart.headerfieldsnot;
-            else if (rdoText.Checked) lTextPart = eSectionTextPart.text;
-            else lTextPart = eSectionTextPart.mime;
-
-            cSection lSection;
-
-            if (lTextPart == eSectionTextPart.headerfields || lTextPart == eSectionTextPart.headerfieldsnot)
-            {
-                if (string.IsNullOrWhiteSpace(txtFieldNames.Text))
-                {
-                    MessageBox.Show(this, "must enter some field names");
-                    return;
-                }
-
-                if (!ZTryParseHeaderFieldNames(txtFieldNames.Text, out var lNames))
-                {
-                    MessageBox.Show(this, "must enter valid field names");
-                    return;
-                }
-
-                try { lSection = new cSection(lPart, lNames, rdoFieldsNot.Checked); }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(this, $"invalid part specifier: {ex}");
-                    return;
-                }
-            }
-            else
-            {
-                if (rdoMime.Checked && string.IsNullOrEmpty(lPart))
-                {
-                    MessageBox.Show(this, "mime requires specification of a part");
-                    return;
-                }
-
-                try { lSection = new cSection(lPart, lTextPart); }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(this, $"invalid part specifier: {ex}");
-                    return;
-                }
-            }
-
-            string lFileName = txtUID.Text.Trim() + ".";
-
-            if (!string.IsNullOrEmpty(lPart)) lFileName += "." + lPart;
-
-            if (lTextPart == eSectionTextPart.header) lFileName += ".header";
-            else if (lTextPart == eSectionTextPart.headerfields || lTextPart == eSectionTextPart.headerfieldsnot) lFileName += ".fields";
-            else if (lTextPart == eSectionTextPart.text) lFileName += ".text";
-            else if (lTextPart == eSectionTextPart.mime) lFileName += ".mime";
-
-            var lSaveFileDialog = new SaveFileDialog();
-            lSaveFileDialog.FileName = lFileName;
-            if (lSaveFileDialog.ShowDialog() != DialogResult.OK) return;
 
             frmProgress lProgress = null;
 
             try
             {
+                cUID lUID = new cUID(uint.Parse(txtUIDValidity.Text), uint.Parse(txtUID.Text));
+
+                string lPart;
+                if (string.IsNullOrWhiteSpace(txtPart.Text)) lPart = null;
+                else lPart = txtPart.Text.Trim();
+
+                eSectionTextPart lTextPart;
+
+                if (rdoAll.Checked) lTextPart = eSectionTextPart.all;
+                else if (rdoHeader.Checked) lTextPart = eSectionTextPart.header;
+                else if (rdoFields.Checked) lTextPart = eSectionTextPart.headerfields;
+                else if (rdoFieldsNot.Checked) lTextPart = eSectionTextPart.headerfieldsnot;
+                else if (rdoText.Checked) lTextPart = eSectionTextPart.text;
+                else lTextPart = eSectionTextPart.mime;
+
+                cSection lSection;
+
+                if (lTextPart == eSectionTextPart.headerfields || lTextPart == eSectionTextPart.headerfieldsnot)
+                {
+                    if (string.IsNullOrWhiteSpace(txtFieldNames.Text))
+                    {
+                        MessageBox.Show(this, "must enter some field names");
+                        return;
+                    }
+
+                    if (!ZTryParseHeaderFieldNames(txtFieldNames.Text, out var lNames))
+                    {
+                        MessageBox.Show(this, "must enter valid field names");
+                        return;
+                    }
+
+                    lSection = new cSection(lPart, lNames, rdoFieldsNot.Checked);
+                }
+                else lSection = new cSection(lPart, lTextPart);
+
+                eDecodingRequired lDecoding;
+
+                if (rdoNone.Checked) lDecoding = eDecodingRequired.none;
+                else if (rdoQuotedPrintable.Checked) lDecoding = eDecodingRequired.quotedprintable;
+                else if (rdoQuotedPrintable.Checked) lDecoding = eDecodingRequired.base64;
+                else lDecoding = eDecodingRequired.unknown;
+
+                string lFileName = lUID.UID.ToString();
+
+                if (lPart != null) lFileName += "." + lPart;
+
+                if (lTextPart == eSectionTextPart.header) lFileName += ".header";
+                else if (lTextPart == eSectionTextPart.headerfields || lTextPart == eSectionTextPart.headerfieldsnot) lFileName += ".fields";
+                else if (lTextPart == eSectionTextPart.text) lFileName += ".text";
+                else if (lTextPart == eSectionTextPart.mime) lFileName += ".mime";
+
+                var lSaveFileDialog = new SaveFileDialog();
+                lSaveFileDialog.FileName = lFileName;
+                if (lSaveFileDialog.ShowDialog() != DialogResult.OK) return;
+
                 lProgress = new frmProgress("saving " + lSaveFileDialog.FileName);
 
                 ZDownloadAdd(lProgress);
@@ -257,7 +282,7 @@ namespace testharness2
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                if (!IsDisposed) MessageBox.Show(this, $"problem when saving '{lSaveFileDialog.FileName}'\n{ex}");
+                if (!IsDisposed) MessageBox.Show(this, $"problem when saving\n{ex}");
             }
             finally
             {
@@ -267,6 +292,8 @@ namespace testharness2
 
         private void frmUID_FormClosing(object sender, FormClosingEventArgs e)
         {
+            ZDownloadsClose();
+
             // to allow closing with validation errors
             e.Cancel = false;
         }

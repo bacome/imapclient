@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kStartTLSCommandPart = new cCommandPart("STARTTLS");
+            private static readonly cCommandPart kStartTLSCommandPart = new cTextCommandPart("STARTTLS");
 
             public async Task StartTLSAsync(cMethodControl pMC, cTrace.cContext pParentContext)
             {

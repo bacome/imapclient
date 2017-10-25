@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kSearchCommandPart = new cCommandPart("SEARCH ");
+            private static readonly cCommandPart kSearchCommandPart = new cTextCommandPart("SEARCH ");
 
             public async Task<cMessageHandleList> SearchAsync(cMethodControl pMC, iMailboxHandle pHandle, cFilter pFilter, cTrace.cContext pParentContext)
             {

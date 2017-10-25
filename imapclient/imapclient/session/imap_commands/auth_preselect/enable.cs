@@ -12,9 +12,9 @@ namespace work.bacome.imapclient
         {
             public fEnableableExtensions EnabledExtensions { get; private set; } = fEnableableExtensions.none;
 
-            private static readonly cCommandPart kEnableCommandPartEnable = new cCommandPart("ENABLE");
+            private static readonly cCommandPart kEnableCommandPartEnable = new cTextCommandPart("ENABLE");
             private static readonly cBytes kEnableExtensionUTF8 = new cBytes("UTF8=ACCEPT");
-            private static readonly cCommandPart kEnableCommandPartUTF8 = new cCommandPart(kEnableExtensionUTF8);
+            private static readonly cCommandPart kEnableCommandPartUTF8 = new cTextCommandPart(kEnableExtensionUTF8);
 
             public async Task EnableAsync(cMethodControl pMC, fEnableableExtensions pExtensions, cTrace.cContext pParentContext)
             {

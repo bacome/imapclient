@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kCloseCommandPart = new cCommandPart("CLOSE");
+            private static readonly cCommandPart kCloseCommandPart = new cTextCommandPart("CLOSE");
 
             public async Task CloseAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {

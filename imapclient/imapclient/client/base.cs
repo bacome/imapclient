@@ -71,9 +71,9 @@ namespace work.bacome.imapclient
         private cCredentials mCredentials = null;
         private bool mMailboxReferrals = false;
         private fMailboxCacheData mMailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount;
+        private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
-        private cBatchSizerConfiguration mAppendReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
-        private cBatchSizerConfiguration mAppendWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
@@ -254,6 +254,20 @@ namespace work.bacome.imapclient
             }
         }
 
+        // configuration that controls the size of large writes to the network
+        //
+        public cBatchSizerConfiguration NetworkWriteConfiguration
+        {
+            get => mNetworkWriteConfiguration;
+
+            set
+            {
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException();
+                mNetworkWriteConfiguration = value ?? throw new ArgumentNullException();
+            }
+        }
+
         // idle config; either IDLE (rfc 2177) or base protocol CHECK and NOOP
         //  the command pipeline waits until a certain period of inactivity has occurred before starting either an IDLE command or periodic polling
         //
@@ -270,34 +284,22 @@ namespace work.bacome.imapclient
             }
         }
 
-        // controls for long running activities
-
-        public cBatchSizerConfiguration AppendReadConfiguration
+        // configuration that controls the size of reads from streams when appending
+        //
+        public cBatchSizerConfiguration AppendStreamReadConfiguration
         {
-            get => mAppendReadConfiguration;
+            get => mAppendStreamReadConfiguration;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendReadConfiguration), value);
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendStreamReadConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mAppendReadConfiguration = value ?? throw new ArgumentNullException();
-                mSession?.SetAppendReadConfiguration(value, lContext);
+                mAppendStreamReadConfiguration = value ?? throw new ArgumentNullException();
             }
         }
 
-        public cBatchSizerConfiguration AppendWriteConfiguration
-        {
-            get => mAppendWriteConfiguration;
-
-            set
-            {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendWriteConfiguration), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mAppendWriteConfiguration = value ?? throw new ArgumentNullException();
-                mSession?.SetAppendWriteConfiguration(value, lContext);
-            }
-        }
-
+        // configuration that controls the number of messages fetched at one time
+        //
         public cBatchSizerConfiguration FetchCacheItemsConfiguration
         {
             get => mFetchCacheItemsConfiguration;
@@ -311,6 +313,8 @@ namespace work.bacome.imapclient
             }
         }
 
+        // configuration that controls the number of bytes fetched at one time
+        //
         public cBatchSizerConfiguration FetchBodyReadConfiguration
         {
             get => mFetchBodyReadConfiguration;
@@ -324,6 +328,8 @@ namespace work.bacome.imapclient
             }
         }
 
+        // configuration that controls the number of bytes written at one time
+        //
         public cBatchSizerConfiguration FetchBodyWriteConfiguration
         {
             get => mFetchBodyWriteConfiguration;

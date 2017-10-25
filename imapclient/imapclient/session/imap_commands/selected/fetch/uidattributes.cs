@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
 
                     lBuilder.AddUIDValidity(pUIDValidity); // the command is sensitive to UIDValidity changes
 
-                    lBuilder.Add(kFetchCommandPartUIDFetchSpace, new cCommandPart(cSequenceSet.FromUInts(pUIDs)), cCommandPart.Space);
+                    lBuilder.Add(kFetchCommandPartUIDFetchSpace, new cTextCommandPart(cSequenceSet.FromUInts(pUIDs)), cCommandPart.Space);
                     lBuilder.Add(pItems, lSelectedMailbox.Cache.NoModSeq);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);

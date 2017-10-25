@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kStatusCommandPart = new cCommandPart("STATUS");
+            private static readonly cCommandPart kStatusCommandPart = new cTextCommandPart("STATUS");
 
             public async Task StatusAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {

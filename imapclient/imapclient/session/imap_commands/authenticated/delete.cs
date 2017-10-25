@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kDeleteCommandPart = new cCommandPart("DELETE ");
+            private static readonly cCommandPart kDeleteCommandPart = new cTextCommandPart("DELETE ");
 
             public async Task DeleteAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {

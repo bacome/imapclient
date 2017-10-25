@@ -16,86 +16,86 @@ namespace work.bacome.imapclient
             private sealed class cCommandDetailsBuilder : IDisposable
             {
                 // search
-                private static readonly cCommandPart kCommandPartCharsetSpace = new cMemoryCommandPart("CHARSET ");
-                private static readonly cCommandPart kCommandPartUSASCIISpace = new cMemoryCommandPart("US-ASCII ");
-                private static readonly cCommandPart kCommandPartUTF8Space = new cMemoryCommandPart("UTF-8 ");
-                private static readonly cCommandPart kCommandPartAll = new cMemoryCommandPart("ALL");
-                private static readonly cCommandPart kCommandPartUIDSpace = new cMemoryCommandPart("UID ");
-                private static readonly cCommandPart kCommandPartAnswered = new cMemoryCommandPart("ANSWERED");
-                private static readonly cCommandPart kCommandPartFlagged = new cMemoryCommandPart("FLAGGED");
-                private static readonly cCommandPart kCommandPartDeleted = new cMemoryCommandPart("DELETED");
-                private static readonly cCommandPart kCommandPartSeen = new cMemoryCommandPart("SEEN");
-                private static readonly cCommandPart kCommandPartDraft = new cMemoryCommandPart("DRAFT");
-                private static readonly cCommandPart kCommandPartRecent = new cMemoryCommandPart("RECENT");
-                private static readonly cCommandPart kCommandPartUnanswered = new cMemoryCommandPart("UNANSWERED");
-                private static readonly cCommandPart kCommandPartUnflagged = new cMemoryCommandPart("UNFLAGGED");
-                private static readonly cCommandPart kCommandPartUndeleted = new cMemoryCommandPart("UNDELETED");
-                private static readonly cCommandPart kCommandPartUnseen = new cMemoryCommandPart("UNSEEN");
-                private static readonly cCommandPart kCommandPartUndraft = new cMemoryCommandPart("UNDRAFT");
-                private static readonly cCommandPart kCommandPartOld = new cMemoryCommandPart("OLD");
-                private static readonly cCommandPart kCommandPartKeywordSpace = new cMemoryCommandPart("KEYWORD ");
-                private static readonly cCommandPart kCommandPartUnkeywordSpace = new cMemoryCommandPart("UNKEYWORD ");
-                private static readonly cCommandPart kCommandPartBCCSpace = new cMemoryCommandPart("BCC ");
-                private static readonly cCommandPart kCommandPartBodySpace = new cMemoryCommandPart("BODY ");
-                private static readonly cCommandPart kCommandPartCCSpace = new cMemoryCommandPart("CC ");
-                private static readonly cCommandPart kCommandPartFromSpace = new cMemoryCommandPart("FROM ");
-                private static readonly cCommandPart kCommandPartSubjectSpace = new cMemoryCommandPart("SUBJECT ");
-                private static readonly cCommandPart kCommandPartTextSpace = new cMemoryCommandPart("TEXT ");
-                private static readonly cCommandPart kCommandPartToSpace = new cMemoryCommandPart("TO ");
-                private static readonly cCommandPart kCommandPartBeforeSpace = new cMemoryCommandPart("BEFORE ");
-                private static readonly cCommandPart kCommandPartOnSpace = new cMemoryCommandPart("ON ");
-                private static readonly cCommandPart kCommandPartSinceSpace = new cMemoryCommandPart("SINCE ");
-                private static readonly cCommandPart kCommandPartSentBeforeSpace = new cMemoryCommandPart("SENTBEFORE ");
-                private static readonly cCommandPart kCommandPartSentOnSpace = new cMemoryCommandPart("SENTON ");
-                private static readonly cCommandPart kCommandPartSentSinceSpace = new cMemoryCommandPart("SENTSINCE ");
-                private static readonly cCommandPart kCommandPartHeaderSpace = new cMemoryCommandPart("HEADER ");
-                private static readonly cCommandPart kCommandPartLargerSpace = new cMemoryCommandPart("LARGER ");
-                private static readonly cCommandPart kCommandPartSmallerSpace = new cMemoryCommandPart("SMALLER ");
-                private static readonly cCommandPart kCommandPartOrSpace = new cMemoryCommandPart("OR ");
-                private static readonly cCommandPart kCommandPartNotSpace = new cMemoryCommandPart("NOT ");
+                private static readonly cCommandPart kCommandPartCharsetSpace = new cTextCommandPart("CHARSET ");
+                private static readonly cCommandPart kCommandPartUSASCIISpace = new cTextCommandPart("US-ASCII ");
+                private static readonly cCommandPart kCommandPartUTF8Space = new cTextCommandPart("UTF-8 ");
+                private static readonly cCommandPart kCommandPartAll = new cTextCommandPart("ALL");
+                private static readonly cCommandPart kCommandPartUIDSpace = new cTextCommandPart("UID ");
+                private static readonly cCommandPart kCommandPartAnswered = new cTextCommandPart("ANSWERED");
+                private static readonly cCommandPart kCommandPartFlagged = new cTextCommandPart("FLAGGED");
+                private static readonly cCommandPart kCommandPartDeleted = new cTextCommandPart("DELETED");
+                private static readonly cCommandPart kCommandPartSeen = new cTextCommandPart("SEEN");
+                private static readonly cCommandPart kCommandPartDraft = new cTextCommandPart("DRAFT");
+                private static readonly cCommandPart kCommandPartRecent = new cTextCommandPart("RECENT");
+                private static readonly cCommandPart kCommandPartUnanswered = new cTextCommandPart("UNANSWERED");
+                private static readonly cCommandPart kCommandPartUnflagged = new cTextCommandPart("UNFLAGGED");
+                private static readonly cCommandPart kCommandPartUndeleted = new cTextCommandPart("UNDELETED");
+                private static readonly cCommandPart kCommandPartUnseen = new cTextCommandPart("UNSEEN");
+                private static readonly cCommandPart kCommandPartUndraft = new cTextCommandPart("UNDRAFT");
+                private static readonly cCommandPart kCommandPartOld = new cTextCommandPart("OLD");
+                private static readonly cCommandPart kCommandPartKeywordSpace = new cTextCommandPart("KEYWORD ");
+                private static readonly cCommandPart kCommandPartUnkeywordSpace = new cTextCommandPart("UNKEYWORD ");
+                private static readonly cCommandPart kCommandPartBCCSpace = new cTextCommandPart("BCC ");
+                private static readonly cCommandPart kCommandPartBodySpace = new cTextCommandPart("BODY ");
+                private static readonly cCommandPart kCommandPartCCSpace = new cTextCommandPart("CC ");
+                private static readonly cCommandPart kCommandPartFromSpace = new cTextCommandPart("FROM ");
+                private static readonly cCommandPart kCommandPartSubjectSpace = new cTextCommandPart("SUBJECT ");
+                private static readonly cCommandPart kCommandPartTextSpace = new cTextCommandPart("TEXT ");
+                private static readonly cCommandPart kCommandPartToSpace = new cTextCommandPart("TO ");
+                private static readonly cCommandPart kCommandPartBeforeSpace = new cTextCommandPart("BEFORE ");
+                private static readonly cCommandPart kCommandPartOnSpace = new cTextCommandPart("ON ");
+                private static readonly cCommandPart kCommandPartSinceSpace = new cTextCommandPart("SINCE ");
+                private static readonly cCommandPart kCommandPartSentBeforeSpace = new cTextCommandPart("SENTBEFORE ");
+                private static readonly cCommandPart kCommandPartSentOnSpace = new cTextCommandPart("SENTON ");
+                private static readonly cCommandPart kCommandPartSentSinceSpace = new cTextCommandPart("SENTSINCE ");
+                private static readonly cCommandPart kCommandPartHeaderSpace = new cTextCommandPart("HEADER ");
+                private static readonly cCommandPart kCommandPartLargerSpace = new cTextCommandPart("LARGER ");
+                private static readonly cCommandPart kCommandPartSmallerSpace = new cTextCommandPart("SMALLER ");
+                private static readonly cCommandPart kCommandPartOrSpace = new cTextCommandPart("OR ");
+                private static readonly cCommandPart kCommandPartNotSpace = new cTextCommandPart("NOT ");
 
                 // sort
-                private static readonly cCommandPart kCommandPartReverse = new cMemoryCommandPart("REVERSE");
-                private static readonly cCommandPart kCommandPartArrival = new cMemoryCommandPart("ARRIVAL");
-                private static readonly cCommandPart kCommandPartCC = new cMemoryCommandPart("CC");
-                private static readonly cCommandPart kCommandPartDate = new cMemoryCommandPart("DATE");
-                private static readonly cCommandPart kCommandPartFrom = new cMemoryCommandPart("FROM");
-                private static readonly cCommandPart kCommandPartSize = new cMemoryCommandPart("SIZE");
-                private static readonly cCommandPart kCommandPartSubject = new cMemoryCommandPart("SUBJECT");
-                private static readonly cCommandPart kCommandPartTo = new cMemoryCommandPart("TO");
-                private static readonly cCommandPart kCommandPartDisplayFrom = new cMemoryCommandPart("DISPLAYFROM");
-                private static readonly cCommandPart kCommandPartDisplayTo = new cMemoryCommandPart("DISPLAYTO");
+                private static readonly cCommandPart kCommandPartReverse = new cTextCommandPart("REVERSE");
+                private static readonly cCommandPart kCommandPartArrival = new cTextCommandPart("ARRIVAL");
+                private static readonly cCommandPart kCommandPartCC = new cTextCommandPart("CC");
+                private static readonly cCommandPart kCommandPartDate = new cTextCommandPart("DATE");
+                private static readonly cCommandPart kCommandPartFrom = new cTextCommandPart("FROM");
+                private static readonly cCommandPart kCommandPartSize = new cTextCommandPart("SIZE");
+                private static readonly cCommandPart kCommandPartSubject = new cTextCommandPart("SUBJECT");
+                private static readonly cCommandPart kCommandPartTo = new cTextCommandPart("TO");
+                private static readonly cCommandPart kCommandPartDisplayFrom = new cTextCommandPart("DISPLAYFROM");
+                private static readonly cCommandPart kCommandPartDisplayTo = new cTextCommandPart("DISPLAYTO");
 
                 // fetch
-                private static readonly cCommandPart kCommandPartFlags = new cMemoryCommandPart("FLAGS");
-                private static readonly cCommandPart kCommandPartEnvelope = new cMemoryCommandPart("ENVELOPE");
-                private static readonly cCommandPart kCommandPartInternalDate = new cMemoryCommandPart("INTERNALDATE");
-                private static readonly cCommandPart kCommandPartrfc822size = new cMemoryCommandPart("RFC822.SIZE");
-                private static readonly cCommandPart kCommandPartBody = new cMemoryCommandPart("BODY");
-                private static readonly cCommandPart kCommandPartBodyStructure = new cMemoryCommandPart("BODYSTRUCTURE");
-                private static readonly cCommandPart kCommandPartUID = new cMemoryCommandPart("UID");
-                private static readonly cCommandPart kCommandPartModSeq = new cMemoryCommandPart("MODSEQ");
-                private static readonly cCommandPart kCommandPartBodyPeekLBracketHeaderFieldsSpace = new cMemoryCommandPart("BODY.PEEK[HEADER.FIELDS ");
+                private static readonly cCommandPart kCommandPartFlags = new cTextCommandPart("FLAGS");
+                private static readonly cCommandPart kCommandPartEnvelope = new cTextCommandPart("ENVELOPE");
+                private static readonly cCommandPart kCommandPartInternalDate = new cTextCommandPart("INTERNALDATE");
+                private static readonly cCommandPart kCommandPartrfc822size = new cTextCommandPart("RFC822.SIZE");
+                private static readonly cCommandPart kCommandPartBody = new cTextCommandPart("BODY");
+                private static readonly cCommandPart kCommandPartBodyStructure = new cTextCommandPart("BODYSTRUCTURE");
+                private static readonly cCommandPart kCommandPartUID = new cTextCommandPart("UID");
+                private static readonly cCommandPart kCommandPartModSeq = new cTextCommandPart("MODSEQ");
+                private static readonly cCommandPart kCommandPartBodyPeekLBracketHeaderFieldsSpace = new cTextCommandPart("BODY.PEEK[HEADER.FIELDS ");
 
                 // fetch body
-                private static readonly cCommandPart kCommandPartHeader = new cMemoryCommandPart("HEADER");
-                private static readonly cCommandPart kCommandPartHeaderFieldsSpaceLParen = new cMemoryCommandPart("HEADER.FIELDS (");
-                private static readonly cCommandPart kCommandPartHeaderFieldsNotSpaceLParen = new cMemoryCommandPart("HEADER.FIELDS.NOT (");
-                private static readonly cCommandPart kCommandPartText = new cMemoryCommandPart("TEXT");
-                private static readonly cCommandPart kCommandPartMime = new cMemoryCommandPart("MIME");
-                private static readonly cCommandPart kCommandPartLessThan = new cMemoryCommandPart("<");
-                private static readonly cCommandPart kCommandPartGreaterThan = new cMemoryCommandPart(">");
+                private static readonly cCommandPart kCommandPartHeader = new cTextCommandPart("HEADER");
+                private static readonly cCommandPart kCommandPartHeaderFieldsSpaceLParen = new cTextCommandPart("HEADER.FIELDS (");
+                private static readonly cCommandPart kCommandPartHeaderFieldsNotSpaceLParen = new cTextCommandPart("HEADER.FIELDS.NOT (");
+                private static readonly cCommandPart kCommandPartText = new cTextCommandPart("TEXT");
+                private static readonly cCommandPart kCommandPartMime = new cTextCommandPart("MIME");
+                private static readonly cCommandPart kCommandPartLessThan = new cTextCommandPart("<");
+                private static readonly cCommandPart kCommandPartGreaterThan = new cTextCommandPart(">");
 
                 // status
-                private static readonly cCommandPart kCommandPartMessages = new cMemoryCommandPart("MESSAGES");
-                private static readonly cCommandPart kCommandPartUIDNext = new cMemoryCommandPart("UIDNEXT");
-                private static readonly cCommandPart kCommandPartUIDValidity = new cMemoryCommandPart("UIDVALIDITY");
-                private static readonly cCommandPart kCommandPartHighestModSeq = new cMemoryCommandPart("HIGHESTMODSEQ");
+                private static readonly cCommandPart kCommandPartMessages = new cTextCommandPart("MESSAGES");
+                private static readonly cCommandPart kCommandPartUIDNext = new cTextCommandPart("UIDNEXT");
+                private static readonly cCommandPart kCommandPartUIDValidity = new cTextCommandPart("UIDVALIDITY");
+                private static readonly cCommandPart kCommandPartHighestModSeq = new cTextCommandPart("HIGHESTMODSEQ");
 
                 // store
-                private static readonly cCommandPart kCommandPartPlusFlagsSpace = new cMemoryCommandPart("+FLAGS ");
-                private static readonly cCommandPart kCommandPartMinusFlagsSpace = new cMemoryCommandPart("-FLAGS ");
-                private static readonly cCommandPart kCommandPartFlagsSpace = new cMemoryCommandPart("FLAGS ");
+                private static readonly cCommandPart kCommandPartPlusFlagsSpace = new cTextCommandPart("+FLAGS ");
+                private static readonly cCommandPart kCommandPartMinusFlagsSpace = new cTextCommandPart("-FLAGS ");
+                private static readonly cCommandPart kCommandPartFlagsSpace = new cTextCommandPart("FLAGS ");
 
                 // members
                 public readonly cCommandTag Tag = new cCommandTag();
@@ -244,7 +244,7 @@ namespace work.bacome.imapclient
                                         lParts.EndList();
                                     }
                                     else if (lMSN > uint.MaxValue) lParts.Add(kCommandPartAll);
-                                    else lParts.Add(new cCommandPart(new cSequenceSet(1, (uint)lMSN - 1)));
+                                    else lParts.Add(new cTextCommandPart(new cSequenceSet(1, (uint)lMSN - 1)));
 
                                     return lParts.Parts;
 
@@ -258,7 +258,7 @@ namespace work.bacome.imapclient
                                         lParts.EndList();
                                     }
                                     else if (lMSN >= uint.MaxValue) lParts.Add(kCommandPartAll);
-                                    else lParts.Add(new cCommandPart(new cSequenceSet(1, (uint)lMSN)));
+                                    else lParts.Add(new cTextCommandPart(new cSequenceSet(1, (uint)lMSN)));
 
                                     return lParts.Parts;
 
@@ -272,7 +272,7 @@ namespace work.bacome.imapclient
                                         lParts.Add(kCommandPartUnseen);
                                         lParts.EndList();
                                     }
-                                    else lParts.Add(new cCommandPart(new cSequenceSet((uint)lMSN, uint.MaxValue)));
+                                    else lParts.Add(new cTextCommandPart(new cSequenceSet((uint)lMSN, uint.MaxValue)));
 
                                     return lParts.Parts;
 
@@ -286,7 +286,7 @@ namespace work.bacome.imapclient
                                         lParts.Add(kCommandPartUnseen);
                                         lParts.EndList();
                                     }
-                                    else lParts.Add(new cCommandPart(new cSequenceSet((uint)lMSN + 1, uint.MaxValue)));
+                                    else lParts.Add(new cTextCommandPart(new cSequenceSet((uint)lMSN + 1, uint.MaxValue)));
 
                                     return lParts.Parts;
 
@@ -297,7 +297,7 @@ namespace work.bacome.imapclient
 
                         case cFilterUIDIn lUIDIn:
 
-                            lParts.Add(kCommandPartUIDSpace, new cCommandPart(lUIDIn.SequenceSet));
+                            lParts.Add(kCommandPartUIDSpace, new cTextCommandPart(lUIDIn.SequenceSet));
                             return lParts.Parts;
 
                         case cFilterFlagsContain lFlagsContain:
@@ -312,7 +312,7 @@ namespace work.bacome.imapclient
                                 else if (lFlag.Equals(kMessageFlagName.Seen, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartSeen);
                                 else if (lFlag.Equals(kMessageFlagName.Draft, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartDraft);
                                 else if (lFlag.Equals(kMessageFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartRecent);
-                                else lParts.Add(kCommandPartKeywordSpace, new cCommandPart(lFlag));
+                                else lParts.Add(kCommandPartKeywordSpace, new cTextCommandPart(lFlag));
                             }
 
                             lParts.EndList();
@@ -393,7 +393,7 @@ namespace work.bacome.imapclient
                             if (lSizeCompare.Compare == eFilterSizeCompare.larger) lParts.Add(kCommandPartLargerSpace);
                             else lParts.Add(kCommandPartSmallerSpace);
 
-                            lParts.Add(new cCommandPart(lSizeCompare.WithSize));
+                            lParts.Add(new cTextCommandPart(lSizeCompare.WithSize));
                             return lParts.Parts;
 
                         case cFilterAnd lAnd:
@@ -425,7 +425,7 @@ namespace work.bacome.imapclient
                                     else if (lFlag.Equals(kMessageFlagName.Seen, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnseen);
                                     else if (lFlag.Equals(kMessageFlagName.Draft, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUndraft);
                                     else if (lFlag.Equals(kMessageFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartOld);
-                                    else lParts.Add(kCommandPartUnkeywordSpace, new cCommandPart(lFlag));
+                                    else lParts.Add(kCommandPartUnkeywordSpace, new cTextCommandPart(lFlag));
                                 }
 
                                 lParts.EndList();
@@ -562,7 +562,7 @@ namespace work.bacome.imapclient
                             throw new cInternalErrorException();
                     }
 
-                    mParts.Add(cCommandPart.RBracket, kCommandPartLessThan, new cCommandPart(pOrigin), cCommandPart.Dot, new cCommandPart(pLength), kCommandPartGreaterThan);
+                    mParts.Add(cCommandPart.RBracket, kCommandPartLessThan, new cTextCommandPart(pOrigin), cCommandPart.Dot, new cTextCommandPart(pLength), kCommandPartGreaterThan);
 
                     void LAdd(cHeaderFieldNames pNames)
                     {
@@ -599,7 +599,7 @@ namespace work.bacome.imapclient
                     }
 
                     mParts.BeginList(eListBracketing.bracketed);
-                    foreach (var lFlag in pFlags) mParts.Add(new cCommandPart(lFlag));
+                    foreach (var lFlag in pFlags) mParts.Add(new cTextCommandPart(lFlag));
                     mParts.EndList();
                 }
 
@@ -807,14 +807,23 @@ namespace work.bacome.imapclient
 
                         foreach (var lPart in lDetails.Parts)
                         {
-                            if (lPart.Type == eCommandPartType.literal)
+                            switch (lPart)
                             {
-                                lBuilder.Append("{");
-                                lBuilder.Append(cTools.ASCIIBytesToString(lPart.LiteralLengthBytes));
-                                lBuilder.Append("}");
-                            }
+                                case cTextCommandPart lText:
 
-                            lBuilder.Append(cTools.BytesToLoggableString(lPart.Bytes));
+                                    lBuilder.Append(cTools.BytesToLoggableString(lText.Bytes));
+                                    break;
+
+                                case cLiteralCommandPart lLiteral:
+
+                                    lBuilder.Append("{");
+                                    lBuilder.Append(lLiteral.Bytes.Count);
+                                    lBuilder.Append("}");
+
+                                    lBuilder.Append(cTools.BytesToLoggableString(lLiteral.Bytes));
+
+                                    break;
+                            }
                         }
 
                         return lBuilder.ToString();

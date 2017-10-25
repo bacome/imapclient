@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kUIDCopyCommandPart = new cCommandPart("UID COPY ");
+            private static readonly cCommandPart kUIDCopyCommandPart = new cTextCommandPart("UID COPY ");
 
             private async Task<cCopyFeedback> ZUIDCopyAsync(cMethodControl pMC, iMailboxHandle pSourceHandle, uint pSourceUIDValidity, cUIntList pSourceUIDs, cMailboxCacheItem pDestinationItem, cTrace.cContext pParentContext)
             {
@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
                     lBuilder.AddUIDValidity(pSourceUIDValidity); // the command is sensitive to UIDValidity changes
 
                     // build the command
-                    lBuilder.Add(kUIDCopyCommandPart, new cCommandPart(cSequenceSet.FromUInts(pSourceUIDs)), cCommandPart.Space, pDestinationItem.MailboxNameCommandPart);
+                    lBuilder.Add(kUIDCopyCommandPart, new cTextCommandPart(cSequenceSet.FromUInts(pSourceUIDs)), cCommandPart.Space, pDestinationItem.MailboxNameCommandPart);
 
                     // add the hook
                     var lHook = new cCommandHookCopy(pSourceUIDValidity);

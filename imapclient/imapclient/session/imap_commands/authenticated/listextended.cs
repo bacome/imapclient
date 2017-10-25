@@ -16,15 +16,15 @@ namespace work.bacome.imapclient
 
         private partial class cSession
         {
-            private static readonly cCommandPart kListExtendedCommandPartList = new cCommandPart("LIST");
-            private static readonly cCommandPart kListExtendedCommandPartRecursiveMatch = new cCommandPart("RECURSIVEMATCH");
-            private static readonly cCommandPart kListExtendedCommandPartSubscribed = new cCommandPart("SUBSCRIBED");
-            private static readonly cCommandPart kListExtendedCommandPartRemote = new cCommandPart("REMOTE");
-            private static readonly cCommandPart kListExtendedCommandPartMailbox = new cCommandPart("\"\"");
-            private static readonly cCommandPart kListExtendedCommandPartReturnSpace = new cCommandPart("RETURN ");
-            private static readonly cCommandPart kListExtendedCommandPartChildren = new cCommandPart("CHILDREN");
-            private static readonly cCommandPart kListExtendedCommandPartSpecialUse = new cCommandPart("SPECIAL-USE");
-            private static readonly cCommandPart kListExtendedCommandPartStatus = new cCommandPart("STATUS");
+            private static readonly cCommandPart kListExtendedCommandPartList = new cTextCommandPart("LIST");
+            private static readonly cCommandPart kListExtendedCommandPartRecursiveMatch = new cTextCommandPart("RECURSIVEMATCH");
+            private static readonly cCommandPart kListExtendedCommandPartSubscribed = new cTextCommandPart("SUBSCRIBED");
+            private static readonly cCommandPart kListExtendedCommandPartRemote = new cTextCommandPart("REMOTE");
+            private static readonly cCommandPart kListExtendedCommandPartMailbox = new cTextCommandPart("\"\"");
+            private static readonly cCommandPart kListExtendedCommandPartReturnSpace = new cTextCommandPart("RETURN ");
+            private static readonly cCommandPart kListExtendedCommandPartChildren = new cTextCommandPart("CHILDREN");
+            private static readonly cCommandPart kListExtendedCommandPartSpecialUse = new cTextCommandPart("SPECIAL-USE");
+            private static readonly cCommandPart kListExtendedCommandPartStatus = new cTextCommandPart("STATUS");
 
             public async Task<List<iMailboxHandle>> ListExtendedAsync(cMethodControl pMC, eListExtendedSelect pSelect, bool pRemote, string pListMailbox, char? pDelimiter, cMailboxPathPattern pPattern, bool pStatus, cTrace.cContext pParentContext)
             {

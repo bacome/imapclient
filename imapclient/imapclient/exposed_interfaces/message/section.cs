@@ -27,7 +27,8 @@ namespace work.bacome.imapclient
         {
             if (pPart != null && !ZValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             Part = pPart;
-            if (pTextPart != eSectionTextPart.header && pTextPart != eSectionTextPart.text && (pPart == null || pTextPart != eSectionTextPart.mime)) throw new ArgumentOutOfRangeException(nameof(pTextPart));
+            if (pTextPart == eSectionTextPart.headerfields || pTextPart == eSectionTextPart.headerfieldsnot) throw new ArgumentOutOfRangeException(nameof(pTextPart));
+            if (pPart == null && pTextPart == eSectionTextPart.mime) throw new ArgumentOutOfRangeException(nameof(pTextPart));
             TextPart = pTextPart;
             Names = null;
         }

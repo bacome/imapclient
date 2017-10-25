@@ -181,8 +181,9 @@ namespace work.bacome.imapclient
             lFactory = new cCommandPartFactory(false, null);
 
             if (!lFactory.TryAsMailbox(pMailboxPath, '/', out lCommandPart, out _)) throw new cTestsException($"mailboxname conversion failed on '{pMailboxPath}'");
+            cTextCommandPart lTCP = lCommandPart as cTextCommandPart;
 
-            lCursor = new cBytesCursor(lCommandPart.Bytes);
+            lCursor = new cBytesCursor(lTCP.Bytes);
             lCursor.GetAString(out lEncodedMailboxPath);
 
             if (cMailboxName.TryConstruct(lEncodedMailboxPath, cASCII.SLASH, false, out lMailboxName))
@@ -195,14 +196,15 @@ namespace work.bacome.imapclient
                 return;
             }
 
-            if (lMailboxName.Path != pMailboxPath) throw new cTestsException($"mailboxname conversion failed on '{pMailboxPath}' -> {lCommandPart.Bytes} -> '{lMailboxName}'", lContext);
+            if (lMailboxName.Path != pMailboxPath) throw new cTestsException($"mailboxname conversion failed on '{pMailboxPath}' -> {lTCP.Bytes} -> '{lMailboxName}'", lContext);
 
             lFactory = new cCommandPartFactory(true, null);
             lFactory.TryAsMailbox(pMailboxPath, '/', out lCommandPart, out _);
-            lCursor = new cBytesCursor(lCommandPart.Bytes);
+            lTCP = lCommandPart as cTextCommandPart;
+            lCursor = new cBytesCursor(lTCP.Bytes);
             lCursor.GetAString(out lEncodedMailboxPath);
             cMailboxName.TryConstruct(lEncodedMailboxPath, cASCII.SLASH, true, out lMailboxName);
-            if (lMailboxName.Path != pMailboxPath) throw new cTestsException($"mailboxname conversion failed on '{pMailboxPath}' -> {lCommandPart.Bytes} -> '{lMailboxName}'", lContext);
+            if (lMailboxName.Path != pMailboxPath) throw new cTestsException($"mailboxname conversion failed on '{pMailboxPath}' -> {lTCP.Bytes} -> '{lMailboxName}'", lContext);
         }
     }
 }

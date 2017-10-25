@@ -11,8 +11,8 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kAuthenticateCommandPartAuthenticate = new cCommandPart("AUTHENTICATE ");
-            private static readonly cCommandPart kAuthenticateCommandPartEqual = new cCommandPart("=");
+            private static readonly cCommandPart kAuthenticateCommandPartAuthenticate = new cTextCommandPart("AUTHENTICATE ");
+            private static readonly cCommandPart kAuthenticateCommandPartEqual = new cTextCommandPart("=");
 
             public async Task<Exception> AuthenticateAsync(cMethodControl pMC, cAccountId pAccountId, cSASL pSASL, cTrace.cContext pParentContext)
             {
@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
                     //  note the lack of locking - this is only called during connect
 
                     lBuilder.Add(kAuthenticateCommandPartAuthenticate);
-                    lBuilder.Add(new cCommandPart(pSASL.MechanismName));
+                    lBuilder.Add(new cTextCommandPart(pSASL.MechanismName));
 
                     var lAuthentication = pSASL.GetAuthentication();
 
@@ -45,7 +45,7 @@ namespace work.bacome.imapclient
                         {
                             lBuilder.Add(cCommandPart.Space);
                             if (lAuthenticationResponse.Count == 0) lBuilder.Add(kAuthenticateCommandPartEqual); // special case where the initial response is an empty string
-                            else lBuilder.Add(new cCommandPart(cBase64.Encode(lAuthenticationResponse), eCommandPartType.text, true));
+                            else lBuilder.Add(new cTextCommandPart(cBase64.Encode(lAuthenticationResponse), true));
                         }
                     }
 

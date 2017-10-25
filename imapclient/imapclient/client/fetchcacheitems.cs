@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     {
         public bool Fetch(iMessageHandle pHandle, cCacheItems pItems)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Fetch), 1);
+            var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(Fetch), 1);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
 
         public cMessageHandleList Fetch(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Fetch), 2);
+            var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(Fetch), 2);
 
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
 
         public cMessageHandleList Fetch(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Fetch), 3);
+            var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(Fetch), 3);
 
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -61,7 +61,7 @@ namespace work.bacome.imapclient
 
         public async Task<bool> FetchAsync(iMessageHandle pHandle, cCacheItems pItems)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(FetchAsync), 1);
+            var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(FetchAsync), 1);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -75,7 +75,7 @@ namespace work.bacome.imapclient
 
         public async Task<cMessageHandleList> FetchAsync(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(FetchAsync), 2);
+            var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(FetchAsync), 2);
 
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -91,7 +91,7 @@ namespace work.bacome.imapclient
 
         public async Task<cMessageHandleList> FetchAsync(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
-            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(FetchAsync), 3);
+            var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(FetchAsync), 3);
 
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));

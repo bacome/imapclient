@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kSetUnseenCommandPart = new cCommandPart("SEARCH UNSEEN");
+            private static readonly cCommandPart kSetUnseenCommandPart = new cTextCommandPart("SEARCH UNSEEN");
 
             public async Task<cMessageHandleList> SetUnseenAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {

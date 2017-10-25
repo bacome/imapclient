@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kCheckCommandPart = new cCommandPart("CHECK");
+            private static readonly cCommandPart kCheckCommandPart = new cTextCommandPart("CHECK");
 
             public async Task CheckAsync(cMethodControl pMC, cTrace.cContext pParentContext)
             {

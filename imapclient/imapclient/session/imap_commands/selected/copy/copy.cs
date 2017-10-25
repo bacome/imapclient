@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kCopyCommandPart = new cCommandPart("COPY ");
+            private static readonly cCommandPart kCopyCommandPart = new cTextCommandPart("COPY ");
 
             private async Task<cCopyFeedback> ZCopyAsync(cMethodControl pMC, cMessageHandleList pSourceHandles, cMailboxCacheItem pDestinationItem, cTrace.cContext pParentContext)
             {
@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
                     }
 
                     // build the command
-                    lBuilder.Add(kCopyCommandPart, new cCommandPart(cSequenceSet.FromUInts(lMSNs)), cCommandPart.Space, pDestinationItem.MailboxNameCommandPart);
+                    lBuilder.Add(kCopyCommandPart, new cTextCommandPart(cSequenceSet.FromUInts(lMSNs)), cCommandPart.Space, pDestinationItem.MailboxNameCommandPart);
 
                     // add the hook
                     var lHook = new cCommandHookCopy(lUIDValidity);

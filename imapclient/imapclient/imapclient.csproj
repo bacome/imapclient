@@ -101,6 +101,7 @@
     <Compile Include="exposed_interfaces\support\types\selectedmailboxdetails.cs" />
     <Compile Include="exposed_interfaces\support\types\mailboxhandle.cs" />
     <Compile Include="exposed_interfaces\support\types\mailboxselectedproperties.cs" />
+    <Compile Include="session\command_pipeline\backgroundtask.cs" />
     <Compile Include="session\command_pipeline\command.cs" />
     <Compile Include="session\command\commanddetails.cs" />
     <Compile Include="session\command\commanddisposables.cs" />
@@ -108,6 +109,10 @@
     <Compile Include="session\command_hooks\commandhookinitial.cs" />
     <Compile Include="session\command_hooks\commandhooklist.cs" />
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
+    <Compile Include="session\command_pipeline\processresponse.cs" />
+    <Compile Include="session\command_pipeline\idle.cs" />
+    <Compile Include="session\command_pipeline\backgroundsend.cs" />
+    <Compile Include="session\command_pipeline\initialisation.cs" />
     <Compile Include="session\response\data\access.cs" />
     <Compile Include="session\response\data\bye.cs" />
     <Compile Include="session\response\data\esearch.cs" />

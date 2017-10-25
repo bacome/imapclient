@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kNamespaceCommandPart = new cCommandPart("NAMESPACE");
+            private static readonly cCommandPart kNamespaceCommandPart = new cTextCommandPart("NAMESPACE");
 
             private cNamespaceDataProcessor mNamespaceDataProcessor;
 

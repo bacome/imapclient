@@ -10,8 +10,8 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kSelectCommandPart = new cCommandPart("SELECT ");
-            private static readonly cCommandPart kSelectCommandPartCondStore = new cCommandPart(" (CONDSTORE)");
+            private static readonly cCommandPart kSelectCommandPart = new cTextCommandPart("SELECT ");
+            private static readonly cCommandPart kSelectCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
 
             public async Task SelectAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {

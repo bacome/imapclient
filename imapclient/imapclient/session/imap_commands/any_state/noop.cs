@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kNoOpCommandPart = new cCommandPart("NOOP");
+            private static readonly cCommandPart kNoOpCommandPart = new cTextCommandPart("NOOP");
 
             public async Task NoOpAsync(cMethodControl pMC, cTrace.cContext pParentContext)
             {

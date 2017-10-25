@@ -43,15 +43,15 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cCallbackSynchroniser pSynchroniser, fCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cIdleConfiguration pIdleConfiguration, cBatchSizerConfiguration pAppendReadConfiguration, cBatchSizerConfiguration pAppendWriteConfiguration, cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cCallbackSynchroniser pSynchroniser, fCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cBatchSizerConfiguration pNetworkWriteConfiguration, cIdleConfiguration pIdleConfiguration, cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pMailboxCacheData, pIdleConfiguration, pAppendReadConfiguration, pAppendWriteConfiguration, pFetchCacheItemsConfiguration, pFetchBodyReadConfiguration);
+                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pMailboxCacheData, pNetworkWriteConfiguration, pIdleConfiguration, pFetchCacheItemsConfiguration, pFetchBodyReadConfiguration);
 
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                 mIgnoreCapabilities = pIgnoreCapabilities;
                 mMailboxCacheData = pMailboxCacheData;
 
-                mPipeline = new cCommandPipeline(pSynchroniser, ZDisconnected, pIdleConfiguration, pAppendReadConfiguration, pAppendWriteConfiguration, lContext);
+                mPipeline = new cCommandPipeline(pSynchroniser, ZDisconnected, pNetworkWriteConfiguration, pIdleConfiguration, lContext);
 
                 mFetchCacheItemsSizer = new cBatchSizer(pFetchCacheItemsConfiguration);
                 mFetchBodyReadSizer = new cBatchSizer(pFetchBodyReadConfiguration);
@@ -110,18 +110,6 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetIdleConfiguration), pConfiguration);
                 mPipeline.SetIdleConfiguration(pConfiguration, lContext);
-            }
-
-            public void SetAppendReadConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetAppendReadConfiguration), pConfiguration);
-                mPipeline.SetAppendReadConfiguration(pConfiguration, lContext);
-            }
-
-            public void SetAppendWriteConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)
-            {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetAppendWriteConfiguration), pConfiguration);
-                mPipeline.SetAppendWriteConfiguration(pConfiguration, lContext);
             }
 
             public void SetFetchCacheItemsConfiguration(cBatchSizerConfiguration pConfiguration, cTrace.cContext pParentContext)

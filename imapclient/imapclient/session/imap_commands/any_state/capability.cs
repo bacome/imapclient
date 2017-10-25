@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kCapabilityCommandPart = new cCommandPart("CAPABILITY");
+            private static readonly cCommandPart kCapabilityCommandPart = new cTextCommandPart("CAPABILITY");
 
             public async Task CapabilityAsync(cMethodControl pMC, cTrace.cContext pParentContext)
             {

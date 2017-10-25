@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kExpungeCommandPart = new cCommandPart("EXPUNGE");
+            private static readonly cCommandPart kExpungeCommandPart = new cTextCommandPart("EXPUNGE");
 
             public async Task ExpungeAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {

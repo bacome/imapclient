@@ -163,6 +163,8 @@ namespace testharness2
 
                 mClient.MailboxReferrals = chkMailboxReferrals.Checked;
 
+                mClient.NetworkWriteConfiguration = new cBatchSizerConfiguration(int.Parse(txtNWMin.Text), int.Parse(txtNWMax.Text), int.Parse(txtNWMaxTime.Text), int.Parse(txtNWInitial.Text));
+
                 await mClient.ConnectAsync();
             }
             catch (Exception ex)
@@ -256,7 +258,7 @@ namespace testharness2
             erp.SetError((Control)sender, null);
         }
 
-        private void ZValFetchConfig(GroupBox pGBX, TextBox pMin, TextBox pMax, TextBox pInitial, CancelEventArgs e)
+        private void ZValBatchSizerConfiguration(GroupBox pGBX, TextBox pMin, TextBox pMax, TextBox pInitial, CancelEventArgs e)
         {
             if (!int.TryParse(pMin.Text, out var lMin)) return;
             if (!int.TryParse(pMax.Text, out var lMax)) return;
@@ -331,6 +333,8 @@ namespace testharness2
             chkCacheUnseenCount.Checked = (lMailboxCacheData & fMailboxCacheData.unseencount) != 0;
             chkCacheHighestModSeq.Checked = (lMailboxCacheData & fMailboxCacheData.highestmodseq) != 0;
 
+            ZLoadBatchSizerConfiguration(mClient.NetworkWriteConfiguration, txtNWMin, txtNWMax, txtNWMaxTime, txtNWInitial);
+
             var lIdleConfiguration = mClient.IdleConfiguration;
 
             if (lIdleConfiguration == null) chkIdleAuto.Checked = false;
@@ -344,9 +348,10 @@ namespace testharness2
 
             txtTimeout.Text = mClient.Timeout.ToString();
 
-            ZLoadFetchConfig(mClient.FetchCacheItemsConfiguration, txtFAMin, txtFAMax, txtFAMaxTime, txtFAInitial);
-            ZLoadFetchConfig(mClient.FetchBodyReadConfiguration, txtFRMin, txtFRMax, txtFRMaxTime, txtFRInitial);
-            ZLoadFetchConfig(mClient.FetchBodyWriteConfiguration, txtFWMin, txtFWMax, txtFWMaxTime, txtFWInitial);
+            ZLoadBatchSizerConfiguration(mClient.FetchCacheItemsConfiguration, txtFAMin, txtFAMax, txtFAMaxTime, txtFAInitial);
+            ZLoadBatchSizerConfiguration(mClient.FetchBodyReadConfiguration, txtFRMin, txtFRMax, txtFRMaxTime, txtFRInitial);
+            ZLoadBatchSizerConfiguration(mClient.FetchBodyWriteConfiguration, txtFWMin, txtFWMax, txtFWMaxTime, txtFWInitial);
+            ZLoadBatchSizerConfiguration(mClient.AppendStreamReadConfiguration, txtASMin, txtASMax, txtASMaxTime, txtASInitial);
 
             ZSortDescriptionSet();
 
@@ -360,7 +365,7 @@ namespace testharness2
             txtAHHeaderFieldNames.Text = ZHeaderFieldNames(mClient.DefaultCacheItems.Names);
         }
 
-        private void ZLoadFetchConfig(cBatchSizerConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
+        private void ZLoadBatchSizerConfiguration(cBatchSizerConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
         {
             pMin.Text = pConfig.Min.ToString();
             pMax.Text = pConfig.Max.ToString();
@@ -410,17 +415,27 @@ namespace testharness2
 
         private void gbxFetchCacheItems_Validating(object sender, CancelEventArgs e)
         {
-            ZValFetchConfig(gbxFetchCacheItems, txtFAMin, txtFAMax, txtFAInitial, e);
+            ZValBatchSizerConfiguration(gbxFetchCacheItems, txtFAMin, txtFAMax, txtFAInitial, e);
         }
 
         private void gbxFetchBodyRead_Validating(object sender, CancelEventArgs e)
         {
-            ZValFetchConfig(gbxFetchBodyRead, txtFRMin, txtFRMax, txtFRInitial, e);
+            ZValBatchSizerConfiguration(gbxFetchBodyRead, txtFRMin, txtFRMax, txtFRInitial, e);
         }
 
         private void gbxFetchBodyWrite_Validating(object sender, CancelEventArgs e)
         {
-            ZValFetchConfig(gbxFetchBodyWrite, txtFWMin, txtFWMax, txtFWInitial, e);
+            ZValBatchSizerConfiguration(gbxFetchBodyWrite, txtFWMin, txtFWMax, txtFWInitial, e);
+        }
+
+        private void gbxNetworkWrite_Validating(object sender, CancelEventArgs e)
+        {
+            ZValBatchSizerConfiguration(gbxNetworkWrite, txtNWMin, txtNWMax, txtNWInitial, e);
+        }
+
+        private void gbxAppendStreamRead_Validating(object sender, CancelEventArgs e)
+        {
+            ZValBatchSizerConfiguration(gbxAppendStreamRead, txtASMin, txtASMax, txtASInitial, e);
         }
 
         private void cmdIdleSet_Click(object sender, EventArgs e)
@@ -612,6 +627,20 @@ namespace testharness2
             catch (Exception ex)
             {
                 MessageBox.Show(this, $"Set fetch body write error\n{ex}");
+            }
+        }
+
+        private void cmdASSet_Click(object sender, EventArgs e)
+        {
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            try
+            {
+                mClient.AppendStreamReadConfiguration = new cBatchSizerConfiguration(int.Parse(txtASMin.Text), int.Parse(txtASMax.Text), int.Parse(txtASMaxTime.Text), int.Parse(txtASInitial.Text));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Set append stream read error\n{ex}");
             }
         }
 

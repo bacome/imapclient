@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kStoreCommandPartStoreSpace = new cCommandPart("STORE ");
+            private static readonly cCommandPart kStoreCommandPartStoreSpace = new cTextCommandPart("STORE ");
 
             private async Task ZStoreAsync(cMethodControl pMC, cStoreFeedback pFeedback, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
             {
@@ -45,8 +45,8 @@ namespace work.bacome.imapclient
                     if (lFeedbackCollector.Count == 0) return;
 
                     // build the command
-                    lBuilder.Add(kStoreCommandPartStoreSpace, new cCommandPart(cSequenceSet.FromUInts(lFeedbackCollector.UInts)), cCommandPart.Space);
-                    if (pIfUnchangedSinceModSeq != null) lBuilder.Add(kStoreCommandPartLParenUnchangedSinceSpace, new cCommandPart(pIfUnchangedSinceModSeq.Value), kStoreCommandPartRParenSpace);
+                    lBuilder.Add(kStoreCommandPartStoreSpace, new cTextCommandPart(cSequenceSet.FromUInts(lFeedbackCollector.UInts)), cCommandPart.Space);
+                    if (pIfUnchangedSinceModSeq != null) lBuilder.Add(kStoreCommandPartLParenUnchangedSinceSpace, new cTextCommandPart(pIfUnchangedSinceModSeq.Value), kStoreCommandPartRParenSpace);
                     lBuilder.Add(pOperation, pFlags);
 
                     // add the hook

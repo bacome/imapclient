@@ -71,7 +71,7 @@
             this.tab.Location = new System.Drawing.Point(2, 25);
             this.tab.Name = "tab";
             this.tab.SelectedIndex = 0;
-            this.tab.Size = new System.Drawing.Size(680, 544);
+            this.tab.Size = new System.Drawing.Size(540, 362);
             this.tab.TabIndex = 1;
             // 
             // tabPage1
@@ -90,7 +90,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(672, 518);
+            this.tabPage1.Size = new System.Drawing.Size(532, 336);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Fetch";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -98,7 +98,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(15, 35);
+            this.label4.Location = new System.Drawing.Point(6, 32);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(26, 13);
             this.label4.TabIndex = 2;
@@ -107,7 +107,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(15, 135);
+            this.label3.Location = new System.Drawing.Point(6, 132);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(65, 13);
             this.label3.TabIndex = 7;
@@ -116,7 +116,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(15, 61);
+            this.label2.Location = new System.Drawing.Point(6, 54);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(26, 13);
             this.label2.TabIndex = 4;
@@ -124,7 +124,7 @@
             // 
             // cmdSaveAs
             // 
-            this.cmdSaveAs.Location = new System.Drawing.Point(86, 207);
+            this.cmdSaveAs.Location = new System.Drawing.Point(74, 204);
             this.cmdSaveAs.Name = "cmdSaveAs";
             this.cmdSaveAs.Size = new System.Drawing.Size(100, 25);
             this.cmdSaveAs.TabIndex = 10;
@@ -137,7 +137,7 @@
             this.groupBox2.Controls.Add(this.rdoBase64);
             this.groupBox2.Controls.Add(this.rdoQuotedPrintable);
             this.groupBox2.Controls.Add(this.rdoNone);
-            this.groupBox2.Location = new System.Drawing.Point(86, 158);
+            this.groupBox2.Location = new System.Drawing.Point(74, 155);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(437, 43);
             this.groupBox2.TabIndex = 9;
@@ -184,7 +184,7 @@
             this.groupBox1.Controls.Add(this.rdoText);
             this.groupBox1.Controls.Add(this.rdoFields);
             this.groupBox1.Controls.Add(this.rdoFieldsNot);
-            this.groupBox1.Location = new System.Drawing.Point(86, 84);
+            this.groupBox1.Location = new System.Drawing.Point(74, 77);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(437, 42);
             this.groupBox1.TabIndex = 6;
@@ -257,7 +257,9 @@
             // 
             // txtFieldNames
             // 
-            this.txtFieldNames.Location = new System.Drawing.Point(86, 132);
+            this.txtFieldNames.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtFieldNames.Location = new System.Drawing.Point(74, 129);
             this.txtFieldNames.Name = "txtFieldNames";
             this.txtFieldNames.Size = new System.Drawing.Size(437, 20);
             this.txtFieldNames.TabIndex = 8;
@@ -266,7 +268,7 @@
             // 
             // txtPart
             // 
-            this.txtPart.Location = new System.Drawing.Point(86, 58);
+            this.txtPart.Location = new System.Drawing.Point(74, 51);
             this.txtPart.Name = "txtPart";
             this.txtPart.Size = new System.Drawing.Size(100, 20);
             this.txtPart.TabIndex = 5;
@@ -276,7 +278,7 @@
             // 
             // txtUID
             // 
-            this.txtUID.Location = new System.Drawing.Point(86, 32);
+            this.txtUID.Location = new System.Drawing.Point(74, 29);
             this.txtUID.Name = "txtUID";
             this.txtUID.Size = new System.Drawing.Size(100, 20);
             this.txtUID.TabIndex = 3;
@@ -286,7 +288,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(15, 9);
+            this.label1.Location = new System.Drawing.Point(6, 9);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(62, 13);
             this.label1.TabIndex = 0;
@@ -294,7 +296,7 @@
             // 
             // txtUIDValidity
             // 
-            this.txtUIDValidity.Location = new System.Drawing.Point(86, 6);
+            this.txtUIDValidity.Location = new System.Drawing.Point(74, 6);
             this.txtUIDValidity.Name = "txtUIDValidity";
             this.txtUIDValidity.Size = new System.Drawing.Size(100, 20);
             this.txtUIDValidity.TabIndex = 1;
@@ -306,7 +308,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(672, 518);
+            this.tabPage2.Size = new System.Drawing.Size(532, 234);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Copy, Store, Expunge";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -329,7 +331,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(683, 570);
+            this.ClientSize = new System.Drawing.Size(543, 388);
             this.Controls.Add(this.lblSelectedMailbox);
             this.Controls.Add(this.tab);
             this.Name = "frmUID";

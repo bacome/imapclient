@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kCreateCommandPart = new cCommandPart("CREATE ");
+            private static readonly cCommandPart kCreateCommandPart = new cTextCommandPart("CREATE ");
 
             public async Task<iMailboxHandle> CreateAsync(cMethodControl pMC, cMailboxName pMailboxName, bool pAsFutureParent, cTrace.cContext pParentContext)
             {

@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
 
                     // build command
 
-                    lBuilder.Add(kFetchCommandPartFetchSpace, new cCommandPart(cSequenceSet.FromUInts(lMSNs)), cCommandPart.Space);
+                    lBuilder.Add(kFetchCommandPartFetchSpace, new cTextCommandPart(cSequenceSet.FromUInts(lMSNs)), cCommandPart.Space);
                     lBuilder.Add(pItems, lSelectedMailbox.Cache.NoModSeq);
 
                     // go

@@ -10,8 +10,8 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kSubscribeCommandPart = new cCommandPart("SUBSCRIBE ");
-            private static readonly cCommandPart kUnsubscribeCommandPart = new cCommandPart("UNSUBSCRIBE ");
+            private static readonly cCommandPart kSubscribeCommandPart = new cTextCommandPart("SUBSCRIBE ");
+            private static readonly cCommandPart kUnsubscribeCommandPart = new cTextCommandPart("UNSUBSCRIBE ");
 
             public async Task SubscribeAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {

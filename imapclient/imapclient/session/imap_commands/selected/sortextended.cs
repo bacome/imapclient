@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kSortExtendedCommandPart = new cCommandPart("SORT RETURN () ");
+            private static readonly cCommandPart kSortExtendedCommandPart = new cTextCommandPart("SORT RETURN () ");
 
             public async Task<cMessageHandleList> SortExtendedAsync(cMethodControl pMC, iMailboxHandle pHandle, cFilter pFilter, cSort pSort, cTrace.cContext pParentContext)
             {

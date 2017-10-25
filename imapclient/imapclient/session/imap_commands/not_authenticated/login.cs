@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kLoginCommandPartLogin = new cCommandPart("LOGIN ");
+            private static readonly cCommandPart kLoginCommandPartLogin = new cTextCommandPart("LOGIN ");
 
             public async Task<Exception> LoginAsync(cMethodControl pMC, cAccountId pAccountId, cLogin pLogin, cTrace.cContext pParentContext)
             {

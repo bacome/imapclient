@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kListDelimiterCommandPart = new cCommandPart("LIST \"\" \"\"");
+            private static readonly cCommandPart kListDelimiterCommandPart = new cTextCommandPart("LIST \"\" \"\"");
 
             public async Task<char?> ListDelimiterAsync(cMethodControl pMC, cTrace.cContext pParentContext)
             {

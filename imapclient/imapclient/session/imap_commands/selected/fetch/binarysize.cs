@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
                     if (lMSN == 0) throw new InvalidOperationException(); // likely expunged
 
                     // build command
-                    lBuilder.Add(kFetchCommandPartFetchSpace, new cCommandPart(lMSN), kFetchCommandPartSpaceBinarySizeLBracket, lPart, cCommandPart.RBracket);
+                    lBuilder.Add(kFetchCommandPartFetchSpace, new cTextCommandPart(lMSN), kFetchCommandPartSpaceBinarySizeLBracket, lPart, cCommandPart.RBracket);
 
                     // go
 
@@ -79,7 +79,7 @@ namespace work.bacome.imapclient
                     lBuilder.AddUIDValidity(pUID.UIDValidity);
 
                     // build command
-                    lBuilder.Add(kFetchCommandPartUIDFetchSpace, new cCommandPart(pUID.UID), kFetchCommandPartSpaceBinarySizeLBracket, lPart, cCommandPart.RBracket);
+                    lBuilder.Add(kFetchCommandPartUIDFetchSpace, new cTextCommandPart(pUID.UID), kFetchCommandPartSpaceBinarySizeLBracket, lPart, cCommandPart.RBracket);
 
                     // go
 

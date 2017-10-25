@@ -10,8 +10,8 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kExamineCommandPart = new cCommandPart("EXAMINE ");
-            private static readonly cCommandPart kExamineCommandPartCondStore = new cCommandPart(" (CONDSTORE)");
+            private static readonly cCommandPart kExamineCommandPart = new cTextCommandPart("EXAMINE ");
+            private static readonly cCommandPart kExamineCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
 
             public async Task ExamineAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {

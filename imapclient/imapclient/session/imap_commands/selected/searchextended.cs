@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kSearchExtendedCommandPart = new cCommandPart("SEARCH RETURN () ");
+            private static readonly cCommandPart kSearchExtendedCommandPart = new cTextCommandPart("SEARCH RETURN () ");
 
             public async Task<cMessageHandleList> SearchExtendedAsync(cMethodControl pMC, iMailboxHandle pHandle, cFilter pFilter, cTrace.cContext pParentContext)
             {

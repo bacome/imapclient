@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kRenameCommandPart = new cCommandPart("RENAME ");
+            private static readonly cCommandPart kRenameCommandPart = new cTextCommandPart("RENAME ");
 
             public async Task<iMailboxHandle> RenameAsync(cMethodControl pMC, iMailboxHandle pHandle, cMailboxName pMailboxName, cTrace.cContext pParentContext)
             {
