@@ -22,7 +22,11 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewRootMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAsync));
 
-                    if (mCurrentCommand != null) await ZBackgroundSendAppendDataAndMoveNextPartAsync(lContext).ConfigureAwait(false);
+                    if (mCurrentCommand != null)
+                    {
+                        mBackgroundSendTraceBufferStartPoints.Add(0);
+                        await ZBackgroundSendAppendDataAndMoveNextAsync(lContext).ConfigureAwait(false);
+                    }
 
                     while (true)
                     {
@@ -33,7 +37,7 @@ namespace work.bacome.imapclient
 
                             if (mCurrentCommand.IsAuthentication)
                             {
-                                ZBackgroundSendAppendAllTextParts(lContext);
+                                await ZBackgroundSendAppendAllTextPartsAsync(lContext).ConfigureAwait(false);
                                 mCurrentCommand.WaitingForContinuationRequest = true;
                                 break;
                             }
@@ -45,10 +49,10 @@ namespace work.bacome.imapclient
                             break;
                         }
 
-                        await ZBackgroundSendAppendDataAndMoveNextPartAsync(lContext).ConfigureAwait(false);
+                        await ZBackgroundSendAppendDataAndMoveNextAsync(lContext).ConfigureAwait(false);
                     }
 
-                    await ZBackgroundSendWriteAndClearBufferAsync(lContext).ConfigureAwait(false);
+                    await ZBackgroundSendWriteAndClearBuffersAsync(lContext).ConfigureAwait(false);
                 }
 
                 private void ZBackgroundSendDequeueAndAppendTag(cTrace.cContext pParentContext)
@@ -82,7 +86,6 @@ namespace work.bacome.imapclient
                     mBackgroundSendBuffer.Add(cASCII.SPACE);
 
                     mBackgroundSendTraceBufferStartPoints.Add(mBackgroundSendTraceBuffer.Count);
-
                     mBackgroundSendTraceBuffer.AddRange(mCurrentCommand.Tag);
                     mBackgroundSendTraceBuffer.Add(cASCII.SPACE);
                 }
@@ -127,13 +130,13 @@ namespace work.bacome.imapclient
                     return lSynchronising;
                 }
 
-                private void ZBackgroundSendAppendAllTextParts(cTrace.cContext pParentContext)
+                private async Task ZBackgroundSendAppendAllTextPartsAsync(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendAllTextParts));
+                    var lContext = pParentContext.NewMethod(true, nameof(cCommandPipeline), nameof(ZBackgroundSendAppendAllTextPartsAsync));
 
                     do
                     {
-                        if (mCurrentCommand.CurrentPart() is cTextCommandPart lText) ZBackgroundSendAppendBytes(lText.Secret, lText.Bytes);
+                        if (mCurrentCommand.CurrentPart() is cTextCommandPart lText) await ZBackgroundSendAppendDataAsync(lText.Secret, lText.Bytes, lText.Bytes.Count, lContext).ConfigureAwait(false);
                         else throw new cInternalErrorException();
                     }
                     while (mCurrentCommand.MoveNext());
@@ -145,77 +148,57 @@ namespace work.bacome.imapclient
                     mBackgroundSendTraceBuffer.Add(cASCII.LF);
                 }
 
-                private static cBytes kBackgroundSendStreamingData = new cBytes("<streaming data> ...");
-
-                private async Task ZBackgroundSendAppendDataAndMoveNextPartAsync(cTrace.cContext pParentContext)
+                private async Task ZBackgroundSendAppendDataAndMoveNextAsync(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(true, nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAndMoveNextPartAsync));
+                    var lContext = pParentContext.NewMethod(true, nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAndMoveNextAsync));
 
-                    var lPart = mCurrentCommand.CurrentPart();
-
-                    if (lPart is cLiteralCommandPart lLiteral)
+                    switch (mCurrentCommand.CurrentPart())
                     {
-                        if (mBackgroundSendBuffer.Count == 0) mBackgroundSendTraceBufferStartPoints.Add(0);
-                        ZBackgroundSendAppendBytes(lLiteral.Secret, lLiteral.Bytes);
-                        ZBackgroundSendMoveNext(lContext);
-                        return;
+                        case cTextCommandPart lText:
+
+                            await ZBackgroundSendAppendDataAsync(lText.Secret, lText.Bytes, lText.Bytes.Count, lContext).ConfigureAwait(false);
+                            break;
+
+                        case cLiteralCommandPart lLiteral:
+
+                            await ZBackgroundSendAppendDataAsync(lLiteral.Secret, lLiteral.Bytes, lLiteral.Bytes.Count, lContext).ConfigureAwait(false);
+                            break;
+
+                        case cStreamCommandPart lStream:
+
+                            int lBytesRemaining = lStream.Length;
+
+                            if (lBytesRemaining > 0)
+                            {
+                                Stopwatch lStopwatch = new Stopwatch();
+                                cBatchSizer lReadSizer = new cBatchSizer(lStream.ReadConfiguration);
+                                byte[] lBuffer = new byte[lReadSizer.Current];
+
+                                while (lBytesRemaining > 0)
+                                {
+                                    int lReadSize = Math.Min(lReadSizer.Current, lBytesRemaining);
+
+                                    if (lReadSize > lBuffer.Length) lBuffer = new byte[lReadSize];
+
+                                    lStopwatch.Restart();
+                                    int lCount = await lStream.Stream.ReadAsync(lBuffer, 0, lReadSize, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false);
+                                    lStopwatch.Stop();
+
+                                    // store the time taken so the next read is a better size
+                                    lReadSizer.AddSample(lCount, lStopwatch.ElapsedMilliseconds);
+
+                                    await ZBackgroundSendAppendDataAsync(lStream.Secret, lBuffer, lCount, lContext).ConfigureAwait(false);
+
+                                    lBytesRemaining -= lCount;
+                                }
+                            }
+                            
+                            break;
+
+                        default:
+
+                            throw new cInternalErrorException();
                     }
-
-                    if (lPart is cTextCommandPart lText)
-                    {
-                        if (mBackgroundSendBuffer.Count == 0) mBackgroundSendTraceBufferStartPoints.Add(0);
-                        ZBackgroundSendAppendBytes(lText.Secret, lText.Bytes);
-                        ZBackgroundSendMoveNext(lContext);
-                        return;
-                    }
-
-                    if (!(lPart is cStreamCommandPart lStream)) throw new cInternalErrorException();
-
-                    int lBytesRemaining = lStream.Length;
-                    Stopwatch lStopwatch = new Stopwatch();
-
-                    if (lBytesRemaining > 0)
-                    {
-                        if (mBackgroundSendBuffer.Count > 0) await ZBackgroundSendWriteAndClearBufferAsync(lContext).ConfigureAwait(false);
-
-                        cBatchSizer lReadSizer = new cBatchSizer(lStream.ReadConfiguration);
-
-                        while (lBytesRemaining > 0)
-                        {
-                            int lCount = Math.Min(lReadSizer.Current, mConnection.CurrentWriteSize);
-                            if (lCount > lBytesRemaining) lCount = lBytesRemaining;
-                            byte[] lBuffer = new byte[lCount];
-
-                            lStopwatch.Restart();
-                            await lStream.Stream.ReadAsync(lBuffer, 0, lCount, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false);
-                            lStopwatch.Stop();
-
-                            // store the time taken so the next read is a better size
-                            lReadSizer.AddSample(lCount, lStopwatch.ElapsedMilliseconds);
-
-                            lContext.TraceVerbose("sending {0} bytes", lCount);
-                            mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, kBackgroundSendStreamingData, lContext);
-
-                            await mConnection.WriteAsync(lBuffer, mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
-
-                            lBytesRemaining -= lCount;
-                        }
-                    }
-
-                    ZBackgroundSendMoveNext(lContext);
-                }
-
-                private void ZBackgroundSendAppendBytes(bool pSecret, cBytes pBytes)
-                {
-                    // DO NOT LOG THE parameters: the bytes may be secret
-                    mBackgroundSendBuffer.AddRange(pBytes);
-                    if (pSecret) mBackgroundSendTraceBuffer.Add(cASCII.NUL);
-                    else mBackgroundSendTraceBuffer.AddRange(pBytes);
-                }
-
-                private void ZBackgroundSendMoveNext(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(true, nameof(cCommandPipeline), nameof(ZBackgroundSendMoveNext));
 
                     if (mCurrentCommand.MoveNext()) return;
 
@@ -234,9 +217,43 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public async Task ZBackgroundSendWriteAndClearBufferAsync(cTrace.cContext pParentContext)
+                private async Task ZBackgroundSendAppendDataAsync(bool pSecret, IEnumerable<byte> pBytes, int pCount, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendWriteAndClearBufferAsync));
+                    // don't log details of the data - it may be secret
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAsync), pSecret);
+
+                    bool lFirst = true;
+                    int lSize = 1;
+
+                    foreach (var lByte in pBytes)
+                    {
+                        if (pCount-- == 0) break;
+
+                        if (lFirst)
+                        {
+                            lSize = mConnection.CurrentWriteSize;
+                            if (pSecret) mBackgroundSendTraceBuffer.Add(cASCII.NUL);
+                            lFirst = false;
+                        }
+
+                        if (mBackgroundSendBuffer.Count >= lSize)
+                        {
+                            await ZBackgroundSendWriteAndClearBuffersAsync(lContext).ConfigureAwait(false);
+
+                            lSize = mConnection.CurrentWriteSize;
+
+                            mBackgroundSendTraceBufferStartPoints.Add(0);
+                            if (pSecret) mBackgroundSendTraceBuffer.Add(cASCII.NUL);
+                        }
+
+                        mBackgroundSendBuffer.Add(lByte);
+                        if (!pSecret) mBackgroundSendTraceBuffer.Add(lByte);
+                    }
+                }
+
+                public async Task ZBackgroundSendWriteAndClearBuffersAsync(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendWriteAndClearBuffersAsync));
 
                     lContext.TraceVerbose("sending {0}", mBackgroundSendTraceBuffer);
                     mSynchroniser.InvokeNetworkActivity(mBackgroundSendTraceBufferStartPoints, mBackgroundSendTraceBuffer, lContext);

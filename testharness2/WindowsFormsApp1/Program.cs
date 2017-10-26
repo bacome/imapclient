@@ -28,6 +28,8 @@ namespace testharness2
 
             ZCentreAdjust(ref lTop, ref lLeft, pThis.Height, pThis.Width);
 
+            pThis.StartPosition = FormStartPosition.Manual;
+
             while (ZCentreCollides(pThis, lTop, lLeft, pGivenThese))
             {
                 lTop += kCentreStep;
@@ -61,7 +63,6 @@ namespace testharness2
                 }
             }
 
-            pThis.StartPosition = FormStartPosition.Manual;
             pThis.Top = lTop;
             pThis.Left = lLeft;
         }

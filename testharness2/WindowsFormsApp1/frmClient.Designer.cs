@@ -1498,7 +1498,7 @@
             this.gbxSelectedMailbox.Controls.Add(this.cmdSelectedMailbox);
             this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 143);
             this.gbxSelectedMailbox.Name = "gbxSelectedMailbox";
-            this.gbxSelectedMailbox.Size = new System.Drawing.Size(478, 127);
+            this.gbxSelectedMailbox.Size = new System.Drawing.Size(451, 127);
             this.gbxSelectedMailbox.TabIndex = 3;
             this.gbxSelectedMailbox.TabStop = false;
             this.gbxSelectedMailbox.Text = "Selected Mailbox";
@@ -1611,7 +1611,7 @@
             this.tbpDefaults.Location = new System.Drawing.Point(4, 22);
             this.tbpDefaults.Name = "tbpDefaults";
             this.tbpDefaults.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpDefaults.Size = new System.Drawing.Size(489, 461);
+            this.tbpDefaults.Size = new System.Drawing.Size(462, 452);
             this.tbpDefaults.TabIndex = 3;
             this.tbpDefaults.Text = "Defaults";
             this.tbpDefaults.UseVisualStyleBackColor = true;
@@ -1625,7 +1625,7 @@
             this.tabControl1.Location = new System.Drawing.Point(6, 88);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(478, 311);
+            this.tabControl1.Size = new System.Drawing.Size(451, 311);
             this.tabControl1.TabIndex = 2;
             // 
             // tabPage1
@@ -1643,7 +1643,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(470, 285);
+            this.tabPage1.Size = new System.Drawing.Size(443, 285);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Cache Items by Attribute & Header";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -1675,7 +1675,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtAHHeaderFieldNames.Location = new System.Drawing.Point(8, 191);
             this.txtAHHeaderFieldNames.Name = "txtAHHeaderFieldNames";
-            this.txtAHHeaderFieldNames.Size = new System.Drawing.Size(440, 20);
+            this.txtAHHeaderFieldNames.Size = new System.Drawing.Size(413, 20);
             this.txtAHHeaderFieldNames.TabIndex = 8;
             this.txtAHHeaderFieldNames.Validating += new System.ComponentModel.CancelEventHandler(this.ZValHeaderFieldNames);
             this.txtAHHeaderFieldNames.Validated += new System.EventHandler(this.ZValControlValidated);
@@ -1985,7 +1985,7 @@
             this.gbxDefaultSort.Controls.Add(this.lblSort);
             this.gbxDefaultSort.Location = new System.Drawing.Point(6, 6);
             this.gbxDefaultSort.Name = "gbxDefaultSort";
-            this.gbxDefaultSort.Size = new System.Drawing.Size(478, 76);
+            this.gbxDefaultSort.Size = new System.Drawing.Size(451, 76);
             this.gbxDefaultSort.TabIndex = 0;
             this.gbxDefaultSort.TabStop = false;
             this.gbxDefaultSort.Text = "Sort";
@@ -2020,7 +2020,7 @@
             this.tbpWindows.Location = new System.Drawing.Point(4, 22);
             this.tbpWindows.Name = "tbpWindows";
             this.tbpWindows.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpWindows.Size = new System.Drawing.Size(489, 461);
+            this.tbpWindows.Size = new System.Drawing.Size(462, 452);
             this.tbpWindows.TabIndex = 1;
             this.tbpWindows.Text = "Windows";
             this.tbpWindows.UseVisualStyleBackColor = true;
@@ -2085,7 +2085,7 @@
             this.gbxEvents.Controls.Add(this.txtEvents);
             this.gbxEvents.Controls.Add(this.label24);
             this.gbxEvents.Controls.Add(this.cmdEvents);
-            this.gbxEvents.Location = new System.Drawing.Point(280, 56);
+            this.gbxEvents.Location = new System.Drawing.Point(253, 56);
             this.gbxEvents.Name = "gbxEvents";
             this.gbxEvents.Size = new System.Drawing.Size(205, 77);
             this.gbxEvents.TabIndex = 2;
@@ -2152,7 +2152,7 @@
             this.tpgResponseText.Location = new System.Drawing.Point(4, 22);
             this.tpgResponseText.Name = "tpgResponseText";
             this.tpgResponseText.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgResponseText.Size = new System.Drawing.Size(489, 461);
+            this.tpgResponseText.Size = new System.Drawing.Size(462, 452);
             this.tpgResponseText.TabIndex = 2;
             this.tpgResponseText.Text = "Response Text Window";
             this.tpgResponseText.UseVisualStyleBackColor = true;

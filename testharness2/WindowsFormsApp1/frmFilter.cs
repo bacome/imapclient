@@ -13,8 +13,8 @@ namespace testharness2
 {
     public partial class frmFilter : Form
     {
-        private BindingList<cPartsRowData> mPartsBindingList = new BindingList<cPartsRowData>();
-        private BindingList<cHeadersRowData> mHeadersBindingList = new BindingList<cHeadersRowData>();
+        private readonly BindingList<cPartsRowData> mPartsBindingList = new BindingList<cPartsRowData>();
+        private readonly BindingList<cHeadersRowData> mHeadersBindingList = new BindingList<cHeadersRowData>();
 
         private readonly string mInstanceName;
         private readonly frmSelectedMailbox mParent;

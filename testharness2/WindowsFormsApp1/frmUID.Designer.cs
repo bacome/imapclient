@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             this.tab = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.cmdDisplay = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -49,15 +50,21 @@
             this.txtFieldNames = new System.Windows.Forms.TextBox();
             this.txtPart = new System.Windows.Forms.TextBox();
             this.txtUID = new System.Windows.Forms.TextBox();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.label5 = new System.Windows.Forms.Label();
+            this.dgv = new System.Windows.Forms.DataGridView();
             this.label1 = new System.Windows.Forms.Label();
             this.txtUIDValidity = new System.Windows.Forms.TextBox();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
             this.lblSelectedMailbox = new System.Windows.Forms.Label();
+            this.cmdCopy = new System.Windows.Forms.Button();
+            this.cmdStore = new System.Windows.Forms.Button();
             this.tab.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            this.tabPage2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgv)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
             this.SuspendLayout();
             // 
@@ -68,14 +75,15 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tab.Controls.Add(this.tabPage1);
             this.tab.Controls.Add(this.tabPage2);
-            this.tab.Location = new System.Drawing.Point(2, 25);
+            this.tab.Location = new System.Drawing.Point(2, 54);
             this.tab.Name = "tab";
             this.tab.SelectedIndex = 0;
-            this.tab.Size = new System.Drawing.Size(540, 362);
+            this.tab.Size = new System.Drawing.Size(540, 233);
             this.tab.TabIndex = 1;
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.cmdDisplay);
             this.tabPage1.Controls.Add(this.label4);
             this.tabPage1.Controls.Add(this.label3);
             this.tabPage1.Controls.Add(this.label2);
@@ -85,20 +93,28 @@
             this.tabPage1.Controls.Add(this.txtFieldNames);
             this.tabPage1.Controls.Add(this.txtPart);
             this.tabPage1.Controls.Add(this.txtUID);
-            this.tabPage1.Controls.Add(this.label1);
-            this.tabPage1.Controls.Add(this.txtUIDValidity);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(532, 336);
+            this.tabPage1.Size = new System.Drawing.Size(532, 207);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Fetch";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // cmdDisplay
+            // 
+            this.cmdDisplay.Location = new System.Drawing.Point(180, 178);
+            this.cmdDisplay.Name = "cmdDisplay";
+            this.cmdDisplay.Size = new System.Drawing.Size(100, 25);
+            this.cmdDisplay.TabIndex = 11;
+            this.cmdDisplay.Text = "Display";
+            this.cmdDisplay.UseVisualStyleBackColor = true;
+            this.cmdDisplay.Click += new System.EventHandler(this.cmdDisplay_Click);
+            // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(6, 32);
+            this.label4.Location = new System.Drawing.Point(6, 9);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(26, 13);
             this.label4.TabIndex = 2;
@@ -107,7 +123,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(6, 132);
+            this.label3.Location = new System.Drawing.Point(6, 106);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(65, 13);
             this.label3.TabIndex = 7;
@@ -116,7 +132,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 54);
+            this.label2.Location = new System.Drawing.Point(6, 32);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(26, 13);
             this.label2.TabIndex = 4;
@@ -124,7 +140,7 @@
             // 
             // cmdSaveAs
             // 
-            this.cmdSaveAs.Location = new System.Drawing.Point(74, 204);
+            this.cmdSaveAs.Location = new System.Drawing.Point(74, 178);
             this.cmdSaveAs.Name = "cmdSaveAs";
             this.cmdSaveAs.Size = new System.Drawing.Size(100, 25);
             this.cmdSaveAs.TabIndex = 10;
@@ -137,7 +153,7 @@
             this.groupBox2.Controls.Add(this.rdoBase64);
             this.groupBox2.Controls.Add(this.rdoQuotedPrintable);
             this.groupBox2.Controls.Add(this.rdoNone);
-            this.groupBox2.Location = new System.Drawing.Point(74, 155);
+            this.groupBox2.Location = new System.Drawing.Point(74, 129);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(437, 43);
             this.groupBox2.TabIndex = 9;
@@ -184,7 +200,7 @@
             this.groupBox1.Controls.Add(this.rdoText);
             this.groupBox1.Controls.Add(this.rdoFields);
             this.groupBox1.Controls.Add(this.rdoFieldsNot);
-            this.groupBox1.Location = new System.Drawing.Point(74, 77);
+            this.groupBox1.Location = new System.Drawing.Point(74, 55);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(437, 42);
             this.groupBox1.TabIndex = 6;
@@ -259,7 +275,7 @@
             // 
             this.txtFieldNames.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtFieldNames.Location = new System.Drawing.Point(74, 129);
+            this.txtFieldNames.Location = new System.Drawing.Point(74, 103);
             this.txtFieldNames.Name = "txtFieldNames";
             this.txtFieldNames.Size = new System.Drawing.Size(437, 20);
             this.txtFieldNames.TabIndex = 8;
@@ -268,7 +284,7 @@
             // 
             // txtPart
             // 
-            this.txtPart.Location = new System.Drawing.Point(74, 51);
+            this.txtPart.Location = new System.Drawing.Point(74, 29);
             this.txtPart.Name = "txtPart";
             this.txtPart.Size = new System.Drawing.Size(100, 20);
             this.txtPart.TabIndex = 5;
@@ -278,17 +294,52 @@
             // 
             // txtUID
             // 
-            this.txtUID.Location = new System.Drawing.Point(74, 29);
+            this.txtUID.Location = new System.Drawing.Point(74, 6);
             this.txtUID.Name = "txtUID";
             this.txtUID.Size = new System.Drawing.Size(100, 20);
             this.txtUID.TabIndex = 3;
-            this.txtUID.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsID);
+            this.txtUID.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsUID);
             this.txtUID.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // tabPage2
+            // 
+            this.tabPage2.Controls.Add(this.cmdStore);
+            this.tabPage2.Controls.Add(this.cmdCopy);
+            this.tabPage2.Controls.Add(this.label5);
+            this.tabPage2.Controls.Add(this.dgv);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(532, 207);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "Copy, Store, Expunge";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(6, 9);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(31, 13);
+            this.label5.TabIndex = 3;
+            this.label5.Text = "UIDs";
+            // 
+            // dgv
+            // 
+            this.dgv.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.dgv.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgv.Location = new System.Drawing.Point(74, 9);
+            this.dgv.Name = "dgv";
+            this.dgv.Size = new System.Drawing.Size(180, 192);
+            this.dgv.TabIndex = 0;
+            this.dgv.RowValidated += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_RowValidated);
+            this.dgv.RowValidating += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgv_RowValidating);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 9);
+            this.label1.Location = new System.Drawing.Point(3, 31);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(62, 13);
             this.label1.TabIndex = 0;
@@ -296,22 +347,12 @@
             // 
             // txtUIDValidity
             // 
-            this.txtUIDValidity.Location = new System.Drawing.Point(74, 6);
+            this.txtUIDValidity.Location = new System.Drawing.Point(80, 28);
             this.txtUIDValidity.Name = "txtUIDValidity";
             this.txtUIDValidity.Size = new System.Drawing.Size(100, 20);
             this.txtUIDValidity.TabIndex = 1;
-            this.txtUIDValidity.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsID);
+            this.txtUIDValidity.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsUIDValidity);
             this.txtUIDValidity.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // tabPage2
-            // 
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(532, 234);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "Copy, Store, Expunge";
-            this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // erp
             // 
@@ -326,14 +367,36 @@
             this.lblSelectedMailbox.TabIndex = 0;
             this.lblSelectedMailbox.Text = "No selected mailbox";
             // 
+            // cmdCopy
+            // 
+            this.cmdCopy.Location = new System.Drawing.Point(260, 9);
+            this.cmdCopy.Name = "cmdCopy";
+            this.cmdCopy.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopy.TabIndex = 4;
+            this.cmdCopy.Text = "Copy ...";
+            this.cmdCopy.UseVisualStyleBackColor = true;
+            this.cmdCopy.Click += new System.EventHandler(this.cmdCopy_Click);
+            // 
+            // cmdStore
+            // 
+            this.cmdStore.Location = new System.Drawing.Point(260, 40);
+            this.cmdStore.Name = "cmdStore";
+            this.cmdStore.Size = new System.Drawing.Size(100, 25);
+            this.cmdStore.TabIndex = 5;
+            this.cmdStore.Text = "Store ...";
+            this.cmdStore.UseVisualStyleBackColor = true;
+            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
+            // 
             // frmUID
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(543, 388);
+            this.ClientSize = new System.Drawing.Size(543, 288);
             this.Controls.Add(this.lblSelectedMailbox);
             this.Controls.Add(this.tab);
+            this.Controls.Add(this.txtUIDValidity);
+            this.Controls.Add(this.label1);
             this.Name = "frmUID";
             this.Text = "frmUID";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmUID_FormClosing);
@@ -346,6 +409,9 @@
             this.groupBox2.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.tabPage2.ResumeLayout(false);
+            this.tabPage2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -379,5 +445,10 @@
         private System.Windows.Forms.RadioButton rdoMime;
         private System.Windows.Forms.ErrorProvider erp;
         private System.Windows.Forms.Label lblSelectedMailbox;
+        private System.Windows.Forms.Button cmdDisplay;
+        private System.Windows.Forms.DataGridView dgv;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Button cmdStore;
+        private System.Windows.Forms.Button cmdCopy;
     }
 }
