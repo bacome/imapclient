@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
@@ -208,8 +209,9 @@ namespace work.bacome.imapclient
 
         public bool Recent => ZFlagsContain(kMessageFlagName.Recent);
 
-        public bool MDNSent => ZFlagsContain(kMessageFlagName.MDNSent);
-        public void SetMDNSent() { ZFlagSet(cSettableFlags.MDNSent, true); }
+        // see comments elsewhere to see why these are commented out
+        //public bool MDNSent => ZFlagsContain(kMessageFlagName.MDNSent);
+        //public void SetMDNSent() { ZFlagSet(cSettableFlags.MDNSent, true); }
 
         public bool Forwarded => ZFlagsContain(kMessageFlagName.Forwarded);
         public void SetForwarded() { ZFlagSet(cSettableFlags.Forwarded, true); }
@@ -467,6 +469,14 @@ namespace work.bacome.imapclient
             if (lFeedback?.Count == 1) return lFeedback[0].Destination;
             return null;
         }
+
+        /*
+        // for sending via SMTP (i.e. a draft)
+
+        public MailMessage ToMailMessage(fToMailMessageOptions pOptions)
+        {
+            ;?; // TODO
+        } */
 
         // debugging
         public override string ToString() => $"{nameof(cMessage)}({Handle},{Indent})";

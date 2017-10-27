@@ -22,7 +22,9 @@ namespace work.bacome.imapclient
         public static readonly cFilter Draft = new cFilterFlagsContain(kMessageFlagName.Draft);
         public static readonly cFilter Recent = new cFilterFlagsContain(kMessageFlagName.Recent);
 
-        public static readonly cFilter MDNSent = new cFilterFlagsContain(kMessageFlagName.MDNSent);
+        // see comments elsewhere for why this is commented out: note: when re-instating it a "MDNRequested" filter should also be added
+        //public static readonly cFilter MDNSent = new cFilterFlagsContain(kMessageFlagName.MDNSent);
+
         public static readonly cFilter Forwarded = new cFilterFlagsContain(kMessageFlagName.Forwarded);
         public static readonly cFilter SubmitPending = new cFilterFlagsContain(kMessageFlagName.SubmitPending);
         public static readonly cFilter Submitted = new cFilterFlagsContain(kMessageFlagName.Submitted);

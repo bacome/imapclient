@@ -25,25 +25,28 @@ namespace work.bacome.imapclient
         seen = 1 << 16,
         draft = 1 << 17,
         recent = 1 << 18,
-        mdnsent = 1 << 19,
-        forwarded = 1 << 20,
-        submitpending = 1 << 21,
-        submitted = 1 << 22,
+        forwarded = 1 << 19,
+        submitpending = 1 << 20,
+        submitted = 1 << 21,
 
-        received = 1 << 23,
-        size = 1 << 24,
-        uid = 1 << 25,
-        modseq = 1 << 26,
+        received = 1 << 22,
+        size = 1 << 23,
+        uid = 1 << 24,
+        modseq = 1 << 25,
 
-        bodystructure = 1 << 27,
-        attachments = 1 << 28,
-        plaintextsizeinbytes = 1 << 29,
+        bodystructure = 1 << 26,
+        attachments = 1 << 27,
+        plaintextsizeinbytes = 1 << 28,
 
-        references = 1 << 30,
-        importance = 1 << 31
+        references = 1 << 29,
+        importance = 1 << 30
 
-        // adding one will require conversion to a long AND use of 1L in the shift
+        // adding << 32 will require conversion to a long AND use of 1L in the shift
         //    public enum fMessageProperties : long
         //         importance = 1L << 31
+
+        // see comments elsewhere as to why this is commented out
+        // mdnsent = 1 << xx,
+
     }
 }

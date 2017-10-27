@@ -49,7 +49,8 @@ namespace testharness2
                 if (chkSubmitPending.Checked) lFlags.Add(kMessageFlagName.SubmitPending);
                 if (chkSubmitted.Checked) lFlags.Add(kMessageFlagName.Submitted);
 
-                if (chkMDNSent.Checked) lFlags.Add(kMessageFlagName.MDNSent);
+                // see comments in the library as to why this is commented out
+                //if (chkMDNSent.Checked) lFlags.Add(kMessageFlagName.MDNSent);
 
                 if (ZTryParseFlagNames(txtFlags.Text, out var lMoreFlags) && lMoreFlags != null) lFlags.Add(lMoreFlags);
 

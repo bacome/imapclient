@@ -43,7 +43,8 @@ namespace testharness2
             if (chkSubmitPending.Checked) lTerms.Add(cFilter.SubmitPending);
             if (chkSubmitted.Checked) lTerms.Add(cFilter.Submitted);
 
-            if (chkMDNSent.Checked) lTerms.Add(cFilter.MDNSent);
+            // see comments in the library as to why this is commented out
+            //if (chkMDNSent.Checked) lTerms.Add(cFilter.MDNSent);
 
             if (ZTryParseFlagNames(txtSet.Text, out var lSet) && lSet != null) lTerms.Add(cFilter.FlagsContain(lSet));
 
@@ -58,7 +59,8 @@ namespace testharness2
             if (chkUnsubmitPending.Checked) lTerms.Add(!cFilter.SubmitPending);
             if (chkUnsubmitted.Checked) lTerms.Add(!cFilter.Submitted);
 
-            if (chkUnMDNSent.Checked) lTerms.Add(!cFilter.MDNSent);
+            // see comments in the library as to why this is commented out
+            //if (chkUnMDNSent.Checked) lTerms.Add(!cFilter.MDNSent);
 
             if (ZTryParseFlagNames(txtNotSet.Text, out var lNotSet) && lNotSet != null) lTerms.Add(!cFilter.FlagsContain(lNotSet));
 

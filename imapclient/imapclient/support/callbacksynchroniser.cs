@@ -298,7 +298,8 @@ namespace work.bacome.imapclient
                 if ((pProperties & fMessageProperties.seen) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Seen)));
                 if ((pProperties & fMessageProperties.draft) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Draft)));
                 if ((pProperties & fMessageProperties.recent) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Recent)));
-                if ((pProperties & fMessageProperties.mdnsent) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.MDNSent)));
+                // see comments elsewhere as to why this is commented out
+                //if ((pProperties & fMessageProperties.mdnsent) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.MDNSent)));
                 if ((pProperties & fMessageProperties.forwarded) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Forwarded)));
                 if ((pProperties & fMessageProperties.submitpending) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.SubmitPending)));
                 if ((pProperties & fMessageProperties.submitted) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Submitted)));

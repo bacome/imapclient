@@ -191,12 +191,15 @@ namespace testharness2
                         chkForwarded.Checked = mMessage.Forwarded;
                         chkSubmitPending.Checked = mMessage.SubmitPending;
 
-                        chkMDNSent.Checked = mMessage.MDNSent;
+                        // see comments in the library as to why this is commented out
+                        //chkMDNSent.Checked = mMessage.MDNSent;
 
                         chkAnswered.Enabled = !mMessage.Answered;
                         chkForwarded.Enabled = !mMessage.Forwarded;
                         chkSubmitPending.Enabled = !mMessage.SubmitPending;
-                        chkMDNSent.Enabled = !mMessage.MDNSent;
+
+                        // see comments in the library as to why this is commented out
+                        //chkMDNSent.Enabled = !mMessage.MDNSent;
 
                         mQueryingFlagCheckboxes = false;
                     }
@@ -955,6 +958,7 @@ namespace testharness2
             }
         }
 
+        /* see comments in the library as to why this is commented out
         private void chkMDNSent_CheckedChanged(object sender, EventArgs e)
         {
             if (mQueryingFlagCheckboxes) return;
@@ -965,7 +969,7 @@ namespace testharness2
                 try { mMessage.SetMDNSent(); }
                 catch (Exception ex) { MessageBox.Show(this, $"Store error\n{ex}"); }
             }
-        }
+        } */
 
         private async void cmdStore_Click(object sender, EventArgs e)
         {

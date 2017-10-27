@@ -45,6 +45,15 @@ namespace work.bacome.imapclient
         //  trace is the tracing 
         //  async is generic async tools
 
+        // notes on MDNSent
+        //
+        //  to implement MDNSent I need to not just recognise the MDNSent flag but also the fact that an MDN is required
+        //   this involves getting and parsing the following headers;
+        //    Disposition-Notification-To, Original-Recipient and Disposition-Notification-Options (see rfc 8098)
+        //   the result of the parsing would be presented in an additional message attribute called MDNRequest which would be null if there are no headers
+        //    or there are errors (like duplicate headers)
+        //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
+
         // version and release date of this class
         public static Version Version = new Version(0, 2);
         public static DateTime ReleaseDate = new DateTime(2017, 7, 18);

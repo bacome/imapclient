@@ -13,6 +13,8 @@ namespace work.bacome.imapclient
         {
             private partial class cCommandPipeline
             {
+                private bool mBackgroundSendBufferSecret = false;
+
                 // growable buffers
                 private readonly cByteList mBackgroundSendBuffer = new cByteList();
                 private readonly List<int> mBackgroundSendTraceBufferStartPoints = new List<int>();
@@ -52,6 +54,7 @@ namespace work.bacome.imapclient
                         await ZBackgroundSendAppendDataAndMoveNextAsync(lContext).ConfigureAwait(false);
                     }
 
+                    ;?;
                     await ZBackgroundSendWriteAndClearBuffersAsync(lContext).ConfigureAwait(false);
                 }
 
@@ -97,7 +100,11 @@ namespace work.bacome.imapclient
 
                     if (!(mCurrentCommand.CurrentPart() is cLiteralCommandPartBase lLiteral)) return false;
 
-                    if (lLiteral.Binary) mBackgroundSendBuffer.Add(cASCII.TILDA);
+                    if (lLiteral.Binary)
+                    {
+                        mBackgroundSendBuffer.Add(cASCII.TILDA);
+                        mBackgroundSendTraceBuffer.Add(cASCII.TILDA);
+                    }
 
                     cByteList lLengthBytes = cTools.IntToBytesReverse(lLiteral.Length);
                     lLengthBytes.Reverse();
@@ -106,7 +113,12 @@ namespace work.bacome.imapclient
                     mBackgroundSendBuffer.AddRange(lLengthBytes);
 
                     mBackgroundSendTraceBuffer.Add(cASCII.LBRACE);
-                    if (lLiteral.Secret) mBackgroundSendTraceBuffer.Add(cASCII.NUL);
+
+                    if (lLiteral.Secret)
+                    {
+                        mBackgroundSendBufferSecret = true;
+                        mBackgroundSendTraceBuffer.Add(cASCII.NUL);
+                    }
                     else mBackgroundSendTraceBuffer.AddRange(lLengthBytes);
 
                     bool lSynchronising;
@@ -180,6 +192,8 @@ namespace work.bacome.imapclient
 
                                     if (lReadSize > lBuffer.Length) lBuffer = new byte[lReadSize];
 
+                                    if (!lStream.Secret) lContext.TraceVerbose("reading {0} bytes from stream", lReadSize);
+
                                     lStopwatch.Restart();
                                     int lCount = await lStream.Stream.ReadAsync(lBuffer, 0, lReadSize, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false);
                                     lStopwatch.Stop();
@@ -219,22 +233,14 @@ namespace work.bacome.imapclient
 
                 private async Task ZBackgroundSendAppendDataAsync(bool pSecret, IEnumerable<byte> pBytes, int pCount, cTrace.cContext pParentContext)
                 {
-                    // don't log details of the data - it may be secret
+                    // don't log details of the data (i.e. the length) - it may be secret
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAsync), pSecret);
 
-                    bool lFirst = true;
-                    int lSize = 1;
+                    int lSize = mConnection.CurrentWriteSize;
 
                     foreach (var lByte in pBytes)
                     {
                         if (pCount-- == 0) break;
-
-                        if (lFirst)
-                        {
-                            lSize = mConnection.CurrentWriteSize;
-                            if (pSecret) mBackgroundSendTraceBuffer.Add(cASCII.NUL);
-                            lFirst = false;
-                        }
 
                         if (mBackgroundSendBuffer.Count >= lSize)
                         {
@@ -242,24 +248,53 @@ namespace work.bacome.imapclient
 
                             lSize = mConnection.CurrentWriteSize;
 
+                            // note that this reveals that the size is large
                             mBackgroundSendTraceBufferStartPoints.Add(0);
-                            if (pSecret) mBackgroundSendTraceBuffer.Add(cASCII.NUL);
+                            ????if (pSecret) mBackgroundSendTraceBuffer.Add(cASCII.NUL);
                         }
 
                         mBackgroundSendBuffer.Add(lByte);
-                        if (!pSecret) mBackgroundSendTraceBuffer.Add(lByte);
+
+                        if (pSecret)
+                        {
+                            if (!lTracedSecretness)
+                            {
+
+                            }
+                            mBackgroundSendBufferSecret = true;
+                            ;?;  if (lFirst)
+                        }
+                        else
+                        {
+                            mBackgroundSendTraceBuffer.Add(lByte);
+                        }
                     }
                 }
 
-                public async Task ZBackgroundSendWriteAndClearBuffersAsync(cTrace.cContext pParentContext)
+                public async Task ZBackgroundSendWriteAndClearBuffersAsync( cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendWriteAndClearBuffersAsync));
 
-                    lContext.TraceVerbose("sending {0}", mBackgroundSendTraceBuffer);
-                    mSynchroniser.InvokeNetworkActivity(mBackgroundSendTraceBufferStartPoints, mBackgroundSendTraceBuffer, lContext);
+                    // if the whole trace buffer is secret then don't log it? as this would reveal the number of send buffers required to send a secret which would reveal details about the length
+                    //  ;?;
+
+
+                    if (mBackgroundSendTraceBuffer.Count == 1 && mBackgroundSendTraceBuffer[0] == cASCII.NUL)
+                    {
+                        ;?; // this indicates that the tracing should be done at a higher level: not here
+                        int lSize;
+                        if (mBackgroundSendBufferSecret) lSize = -1;
+                        else lSize = mBackgroundSendBuffer.Count;
+
+
+                        //
+                        lContext.TraceVerbose("sending {0} bytes: {1}", lSize, mBackgroundSendTraceBuffer);
+                        mSynchroniser.InvokeNetworkActivity(lSize, mBackgroundSendTraceBufferStartPoints, mBackgroundSendTraceBuffer, lContext);
+                    }
 
                     await mConnection.WriteAsync(mBackgroundSendBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
 
+                    mBackgroundSendBufferSecret = false;
                     mBackgroundSendBuffer.Clear();
                     mBackgroundSendTraceBufferStartPoints.Clear();
                     mBackgroundSendTraceBuffer.Clear();

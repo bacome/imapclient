@@ -36,7 +36,6 @@
             this.chkSeen = new System.Windows.Forms.CheckBox();
             this.chkDeleted = new System.Windows.Forms.CheckBox();
             this.chkFlagged = new System.Windows.Forms.CheckBox();
-            this.chkMDNSent = new System.Windows.Forms.CheckBox();
             this.chkAnswered = new System.Windows.Forms.CheckBox();
             this.rdoReplace = new System.Windows.Forms.RadioButton();
             this.rdoRemove = new System.Windows.Forms.RadioButton();
@@ -121,16 +120,6 @@
             this.chkFlagged.Text = "Flagged";
             this.chkFlagged.UseVisualStyleBackColor = true;
             // 
-            // chkMDNSent
-            // 
-            this.chkMDNSent.AutoSize = true;
-            this.chkMDNSent.Location = new System.Drawing.Point(12, 85);
-            this.chkMDNSent.Name = "chkMDNSent";
-            this.chkMDNSent.Size = new System.Drawing.Size(73, 17);
-            this.chkMDNSent.TabIndex = 17;
-            this.chkMDNSent.Text = "MDNSent";
-            this.chkMDNSent.UseVisualStyleBackColor = true;
-            // 
             // chkAnswered
             // 
             this.chkAnswered.AutoSize = true;
@@ -177,7 +166,7 @@
             // 
             this.txtFlags.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtFlags.Location = new System.Drawing.Point(224, 113);
+            this.txtFlags.Location = new System.Drawing.Point(224, 85);
             this.txtFlags.Name = "txtFlags";
             this.txtFlags.Size = new System.Drawing.Size(246, 20);
             this.txtFlags.TabIndex = 21;
@@ -186,7 +175,7 @@
             // 
             // cmdStore
             // 
-            this.cmdStore.Location = new System.Drawing.Point(224, 161);
+            this.cmdStore.Location = new System.Drawing.Point(224, 133);
             this.cmdStore.Name = "cmdStore";
             this.cmdStore.Size = new System.Drawing.Size(100, 25);
             this.cmdStore.TabIndex = 23;
@@ -196,7 +185,7 @@
             // 
             // txtIfUnchangedSinceModSeq
             // 
-            this.txtIfUnchangedSinceModSeq.Location = new System.Drawing.Point(224, 135);
+            this.txtIfUnchangedSinceModSeq.Location = new System.Drawing.Point(224, 107);
             this.txtIfUnchangedSinceModSeq.Name = "txtIfUnchangedSinceModSeq";
             this.txtIfUnchangedSinceModSeq.Size = new System.Drawing.Size(161, 20);
             this.txtIfUnchangedSinceModSeq.TabIndex = 22;
@@ -206,7 +195,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(9, 116);
+            this.label2.Location = new System.Drawing.Point(9, 88);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(120, 13);
             this.label2.TabIndex = 24;
@@ -215,7 +204,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(9, 138);
+            this.label1.Location = new System.Drawing.Point(9, 110);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(187, 13);
             this.label1.TabIndex = 25;
@@ -228,7 +217,7 @@
             // cmdCancel
             // 
             this.cmdCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cmdCancel.Location = new System.Drawing.Point(330, 161);
+            this.cmdCancel.Location = new System.Drawing.Point(330, 133);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(100, 25);
             this.cmdCancel.TabIndex = 26;
@@ -240,7 +229,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(493, 190);
+            this.ClientSize = new System.Drawing.Size(493, 163);
             this.Controls.Add(this.cmdCancel);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -257,7 +246,6 @@
             this.Controls.Add(this.chkSeen);
             this.Controls.Add(this.chkDeleted);
             this.Controls.Add(this.chkFlagged);
-            this.Controls.Add(this.chkMDNSent);
             this.Controls.Add(this.chkAnswered);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "frmStoreDialog";
@@ -280,7 +268,6 @@
         private System.Windows.Forms.CheckBox chkSeen;
         private System.Windows.Forms.CheckBox chkDeleted;
         private System.Windows.Forms.CheckBox chkFlagged;
-        private System.Windows.Forms.CheckBox chkMDNSent;
         private System.Windows.Forms.CheckBox chkAnswered;
         private System.Windows.Forms.RadioButton rdoReplace;
         private System.Windows.Forms.RadioButton rdoRemove;

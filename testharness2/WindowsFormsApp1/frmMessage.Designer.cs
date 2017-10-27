@@ -47,7 +47,6 @@
             this.chkSeen = new System.Windows.Forms.CheckBox();
             this.chkDeleted = new System.Windows.Forms.CheckBox();
             this.chkFlagged = new System.Windows.Forms.CheckBox();
-            this.chkMDNSent = new System.Windows.Forms.CheckBox();
             this.chkAnswered = new System.Windows.Forms.CheckBox();
             this.rtxFlags = new System.Windows.Forms.RichTextBox();
             this.tpgBodyStructure = new System.Windows.Forms.TabPage();
@@ -230,7 +229,6 @@
             this.gbxFlags.Controls.Add(this.chkSeen);
             this.gbxFlags.Controls.Add(this.chkDeleted);
             this.gbxFlags.Controls.Add(this.chkFlagged);
-            this.gbxFlags.Controls.Add(this.chkMDNSent);
             this.gbxFlags.Controls.Add(this.chkAnswered);
             this.gbxFlags.Location = new System.Drawing.Point(6, 401);
             this.gbxFlags.Name = "gbxFlags";
@@ -304,17 +302,6 @@
             this.chkFlagged.Text = "Flagged";
             this.chkFlagged.UseVisualStyleBackColor = true;
             this.chkFlagged.CheckedChanged += new System.EventHandler(this.chkFlagged_CheckedChanged);
-            // 
-            // chkMDNSent
-            // 
-            this.chkMDNSent.AutoSize = true;
-            this.chkMDNSent.Location = new System.Drawing.Point(439, 42);
-            this.chkMDNSent.Name = "chkMDNSent";
-            this.chkMDNSent.Size = new System.Drawing.Size(73, 17);
-            this.chkMDNSent.TabIndex = 8;
-            this.chkMDNSent.Text = "MDNSent";
-            this.chkMDNSent.UseVisualStyleBackColor = true;
-            this.chkMDNSent.CheckedChanged += new System.EventHandler(this.chkMDNSent_CheckedChanged);
             // 
             // chkAnswered
             // 
@@ -617,7 +604,6 @@
         private System.Windows.Forms.CheckBox chkSeen;
         private System.Windows.Forms.CheckBox chkDeleted;
         private System.Windows.Forms.CheckBox chkFlagged;
-        private System.Windows.Forms.CheckBox chkMDNSent;
         private System.Windows.Forms.CheckBox chkAnswered;
         private System.Windows.Forms.Button cmdStore;
         private System.Windows.Forms.Button cmdCopyTo;

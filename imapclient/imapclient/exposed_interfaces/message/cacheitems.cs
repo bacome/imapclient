@@ -19,7 +19,8 @@ namespace work.bacome.imapclient
         {
             Attributes = 0;
 
-            if ((pProperties & (fMessageProperties.flags | fMessageProperties.answered | fMessageProperties.flagged | fMessageProperties.deleted | fMessageProperties.seen | fMessageProperties.draft | fMessageProperties.recent | fMessageProperties.mdnsent | fMessageProperties.forwarded | fMessageProperties.submitpending | fMessageProperties.submitted)) != 0) Attributes |= fCacheAttributes.flags;
+            // see comments elsewhere as to why mdnsent is commented out
+            if ((pProperties & (fMessageProperties.flags | fMessageProperties.answered | fMessageProperties.flagged | fMessageProperties.deleted | fMessageProperties.seen | fMessageProperties.draft | fMessageProperties.recent | /* fMessageProperties.mdnsent | */ fMessageProperties.forwarded | fMessageProperties.submitpending | fMessageProperties.submitted)) != 0) Attributes |= fCacheAttributes.flags;
             if ((pProperties & (fMessageProperties.envelope | fMessageProperties.sent | fMessageProperties.subject | fMessageProperties.basesubject | fMessageProperties.from | fMessageProperties.sender | fMessageProperties.replyto | fMessageProperties.to | fMessageProperties.cc | fMessageProperties.bcc | fMessageProperties.inreplyto | fMessageProperties.messageid)) != 0) Attributes |= fCacheAttributes.envelope;
             if ((pProperties & fMessageProperties.received) != 0) Attributes |= fCacheAttributes.received;
             if ((pProperties & fMessageProperties.size) != 0) Attributes |= fCacheAttributes.size;

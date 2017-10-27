@@ -40,7 +40,6 @@
             this.chkUnsubmitted = new System.Windows.Forms.CheckBox();
             this.chkUnsubmitPending = new System.Windows.Forms.CheckBox();
             this.chkUnforwarded = new System.Windows.Forms.CheckBox();
-            this.chkUnMDNSent = new System.Windows.Forms.CheckBox();
             this.chkUnseen = new System.Windows.Forms.CheckBox();
             this.chkUnrecent = new System.Windows.Forms.CheckBox();
             this.chkUnflagged = new System.Windows.Forms.CheckBox();
@@ -53,7 +52,6 @@
             this.chkSubmitted = new System.Windows.Forms.CheckBox();
             this.chkSubmitPending = new System.Windows.Forms.CheckBox();
             this.chkForwarded = new System.Windows.Forms.CheckBox();
-            this.chkMDNSent = new System.Windows.Forms.CheckBox();
             this.chkSeen = new System.Windows.Forms.CheckBox();
             this.chkRecent = new System.Windows.Forms.CheckBox();
             this.chkFlagged = new System.Windows.Forms.CheckBox();
@@ -80,17 +78,17 @@
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.dgvHeaders = new System.Windows.Forms.DataGridView();
             this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.rdoImpHigh = new System.Windows.Forms.RadioButton();
+            this.rdoImpNormal = new System.Windows.Forms.RadioButton();
+            this.rdoImpLow = new System.Windows.Forms.RadioButton();
+            this.rdoImpAll = new System.Windows.Forms.RadioButton();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.txtSizeSmaller = new System.Windows.Forms.TextBox();
             this.txtSizeLarger = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
-            this.groupBox6 = new System.Windows.Forms.GroupBox();
-            this.rdoImpAll = new System.Windows.Forms.RadioButton();
-            this.rdoImpLow = new System.Windows.Forms.RadioButton();
-            this.rdoImpNormal = new System.Windows.Forms.RadioButton();
-            this.rdoImpHigh = new System.Windows.Forms.RadioButton();
             this.tab.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -103,9 +101,9 @@
             this.tabPage4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvHeaders)).BeginInit();
             this.tabPage5.SuspendLayout();
+            this.groupBox6.SuspendLayout();
             this.groupBox5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
-            this.groupBox6.SuspendLayout();
             this.SuspendLayout();
             // 
             // chkInvert
@@ -178,7 +176,6 @@
             this.groupBox2.Controls.Add(this.chkUnsubmitted);
             this.groupBox2.Controls.Add(this.chkUnsubmitPending);
             this.groupBox2.Controls.Add(this.chkUnforwarded);
-            this.groupBox2.Controls.Add(this.chkUnMDNSent);
             this.groupBox2.Controls.Add(this.chkUnseen);
             this.groupBox2.Controls.Add(this.chkUnrecent);
             this.groupBox2.Controls.Add(this.chkUnflagged);
@@ -239,16 +236,6 @@
             this.chkUnforwarded.TabIndex = 9;
             this.chkUnforwarded.Text = "Forwarded";
             this.chkUnforwarded.UseVisualStyleBackColor = true;
-            // 
-            // chkUnMDNSent
-            // 
-            this.chkUnMDNSent.AutoSize = true;
-            this.chkUnMDNSent.Location = new System.Drawing.Point(436, 43);
-            this.chkUnMDNSent.Name = "chkUnMDNSent";
-            this.chkUnMDNSent.Size = new System.Drawing.Size(73, 17);
-            this.chkUnMDNSent.TabIndex = 12;
-            this.chkUnMDNSent.Text = "MDNSent";
-            this.chkUnMDNSent.UseVisualStyleBackColor = true;
             // 
             // chkUnseen
             // 
@@ -317,7 +304,6 @@
             this.groupBox1.Controls.Add(this.chkSubmitted);
             this.groupBox1.Controls.Add(this.chkSubmitPending);
             this.groupBox1.Controls.Add(this.chkForwarded);
-            this.groupBox1.Controls.Add(this.chkMDNSent);
             this.groupBox1.Controls.Add(this.chkSeen);
             this.groupBox1.Controls.Add(this.chkRecent);
             this.groupBox1.Controls.Add(this.chkFlagged);
@@ -378,16 +364,6 @@
             this.chkForwarded.TabIndex = 9;
             this.chkForwarded.Text = "Forwarded";
             this.chkForwarded.UseVisualStyleBackColor = true;
-            // 
-            // chkMDNSent
-            // 
-            this.chkMDNSent.AutoSize = true;
-            this.chkMDNSent.Location = new System.Drawing.Point(436, 43);
-            this.chkMDNSent.Name = "chkMDNSent";
-            this.chkMDNSent.Size = new System.Drawing.Size(73, 17);
-            this.chkMDNSent.TabIndex = 12;
-            this.chkMDNSent.Text = "MDNSent";
-            this.chkMDNSent.UseVisualStyleBackColor = true;
             // 
             // chkSeen
             // 
@@ -678,6 +654,61 @@
             this.tabPage5.Text = "Other";
             this.tabPage5.UseVisualStyleBackColor = true;
             // 
+            // groupBox6
+            // 
+            this.groupBox6.Controls.Add(this.rdoImpHigh);
+            this.groupBox6.Controls.Add(this.rdoImpNormal);
+            this.groupBox6.Controls.Add(this.rdoImpLow);
+            this.groupBox6.Controls.Add(this.rdoImpAll);
+            this.groupBox6.Location = new System.Drawing.Point(6, 80);
+            this.groupBox6.Name = "groupBox6";
+            this.groupBox6.Size = new System.Drawing.Size(299, 46);
+            this.groupBox6.TabIndex = 1;
+            this.groupBox6.TabStop = false;
+            this.groupBox6.Text = "Importance";
+            // 
+            // rdoImpHigh
+            // 
+            this.rdoImpHigh.AutoSize = true;
+            this.rdoImpHigh.Location = new System.Drawing.Point(224, 19);
+            this.rdoImpHigh.Name = "rdoImpHigh";
+            this.rdoImpHigh.Size = new System.Drawing.Size(47, 17);
+            this.rdoImpHigh.TabIndex = 3;
+            this.rdoImpHigh.Text = "High";
+            this.rdoImpHigh.UseVisualStyleBackColor = true;
+            // 
+            // rdoImpNormal
+            // 
+            this.rdoImpNormal.AutoSize = true;
+            this.rdoImpNormal.Location = new System.Drawing.Point(155, 19);
+            this.rdoImpNormal.Name = "rdoImpNormal";
+            this.rdoImpNormal.Size = new System.Drawing.Size(58, 17);
+            this.rdoImpNormal.TabIndex = 2;
+            this.rdoImpNormal.Text = "Normal";
+            this.rdoImpNormal.UseVisualStyleBackColor = true;
+            // 
+            // rdoImpLow
+            // 
+            this.rdoImpLow.AutoSize = true;
+            this.rdoImpLow.Location = new System.Drawing.Point(86, 19);
+            this.rdoImpLow.Name = "rdoImpLow";
+            this.rdoImpLow.Size = new System.Drawing.Size(45, 17);
+            this.rdoImpLow.TabIndex = 1;
+            this.rdoImpLow.Text = "Low";
+            this.rdoImpLow.UseVisualStyleBackColor = true;
+            // 
+            // rdoImpAll
+            // 
+            this.rdoImpAll.AutoSize = true;
+            this.rdoImpAll.Checked = true;
+            this.rdoImpAll.Location = new System.Drawing.Point(18, 19);
+            this.rdoImpAll.Name = "rdoImpAll";
+            this.rdoImpAll.Size = new System.Drawing.Size(36, 17);
+            this.rdoImpAll.TabIndex = 0;
+            this.rdoImpAll.TabStop = true;
+            this.rdoImpAll.Text = "All";
+            this.rdoImpAll.UseVisualStyleBackColor = true;
+            // 
             // groupBox5
             // 
             this.groupBox5.Controls.Add(this.txtSizeSmaller);
@@ -731,61 +762,6 @@
             // 
             this.erp.ContainerControl = this;
             // 
-            // groupBox6
-            // 
-            this.groupBox6.Controls.Add(this.rdoImpHigh);
-            this.groupBox6.Controls.Add(this.rdoImpNormal);
-            this.groupBox6.Controls.Add(this.rdoImpLow);
-            this.groupBox6.Controls.Add(this.rdoImpAll);
-            this.groupBox6.Location = new System.Drawing.Point(6, 80);
-            this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(299, 46);
-            this.groupBox6.TabIndex = 1;
-            this.groupBox6.TabStop = false;
-            this.groupBox6.Text = "Importance";
-            // 
-            // rdoImpAll
-            // 
-            this.rdoImpAll.AutoSize = true;
-            this.rdoImpAll.Checked = true;
-            this.rdoImpAll.Location = new System.Drawing.Point(18, 19);
-            this.rdoImpAll.Name = "rdoImpAll";
-            this.rdoImpAll.Size = new System.Drawing.Size(36, 17);
-            this.rdoImpAll.TabIndex = 0;
-            this.rdoImpAll.TabStop = true;
-            this.rdoImpAll.Text = "All";
-            this.rdoImpAll.UseVisualStyleBackColor = true;
-            // 
-            // rdoImpLow
-            // 
-            this.rdoImpLow.AutoSize = true;
-            this.rdoImpLow.Location = new System.Drawing.Point(86, 19);
-            this.rdoImpLow.Name = "rdoImpLow";
-            this.rdoImpLow.Size = new System.Drawing.Size(45, 17);
-            this.rdoImpLow.TabIndex = 1;
-            this.rdoImpLow.Text = "Low";
-            this.rdoImpLow.UseVisualStyleBackColor = true;
-            // 
-            // rdoImpNormal
-            // 
-            this.rdoImpNormal.AutoSize = true;
-            this.rdoImpNormal.Location = new System.Drawing.Point(155, 19);
-            this.rdoImpNormal.Name = "rdoImpNormal";
-            this.rdoImpNormal.Size = new System.Drawing.Size(58, 17);
-            this.rdoImpNormal.TabIndex = 2;
-            this.rdoImpNormal.Text = "Normal";
-            this.rdoImpNormal.UseVisualStyleBackColor = true;
-            // 
-            // rdoImpHigh
-            // 
-            this.rdoImpHigh.AutoSize = true;
-            this.rdoImpHigh.Location = new System.Drawing.Point(224, 19);
-            this.rdoImpHigh.Name = "rdoImpHigh";
-            this.rdoImpHigh.Size = new System.Drawing.Size(47, 17);
-            this.rdoImpHigh.TabIndex = 3;
-            this.rdoImpHigh.Text = "High";
-            this.rdoImpHigh.UseVisualStyleBackColor = true;
-            // 
             // frmFilter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -816,11 +792,11 @@
             this.tabPage4.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvHeaders)).EndInit();
             this.tabPage5.ResumeLayout(false);
+            this.groupBox6.ResumeLayout(false);
+            this.groupBox6.PerformLayout();
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();
-            this.groupBox6.ResumeLayout(false);
-            this.groupBox6.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -872,7 +848,6 @@
         private System.Windows.Forms.CheckBox chkUnsubmitted;
         private System.Windows.Forms.CheckBox chkUnsubmitPending;
         private System.Windows.Forms.CheckBox chkUnforwarded;
-        private System.Windows.Forms.CheckBox chkUnMDNSent;
         private System.Windows.Forms.CheckBox chkUnseen;
         private System.Windows.Forms.CheckBox chkUnrecent;
         private System.Windows.Forms.CheckBox chkUnflagged;
@@ -884,7 +859,6 @@
         private System.Windows.Forms.CheckBox chkSubmitted;
         private System.Windows.Forms.CheckBox chkSubmitPending;
         private System.Windows.Forms.CheckBox chkForwarded;
-        private System.Windows.Forms.CheckBox chkMDNSent;
         private System.Windows.Forms.GroupBox groupBox6;
         private System.Windows.Forms.RadioButton rdoImpHigh;
         private System.Windows.Forms.RadioButton rdoImpNormal;

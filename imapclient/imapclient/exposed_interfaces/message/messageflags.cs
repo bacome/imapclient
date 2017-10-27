@@ -25,7 +25,8 @@ namespace work.bacome.imapclient
         public const string Submitted = "$Submitted";
 
         // rfc 3503/ 5550
-        public const string MDNSent = "$MDNSent";
+        // see comments elsewhere as to why this is commented out
+        //public const string MDNSent = "$MDNSent";
 
         /* according to Mark Crispin (2000-06-09 17:46:16) flags are case-insensitive, so at this stage this is out
             Dovecot (at the least) treats them as case-insensitive, so if it were added back I'd have the issue of how to make it configurable
@@ -91,7 +92,8 @@ namespace work.bacome.imapclient
         public static readonly cSettableFlags SubmitPending = new cSettableFlags(kMessageFlagName.SubmitPending);
         public static readonly cSettableFlags Submitted = new cSettableFlags(kMessageFlagName.Submitted);
 
-        public static readonly cSettableFlags MDNSent = new cSettableFlags(kMessageFlagName.MDNSent);
+        // see comments elsewhere as to why this is commented out
+        //public static readonly cSettableFlags MDNSent = new cSettableFlags(kMessageFlagName.MDNSent);
 
         public cSettableFlags(params string[] pFlags) : base(new cSettableFlagList(pFlags)) { } // validates, duplicates, removes duplicates
         public cSettableFlags(IEnumerable<string> pFlags) : base(new cSettableFlagList(pFlags)) { } // validates, duplicates, removes duplicates
