@@ -113,6 +113,7 @@
     <Compile Include="session\command_pipeline\idle.cs" />
     <Compile Include="session\command_pipeline\backgroundsend.cs" />
     <Compile Include="session\command_pipeline\initialisation.cs" />
+    <Compile Include="session\command_pipeline\sendbuffer.cs" />
     <Compile Include="session\response\data\access.cs" />
     <Compile Include="session\response\data\bye.cs" />
     <Compile Include="session\response\data\esearch.cs" />

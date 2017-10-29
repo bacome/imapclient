@@ -47,6 +47,9 @@ namespace work.bacome.imapclient
                 private readonly cReleaser mBackgroundReleaser;
                 private readonly cAwaiter mBackgroundAwaiter;
 
+                // background send buffer
+                private readonly cSendBuffer mBackgroundSendBuffer;
+
                 // background task
                 private Task mBackgroundTask = null; // background task
                 private Exception mBackgroundTaskException = null;
@@ -80,6 +83,8 @@ namespace work.bacome.imapclient
                     // these depend on the cancellationtokensource being constructed
                     mBackgroundReleaser = new cReleaser("commandpipeline_background", mBackgroundCancellationTokenSource.Token);
                     mBackgroundAwaiter = new cAwaiter(mBackgroundCancellationTokenSource.Token);
+
+                    mBackgroundSendBuffer = new cSendBuffer(pSynchroniser, mConnection, mBackgroundCancellationTokenSource.Token);
 
                     // plumbing
                     mIdleBlock.Released += mBackgroundReleaser.Release; // when the idle block is removed, kick the background process

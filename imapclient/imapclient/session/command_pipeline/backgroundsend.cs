@@ -13,22 +13,11 @@ namespace work.bacome.imapclient
         {
             private partial class cCommandPipeline
             {
-                private bool mBackgroundSendBufferSecret = false;
-
-                // growable buffers
-                private readonly cByteList mBackgroundSendBuffer = new cByteList();
-                private readonly List<int> mBackgroundSendTraceBufferStartPoints = new List<int>();
-                private readonly cByteList mBackgroundSendTraceBuffer = new cByteList();
-
                 private async Task ZBackgroundSendAsync(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewRootMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAsync));
+                    var lContext = pParentContext.NewRootMethod(true, nameof(cCommandPipeline), nameof(ZBackgroundSendAsync));
 
-                    if (mCurrentCommand != null)
-                    {
-                        mBackgroundSendTraceBufferStartPoints.Add(0);
-                        await ZBackgroundSendAppendDataAndMoveNextAsync(lContext).ConfigureAwait(false);
-                    }
+                    if (mCurrentCommand != null) await ZBackgroundSendAppendDataAndMoveNextAsync(lContext).ConfigureAwait(false);
 
                     while (true)
                     {
@@ -54,8 +43,7 @@ namespace work.bacome.imapclient
                         await ZBackgroundSendAppendDataAndMoveNextAsync(lContext).ConfigureAwait(false);
                     }
 
-                    ;?;
-                    await ZBackgroundSendWriteAndClearBuffersAsync(lContext).ConfigureAwait(false);
+                    await mBackgroundSendBuffer.WriteAsync(lContext).ConfigureAwait(false);
                 }
 
                 private void ZBackgroundSendDequeueAndAppendTag(cTrace.cContext pParentContext)
@@ -85,12 +73,7 @@ namespace work.bacome.imapclient
 
                     if (mCurrentCommand == null) return;
 
-                    mBackgroundSendBuffer.AddRange(mCurrentCommand.Tag);
-                    mBackgroundSendBuffer.Add(cASCII.SPACE);
-
-                    mBackgroundSendTraceBufferStartPoints.Add(mBackgroundSendTraceBuffer.Count);
-                    mBackgroundSendTraceBuffer.AddRange(mCurrentCommand.Tag);
-                    mBackgroundSendTraceBuffer.Add(cASCII.SPACE);
+                    mBackgroundSendBuffer.AddTag(mCurrentCommand.Tag);
                 }
 
                 private bool ZBackgroundSendAppendLiteralHeader()
@@ -100,51 +83,19 @@ namespace work.bacome.imapclient
 
                     if (!(mCurrentCommand.CurrentPart() is cLiteralCommandPartBase lLiteral)) return false;
 
-                    if (lLiteral.Binary)
-                    {
-                        mBackgroundSendBuffer.Add(cASCII.TILDA);
-                        mBackgroundSendTraceBuffer.Add(cASCII.TILDA);
-                    }
-
-                    cByteList lLengthBytes = cTools.IntToBytesReverse(lLiteral.Length);
-                    lLengthBytes.Reverse();
-
-                    mBackgroundSendBuffer.Add(cASCII.LBRACE);
-                    mBackgroundSendBuffer.AddRange(lLengthBytes);
-
-                    mBackgroundSendTraceBuffer.Add(cASCII.LBRACE);
-
-                    if (lLiteral.Secret)
-                    {
-                        mBackgroundSendBufferSecret = true;
-                        mBackgroundSendTraceBuffer.Add(cASCII.NUL);
-                    }
-                    else mBackgroundSendTraceBuffer.AddRange(lLengthBytes);
-
                     bool lSynchronising;
 
-                    if (mLiteralPlus || mLiteralMinus && lLiteral.Length < 4097)
-                    {
-                        mBackgroundSendBuffer.Add(cASCII.PLUS);
-                        mBackgroundSendTraceBuffer.Add(cASCII.PLUS);
-                        lSynchronising = false;
-                    }
+                    if (mLiteralPlus || mLiteralMinus && lLiteral.Length < 4097) lSynchronising = false;
                     else lSynchronising = true;
 
-                    mBackgroundSendBuffer.Add(cASCII.RBRACE);
-                    mBackgroundSendBuffer.Add(cASCII.CR);
-                    mBackgroundSendBuffer.Add(cASCII.LF);
-
-                    mBackgroundSendTraceBuffer.Add(cASCII.RBRACE);
-                    mBackgroundSendTraceBuffer.Add(cASCII.CR);
-                    mBackgroundSendTraceBuffer.Add(cASCII.LF);
+                    mBackgroundSendBuffer.AddLiteralHeader(lLiteral.Secret, lLiteral.Binary, lLiteral.Length, lSynchronising);
 
                     return lSynchronising;
                 }
 
                 private async Task ZBackgroundSendAppendAllTextPartsAsync(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(true, nameof(cCommandPipeline), nameof(ZBackgroundSendAppendAllTextPartsAsync));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendAllTextPartsAsync));
 
                     do
                     {
@@ -153,16 +104,12 @@ namespace work.bacome.imapclient
                     }
                     while (mCurrentCommand.MoveNext());
 
-                    mBackgroundSendBuffer.Add(cASCII.CR);
-                    mBackgroundSendBuffer.Add(cASCII.LF);
-
-                    mBackgroundSendTraceBuffer.Add(cASCII.CR);
-                    mBackgroundSendTraceBuffer.Add(cASCII.LF);
+                    mBackgroundSendBuffer.AddCRLF();
                 }
 
                 private async Task ZBackgroundSendAppendDataAndMoveNextAsync(cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(true, nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAndMoveNextAsync));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAndMoveNextAsync));
 
                     switch (mCurrentCommand.CurrentPart())
                     {
@@ -216,11 +163,7 @@ namespace work.bacome.imapclient
 
                     if (mCurrentCommand.MoveNext()) return;
 
-                    mBackgroundSendBuffer.Add(cASCII.CR);
-                    mBackgroundSendBuffer.Add(cASCII.LF);
-
-                    mBackgroundSendTraceBuffer.Add(cASCII.CR);
-                    mBackgroundSendTraceBuffer.Add(cASCII.LF);
+                    mBackgroundSendBuffer.AddCRLF();
 
                     // the current command can be added to the list of active commands now
                     lock (mPipelineLock)
@@ -244,60 +187,12 @@ namespace work.bacome.imapclient
 
                         if (mBackgroundSendBuffer.Count >= lSize)
                         {
-                            await ZBackgroundSendWriteAndClearBuffersAsync(lContext).ConfigureAwait(false);
-
+                            await mBackgroundSendBuffer.WriteAsync(lContext).ConfigureAwait(false);
                             lSize = mConnection.CurrentWriteSize;
-
-                            // note that this reveals that the size is large
-                            mBackgroundSendTraceBufferStartPoints.Add(0);
-                            ????if (pSecret) mBackgroundSendTraceBuffer.Add(cASCII.NUL);
                         }
 
-                        mBackgroundSendBuffer.Add(lByte);
-
-                        if (pSecret)
-                        {
-                            if (!lTracedSecretness)
-                            {
-
-                            }
-                            mBackgroundSendBufferSecret = true;
-                            ;?;  if (lFirst)
-                        }
-                        else
-                        {
-                            mBackgroundSendTraceBuffer.Add(lByte);
-                        }
+                        mBackgroundSendBuffer.AddByte(pSecret, lByte);
                     }
-                }
-
-                public async Task ZBackgroundSendWriteAndClearBuffersAsync( cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendWriteAndClearBuffersAsync));
-
-                    // if the whole trace buffer is secret then don't log it? as this would reveal the number of send buffers required to send a secret which would reveal details about the length
-                    //  ;?;
-
-
-                    if (mBackgroundSendTraceBuffer.Count == 1 && mBackgroundSendTraceBuffer[0] == cASCII.NUL)
-                    {
-                        ;?; // this indicates that the tracing should be done at a higher level: not here
-                        int lSize;
-                        if (mBackgroundSendBufferSecret) lSize = -1;
-                        else lSize = mBackgroundSendBuffer.Count;
-
-
-                        //
-                        lContext.TraceVerbose("sending {0} bytes: {1}", lSize, mBackgroundSendTraceBuffer);
-                        mSynchroniser.InvokeNetworkActivity(lSize, mBackgroundSendTraceBufferStartPoints, mBackgroundSendTraceBuffer, lContext);
-                    }
-
-                    await mConnection.WriteAsync(mBackgroundSendBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
-
-                    mBackgroundSendBufferSecret = false;
-                    mBackgroundSendBuffer.Clear();
-                    mBackgroundSendTraceBufferStartPoints.Clear();
-                    mBackgroundSendTraceBuffer.Clear();
                 }
             }
         }

@@ -168,7 +168,7 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void InvokeNetworkActivity(IList<int> pBufferStartPoints, IList<byte> pBuffer, cTrace.cContext pParentContext)
+            public void InvokeNetworkActivity(int pByteCount, IList<int> pStartPoints, IList<byte> pBuffer, cTrace.cContext pParentContext)
             {
                 if (NetworkActivity == null) return; // pre-check for efficiency only
 
@@ -176,24 +176,24 @@ namespace work.bacome.imapclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
 
-                if (pBufferStartPoints == null) throw new ArgumentNullException(nameof(pBufferStartPoints));
+                if (pStartPoints == null) throw new ArgumentNullException(nameof(pStartPoints));
                 if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
 
-                if (pBufferStartPoints.Count == 0) throw new ArgumentOutOfRangeException(nameof(pBufferStartPoints));
+                if (pStartPoints.Count == 0) throw new ArgumentOutOfRangeException(nameof(pStartPoints));
                 if (pBuffer.Count == 0) throw new ArgumentOutOfRangeException(nameof(pBuffer));
 
-                char[] lChars = new char[(kNetworkActivityMaxLength + 4) * pBufferStartPoints.Count];
+                char[] lChars = new char[(kNetworkActivityMaxLength + 4) * pStartPoints.Count];
                 int lCharCount = 0;
 
-                for (int i = 0; i < pBufferStartPoints.Count; i++)
+                for (int i = 0; i < pStartPoints.Count; i++)
                 {
                     if (i != 0) lChars[lCharCount++] = ';';
 
-                    int lStart = pBufferStartPoints[i];
+                    int lStart = pStartPoints[i];
 
                     int lSegmentEnd;
-                    if (i == pBufferStartPoints.Count - 1) lSegmentEnd = pBuffer.Count;
-                    else lSegmentEnd = pBufferStartPoints[i + 1];
+                    if (i == pStartPoints.Count - 1) lSegmentEnd = pBuffer.Count;
+                    else lSegmentEnd = pStartPoints[i + 1];
 
                     int lNetworkActivityMaxLengthEnd = lStart + kNetworkActivityMaxLength;
 
@@ -213,7 +213,11 @@ namespace work.bacome.imapclient
                     if (lPos < lSegmentEnd) for (int j = 0; j < 3; j++) lChars[lCharCount++] = '.';
                 }
 
-                ZInvokeAndForget(new cNetworkActivityEventArgs(eNetworkActivitySource.client, new string(lChars, 0, lCharCount)), lContext);
+                string lByteCount;
+                if (pByteCount > 0) lByteCount = pByteCount.ToString() + ": ";
+                else lByteCount = string.Empty;
+
+                ZInvokeAndForget(new cNetworkActivityEventArgs(eNetworkActivitySource.client, lByteCount + new string(lChars, 0, lCharCount)), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
