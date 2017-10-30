@@ -63,7 +63,7 @@ namespace work.bacome.imapclient
         private class cAuth : cSASLAuthentication
         {
             private bool mDone = false;
-            private string mTrace;
+            private readonly string mTrace;
 
             public cAuth(string pTrace) { mTrace = pTrace; }
 
@@ -75,7 +75,6 @@ namespace work.bacome.imapclient
                 if (pChallenge != null && pChallenge.Count != 0) throw new ArgumentOutOfRangeException("non zero length challenge");
                 return Encoding.UTF8.GetBytes(mTrace);
             }
-
 
             public override cSASLSecurity GetSecurity() => null;
         }

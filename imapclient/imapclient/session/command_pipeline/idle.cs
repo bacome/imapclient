@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
                             mIdleBuffer.Add(cASCII.LF);
 
                             lContext.TraceVerbose("sending {0}", mIdleBuffer);
-                            mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, mIdleBuffer, lContext);
+                            mSynchroniser.InvokeNetworkSend(mIdleBuffer, lContext);
                             await mConnection.WriteAsync(mIdleBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
 
                             if (await ZIdleProcessResponsesAsync(false, null, lTag, true, lContext).ConfigureAwait(false) != eIdleProcessResponsesTerminatedBy.continuerequest) throw new cUnexpectedServerActionException(fCapabilities.idle, "idle completed before done sent", lContext);
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
                             mIdleBuffer.Add(cASCII.LF);
 
                             lContext.TraceVerbose("sending {0}", mIdleBuffer);
-                            mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, mIdleBuffer, lContext);
+                            mSynchroniser.InvokeNetworkSend(mIdleBuffer, lContext);
                             await mConnection.WriteAsync(mIdleBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
 
                             await ZIdleProcessResponsesAsync(false, null, lTag, false, lContext).ConfigureAwait(false);
@@ -144,7 +144,7 @@ namespace work.bacome.imapclient
                     mIdleBuffer.Add(cASCII.LF);
 
                     lContext.TraceVerbose("sending {0}", mIdleBuffer);
-                    mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, mIdleBuffer, lContext);
+                    mSynchroniser.InvokeNetworkSend(mIdleBuffer, lContext);
                     await mConnection.WriteAsync(mIdleBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
 
                     await ZIdleProcessResponsesAsync(false, null, lTag, false, lContext).ConfigureAwait(false);
@@ -170,7 +170,7 @@ namespace work.bacome.imapclient
                         if (ReferenceEquals(lTask, pCountdownTask)) return eIdleProcessResponsesTerminatedBy.countdowntask;
 
                         var lLines = mConnection.GetResponse(lContext);
-                        mSynchroniser.InvokeNetworkActivity(lLines, lContext);
+                        mSynchroniser.InvokeNetworkReceive(lLines, lContext);
                         var lCursor = new cBytesCursor(lLines);
 
                         if (lCursor.SkipBytes(kPlusSpace))

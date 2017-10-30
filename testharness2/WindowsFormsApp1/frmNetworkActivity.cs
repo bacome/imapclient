@@ -29,10 +29,18 @@ namespace testharness2
         private void frmNetworkActivity_Load(object sender, EventArgs e)
         {
             Text = "imapclient testharness - network activity - " + mClient.InstanceName + " [" + mMaxMessages + "]";
-            mClient.NetworkActivity += mClient_NetworkActivity;
+            mClient.NetworkReceive += mClient_NetworkReceive;
+            mClient.NetworkSend += mClient_NetworkSend;
         }
 
-        private void mClient_NetworkActivity(object sender, cNetworkActivityEventArgs e)
+        private void mClient_NetworkReceive(object sender, cNetworkReceiveEventArgs e)
+        {
+            mQueue.Enqueue(e.ToString());
+            if (mQueue.Count > mMaxMessages) mQueue.Dequeue();
+            mRefreshRequired = true;
+        }
+
+        private void mClient_NetworkSend(object sender, cNetworkSendEventArgs e)
         {
             mQueue.Enqueue(e.ToString());
             if (mQueue.Count > mMaxMessages) mQueue.Dequeue();
@@ -41,7 +49,8 @@ namespace testharness2
 
         private void frmNetworkActivity_FormClosed(object sender, FormClosedEventArgs e)
         {
-            mClient.NetworkActivity -= mClient_NetworkActivity;
+            mClient.NetworkReceive -= mClient_NetworkReceive;
+            mClient.NetworkSend -= mClient_NetworkSend;
         }
 
         private void tmr_Tick(object sender, EventArgs e)

@@ -53,8 +53,8 @@ namespace work.bacome.imapclient
         private class cAuth : cSASLAuthentication
         {
             private bool mDone = false;
-            private string mAuthenticationId;
-            private string mPassword;
+            private readonly string mAuthenticationId;
+            private readonly string mPassword;
 
             public cAuth(string pAuthenticationId, string pPassword)
             {

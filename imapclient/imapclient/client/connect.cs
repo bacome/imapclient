@@ -47,6 +47,9 @@ namespace work.bacome.imapclient
                 mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
             }
 
+            // initialise the SASLs
+            foreach (var lSASL in lCredentials.SASLs) lSASL.LastAuthentication = null;
+
             mSession = new cSession(mSynchroniser, mIgnoreCapabilities, mMailboxCacheData, mNetworkWriteConfiguration, mIdleConfiguration, mFetchCacheItemsConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
@@ -94,9 +97,9 @@ namespace work.bacome.imapclient
 
                         bool lTLSInstalled = lSession.TLSInstalled;
 
-                        if (Credentials.TryAllSASLs)
+                        if (lCredentials.TryAllSASLs)
                         {
-                            foreach (var lSASL in Credentials.SASLs)
+                            foreach (var lSASL in lCredentials.SASLs)
                             {
                                 if ((lSASL.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lSASL.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
                                 else
@@ -109,7 +112,7 @@ namespace work.bacome.imapclient
                         }
                         else
                         {
-                            foreach (var lSASL in Credentials.SASLs)
+                            foreach (var lSASL in lCredentials.SASLs)
                             {
                                 if (lCurrentCapabilities.AuthenticationMechanisms.Contains(lSASL.MechanismName)) // no case-invariance required because SASL (rfc 2222) says only uppercase is allowed
                                 {
@@ -124,13 +127,13 @@ namespace work.bacome.imapclient
                             }
                         }
 
-                        if (lSession.ConnectionState == eConnectionState.notauthenticated && lAuthenticateException == null && !lCurrentCapabilities.LoginDisabled && Credentials.Login != null)
+                        if (lSession.ConnectionState == eConnectionState.notauthenticated && lAuthenticateException == null && !lCurrentCapabilities.LoginDisabled && lCredentials.Login != null)
                         {
-                            if ((Credentials.Login.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (Credentials.Login.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
+                            if ((lCredentials.Login.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lCredentials.Login.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
                             else
                             {
                                 lTriedCredentials = true;
-                                lAuthenticateException = await lSession.LoginAsync(lMC, lAccountId, Credentials.Login, lContext).ConfigureAwait(false);
+                                lAuthenticateException = await lSession.LoginAsync(lMC, lAccountId, lCredentials.Login, lContext).ConfigureAwait(false);
                             }
                         }
 

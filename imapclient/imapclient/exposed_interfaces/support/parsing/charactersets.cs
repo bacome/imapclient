@@ -153,6 +153,7 @@ namespace work.bacome.imapclient.support
     public static class cChar
     {
         public const char NUL = '\0';
+        public const char CtrlA = '\x01';
         public const char LF = '\n';
         public const char CR = '\r';
         public const char DEL = '\u007F';
@@ -778,6 +779,12 @@ namespace work.bacome.imapclient.support
             public override bool Contains(char pChar) => pChar > ' ' && pChar != ':' && pChar < cChar.DEL;
         }
 
+        private class cVSChar : cCharset
+        {
+            public override bool Contains(byte pByte) => pByte >= cASCII.SPACE && pByte < cASCII.DEL;
+            public override bool Contains(char pChar) => pChar >= ' ' && pChar < cChar.DEL;
+        }
+
         // instances
 
         public static readonly cCharset Alpha = new cAlpha();
@@ -809,6 +816,7 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset QText = new cQText();
         public static readonly cCharset DText = new cDText();
         public static readonly cCharset FText = new cFText();
+        public static readonly cCharset VSChar = new cVSChar();
     }
 
     public static class cASCIIMonth

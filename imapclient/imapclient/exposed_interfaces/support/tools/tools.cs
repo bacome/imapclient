@@ -51,12 +51,20 @@ namespace work.bacome.imapclient.support
             return lBuilder.ToString();
         }
 
-        public static string BytesToLoggableString(string pNameOfClass, IList<byte> pBytes)
+        public static string BytesToLoggableString(string pNameOfClass, IList<byte> pBytes, int pMaxLength)
         {
             StringBuilder lBuilder = new StringBuilder($"{pNameOfClass}(");
 
             foreach (byte lByte in pBytes)
             {
+                if (pMaxLength-- == 0)
+                {
+                    lBuilder.Append(kRCHEVRON);
+                    lBuilder.Append(kRCHEVRON);
+                    lBuilder.Append(kRCHEVRON);
+                    break;
+                }
+
                 if (lByte < cASCII.SPACE || lByte > cASCII.TILDA)
                 {
                     lBuilder.Append(kLCHEVRON);

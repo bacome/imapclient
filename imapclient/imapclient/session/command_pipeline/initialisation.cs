@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
                                 await lAwaiter.AwaitAny(mConnection.GetBuildResponseTask(lContext)).ConfigureAwait(false);
 
                                 var lLines = mConnection.GetResponse(lContext);
-                                mSynchroniser.InvokeNetworkActivity(lLines, lContext);
+                                mSynchroniser.InvokeNetworkReceive(lLines, lContext);
                                 var lCursor = new cBytesCursor(lLines);
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpaceOKSpace))
@@ -142,7 +142,7 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceVerbose("sending cancellation");
                         lBuffer = new byte[] { cASCII.ASTERISK, cASCII.CR, cASCII.LF };
-                        mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, kSASLAsterisk, lContext);
+                        mSynchroniser.InvokeNetworkSend(kSASLAsterisk, lContext);
                         mCurrentCommand.WaitingForContinuationRequest = false;
                     }
                     else
@@ -152,7 +152,7 @@ namespace work.bacome.imapclient
                         lBytes.Add(cASCII.CR);
                         lBytes.Add(cASCII.LF);
                         lBuffer = lBytes.ToArray();
-                        mSynchroniser.InvokeNetworkActivity(kBufferStartPointsBeginning, kSASLAuthenticationResponse, lContext);
+                        mSynchroniser.InvokeNetworkSend(kSASLAuthenticationResponse, lContext);
                     }
 
                     await mConnection.WriteAsync(lBuffer, mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);

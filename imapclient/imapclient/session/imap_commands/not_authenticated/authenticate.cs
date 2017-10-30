@@ -29,6 +29,8 @@ namespace work.bacome.imapclient
                     lBuilder.Add(new cTextCommandPart(pSASL.MechanismName));
 
                     var lAuthentication = pSASL.GetAuthentication();
+                    lBuilder.Add(lAuthentication);
+                    pSASL.LastAuthentication = lAuthentication;
 
                     if (mCapabilities.SASL_IR)
                     {
@@ -48,8 +50,6 @@ namespace work.bacome.imapclient
                             else lBuilder.Add(new cTextCommandPart(cBase64.Encode(lAuthenticationResponse), true));
                         }
                     }
-
-                    lBuilder.Add(lAuthentication);
 
                     var lHook = new cCommandHookAuthenticate(mPipeline, lAuthentication, mCapabilities.LoginReferrals);
                     lBuilder.Add(lHook);

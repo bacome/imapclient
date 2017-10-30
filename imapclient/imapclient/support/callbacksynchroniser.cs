@@ -17,7 +17,8 @@ namespace work.bacome.imapclient
         {
             public event PropertyChangedEventHandler PropertyChanged;
             public event EventHandler<cResponseTextEventArgs> ResponseText;
-            public event EventHandler<cNetworkActivityEventArgs> NetworkActivity;
+            public event EventHandler<cNetworkReceiveEventArgs> NetworkReceive;
+            public event EventHandler<cNetworkSendEventArgs> NetworkSend;
             public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged;
             public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery;
             public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged;
@@ -102,7 +103,8 @@ namespace work.bacome.imapclient
                     sEventSubscriptionCounts lResult = new sEventSubscriptionCounts();
                     lResult.PropertyChanged = PropertyChanged?.GetInvocationList().Length ?? 0;
                     lResult.ResponseText = ResponseText?.GetInvocationList().Length ?? 0;
-                    lResult.NetworkActivity = NetworkActivity?.GetInvocationList().Length ?? 0;
+                    lResult.NetworkReceive = NetworkReceive?.GetInvocationList().Length ?? 0;
+                    lResult.NetworkSend = NetworkSend?.GetInvocationList().Length ?? 0;
                     lResult.MailboxPropertyChanged = MailboxPropertyChanged?.GetInvocationList().Length ?? 0;
                     lResult.MailboxMessageDelivery = MailboxMessageDelivery?.GetInvocationList().Length ?? 0;
                     lResult.MessagePropertyChanged = MessagePropertyChanged?.GetInvocationList().Length ?? 0;
@@ -139,85 +141,41 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            private const int kNetworkActivityMaxLength = 80;
-
-            public void InvokeNetworkActivity(cBytesLines pResponse, cTrace.cContext pParentContext)
+            public void InvokeNetworkReceive(cBytesLines pLines, cTrace.cContext pParentContext)
             {
-                if (NetworkActivity == null) return; // pre-check for efficiency only
-
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeNetworkActivity));
-
+                if (NetworkReceive == null) return; // pre-check for efficiency only
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(NetworkReceive));
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
-
-                if (pResponse == null) throw new ArgumentNullException(nameof(pResponse));
-                if (pResponse.Count == 0) throw new ArgumentOutOfRangeException(nameof(pResponse));
-
-                char[] lChars = new char[kNetworkActivityMaxLength + 3];
-                int lCharCount = 0;
-
-                foreach (var lByte in pResponse[0])
-                {
-                    if (lByte < cASCII.SPACE || lByte > cASCII.TILDA) break;
-                    lChars[lCharCount++] = (char)lByte;
-                    if (lCharCount == kNetworkActivityMaxLength) break;
-                }
-
-                if (pResponse.Count > 1 || lCharCount < pResponse[0].Count) for (int i = 0; i < 3; i++) lChars[lCharCount++] = '.';
-
-                ZInvokeAndForget(new cNetworkActivityEventArgs(eNetworkActivitySource.server, new string(lChars, 0, lCharCount)), lContext);
+                ZInvokeAndForget(new cNetworkReceiveEventArgs(pLines), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void InvokeNetworkActivity(int pByteCount, IList<int> pStartPoints, IList<byte> pBuffer, cTrace.cContext pParentContext)
+            public int NetworkSendSubscriptionCount => NetworkSend?.GetInvocationList().Length ?? 0;
+
+            public void InvokeNetworkSend(cBytes pBuffer, cTrace.cContext pParentContext)
             {
-                if (NetworkActivity == null) return; // pre-check for efficiency only
-
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeNetworkActivity));
-
+                if (NetworkSend == null) return; // pre-check for efficiency only
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeNetworkSend));
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
+                ZInvokeAndForget(new cNetworkSendEventArgs(pBuffer), lContext);
+                // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
+            }
 
-                if (pStartPoints == null) throw new ArgumentNullException(nameof(pStartPoints));
-                if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
+            public void InvokeNetworkSend(IEnumerable<byte> pBuffer, cTrace.cContext pParentContext)
+            {
+                if (NetworkSend == null) return; // pre-check for efficiency only
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeNetworkSend));
+                if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
+                ZInvokeAndForget(new cNetworkSendEventArgs(pBuffer), lContext);
+                // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
+            }
 
-                if (pStartPoints.Count == 0) throw new ArgumentOutOfRangeException(nameof(pStartPoints));
-                if (pBuffer.Count == 0) throw new ArgumentOutOfRangeException(nameof(pBuffer));
-
-                char[] lChars = new char[(kNetworkActivityMaxLength + 4) * pStartPoints.Count];
-                int lCharCount = 0;
-
-                for (int i = 0; i < pStartPoints.Count; i++)
-                {
-                    if (i != 0) lChars[lCharCount++] = ';';
-
-                    int lStart = pStartPoints[i];
-
-                    int lSegmentEnd;
-                    if (i == pStartPoints.Count - 1) lSegmentEnd = pBuffer.Count;
-                    else lSegmentEnd = pStartPoints[i + 1];
-
-                    int lNetworkActivityMaxLengthEnd = lStart + kNetworkActivityMaxLength;
-
-                    int lEnd = Math.Min(lSegmentEnd, lNetworkActivityMaxLengthEnd);
-
-                    int lPos = lStart;
-
-                    while (lPos < lEnd)
-                    {
-                        var lByte = pBuffer[lPos];
-                        if (lByte < cASCII.SPACE || lByte > cASCII.TILDA) break;
-                        lChars[lCharCount++] = (char)lByte;
-
-                        lPos++;
-                    }
-
-                    if (lPos < lSegmentEnd) for (int j = 0; j < 3; j++) lChars[lCharCount++] = '.';
-                }
-
-                string lByteCount;
-                if (pByteCount > 0) lByteCount = pByteCount.ToString() + ": ";
-                else lByteCount = string.Empty;
-
-                ZInvokeAndForget(new cNetworkActivityEventArgs(eNetworkActivitySource.client, lByteCount + new string(lChars, 0, lCharCount)), lContext);
+            public void InvokeNetworkSend(int? pBytes, IEnumerable<cBytes> pBuffers, cTrace.cContext pParentContext)
+            {
+                if (NetworkSend == null) return; // pre-check for efficiency only
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeNetworkSend));
+                if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
+                ZInvokeAndForget(new cNetworkSendEventArgs(pBytes, pBuffers), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
@@ -422,9 +380,14 @@ namespace work.bacome.imapclient
                                 ResponseText?.Invoke(mSender, lEventArgs);
                                 break;
 
-                            case cNetworkActivityEventArgs lEventArgs:
+                            case cNetworkReceiveEventArgs lEventArgs:
 
-                                NetworkActivity?.Invoke(mSender, lEventArgs);
+                                NetworkReceive?.Invoke(mSender, lEventArgs);
+                                break;
+
+                            case cNetworkSendEventArgs lEventArgs:
+
+                                NetworkSend?.Invoke(mSender, lEventArgs);
                                 break;
 
                             case cMailboxMessageDeliveryEventArgs lEventArgs:
@@ -566,13 +529,14 @@ namespace work.bacome.imapclient
         {
             public int PropertyChanged;
             public int ResponseText;
-            public int NetworkActivity;
+            public int NetworkReceive;
+            public int NetworkSend;
             public int MailboxPropertyChanged;
             public int MailboxMessageDelivery;
             public int MessagePropertyChanged;
             public int CallbackException;
 
-            public override string ToString() => $"{nameof(PropertyChanged)}:{PropertyChanged} {nameof(ResponseText)}:{ResponseText} {nameof(NetworkActivity)}:{NetworkActivity} {nameof(MailboxPropertyChanged)}:{MailboxPropertyChanged} {nameof(MailboxMessageDelivery)}:{MailboxMessageDelivery} {nameof(MessagePropertyChanged)}:{MessagePropertyChanged} {nameof(CallbackException)}:{CallbackException}";
+            public override string ToString() => $"{nameof(PropertyChanged)}:{PropertyChanged} {nameof(ResponseText)}:{ResponseText} {nameof(NetworkReceive)}:{NetworkReceive} {nameof(NetworkSend)}:{NetworkSend} {nameof(MailboxPropertyChanged)}:{MailboxPropertyChanged} {nameof(MailboxMessageDelivery)}:{MailboxMessageDelivery} {nameof(MessagePropertyChanged)}:{MessagePropertyChanged} {nameof(CallbackException)}:{CallbackException}";
         }
     }
 }

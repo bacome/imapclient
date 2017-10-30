@@ -17,6 +17,8 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewRootMethod(true, nameof(cCommandPipeline), nameof(ZBackgroundSendAsync));
 
+                    mBackgroundSendBuffer.SetTracing(lContext);
+
                     if (mCurrentCommand != null) await ZBackgroundSendAppendDataAndMoveNextAsync(lContext).ConfigureAwait(false);
 
                     while (true)

@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
             {
                 private static int mTagSource = 7;
                 public cCommandTag() : base(cTools.IntToBytesReverse(Interlocked.Increment(ref mTagSource))) { }
-                public override string ToString() => cTools.BytesToLoggableString(nameof(cCommandTag), this);
+                public override string ToString() => cTools.BytesToLoggableString(nameof(cCommandTag), this, 10);
             }
         }
     }

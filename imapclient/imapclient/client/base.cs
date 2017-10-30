@@ -121,10 +121,16 @@ namespace work.bacome.imapclient
             remove { mSynchroniser.ResponseText -= value; }
         }
 
-        public event EventHandler<cNetworkActivityEventArgs> NetworkActivity
+        public event EventHandler<cNetworkReceiveEventArgs> NetworkReceive
         {
-            add { mSynchroniser.NetworkActivity += value; }
-            remove { mSynchroniser.NetworkActivity -= value; }
+            add { mSynchroniser.NetworkReceive += value; }
+            remove { mSynchroniser.NetworkReceive -= value; }
+        }
+
+        public event EventHandler<cNetworkSendEventArgs> NetworkSend
+        {
+            add { mSynchroniser.NetworkSend += value; }
+            remove { mSynchroniser.NetworkSend -= value; }
         }
 
         public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged
@@ -232,8 +238,9 @@ namespace work.bacome.imapclient
         }
 
         public void SetNoCredentials() => Credentials = cCredentials.None;
-        public void SetAnonymousCredentials(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTLSRequirement, pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised);
-        public void SetPlainCredentials(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfAuthPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfAuthPlainIsntAdvertised);
+        public void SetAnonymousCredentials(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTLSRequirement, pTryAuthenticateEvenIfAnonymousIsntAdvertised);
+        public void SetPlainCredentials(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
+        public void SetXOAuth2Credentials(string pUserId, string pAccessToken, bool pTryAuthenticateEvenIfXOAuth2IsntAdvertised = false) => Credentials = cCredentials.XOAuth2(pUserId, pAccessToken, pTryAuthenticateEvenIfXOAuth2IsntAdvertised);
 
         // if the caller can handle mailbox referrals
         //

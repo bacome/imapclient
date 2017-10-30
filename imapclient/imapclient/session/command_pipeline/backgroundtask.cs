@@ -130,7 +130,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundTaskProcessResponseAsync));
 
                     var lLines = mConnection.GetResponse(lContext);
-                    mSynchroniser.InvokeNetworkActivity(lLines, lContext);
+                    mSynchroniser.InvokeNetworkReceive(lLines, lContext);
                     var lCursor = new cBytesCursor(lLines);
 
                     if (lCursor.SkipBytes(kPlusSpace))

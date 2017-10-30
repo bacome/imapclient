@@ -17,9 +17,6 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kPlusSpace = new cBytes("+ ");
 
-                // for tracing
-                private static readonly int[] kBufferStartPointsBeginning = new int[1] { 0 };
-
                 private bool mDisposed = false;
 
                 // state
