@@ -154,7 +154,7 @@ namespace work.bacome.imapclient.support
             if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1968, 4, 28, 21, 59, 59, DateTimeKind.Utc)) throw new cTestsException("timestamp 1.4");
 
             // examples from rfc3339
-            cBytesCursor.TryConstruct("1985-04-12T23:20:50.52Z,1996-12-19T16:39:57-08:00,1990-12-31T23:59:60Z,1990-12-31T15:59:60-08:00,1937-01-01T12:00:27.87+00:20", out lCursor);
+            lCursor = new cBytesCursor("1985-04-12T23:20:50.52Z,1996-12-19T16:39:57-08:00,1990-12-31T23:59:60Z,1990-12-31T15:59:60-08:00,1937-01-01T12:00:27.87+00:20");
             if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1985, 04, 12, 23, 20, 50, 520, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.1");
             if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1996, 12, 20, 00, 39, 57, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.2");
             if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1990, 12, 31, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.3");
@@ -164,44 +164,13 @@ namespace work.bacome.imapclient.support
 
 
 
-            // tests for WSP
-
-            TryConstruct("x \t y \t\r\n\tz", out lCursor);
-            if (!lCursor.SkipByte(cASCII.x) || lCursor.SkipRFC822WSP() != 3 || lCursor.SkipRFC822WSP() != 0 || !lCursor.SkipByte(cASCII.y) || lCursor.SkipRFC822FWS() != 3 || lCursor.SkipRFC822FWS() != 0 || !lCursor.SkipByte(cASCII.z)) throw new cTestsException("skip wsp 1");
-            TryConstruct("x \t y \t\r\n\tz", out lCursor);
-            if (!lCursor.SkipByte(cASCII.x) || lCursor.SkipRFC822FWS() != 3 || lCursor.SkipRFC822FWS() != 0 || !lCursor.SkipByte(cASCII.y) || lCursor.SkipRFC822FWS() != 3 || !lCursor.SkipByte(cASCII.z)) throw new cTestsException("skip wsp 2");
-            TryConstruct("x \t\r\ny \t\r\n\t\r\n z", out lCursor);
-            if (!lCursor.SkipByte(cASCII.x) || lCursor.SkipRFC822FWS() != 2 || lCursor.SkipRFC822FWS() != 0 || !lCursor.SkipBytes(new cBytes("\r\ny")) || lCursor.SkipRFC822FWS() != 4 || !lCursor.SkipByte(cASCII.z)) throw new cTestsException("skip wsp 3");
-
-            TryConstruct("Muhammed.(I am  the greatest) Ali\r\n @(the)Vegas.WBA", out lCursor);
-            if (!lCursor.GetToken(cCharset.Atom, null, null, out lString) || lString != "Muhammed." || !lCursor.SkipRFC822CFWS() || !lCursor.GetToken(cCharset.Atom, null, null, out lString) || lString != "Ali" || !lCursor.SkipRFC822CFWS() || !lCursor.SkipByte(cASCII.AT) || !lCursor.SkipRFC822CFWS() || !lCursor.GetToken(cCharset.Atom, null, null, out lString) || lString != "Vegas.WBA") throw new cTestsException("skip cfws 1");
-            TryConstruct("(I am \r\n the(xx\\)\\\\\\() gre \t() \tatest)", out lCursor);
-            if (!lCursor.SkipRFC822CFWS() || !lCursor.Position.AtEnd) throw new cTestsException("skip cfws 2");
-
-            // TODO: more tests for failure cases 
-
-
-
-            // tests for IMF date (these examples from rfc 5322)
-
-            TryConstruct("Fri, 21 Nov 1997 09:55:06 -0600  x  Tue, 1 Jul 2003 10:52:37 +0200    x    Thu, 13 Feb 1969 23:32:54 -0330    x  Thu,\r\n\t13\r\n\t  Feb\r\n\t    1969\r\n\t23:32\r\n\t\t\t-0330 (Newfoundland Time)   x   21 Nov 97 09:55:06 GMT    x     Fri, 21 Nov 1997 09(comment):   55  :  06 -0600    x", out lCursor);
-
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1997, 11, 21, 15, 55, 06) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 1");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(2003, 7, 1, 8, 52, 37) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 2");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1969, 2, 14, 3, 02, 54) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 3");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1969, 2, 14, 3, 02, 00) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 4");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1997, 11, 21, 9, 55, 06) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 5");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1997, 11, 21, 15, 55, 06) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 6");
-
-            // TODO: more tests for failure cases and alphanumeric zones
-            //   Wed, 17 Jul 1996 02:23:25 -0700 (PDT)
 
 
 
 
             _Tests_Capability(lContext);
             _Tests_SequenceSet(lContext);
-
+            _Tests_RFC822(lContext);
 
 
 

@@ -1,27 +1,67 @@
 ﻿using System;
+using System.Threading;
 
 namespace work.bacome.imapclient
 {
-    public class cFetchSizeConfiguration
+    public class cPropertyFetchConfiguration
     {
-        public readonly int Min;
-        public readonly int Max;
-        public readonly int MaxTime;
-        public readonly int Initial;
+        public readonly int Timeout;
+        public readonly CancellationToken CancellationToken;
+        public readonly Action<int> Increment;
 
-        public cFetchSizeConfiguration(int pMin, int pMax, int pMaxTime, int pInitial)
+        public cPropertyFetchConfiguration(int pTimeout)
         {
-            if (pMin < 1) throw new ArgumentOutOfRangeException(nameof(pMin));
-            if (pMax < pMin) throw new ArgumentOutOfRangeException(nameof(pMax));
-            if (pMaxTime < 1) throw new ArgumentOutOfRangeException(nameof(pMaxTime));
-            if (pInitial < 1) throw new ArgumentOutOfRangeException(nameof(pInitial));
-
-            Min = pMin;
-            Max = pMax;
-            MaxTime = pMaxTime;
-            Initial = pInitial;
+            if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
+            Timeout = pTimeout;
+            CancellationToken = CancellationToken.None;
+            Increment = null;
         }
 
-        public override string ToString() => $"{nameof(cFetchSizeConfiguration)}({Min},{Max},{MaxTime},{Initial})";
+        public cPropertyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement)
+        {
+            Timeout = -1;
+            CancellationToken = pCancellationToken;
+            Increment = pIncrement;
+        }
+    }
+
+    public class cBodyFetchConfiguration
+    {
+        public readonly int Timeout;
+        public readonly CancellationToken CancellationToken;
+        public readonly Action<int> Increment;
+        public readonly cBatchSizerConfiguration Write;
+
+        public cBodyFetchConfiguration(int pTimeout, cBatchSizerConfiguration pWrite = null)
+        {
+            if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
+            Timeout = pTimeout;
+            CancellationToken = CancellationToken.None;
+            Increment = null;
+            Write = pWrite;
+        }
+
+        public cBodyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement, cBatchSizerConfiguration pWrite = null)
+        {
+            Timeout = -1;
+            CancellationToken = pCancellationToken;
+            Increment = pIncrement;
+            Write = pWrite;
+        }
+    }
+
+    public class cMessageFetchConfiguration : cPropertyFetchConfiguration
+    {
+        public readonly Action<int> SetCount;
+
+        public cMessageFetchConfiguration(int pTimeout) : base(pTimeout)
+        {
+            SetCount = null;
+        }
+
+        public cMessageFetchConfiguration(CancellationToken pCancellationToken, Action<int> pSetCount, Action<int> pIncrement) : base(pCancellationToken, pIncrement)
+        {
+            SetCount = pSetCount;
+        }
     }
 }

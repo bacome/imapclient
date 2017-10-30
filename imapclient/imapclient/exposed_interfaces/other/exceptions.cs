@@ -4,8 +4,15 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    public abstract class cIMAPException : Exception
+    {
+        public cIMAPException() { }
+        public cIMAPException(string pMessage) : base(pMessage) { }
+        public cIMAPException(string pMessage, Exception pInnerException) : base(pMessage, pInnerException) { }
+    }
+
     // thrown on a 'NO'
-    public class cUnsuccessfulCompletionException : Exception
+    public class cUnsuccessfulCompletionException : cIMAPException
     {
         public readonly cResponseText ResponseText;
         public readonly fCapabilities TryIgnoring;
@@ -28,7 +35,7 @@ namespace work.bacome.imapclient
     }
 
     // thrown on a 'BAD' 
-    public class cProtocolErrorException : Exception
+    public class cProtocolErrorException : cIMAPException
     {
         public readonly cCommandResult CommandResult;
         public readonly fCapabilities TryIgnoring;
@@ -51,7 +58,7 @@ namespace work.bacome.imapclient
     }
 
     // thrown when something happens that shouldn't (according to my reading of the rfcs)
-    public class cUnexpectedServerActionException : Exception
+    public class cUnexpectedServerActionException : cIMAPException
     {
         public readonly fCapabilities TryIgnoring;
 
@@ -71,7 +78,7 @@ namespace work.bacome.imapclient
     }
 
     // thrown on detected internal errors
-    public class cInternalErrorException : Exception
+    public class cInternalErrorException : cIMAPException
     {
         public cInternalErrorException() { }
         public cInternalErrorException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInternalErrorException));
@@ -79,60 +86,50 @@ namespace work.bacome.imapclient
         public cInternalErrorException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cInternalErrorException), pMessage, pInner);
     }
 
-    // thrown to indicate that the inablility to connect came with a referral
-    public class cHomeServerReferralException : Exception
+    // server said bye at connect
+    public class cConnectByeException : cIMAPException
     {
-        public readonly cURL URL;
         public readonly cResponseText ResponseText;
 
-        public cHomeServerReferralException(cURL pURL, cResponseText pResponseText, cTrace.cContext pContext)
+        public cConnectByeException(cResponseText pResponseText, cTrace.cContext pContext)
         {
-            URL = pURL;
             ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}: {2}", nameof(cHomeServerReferralException), pURL, pResponseText);
+            pContext.TraceError("{0}: {1}", nameof(cConnectByeException), pResponseText);
+        }
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cConnectByeException));
+            lBuilder.Append(ResponseText);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
+    }
+
+    // server declined connection suggesting that we try a different server
+    public class cHomeServerReferralException : cIMAPException
+    {
+        public readonly cResponseText ResponseText;
+
+        public cHomeServerReferralException(cResponseText pResponseText, cTrace.cContext pContext)
+        {
+            ResponseText = pResponseText;
+            pContext.TraceError("{0}: {1}", nameof(cHomeServerReferralException), pResponseText);
         }
 
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cHomeServerReferralException));
-            lBuilder.Append(URL);
             lBuilder.Append(ResponseText);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
         }
     }
 
-    // thrown to indicate that a server initiated 'BYE' occurred
-    public class cByeException : Exception
+    // server didn't accept the credentials we provided: if there was an explicit rejection then the response text will be filled in
+    public class cCredentialsException : cIMAPException
     {
         public readonly cResponseText ResponseText;
-
-        public cByeException(cResponseText pResponseText, cTrace.cContext pContext)
-        {
-            ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}", nameof(cByeException), pResponseText);
-        }
-
-        public override string ToString()
-        {
-            var lBuilder = new cListBuilder(nameof(cByeException));
-            lBuilder.Append(ResponseText);
-            lBuilder.Append(base.ToString());
-            return lBuilder.ToString();
-        }
-    }
-
-    // thrown to indicate that the inability to connect is related to the credentials
-    public class cCredentialsException : Exception
-    {
-        public readonly cResponseText ResponseText; // filled in only if we have confirmation from the server that there is something wrong with the credentials
-        // just because it is null doesn't mean that they are valid though
-
-        public cCredentialsException(cResponseText pResponseText, cTrace.cContext pContext)
-        {
-            ResponseText = pResponseText;
-            pContext.TraceError("{0}: {1}", nameof(cCredentialsException), pResponseText);
-        }
 
         public cCredentialsException(cTrace.cContext pContext)
         {
@@ -140,85 +137,143 @@ namespace work.bacome.imapclient
             pContext.TraceError(nameof(cCredentialsException));
         }
 
+        public cCredentialsException(cResponseText pResponseText, cTrace.cContext pContext)
+        {
+            ResponseText = pResponseText;
+            pContext.TraceError("{0}: {1}", nameof(cCredentialsException), pResponseText);
+        }
+
         public override string ToString()
         {
-            if (ResponseText == null) return base.ToString();
-
             var lBuilder = new cListBuilder(nameof(cCredentialsException));
+            if (ResponseText != null) lBuilder.Append(ResponseText);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
+    }
+
+    // thrown to indicate that the inability to connect is related to the lack of usable authentication mechanisms offered by the server
+    public class cAuthenticationMechanismsException : cIMAPException
+    {
+        public readonly bool TLSIssue;
+
+        public cAuthenticationMechanismsException(bool pTLSIssue, cTrace.cContext pContext)
+        {
+            TLSIssue = pTLSIssue;
+            pContext.TraceError("{0}: {1}", nameof(cAuthenticationMechanismsException), pTLSIssue);
+        }
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cAuthenticationMechanismsException));
+            lBuilder.Append(TLSIssue);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
+    }
+
+    // thrown to indicate that a server initiated 'BYE' occurred
+    public class cUnilateralByeException : cIMAPException
+    {
+        public readonly cResponseText ResponseText;
+
+        public cUnilateralByeException(cResponseText pResponseText, cTrace.cContext pContext)
+        {
+            ResponseText = pResponseText;
+            pContext.TraceError("{0}: {1}", nameof(cUnilateralByeException), pResponseText);
+        }
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cUnilateralByeException));
             lBuilder.Append(ResponseText);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
         }
     }
 
-    // thrown to indicate that the inability to connect is related to the lack of authentication mechanisms offered by the server
-    public class cAuthenticationException : Exception
-    {
-        public cAuthenticationException(cTrace.cContext pContext) => pContext.TraceError(nameof(cAuthenticationException));
-    }
-
     // thrown when SASL encoding or decoding fails
-    public class cSASLSecurityException : Exception
+    public class cSASLSecurityException : cIMAPException
     {
         public cSASLSecurityException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cSASLSecurityException), pMessage);
         public cSASLSecurityException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cSASLSecurityException), pMessage, pInner);
     }
 
     // thrown when there are two pipelined commands that conflict in some way
-    public class cPipelineConflictException : Exception
+    public class cPipelineConflictException : cIMAPException
     {
         public cPipelineConflictException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineConflictException));
     }
 
     // thrown when the command pipeline is stopped
-    public class cPipelineStoppedException : Exception
+    public class cPipelineStoppedException : cIMAPException
     {
+        public cPipelineStoppedException() { }
         public cPipelineStoppedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineStoppedException));
+        public cPipelineStoppedException(Exception pInner, cTrace.cContext pContext) : base(string.Empty, pInner) => pContext.TraceError("{0}\n{1}", nameof(cPipelineStoppedException), pInner);
     }
 
-    // thrown when the stream reader is stopped
-    public class cStreamReaderStoppedException : Exception
+    // thrown when the stream is closed
+    public class cStreamClosedException : cIMAPException
     {
-        public cStreamReaderStoppedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cStreamReaderStoppedException));
-        public cStreamReaderStoppedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cStreamReaderStoppedException), pMessage);
-        public cStreamReaderStoppedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamReaderStoppedException), pMessage, pInner);
+        public cStreamClosedException() { }
+        public cStreamClosedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cStreamClosedException));
+        public cStreamClosedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cStreamClosedException), pMessage);
+        public cStreamClosedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamClosedException), pMessage, pInner);
     }
 
-    // thrown when the UIDValidity changes
-    public class cUIDValidityChangedException : Exception
+    // thrown when the UIDValidity changed while doing something that depended on it not changing
+    public class cUIDValidityChangedException : cIMAPException
     {
+        public cUIDValidityChangedException() { }
         public cUIDValidityChangedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityChangedException));
     }
 
-    // thrown when the required account is not connected
-    public class cAccountNotConnectedException : Exception
-    {
-        public cAccountNotConnectedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cAccountNotConnectedException));
-    }
-
-    // thrown when the required mailbox is not selected
-    public class cMailboxNotSelectedException : Exception
-    {
-        public cMailboxNotSelectedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cMailboxNotSelectedException));
-    }
-
-    // thrown when an invalid handle is passed
-    public class cInvalidMessageHandleException : Exception
-    {
-        public cInvalidMessageHandleException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInvalidMessageHandleException));
-    }
-
     // thrown when the CTE can't be handled
-    public class cContentTransferDecodingException : Exception
+    public class cContentTransferDecodingException : cIMAPException
     {
         public cContentTransferDecodingException(cTrace.cContext pContext) => pContext.TraceError(nameof(cContentTransferDecodingException));
         public cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
     }
 
-    // thrown when a fetch of an attribute didn't return it
-    public class cFetchAttributeException : Exception
+    /*
+    // thrown when a required capability for the call isn't available on the server
+    public class cUnsupportedByServerException : cIMAPException
     {
-        public cFetchAttributeException() { }
+        public readonly fKnownCapabilities Required;
+
+        public cUnsupportedByServerException(fKnownCapabilities pRequired, cTrace.cContext pContext)
+        {
+            Required = pRequired;
+            pContext.TraceError("{0}: {1}", nameof(cUnsupportedByServerException), pRequired);
+        }
+    }
+
+    // thrown when a required capability for the call isn't available for the mailbox
+    public class cUnsupportedByMailboxException : cIMAPException
+    {
+        public readonly fKnownCapabilities Required;
+
+        public cUnsupportedByMailboxException(fKnownCapabilities pRequired, cTrace.cContext pContext)
+        {
+            Required = pRequired;
+            pContext.TraceError("{0}: {1}", nameof(cUnsupportedByMailboxException), pRequired);
+        }
+    } */
+
+    // thrown when a handle can't resolved when building the filter
+    public class cFilterMSNException : cIMAPException
+    {
+        public readonly iMessageHandle Handle;
+        public cFilterMSNException(iMessageHandle pHandle) { Handle = pHandle; }
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cFilterMSNException));
+            lBuilder.Append(Handle);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
     }
 
     public class cTestsException : Exception

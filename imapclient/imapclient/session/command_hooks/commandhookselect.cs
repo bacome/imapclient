@@ -11,61 +11,157 @@ namespace work.bacome.imapclient
             private class cCommandHookSelect : cCommandHook
             {
                 private static readonly cBytes kClosedRBracketSpace = new cBytes("CLOSED] ");
+                private static readonly cBytes kUnseenSpace = new cBytes("UNSEEN ");
+                private static readonly cBytes kNoModSeqRBracketSpace = new cBytes("NOMODSEQ] ");
+                private static readonly cBytes kUIDNotStickyRBracketSpace = new cBytes("UIDNOTSTICKY] ");
 
-                private bool mDeselectRequired;
-                private readonly cCapability mCapability;
-                private readonly cSelectedMailbox mPendingSelectedMailbox;
-                private readonly Action<cSelectedMailbox, cTrace.cContext> mSetSelectedMailbox;
+                private readonly cMailboxCache mMailboxCache;
+                private readonly cCapabilities mCapabilities;
+                private readonly iMailboxHandle mHandle;
+                private readonly bool mForUpdate;
 
-                public cCommandHookSelect(bool pDeselectRequired, cCapability pCapability, cSelectedMailbox pPendingSelectedMailbox, Action<cSelectedMailbox, cTrace.cContext> pSetSelectedMailbox)
+                private cFetchableFlags mFlags = null;
+                private int mExists = 0;
+                private int mRecent = 0;
+                private cPermanentFlags mPermanentFlags = null;
+                private uint mUIDNext = 0;
+                private uint mUIDValidity = 0;
+                private uint mHighestModSeq = 0;
+                private bool mUIDNotSticky = false;
+                private bool mAccessReadOnly = false;
+
+                public cCommandHookSelect(cMailboxCache pMailboxCache, cCapabilities pCapabilities, iMailboxHandle pHandle, bool pForUpdate)
                 {
-                    mDeselectRequired = pDeselectRequired;
-                    mCapability = pCapability ?? throw new ArgumentNullException(nameof(pCapability));
-                    mPendingSelectedMailbox = pPendingSelectedMailbox ?? throw new ArgumentNullException(nameof(pPendingSelectedMailbox));
-                    mSetSelectedMailbox = pSetSelectedMailbox ?? throw new ArgumentNullException(nameof(pSetSelectedMailbox));
+                    mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
+                    mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
+                    mHandle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+                    mForUpdate = pForUpdate;
                 }
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandStarted));
-
-                    if (mDeselectRequired && !mCapability.QResync)
-                    {
-                        mDeselectRequired = false;
-                        mSetSelectedMailbox(null, lContext);
-                    }
+                    if (mMailboxCache.SelectedMailboxDetails != null && !mCapabilities.QResync) mMailboxCache.Unselect(lContext);
                 }
 
-                public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override eProcessDataResult ProcessData(cResponseData pData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessData));
-                    if (mDeselectRequired) return eProcessDataResult.notprocessed;
-                    return mPendingSelectedMailbox.ProcessData(pCursor, lContext);
+
+                    if (mMailboxCache.SelectedMailboxDetails != null) return eProcessDataResult.notprocessed;
+
+                    switch (pData)
+                    {
+                        case cResponseDataFlags lFlags:
+
+                            mFlags = lFlags.Flags;
+                            return eProcessDataResult.processed;
+
+                        case cResponseDataExists lExists:
+
+                            mExists = lExists.Exists;
+                            return eProcessDataResult.processed;
+
+                        case cResponseDataRecent lRecent:
+
+                            mRecent = lRecent.Recent;
+                            return eProcessDataResult.processed;
+                    }
+
+                    return eProcessDataResult.notprocessed;
                 }
 
-                public override bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override bool ProcessTextCode(eResponseTextType pTextType, cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode), pTextType, pData);
 
-                    if (mDeselectRequired)
+                    if (mMailboxCache.SelectedMailboxDetails != null) return false;
+
+                    if (pTextType == eResponseTextType.information)
                     {
-                        if (pCursor.SkipBytes(kClosedRBracketSpace))
+                        switch (pData)
                         {
-                            lContext.TraceVerbose("got closed");
-                            mDeselectRequired = false;
-                            mSetSelectedMailbox(null, lContext);
+                            case cResponseDataPermanentFlags lFlags:
+
+                                mPermanentFlags = lFlags.Flags;
+                                return true;
+
+                            case cResponseDataUIDNext lUIDNext:
+
+                                mUIDNext = lUIDNext.UIDNext;
+                                return true;
+
+                            case cResponseDataUIDValidity lUIDValidity:
+
+                                mUIDValidity = lUIDValidity.UIDValidity;
+                                return true;
+
+                            case cResponseDataHighestModSeq lHighestModSeq:
+
+                                mHighestModSeq = lHighestModSeq.HighestModSeq;
+                                return true;
+                        }
+                    }
+                    else if (pTextType == eResponseTextType.success)
+                    {
+                        if (pData is cResponseDataAccess lAccess)
+                        {
+                            mAccessReadOnly = lAccess.ReadOnly;
                             return true;
                         }
-
-                        return false;
                     }
-                    else return mPendingSelectedMailbox.ProcessTextCode(pCursor, lContext);
+
+                    return false;
                 }
 
-                public override void CommandCompleted(cCommandResult pResult, Exception pException, cTrace.cContext pParentContext)
+                public override bool ProcessTextCode(eResponseTextType pTextType, cBytesCursor pCursor, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode), pTextType);
+
+                    if (mMailboxCache.SelectedMailboxDetails == null)
+                    {
+                        if (pTextType == eResponseTextType.information)
+                        {
+                            if (pCursor.SkipBytes(kUnseenSpace))
+                            {
+                                if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace)) return true;
+                                lContext.TraceWarning("likely malformed unseen response");
+                                return false;
+                            }
+
+                            if (pCursor.SkipBytes(kNoModSeqRBracketSpace))
+                            {
+                                mHighestModSeq = 0;
+                                return true;
+                            }
+                        }
+                        else if (pTextType == eResponseTextType.warning)
+                        {
+                            if (pCursor.SkipBytes(kUIDNotStickyRBracketSpace))
+                            {
+                                mUIDNotSticky = true;
+                                return true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // the spec (rfc 7162) doesn't specify where this comes - although the only example is of an untagged OK
+                        if (pCursor.SkipBytes(kClosedRBracketSpace))
+                        {
+                            mMailboxCache.Unselect(lContext);
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
+                public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandCompleted), pResult);
-                    if (pResult != null && pResult.Result == cCommandResult.eResult.ok) mSetSelectedMailbox(mPendingSelectedMailbox, lContext);
+                    if (pResult.ResultType != eCommandResultType.ok) return;
+                    mMailboxCache.Select(mHandle, mForUpdate, mAccessReadOnly, mUIDNotSticky, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
                 }
             }
         }

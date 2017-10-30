@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient.support
 {
@@ -19,10 +17,10 @@ namespace work.bacome.imapclient.support
             return new string(lChars);
         }
 
-        public static string ASCIIBytesToString(byte pPrefix, IList<byte> pBytes)
+        public static string ASCIIBytesToString(char pPrefix, IList<byte> pBytes)
         {
             char[] lChars = new char[pBytes.Count + 1];
-            lChars[0] = (char)pPrefix;
+            lChars[0] = pPrefix;
             for (int i = 0, j = 1; i < pBytes.Count; i++, j++) lChars[j] = (char)pBytes[i];
             return new string(lChars);
         }
@@ -53,12 +51,20 @@ namespace work.bacome.imapclient.support
             return lBuilder.ToString();
         }
 
-        public static string BytesToLoggableString(string pNameOfClass, IList<byte> pBytes)
+        public static string BytesToLoggableString(string pNameOfClass, IList<byte> pBytes, int pMaxLength)
         {
             StringBuilder lBuilder = new StringBuilder($"{pNameOfClass}(");
 
             foreach (byte lByte in pBytes)
             {
+                if (pMaxLength-- == 0)
+                {
+                    lBuilder.Append(kRCHEVRON);
+                    lBuilder.Append(kRCHEVRON);
+                    lBuilder.Append(kRCHEVRON);
+                    break;
+                }
+
                 if (lByte < cASCII.SPACE || lByte > cASCII.TILDA)
                 {
                     lBuilder.Append(kLCHEVRON);
@@ -71,11 +77,11 @@ namespace work.bacome.imapclient.support
             return lBuilder.ToString() + ")";
         }
 
-        public static bool TryMailboxNameBytesToString(IList<byte> pBytes, byte? pDelimiter, fEnableableExtensions pEnabledExtensions, out string rString)
+        public static bool TryEncodedMailboxPathToString(IList<byte> pEncodedMailboxPath, byte? pDelimiter, bool pUTF8Enabled, out string rString)
         {
-            if ((pEnabledExtensions & fEnableableExtensions.utf8) != 0) { rString = UTF8BytesToString(pBytes); return true; }
+            if (pUTF8Enabled) { rString = UTF8BytesToString(pEncodedMailboxPath); return true; }
 
-            if (pDelimiter == null) return cModifiedUTF7.TryDecode(pBytes, out rString, out _);
+            if (pDelimiter == null) return cModifiedUTF7.TryDecode(pEncodedMailboxPath, out rString, out _);
 
             byte lDelimiterByte = pDelimiter.Value;
             char lDelimiterChar = (char)lDelimiterByte;
@@ -84,7 +90,7 @@ namespace work.bacome.imapclient.support
 
             cByteList lSegment = new cByteList();
 
-            foreach (byte lByte in pBytes)
+            foreach (byte lByte in pEncodedMailboxPath)
             {
                 if (lByte == lDelimiterByte)
                 {
@@ -128,6 +134,22 @@ namespace work.bacome.imapclient.support
             return lBytes;
         }
 
+        public static cByteList ULongToBytesReverse(ulong pNumber)
+        {
+            cByteList lBytes = new cByteList(20);
+
+            ulong lNumber = pNumber;
+
+            do
+            {
+                int lDigit = (int)(lNumber % 10);
+                lBytes.Add((byte)(cASCII.ZERO + lDigit));
+                lNumber = lNumber / 10;
+            } while (lNumber > 0);
+
+            return lBytes;
+        }
+
         public static cByteList IntToBytesReverse(int pNumber)
         {
             if (pNumber < 0) throw new ArgumentOutOfRangeException(nameof(pNumber));
@@ -157,14 +179,16 @@ namespace work.bacome.imapclient.support
 
         public static bool TryCharsetBytesToString(string pCharset, IList<byte> pBytes, out string rString)
         {
-            if (pBytes == null) { rString = null; return true; }
+            // the null handling here is for rfc 2231 format where the charset and the value are optional
 
+            if (pBytes == null) { rString = null; return true; }
             if (pCharset == null) { rString = UTF8BytesToString(pBytes); return true; }
+
+            byte[] lBytes = new byte[pBytes.Count];
+            pBytes.CopyTo(lBytes, 0);
 
             try
             {
-                byte[] lBytes = new byte[pBytes.Count];
-                pBytes.CopyTo(lBytes, 0);
                 rString = new string(Encoding.GetEncoding(pCharset).GetChars(lBytes));
                 return true;
             }

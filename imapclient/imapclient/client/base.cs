@@ -2,11 +2,14 @@
 using System.ComponentModel;
 using System.Text;
 using System.Threading;
+using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
+    public enum eConnectionState { notconnected, connecting, notauthenticated, authenticated, enabled, notselected, selected, disconnected }
+
     public sealed partial class cIMAPClient : IDisposable // sealed so the disposable implementation is simpler
     {
         // code checks
@@ -42,60 +45,119 @@ namespace work.bacome.imapclient
         //  trace is the tracing 
         //  async is generic async tools
 
-        // version and release date of this class
-        public static Version Version = new Version(0, 1);
-        public static DateTime ReleaseDate = new DateTime(2017, 6, 19);
+        // notes on MDNSent
+        //
+        //  to implement MDNSent I need to not just recognise the MDNSent flag but also the fact that an MDN is required
+        //   this involves getting and parsing the following headers;
+        //    Disposition-Notification-To, Original-Recipient and Disposition-Notification-Options (see rfc 8098)
+        //   the result of the parsing would be presented in an additional message attribute called MDNRequest which would be null if there are no headers
+        //    or there are errors (like duplicate headers)
+        //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
-        public enum eState { notconnected, connecting, notauthenticated, authenticated, selected, disconnecting, disconnected }
+        // version and release date of this class
+        public static Version Version = new Version(0, 2);
+        public static DateTime ReleaseDate = new DateTime(2017, 7, 18);
 
         public const string TraceSourceName = "work.bacome.cIMAPClient";
         private static readonly cTrace mTrace = new cTrace(TraceSourceName);
 
-        // events
-        public event PropertyChangedEventHandler PropertyChanged;
-        public event EventHandler<cResponseTextEventArgs> ResponseText;
-        public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged;
-        public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery;
-        public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged;
-
         // mechanics
         private bool mDisposed = false;
+        private readonly string mInstanceName;
         private readonly cTrace.cContext mRootContext;
-        private readonly cEventSynchroniser mEventSynchroniser;
-        private readonly cAsyncCounter mAsyncCounter;
+        private readonly cCallbackSynchroniser mSynchroniser;
+        private readonly cCancellationManager mCancellationManager;
 
         // current session
         private cSession mSession = null;
+        private cNamespaces mNamespaces = null; // if namespace is not supported by the server then this is used
+        private cMailbox mInbox = null; // 
 
         // property backing storage
         private int mTimeout = -1;
         private fCapabilities mIgnoreCapabilities = 0;
         private cServer mServer = null;
         private cCredentials mCredentials = null;
+        private bool mMailboxReferrals = false;
+        private fMailboxCacheData mMailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount;
+        private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
-        private cFetchSizeConfiguration mFetchAttributesConfiguration = new cFetchSizeConfiguration(1, 1000, 10000, 1);
-        private cFetchSizeConfiguration mFetchBodyReadConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
-        private cFetchSizeConfiguration mFetchBodyWriteConfiguration = new cFetchSizeConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
+        private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
-        private cId mClientId = new cId(new cIdReadOnlyDictionary(cIdDictionary.CreateDefaultClientIdDictionary()));
+        private cClientId mClientId = new cClientId(new cIdDictionary(true));
+        private cClientIdUTF8 mClientIdUTF8 = null;
 
         public cIMAPClient(string pInstanceName = TraceSourceName)
         {
+            mInstanceName = pInstanceName;
             mRootContext = mTrace.NewRoot(pInstanceName);
             mRootContext.TraceInformation("cIMAPClient by bacome version {0}, release date {1}", Version, ReleaseDate);
-            mEventSynchroniser = new cEventSynchroniser(this, mRootContext);
-            mAsyncCounter = new cAsyncCounter(mEventSynchroniser.PropertyChanged);
+            mSynchroniser = new cCallbackSynchroniser(this, mRootContext);
+            mCancellationManager = new cCancellationManager(mSynchroniser.InvokeCancellableCountChanged);
         }
 
-        // the synchronisation context on which the events should be delivered
-        //  if null, any context will do
-        //   (changing this while events are being delivered will result in undefined behaviour)
-        //
+        public string InstanceName => mInstanceName;
+
+        // events
+
         public SynchronizationContext SynchronizationContext
         {
-            get => mEventSynchroniser.SynchronizationContext;
-            set => mEventSynchroniser.SynchronizationContext = value;
+            get => mSynchroniser.SynchronizationContext;
+            set => mSynchroniser.SynchronizationContext = value;
         }
+
+        public event PropertyChangedEventHandler PropertyChanged
+        {
+            add { mSynchroniser.PropertyChanged += value; }
+            remove { mSynchroniser.PropertyChanged -= value; }
+        }
+
+        public event EventHandler<cResponseTextEventArgs> ResponseText
+        {
+            add { mSynchroniser.ResponseText += value; }
+            remove { mSynchroniser.ResponseText -= value; }
+        }
+
+        public event EventHandler<cNetworkReceiveEventArgs> NetworkReceive
+        {
+            add { mSynchroniser.NetworkReceive += value; }
+            remove { mSynchroniser.NetworkReceive -= value; }
+        }
+
+        public event EventHandler<cNetworkSendEventArgs> NetworkSend
+        {
+            add { mSynchroniser.NetworkSend += value; }
+            remove { mSynchroniser.NetworkSend -= value; }
+        }
+
+        public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged
+        {
+            add { mSynchroniser.MailboxPropertyChanged += value; }
+            remove { mSynchroniser.MailboxPropertyChanged -= value; }
+        }
+
+        public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery
+        {
+            add { mSynchroniser.MailboxMessageDelivery += value; }
+            remove { mSynchroniser.MailboxMessageDelivery -= value; }
+        }
+
+        public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged
+        {
+            add { mSynchroniser.MessagePropertyChanged += value; }
+            remove { mSynchroniser.MessagePropertyChanged -= value; }
+        }
+
+        public event EventHandler<cCallbackExceptionEventArgs> CallbackException
+        {
+            add { mSynchroniser.CallbackException += value; }
+            remove { mSynchroniser.CallbackException -= value; }
+        }
+
+        // async operation management
 
         public int Timeout
         {
@@ -108,33 +170,38 @@ namespace work.bacome.imapclient
             }
         }
 
-        public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
+        public int CancellableCount => mCancellationManager.Count;
 
-        // state of the connection
-        public eState State => mSession?.State ?? eState.notconnected;
-        public cCapability Capability => mSession?.Capability;
+        public void Cancel()
+        {
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Cancel));
+            mCancellationManager.Cancel(lContext);
+        }
+
+        // state
+
+        public eConnectionState ConnectionState => mSession?.ConnectionState ?? eConnectionState.notconnected;
+        public bool IsUnconnected => mSession == null || mSession.IsUnconnected;
+        public bool IsConnected => mSession != null && mSession.IsConnected;
+
+        public cCapabilities Capabilities => mSession?.Capabilities;
         public fEnableableExtensions EnabledExtensions => mSession?.EnabledExtensions ?? fEnableableExtensions.none;
         public cAccountId ConnectedAccountId => mSession?.ConnectedAccountId;
 
         // the login referral (rfc 2221) if received
         public cURL HomeServerReferral => mSession?.HomeServerReferral;
 
-        // for cheapskate UIs: if this number is greater than zero then a cancel button might be enabled
-        //   (to cancel the cancellationtokensource associated with the cancellationtoken that has been set via the property above)
-        //
-        public int AsyncCount => mAsyncCounter.Count;
-
-        // list of capabilities to ignore
+        // capabilities to ignore
         public fCapabilities IgnoreCapabilities
         {
             get => mIgnoreCapabilities;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(IgnoreCapabilities), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException();
+                if ((value & fCapabilities.logindisabled) != 0) throw new ArgumentOutOfRangeException();
                 mIgnoreCapabilities = value;
-                mSession?.SetIgnoreCapabilities(mIgnoreCapabilities, lContext);
             }
         } 
 
@@ -147,7 +214,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException();
                 mServer = value;
             }
         } 
@@ -165,14 +232,57 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException();
                 mCredentials = value;
             }
         }
 
         public void SetNoCredentials() => Credentials = cCredentials.None;
-        public void SetAnonymousCredentials(string pTrace, bool pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTryAuthenticateEvenIfAuthAnonymousIsntAdvertised);
-        public void SetPlainCredentials(string pUserId, string pPassword, bool pTryAuthenticateEvenIfAuthPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTryAuthenticateEvenIfAuthPlainIsntAdvertised);
+        public void SetAnonymousCredentials(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTLSRequirement, pTryAuthenticateEvenIfAnonymousIsntAdvertised);
+        public void SetPlainCredentials(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
+        public void SetXOAuth2Credentials(string pUserId, string pAccessToken, bool pTryAuthenticateEvenIfXOAuth2IsntAdvertised = false) => Credentials = cCredentials.XOAuth2(pUserId, pAccessToken, pTryAuthenticateEvenIfXOAuth2IsntAdvertised);
+
+        // if the caller can handle mailbox referrals
+        //
+        public bool MailboxReferrals
+        {
+            get => mMailboxReferrals;
+
+            set
+            {
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException();
+                mMailboxReferrals = value;
+            }
+        }
+
+        // the properties required when listing mailboxes
+        //
+        public fMailboxCacheData MailboxCacheData
+        {
+            get => mMailboxCacheData;
+
+            set
+            {
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException();
+                mMailboxCacheData = value;
+            }
+        }
+
+        // configuration that controls the size of large writes to the network
+        //
+        public cBatchSizerConfiguration NetworkWriteConfiguration
+        {
+            get => mNetworkWriteConfiguration;
+
+            set
+            {
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException();
+                mNetworkWriteConfiguration = value ?? throw new ArgumentNullException();
+            }
+        }
 
         // idle config; either IDLE (rfc 2177) or base protocol CHECK and NOOP
         //  the command pipeline waits until a certain period of inactivity has occurred before starting either an IDLE command or periodic polling
@@ -190,20 +300,38 @@ namespace work.bacome.imapclient
             }
         }
 
-        public cFetchSizeConfiguration FetchAttributesConfiguration
+        // configuration that controls the size of reads from streams when appending
+        //
+        public cBatchSizerConfiguration AppendStreamReadConfiguration
         {
-            get => mFetchAttributesConfiguration;
+            get => mAppendStreamReadConfiguration;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchAttributesConfiguration), value);
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendStreamReadConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mFetchAttributesConfiguration = value ?? throw new ArgumentNullException();
-                mSession?.SetFetchAttributesConfiguration(value, lContext);
+                mAppendStreamReadConfiguration = value ?? throw new ArgumentNullException();
             }
         }
 
-        public cFetchSizeConfiguration FetchBodyReadConfiguration
+        // configuration that controls the number of messages fetched at one time
+        //
+        public cBatchSizerConfiguration FetchCacheItemsConfiguration
+        {
+            get => mFetchCacheItemsConfiguration;
+
+            set
+            {
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchCacheItemsConfiguration), value);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                mFetchCacheItemsConfiguration = value ?? throw new ArgumentNullException();
+                mSession?.SetFetchCacheItemsConfiguration(value, lContext);
+            }
+        }
+
+        // configuration that controls the number of bytes fetched at one time
+        //
+        public cBatchSizerConfiguration FetchBodyReadConfiguration
         {
             get => mFetchBodyReadConfiguration;
 
@@ -216,7 +344,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        public cFetchSizeConfiguration FetchBodyWriteConfiguration
+        // configuration that controls the number of bytes written at one time
+        //
+        public cBatchSizerConfiguration FetchBodyWriteConfiguration
         {
             get => mFetchBodyWriteConfiguration;
 
@@ -229,6 +359,7 @@ namespace work.bacome.imapclient
         }
 
         // encoding to use when UTF8 (rfc 6855) is not supported directly by the server
+        //
         public Encoding Encoding
         {
             get => mEncoding;
@@ -237,43 +368,84 @@ namespace work.bacome.imapclient
             {
                 var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(Encoding), value.WebName);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!cCommandPart.TryAsCharsetName(value.WebName, out _)) throw new ArgumentOutOfRangeException();
+                if (!cCommandPartFactory.TryAsCharsetName(value.WebName, out _)) throw new ArgumentOutOfRangeException();
                 mEncoding = value;
                 mSession?.SetEncoding(value, lContext);
             }
         }
 
-        // id command (rfc 2971): a way of identifying the client and server software versions
-
-        public cId ClientId
+        // id command (rfc 2971)
+        
+        public cClientId ClientId
         {
             get => mClientId;
 
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (State != eState.notconnected && State != eState.disconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException();
                 mClientId = value;
             }
         }
 
-        public cIdReadOnlyDictionary ServerId => mSession?.ServerId;
+        public cClientIdUTF8 ClientIdUTF8
+        {
+            get => mClientIdUTF8 ?? mClientId;
+
+            set
+            {
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (!IsUnconnected) throw new InvalidOperationException();
+                mClientIdUTF8 = value;
+            }
+        }
+
+        public cId ServerId => mSession?.ServerId;
 
         // rfc 2342 namespaces (if the server doesn't support namespaces then this will still work - there will be one personal namespace retrieved using LIST)
+        //
         public cNamespaces Namespaces
         {
             get
             {
-                if (mSession == null) return null;
-                if (mSession.ConnectedAccountId == null) return null;
-                return new cNamespaces(this, mSession.ConnectedAccountId, mSession.PersonalNamespaces, mSession.OtherUsersNamespaces, mSession.SharedNamespaces);
+                if (mNamespaces != null) return mNamespaces;
+                var lNamespaceNames = mSession?.NamespaceNames;
+                if (lNamespaceNames == null) return null;
+                return new cNamespaces(this, lNamespaceNames.Personal, lNamespaceNames.OtherUsers, lNamespaceNames.Shared);
             }
         }
 
-        public cMailbox Inbox => mSession?.Inbox;
-        public cMailboxId SelectedMailboxId => mSession?.SelectedMailboxId;
+        public cMailbox Inbox => mInbox;
 
-        public iMailboxProperties GetMailboxProperties(cMailboxId pMailboxId) => mSession?.GetMailboxProperties(pMailboxId);
+        public iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
+
+        public cMailbox SelectedMailbox
+        {
+            get
+            {
+                var lDetails = mSession?.SelectedMailboxDetails;
+                if (lDetails == null) return null;
+                return new cMailbox(this, lDetails.Handle);
+            }
+        }
+
+        public cMailbox Mailbox(cMailboxName pMailboxName)
+        {
+            if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+
+            var lSession = mSession;
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+
+            if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
+
+            var lHandle = mSession.GetMailboxHandle(pMailboxName);
+
+            return new cMailbox(this, lHandle);
+        }
+
+        public bool? HasCachedChildren(iMailboxHandle pHandle) => mSession?.HasCachedChildren(pHandle);
+
+        public sEventSubscriptionCounts EventSubscriptionCounts => mSynchroniser.EventSubscriptionCounts;
 
         public void Dispose()
         {
@@ -285,9 +457,15 @@ namespace work.bacome.imapclient
                 catch { }
             }
 
-            if (mEventSynchroniser != null)
+            if (mSynchroniser != null)
             {
-                try { mEventSynchroniser.Dispose(); }
+                try { mSynchroniser.Dispose(); }
+                catch { }
+            }
+
+            if (mCancellationManager != null)
+            {
+                try { mCancellationManager.Dispose(); }
                 catch { }
             }
 

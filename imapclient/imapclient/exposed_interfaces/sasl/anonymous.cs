@@ -9,26 +9,29 @@ namespace work.bacome.imapclient
     {
         // rfc4505
 
-        private static string kName = "ANONYMOUS";
+        private const string kName = "ANONYMOUS";
 
-        private string mTrace;
+        private readonly string mTrace;
+        private readonly eTLSRequirement mTLSRequirement;
 
-        public cSASLAnonymous(string pTrace)
+        private cSASLAnonymous(string pTrace, eTLSRequirement pTLSRequirement, bool pPrechecked)
+        {
+            mTrace = pTrace;
+            mTLSRequirement = pTLSRequirement;
+        }
+
+        public cSASLAnonymous(string pTrace, eTLSRequirement pTLSRequirement)
         {
             if (!ZIsValid(pTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
             mTrace = pTrace;
+            mTLSRequirement = pTLSRequirement;
         }
 
-        private cSASLAnonymous(string pTrace, bool pPrechecked)
-        {
-            mTrace = pTrace;
-        }
-
-        public static bool TryConstruct(string pTrace, out cSASLAnonymous rAnonymous)
+        public static bool TryConstruct(string pTrace, eTLSRequirement pTLSRequirement, out cSASLAnonymous rAnonymous)
         {
             if (ZIsValid(pTrace))
             {
-                rAnonymous = new cSASLAnonymous(pTrace, true);
+                rAnonymous = new cSASLAnonymous(pTrace, pTLSRequirement, true);
                 return true;
             }
 
@@ -54,12 +57,13 @@ namespace work.bacome.imapclient
         }
 
         public override string MechanismName => kName;
+        public override eTLSRequirement TLSRequirement => mTLSRequirement;
         public override cSASLAuthentication GetAuthentication() => new cAuth(mTrace);
 
         private class cAuth : cSASLAuthentication
         {
             private bool mDone = false;
-            private string mTrace;
+            private readonly string mTrace;
 
             public cAuth(string pTrace) { mTrace = pTrace; }
 
@@ -71,7 +75,6 @@ namespace work.bacome.imapclient
                 if (pChallenge != null && pChallenge.Count != 0) throw new ArgumentOutOfRangeException("non zero length challenge");
                 return Encoding.UTF8.GetBytes(mTrace);
             }
-
 
             public override cSASLSecurity GetSecurity() => null;
         }

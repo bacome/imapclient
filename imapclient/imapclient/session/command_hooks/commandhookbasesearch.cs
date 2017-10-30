@@ -12,9 +12,13 @@ namespace work.bacome.imapclient
             {
                 private static readonly cBytes kSearch = new cBytes("SEARCH");
 
+                protected readonly cSelectedMailbox mSelectedMailbox;
                 protected cUIntList mMSNs = null;
 
-                public cCommandHookBaseSearch() { }
+                public cCommandHookBaseSearch(cSelectedMailbox pSelectedMailbox)
+                {
+                    mSelectedMailbox = pSelectedMailbox ?? throw new ArgumentNullException(nameof(pSelectedMailbox));
+                }
 
                 public override eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {

@@ -18,11 +18,10 @@ namespace work.bacome.imapclient.support
 
         private cBytesLines mLines;
         public sPosition Position;
-        private object _ParsedAs;
 
         public cBytesCursor(cBytesLines pLines)
         {
-            mLines = pLines;
+            mLines = pLines ?? throw new ArgumentNullException(nameof(pLines));
 
             if (mLines.Count == 0)
             {
@@ -40,6 +39,8 @@ namespace work.bacome.imapclient.support
 
         public cBytesCursor(IList<byte> pBytes)
         {
+            if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
+
             mLines = new cBytesLines(new cBytesLine[] { new cBytesLine(false, pBytes) });
 
             Position.BytesLine = mLines[0];
@@ -50,17 +51,18 @@ namespace work.bacome.imapclient.support
             ZAdvance(ref Position);
         }
 
-        public bool Parsed { get; private set; } = false;
-
-        public object ParsedAs
+        public cBytesCursor(string pString)
         {
-            get => _ParsedAs;
+            if (pString == null) throw new ArgumentNullException(nameof(pString));
 
-            set
-            {
-                Parsed = true;
-                _ParsedAs = value;
-            }
+            mLines = new cBytesLines(new cBytesLine[] { new cBytesLine(false, Encoding.UTF8.GetBytes(pString)) });
+
+            Position.BytesLine = mLines[0];
+            Position.LineNumber = 0;
+            Position.Byte = -1;
+            Position.AtEnd = false;
+
+            ZAdvance(ref Position);
         }
 
         public bool SkipByte(byte pByte, bool pCaseSensitive = false)
@@ -396,6 +398,23 @@ namespace work.bacome.imapclient.support
             return true;
         }
 
+        public bool GetNumber(out ulong rNumber)
+        {
+            var lBookmark = Position;
+
+            rNumber = 0;
+
+            if (!GetToken(cCharset.Digit, null, null, out var lBytes)) return false;
+
+            checked
+            {
+                try { foreach (byte lByte in lBytes) rNumber = rNumber * 10 + lByte - cASCII.ZERO; }
+                catch { Position = lBookmark; return false; }
+            }
+
+            return true;
+        }
+
         public bool GetDate(out DateTime rDate)
         {
             var lBookmark = Position;
@@ -672,6 +691,7 @@ namespace work.bacome.imapclient.support
             return lBuilder.ToString();
         }
 
+        /*
         public static bool TryConstruct(string pString, out cBytesCursor rBytesCursor)
         {
             cByteList lBytes = new cByteList(pString.Length);
@@ -687,7 +707,7 @@ namespace work.bacome.imapclient.support
 
             rBytesCursor = new cBytesCursor(new cBytesLines(lLines));
             return true;
-        }
+        } */
 
         public struct sPosition
         {

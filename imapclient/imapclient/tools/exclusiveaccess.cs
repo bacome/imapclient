@@ -12,6 +12,7 @@ namespace work.bacome.async
         public event Action<cTrace.cContext> Released;
 
         private bool mDisposed = false;
+
         private readonly string mName;
         private readonly int mSequence; // the order in which this lock should be taken in the set of locks that the program has (for use by external code)
         private readonly int mInstance; // for debugging
@@ -39,25 +40,6 @@ namespace work.bacome.async
 
             return new cBlock(mName, mSequence, mInstance, ZReleaseBlock, pParentContext);
         }
-
-        /*
-        public async Task<cBlock> GetBlockAsync(cMethodControl pMC, cToken pToken, cTrace.cContext pParentContext)
-        {
-            var lContext = pParentContext.NewMethod(nameof(cExclusiveAccess), nameof(GetBlockAsync), mName, mInstance);
-
-            if (mDisposed) throw new ObjectDisposedException(nameof(cExclusiveAccess));
-
-            if (pToken == null)
-            {
-                if (!await mExclusiveSemaphoreSlim.WaitAsync(pMC.Timeout, pMC.CancellationToken).ConfigureAwait(false)) throw new TimeoutException();
-                Interlocked.Increment(ref mBlocks);
-                mExclusiveSemaphoreSlim.Release();
-            }
-            else if (pToken == mToken) Interlocked.Increment(ref mBlocks);
-            else throw new ArgumentException("invalid token", nameof(pToken));
-
-            return new cBlock(mName, mSequence, mInstance, ZReleaseBlock, pParentContext);
-        } */
 
         public cBlock TryGetBlock(cTrace.cContext pParentContext)
         {
@@ -112,10 +94,10 @@ namespace work.bacome.async
 
         public sealed class cBlock : IDisposable
         {
+            private bool mDisposed = false;
             private readonly string mName;
             public readonly int Sequence;
             private readonly int mInstance;
-            private bool mDisposed = false;
             private readonly Action<cTrace.cContext> mReleaseBlock;
             private readonly cTrace.cContext mContextToUseWhenDisposing;
 
@@ -143,10 +125,10 @@ namespace work.bacome.async
 
         public sealed class cToken : IDisposable
         {
+            private bool mDisposed = false;
             private readonly string mName;
             public readonly int Sequence;
             private readonly int mInstance;
-            private bool mDisposed = false;
             private readonly Action<cTrace.cContext> mReleaseToken;
             private readonly cTrace.cContext mContextToUseWhenDisposing;
 

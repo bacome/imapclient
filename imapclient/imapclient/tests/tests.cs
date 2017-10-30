@@ -19,10 +19,14 @@ namespace work.bacome.imapclient
             cURI._Tests(lContext);
             cURLParts._Tests(lContext);
             cURIParts._Tests(lContext);
-            cMailboxNamePattern._Tests(lContext);
+            cMailboxPathPattern._Tests(lContext);
             cCulturedString._Tests(lContext);
             cMailboxName._Tests(lContext);
-            cFetchSizer._Tests(lContext);
+            cBatchSizer._Tests(lContext);
+            //cHeaderFieldNames._Tests(lContext);
+            cHeaderFieldNameList._Tests(lContext);
+            cHeaderFields._Tests(lContext);
+            cSettableFlagList._Tests(lContext);
         }
 
         private partial class cSession
@@ -31,17 +35,17 @@ namespace work.bacome.imapclient
             public static void _Tests(cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(_Tests));
-                cConnection._Tests(lContext);
+                cCommandPipeline._Tests(lContext);
                 cIdDataProcessor._Tests(lContext);
                 cNamespaceDataProcessor._Tests(lContext);
-                cCommandHookList._Tests(lContext);
-                cCommandHookLSub._Tests(lContext);
-                cListExtendedCommandHook._Tests(lContext);
-                cResponseDataFetch._Tests(lContext);
-                cResponseDataESearch._Tests(lContext);
-                _Tests_ListExtendedCommandParts(lContext);
-                cCommand._Tests(lContext);
-                cQuotedPrintableDecoder._Tests(lContext);
+                //cCommandHookList._Tests(lContext);
+                //cCommandHookLSub._Tests(lContext);
+                //cListExtendedCommandHook._Tests(lContext);
+                cResponseDataParserFetch._Tests(lContext);
+                cResponseDataParserESearch._Tests(lContext);
+                //_Tests_ListExtendedCommandParts(lContext);
+                cCommandDetailsBuilder._Tests(lContext);
+                cQuotedPrintableDecoder._Tests(lContext);               
             }
         }
     }

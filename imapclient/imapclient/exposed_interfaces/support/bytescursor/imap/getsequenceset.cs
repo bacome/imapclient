@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
 using work.bacome.trace;
 
@@ -11,7 +12,7 @@ namespace work.bacome.imapclient.support
         {
             var lBookmark = Position;
 
-            List<cSequenceSet.cItem> lItems = new List<cSequenceSet.cItem>();
+            List<cSequenceSetItem> lItems = new List<cSequenceSetItem>();
 
             while (true)
             {
@@ -32,16 +33,16 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        private bool ZGetSequenceSetItem(out cSequenceSet.cItem rItem)
+        private bool ZGetSequenceSetItem(out cSequenceSetItem rItem)
         {
             uint lNumber;
-            cSequenceSet.cItem.cRangePart lItem;
+            cSequenceSetRangePart lItem;
 
-            if (SkipByte(cASCII.ASTERISK)) lItem = cSequenceSet.cItem.Asterisk;
+            if (SkipByte(cASCII.ASTERISK)) lItem = cSequenceSetItem.Asterisk;
             else
             {
                 if (!GetNZNumber(out _, out lNumber)) { rItem = null; return false; }
-                lItem = new cSequenceSet.cItem.cNumber(lNumber);
+                lItem = new cSequenceSetNumber(lNumber);
             }
 
             var lBookmark = Position;
@@ -54,11 +55,11 @@ namespace work.bacome.imapclient.support
 
             if (SkipByte(cASCII.ASTERISK))
             {
-                rItem = new cSequenceSet.cItem.cRange(lItem, cSequenceSet.cItem.Asterisk);
+                rItem = new cSequenceSetRange(lItem, cSequenceSetItem.Asterisk);
                 return true;
             }
 
-            if (GetNZNumber(out _, out lNumber)) rItem = new cSequenceSet.cItem.cRange(lItem, new cSequenceSet.cItem.cNumber(lNumber));
+            if (GetNZNumber(out _, out lNumber)) rItem = new cSequenceSetRange(lItem, new cSequenceSetNumber(lNumber));
             else
             {
                 Position = lBookmark;
@@ -73,25 +74,26 @@ namespace work.bacome.imapclient.support
         {
             var lContext = pParentContext.NewMethod(nameof(cBytesCursor), nameof(_Tests_SequenceSet));
 
-            LTest("*", "cSequenceSet(cAsterisk())", null, new cUIntList(new uint[] { 15 }), "cSequenceSet(cNumber(15))");
+            LTest("*", "cSequenceSet(cAsterisk())", null, new cUIntList(new uint[] { 15 }), "cSequenceSet(cSequenceSetNumber(15))");
             LTest("0", null, "0", null, null);
-            LTest("2,4:7,9,12:*", "cSequenceSet(cNumber(2),cRange(cNumber(4),cNumber(7)),cNumber(9),cRange(cNumber(12),cAsterisk()))", null, new cUIntList(new uint[] { 2, 4, 5, 6, 7, 9, 12, 13, 14, 15 }), "cSequenceSet(cNumber(2),cRange(cNumber(4),cNumber(7)),cNumber(9),cRange(cNumber(12),cNumber(15)))");
-            LTest("*:4,7:5", "cSequenceSet(cRange(cNumber(4),cAsterisk()),cRange(cNumber(5),cNumber(7)))", null, new cUIntList(new uint[] { 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }), "cSequenceSet(cRange(cNumber(4),cNumber(15)))");
+            LTest("2,4:7,9,12:*", "cSequenceSet(cSequenceSetNumber(2),cSequenceSetRange(cSequenceSetNumber(4),cSequenceSetNumber(7)),cSequenceSetNumber(9),cSequenceSetRange(cSequenceSetNumber(12),cAsterisk()))", null, new cUIntList(new uint[] { 2, 4, 5, 6, 7, 9, 12, 13, 14, 15 }), "cSequenceSet(cSequenceSetNumber(2),cSequenceSetRange(cSequenceSetNumber(4),cSequenceSetNumber(7)),cSequenceSetNumber(9),cSequenceSetRange(cSequenceSetNumber(12),cSequenceSetNumber(15)))");
+            LTest("*:4,7:5", "cSequenceSet(cSequenceSetRange(cSequenceSetNumber(4),cAsterisk()),cSequenceSetRange(cSequenceSetNumber(5),cSequenceSetNumber(7)))", null, new cUIntList(new uint[] { 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }), "cSequenceSet(cSequenceSetRange(cSequenceSetNumber(4),cSequenceSetNumber(15)))");
 
             void LTest(string pCursor, string pExpSeqSet, string pExpRemainder, cUIntList pExpList, string pExpSeqSet2)
             {
-                TryConstruct(pCursor, out var lCursor);
+                var lCursor = new cBytesCursor(pCursor);
 
                 if (lCursor.GetSequenceSet(out var lSequenceSet))
                 {
                     string lSeqSet = lSequenceSet.ToString();
                     if (lSeqSet != pExpSeqSet) throw new cTestsException($"failed to get expected sequence set from {pCursor}: '{lSeqSet}' vs '{pExpSeqSet}'");
 
-                    var lList = cUIntList.FromSequenceSet(lSequenceSet, 15).ToSortedUniqueList();
-                    if (pExpList.Count != lList.Count) throw new cTestsException($"failed to get expected uintlist from {lSequenceSet}");
+                    if (!cUIntList.TryConstruct(lSequenceSet, 15, true, out var lTemp)) throw new cTestsException($"failed to get an uintlist from {lSequenceSet}");
+                    if (pExpList.Count != lTemp.Count) throw new cTestsException($"failed to get expected uintlist from {lSequenceSet}");
+                    var lList = new cUIntList(lTemp.OrderBy(i => i));
                     for (int i = 0; i < pExpList.Count; i++) if (pExpList[i] != lList[i]) throw new cTestsException($"failed to get expected uintlist from {lSequenceSet}");
 
-                    string lSeqSet2 = lList.ToSequenceSet().ToString();
+                    string lSeqSet2 = cSequenceSet.FromUInts(lList).ToString();
                     if (lSeqSet2 != pExpSeqSet2) throw new cTestsException($"failed to get expected sequence set from {lList}: '{lSeqSet2}' vs '{pExpSeqSet2}'");
                 }
                 else if (pExpSeqSet != null) throw new cTestsException($"failed to get a sequence set from {pCursor}");

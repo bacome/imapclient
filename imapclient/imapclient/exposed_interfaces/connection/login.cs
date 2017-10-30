@@ -7,35 +7,36 @@ namespace work.bacome.imapclient
     {
         public readonly string UserId;
         public readonly string Password;
+        public readonly eTLSRequirement TLSRequirement;
 
-        private cLogin(string pUserId, string pPassword, bool pValidated)
+        private cLogin(string pUserId, string pPassword, eTLSRequirement pTLSRequirement, bool pValidated)
         {
             UserId = pUserId;
             Password = pPassword;
+            TLSRequirement = pTLSRequirement;
         }
 
-        public cLogin(string pUserId, string pPassword)
+        public cLogin(string pUserId, string pPassword, eTLSRequirement pTLSRequirement)
         {
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
             if (string.IsNullOrEmpty(pPassword)) throw new ArgumentOutOfRangeException(nameof(pPassword));
 
-            cCommandPart.cFactory lFactory = new cCommandPart.cFactory();
-            if (!lFactory.TryAsLiteral(pUserId, true, out _)) throw new ArgumentOutOfRangeException(nameof(pUserId));
-            if (!lFactory.TryAsLiteral(pPassword, true, out _)) throw new ArgumentOutOfRangeException(nameof(pPassword));
+            if (!cCommandPartFactory.TryAsASCIILiteral(pUserId, true, out _)) throw new ArgumentOutOfRangeException(nameof(pUserId));
+            if (!cCommandPartFactory.TryAsASCIILiteral(pPassword, true, out _)) throw new ArgumentOutOfRangeException(nameof(pPassword));
 
             UserId = pUserId;
             Password = pPassword;
+            TLSRequirement = pTLSRequirement;
         }
 
-        public static bool TryConstruct(string pUserId, string pPassword, out cLogin rLogin)
+        public static bool TryConstruct(string pUserId, string pPassword, eTLSRequirement pTLSRequirement, out cLogin rLogin)
         {
             if (string.IsNullOrEmpty(pUserId) || string.IsNullOrEmpty(pPassword)) { rLogin = null; return false; }
 
-            cCommandPart.cFactory lFactory = new cCommandPart.cFactory();
-            if (!lFactory.TryAsLiteral(pUserId, true, out _)) { rLogin = null; return false; }
-            if (!lFactory.TryAsLiteral(pPassword, true, out _)) { rLogin = null; return false; }
+            if (!cCommandPartFactory.TryAsASCIILiteral(pUserId, true, out _)) { rLogin = null; return false; }
+            if (!cCommandPartFactory.TryAsASCIILiteral(pPassword, true, out _)) { rLogin = null; return false; }
 
-            rLogin = new cLogin(pUserId, pPassword, true);
+            rLogin = new cLogin(pUserId, pPassword, pTLSRequirement, true);
             return true;
         }
     }

@@ -14,7 +14,7 @@ namespace work.bacome.imapclient.support
         [Flags]
         private enum fParts
         {
-            scheme = 1,
+            scheme = 1 << 0,
             userinfo = 1 << 1,
             host = 1 << 2,
             port = 1 << 3,
@@ -315,7 +315,7 @@ namespace work.bacome.imapclient.support
 
             // 9
 
-            cBytesCursor.TryConstruct("IMAP://user@[]:111", out lCursor);
+            lCursor = new cBytesCursor("IMAP://user@[]:111");
 
             if (!lCursor.GetURI(out lParts, out lString, lContext)) throw new cTestsException("should have succeeded 9", lContext);
             if (lCursor.Position.AtEnd) throw new cTestsException("should not have read entire response 9", lContext);
@@ -324,7 +324,7 @@ namespace work.bacome.imapclient.support
 
             // 10
 
-            cBytesCursor.TryConstruct("IMAP://user@[1.2.3.4", out lCursor);
+            lCursor = new cBytesCursor("IMAP://user@[1.2.3.4");
 
             if (!lCursor.GetURI(out lParts, out lString, lContext)) throw new cTestsException("should have succeeded 10", lContext);
             if (lCursor.Position.AtEnd) throw new cTestsException("should not have read entire response 10", lContext);
@@ -333,7 +333,7 @@ namespace work.bacome.imapclient.support
 
             // 12
 
-            cBytesCursor.TryConstruct("IMAP:///still here", out lCursor);
+            lCursor = new cBytesCursor("IMAP:///still here");
 
             if (!lCursor.GetURI(out lParts, out lString, lContext)) throw new cTestsException("should have succeeded 12", lContext);
             if (!lParts.ZHasParts(fParts.scheme | fParts.pathroot | fParts.path) || lParts.Scheme != "IMAP" || lParts.Path != "still" || lCursor.GetRestAsString() != " here") throw new cTestsException("unexpected properties 12");
@@ -341,7 +341,7 @@ namespace work.bacome.imapclient.support
 
             // 13
 
-            cBytesCursor.TryConstruct("IMAP://:7still here", out lCursor);
+            lCursor = new cBytesCursor("IMAP://:7still here");
             if (!lCursor.GetURI(out lParts, out lString, lContext)) throw new cTestsException("should have succeeded 13", lContext);
             if (lCursor.GetRestAsString() != "still here") throw new cTestsException("should be some left 13", lContext);
 
@@ -352,7 +352,7 @@ namespace work.bacome.imapclient.support
 
 
             // 14
-            cBytesCursor.TryConstruct("IMAP://user;AUTH=*@SERVER2/REMOTE IMAP://user;AUTH=*@SERVER3/REMOTE]", out lCursor);
+            lCursor = new cBytesCursor("IMAP://user;AUTH=*@SERVER2/REMOTE IMAP://user;AUTH=*@SERVER3/REMOTE]");
             if (!lCursor.GetURI(out lParts, out lString, lContext)) throw new cTestsException("2193.3.1");
             lURL = new cURL(lString);
             if (!lURL.IsMailboxReferral) throw new cTestsException("2193.3.2");
@@ -361,7 +361,7 @@ namespace work.bacome.imapclient.support
             if (!lURI.IsMailboxReferral) throw new cTestsException("2193.3.4");
             if (lCursor.Position.AtEnd) throw new cTestsException("2193.3.5");
             if (lCursor.GetRestAsString() != "]") throw new cTestsException("2193.3.6");
-            if (lURI.MustUseAnonymous || lURI.UserId != "user" || lURI.MechanismName != null || lURI.Host != "SERVER3" || lURI.MailboxName != "REMOTE") throw new cTestsException("2193.3.7");
+            if (lURI.MustUseAnonymous || lURI.UserId != "user" || lURI.MechanismName != null || lURI.Host != "SERVER3" || lURI.MailboxPath != "REMOTE") throw new cTestsException("2193.3.7");
 
 
             // 15
@@ -388,7 +388,7 @@ namespace work.bacome.imapclient.support
 
             bool LTryParse(string pURL, out cURIParts rParts)
             {
-                if (!cBytesCursor.TryConstruct(pURL, out var lxCursor)) { rParts = null; return false; }
+                var lxCursor = new cBytesCursor(pURL);
                 if (!Process(lxCursor, out rParts, pParentContext)) return false;
                 if (!lxCursor.Position.AtEnd) return false;
                 return true;

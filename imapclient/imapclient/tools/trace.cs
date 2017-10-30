@@ -68,6 +68,7 @@ namespace work.bacome.trace
             public abstract cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs);
             public abstract cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue);
             public abstract cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs);
+            public abstract cContext NewRootObject(bool pContextTraceDelay, string pClass);
             public abstract cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod);
 
             public virtual cContext NewGeneric(string pMessage, params object[] pArgs) => NewGeneric(false, pMessage, pArgs);
@@ -78,6 +79,7 @@ namespace work.bacome.trace
             public virtual cContext NewMethod(string pClass, string pMethod, params object[] pArgs) => NewMethodV(false, pClass, pMethod, 1, pArgs);
             public virtual cContext NewMethod(bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) => NewMethodV(pContextTraceDelay, pClass, pMethod, 1, pArgs);
             public virtual cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs) => NewMethodV(false, pClass, pMethod, pVersion, pArgs);
+            public virtual cContext NewRootObject(string pClass) => NewRootObject(false, pClass);
             public virtual cContext NewRootMethod(string pClass, string pMethod) => NewRootMethod(false, pClass, pMethod);
 
             public abstract bool ContextTraceDelay { get; }
@@ -119,6 +121,7 @@ namespace work.bacome.trace
                 public override cContext NewObject(bool pContextTraceDelay, string pClass, params object[] pArgs) => this;
                 public override cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue) => this;
                 public override cContext NewMethod(bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) => this;
+                public override cContext NewRootObject(bool pContextTraceDelay, string pClass) => this;
                 public override cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod) => this;
 
                 public override cContext NewGeneric(string pMessage, params object[] pArgs) => this;
@@ -129,6 +132,7 @@ namespace work.bacome.trace
                 public override cContext NewMethod(string pClass, string pMethod, params object[] pArgs) => this;
                 public override cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs) => this;
                 public override cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs) => this;
+                public override cContext NewRootObject(string pClass) => this;
                 public override cContext NewRootMethod(string pClass, string pMethod) => this;
 
                 public override bool ContextTraceDelay => true;
@@ -220,6 +224,12 @@ namespace work.bacome.trace
                     return lResult;
                 }
 
+                public override cContext NewRootObject(bool pContextTraceDelay, string pClass)
+                {
+                    if (mTraceSource == null) return this;
+                    return new cRoot(mTraceSource, $"{mInstanceName}.{pClass}", mContextTraceDelay || pContextTraceDelay);
+                }
+
                 public override cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod)
                 {
                     if (mTraceSource == null) return this;
@@ -309,6 +319,7 @@ namespace work.bacome.trace
                         return lResult;
                     }
 
+                    public override cContext NewRootObject(bool pContextTraceDelay, string pClass) => new cRoot(mRoot.mTraceSource, $"{mRoot.mInstanceName}.{pClass}", mContextTraceDelay || pContextTraceDelay);
                     public override cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod) => new cRoot(mRoot.mTraceSource, $"{mRoot.mInstanceName}.{pClass}.{pMethod}", mContextTraceDelay || pContextTraceDelay);
 
                     public override bool ContextTraceDelay => mContextTraceDelay;

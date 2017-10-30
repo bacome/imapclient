@@ -1,105 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace work.bacome.async
 { 
-    public sealed class cTerminator : IDisposable
+    public sealed class cAwaiter : IDisposable
     {
         private bool mDisposed = false;
         private readonly CancellationTokenSource mDisposeCancellationTokenSource = new CancellationTokenSource();
         private readonly CancellationTokenSource mLinkedCancellationTokenSource;
         private readonly Task mTask;
 
-        public cTerminator(cMethodControl pMC)
+        public cAwaiter(cMethodControl pMC)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pMC.CancellationToken);
             mTask = Task.Delay(pMC.Timeout, mLinkedCancellationTokenSource.Token);
         }
 
-        public cTerminator(CancellationToken pCancellationToken)
+        public cAwaiter(CancellationToken pCancellationToken)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pCancellationToken);
             mTask = Task.Delay(Timeout.Infinite, mLinkedCancellationTokenSource.Token);
         }
 
-        public Task GetAwaitTerminationTask()
+        public async Task<Task> AwaitAny(Task pTask, params Task[] pTasks)
         {
-            if (mDisposed) throw new ObjectDisposedException(nameof(cTerminator));
-            return mTask;
+            if (pTask == null) throw new ArgumentNullException(nameof(pTask));
+
+            List<Task> lTasks = new List<Task>();
+            lTasks.Add(pTask);
+            lTasks.Add(mTask);
+            if (pTasks != null) foreach (var t in pTasks) if (t != null) lTasks.Add(t);
+
+            Task lTask = await Task.WhenAny(lTasks).ConfigureAwait(false);
+
+            if (lTask.Exception != null) ExceptionDispatchInfo.Capture(lTask.Exception).Throw();
+            if (lTask.IsCanceled) throw new OperationCanceledException();
+            if (ReferenceEquals(lTask, mTask)) throw new TimeoutException();
+
+            return lTask;
         }
 
-        public bool Terminated()
-        {
-            if (mDisposed) throw new ObjectDisposedException(nameof(cTerminator));
-            return mTask.IsCompleted;
-        }
+        public static Task AwaitAll(cMethodControl pMC, params Task[] pTasks) => ZAwaitAll(pMC, pTasks);
+        public static Task AwaitAll(cMethodControl pMC, IEnumerable<Task> pTasks) => ZAwaitAll(pMC, pTasks);
 
-        public bool Throw()
+        private static async Task ZAwaitAll(cMethodControl pMC, IEnumerable<Task> pTasks)
         {
-            if (mDisposed) throw new ObjectDisposedException(nameof(cTerminator));
-            if (!mTask.IsCompleted) throw new InvalidOperationException();
-            if (mTask.IsCanceled) throw new OperationCanceledException();
-            throw new TimeoutException();
-        }
+            List<Task> lTasks = new List<Task>();
+            foreach (var lTask in pTasks) if (lTask != null) lTasks.Add(lTask);
 
-        public void ThrowIfTerminated()
-        {
-            if (mDisposed) throw new ObjectDisposedException(nameof(cTerminator));
-            if (!mTask.IsCompleted) return;
-            if (mTask.IsCanceled) throw new OperationCanceledException();
-            throw new TimeoutException();
-        }
+            if (lTasks.Count == 0) return;
 
-        public async Task<Task> WhenAny(Task pTask, params Task[] pTasks)
-        {
-            Task[] lTasks;
-
-            if (pTasks == null)
+            using (var lAwaiter = new cAwaiter(pMC))
             {
-                lTasks = new Task[2];
-                lTasks[0] = pTask;
-                lTasks[1] = mTask;
-            }
-            else
-            {
-                lTasks = new Task[pTasks.Length + 2];
-                for (int i = 0; i < pTasks.Length; i++) lTasks[i] = pTasks[i];
-                lTasks[pTasks.Length] = pTask;
-                lTasks[pTasks.Length + 1] = mTask;
-            }
+                Task lCompleted = await Task.WhenAny(lAwaiter.mTask, Task.WhenAll(lTasks)).ConfigureAwait(false);
 
-            Task lResult = await Task.WhenAny(lTasks).ConfigureAwait(false);
-
-            if (ReferenceEquals(lResult, mTask))
-            {
-                if (mTask.IsCanceled) throw new OperationCanceledException();
-                throw new TimeoutException();
-            }
-
-            return lResult;
-        }
-
-        public static async Task AwaitAll(cMethodControl pMC, params Task[] pTasks)
-        {
-            int lTaskCount = 0;
-            for (int i = 0; i < pTasks.Length; i++) if (pTasks[i] != null) lTaskCount++;
-
-            if (lTaskCount == 0) return;
-
-            Task[] lTasks = new Task[lTaskCount];
-            for (int i = 0, j = 0; i < pTasks.Length; i++) if (pTasks[i] != null) lTasks[j++] = pTasks[i];
-
-            using (var lTerminator = new cTerminator(pMC))
-            {
-                Task lAwaitTerminationTask = lTerminator.GetAwaitTerminationTask();
-
-                Task lCompleted = await Task.WhenAny(lAwaitTerminationTask, Task.WhenAll(lTasks)).ConfigureAwait(false);
-
-                if (ReferenceEquals(lCompleted, lAwaitTerminationTask))
+                if (ReferenceEquals(lCompleted, lAwaiter.mTask))
                 {
-                    if (lAwaitTerminationTask.IsCanceled) throw new OperationCanceledException();
+                    if (lAwaiter.mTask.IsCanceled) throw new OperationCanceledException();
                     throw new TimeoutException();
                 }
 

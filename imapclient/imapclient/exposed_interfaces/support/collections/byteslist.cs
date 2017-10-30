@@ -8,6 +8,7 @@ namespace work.bacome.imapclient.support
         public cByteList() { }
         public cByteList(IList<byte> pBytes) : base(pBytes) { }
         public cByteList(int pInitialCapacity) : base(pInitialCapacity) { }
-        public override string ToString() => cTools.BytesToLoggableString(nameof(cByteList), this);
+        public override string ToString() => cTools.BytesToLoggableString(nameof(cByteList), this, 1000);
+        public string ToString(int pMaxLength) => cTools.BytesToLoggableString(nameof(cByteList), this, pMaxLength);
     }
 }

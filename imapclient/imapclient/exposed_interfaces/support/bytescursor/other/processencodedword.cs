@@ -31,8 +31,7 @@ namespace work.bacome.imapclient.support
             if (SkipBytes(kQuestionMarkBQuestionMark))
             {
                 if (!GetToken(cCharset.Base64, null, null, out cByteList lBase64)) { rString = null; return false; }
-                if (!cBase64.TryDecode(lBase64, out var lDecoded, out _)) { rString = null; return false; }
-                lBytes = lDecoded;
+                if (!cBase64.TryDecode(lBase64, out lBytes, out _)) { rString = null; return false; }
             }
             else if (SkipBytes(kQuestionMarkQQuestionMark))
             {

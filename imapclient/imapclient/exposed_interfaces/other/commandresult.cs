@@ -2,19 +2,19 @@
 
 namespace work.bacome.imapclient
 {
+    public enum eCommandResultType { ok, no, bad }
+
     public class cCommandResult
     {
-        public enum eResult { ok, no, bad }
-
-        public readonly eResult Result;
+        public readonly eCommandResultType ResultType;
         public readonly cResponseText ResponseText;
 
-        public cCommandResult(eResult pResult, cResponseText pResponseText)
+        public cCommandResult(eCommandResultType pResultType, cResponseText pResponseText)
         {
-            Result = pResult;
+            ResultType = pResultType;
             ResponseText = pResponseText;
         }
 
-        public override string ToString() => $"{nameof(cCommandResult)}({Result},{ResponseText})";
+        public override string ToString() => $"{nameof(cCommandResult)}({ResultType},{ResponseText})";
     }
 }

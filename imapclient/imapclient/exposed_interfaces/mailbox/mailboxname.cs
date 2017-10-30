@@ -7,73 +7,86 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
-    public class cMailboxName
+    public class cMailboxName : IComparable<cMailboxName>, IEquatable<cMailboxName>
     {
         public const string InboxString = "INBOX";
         public static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
 
-        public readonly string Name;
+        public readonly string Path;
         public readonly char? Delimiter;
 
-        private cMailboxName(string pName, char? pDelimiter, bool pValid)
+        private cMailboxName(string pPath, char? pDelimiter, bool pValid)
         {
-            Name = pName;
+            Path = pPath;
             Delimiter = pDelimiter;
         }
 
-        public cMailboxName(string pName, char? pDelimiter)
+        public cMailboxName(string pPath, char? pDelimiter)
         {
-            if (pName == null) throw new ArgumentNullException(nameof(pName));
+            if (string.IsNullOrEmpty(pPath)) throw new ArgumentNullException(nameof(pPath));
             if (pDelimiter != null &&  !cTools.IsValidDelimiter(pDelimiter.Value)) throw new ArgumentOutOfRangeException(nameof(pDelimiter));
 
-            if (pName.Equals(InboxString, StringComparison.InvariantCultureIgnoreCase))
+            if (pPath.Equals(InboxString, StringComparison.InvariantCultureIgnoreCase))
             {
-                Name = InboxString;
+                Path = InboxString;
                 Delimiter = pDelimiter;
                 return;
             }
-                
-            cCommandPart.cFactory lFactory = new cCommandPart.cFactory();
-            if (!lFactory.TryAsListMailbox(pName, pDelimiter, out _)) throw new ArgumentOutOfRangeException(nameof(pName));
 
-            Name = pName;
+            if (pPath[pPath.Length - 1] == pDelimiter) throw new ArgumentOutOfRangeException(nameof(pPath));
+                
+            if (!cCommandPartFactory.Validation.TryAsListMailbox(pPath, pDelimiter, out _)) throw new ArgumentOutOfRangeException(nameof(pPath));
+
+            Path = pPath;
             Delimiter = pDelimiter;
         }
 
-        public static bool TryConstruct(string pName, char? pDelimiter, out cMailboxName rResult)
+        public string ParentPath
         {
-            if (pName == null) { rResult = null; return false; }
-            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
-
-            if (pName.Equals(InboxString, StringComparison.InvariantCultureIgnoreCase))
+            get
             {
-                rResult = new cMailboxName(pName, pDelimiter, true);
-                return true;
+                if (Delimiter == null) return null;
+                int lParentPathEnd = Path.LastIndexOf(Delimiter.Value);
+                if (lParentPathEnd == -1) return null;
+                return Path.Substring(0, lParentPathEnd);
+            }
+        }
+
+        public string Name
+        {
+            get
+            {
+                if (Delimiter == null) return Path;
+                int lParentPathEnd = Path.LastIndexOf(Delimiter.Value);
+                if (lParentPathEnd == -1) return Path;
+                return Path.Substring(lParentPathEnd + 1);
+            }
+        }
+
+        public bool IsInbox => ReferenceEquals(Path, InboxString);
+
+        public int CompareTo(cMailboxName pOther)
+        {
+            if (pOther == null) return 1;
+
+            var lCompareTo = Path.CompareTo(pOther.Path);
+
+            if (lCompareTo != 0) return lCompareTo;
+
+            // should never get here
+
+            if (Delimiter == null)
+            {
+                if (pOther.Delimiter == null) return 0;
+                return -1;
             }
 
-            cCommandPart.cFactory lFactory = new cCommandPart.cFactory();
-            if (!lFactory.TryAsListMailbox(pName, pDelimiter, out _)) { rResult = null; return false; }
+            if (pOther.Delimiter == null) return 1;
 
-            rResult = new cMailboxName(pName, pDelimiter, true);
-            return true;
+            return Delimiter.Value.CompareTo(pOther.Delimiter.Value);
         }
 
-        public static bool TryConstruct(IList<byte> pBytes, byte? pDelimiter, fEnableableExtensions pEnabledExtensions, out cMailboxName rResult)
-        {
-            if (pBytes == null) { rResult = null; return false; }
-            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
-
-            string lName;
-
-            if (cASCII.Compare(pBytes, InboxBytes, false)) lName = InboxString;
-            else if (!cTools.TryMailboxNameBytesToString(pBytes, pDelimiter, pEnabledExtensions, out lName)) { rResult = null; return false; }
-
-            char? lDelimiter;
-            if (pDelimiter == null) lDelimiter = null;
-            else lDelimiter = (char)pDelimiter.Value;
-
-            return TryConstruct(lName, lDelimiter, out rResult);
-        }
+        public bool Equals(cMailboxName pOther) => this == pOther;
 
         public override bool Equals(object pObject) => this == pObject as cMailboxName;
 
@@ -82,66 +95,116 @@ namespace work.bacome.imapclient
             unchecked
             {
                 int lHash = 17;
-                lHash = lHash * 23 + Name.GetHashCode();
+                lHash = lHash * 23 + Path.GetHashCode();
                 if (Delimiter != null) lHash = lHash * 23 + Delimiter.GetHashCode();
                 return lHash;
             }
         }
 
-        public override string ToString() => $"{nameof(cMailboxName)}({Name},{Delimiter})";
+        public override string ToString() => $"{nameof(cMailboxName)}({Path},{Delimiter})";
 
         public static bool operator ==(cMailboxName pA, cMailboxName pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return (pA.Name == pB.Name && pA.Delimiter == pB.Delimiter);
+            return pA.Path == pB.Path && pA.Delimiter == pB.Delimiter;
         }
 
         public static bool operator !=(cMailboxName pA, cMailboxName pB) => !(pA == pB);
+
+        public static bool TryConstruct(string pPath, char? pDelimiter, out cMailboxName rResult)
+        {
+            if (string.IsNullOrEmpty(pPath)) { rResult = null; return false; }
+            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
+
+            if (pPath.Equals(InboxString, StringComparison.InvariantCultureIgnoreCase))
+            {
+                rResult = new cMailboxName(InboxString, pDelimiter, true);
+                return true;
+            }
+
+            if (pPath[pPath.Length - 1] == pDelimiter) { rResult = null; return false; }
+
+            if (!cCommandPartFactory.Validation.TryAsListMailbox(pPath, pDelimiter, out _)) { rResult = null; return false; }
+
+            rResult = new cMailboxName(pPath, pDelimiter, true);
+            return true;
+        }
+
+        public static bool TryConstruct(IList<byte> pEncodedMailboxPath, byte? pDelimiter, bool pUTF8Enabled, out cMailboxName rResult)
+        {
+            if (pEncodedMailboxPath == null || pEncodedMailboxPath.Count == 0) { rResult = null; return false; }
+            if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
+
+            string lPath;
+
+            if (cASCII.Compare(pEncodedMailboxPath, InboxBytes, false)) lPath = InboxString;
+            else if (!cTools.TryEncodedMailboxPathToString(pEncodedMailboxPath, pDelimiter, pUTF8Enabled, out lPath)) { rResult = null; return false; }
+
+            char? lDelimiter;
+            if (pDelimiter == null) lDelimiter = null;
+            else lDelimiter = (char)pDelimiter.Value;
+
+            return TryConstruct(lPath, lDelimiter, out rResult);
+        }
 
         [Conditional("DEBUG")]
         public static void _Tests(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cMailboxName), nameof(_Tests));
 
-            _Tests_MailboxName("", lContext);
+            _Tests_MailboxName("", true, lContext);
 
-            _Tests_MailboxName("/", lContext);
-            _Tests_MailboxName("fred", lContext);
-            _Tests_MailboxName("fred/", lContext);
-            _Tests_MailboxName("/fred", lContext);
-            _Tests_MailboxName("/fred/", lContext);
-            _Tests_MailboxName("fred/fr€d", lContext);
-            _Tests_MailboxName("fred/fr€d/", lContext);
-            _Tests_MailboxName("/fred/fr€d", lContext);
-            _Tests_MailboxName("/fred/fr€d/", lContext);
+            _Tests_MailboxName("/", true, lContext);
+            _Tests_MailboxName("fred", false, lContext);
+            _Tests_MailboxName("fred/", true, lContext);
+            _Tests_MailboxName("/fred", false, lContext);
+            _Tests_MailboxName("/fred/", true, lContext);
+            _Tests_MailboxName("fred/fr€d", false, lContext);
+            _Tests_MailboxName("fred/fr€d/", true, lContext);
+            _Tests_MailboxName("/fred/fr€d", false, lContext);
+            _Tests_MailboxName("/fred/fr€d/", true, lContext);
         }
 
         [Conditional("DEBUG")]
-        private static void _Tests_MailboxName(string pMailboxName, cTrace.cContext pParentContext)
+        private static void _Tests_MailboxName(string pMailboxPath, bool pExpectFail, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cMailboxName), nameof(_Tests_MailboxName), pMailboxName);
+            var lContext = pParentContext.NewMethod(nameof(cMailboxName), nameof(_Tests_MailboxName), pMailboxPath);
 
-            cCommandPart.cFactory lFactory;
+            cCommandPartFactory lFactory;
             cCommandPart lCommandPart;
             cBytesCursor lCursor;
-            IList<byte> lEncodedMailboxName;
+            IList<byte> lEncodedMailboxPath;
             cMailboxName lMailboxName;
 
-            lFactory = new cCommandPart.cFactory(false);
-            lFactory.TryAsMailbox(new cMailboxName(pMailboxName, '/'), out lCommandPart, out _);
-            lCursor = new cBytesCursor(lCommandPart.Bytes);
-            lCursor.GetAString(out lEncodedMailboxName);
-            cMailboxName.TryConstruct(lEncodedMailboxName, cASCII.SLASH, fEnableableExtensions.none, out lMailboxName);
-            if (lMailboxName.Name != pMailboxName) throw new cTestsException($"mailboxname conversion failed on '{pMailboxName}' -> {lCommandPart.Bytes} -> '{lMailboxName}'", lContext);
+            lFactory = new cCommandPartFactory(false, null);
 
-            lFactory = new cCommandPart.cFactory(true);
-            lFactory.TryAsMailbox(new cMailboxName(pMailboxName, '/'), out lCommandPart, out _);
-            lCursor = new cBytesCursor(lCommandPart.Bytes);
-            lCursor.GetAString(out lEncodedMailboxName);
-            cMailboxName.TryConstruct(lEncodedMailboxName, cASCII.SLASH, fEnableableExtensions.utf8, out lMailboxName);
-            if (lMailboxName.Name != pMailboxName) throw new cTestsException($"mailboxname conversion failed on '{pMailboxName}' -> {lCommandPart.Bytes} -> '{lMailboxName}'", lContext);
+            if (!lFactory.TryAsMailbox(pMailboxPath, '/', out lCommandPart, out _)) throw new cTestsException($"mailboxname conversion failed on '{pMailboxPath}'");
+            cTextCommandPart lTCP = lCommandPart as cTextCommandPart;
+
+            lCursor = new cBytesCursor(lTCP.Bytes);
+            lCursor.GetAString(out lEncodedMailboxPath);
+
+            if (cMailboxName.TryConstruct(lEncodedMailboxPath, cASCII.SLASH, false, out lMailboxName))
+            {
+                if (pExpectFail) throw new cTestsException($"mailboxname construction succeeded on '{pMailboxPath}' and it shouldn't have");
+            }
+            else
+            {
+                if (!pExpectFail) throw new cTestsException($"mailboxname construction failed on '{pMailboxPath}' and it shouldn't have");
+                return;
+            }
+
+            if (lMailboxName.Path != pMailboxPath) throw new cTestsException($"mailboxname conversion failed on '{pMailboxPath}' -> {lTCP.Bytes} -> '{lMailboxName}'", lContext);
+
+            lFactory = new cCommandPartFactory(true, null);
+            lFactory.TryAsMailbox(pMailboxPath, '/', out lCommandPart, out _);
+            lTCP = lCommandPart as cTextCommandPart;
+            lCursor = new cBytesCursor(lTCP.Bytes);
+            lCursor.GetAString(out lEncodedMailboxPath);
+            cMailboxName.TryConstruct(lEncodedMailboxPath, cASCII.SLASH, true, out lMailboxName);
+            if (lMailboxName.Path != pMailboxPath) throw new cTestsException($"mailboxname conversion failed on '{pMailboxPath}' -> {lTCP.Bytes} -> '{lMailboxName}'", lContext);
         }
     }
 }

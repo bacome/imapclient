@@ -1,45 +1,43 @@
 ﻿using System;
 using System.Threading.Tasks;
 using work.bacome.async;
+using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void Select(cMailboxId pMailboxId, bool pForUpdate)
+        public void Select(iMailboxHandle pHandle, bool pForUpdate)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Select));
-            var lTask = ZSelectAsync(pMailboxId, pForUpdate, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            var lTask = ZSelectAsync(pHandle, pForUpdate, lContext);
+            mSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task SelectAsync(cMailboxId pMailboxId, bool pForUpdate)
+        public Task SelectAsync(iMailboxHandle pHandle, bool pForUpdate)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SelectAsync));
-            return ZSelectAsync(pMailboxId, pForUpdate, lContext);
+            return ZSelectAsync(pHandle, pForUpdate, lContext);
         }
 
-        private async Task ZSelectAsync(cMailboxId pMailboxId, bool pForUpdate, cTrace.cContext pParentContext)
+        private async Task ZSelectAsync(iMailboxHandle pHandle, bool pForUpdate, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSelectAsync), pMailboxId, pForUpdate);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZSelectAsync), pHandle, pForUpdate);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new cAccountNotConnectedException(lContext);
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
 
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, CancellationToken);
-                if (pForUpdate) await lSession.SelectAsync(lMC, pMailboxId, lContext).ConfigureAwait(false);
-                else await lSession.ExamineAsync(lMC, pMailboxId, lContext).ConfigureAwait(false);
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                if (pForUpdate) await lSession.SelectAsync(lMC, pHandle, lContext).ConfigureAwait(false);
+                else await lSession.ExamineAsync(lMC, pHandle, lContext).ConfigureAwait(false);
             }
-            finally { mAsyncCounter.Decrement(lContext); }
         }
     }
 }

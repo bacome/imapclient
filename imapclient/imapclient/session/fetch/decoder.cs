@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -15,6 +16,7 @@ namespace work.bacome.imapclient
             private abstract class cDecoder
             {
                 private readonly Stream mStream;
+                private readonly Stopwatch mStopwatch = new Stopwatch();
                 private byte[] mBuffer = null;
                 private int mCount = 0;
 
@@ -23,46 +25,46 @@ namespace work.bacome.imapclient
                     mStream = pStream;
                 }
 
-                protected async Task YWriteAsync(cFetchBodyMethodControl pMC, IList<byte> pBytes, int pOffset, cTrace.cContext pContext)
+                protected async Task YWriteAsync(cMethodControl pMC, IList<byte> pBytes, int pOffset, cBatchSizer pWriteSizer, cTrace.cContext pContext)
                 {
                     if (mStream.CanTimeout) mStream.WriteTimeout = pMC.Timeout;
 
                     while (pOffset < pBytes.Count)
                     {
-                        if (mCount == 0) mBuffer = new byte[pMC.WriteSizer.Current];
+                        if (mCount == 0) mBuffer = new byte[pWriteSizer.Current];
 
                         while (mCount < mBuffer.Length && pOffset < pBytes.Count) mBuffer[mCount++] = pBytes[pOffset++];
                         if (mCount < mBuffer.Length) return;
 
-                        await YFlushAsync(pMC, pContext).ConfigureAwait(false);
+                        await YFlushAsync(pMC, pWriteSizer, pContext).ConfigureAwait(false);
                     }
                 }
 
-                protected async Task YFlushAsync(cFetchBodyMethodControl pMC, cTrace.cContext pContext)
+                protected async Task YFlushAsync(cMethodControl pMC, cBatchSizer pWriteSizer, cTrace.cContext pContext)
                 {
                     if (mCount == 0) return;
 
                     pContext.TraceVerbose("writing {0} bytes to stream", mCount);
 
-                    Stopwatch lStopwatch = Stopwatch.StartNew();
+                    mStopwatch.Restart();
                     await mStream.WriteAsync(mBuffer, 0, mCount, pMC.CancellationToken).ConfigureAwait(false);
-                    lStopwatch.Stop();
+                    mStopwatch.Stop();
 
                     // store the time taken so the next write is a better size
-                    pMC.WriteSizer.AddSample(mCount, lStopwatch.ElapsedMilliseconds, pContext);
+                    pWriteSizer.AddSample(mCount, mStopwatch.ElapsedMilliseconds);
 
                     mCount = 0;
                 }
 
-                public abstract Task WriteAsync(cFetchBodyMethodControl pMC, cBytes pBytes, int pOffset, cTrace.cContext pContext);
-                public abstract Task FlushAsync(cFetchBodyMethodControl pMC, cTrace.cContext pContext);
+                public abstract Task WriteAsync(cMethodControl pMC, cBytes pBytes, int pOffset, cBatchSizer pWriteSizer, cTrace.cContext pContext);
+                public abstract Task FlushAsync(cMethodControl pMC, cBatchSizer pWriteSizer, cTrace.cContext pContext);
             }
 
             private class cIdentityDecoder : cDecoder
             {
                 public cIdentityDecoder(Stream pStream) : base(pStream) { }
-                public override Task WriteAsync(cFetchBodyMethodControl pMC, cBytes pBytes, int pOffset, cTrace.cContext pContext) => YWriteAsync(pMC, pBytes, pOffset, pContext);
-                public override Task FlushAsync(cFetchBodyMethodControl pMC, cTrace.cContext pContext) => YFlushAsync(pMC, pContext);
+                public override Task WriteAsync(cMethodControl pMC, cBytes pBytes, int pOffset, cBatchSizer pWriteSizer, cTrace.cContext pContext) => YWriteAsync(pMC, pBytes, pOffset, pWriteSizer, pContext);
+                public override Task FlushAsync(cMethodControl pMC, cBatchSizer pWriteSizer, cTrace.cContext pContext) => YFlushAsync(pMC, pWriteSizer, pContext);
             }
 
             private abstract class cLineDecoder : cDecoder
@@ -72,7 +74,7 @@ namespace work.bacome.imapclient
 
                 public cLineDecoder(Stream pStream) : base(pStream) { }
 
-                public async sealed override Task WriteAsync(cFetchBodyMethodControl pMC, cBytes pBytes, int pOffset, cTrace.cContext pContext)
+                public async sealed override Task WriteAsync(cMethodControl pMC, cBytes pBytes, int pOffset, cBatchSizer pWriteSizer, cTrace.cContext pContext)
                 {
                     while (pOffset < pBytes.Count)
                     {
@@ -84,7 +86,7 @@ namespace work.bacome.imapclient
 
                             if (lByte == cASCII.LF)
                             {
-                                await YWriteLineAsync(pMC, mLine, pContext).ConfigureAwait(false);
+                                await YWriteLineAsync(pMC, mLine, pWriteSizer, pContext).ConfigureAwait(false);
                                 mLine.Clear();
                                 continue;
                             }
@@ -97,14 +99,14 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public async sealed override Task FlushAsync(cFetchBodyMethodControl pMC, cTrace.cContext pContext)
+                public async sealed override Task FlushAsync(cMethodControl pMC, cBatchSizer pWriteSizer, cTrace.cContext pContext)
                 {
                     if (mBufferedCR) mLine.Add(cASCII.CR);
-                    await YWriteLineAsync(pMC, mLine, pContext).ConfigureAwait(false);
-                    await YFlushAsync(pMC, pContext).ConfigureAwait(false);
+                    await YWriteLineAsync(pMC, mLine, pWriteSizer, pContext).ConfigureAwait(false);
+                    await YFlushAsync(pMC, pWriteSizer, pContext).ConfigureAwait(false);
                 }
 
-                protected abstract Task YWriteLineAsync(cFetchBodyMethodControl pMC, List<byte> pLine, cTrace.cContext pContext);
+                protected abstract Task YWriteLineAsync(cMethodControl pMC, List<byte> pLine, cBatchSizer pWriteSizer, cTrace.cContext pContext);
             }
 
             private class cBase64Decoder : cLineDecoder
@@ -113,7 +115,7 @@ namespace work.bacome.imapclient
 
                 public cBase64Decoder(Stream pStream) : base(pStream) { }
 
-                protected async override Task YWriteLineAsync(cFetchBodyMethodControl pMC, List<byte> pLine, cTrace.cContext pContext)
+                protected async override Task YWriteLineAsync(cMethodControl pMC, List<byte> pLine, cBatchSizer pWriteSizer, cTrace.cContext pContext)
                 {
                     // build the buffer to decode
                     mBytes.Clear();
@@ -125,7 +127,7 @@ namespace work.bacome.imapclient
                     // decode
                     if (!cBase64.TryDecode(mBytes, out var lBytes, out var lError)) throw new cContentTransferDecodingException(lError, pContext);
 
-                    await YWriteAsync(pMC, lBytes, 0, pContext).ConfigureAwait(false);
+                    await YWriteAsync(pMC, lBytes, 0, pWriteSizer, pContext).ConfigureAwait(false);
                 }
             }
 
@@ -135,7 +137,7 @@ namespace work.bacome.imapclient
 
                 public cQuotedPrintableDecoder(Stream pStream) : base(pStream) { }
 
-                protected async override Task YWriteLineAsync(cFetchBodyMethodControl pMC, List<byte> pLine, cTrace.cContext pContext)
+                protected async override Task YWriteLineAsync(cMethodControl pMC, List<byte> pLine, cBatchSizer pWriteSizer, cTrace.cContext pContext)
                 {
                     byte lByte;
 
@@ -192,7 +194,7 @@ namespace work.bacome.imapclient
                         mBytes.Add(cASCII.LF);
                     }
 
-                    await YWriteAsync(pMC, mBytes, 0, pContext).ConfigureAwait(false);
+                    await YWriteAsync(pMC, mBytes, 0, pWriteSizer, pContext).ConfigureAwait(false);
                 }
 
                 private bool ZGetHexEncodedNibble(List<byte> pLine, int pByte, out int rNibble)
@@ -225,7 +227,8 @@ namespace work.bacome.imapclient
 
                     string LTest(params string[] pLines)
                     {
-                        var lMC = new cFetchBodyMethodControl(-1, System.Threading.CancellationToken.None, null, null, new cFetchSizeConfiguration(1, 10, 1000, 1));
+                        var lMC = new cMethodControl(-1, System.Threading.CancellationToken.None);
+                        var lWriteSizer = new cBatchSizer(new cBatchSizerConfiguration(1, 10, 1000, 1));
 
                         using (var lStream = new MemoryStream())
                         {
@@ -235,11 +238,11 @@ namespace work.bacome.imapclient
 
                             foreach (var lLine in pLines)
                             {
-                                lDecoder.WriteAsync(lMC, new cBytes(lLine), lOffset, lContext).Wait();
+                                lDecoder.WriteAsync(lMC, new cBytes(lLine), lOffset, lWriteSizer, lContext).Wait();
                                 lOffset = 0;
                             }
 
-                            lDecoder.FlushAsync(lMC, lContext).Wait();
+                            lDecoder.FlushAsync(lMC, lWriteSizer, lContext).Wait();
 
                             return new string(System.Text.Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
                         }

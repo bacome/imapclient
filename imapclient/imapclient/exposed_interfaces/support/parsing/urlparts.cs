@@ -23,7 +23,7 @@ namespace work.bacome.imapclient.support
         [Flags]
         private enum fParts
         {
-            scheme = 1,
+            scheme = 1 << 0,
             userid = 1 << 1,
             mechanismname = 1 << 2,
             host = 1 << 3,
@@ -47,7 +47,7 @@ namespace work.bacome.imapclient.support
         private string _MechanismName = null;
         private string _Host = null;
         private int _Port = 143;
-        private string _MailboxName = null;
+        private string _MailboxPath = null;
         private uint? _UIDValidity = null;
         private string _Search = null;
         private uint? _UID = null;
@@ -105,13 +105,13 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public string MailboxName
+        public string MailboxPath
         {
-            get => _MailboxName;
+            get => _MailboxPath;
 
             private set
             {
-                _MailboxName = value;
+                _MailboxPath = value;
                 mParts |= fParts.mailboxname;
             }
         }
@@ -285,7 +285,7 @@ namespace work.bacome.imapclient.support
             if (MechanismName != null) lBuilder.Append(nameof(MechanismName), MechanismName);
             if (Host != null) lBuilder.Append(nameof(Host), Host);
             lBuilder.Append(nameof(Port), Port);
-            if (MailboxName != null) lBuilder.Append(nameof(MailboxName), MailboxName);
+            if (MailboxPath != null) lBuilder.Append(nameof(MailboxPath), MailboxPath);
             if (UIDValidity != null) lBuilder.Append(nameof(UIDValidity), UIDValidity);
             if (Search != null) lBuilder.Append(nameof(Search), Search);
             if (UID != null) lBuilder.Append(nameof(UID), UID);
@@ -468,7 +468,7 @@ namespace work.bacome.imapclient.support
 
             lBookmark1 = pCursor.Position; // may have to return to here if the mailbox reads in as a single '/' but it is the '/' from '/;UID='
 
-            if (!pCursor.GetToken(cCharset.BChar, cASCII.PERCENT, null, out cByteList lMailboxNameBytes))
+            if (!pCursor.GetToken(cCharset.BChar, cASCII.PERCENT, null, out cByteList lMailboxPathBytes))
             {
                 // the mailbox needs to be present to consider anything further
                 //
@@ -478,11 +478,11 @@ namespace work.bacome.imapclient.support
                 return true;
             }
 
-            bool lLastByteWasASlash = (lMailboxNameBytes[lMailboxNameBytes.Count - 1] == cASCII.SLASH);
+            bool lLastByteWasASlash = (lMailboxPathBytes[lMailboxPathBytes.Count - 1] == cASCII.SLASH);
 
             if (lLastByteWasASlash)
             {
-                if (lMailboxNameBytes.Count == 1) lContext.TraceVerbose("mailbox is just a slash - may not be a mailbox"); // this is the '/;UID=' case
+                if (lMailboxPathBytes.Count == 1) lContext.TraceVerbose("mailbox is just a slash - may not be a mailbox"); // this is the '/;UID=' case
                 else lContext.TraceVerbose("mailbox ends with a slash - may be trimmed");
             }
 
@@ -494,7 +494,7 @@ namespace work.bacome.imapclient.support
             {
                 if (pCursor.GetNZNumber(out _, out uint lUIDValidity))
                 {
-                    lParts.MailboxName = ZMailboxName(lMailboxNameBytes, lContext);
+                    lParts.MailboxPath = ZMailboxPath(lMailboxPathBytes, lContext);
                     lParts.UIDValidity = lUIDValidity;
 
                     if (lLastByteWasASlash)
@@ -503,7 +503,7 @@ namespace work.bacome.imapclient.support
                         lContext.TraceVerbose("mailbox ends with a slash!"); // allowed by the grammar, unlikely to be valid
                     }
 
-                    lContext.TraceVerbose("mailbox: {0}, uidvalidity: {1}", lParts.MailboxName, lUIDValidity);
+                    lContext.TraceVerbose("mailbox: {0}, uidvalidity: {1}", lParts.MailboxPath, lUIDValidity);
                 }
                 else
                 {
@@ -520,12 +520,12 @@ namespace work.bacome.imapclient.support
             {
                 if (pCursor.GetToken(cCharset.BChar, cASCII.PERCENT, null, out string lSearch))
                 {
-                    lParts.MailboxName = ZMailboxName(lMailboxNameBytes, lContext);
+                    lParts.MailboxPath = ZMailboxPath(lMailboxPathBytes, lContext);
                     lParts.Search = lSearch;
 
                     if (lLastByteWasASlash) lContext.TraceVerbose("mailbox ends with a slash!");
 
-                    lContext.TraceVerbose("mailbox: {0}, search: {1}", lParts.MailboxName, lSearch);
+                    lContext.TraceVerbose("mailbox: {0}, search: {1}", lParts.MailboxPath, lSearch);
 
                     rParts = lParts;
                     return true;
@@ -545,8 +545,8 @@ namespace work.bacome.imapclient.support
                 if (!pCursor.SkipByte(cASCII.SLASH))
                 {
                     // the UID needs to be present to consider anything further, so that's it
-                    lParts.MailboxName = ZMailboxName(lMailboxNameBytes, lContext);
-                    lContext.TraceVerbose("mailbox url (1): {0}", lParts.MailboxName);
+                    lParts.MailboxPath = ZMailboxPath(lMailboxPathBytes, lContext);
+                    lContext.TraceVerbose("mailbox url (1): {0}", lParts.MailboxPath);
                     rParts = lParts;
                     return true;
                 }
@@ -559,11 +559,11 @@ namespace work.bacome.imapclient.support
 
             if (lGotUID)
             {
-                string lMailboxName;
+                string lMailboxPath;
 
                 if (lLastByteWasASlash)
                 {
-                    if (lMailboxNameBytes.Count == 1)
+                    if (lMailboxPathBytes.Count == 1)
                     {
                         // there was no mailbox so we shouldn't be here
                         pCursor.Position = lBookmark1;
@@ -573,25 +573,25 @@ namespace work.bacome.imapclient.support
                         return true;
                     }
 
-                    byte[] lBytes = new byte[lMailboxNameBytes.Count - 1];
-                    for (int i = 0; i < lMailboxNameBytes.Count - 1; i++) lBytes[i] = lMailboxNameBytes[i];
-                    lMailboxName = ZMailboxName(lBytes, lContext);
+                    byte[] lBytes = new byte[lMailboxPathBytes.Count - 1];
+                    for (int i = 0; i < lMailboxPathBytes.Count - 1; i++) lBytes[i] = lMailboxPathBytes[i];
+                    lMailboxPath = ZMailboxPath(lBytes, lContext);
 
                     lContext.TraceVerbose("trimmed off trailing '/' of the mailbox");
                 }
-                else lMailboxName = ZMailboxName(lMailboxNameBytes, lContext);
+                else lMailboxPath = ZMailboxPath(lMailboxPathBytes, lContext);
 
-                lParts.MailboxName = lMailboxName;
+                lParts.MailboxPath = lMailboxPath;
                 lParts.UID = lUID;
 
-                lContext.TraceVerbose("mailbox: {0}, uid: {1}", lMailboxName, lUID);
+                lContext.TraceVerbose("mailbox: {0}, uid: {1}", lMailboxPath, lUID);
             }
             else
             {
                 // the UID needs to be present to consider anything further, so that's it
                 pCursor.Position = lBookmark2;
-                lParts.MailboxName = ZMailboxName(lMailboxNameBytes, lContext);
-                lContext.TraceVerbose("mailbox url (2): {0}", lParts.MailboxName);
+                lParts.MailboxPath = ZMailboxPath(lMailboxPathBytes, lContext);
+                lContext.TraceVerbose("mailbox url (2): {0}", lParts.MailboxPath);
                 if (lLastByteWasASlash) lContext.TraceVerbose("mailbox ends with a slash!");
                 rParts = lParts;
                 return true;
@@ -742,17 +742,17 @@ namespace work.bacome.imapclient.support
             return true;
         }
 
-        private static string ZMailboxName(IList<byte> pMailboxName, cTrace.cContext pParentContext)
+        private static string ZMailboxPath(IList<byte> pMailboxPath, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cURLParts), nameof(ZMailboxName));
+            var lContext = pParentContext.NewMethod(nameof(cURLParts), nameof(ZMailboxPath));
 
             // try a utf-7 decode, if it fails treat the bytes as utf-8
             //  there is a problem if the separator character is a not a valid utf-7 unencoded byte - the separator character isn't allowed to be utf-7 encoded
             //   however, without connecting to the server I can't tell what the separator character is
             //   in this (very unlikely) case the utf-7 decode will fail and we will output the utf-7 encoded string as the mailbox name
 
-            if (cModifiedUTF7.TryDecode(pMailboxName, out string lMailboxName, out _)) return lMailboxName;
-            return cTools.UTF8BytesToString(pMailboxName);
+            if (cModifiedUTF7.TryDecode(pMailboxPath, out string lMailboxPath, out _)) return lMailboxPath;
+            return cTools.UTF8BytesToString(pMailboxPath);
         }
 
         [Conditional("DEBUG")]
@@ -770,7 +770,7 @@ namespace work.bacome.imapclient.support
 
             // from rfc 2193
 
-            if (!LTryParse("IMAP://user;AUTH=*@SERVER2/SHARED/FOO", out lParts) || !lParts.IsMailboxReferral || lParts.MailboxName != "SHARED/FOO") throw new cTestsException("2193.1");
+            if (!LTryParse("IMAP://user;AUTH=*@SERVER2/SHARED/FOO", out lParts) || !lParts.IsMailboxReferral || lParts.MailboxPath != "SHARED/FOO") throw new cTestsException("2193.1");
             if (LTryParse("IMAP://user;AUTH=*@SERVER2/REMOTE IMAP://user;AUTH=*@SERVER3/REMOTE", out lParts)) throw new cTestsException("2193.2");
 
             // from rfc 5092
@@ -783,7 +783,7 @@ namespace work.bacome.imapclient.support
             if (!lParts.ZHasParts(fParts.scheme | fParts.host | fParts.mailboxname | fParts.uidvalidity | fParts.uid | fParts.partial | fParts.partiallength) ||
                 !lParts.MustUseAnonymous ||
                 lParts.Host != "minbari.example.org" ||
-                lParts.MailboxName != "gray-council" ||
+                lParts.MailboxPath != "gray-council" ||
                 lParts.UIDValidity.Value != 385759045 ||
                 lParts.UID != 20 ||
                 lParts.PartialOffset != 0 ||
@@ -799,7 +799,7 @@ namespace work.bacome.imapclient.support
             if (!lParts.ZHasParts(fParts.scheme | fParts.host | fParts.mailboxname) ||
                 !lParts.MustUseAnonymous ||
                 lParts.Host != "psicorp.example.org" ||
-                lParts.MailboxName != "~peter/日本語/台北"
+                lParts.MailboxPath != "~peter/日本語/台北"
                 )
                 throw new cTestsException("5092.2.3");
 
@@ -813,7 +813,7 @@ namespace work.bacome.imapclient.support
                 lParts.MustUseAnonymous ||
                 lParts.MechanismName != "GSSAPI" ||
                 lParts.Host != "minbari.example.org" ||
-                lParts.MailboxName != "gray-council" ||
+                lParts.MailboxPath != "gray-council" ||
                 lParts.UID != 20 ||
                 lParts.Section != "1.2"
                 )
@@ -828,7 +828,7 @@ namespace work.bacome.imapclient.support
                 lParts.MustUseAnonymous ||
                 lParts.MechanismName != null ||
                 lParts.Host != "minbari.example.org" ||
-                lParts.MailboxName != "gray council" ||
+                lParts.MailboxPath != "gray council" ||
                 lParts.Search != "SUBJECT shadows"
                 )
                 throw new cTestsException("5092.5.3");
@@ -843,7 +843,7 @@ namespace work.bacome.imapclient.support
                 lParts.UserId != "john" ||
                 lParts.MechanismName != null ||
                 lParts.Host != "minbari.example.org" ||
-                lParts.MailboxName != "babylon5/personel" ||
+                lParts.MailboxPath != "babylon5/personel" ||
                 lParts.Search != "charset UTF-8 SUBJECT {14+}\r\nИванова"
                 )
                 throw new cTestsException("5092.6.3");
@@ -876,7 +876,7 @@ namespace work.bacome.imapclient.support
 
             bool LTryParse(string pURL, out cURLParts rParts)
             {
-                if (!cBytesCursor.TryConstruct(pURL, out var lCursor)) { rParts = null; return false; }
+                var lCursor = new cBytesCursor(pURL);
                 if (!Process(lCursor, out rParts, lContext)) return false;
                 if (!lCursor.Position.AtEnd) return false;
                 return true;

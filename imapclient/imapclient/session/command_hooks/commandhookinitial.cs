@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -11,51 +12,30 @@ namespace work.bacome.imapclient
             private class cCommandHookInitial : cCommandHook
             {
                 private static readonly cBytes kCapabilitySpace = new cBytes("CAPABILITY ");
-                private static readonly cBytes kReferralSpace = new cBytes("REFERRAL ");
 
-                private bool mHandleReferral;
+                public cCommandHookInitial() { }
 
-                private cCapabilities mCapabilities = null;
-                private cCapabilities mAuthenticationMechanisms = null;
+                public cStrings Capabilities { get; private set; } = null;
+                public cStrings AuthenticationMechanisms { get; private set; } = null;
 
-                public string HomeServerReferral { get; private set; } = null;
-
-                public cCommandHookInitial(bool pHandleReferral)
+                public override bool ProcessTextCode(eResponseTextType pTextType, cBytesCursor pCursor, cTrace.cContext pParentContext)
                 {
-                    mHandleReferral = pHandleReferral;
-                }
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookInitial), nameof(ProcessTextCode), pTextType);
 
-                public cCapabilities Capabilities => mCapabilities;
-                public cCapabilities AuthenticationMechanisms => mAuthenticationMechanisms;
-
-                public override bool ProcessTextCode(cBytesCursor pCursor, cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookInitial), nameof(ProcessTextCode));
-
-                    if (pCursor.SkipBytes(kCapabilitySpace))
+                    if (pTextType == eResponseTextType.greeting || pTextType == eResponseTextType.success)
                     {
-                        if (pCursor.ProcessCapability(out mCapabilities, out mAuthenticationMechanisms, lContext) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                        if (pCursor.SkipBytes(kCapabilitySpace))
                         {
-                            lContext.TraceVerbose("received capabilities: {0} {1}", mCapabilities, mAuthenticationMechanisms);
-                            return true;
-                        }
-
-                        lContext.TraceWarning("likely malformed capability response");
-                    }
-                    else if (mHandleReferral && pCursor.SkipBytes(kReferralSpace))
-                    {
-                        if (pCursor.GetURL(out var lParts, out var lURL, lContext) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
-                        {
-                            lContext.TraceVerbose("received referral {0}", lURL);
-
-                            if (lParts.IsHomeServerReferral)
+                            if (pCursor.ProcessCapability(out var lCapabilities, out var lAuthenticationMechanisms, lContext) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
                             {
-                                HomeServerReferral = lURL;
+                                lContext.TraceVerbose("received capabilities: {0} {1}", lCapabilities, lAuthenticationMechanisms);
+                                Capabilities = lCapabilities;
+                                AuthenticationMechanisms = lAuthenticationMechanisms;
                                 return true;
                             }
-                        }
 
-                        lContext.TraceWarning("likely malformed referral response");
+                            lContext.TraceWarning("likely malformed capability response");
+                        }
                     }
 
                     return false;

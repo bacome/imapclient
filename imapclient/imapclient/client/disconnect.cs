@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
         public void Disconnect()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Disconnect));
-            mEventSynchroniser.Wait(ZDisconnectAsync(lContext), lContext);
+            mSynchroniser.Wait(ZDisconnectAsync(lContext), lContext);
         }
 
         public Task DisconnectAsync()
@@ -26,21 +26,19 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new cAccountNotConnectedException(lContext);
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            using (var lToken = mCancellationManager.GetToken(lContext))
             {
-                var lMC = new cMethodControl(mTimeout, CancellationToken);
-                await lSession.LogoutAsync(lMC, lContext).ConfigureAwait(false);
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+
+                try { await lSession.LogoutAsync(lMC, lContext).ConfigureAwait(false); }
+                catch when (lSession.ConnectionState != eConnectionState.disconnected)
+                {
+                    lSession.Disconnect(lContext);
+                    throw;
+                }
             }
-            catch when (lSession.State != eState.disconnected)
-            {           
-                lSession.Disconnect(lContext);
-                throw;
-            }
-            finally { mAsyncCounter.Decrement(lContext); }
         }
     }
 }

@@ -1,18 +1,24 @@
 ﻿using System;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     public class cMessageDeliveryEventArgs : EventArgs
     {
-        public readonly cHandleList Handles;
-        public cMessageDeliveryEventArgs(cHandleList pHandles) { Handles = pHandles; }
+        public readonly cMessageHandleList Handles;
+        public cMessageDeliveryEventArgs(cMessageHandleList pHandles) { Handles = pHandles; }
         public override string ToString() => $"{nameof(cMessageDeliveryEventArgs)}({Handles})";
     }
 
     public class cMailboxMessageDeliveryEventArgs : cMessageDeliveryEventArgs
     {
-        public readonly cMailboxId MailboxId;
-        public cMailboxMessageDeliveryEventArgs(cMailboxId pMailboxId, cHandleList pHandles) : base(pHandles) { MailboxId = pMailboxId; }
-        public override string ToString() => $"{nameof(cMailboxMessageDeliveryEventArgs)}({MailboxId},{Handles})";
+        public readonly iMailboxHandle Handle;
+
+        public cMailboxMessageDeliveryEventArgs(iMailboxHandle pHandle, cMessageHandleList pHandles) : base(pHandles)
+        {
+            Handle = pHandle;
+        }
+
+        public override string ToString() => $"{nameof(cMailboxMessageDeliveryEventArgs)}({Handle},{Handles})";
     }
 }

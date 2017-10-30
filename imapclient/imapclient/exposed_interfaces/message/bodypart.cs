@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -41,37 +42,39 @@ namespace work.bacome.imapclient
         related
     }
 
+    public static class kMimeType
+    {
+        public const string Multipart = "Multipart";
+        public const string Message = "Message";
+        public const string Text = "Text";
+    }
+
+    public static class kMimeSubType
+    {
+        public const string RFC822 = "RFC822";
+    }
+
     public abstract class cBodyPart
     {
-        protected const string kTypeMultipart = "MULTIPART";
-        public const string TypeMessage = "MESSAGE";
-        public const string TypeText = "TEXT";
-        public const string SubTypeRFC822 = "rfc822";
-
         public readonly string Type;
-        public readonly eBodyPartTypeCode TypeCode;
         public readonly string SubType;
         public readonly cSection Section;
+        public readonly eBodyPartTypeCode TypeCode;
 
         public cBodyPart(string pType, string pSubType, cSection pSection)
         {
-            if (pType == null) throw new ArgumentNullException(nameof(pType));
-            if (pSubType == null) throw new ArgumentNullException(nameof(pSubType));
-            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+            Type = pType ?? throw new ArgumentNullException(nameof(pType));
+            SubType = pSubType ?? throw new ArgumentNullException(nameof(pSubType));
+            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
 
-            Type = pType.ToUpperInvariant();
-
-            if (Type == TypeText) TypeCode = eBodyPartTypeCode.text;
-            else if (Type == "IMAGE") TypeCode = eBodyPartTypeCode.image;
-            else if (Type == "AUDIO") TypeCode = eBodyPartTypeCode.audio;
-            else if (Type == "VIDEO") TypeCode = eBodyPartTypeCode.video;
-            else if (Type == "APPLICATION") TypeCode = eBodyPartTypeCode.application;
-            else if (Type == kTypeMultipart) TypeCode = eBodyPartTypeCode.multipart;
-            else if (Type == TypeMessage) TypeCode = eBodyPartTypeCode.message;
+            if (Type.Equals(kMimeType.Text, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.text;
+            else if (Type.Equals("IMAGE", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.image;
+            else if (Type.Equals("AUDIO", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.audio;
+            else if (Type.Equals("VIDEO", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.video;
+            else if (Type.Equals("APPLICATION", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.application;
+            else if (Type.Equals(kMimeType.Multipart, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.multipart;
+            else if (Type.Equals(kMimeType.Message, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.message;
             else TypeCode = eBodyPartTypeCode.unknown;
-
-            SubType = pSubType.ToUpperInvariant();
-            Section = pSection;
         }
 
         public abstract cBodyPartDisposition Disposition { get; }
@@ -79,7 +82,7 @@ namespace work.bacome.imapclient
         public abstract string Location { get; }
         public abstract cBodyPartExtensionValues ExtensionValues { get; }
 
-        public override string ToString() => $"{nameof(cBodyPart)}({Type},{TypeCode},{SubType},{Section})";
+        public override string ToString() => $"{nameof(cBodyPart)}({Type},{SubType},{Section},{TypeCode})";
     }
 
     public abstract class cBodyPartExtensionValue { }
@@ -145,9 +148,9 @@ namespace work.bacome.imapclient
 
     public class cMultiPartExtensionData : cBodyPartExtensionData
     {
-        public readonly cBodyPartParameters Parameters;
+        public readonly cBodyStructureParameters Parameters;
 
-        public cMultiPartExtensionData(cBodyPartParameters pParameters, cBodyPartDisposition pDisposition, cStrings pLanguages, string pLocation, cBodyPartExtensionValues pExtensionValues) : base(pDisposition, pLanguages, pLocation, pExtensionValues)
+        public cMultiPartExtensionData(cBodyStructureParameters pParameters, cBodyPartDisposition pDisposition, cStrings pLanguages, string pLocation, cBodyPartExtensionValues pExtensionValues) : base(pDisposition, pLanguages, pLocation, pExtensionValues)
         {
             Parameters = pParameters;
         }
@@ -173,7 +176,7 @@ namespace work.bacome.imapclient
         public readonly eMultiPartBodySubTypeCode SubTypeCode;
         public readonly cMultiPartExtensionData ExtensionData;
 
-        public cMultiPartBody(IList<cBodyPart> pParts, string pSubType, cSection pSection, cMultiPartExtensionData pExtensionData) : base(kTypeMultipart, pSubType, pSection)
+        public cMultiPartBody(IList<cBodyPart> pParts, string pSubType, cSection pSection, cMultiPartExtensionData pExtensionData) : base(kMimeType.Multipart, pSubType, pSection)
         {
             Parts = new cBodyParts(pParts);
 
@@ -186,7 +189,7 @@ namespace work.bacome.imapclient
             ExtensionData = pExtensionData;
         }
 
-        public cBodyPartParameters Parameters => ExtensionData?.Parameters;
+        public cBodyStructureParameters Parameters => ExtensionData?.Parameters;
         public override cBodyPartDisposition Disposition => ExtensionData?.Disposition;
         public override cStrings Languages => ExtensionData?.Languages;
         public override string Location => ExtensionData?.Location;
@@ -201,35 +204,40 @@ namespace work.bacome.imapclient
 
         public readonly string Type;
         public readonly eDispositionTypeCode TypeCode;
-        public readonly cBodyPartParameters Parameters;
+        public readonly cBodyStructureParameters Parameters;
 
-        public cBodyPartDisposition(string pType, cBodyPartParameters pParameters)
+        public cBodyPartDisposition(string pType, cBodyStructureParameters pParameters)
         {
-            if (pType == null) throw new ArgumentNullException(nameof(pType));
-
-            Type = pType.ToUpperInvariant();
-
-            if (Type == "INLINE") TypeCode = eDispositionTypeCode.inline;
-            else if (Type == "ATTACHMENT") TypeCode = eDispositionTypeCode.attachment;
-            else TypeCode = eDispositionTypeCode.unknown;
-
+            Type = pType ?? throw new ArgumentNullException(nameof(pType));
             Parameters = pParameters;
+
+            if (Type.Equals("INLINE", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eDispositionTypeCode.inline;
+            else if (Type.Equals("ATTACHMENT", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eDispositionTypeCode.attachment;
+            else TypeCode = eDispositionTypeCode.unknown;
         }
 
-        public string FileName => Parameters.GetStringValue("filename");
+        public string FileName => Parameters?.First("filename")?.StringValue;
 
-        public DateTime? CreationDate => Parameters.GetDateTimeValue("creation-date");
-        public DateTime? ModificationDate => Parameters.GetDateTimeValue("modification-date");
-        public DateTime? ReadDate => Parameters.GetDateTimeValue("read-date");
+        public DateTime? CreationDate => Parameters?.First("creation-date")?.DateTimeValue;
+        public DateTime? ModificationDate => Parameters?.First("modification-date")?.DateTimeValue;
+        public DateTime? ReadDate => Parameters?.First("read-date")?.DateTimeValue;
 
-        public uint? Size => Parameters.GetUIntValue("size");
+        public int? Size
+        {
+            get
+            {
+                uint? lSize = Parameters?.First("size")?.UIntValue;
+                if (lSize == null) return null;
+                return (int)lSize.Value;
+            }
+        }
 
-        public override string ToString() => $"{nameof(cBodyPartDisposition)}({Type},{TypeCode},{Parameters})";
+        public override string ToString() => $"{nameof(cBodyPartDisposition)}({Type},{Parameters},{TypeCode})";
     }
 
     public class cSinglePartBody : cBodyPart
     {
-        public readonly cBodyPartParameters Parameters;
+        public readonly cBodyStructureParameters Parameters;
         public readonly string ContentId;
         public readonly cCulturedString Description; // decoded (the source may contain encoded words)
         public readonly string ContentTransferEncoding;
@@ -237,20 +245,18 @@ namespace work.bacome.imapclient
         public readonly uint SizeInBytes;
         public readonly cSinglePartExtensionData ExtensionData;
 
-        public cSinglePartBody(string pType, string pSubType, cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cSinglePartExtensionData pExtensionData) : base(pType, pSubType, pSection)
+        public cSinglePartBody(string pType, string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cSinglePartExtensionData pExtensionData) : base(pType, pSubType, pSection)
         {
-            if (pContentTransferEncoding == null) throw new ArgumentNullException(nameof(pContentTransferEncoding));
-
             Parameters = pParameters;
             ContentId = pContentId;
             Description = pDescription;
-            ContentTransferEncoding = pContentTransferEncoding.ToUpperInvariant();
+            ContentTransferEncoding = pContentTransferEncoding ?? throw new ArgumentNullException(nameof(pContentTransferEncoding));
 
-            if (ContentTransferEncoding == "7BIT") DecodingRequired = eDecodingRequired.none;
-            else if (ContentTransferEncoding == "8BIT") DecodingRequired = eDecodingRequired.none;
-            else if (ContentTransferEncoding == "BINARY") DecodingRequired = eDecodingRequired.none;
-            else if (ContentTransferEncoding == "QUOTED-PRINTABLE") DecodingRequired = eDecodingRequired.quotedprintable;
-            else if (ContentTransferEncoding == "BASE64") DecodingRequired = eDecodingRequired.base64;
+            if (ContentTransferEncoding.Equals("7BIT", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.none;
+            else if (ContentTransferEncoding.Equals("8BIT", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.none;
+            else if (ContentTransferEncoding.Equals("BINARY", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.none;
+            else if (ContentTransferEncoding.Equals("QUOTED-PRINTABLE", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.quotedprintable;
+            else if (ContentTransferEncoding.Equals("BASE64", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.base64;
             else DecodingRequired = eDecodingRequired.unknown; // note that rfc 2045 section 6.4 specifies that if 'unknown' then the part has to be treated as application/octet-stream
 
             SizeInBytes = pSizeInBytes;
@@ -273,7 +279,7 @@ namespace work.bacome.imapclient
         public readonly cBodyPart BodyStructure;
         public readonly uint SizeInLines;
 
-        public cMessageBodyPart(cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBody, cBodyPart pBodyStructure, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(TypeMessage, SubTypeRFC822, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
+        public cMessageBodyPart(cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBody, cBodyPart pBodyStructure, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Message, kMimeSubType.RFC822, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
         {
             Envelope = pEnvelope;
             mBody = pBody;
@@ -291,7 +297,7 @@ namespace work.bacome.imapclient
         public readonly eTextBodyPartSubTypeCode SubTypeCode;
         public readonly uint SizeInLines;
 
-        public cTextBodyPart(string pSubType, cSection pSection, cBodyPartParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(TypeText, pSubType, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
+        public cTextBodyPart(string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Text, pSubType, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
         {
             if (SubType == "PLAIN") SubTypeCode = eTextBodyPartSubTypeCode.plain;
             else if (SubType == "HTML") SubTypeCode = eTextBodyPartSubTypeCode.html;
@@ -300,68 +306,71 @@ namespace work.bacome.imapclient
             SizeInLines = pSizeInLines;
         }
 
-        public string Charset => Parameters.GetStringValue("charset", "us-ascii");
+        public string Charset => Parameters?.First("charset")?.StringValue ?? "us-ascii";
 
         public override string ToString() => $"{nameof(cTextBodyPart)}({base.ToString()},{SizeInLines})";
     }
 
-    public class cBodyPartParameterValue
+    public class cBodyStructureParameter
     {
-        public readonly bool I18N; // true if the parameter was in rfc2231 format
-        public readonly string Value;
-        public readonly string LanguageTag; // not null if a language tag was present, uppercased
+        public readonly string Name;
+        public readonly cBytes RawValue;
+        public readonly string StringValue;
+        public readonly string LanguageTag;
 
-        public cBodyPartParameterValue(string pValue)
+        public cBodyStructureParameter(IList<byte> pName, IList<byte> pValue)
         {
-            I18N = false;
-            Value = pValue;
+            if (pName == null) throw new ArgumentNullException(nameof(pName));
+            if (pValue == null) throw new ArgumentNullException(nameof(pValue));
+            Name = cTools.UTF8BytesToString(pName);
+            RawValue = new cBytes(pValue);
+            StringValue = cTools.UTF8BytesToString(pValue);
             LanguageTag = null;
         }
 
-        public cBodyPartParameterValue(string pValue, string pLanguageTag)
+        public cBodyStructureParameter(IList<byte> pName, IList<byte> pValue, string pStringValue, string pLanguageTag)
         {
-            I18N = true;
-            Value = pValue;
-
-            if (pLanguageTag == null) LanguageTag = null;
-            else LanguageTag = pLanguageTag.ToUpperInvariant();
+            if (pName == null) throw new ArgumentNullException(nameof(pName));
+            if (pValue == null) throw new ArgumentNullException(nameof(pValue));
+            Name = cTools.UTF8BytesToString(pName);
+            RawValue = new cBytes(pValue);
+            StringValue = pStringValue;
+            LanguageTag = pLanguageTag;
         }
 
-        public override string ToString() => $"{nameof(cBodyPartParameterValue)}({I18N},{Value},{LanguageTag})";
+        public uint? UIntValue
+        {
+            get
+            {
+                cBytesCursor lCursor = new cBytesCursor(RawValue);
+                if (lCursor.GetNumber(out var _, out var lResult) && lCursor.Position.AtEnd) return lResult;
+                return null;
+            }
+        }
+
+        public DateTime? DateTimeValue
+        {
+            get
+            {
+                cBytesCursor lCursor = new cBytesCursor(RawValue);
+                if (lCursor.GetRFC822DateTime(out var lResult) && lCursor.Position.AtEnd) return lResult;
+                return null;
+            }
+        }
+
+        public override string ToString() => $"{nameof(cBodyStructureParameter)}({Name},{RawValue},{StringValue},{LanguageTag})";
     }
 
-    public class cBodyPartParameters : ReadOnlyDictionary<string, cBodyPartParameterValue>
+    public class cBodyStructureParameters : ReadOnlyCollection<cBodyStructureParameter>
     {
-        public cBodyPartParameters(Dictionary<string, cBodyPartParameterValue> pDictionary) : base(pDictionary) { }
+        public cBodyStructureParameters(IList<cBodyStructureParameter> pParameters) : base(pParameters) { }
 
-        public string GetStringValue(string pParameterName, string pDefault = null)
-        {
-            if (!TryGetValue(pParameterName, out cBodyPartParameterValue lValue)) return pDefault;
-            if (lValue.I18N) return null;
-            return lValue.Value;
-        }
-
-        public uint? GetUIntValue(string pParameterName, uint? pDefault = null)
-        {
-            if (!TryGetValue(pParameterName, out cBodyPartParameterValue lValue)) return pDefault;
-            if (lValue.I18N) return null;
-            if (uint.TryParse(lValue.Value, out var lResult)) return lResult;
-            return null;
-        }
-
-        public DateTime? GetDateTimeValue(string pParameterName, DateTime? pDefault = null)
-        {
-            if (!TryGetValue(pParameterName, out cBodyPartParameterValue lValue)) return pDefault;
-            if (lValue.I18N) return null;
-            if (!cBytesCursor.TryConstruct(lValue.Value, out var lCursor)) return null;
-            if (lCursor.GetRFC822DateTime(out var lResult) && lCursor.Position.AtEnd) return lResult;
-            return null;
-        }
+        public cBodyStructureParameter First(string pName) => this.FirstOrDefault(p => p.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
 
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cBodyPartParameters));
-            foreach (var lFieldValue in this) lBuilder.Append(lFieldValue.Key, lFieldValue.Value);
+            var lBuilder = new cListBuilder(nameof(cBodyStructureParameters));
+            foreach (var lParameter in this) lBuilder.Append(lParameter);
             return lBuilder.ToString();
         }
     }

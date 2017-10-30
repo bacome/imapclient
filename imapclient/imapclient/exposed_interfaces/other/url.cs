@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
         public cURL(string pURL)
         {
             if (string.IsNullOrEmpty(pURL)) throw new ArgumentOutOfRangeException(nameof(pURL));
-            if (!cBytesCursor.TryConstruct(pURL, out var lCursor)) throw new ArgumentOutOfRangeException(nameof(pURL));
+            var lCursor = new cBytesCursor(pURL);
             if (!cURLParts.Process(lCursor, out mParts, cTrace.cContext.Null) || !lCursor.Position.AtEnd) throw new ArgumentOutOfRangeException(nameof(pURL));
 
             OriginalString = pURL;
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
         public string MechanismName => mParts.MechanismName;
         public string Host => mParts.Host;
         public int Port => mParts.Port;
-        public string MailboxName => mParts.MailboxName;
+        public string MailboxPath => mParts.MailboxPath;
         public uint? UIDValidity => mParts.UIDValidity;
         public string Search => mParts.Search;
         public uint? UID => mParts.UID;
@@ -63,7 +63,7 @@ namespace work.bacome.imapclient
         {
             if (string.IsNullOrWhiteSpace(pURL)) { rURL = null; return false; }
 
-            if (!cBytesCursor.TryConstruct(pURL, out var lCursor)) { rURL = null; return false; }
+            var lCursor = new cBytesCursor(pURL);
             if (!cURLParts.Process(lCursor, out var lParts, cTrace.cContext.Null) || !lCursor.Position.AtEnd) { rURL = null; return false; };
 
             rURL = new cURL(pURL, lParts);

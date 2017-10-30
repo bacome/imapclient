@@ -6,7 +6,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        private class cMailboxNamePattern
+        private class cMailboxPathPattern
         {
             // concept from http://www.cs.princeton.edu/courses/archive/spr09/cos333/beautiful.html
 
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
             private bool mNoDelimiter;
             private char mDelimiter;
 
-            public cMailboxNamePattern(string pPrefix, string pPattern, char? pDelimiter)
+            public cMailboxPathPattern(string pPrefix, string pPattern, char? pDelimiter)
             {
                 if (pPattern == null) throw new ArgumentNullException(pPattern);
 
@@ -54,54 +54,54 @@ namespace work.bacome.imapclient
                 }
             }
 
-            public bool Matches(string pMailboxName)
+            public bool Matches(string pMailboxPath)
             {
-                if (!pMailboxName.StartsWith(mPrefix)) return false;
-                return ZMatchHere(mPattern, new sCursor(pMailboxName, mPrefix.Length));
+                if (!pMailboxPath.StartsWith(mPrefix)) return false;
+                return ZMatchHere(mPattern, new sCursor(pMailboxPath, mPrefix.Length));
             }
 
-            private bool ZMatchHere(sCursor pPattern, sCursor pMailboxName)
+            private bool ZMatchHere(sCursor pPattern, sCursor pMailboxPath)
             {
                 while (true)
                 {
-                    if (pPattern.AtEnd) return pMailboxName.AtEnd;
+                    if (pPattern.AtEnd) return pMailboxPath.AtEnd;
                     char lPatternCurrent = pPattern.Current;
                     pPattern.MoveNext();
 
-                    if (lPatternCurrent == '*') return ZMatchWildcard(true, pPattern, pMailboxName);
-                    if (lPatternCurrent == '%') return ZMatchWildcard(mNoDelimiter, pPattern, pMailboxName);
+                    if (lPatternCurrent == '*') return ZMatchWildcard(true, pPattern, pMailboxPath);
+                    if (lPatternCurrent == '%') return ZMatchWildcard(mNoDelimiter, pPattern, pMailboxPath);
 
-                    if (pMailboxName.AtEnd) return false;
-                    if (lPatternCurrent != pMailboxName.Current) return false;
-                    pMailboxName.MoveNext();
+                    if (pMailboxPath.AtEnd) return false;
+                    if (lPatternCurrent != pMailboxPath.Current) return false;
+                    pMailboxPath.MoveNext();
                 }
             }
 
-            private bool ZMatchWildcard(bool pMatchDelimiter, sCursor pPattern, sCursor pMailboxName)
+            private bool ZMatchWildcard(bool pMatchDelimiter, sCursor pPattern, sCursor pMailboxPath)
             {
                 while (true)
                 {
-                    if (ZMatchHere(pPattern, pMailboxName)) return true;
-                    if (pMailboxName.AtEnd) return false;
-                    if (!pMatchDelimiter && pMailboxName.Current == mDelimiter) return false;
-                    pMailboxName.MoveNext();
+                    if (ZMatchHere(pPattern, pMailboxPath)) return true;
+                    if (pMailboxPath.AtEnd) return false;
+                    if (!pMatchDelimiter && pMailboxPath.Current == mDelimiter) return false;
+                    pMailboxPath.MoveNext();
                 }
             }
 
             public override string ToString()
             {
-                if (mNoDelimiter) return $"{nameof(cMailboxNamePattern)}({mPrefix},{mPattern})";
-                return $"{nameof(cMailboxNamePattern)}({mPrefix},{mPattern},{mDelimiter})";
+                if (mNoDelimiter) return $"{nameof(cMailboxPathPattern)}({mPrefix},{mPattern})";
+                return $"{nameof(cMailboxPathPattern)}({mPrefix},{mPattern},{mDelimiter})";
             }
 
             [Conditional("DEBUG")]
             public static void _Tests(cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cMailboxNamePattern), nameof(_Tests));
+                var lContext = pParentContext.NewMethod(nameof(cMailboxPathPattern), nameof(_Tests));
 
-                cMailboxNamePattern lPattern;
+                cMailboxPathPattern lPattern;
 
-                lPattern = new cMailboxNamePattern("", "*", null);
+                lPattern = new cMailboxPathPattern("", "*", null);
 
                 if (!lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
                 if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
@@ -112,7 +112,7 @@ namespace work.bacome.imapclient
                 if (!lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
                 if (!lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
 
-                lPattern = new cMailboxNamePattern("", "*", '/');
+                lPattern = new cMailboxPathPattern("", "*", '/');
 
                 if (!lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
                 if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
@@ -120,7 +120,7 @@ namespace work.bacome.imapclient
                 if (!lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},4");
                 if (!lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
 
-                lPattern = new cMailboxNamePattern("", "fred", '/');
+                lPattern = new cMailboxPathPattern("", "fred", '/');
 
                 if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
                 if (lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
@@ -128,7 +128,7 @@ namespace work.bacome.imapclient
                 if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},4");
                 if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
 
-                lPattern = new cMailboxNamePattern("", "fred*", '/');
+                lPattern = new cMailboxPathPattern("", "fred*", '/');
 
                 if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
                 if (!lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
@@ -136,7 +136,7 @@ namespace work.bacome.imapclient
                 if (lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},4");
                 if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
 
-                lPattern = new cMailboxNamePattern("", "*fred", '/');
+                lPattern = new cMailboxPathPattern("", "*fred", '/');
 
                 if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
                 if (lPattern.Matches("fred/angus/nigel")) throw new cTestsException($"{lPattern},2");
@@ -145,7 +145,7 @@ namespace work.bacome.imapclient
                 if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},5");
 
 
-                lPattern = new cMailboxNamePattern("", "*fred*", '/');
+                lPattern = new cMailboxPathPattern("", "*fred*", '/');
 
                 if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
                 if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
@@ -156,7 +156,7 @@ namespace work.bacome.imapclient
                 if (!lPattern.Matches("~other/fred")) throw new cTestsException($"{lPattern},7");
                 if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
 
-                lPattern = new cMailboxNamePattern("fred/", "%", null);
+                lPattern = new cMailboxPathPattern("fred/", "%", null);
 
                 if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
                 if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
@@ -168,7 +168,7 @@ namespace work.bacome.imapclient
                 if (lPattern.Matches("~other/angus")) throw new cTestsException($"{lPattern},8");
 
 
-                lPattern = new cMailboxNamePattern("fred/", "%", '/');
+                lPattern = new cMailboxPathPattern("fred/", "%", '/');
 
                 if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
                 if (!lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");
@@ -181,7 +181,7 @@ namespace work.bacome.imapclient
 
 
 
-                lPattern = new cMailboxNamePattern("", "*/%g%/*", '/');
+                lPattern = new cMailboxPathPattern("", "*/%g%/*", '/');
 
                 if (lPattern.Matches("")) throw new cTestsException($"{lPattern},1");
                 if (lPattern.Matches("fred/angus")) throw new cTestsException($"{lPattern},2");

@@ -2,54 +2,61 @@
 using System.IO;
 using System.Threading.Tasks;
 using work.bacome.async;
+using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void UIDFetch(cMailboxId pMailboxId, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC)
+        public void UIDFetch(iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
         {
             // note: if it fails bytes could have been written to the stream
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZUIDFetchAsync(pMailboxId, pUID, pSection, pDecoding, pStream, pFC, lContext);
-            mEventSynchroniser.Wait(lTask, lContext);
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetch));
+            var lTask = ZUIDFetchBodyAsync(pHandle, pUID, pSection, pDecoding, pStream, pConfiguration, lContext);
+            mSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task UIDFetchAsync(cMailboxId pMailboxId, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC)
+        public Task UIDFetchAsync(iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
         {
             // note: if it fails bytes could have been written to the stream
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
-            return ZUIDFetchAsync(pMailboxId, pUID, pSection, pDecoding, pStream, pFC, lContext);
+            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetchAsync));
+            return ZUIDFetchBodyAsync(pHandle, pUID, pSection, pDecoding, pStream, pConfiguration, lContext);
         }
 
-        private async Task ZUIDFetchAsync(cMailboxId pMailboxId, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cFetchControl pFC, cTrace.cContext pParentContext)
+        private async Task ZUIDFetchBodyAsync(iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAsync), pMailboxId, pUID, pSection, pDecoding, pFC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchBodyAsync), pHandle, pUID, pSection, pDecoding);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || lSession.State != eState.selected) throw new cMailboxNotSelectedException(lContext);
+            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
 
-            if (pMailboxId == null) throw new ArgumentNullException(nameof(pMailboxId));
+            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
-
             if (pStream == null) throw new ArgumentNullException(nameof(pStream));
+
             if (!pStream.CanWrite) throw new ArgumentOutOfRangeException(nameof(pStream));
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            if (pConfiguration == null)
             {
-                cFetchBodyMethodControl lMC;
-                if (pFC == null) lMC = new cFetchBodyMethodControl(mTimeout, CancellationToken, null, null, mFetchBodyWriteConfiguration);
-                else lMC = new cFetchBodyMethodControl(pFC.Timeout, pFC.CancellationToken, mEventSynchroniser, pFC.IncrementProgress, pFC.WriteConfiguration ?? mFetchBodyWriteConfiguration);
-
-                await lSession.UIDFetchAsync(lMC, pMailboxId, pUID, pSection, pDecoding, pStream, lContext).ConfigureAwait(false);
+                using (var lToken = mCancellationManager.GetToken(lContext))
+                {
+                    var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
+                    var lProgress = new cProgress();
+                    var lWriteSizer = new cBatchSizer(mFetchBodyWriteConfiguration);
+                    await lSession.UIDFetchBodyAsync(lMC, pHandle, pUID, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
+                }
             }
-            finally { mAsyncCounter.Decrement(lContext); }
+            else
+            {
+                var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
+                var lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
+                var lWriteSizer = new cBatchSizer(pConfiguration.Write ?? mFetchBodyWriteConfiguration);
+                await lSession.UIDFetchBodyAsync(lMC, pHandle, pUID, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
+            }
         }
     }
 }

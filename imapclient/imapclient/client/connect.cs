@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
         public void Connect()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Connect));
-            mEventSynchroniser.Wait(ZConnectAsync(lContext), lContext);
+            mSynchroniser.Wait(ZConnectAsync(lContext), lContext);
         }
 
         public Task ConnectAsync()
@@ -31,166 +31,214 @@ namespace work.bacome.imapclient
             if (lServer == null) throw new InvalidOperationException("connect requires server to be set");
             if (lCredentials == null) throw new InvalidOperationException("connect requires credentials to be set");
 
-            if (mSession != null)
+            bool lSessionReplaced;
+
+            if (mSession == null) lSessionReplaced = false;
+            else
             {
                 if (!mSession.IsUnconnected) throw new InvalidOperationException("must be unconnected");
                 mSession.Dispose();
+
+                lSessionReplaced = true;
+
+                mNamespaces = null;
+
+                mInbox = null;
+                mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
             }
 
-            mSession = new cSession(mEventSynchroniser, mIgnoreCapabilities, mIdleConfiguration, mFetchAttributesConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
+            // initialise the SASLs
+            foreach (var lSASL in lCredentials.SASLs) lSASL.LastAuthentication = null;
+
+            mSession = new cSession(mSynchroniser, mIgnoreCapabilities, mMailboxCacheData, mNetworkWriteConfiguration, mIdleConfiguration, mFetchCacheItemsConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
-            mAsyncCounter.Increment(lContext);
-
-            try
+            if (lSessionReplaced)
             {
-                var lMC = new cMethodControl(mTimeout, CancellationToken);
+                mSynchroniser.InvokePropertyChanged(nameof(Capabilities), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(ConnectionState), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(IsConnected), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(IsUnconnected), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(ConnectedAccountId), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(EnabledExtensions), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(HomeServerReferral), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(ServerId), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(Namespaces), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(SelectedMailbox), lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(SelectedMailboxDetails), lContext);
+            }
 
-                await lSession.ConnectAsync(lMC, lServer, lContext).ConfigureAwait(false);
+            using (var lToken = mCancellationManager.GetToken(lContext))
+            {
+                var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
 
-                if (lSession.Capability == null) await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
-
-                Task lIdTask = null;
-
-                object lOriginalCapability = lSession.Capability;
-                cCapability lCurrentCapability = lSession.Capability;
-
-                if (lSession.State == eState.notauthenticated)
+                try
                 {
-                    // start an id using the ASCII dictionary (we don't know if the server supports UTF8 yet and even if we did we can't turn UTF8 on until we are authenticated)
-                    if (lCurrentCapability.Id) lIdTask = lSession.IdAsync(lMC, mClientId?.ASCIIDictionary, lContext);
+                    await lSession.ConnectAsync(lMC, lServer, lContext).ConfigureAwait(false);
 
-                    bool lTriedCredentials = false;
-                    Exception lAuthenticateException = null;
+                    if (lSession.Capabilities == null) await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
 
-                    cAccountId lAccountId = new cAccountId(lServer.Host, lCredentials.Type, lCredentials.UserId);
-
-                    if (Credentials.TryAllSASLs)
+                    if (lSession.ConnectionState == eConnectionState.notauthenticated && !lSession.TLSInstalled && lSession.Capabilities.StartTLS)
                     {
-                        foreach (var lSASL in Credentials.SASLs)
-                        {
-                            lTriedCredentials = true;
-                            lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
-                            if (lSession.State != eState.notauthenticated || lAuthenticateException != null) break;
-                        }
+                        await lSession.StartTLSAsync(lMC, lContext).ConfigureAwait(false);
+                        await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
                     }
-                    else
+
+                    object lOriginalCapabilities = lSession.Capabilities;
+                    cCapabilities lCurrentCapabilities = lSession.Capabilities;
+
+                    if (lSession.ConnectionState == eConnectionState.notauthenticated)
                     {
-                        foreach (var lSASL in Credentials.SASLs)
+                        bool lTLSIssue = false;
+                        bool lTriedCredentials = false;
+                        Exception lAuthenticateException = null;
+
+                        cAccountId lAccountId = new cAccountId(lServer.Host, lCredentials.Type, lCredentials.UserId);
+
+                        bool lTLSInstalled = lSession.TLSInstalled;
+
+                        if (lCredentials.TryAllSASLs)
                         {
-                            if (lCurrentCapability.SupportsAuthenticationMechanism(lSASL.MechanismName))
+                            foreach (var lSASL in lCredentials.SASLs)
+                            {
+                                if ((lSASL.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lSASL.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
+                                else
+                                {
+                                    lTriedCredentials = true;
+                                    lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
+                                    if (lSession.ConnectionState != eConnectionState.notauthenticated || lAuthenticateException != null) break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            foreach (var lSASL in lCredentials.SASLs)
+                            {
+                                if (lCurrentCapabilities.AuthenticationMechanisms.Contains(lSASL.MechanismName)) // no case-invariance required because SASL (rfc 2222) says only uppercase is allowed
+                                {
+                                    if ((lSASL.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lSASL.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
+                                    else
+                                    {
+                                        lTriedCredentials = true;
+                                        lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
+                                        if (lSession.ConnectionState != eConnectionState.notauthenticated || lAuthenticateException != null) break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (lSession.ConnectionState == eConnectionState.notauthenticated && lAuthenticateException == null && !lCurrentCapabilities.LoginDisabled && lCredentials.Login != null)
+                        {
+                            if ((lCredentials.Login.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lCredentials.Login.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
+                            else
                             {
                                 lTriedCredentials = true;
-                                lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
-                                if (lSession.State != eState.notauthenticated || lAuthenticateException != null) break;
+                                lAuthenticateException = await lSession.LoginAsync(lMC, lAccountId, lCredentials.Login, lContext).ConfigureAwait(false);
+                            }
+                        }
+
+                        if (lSession.ConnectionState != eConnectionState.authenticated)
+                        {
+                            lContext.TraceError("could not authenticate");
+
+                            // log out
+                            await lSession.LogoutAsync(lMC, lContext).ConfigureAwait(false);
+
+                            // throw an exception that indicates why we couldn't connect
+
+                            if (lTriedCredentials)
+                            {
+                                if (lAuthenticateException != null) throw lAuthenticateException;
+                                throw new cCredentialsException(lContext);
+                            }
+
+                            throw new cAuthenticationMechanismsException(lTLSIssue, lContext); // the server has no mechanisms that we can try
+                        }
+
+                        // re-get the capabilities if we didn't get new ones as part of the authentication/ login OR if a security layer was installed (SASL requires this)
+                        if (ReferenceEquals(lOriginalCapabilities, lSession.Capabilities) || lSession.SASLSecurityInstalled) await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
+                        lCurrentCapabilities = lSession.Capabilities;
+                    }
+
+                    if (lCurrentCapabilities.Enable)
+                    {
+                        fEnableableExtensions lExtensions = fEnableableExtensions.none;
+                        if (lCurrentCapabilities.UTF8Accept || lCurrentCapabilities.UTF8Only) lExtensions = lExtensions | fEnableableExtensions.utf8;
+                        if (lExtensions != fEnableableExtensions.none) await lSession.EnableAsync(lMC, lExtensions, lContext).ConfigureAwait(false);
+                    }
+
+                    // enabled (lock in the capabilities and enabled extensions)
+                    lSession.SetEnabled(lContext);
+
+                    Task lIdTask;
+
+                    if (lCurrentCapabilities.Id)
+                    {
+                        cId lClientId;
+
+                        if ((lSession.EnabledExtensions & fEnableableExtensions.utf8) == 0) lClientId = mClientId;
+                        else lClientId = mClientIdUTF8 ?? mClientId;
+
+                        lIdTask = lSession.IdAsync(lMC, lClientId, lContext);
+                    }
+                    else lIdTask = null;
+
+                    if (lCurrentCapabilities.Namespace)
+                    {
+                        await lSession.NamespaceAsync(lMC, lContext).ConfigureAwait(false);
+
+                        var lPersonalNamespaceNames = lSession.NamespaceNames?.Personal;
+
+                        if (lPersonalNamespaceNames != null)
+                        {
+                            foreach (var lName in lPersonalNamespaceNames)
+                            {
+                                // special case, where the personal namespace is "INBOX/" (where "/" is the delimiter)
+                                if (lName.Delimiter != null && lName.Prefix.Equals(cMailboxName.InboxString + lName.Delimiter, StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    mInbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lName.Delimiter)));
+                                    mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
+                                    break;
+                                }
+
+                                cMailboxPathPattern lPattern = new cMailboxPathPattern(lName.Prefix, "%", lName.Delimiter);
+
+                                if (lPattern.Matches(cMailboxName.InboxString))
+                                {
+                                    mInbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lName.Delimiter)));
+                                    mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
+                                    break;
+                                }
                             }
                         }
                     }
 
-                    if (lSession.State == eState.notauthenticated && lAuthenticateException == null && !lCurrentCapability.LoginDisabled && Credentials.Login != null)
+                    if (mInbox == null)
                     {
-                        lTriedCredentials = true;
-                        lAuthenticateException = await lSession.LoginAsync(lMC, lAccountId, Credentials.Login, lContext).ConfigureAwait(false);
-                    }
+                        var lDelimiter = await lSession.ListDelimiterAsync(lMC, lContext).ConfigureAwait(false);
 
-                    if (lSession.State != eState.authenticated)
-                    {
-                        lContext.TraceError("could not authenticate");
-
-                        // wait for the id task to complete before logging out
-                        if (lIdTask != null) await cTerminator.AwaitAll(lMC, lIdTask).ConfigureAwait(false);
-
-                        // log out
-                        await lSession.LogoutAsync(lMC, lContext).ConfigureAwait(false);
-
-                        // throw an exception that indicates why we couldn't connect
-                        if (lTriedCredentials)
+                        if (!lCurrentCapabilities.Namespace)
                         {
-                            if (lAuthenticateException != null) throw lAuthenticateException;
-                            throw new cCredentialsException(lContext);
+                            mNamespaces = new cNamespaces(this, new cNamespaceName[] { new cNamespaceName("", lDelimiter) }, null, null);
+                            mSynchroniser.InvokePropertyChanged(nameof(Namespaces), lContext);
                         }
 
-                        throw new cAuthenticationException(lContext); // the server has no mechanisms that we can try
+                        mInbox = new cMailbox(this, lSession.GetMailboxHandle(new cMailboxName(cMailboxName.InboxString, lDelimiter)));
+                        mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
                     }
 
-                    // re-get the capabilities if we didn't get new ones as part of the authentication/ login OR if a security layer was installed (SASL requires this)
-                    if (ReferenceEquals(lOriginalCapability, lSession.Capability) || lSession.SecurityInstalled) await lSession.CapabilityAsync(lMC, lContext).ConfigureAwait(false);
-                    lCurrentCapability = lSession.Capability;
+                    // wait for id to complete
+                    if (lIdTask != null) await lIdTask.ConfigureAwait(false);
+
+                    // initialised (namespaces set, inbox available, id available (if server supports it); user may now issue commands)
+                    lSession.SetInitialised(lContext);
                 }
-
-                if (lCurrentCapability.Enable)
+                catch when (lSession.ConnectionState != eConnectionState.disconnected)
                 {
-                    fEnableableExtensions lExtensions = fEnableableExtensions.none;
-
-                    if (lCurrentCapability.UTF8Accept || lCurrentCapability.UTF8Only) lExtensions = lExtensions | fEnableableExtensions.utf8;
-
-                    if (lExtensions != fEnableableExtensions.none)
-                    {
-                        await lSession.EnableAsync(lMC, lExtensions, lContext).ConfigureAwait(false);
-
-                        // if we just enabled UTF8 redo the id incase 1) we have UTF8 in our id OR 2) the server has UTF8 in its id (that it couldn't send before)
-                        if ((lSession.EnabledExtensions & fEnableableExtensions.utf8) != 0 && lCurrentCapability.Id)
-                        {
-                            if (lIdTask != null) await cTerminator.AwaitAll(lMC, lIdTask).ConfigureAwait(false);
-                            lIdTask = lSession.IdAsync(lMC, mClientId?.Dictionary, lContext);
-                        }
-                    }
-                }
-                else
-                {
-                    // if we haven't done an id yet, now do one
-                    if (lIdTask == null && lCurrentCapability.Id) lIdTask = lSession.IdAsync(lMC, mClientId?.ASCIIDictionary, lContext);
-                }
-
-                // do a namespace (or list) now ... AFTER possibly enabling UTF8 (namespace processing depends on UTF8)
-                Task lNamespaceTask;
-                Task<cMailboxList> lListTask;
-
-                if (lCurrentCapability.Namespace)
-                {
-                    lNamespaceTask = lSession.NamespaceAsync(lMC, lContext);
-                    lListTask = null;
-                }
-                else
-                {
-                    lNamespaceTask = null;
-                    lListTask = lSession.ListAsync(lMC, new cListPattern(string.Empty, null, new cMailboxNamePattern(string.Empty, string.Empty, null)), lContext);
-                }
-
-                // wait for everything to complete
-                await cTerminator.AwaitAll(lMC, lIdTask, lNamespaceTask, lListTask).ConfigureAwait(false);
-
-                // set the namespace property
-                //
-                if (!lCurrentCapability.Namespace)
-                {
-                    var lMailboxes = lListTask.Result;
-                    if (lMailboxes.Count != 1) throw new cUnexpectedServerActionException(0, "list special request failed", lContext);
-                    lSession.SetNamespaces(new cNamespaceList(lMailboxes.FirstItem().MailboxName.Delimiter), null, null, lContext);
-                }
-
-                // set the inbox property
-                //
-                if (lSession.PersonalNamespaces != null)
-                {
-                    foreach (var lNamespace in lSession.PersonalNamespaces)
-                    {
-                        cMailboxNamePattern lPattern = new cMailboxNamePattern(lNamespace.Prefix, "%", lNamespace.Delimiter);
-
-                        if (lPattern.Matches(cMailboxName.InboxString))
-                        {
-                            lSession.Inbox = new cMailbox(this, new cMailboxId(lSession.ConnectedAccountId, new cMailboxName(cMailboxName.InboxString, lNamespace.Delimiter)));
-                            break;
-                        }
-                    }
+                    lSession.Disconnect(lContext);
+                    throw;
                 }
             }
-            catch when (lSession.State != eState.disconnected)
-            {
-                lSession.Disconnect(lContext);
-                throw;
-            }
-            finally { mAsyncCounter.Decrement(lContext); }
         }
     }
 }
