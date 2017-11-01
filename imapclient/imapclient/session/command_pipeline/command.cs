@@ -84,13 +84,15 @@ namespace work.bacome.imapclient
 
                     public cCommandPart CurrentPart()
                     {
-                        if (mState != eCommandState.current) throw new InvalidOperationException();
+                        // note that complete is allowed to cater for early termination
+                        if (mState != eCommandState.current && mState != eCommandState.complete) throw new InvalidOperationException();
                         return mParts[mCurrentPart];
                     }
 
                     public bool MoveNext()
                     {
-                        if (mState != eCommandState.current) throw new InvalidOperationException();
+                        // note that complete is allowed to cater for early termination
+                        if (mState != eCommandState.current && mState != eCommandState.complete) throw new InvalidOperationException();
                         return ++mCurrentPart < mParts.Count;
                     }
 
@@ -100,7 +102,8 @@ namespace work.bacome.imapclient
 
                         set
                         {
-                            if (mState != eCommandState.current) throw new InvalidOperationException();
+                            // note that complete is allowed to cater for early termination
+                            if (mState != eCommandState.current && mState != eCommandState.complete) throw new InvalidOperationException();
                             if (value == mWaitingForContinuationRequest) throw new InvalidOperationException();
                             mWaitingForContinuationRequest = value;
                         }

@@ -88,13 +88,15 @@ namespace usageexample1
             Console.Read();
         }
 
+        // to test this include ", eTLSRequirement.indifferent" on the SetPlainCredentials
+
         static void NewWebVersion()
         {
 cIMAPClient lClient = new cIMAPClient();
 
 // connect
 lClient.SetServer(mHost);
-lClient.SetPlainCredentials(mUserId, mPassword, eTLSRequirement.indifferent);
+lClient.SetPlainCredentials(mUserId, mPassword);
 lClient.Connect();
 
 Console.WriteLine(new string('-', 79));

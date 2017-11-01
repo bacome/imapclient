@@ -10,6 +10,13 @@ namespace work.bacome.imapclient
 {
     public enum eConnectionState { notconnected, connecting, notauthenticated, authenticated, enabled, notselected, selected, disconnected }
 
+    /// <summary>
+    /// Instances of this class can connect to an IMAP server
+    /// </summary>
+    /// <remarks>
+    /// Before calling one of the Connect methods set the Server and Credentials properties at a minimum and consider setting the MailboxCacheData property
+    /// <seealso cref="Connect"/> <seealso cref="Server"/> <seealso cref="Credentials"/> <seealso cref="SetPlainCredentials(string, string, eTLSRequirement, bool)"/> <seealso cref="MailboxCacheData"/>
+    /// </remarks>
     public sealed partial class cIMAPClient : IDisposable // sealed so the disposable implementation is simpler
     {
         // code checks
@@ -90,6 +97,10 @@ namespace work.bacome.imapclient
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
         private cClientIdUTF8 mClientIdUTF8 = null;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="pInstanceName">Used to tag trace messages in case you have multiple instances in one exe</param>
         public cIMAPClient(string pInstanceName = TraceSourceName)
         {
             mInstanceName = pInstanceName;
@@ -101,8 +112,12 @@ namespace work.bacome.imapclient
 
         public string InstanceName => mInstanceName;
 
-        // events
-
+        /// <summary>
+        /// The synchronisation context on which callbacks (including events) are made
+        /// </summary>
+        /// <remarks>
+        /// If set to null callbacks are made by the thread that discovers the need to do the callback
+        /// </remarks>
         public SynchronizationContext SynchronizationContext
         {
             get => mSynchroniser.SynchronizationContext;
@@ -115,6 +130,12 @@ namespace work.bacome.imapclient
             remove { mSynchroniser.PropertyChanged -= value; }
         }
 
+        /// <summary>
+        /// Fired when the server sends response text
+        /// </summary>
+        /// <remarks>
+        /// The IMAP spec says that alerts MUST be brought to the users attention
+        /// </remarks>
         public event EventHandler<cResponseTextEventArgs> ResponseText
         {
             add { mSynchroniser.ResponseText += value; }
@@ -151,6 +172,12 @@ namespace work.bacome.imapclient
             remove { mSynchroniser.MessagePropertyChanged -= value; }
         }
 
+        /// <summary>
+        /// Fired when an exception is raised in by a callback
+        /// </summary>
+        /// <remarks>
+        /// The library ignores the exception other than raising this event
+        /// </remarks>
         public event EventHandler<cCallbackExceptionEventArgs> CallbackException
         {
             add { mSynchroniser.CallbackException += value; }
@@ -159,6 +186,9 @@ namespace work.bacome.imapclient
 
         // async operation management
 
+        /// <summary>
+        /// Sets the timeout for calls that involve network access
+        /// </summary>
         public int Timeout
         {
             get => mTimeout;
@@ -170,8 +200,14 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// Returns the number of currently running cancellable operations
+        /// </summary>
         public int CancellableCount => mCancellationManager.Count;
 
+        /// <summary>
+        /// Cancels currently running cancellable operations
+        /// </summary>
         public void Cancel()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Cancel));
@@ -188,10 +224,17 @@ namespace work.bacome.imapclient
         public fEnableableExtensions EnabledExtensions => mSession?.EnabledExtensions ?? fEnableableExtensions.none;
         public cAccountId ConnectedAccountId => mSession?.ConnectedAccountId;
 
-        // the login referral (rfc 2221) if received
+        /// <summary>
+        /// The login referral (rfc 2221), if received
+        /// </summary>
         public cURL HomeServerReferral => mSession?.HomeServerReferral;
 
-        // capabilities to ignore
+        /// <summary>
+        /// Capabilities that you wish the instance to ignore
+        /// </summary>
+        /// <remarks>
+        /// Useful for testing or if your server (or the library) has a bug in its implementation of an IMAP extension 
+        /// </remarks>
         public fCapabilities IgnoreCapabilities
         {
             get => mIgnoreCapabilities;
@@ -203,10 +246,14 @@ namespace work.bacome.imapclient
                 if ((value & fCapabilities.logindisabled) != 0) throw new ArgumentOutOfRangeException();
                 mIgnoreCapabilities = value;
             }
-        } 
+        }
 
-        // the server that the client should connect to
-
+        /// <summary>
+        /// The server that the instance should connect to
+        /// </summary>
+        /// <remarks>
+        /// See the SetServer methods for an easy way to set this
+        /// </remarks>
         public cServer Server
         {
             get => mServer;
@@ -223,8 +270,12 @@ namespace work.bacome.imapclient
         public void SetServer(string pHost, bool pSSL) => Server = new cServer(pHost, pSSL);
         public void SetServer(string pHost, int pPort, bool pSSL) => Server = new cServer(pHost, pPort, pSSL);
 
-        // the credentials that should be used to connect to the server
-
+        /// <summary>
+        /// The credentials to be used to connect to the server
+        /// </summary>
+        /// <remarks>
+        /// See the SetXXXCredentials methods for an easy way to set this
+        /// </remarks>
         public cCredentials Credentials
         {
             get => mCredentials;
@@ -240,10 +291,24 @@ namespace work.bacome.imapclient
         public void SetNoCredentials() => Credentials = cCredentials.None;
         public void SetAnonymousCredentials(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTLSRequirement, pTryAuthenticateEvenIfAnonymousIsntAdvertised);
         public void SetPlainCredentials(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
+
+        /// <summary>
+        /// To connect to GMail if you don't want to 'Allow less secure apps' on your account and have implemented OAUTH2 in your application
+        /// </summary>
+        /// <remarks>
+        /// Note that I haven't tested this
+        /// </remarks>
+        /// <param name="pUserId"></param>
+        /// <param name="pAccessToken"></param>
+        /// <param name="pTryAuthenticateEvenIfXOAuth2IsntAdvertised">Try using this method of authentication even if the server doesn't advertise it</param>
         public void SetXOAuth2Credentials(string pUserId, string pAccessToken, bool pTryAuthenticateEvenIfXOAuth2IsntAdvertised = false) => Credentials = cCredentials.XOAuth2(pUserId, pAccessToken, pTryAuthenticateEvenIfXOAuth2IsntAdvertised);
 
-        // if the caller can handle mailbox referrals
-        //
+        /// <summary>
+        /// Set this to true if you can handle mailbox referrals
+        /// </summary>
+        /// <remarks>
+        /// If this is set to false the instance will not return remote mailboxes in mailbox lists
+        /// </remarks>
         public bool MailboxReferrals
         {
             get => mMailboxReferrals;
@@ -256,8 +321,12 @@ namespace work.bacome.imapclient
             }
         }
 
-        // the properties required when listing mailboxes
-        //
+        /// <summary>
+        /// Determines what details about mailboxes are available from the mailbox cache
+        /// </summary>
+        /// <remarks>
+        /// May only be set when the instance is unconnected
+        /// </remarks>
         public fMailboxCacheData MailboxCacheData
         {
             get => mMailboxCacheData;
@@ -270,8 +339,13 @@ namespace work.bacome.imapclient
             }
         }
 
-        // configuration that controls the size of large writes to the network
-        //
+        /// <summary>
+        /// Controls the size of writes to the network
+        /// </summary>
+        /// <remarks>
+        /// You might want to limit this to increase the speed with which you can terminate the instance.
+        /// Higher values are presumably more efficient.
+        /// </remarks>
         public cBatchSizerConfiguration NetworkWriteConfiguration
         {
             get => mNetworkWriteConfiguration;
@@ -287,6 +361,13 @@ namespace work.bacome.imapclient
         // idle config; either IDLE (rfc 2177) or base protocol CHECK and NOOP
         //  the command pipeline waits until a certain period of inactivity has occurred before starting either an IDLE command or periodic polling
         //
+        /// <summary>
+        /// Sets parameters that control what the instance does while idle
+        /// </summary>
+        /// <remarks>
+        /// Set to null to stop the instance from doing anything.
+        /// If set, the instance will wait for the specified delay and then issue an IDLE command (rfc 2177) or CHECK/ NOOP commands periodically.
+        /// </remarks>
         public cIdleConfiguration IdleConfiguration
         {
             get => mIdleConfiguration;
@@ -300,8 +381,13 @@ namespace work.bacome.imapclient
             }
         }
 
-        // configuration that controls the size of reads from streams when appending
-        //
+        /// <summary>
+        /// The default control on the size of reads from streams provided to append
+        /// </summary>
+        /// <remarks>
+        /// You might want to limit this to increase the speed with which you can terminate the instance.
+        /// Higher values are presumably more efficient.
+        /// </remarks>
         public cBatchSizerConfiguration AppendStreamReadConfiguration
         {
             get => mAppendStreamReadConfiguration;
