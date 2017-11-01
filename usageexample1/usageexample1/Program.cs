@@ -94,7 +94,7 @@ cIMAPClient lClient = new cIMAPClient();
 
 // connect
 lClient.SetServer(mHost);
-lClient.SetPlainCredentials(mUserId, mPassword);
+lClient.SetPlainCredentials(mUserId, mPassword, eTLSRequirement.indifferent);
 lClient.Connect();
 
 Console.WriteLine(new string('-', 79));
@@ -128,7 +128,7 @@ Console.WriteLine();
 lClient.Inbox.Select();
 
 // list unseen messages in the inbox
-foreach (var lMessage in lClient.Inbox.Messages())
+foreach (var lMessage in lClient.Inbox.Messages(!cFilter.Seen))
 {
     Console.WriteLine("Sent: " + lMessage.Sent);
     Console.WriteLine("From: " + lMessage.From.DisplaySortString);
