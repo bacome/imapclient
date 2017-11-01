@@ -44,7 +44,7 @@
     <Compile Include="client\connect.cs" />
     <Compile Include="client\copy.cs" />
     <Compile Include="client\create.cs" />
-    <Compile Include="client\defaultmessageproperties.cs" />
+    <Compile Include="client\defaultcacheitems.cs" />
     <Compile Include="client\delete.cs" />
     <Compile Include="client\disconnect.cs" />
     <Compile Include="client\expunge.cs" />

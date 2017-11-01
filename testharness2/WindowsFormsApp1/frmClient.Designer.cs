@@ -68,8 +68,6 @@
             this.chkIgnoreStartTLS = new System.Windows.Forms.CheckBox();
             this.chkIgnoreCondStore = new System.Windows.Forms.CheckBox();
             this.chkIgnoreESort = new System.Windows.Forms.CheckBox();
-            this.chkIgnoreThreadReferences = new System.Windows.Forms.CheckBox();
-            this.chkIgnoreThreadOrderedSubject = new System.Windows.Forms.CheckBox();
             this.chkIgnoreSortDisplay = new System.Windows.Forms.CheckBox();
             this.chkIgnoreSort = new System.Windows.Forms.CheckBox();
             this.chkIgnoreESearch = new System.Windows.Forms.CheckBox();
@@ -140,6 +138,16 @@
             this.tabConnect = new System.Windows.Forms.TabControl();
             this.tbpDetails = new System.Windows.Forms.TabPage();
             this.tbpCapabilities = new System.Windows.Forms.TabPage();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.gbxNetworkWrite = new System.Windows.Forms.GroupBox();
+            this.label29 = new System.Windows.Forms.Label();
+            this.label30 = new System.Windows.Forms.Label();
+            this.label31 = new System.Windows.Forms.Label();
+            this.label32 = new System.Windows.Forms.Label();
+            this.txtNWInitial = new System.Windows.Forms.TextBox();
+            this.txtNWMaxTime = new System.Windows.Forms.TextBox();
+            this.txtNWMax = new System.Windows.Forms.TextBox();
+            this.txtNWMin = new System.Windows.Forms.TextBox();
             this.gbxConnect = new System.Windows.Forms.GroupBox();
             this.gbxSelectedMailbox = new System.Windows.Forms.GroupBox();
             this.label25 = new System.Windows.Forms.Label();
@@ -151,6 +159,16 @@
             this.label5 = new System.Windows.Forms.Label();
             this.tabClient = new System.Windows.Forms.TabControl();
             this.tbpSettings = new System.Windows.Forms.TabPage();
+            this.gbxAppendStreamRead = new System.Windows.Forms.GroupBox();
+            this.cmdASSet = new System.Windows.Forms.Button();
+            this.label33 = new System.Windows.Forms.Label();
+            this.label34 = new System.Windows.Forms.Label();
+            this.label35 = new System.Windows.Forms.Label();
+            this.label36 = new System.Windows.Forms.Label();
+            this.txtASInitial = new System.Windows.Forms.TextBox();
+            this.txtASMaxTime = new System.Windows.Forms.TextBox();
+            this.txtASMax = new System.Windows.Forms.TextBox();
+            this.txtASMin = new System.Windows.Forms.TextBox();
             this.tbpDefaults = new System.Windows.Forms.TabPage();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -227,26 +245,6 @@
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
             this.cmdPoll = new System.Windows.Forms.Button();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.gbxNetworkWrite = new System.Windows.Forms.GroupBox();
-            this.label29 = new System.Windows.Forms.Label();
-            this.label30 = new System.Windows.Forms.Label();
-            this.label31 = new System.Windows.Forms.Label();
-            this.label32 = new System.Windows.Forms.Label();
-            this.txtNWInitial = new System.Windows.Forms.TextBox();
-            this.txtNWMaxTime = new System.Windows.Forms.TextBox();
-            this.txtNWMax = new System.Windows.Forms.TextBox();
-            this.txtNWMin = new System.Windows.Forms.TextBox();
-            this.gbxAppendStreamRead = new System.Windows.Forms.GroupBox();
-            this.cmdASSet = new System.Windows.Forms.Button();
-            this.label33 = new System.Windows.Forms.Label();
-            this.label34 = new System.Windows.Forms.Label();
-            this.label35 = new System.Windows.Forms.Label();
-            this.label36 = new System.Windows.Forms.Label();
-            this.txtASInitial = new System.Windows.Forms.TextBox();
-            this.txtASMaxTime = new System.Windows.Forms.TextBox();
-            this.txtASMax = new System.Windows.Forms.TextBox();
-            this.txtASMin = new System.Windows.Forms.TextBox();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -262,10 +260,13 @@
             this.tabConnect.SuspendLayout();
             this.tbpDetails.SuspendLayout();
             this.tbpCapabilities.SuspendLayout();
+            this.tabPage3.SuspendLayout();
+            this.gbxNetworkWrite.SuspendLayout();
             this.gbxConnect.SuspendLayout();
             this.gbxSelectedMailbox.SuspendLayout();
             this.tabClient.SuspendLayout();
             this.tbpSettings.SuspendLayout();
+            this.gbxAppendStreamRead.SuspendLayout();
             this.tbpDefaults.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -278,9 +279,6 @@
             this.tpgResponseText.SuspendLayout();
             this.gbxResponseTextCode.SuspendLayout();
             this.gbxResponseTextType.SuspendLayout();
-            this.tabPage3.SuspendLayout();
-            this.gbxNetworkWrite.SuspendLayout();
-            this.gbxAppendStreamRead.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbxServer
@@ -656,8 +654,6 @@
             this.gbxCapabilities.Controls.Add(this.chkIgnoreStartTLS);
             this.gbxCapabilities.Controls.Add(this.chkIgnoreCondStore);
             this.gbxCapabilities.Controls.Add(this.chkIgnoreESort);
-            this.gbxCapabilities.Controls.Add(this.chkIgnoreThreadReferences);
-            this.gbxCapabilities.Controls.Add(this.chkIgnoreThreadOrderedSubject);
             this.gbxCapabilities.Controls.Add(this.chkIgnoreSortDisplay);
             this.gbxCapabilities.Controls.Add(this.chkIgnoreSort);
             this.gbxCapabilities.Controls.Add(this.chkIgnoreESearch);
@@ -713,32 +709,12 @@
             // chkIgnoreESort
             // 
             this.chkIgnoreESort.AutoSize = true;
-            this.chkIgnoreESort.Location = new System.Drawing.Point(159, 249);
+            this.chkIgnoreESort.Location = new System.Drawing.Point(159, 203);
             this.chkIgnoreESort.Name = "chkIgnoreESort";
             this.chkIgnoreESort.Size = new System.Drawing.Size(52, 17);
             this.chkIgnoreESort.TabIndex = 20;
             this.chkIgnoreESort.Text = "ESort";
             this.chkIgnoreESort.UseVisualStyleBackColor = true;
-            // 
-            // chkIgnoreThreadReferences
-            // 
-            this.chkIgnoreThreadReferences.AutoSize = true;
-            this.chkIgnoreThreadReferences.Location = new System.Drawing.Point(159, 226);
-            this.chkIgnoreThreadReferences.Name = "chkIgnoreThreadReferences";
-            this.chkIgnoreThreadReferences.Size = new System.Drawing.Size(121, 17);
-            this.chkIgnoreThreadReferences.TabIndex = 19;
-            this.chkIgnoreThreadReferences.Text = "Thread=References";
-            this.chkIgnoreThreadReferences.UseVisualStyleBackColor = true;
-            // 
-            // chkIgnoreThreadOrderedSubject
-            // 
-            this.chkIgnoreThreadOrderedSubject.AutoSize = true;
-            this.chkIgnoreThreadOrderedSubject.Location = new System.Drawing.Point(159, 203);
-            this.chkIgnoreThreadOrderedSubject.Name = "chkIgnoreThreadOrderedSubject";
-            this.chkIgnoreThreadOrderedSubject.Size = new System.Drawing.Size(140, 17);
-            this.chkIgnoreThreadOrderedSubject.TabIndex = 18;
-            this.chkIgnoreThreadOrderedSubject.Text = "Thread=OrderedSubject";
-            this.chkIgnoreThreadOrderedSubject.UseVisualStyleBackColor = true;
             // 
             // chkIgnoreSortDisplay
             // 
@@ -1471,6 +1447,112 @@
             this.tbpCapabilities.Text = "Capabilities";
             this.tbpCapabilities.UseVisualStyleBackColor = true;
             // 
+            // tabPage3
+            // 
+            this.tabPage3.Controls.Add(this.gbxNetworkWrite);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Name = "tabPage3";
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage3.Size = new System.Drawing.Size(341, 459);
+            this.tabPage3.TabIndex = 2;
+            this.tabPage3.Text = "Other";
+            this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // gbxNetworkWrite
+            // 
+            this.gbxNetworkWrite.Controls.Add(this.label29);
+            this.gbxNetworkWrite.Controls.Add(this.label30);
+            this.gbxNetworkWrite.Controls.Add(this.label31);
+            this.gbxNetworkWrite.Controls.Add(this.label32);
+            this.gbxNetworkWrite.Controls.Add(this.txtNWInitial);
+            this.gbxNetworkWrite.Controls.Add(this.txtNWMaxTime);
+            this.gbxNetworkWrite.Controls.Add(this.txtNWMax);
+            this.gbxNetworkWrite.Controls.Add(this.txtNWMin);
+            this.gbxNetworkWrite.Location = new System.Drawing.Point(6, 6);
+            this.gbxNetworkWrite.Name = "gbxNetworkWrite";
+            this.gbxNetworkWrite.Size = new System.Drawing.Size(208, 111);
+            this.gbxNetworkWrite.TabIndex = 4;
+            this.gbxNetworkWrite.TabStop = false;
+            this.gbxNetworkWrite.Text = "Network Write";
+            this.gbxNetworkWrite.Validating += new System.ComponentModel.CancelEventHandler(this.gbxNetworkWrite_Validating);
+            this.gbxNetworkWrite.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // label29
+            // 
+            this.label29.AutoSize = true;
+            this.label29.Location = new System.Drawing.Point(12, 85);
+            this.label29.Name = "label29";
+            this.label29.Size = new System.Drawing.Size(31, 13);
+            this.label29.TabIndex = 6;
+            this.label29.Text = "Initial";
+            // 
+            // label30
+            // 
+            this.label30.AutoSize = true;
+            this.label30.Location = new System.Drawing.Point(12, 64);
+            this.label30.Name = "label30";
+            this.label30.Size = new System.Drawing.Size(53, 13);
+            this.label30.TabIndex = 4;
+            this.label30.Text = "Max Time";
+            // 
+            // label31
+            // 
+            this.label31.AutoSize = true;
+            this.label31.Location = new System.Drawing.Point(12, 43);
+            this.label31.Name = "label31";
+            this.label31.Size = new System.Drawing.Size(27, 13);
+            this.label31.TabIndex = 2;
+            this.label31.Text = "Max";
+            // 
+            // label32
+            // 
+            this.label32.AutoSize = true;
+            this.label32.Location = new System.Drawing.Point(12, 22);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(24, 13);
+            this.label32.TabIndex = 0;
+            this.label32.Text = "Min";
+            // 
+            // txtNWInitial
+            // 
+            this.txtNWInitial.Location = new System.Drawing.Point(133, 82);
+            this.txtNWInitial.Name = "txtNWInitial";
+            this.txtNWInitial.Size = new System.Drawing.Size(50, 20);
+            this.txtNWInitial.TabIndex = 7;
+            this.txtNWInitial.Text = "1000";
+            this.txtNWInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtNWInitial.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtNWMaxTime
+            // 
+            this.txtNWMaxTime.Location = new System.Drawing.Point(133, 61);
+            this.txtNWMaxTime.Name = "txtNWMaxTime";
+            this.txtNWMaxTime.Size = new System.Drawing.Size(50, 20);
+            this.txtNWMaxTime.TabIndex = 5;
+            this.txtNWMaxTime.Text = "1000";
+            this.txtNWMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
+            this.txtNWMaxTime.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtNWMax
+            // 
+            this.txtNWMax.Location = new System.Drawing.Point(133, 40);
+            this.txtNWMax.Name = "txtNWMax";
+            this.txtNWMax.Size = new System.Drawing.Size(50, 20);
+            this.txtNWMax.TabIndex = 3;
+            this.txtNWMax.Text = "1000";
+            this.txtNWMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtNWMax.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtNWMin
+            // 
+            this.txtNWMin.Location = new System.Drawing.Point(133, 19);
+            this.txtNWMin.Name = "txtNWMin";
+            this.txtNWMin.Size = new System.Drawing.Size(50, 20);
+            this.txtNWMin.TabIndex = 1;
+            this.txtNWMin.Text = "1000";
+            this.txtNWMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtNWMin.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
             // gbxConnect
             // 
             this.gbxConnect.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -1603,6 +1685,112 @@
             this.tbpSettings.TabIndex = 0;
             this.tbpSettings.Text = "Settings";
             this.tbpSettings.UseVisualStyleBackColor = true;
+            // 
+            // gbxAppendStreamRead
+            // 
+            this.gbxAppendStreamRead.Controls.Add(this.cmdASSet);
+            this.gbxAppendStreamRead.Controls.Add(this.label33);
+            this.gbxAppendStreamRead.Controls.Add(this.label34);
+            this.gbxAppendStreamRead.Controls.Add(this.label35);
+            this.gbxAppendStreamRead.Controls.Add(this.label36);
+            this.gbxAppendStreamRead.Controls.Add(this.txtASInitial);
+            this.gbxAppendStreamRead.Controls.Add(this.txtASMaxTime);
+            this.gbxAppendStreamRead.Controls.Add(this.txtASMax);
+            this.gbxAppendStreamRead.Controls.Add(this.txtASMin);
+            this.gbxAppendStreamRead.Location = new System.Drawing.Point(232, 304);
+            this.gbxAppendStreamRead.Name = "gbxAppendStreamRead";
+            this.gbxAppendStreamRead.Size = new System.Drawing.Size(208, 142);
+            this.gbxAppendStreamRead.TabIndex = 5;
+            this.gbxAppendStreamRead.TabStop = false;
+            this.gbxAppendStreamRead.Text = "Append Stream Read";
+            this.gbxAppendStreamRead.Validating += new System.ComponentModel.CancelEventHandler(this.gbxAppendStreamRead_Validating);
+            this.gbxAppendStreamRead.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // cmdASSet
+            // 
+            this.cmdASSet.Location = new System.Drawing.Point(15, 108);
+            this.cmdASSet.Name = "cmdASSet";
+            this.cmdASSet.Size = new System.Drawing.Size(100, 25);
+            this.cmdASSet.TabIndex = 8;
+            this.cmdASSet.Text = "Set";
+            this.cmdASSet.UseVisualStyleBackColor = true;
+            this.cmdASSet.Click += new System.EventHandler(this.cmdASSet_Click);
+            // 
+            // label33
+            // 
+            this.label33.AutoSize = true;
+            this.label33.Location = new System.Drawing.Point(12, 85);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(31, 13);
+            this.label33.TabIndex = 6;
+            this.label33.Text = "Initial";
+            // 
+            // label34
+            // 
+            this.label34.AutoSize = true;
+            this.label34.Location = new System.Drawing.Point(12, 64);
+            this.label34.Name = "label34";
+            this.label34.Size = new System.Drawing.Size(53, 13);
+            this.label34.TabIndex = 4;
+            this.label34.Text = "Max Time";
+            // 
+            // label35
+            // 
+            this.label35.AutoSize = true;
+            this.label35.Location = new System.Drawing.Point(12, 43);
+            this.label35.Name = "label35";
+            this.label35.Size = new System.Drawing.Size(27, 13);
+            this.label35.TabIndex = 2;
+            this.label35.Text = "Max";
+            // 
+            // label36
+            // 
+            this.label36.AutoSize = true;
+            this.label36.Location = new System.Drawing.Point(12, 22);
+            this.label36.Name = "label36";
+            this.label36.Size = new System.Drawing.Size(24, 13);
+            this.label36.TabIndex = 0;
+            this.label36.Text = "Min";
+            // 
+            // txtASInitial
+            // 
+            this.txtASInitial.Location = new System.Drawing.Point(133, 82);
+            this.txtASInitial.Name = "txtASInitial";
+            this.txtASInitial.Size = new System.Drawing.Size(50, 20);
+            this.txtASInitial.TabIndex = 7;
+            this.txtASInitial.Text = "1000";
+            this.txtASInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtASInitial.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtASMaxTime
+            // 
+            this.txtASMaxTime.Location = new System.Drawing.Point(133, 61);
+            this.txtASMaxTime.Name = "txtASMaxTime";
+            this.txtASMaxTime.Size = new System.Drawing.Size(50, 20);
+            this.txtASMaxTime.TabIndex = 5;
+            this.txtASMaxTime.Text = "1000";
+            this.txtASMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
+            this.txtASMaxTime.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtASMax
+            // 
+            this.txtASMax.Location = new System.Drawing.Point(133, 40);
+            this.txtASMax.Name = "txtASMax";
+            this.txtASMax.Size = new System.Drawing.Size(50, 20);
+            this.txtASMax.TabIndex = 3;
+            this.txtASMax.Text = "1000";
+            this.txtASMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtASMax.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtASMin
+            // 
+            this.txtASMin.Location = new System.Drawing.Point(133, 19);
+            this.txtASMin.Name = "txtASMin";
+            this.txtASMin.Size = new System.Drawing.Size(50, 20);
+            this.txtASMin.TabIndex = 1;
+            this.txtASMin.Text = "1000";
+            this.txtASMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtASMin.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // tbpDefaults
             // 
@@ -1774,7 +1962,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(470, 285);
+            this.tabPage2.Size = new System.Drawing.Size(443, 285);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Cache Items by Property";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -2467,218 +2655,6 @@
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
-            // tabPage3
-            // 
-            this.tabPage3.Controls.Add(this.gbxNetworkWrite);
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(341, 459);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "Other";
-            this.tabPage3.UseVisualStyleBackColor = true;
-            // 
-            // gbxNetworkWrite
-            // 
-            this.gbxNetworkWrite.Controls.Add(this.label29);
-            this.gbxNetworkWrite.Controls.Add(this.label30);
-            this.gbxNetworkWrite.Controls.Add(this.label31);
-            this.gbxNetworkWrite.Controls.Add(this.label32);
-            this.gbxNetworkWrite.Controls.Add(this.txtNWInitial);
-            this.gbxNetworkWrite.Controls.Add(this.txtNWMaxTime);
-            this.gbxNetworkWrite.Controls.Add(this.txtNWMax);
-            this.gbxNetworkWrite.Controls.Add(this.txtNWMin);
-            this.gbxNetworkWrite.Location = new System.Drawing.Point(6, 6);
-            this.gbxNetworkWrite.Name = "gbxNetworkWrite";
-            this.gbxNetworkWrite.Size = new System.Drawing.Size(208, 111);
-            this.gbxNetworkWrite.TabIndex = 4;
-            this.gbxNetworkWrite.TabStop = false;
-            this.gbxNetworkWrite.Text = "Network Write";
-            this.gbxNetworkWrite.Validating += new System.ComponentModel.CancelEventHandler(this.gbxNetworkWrite_Validating);
-            this.gbxNetworkWrite.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // label29
-            // 
-            this.label29.AutoSize = true;
-            this.label29.Location = new System.Drawing.Point(12, 85);
-            this.label29.Name = "label29";
-            this.label29.Size = new System.Drawing.Size(31, 13);
-            this.label29.TabIndex = 6;
-            this.label29.Text = "Initial";
-            // 
-            // label30
-            // 
-            this.label30.AutoSize = true;
-            this.label30.Location = new System.Drawing.Point(12, 64);
-            this.label30.Name = "label30";
-            this.label30.Size = new System.Drawing.Size(53, 13);
-            this.label30.TabIndex = 4;
-            this.label30.Text = "Max Time";
-            // 
-            // label31
-            // 
-            this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(12, 43);
-            this.label31.Name = "label31";
-            this.label31.Size = new System.Drawing.Size(27, 13);
-            this.label31.TabIndex = 2;
-            this.label31.Text = "Max";
-            // 
-            // label32
-            // 
-            this.label32.AutoSize = true;
-            this.label32.Location = new System.Drawing.Point(12, 22);
-            this.label32.Name = "label32";
-            this.label32.Size = new System.Drawing.Size(24, 13);
-            this.label32.TabIndex = 0;
-            this.label32.Text = "Min";
-            // 
-            // txtNWInitial
-            // 
-            this.txtNWInitial.Location = new System.Drawing.Point(133, 82);
-            this.txtNWInitial.Name = "txtNWInitial";
-            this.txtNWInitial.Size = new System.Drawing.Size(50, 20);
-            this.txtNWInitial.TabIndex = 7;
-            this.txtNWInitial.Text = "1000";
-            this.txtNWInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtNWInitial.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtNWMaxTime
-            // 
-            this.txtNWMaxTime.Location = new System.Drawing.Point(133, 61);
-            this.txtNWMaxTime.Name = "txtNWMaxTime";
-            this.txtNWMaxTime.Size = new System.Drawing.Size(50, 20);
-            this.txtNWMaxTime.TabIndex = 5;
-            this.txtNWMaxTime.Text = "1000";
-            this.txtNWMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
-            this.txtNWMaxTime.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtNWMax
-            // 
-            this.txtNWMax.Location = new System.Drawing.Point(133, 40);
-            this.txtNWMax.Name = "txtNWMax";
-            this.txtNWMax.Size = new System.Drawing.Size(50, 20);
-            this.txtNWMax.TabIndex = 3;
-            this.txtNWMax.Text = "1000";
-            this.txtNWMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtNWMax.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtNWMin
-            // 
-            this.txtNWMin.Location = new System.Drawing.Point(133, 19);
-            this.txtNWMin.Name = "txtNWMin";
-            this.txtNWMin.Size = new System.Drawing.Size(50, 20);
-            this.txtNWMin.TabIndex = 1;
-            this.txtNWMin.Text = "1000";
-            this.txtNWMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtNWMin.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // gbxAppendStreamRead
-            // 
-            this.gbxAppendStreamRead.Controls.Add(this.cmdASSet);
-            this.gbxAppendStreamRead.Controls.Add(this.label33);
-            this.gbxAppendStreamRead.Controls.Add(this.label34);
-            this.gbxAppendStreamRead.Controls.Add(this.label35);
-            this.gbxAppendStreamRead.Controls.Add(this.label36);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASInitial);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASMaxTime);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASMax);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASMin);
-            this.gbxAppendStreamRead.Location = new System.Drawing.Point(232, 304);
-            this.gbxAppendStreamRead.Name = "gbxAppendStreamRead";
-            this.gbxAppendStreamRead.Size = new System.Drawing.Size(208, 142);
-            this.gbxAppendStreamRead.TabIndex = 5;
-            this.gbxAppendStreamRead.TabStop = false;
-            this.gbxAppendStreamRead.Text = "Append Stream Read";
-            this.gbxAppendStreamRead.Validating += new System.ComponentModel.CancelEventHandler(this.gbxAppendStreamRead_Validating);
-            this.gbxAppendStreamRead.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // cmdASSet
-            // 
-            this.cmdASSet.Location = new System.Drawing.Point(15, 108);
-            this.cmdASSet.Name = "cmdASSet";
-            this.cmdASSet.Size = new System.Drawing.Size(100, 25);
-            this.cmdASSet.TabIndex = 8;
-            this.cmdASSet.Text = "Set";
-            this.cmdASSet.UseVisualStyleBackColor = true;
-            this.cmdASSet.Click += new System.EventHandler(this.cmdASSet_Click);
-            // 
-            // label33
-            // 
-            this.label33.AutoSize = true;
-            this.label33.Location = new System.Drawing.Point(12, 85);
-            this.label33.Name = "label33";
-            this.label33.Size = new System.Drawing.Size(31, 13);
-            this.label33.TabIndex = 6;
-            this.label33.Text = "Initial";
-            // 
-            // label34
-            // 
-            this.label34.AutoSize = true;
-            this.label34.Location = new System.Drawing.Point(12, 64);
-            this.label34.Name = "label34";
-            this.label34.Size = new System.Drawing.Size(53, 13);
-            this.label34.TabIndex = 4;
-            this.label34.Text = "Max Time";
-            // 
-            // label35
-            // 
-            this.label35.AutoSize = true;
-            this.label35.Location = new System.Drawing.Point(12, 43);
-            this.label35.Name = "label35";
-            this.label35.Size = new System.Drawing.Size(27, 13);
-            this.label35.TabIndex = 2;
-            this.label35.Text = "Max";
-            // 
-            // label36
-            // 
-            this.label36.AutoSize = true;
-            this.label36.Location = new System.Drawing.Point(12, 22);
-            this.label36.Name = "label36";
-            this.label36.Size = new System.Drawing.Size(24, 13);
-            this.label36.TabIndex = 0;
-            this.label36.Text = "Min";
-            // 
-            // txtASInitial
-            // 
-            this.txtASInitial.Location = new System.Drawing.Point(133, 82);
-            this.txtASInitial.Name = "txtASInitial";
-            this.txtASInitial.Size = new System.Drawing.Size(50, 20);
-            this.txtASInitial.TabIndex = 7;
-            this.txtASInitial.Text = "1000";
-            this.txtASInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtASInitial.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtASMaxTime
-            // 
-            this.txtASMaxTime.Location = new System.Drawing.Point(133, 61);
-            this.txtASMaxTime.Name = "txtASMaxTime";
-            this.txtASMaxTime.Size = new System.Drawing.Size(50, 20);
-            this.txtASMaxTime.TabIndex = 5;
-            this.txtASMaxTime.Text = "1000";
-            this.txtASMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
-            this.txtASMaxTime.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtASMax
-            // 
-            this.txtASMax.Location = new System.Drawing.Point(133, 40);
-            this.txtASMax.Name = "txtASMax";
-            this.txtASMax.Size = new System.Drawing.Size(50, 20);
-            this.txtASMax.TabIndex = 3;
-            this.txtASMax.Text = "1000";
-            this.txtASMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtASMax.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtASMin
-            // 
-            this.txtASMin.Location = new System.Drawing.Point(133, 19);
-            this.txtASMin.Name = "txtASMin";
-            this.txtASMin.Size = new System.Drawing.Size(50, 20);
-            this.txtASMin.TabIndex = 1;
-            this.txtASMin.Text = "1000";
-            this.txtASMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtASMin.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
             // frmClient
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2722,11 +2698,16 @@
             this.tabConnect.ResumeLayout(false);
             this.tbpDetails.ResumeLayout(false);
             this.tbpCapabilities.ResumeLayout(false);
+            this.tabPage3.ResumeLayout(false);
+            this.gbxNetworkWrite.ResumeLayout(false);
+            this.gbxNetworkWrite.PerformLayout();
             this.gbxConnect.ResumeLayout(false);
             this.gbxSelectedMailbox.ResumeLayout(false);
             this.gbxSelectedMailbox.PerformLayout();
             this.tabClient.ResumeLayout(false);
             this.tbpSettings.ResumeLayout(false);
+            this.gbxAppendStreamRead.ResumeLayout(false);
+            this.gbxAppendStreamRead.PerformLayout();
             this.tbpDefaults.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
@@ -2748,11 +2729,6 @@
             this.gbxResponseTextCode.PerformLayout();
             this.gbxResponseTextType.ResumeLayout(false);
             this.gbxResponseTextType.PerformLayout();
-            this.tabPage3.ResumeLayout(false);
-            this.gbxNetworkWrite.ResumeLayout(false);
-            this.gbxNetworkWrite.PerformLayout();
-            this.gbxAppendStreamRead.ResumeLayout(false);
-            this.gbxAppendStreamRead.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2784,8 +2760,6 @@
         private System.Windows.Forms.CheckBox chkIgnoreStartTLS;
         private System.Windows.Forms.CheckBox chkIgnoreCondStore;
         private System.Windows.Forms.CheckBox chkIgnoreESort;
-        private System.Windows.Forms.CheckBox chkIgnoreThreadReferences;
-        private System.Windows.Forms.CheckBox chkIgnoreThreadOrderedSubject;
         private System.Windows.Forms.CheckBox chkIgnoreSortDisplay;
         private System.Windows.Forms.CheckBox chkIgnoreSort;
         private System.Windows.Forms.CheckBox chkIgnoreESearch;

@@ -74,8 +74,10 @@ namespace work.bacome.imapclient
     public class cSort : IComparer<iMessageHandle>, IComparer<cMessage>
     {
         public static readonly cSort None = new cSort("none");
-        public static readonly cSort ThreadOrderedSubject = new cSort("thread:orderedsubject");
-        public static readonly cSort ThreadReferences = new cSort("thread:references");
+
+        // partial thread implementation removed - still to understand the responses and implement references algorithm
+        //public static readonly cSort ThreadOrderedSubject = new cSort("thread:orderedsubject");
+        //public static readonly cSort ThreadReferences = new cSort("thread:references");
 
         private readonly string mName;
         public readonly ReadOnlyCollection<cSortItem> Items;

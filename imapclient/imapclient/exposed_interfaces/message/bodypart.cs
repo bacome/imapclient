@@ -180,10 +180,10 @@ namespace work.bacome.imapclient
         {
             Parts = new cBodyParts(pParts);
 
-            if (SubType == "MIXED") SubTypeCode = eMultiPartBodySubTypeCode.mixed;
-            else if (SubType == "DIGEST") SubTypeCode = eMultiPartBodySubTypeCode.digest;
-            else if (SubType == "ALTERNATIVE") SubTypeCode = eMultiPartBodySubTypeCode.alternative;
-            else if (SubType == "RELATED") SubTypeCode = eMultiPartBodySubTypeCode.related;
+            if (SubType.Equals("MIXED", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.mixed;
+            else if (SubType.Equals("DIGEST", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.digest;
+            else if (SubType.Equals("ALTERNATIVE", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.alternative;
+            else if (SubType.Equals("RELATED", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.related;
             else SubTypeCode = eMultiPartBodySubTypeCode.unknown;
 
             ExtensionData = pExtensionData;
@@ -299,8 +299,8 @@ namespace work.bacome.imapclient
 
         public cTextBodyPart(string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Text, pSubType, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
         {
-            if (SubType == "PLAIN") SubTypeCode = eTextBodyPartSubTypeCode.plain;
-            else if (SubType == "HTML") SubTypeCode = eTextBodyPartSubTypeCode.html;
+            if (SubType.Equals("PLAIN", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eTextBodyPartSubTypeCode.plain;
+            else if (SubType.Equals("HTML", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eTextBodyPartSubTypeCode.html;
             else SubTypeCode = eTextBodyPartSubTypeCode.unknown;
 
             SizeInLines = pSizeInLines;

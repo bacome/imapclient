@@ -18,7 +18,7 @@ namespace usageexample1
                     // connect
                     //
                     lClient.SetServer(mHost); // if you are using this against a production server you'll likely need to specify SSL and maybe the port 
-                    lClient.SetPlainCredentials(mUserId, mPassword);
+                    lClient.SetPlainCredentials(mUserId, mPassword, eTLSRequirement.indifferent); // if you are using this against a production server you will most likely want to require TLS (which is the default that I have overridden here)
                     lClient.Connect();
 
                     Console.WriteLine(new string('-', 79));
@@ -38,8 +38,7 @@ namespace usageexample1
 
                     // show some information about the status of the inbox
                     //
-                    var lStatus = lInbox.Status(fStatusAttributes.all);
-                    Console.WriteLine($"There are {lStatus.Unseen} unseen messages out of {lStatus.Messages} in the inbox");
+                    Console.WriteLine($"There are {lInbox.UnseenCount} unseen messages out of {lInbox.MessageCount} in the inbox");
 
                     Console.WriteLine();
                     Console.WriteLine(new string('-', 79));
@@ -51,7 +50,7 @@ namespace usageexample1
                     // list some details of the unseen messages
                     //  (for efficiency specify the message properties to retrieve)
                     //
-                    foreach (var lMessage in lInbox.Messages(!cFilter.IsSeen, new cSort(cSortItem.Received), fMessageProperties.envelope | fMessageProperties.bodystructure))
+                    foreach (var lMessage in lInbox.Messages(!cFilter.Seen, new cSort(cSortItem.Received), fMessageProperties.envelope | fMessageProperties.bodystructure))
                     {
                         Console.WriteLine("Sent: " + lMessage.Sent);
                         Console.WriteLine("From: " + lMessage.From.DisplaySortString);
@@ -63,11 +62,11 @@ namespace usageexample1
                         if (lAttachments.Count > 0)
                         {
                             Console.WriteLine(lAttachments.Count + " attachments;");
-                            foreach (var lAttachment in lAttachments) Console.WriteLine(lAttachment.FileName + "\t" + lAttachment.SizeInBytes + "b");
+                            foreach (var lAttachment in lAttachments) Console.WriteLine(lAttachment.FileName + "\t" + lAttachment.SaveSizeInBytes() + "b");
                             Console.WriteLine();
                         }
 
-                        Console.WriteLine(lMessage.PlainText);
+                        Console.WriteLine(lMessage.PlainText());
 
                         Console.WriteLine();
                         Console.WriteLine(new string('-', 79));
@@ -116,12 +115,10 @@ Console.WriteLine();
 
 // list status of inbox
 
-var lStatus = lClient.Inbox.Status(fStatusAttributes.all);
-
 Console.WriteLine(
     "{0} unseen messages out of {1} in the inbox",
-    lStatus.Unseen,
-    lStatus.Messages);
+    lClient.Inbox.UnseenCount,
+    lClient.Inbox.MessageCount);
 
 Console.WriteLine();
 Console.WriteLine(new string('-', 79));
@@ -147,12 +144,12 @@ foreach (var lMessage in lClient.Inbox.Messages())
         foreach (var lAttachment in lAttachments)
             Console.WriteLine(
                 lAttachment.FileName + "\t" +
-                lAttachment.SizeInBytes + "b");
+                lAttachment.SaveSizeInBytes() + "b");
 
         Console.WriteLine();
     }
 
-    Console.WriteLine(lMessage.PlainText);
+    Console.WriteLine(lMessage.PlainText());
 
     Console.WriteLine();
     Console.WriteLine(new string('-', 79));

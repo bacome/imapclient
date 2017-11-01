@@ -1098,7 +1098,7 @@ namespace work.bacome.imapclient
                     if (lData.Envelope.MessageId.MsgId != "B27397-0100000@cac.washington.edu") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.11");
 
                     lTextPart = lData.Body as cTextBodyPart;
-                    if (lTextPart.SubType != "PLAIN" || lTextPart.Parameters.Count != 1 || lTextPart.Charset != "US-ASCII" || lTextPart.SizeInBytes != 3028 || lTextPart.SizeInLines != 92) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.1");
+                    if (lTextPart.SubTypeCode != eTextBodyPartSubTypeCode.plain || lTextPart.Parameters.Count != 1 || lTextPart.Charset != "US-ASCII" || lTextPart.SizeInBytes != 3028 || lTextPart.SizeInLines != 92) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.1");
                     if (lTextPart.ContentId != null || lTextPart.Description != null || lTextPart.DecodingRequired != eDecodingRequired.none) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.12.2");
 
                     if (lData.RFC822 != null || lData.RFC822Header != null || lData.RFC822Text != null || lData.Size != 4286 || lData.BodyStructure != null || lData.Bodies.Count != 0 || lData.UID != null || lData.BinarySizes.Count != 0) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.13");
