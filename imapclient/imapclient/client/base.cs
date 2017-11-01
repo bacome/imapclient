@@ -55,8 +55,8 @@ namespace work.bacome.imapclient
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
         // version and release date of this class
-        public static Version Version = new Version(0, 2);
-        public static DateTime ReleaseDate = new DateTime(2017, 7, 18);
+        public static Version Version = new Version(0, 3);
+        public static DateTime ReleaseDate = new DateTime(2017, 11, 1);
 
         public const string TraceSourceName = "work.bacome.cIMAPClient";
         private static readonly cTrace mTrace = new cTrace(TraceSourceName);

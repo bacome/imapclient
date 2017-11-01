@@ -29,8 +29,8 @@ namespace testharness2
             get
             {
                 if (rdoNone.Checked) return cSort.None;
-                if (rdoThreadOrderedSubject.Checked) return cSort.ThreadOrderedSubject;
-                if (rdoThreadReferences.Checked) return cSort.ThreadReferences;
+                //if (rdoThreadOrderedSubject.Checked) return cSort.ThreadOrderedSubject;
+                //if (rdoThreadReferences.Checked) return cSort.ThreadReferences;
                 return new cSort(from r in mBindingList where r.Rank != null orderby r.Rank select r.SortItem);
             }
         }
@@ -50,8 +50,8 @@ namespace testharness2
             mBindingList.Add(new cGridRowData(eSortItem.displayto));
 
             if (ReferenceEquals(mSort, cSort.None)) rdoNone.Checked = true;
-            else if (ReferenceEquals(mSort, cSort.ThreadOrderedSubject)) rdoThreadOrderedSubject.Checked = true;
-            else if (ReferenceEquals(mSort, cSort.ThreadReferences)) rdoThreadReferences.Checked = true;
+            //else if (ReferenceEquals(mSort, cSort.ThreadOrderedSubject)) rdoThreadOrderedSubject.Checked = true;
+            //else if (ReferenceEquals(mSort, cSort.ThreadReferences)) rdoThreadReferences.Checked = true;
             else
             {
                 rdoOther.Checked = true;

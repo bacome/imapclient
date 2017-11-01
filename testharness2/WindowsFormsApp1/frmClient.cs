@@ -155,8 +155,8 @@ namespace testharness2
                 if (chkIgnoreESearch.Checked) lKnownCapabilities |= fCapabilities.esearch;
                 if (chkIgnoreSort.Checked) lKnownCapabilities |= fCapabilities.sort;
                 if (chkIgnoreSortDisplay.Checked) lKnownCapabilities |= fCapabilities.sortdisplay;
-                if (chkIgnoreThreadOrderedSubject.Checked) lKnownCapabilities |= fCapabilities.threadorderedsubject;
-                if (chkIgnoreThreadReferences.Checked) lKnownCapabilities |= fCapabilities.threadreferences;
+                //if (chkIgnoreThreadOrderedSubject.Checked) lKnownCapabilities |= fCapabilities.threadorderedsubject;
+                //if (chkIgnoreThreadReferences.Checked) lKnownCapabilities |= fCapabilities.threadreferences;
                 if (chkIgnoreESort.Checked) lKnownCapabilities |= fCapabilities.esort;
 
                 mClient.IgnoreCapabilities = lKnownCapabilities;

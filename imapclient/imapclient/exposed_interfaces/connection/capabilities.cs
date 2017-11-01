@@ -28,10 +28,12 @@ namespace work.bacome.imapclient
         sort = 1 << 19,
         sortdisplay = 1 << 20,
         esort = 1 << 21,
+        condstore = 1 << 22,
+        qresync = 1 << 23
+
+        /* deimplemented pending a requirement to complete it
         threadorderedsubject = 1 << 22,
-        threadreferences = 1 << 23,
-        condstore = 1 << 24,
-        qresync = 1 << 25
+        threadreferences = 1 << 23, */
     }
 
     public class cCapabilities
@@ -69,8 +71,8 @@ namespace work.bacome.imapclient
             if (pCapabilities.Contains("Sort", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.sort;
             if (pCapabilities.Contains("Sort=Display", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.sortdisplay;
             if (pCapabilities.Contains("ESort", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.esort;
-            if (pCapabilities.Contains("Thread=OrderedSubject", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.threadorderedsubject;
-            if (pCapabilities.Contains("Thread=References", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.threadreferences;
+            //if (pCapabilities.Contains("Thread=OrderedSubject", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.threadorderedsubject;
+            //if (pCapabilities.Contains("Thread=References", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.threadreferences;
             if (pCapabilities.Contains("CondStore", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.condstore;
             if (pCapabilities.Contains("QResync", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.qresync | fCapabilities.condstore;
 
@@ -99,8 +101,8 @@ namespace work.bacome.imapclient
         public bool Sort => (EffectiveCapabilities & fCapabilities.sort) != 0;
         public bool SortDisplay => (EffectiveCapabilities & fCapabilities.sortdisplay) != 0;
         public bool ESort => (EffectiveCapabilities & fCapabilities.esort) != 0;
-        public bool ThreadOrderedSubject => (EffectiveCapabilities & fCapabilities.threadorderedsubject) != 0;
-        public bool ThreadReferences => (EffectiveCapabilities & fCapabilities.threadreferences) != 0;
+        //public bool ThreadOrderedSubject => (EffectiveCapabilities & fCapabilities.threadorderedsubject) != 0;
+        //public bool ThreadReferences => (EffectiveCapabilities & fCapabilities.threadreferences) != 0;
         public bool CondStore => (EffectiveCapabilities & fCapabilities.condstore) != 0;
         public bool QResync => (EffectiveCapabilities & fCapabilities.qresync) != 0;
 
