@@ -36,13 +36,17 @@ namespace work.bacome.imapclient
                             }
                         }
 
-                        if (ZBackgroundSendAppendLiteralHeader())
+                        if (mCurrentCommand.State == eCommandState.current)
                         {
-                            mCurrentCommand.WaitingForContinuationRequest = true;
-                            break;
-                        }
+                            if (ZBackgroundSendAppendLiteralHeader())
+                            {
+                                mCurrentCommand.WaitingForContinuationRequest = true;
+                                break;
+                            }
 
-                        await ZBackgroundSendAppendDataAndMoveNextAsync(lContext).ConfigureAwait(false);
+                            await ZBackgroundSendAppendDataAndMoveNextAsync(lContext).ConfigureAwait(false);
+                        }
+                        else ZBackgroundSendTerminateCommand(lContext);
                     }
 
                     await mBackgroundSendBuffer.WriteAsync(lContext).ConfigureAwait(false);
@@ -165,13 +169,23 @@ namespace work.bacome.imapclient
 
                     if (mCurrentCommand.MoveNext()) return;
 
+                    ZBackgroundSendTerminateCommand(lContext);
+                }
+
+                private void ZBackgroundSendTerminateCommand(cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendTerminateCommand));
+
                     mBackgroundSendBuffer.AddCRLF();
 
-                    // the current command can be added to the list of active commands now
                     lock (mPipelineLock)
                     {
-                        mActiveCommands.Add(mCurrentCommand);
-                        mCurrentCommand.SetActive(lContext);
+                        if (mCurrentCommand.State == eCommandState.current)
+                        {
+                            mActiveCommands.Add(mCurrentCommand);
+                            mCurrentCommand.SetActive(lContext);
+                        }
+
                         mCurrentCommand = null;
                     }
                 }

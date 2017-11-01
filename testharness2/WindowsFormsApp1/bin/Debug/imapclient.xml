@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>imapclient</name>
+    </assembly>
+    <members>
+        <member name="T:work.bacome.imapclient.cIMAPClient">
+            <summary>
+            Instances of this class can connect to an IMAP server
+            </summary>
+            <remarks>
+            Before calling one of the Connect methods set the Server and Credentials properties at a minimum and consider setting the MailboxCacheData property
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.Connect"/> <seealso cref="P:work.bacome.imapclient.cIMAPClient.Server"/> <seealso cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/> <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetPlainCredentials(System.String,System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)"/> <seealso cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapclient.cIMAPClient.#ctor(System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="pInstanceName">Used to tag trace messages in case you have multiple instances in one exe</param>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext">
+            <summary>
+            The synchronisation context on which callbacks (including events) are made
+            </summary>
+            <remarks>
+            If set to null callbacks are made by the thread that discovers the need to do the callback
+            </remarks>
+        </member>
+        <member name="E:work.bacome.imapclient.cIMAPClient.ResponseText">
+            <summary>
+            Fired when the server sends response text
+            </summary>
+            <remarks>
+            The IMAP spec says that alerts MUST be brought to the users attention
+            </remarks>
+        </member>
+        <member name="E:work.bacome.imapclient.cIMAPClient.CallbackException">
+            <summary>
+            Fired when an exception is raised in by a callback
+            </summary>
+            <remarks>
+            The library ignores the exception other than raising this event
+            </remarks>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.Timeout">
+            <summary>
+            Sets the timeout for calls that involve network access
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.CancellableCount">
+            <summary>
+            Returns the number of currently running cancellable operations
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIMAPClient.Cancel">
+            <summary>
+            Cancels currently running cancellable operations
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.HomeServerReferral">
+            <summary>
+            The login referral (rfc 2221), if received
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities">
+            <summary>
+            Capabilities that you wish the instance to ignore
+            </summary>
+            <remarks>
+            Useful for testing or if your server (or the library) has a bug in its implementation of an IMAP extension 
+            </remarks>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.Server">
+            <summary>
+            The server that the instance should connect to
+            </summary>
+            <remarks>
+            See the SetServer methods for an easy way to set this
+            </remarks>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.Credentials">
+            <summary>
+            The credentials to be used to connect to the server
+            </summary>
+            <remarks>
+            See the SetXXXCredentials methods for an easy way to set this
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapclient.cIMAPClient.SetXOAuth2Credentials(System.String,System.String,System.Boolean)">
+            <summary>
+            To connect to GMail if you don't want to 'Allow less secure apps' on your account and have implemented OAUTH2 in your application
+            </summary>
+            <remarks>
+            Note that I haven't tested this
+            </remarks>
+            <param name="pUserId"></param>
+            <param name="pAccessToken"></param>
+            <param name="pTryAuthenticateEvenIfXOAuth2IsntAdvertised">Try using this method of authentication even if the server doesn't advertise it</param>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.MailboxReferrals">
+            <summary>
+            Set this to true if you can handle mailbox referrals
+            </summary>
+            <remarks>
+            If this is set to false the instance will not return remote mailboxes in mailbox lists
+            </remarks>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData">
+            <summary>
+            Determines what details about mailboxes are available from the mailbox cache
+            </summary>
+            <remarks>
+            May only be set when the instance is unconnected
+            </remarks>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.NetworkWriteConfiguration">
+            <summary>
+            Controls the size of writes to the network
+            </summary>
+            <remarks>
+            You might want to limit this to increase the speed with which you can terminate the instance.
+            Higher values are presumably more efficient.
+            </remarks>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.IdleConfiguration">
+            <summary>
+            Sets parameters that control what the instance does while idle
+            </summary>
+            <remarks>
+            Set to null to stop the instance from doing anything.
+            If set, the instance will wait for the specified delay and then issue an IDLE command (rfc 2177) or CHECK/ NOOP commands periodically.
+            </remarks>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.AppendStreamReadConfiguration">
+            <summary>
+            The default control on the size of reads from streams provided to append
+            </summary>
+            <remarks>
+            You might want to limit this to increase the speed with which you can terminate the instance.
+            Higher values are presumably more efficient.
+            </remarks>
+        </member>
+    </members>
+</doc>

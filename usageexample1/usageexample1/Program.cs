@@ -88,6 +88,8 @@ namespace usageexample1
             Console.Read();
         }
 
+        // to test this include ", eTLSRequirement.indifferent" on the SetPlainCredentials
+
         static void NewWebVersion()
         {
 cIMAPClient lClient = new cIMAPClient();
@@ -128,7 +130,7 @@ Console.WriteLine();
 lClient.Inbox.Select();
 
 // list unseen messages in the inbox
-foreach (var lMessage in lClient.Inbox.Messages())
+foreach (var lMessage in lClient.Inbox.Messages(!cFilter.Seen))
 {
     Console.WriteLine("Sent: " + lMessage.Sent);
     Console.WriteLine("From: " + lMessage.From.DisplaySortString);
