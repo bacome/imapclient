@@ -2,6 +2,9 @@
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// A set of IMAP message attributes
+    /// </summary>
     [Flags]
     public enum fCacheAttributes
     {

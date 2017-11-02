@@ -3,10 +3,17 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Parameters to use with the LOGIN command
+    /// </summary>
     public class cLogin
     {
         public readonly string UserId;
         public readonly string Password;
+
+        /// <summary>
+        /// The TLS requirement for LOGIN to be used with this userid and password
+        /// </summary>
         public readonly eTLSRequirement TLSRequirement;
 
         private cLogin(string pUserId, string pPassword, eTLSRequirement pTLSRequirement, bool pValidated)
@@ -29,6 +36,15 @@ namespace work.bacome.imapclient
             TLSRequirement = pTLSRequirement;
         }
 
+        /// <summary>
+        /// Tries to create a cLogin instance.
+        /// LOGIN only allows ASCII userids and passwords, so this may fail.
+        /// </summary>
+        /// <param name="pUserId"></param>
+        /// <param name="pPassword"></param>
+        /// <param name="pTLSRequirement"></param>
+        /// <param name="rLogin"></param>
+        /// <returns></returns>
         public static bool TryConstruct(string pUserId, string pPassword, eTLSRequirement pTLSRequirement, out cLogin rLogin)
         {
             if (string.IsNullOrEmpty(pUserId) || string.IsNullOrEmpty(pPassword)) { rLogin = null; return false; }

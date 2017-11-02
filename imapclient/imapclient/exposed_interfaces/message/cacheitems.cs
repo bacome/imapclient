@@ -2,11 +2,25 @@
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Specifies a set of items that can be cached in the internal message cache
+    /// </summary>
+    /// <remarks>
+    /// Note that the class has three implicit conversions, including one from fMessageProperties.
+    /// </remarks>
+    /// <seealso cref="fMessageProperties"/>
     public class cCacheItems
     {
         public static readonly cCacheItems None = new cCacheItems(0, cHeaderFieldNames.None);
 
+        /// <summary>
+        /// A set of IMAP message attributes
+        /// </summary>
         public readonly fCacheAttributes Attributes;
+
+        /// <summary>
+        /// A list of header field names
+        /// </summary>
         public readonly cHeaderFieldNames Names;
 
         public cCacheItems(fCacheAttributes pAttributes, cHeaderFieldNames pNames)

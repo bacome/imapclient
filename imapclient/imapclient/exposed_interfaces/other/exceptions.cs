@@ -4,6 +4,9 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Base class for all of the library's custom exceptions
+    /// </summary>
     public abstract class cIMAPException : Exception
     {
         public cIMAPException() { }
@@ -11,10 +14,20 @@ namespace work.bacome.imapclient
         public cIMAPException(string pMessage, Exception pInnerException) : base(pMessage, pInnerException) { }
     }
 
-    // thrown on a 'NO'
+    /// <summary>
+    /// Thrown on a 'NO' command response
+    /// </summary>
     public class cUnsuccessfulCompletionException : cIMAPException
     {
+        /// <summary>
+        /// The response text associated with the 'NO'
+        /// </summary>
         public readonly cResponseText ResponseText;
+
+        /// <summary>
+        /// If set an indication that ignoring these capabilities may have prevented the exception
+        /// </summary>
+        /// <see cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
         public cUnsuccessfulCompletionException(cResponseText pResponseText, fCapabilities pTryIgnoring, cTrace.cContext pContext)
@@ -34,10 +47,23 @@ namespace work.bacome.imapclient
         }
     }
 
-    // thrown on a 'BAD' 
+    /// <summary>
+    /// Thrown on a 'NO' or 'BAD' command response
+    /// </summary>
+    /// <remarks>
+    /// Thrown on a 'NO' only when the 'NO' is an unexpected possibility
+    /// </remarks>
     public class cProtocolErrorException : cIMAPException
     {
+        /// <summary>
+        /// The command result associated with the response
+        /// </summary>
         public readonly cCommandResult CommandResult;
+
+        /// <summary>
+        /// If set an indication that ignoring these capabilities may have prevented the exception
+        /// </summary>
+        /// <see cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
         public cProtocolErrorException(cCommandResult pCommandResult, fCapabilities pTryIgnoring, cTrace.cContext pContext)
@@ -57,9 +83,15 @@ namespace work.bacome.imapclient
         }
     }
 
-    // thrown when something happens that shouldn't (according to my reading of the rfcs)
+    /// <summary>
+    /// thrown when something happens that shouldn't (according to my reading of the rfcs)
+    /// </summary>
     public class cUnexpectedServerActionException : cIMAPException
     {
+        /// <summary>
+        /// If set an indication that ignoring these capabilities may have prevented the exception
+        /// </summary>
+        /// <see cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
         public cUnexpectedServerActionException(fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
@@ -77,7 +109,9 @@ namespace work.bacome.imapclient
         }
     }
 
-    // thrown on detected internal errors
+    /// <summary>
+    /// thrown when something happens that shouldn't
+    /// </summary>
     public class cInternalErrorException : cIMAPException
     {
         public cInternalErrorException() { }
@@ -86,9 +120,14 @@ namespace work.bacome.imapclient
         public cInternalErrorException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cInternalErrorException), pMessage, pInner);
     }
 
-    // server said bye at connect
+    /// <summary>
+    /// thrown when the server said bye at connect
+    /// </summary>
     public class cConnectByeException : cIMAPException
     {
+        /// <summary>
+        /// The response text associated with the 'BYE'
+        /// </summary>
         public readonly cResponseText ResponseText;
 
         public cConnectByeException(cResponseText pResponseText, cTrace.cContext pContext)
@@ -106,9 +145,14 @@ namespace work.bacome.imapclient
         }
     }
 
-    // server declined connection suggesting that we try a different server
+    /// <summary>
+    /// thrown when the server rejects connection but suggests that we try a different server
+    /// </summary>
     public class cHomeServerReferralException : cIMAPException
     {
+        /// <summary>
+        /// The response text associated with the rejection
+        /// </summary>
         public readonly cResponseText ResponseText;
 
         public cHomeServerReferralException(cResponseText pResponseText, cTrace.cContext pContext)
@@ -126,9 +170,14 @@ namespace work.bacome.imapclient
         }
     }
 
-    // server didn't accept the credentials we provided: if there was an explicit rejection then the response text will be filled in
+    /// <summary>
+    /// thrown when the server didn't accept the credentials provided
+    /// </summary>
     public class cCredentialsException : cIMAPException
     {
+        /// <summary>
+        /// Filled in if there was an explicit rejection of the credetials by the server
+        /// </summary>
         public readonly cResponseText ResponseText;
 
         public cCredentialsException(cTrace.cContext pContext)
@@ -152,9 +201,14 @@ namespace work.bacome.imapclient
         }
     }
 
-    // thrown to indicate that the inability to connect is related to the lack of usable authentication mechanisms offered by the server
+    /// <summary>
+    /// thrown to indicate that the inability to connect is related to the lack of usable authentication mechanisms offered by the server
+    /// </summary>
     public class cAuthenticationMechanismsException : cIMAPException
     {
+        /// <summary>
+        /// This is set to true if the problem might be fixed by using TLS
+        /// </summary>
         public readonly bool TLSIssue;
 
         public cAuthenticationMechanismsException(bool pTLSIssue, cTrace.cContext pContext)
@@ -172,9 +226,14 @@ namespace work.bacome.imapclient
         }
     }
 
-    // thrown to indicate that a server initiated 'BYE' occurred
+    /// <summary>
+    /// thrown to indicate that a server initiated 'BYE' occurred
+    /// </summary>
     public class cUnilateralByeException : cIMAPException
     {
+        /// <summary>
+        /// The response text associated with the 'BYE'
+        /// </summary>
         public readonly cResponseText ResponseText;
 
         public cUnilateralByeException(cResponseText pResponseText, cTrace.cContext pContext)
@@ -192,20 +251,26 @@ namespace work.bacome.imapclient
         }
     }
 
-    // thrown when SASL encoding or decoding fails
+    /// <summary>
+    /// thrown when SASL security layer encoding or decoding fails
+    /// </summary>
     public class cSASLSecurityException : cIMAPException
     {
         public cSASLSecurityException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cSASLSecurityException), pMessage);
         public cSASLSecurityException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cSASLSecurityException), pMessage, pInner);
     }
 
-    // thrown when there are two pipelined commands that conflict in some way
+    /// <summary>
+    /// thrown when there are two pipelined commands that conflict in some way
+    /// </summary>
     public class cPipelineConflictException : cIMAPException
     {
         public cPipelineConflictException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineConflictException));
     }
 
-    // thrown when the command pipeline is stopped
+    /// <summary>
+    /// thrown when the internal command pipeline has stopped processing commands
+    /// </summary>
     public class cPipelineStoppedException : cIMAPException
     {
         public cPipelineStoppedException() { }
@@ -213,7 +278,9 @@ namespace work.bacome.imapclient
         public cPipelineStoppedException(Exception pInner, cTrace.cContext pContext) : base(string.Empty, pInner) => pContext.TraceError("{0}\n{1}", nameof(cPipelineStoppedException), pInner);
     }
 
-    // thrown when the stream is closed
+    /// <summary>
+    /// thrown when the internal network stream has been closed
+    /// </summary>
     public class cStreamClosedException : cIMAPException
     {
         public cStreamClosedException() { }
@@ -222,14 +289,18 @@ namespace work.bacome.imapclient
         public cStreamClosedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamClosedException), pMessage, pInner);
     }
 
-    // thrown when the UIDValidity changed while doing something that depended on it not changing
+    /// <summary>
+    /// thrown when the UIDValidity changed while doing something that depended on it not changing
+    /// </summary>
     public class cUIDValidityChangedException : cIMAPException
     {
         public cUIDValidityChangedException() { }
         public cUIDValidityChangedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityChangedException));
     }
 
-    // thrown when the CTE can't be handled
+    /// <summary>
+    /// thrown when the CTE can't be handled
+    /// </summary>
     public class cContentTransferDecodingException : cIMAPException
     {
         public cContentTransferDecodingException(cTrace.cContext pContext) => pContext.TraceError(nameof(cContentTransferDecodingException));
@@ -261,10 +332,16 @@ namespace work.bacome.imapclient
         }
     } */
 
-    // thrown when a handle can't resolved when building the filter
+    /// <summary>
+    /// thrown when a handle can't resolved when building the filter
+    /// </summary>
     public class cFilterMSNException : cIMAPException
     {
+        /// <summary>
+        /// The handle that couldn't be resolved to an MSN
+        /// </summary>
         public readonly iMessageHandle Handle;
+
         public cFilterMSNException(iMessageHandle pHandle) { Handle = pHandle; }
 
         public override string ToString()

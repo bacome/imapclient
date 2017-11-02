@@ -9,8 +9,13 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        // manual list
-
+        /// <summary>
+        /// List mailboxes using an IMAP wildcard search
+        /// </summary>
+        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
+        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
+        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
+        /// <returns>A list of mailboxes</returns>
         public List<cMailbox> Mailboxes(string pListMailbox, char? pDelimiter, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
@@ -19,6 +24,13 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// List mailboxes using an IMAP wildcard search
+        /// </summary>
+        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
+        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
+        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
+        /// <returns>A list of mailboxes</returns>
         public Task<List<cMailbox>> MailboxesAsync(string pListMailbox, char? pDelimiter, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxesAsync));
