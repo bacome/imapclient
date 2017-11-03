@@ -3,6 +3,14 @@ using System.Linq;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// A set of server capabilities
+    /// </summary>
+    /// <remarks>
+    /// The elements of this enum are all the capabilities that the library understands in some way.
+    /// The full list of server capabilities can be found in a cCapabilities instance
+    /// </remarks>
+    /// <seealso cref="cCapabilities"/>
     [Flags]
     public enum fCapabilities
     {
@@ -36,10 +44,28 @@ namespace work.bacome.imapclient
         threadreferences = 1 << 23, */
     }
 
+    /// <summary>
+    /// A set of server capabilities
+    /// </summary>
     public class cCapabilities
     {
+        /// <summary>
+        /// Contains the capabilities as presented by the server
+        /// </summary>
         public readonly cStrings Capabilities;
+
+        /// <summary>
+        /// Contains the authentication mechanisms supported by the server
+        /// </summary>
         public readonly cStrings AuthenticationMechanisms;
+
+        /// <summary>
+        /// Contains the set of server capabilities that the instance is assuming
+        /// </summary>
+        /// <remarks>
+        /// This is the set of recognised capabilities less the set that the instance has been told to ignore
+        /// </remarks>
+        /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities EffectiveCapabilities;
 
         public cCapabilities(cStrings pCapabilities, cStrings pAuthenticationMechanisms, fCapabilities pIgnoreCapabilities)

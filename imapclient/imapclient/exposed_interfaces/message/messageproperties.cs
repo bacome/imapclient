@@ -2,6 +2,10 @@
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Specifies a set of message class properties
+    /// </summary>
+    /// <seealso cref="cMessage"/>
     [Flags]
     public enum fMessageProperties
     {

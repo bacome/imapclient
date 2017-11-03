@@ -7,6 +7,9 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Provides an API that allows interaction with an IMAP mailbox
+    /// </summary>
     public class cMailbox : iMailboxParent
     {
         private PropertyChangedEventHandler mPropertyChanged;
@@ -52,6 +55,9 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pArgs.Handle, Handle)) mPropertyChanged?.Invoke(this, pArgs);
         }
 
+        /// <summary>
+        /// Fired when messages are delivered into the mailbox
+        /// </summary>
         public event EventHandler<cMessageDeliveryEventArgs> MessageDelivery
         {
             add
@@ -80,14 +86,44 @@ namespace work.bacome.imapclient
 
         // convenience methods
 
+        /// <summary>
+        /// The fully qualified name of the mailbox
+        /// </summary>
         public string Path => Handle.MailboxName.Path;
+
+        /// <summary>
+        /// The hierarchy delimiter used in the mailbox path
+        /// </summary>
         public char? Delimiter => Handle.MailboxName.Delimiter;
+
+        /// <summary>
+        /// The path of the parent mailbox
+        /// </summary>
+        /// <remarks>
+        /// Will be null if there is no parent mailbox
+        /// </remarks>
         public string ParentPath => Handle.MailboxName.ParentPath;
+
+        /// <summary>
+        /// The name of the mailbox
+        /// </summary>
+        /// <remarks>
+        /// As compared to the path: this does not include the hierarchy
+        /// </remarks>
+        /// <seealso cref="Path"/>
         public string Name => Handle.MailboxName.Name;
+
         public bool IsInbox => Handle.MailboxName.IsInbox;
 
         // properties
 
+        /// <summary>
+        /// True if the mailbox exists
+        /// </summary>
+        /// <remarks>
+        /// Subscribed mailboxes do not need to actually exist.
+        /// Neither do parts of a real mailboxes hierarchy.
+        /// </remarks>
         public bool Exists
         {
             get
@@ -97,6 +133,12 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// False if the mailbox can definitely not contain child mailboxes
+        /// </summary>
+        /// <remarks>
+        /// see the IMAP \Noinferiors flag
+        /// </remarks>
         public bool? CanHaveChildren
         {
             get
@@ -108,6 +150,12 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// False if the mailbox cannot be selected
+        /// </summary>
+        /// <remarks>
+        /// see the IMAP \Noselect flag
+        /// </remarks>
         public bool CanSelect
         {
             get
@@ -119,6 +167,12 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// Indicates if the mailbox has been marked "interesting" by the server
+        /// </summary>
+        /// <remarks>
+        /// see the IMAP \Marked and \Unmarked flags
+        /// </remarks>
         public bool? IsMarked
         {
             get
@@ -130,6 +184,14 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// If true the mailbox is definitely a remote mailbox.
+        /// If false the mailbox is not definitely a remote mailbox, but it may be.
+        /// </summary>
+        /// <remarks>
+        /// Remote mailboxes will never be returned by the library if the cIMAPClient.MailboxReferrals is set to false.
+        /// </remarks>
+        /// <seealso cref="cIMAPClient.MailboxReferrals"/>
         public bool IsRemote
         {
             get

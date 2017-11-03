@@ -7,12 +7,18 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /// <summary>
+        /// Poll the server using CHECK (if a mailbox is selected) and NOOP to see if the server has pending notifications for us
+        /// </summary>
         public void Poll()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Poll));
             mSynchroniser.Wait(ZPollAsync(lContext), lContext);
         }
 
+        /// <summary>
+        /// Poll the server using CHECK (if a mailbox is selected) and NOOP to see if the server has pending notifications for us
+        /// </summary>
         public Task PollAsync()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(PollAsync));

@@ -44,14 +44,6 @@ namespace work.bacome.imapclient
             return ZUIDFetchCacheItemsAsync(pHandle, cUIDList.FromUIDs(pUIDs), pItems, pConfiguration, lContext);
         }
 
-        private cSort mDefaultSort = cSort.None;
-
-        public cSort DefaultSort
-        {
-            get => mDefaultSort;
-            set => mDefaultSort = value ?? throw new ArgumentNullException();
-        }
-
         public List<cMessage> Messages(iMailboxHandle pHandle, cFilter pFilter, cSort pSort, cCacheItems pItems, cMessageFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));

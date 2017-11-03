@@ -19,6 +19,12 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cCopyFeedbackItem)}({Source},{Destination})";
     }
 
+    /// <summary>
+    /// Returned from copy operations if the server supports the UIDCOPY response code of rfc 4315
+    /// </summary>
+    /// <remarks>
+    /// Contains pairs of UIDs of messages involved in the copy.
+    /// </remarks>
     public class cCopyFeedback : IReadOnlyList<cCopyFeedbackItem>
     {
         private List<cCopyFeedbackItem> mItems = new List<cCopyFeedbackItem>();

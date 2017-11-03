@@ -7,6 +7,12 @@ namespace work.bacome.imapclient
 {
     public enum eSortItem { received, cc, sent, from, size, subject, to, displayfrom, displayto }
 
+    /// <summary>
+    /// An item to sort messages by
+    /// </summary>
+    /// <remarks>
+    /// Use the static instances that are members of the class to improve readability of your sort specification
+    /// </remarks>
     public class cSortItem
     {
         public static readonly cSortItem Received = new cSortItem(eSortItem.received, false);
@@ -30,7 +36,15 @@ namespace work.bacome.imapclient
         public static readonly cSortItem DisplayToDesc = new cSortItem(eSortItem.displayto, true);
 
         public readonly eSortItem Item;
+
+        /// <summary>
+        /// If sorting is to be done client-side this is the message cache attribute that is required
+        /// </summary>
         public readonly fCacheAttributes Attribute;
+
+        /// <summary>
+        /// Indicates descending sort
+        /// </summary>
         public readonly bool Desc;
 
         public cSortItem(eSortItem pItem, bool pDesc)
@@ -71,6 +85,9 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cSortItem)}({Item},{Attribute},{Desc})";
     }
 
+    /// <summary>
+    /// Defines a sort order for message lists
+    /// </summary>
     public class cSort : IComparer<iMessageHandle>, IComparer<cMessage>
     {
         public static readonly cSort None = new cSort("none");
@@ -117,6 +134,13 @@ namespace work.bacome.imapclient
             Items = new ReadOnlyCollection<cSortItem>(pItems);
         }
 
+        /// <summary>
+        /// Compares two message handles according to the sort definition.
+        /// If the attributes required for the comparision are not in the message cache the results are undefined.
+        /// </summary>
+        /// <param name="pX"></param>
+        /// <param name="pY"></param>
+        /// <returns></returns>
         public int Compare(iMessageHandle pX, iMessageHandle pY)
         {
             if (Items == null) throw new InvalidOperationException();
@@ -197,6 +221,13 @@ namespace work.bacome.imapclient
             return pX.CacheSequence.CompareTo(pY.CacheSequence);
         }
 
+        /// <summary>
+        /// Compares two messages according to the sort definition.
+        /// If the attributes required for the comparision are not in the message cache the attributes are fetched.
+        /// </summary>
+        /// <param name="pX"></param>
+        /// <param name="pY"></param>
+        /// <returns></returns>
         public int Compare(cMessage pX, cMessage pY)
         {
             if (Items == null) throw new InvalidOperationException();
@@ -215,6 +246,11 @@ namespace work.bacome.imapclient
             return Compare(pX.Handle, pY.Handle);
         }
 
+        /// <summary>
+        /// Returns the set of message attributes required by this sort and whether SORT=DISPLAY (RFC 5957) support is required for the server to do the sort.
+        /// </summary>
+        /// <param name="rDisplay">Set to true if SORT=DISPLAY (RFC 5957) support is required for the server to do the sort</param>
+        /// <returns>The set of message attributes required by this sort</returns>
         public fCacheAttributes Attributes(out bool rDisplay)
         {
             if (Items == null) throw new InvalidOperationException();

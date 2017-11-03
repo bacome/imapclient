@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace work.bacome.imapclient.support
 {
+    /// <summary>
+    /// Intended for internal use by the library
+    /// </summary>
     public static class cTools
     {
-        private const char kLCHEVRON = '\u00AB';
-        private const char kRCHEVRON = '\u00BB';
-
         public static string ASCIIBytesToString(IList<byte> pBytes)
         {
             if (pBytes.Count == 0) return string.Empty;
@@ -33,7 +34,11 @@ namespace work.bacome.imapclient.support
             return new string(Encoding.UTF8.GetChars(lBytes));
         }
 
-        public static string BytesToLoggableString(IList<byte> pBytes)
+        /*
+        private const char kLCHEVRON = '\u00AB';
+        private const char kRCHEVRON = '\u00BB';
+
+            private static string BytesToLoggableStringx(IList<byte> pBytes)
         {
             StringBuilder lBuilder = new StringBuilder();
 
@@ -51,7 +56,7 @@ namespace work.bacome.imapclient.support
             return lBuilder.ToString();
         }
 
-        public static string BytesToLoggableString(string pNameOfClass, IList<byte> pBytes, int pMaxLength)
+        private static string BytesToLoggableStringx(string pNameOfClass, IList<byte> pBytes, int pMaxLength)
         {
             StringBuilder lBuilder = new StringBuilder($"{pNameOfClass}(");
 
@@ -71,6 +76,38 @@ namespace work.bacome.imapclient.support
                     lBuilder.Append(lByte);
                     lBuilder.Append(kRCHEVRON);
                 }
+                else lBuilder.Append((char)lByte);
+            }
+
+            return lBuilder.ToString() + ")";
+        } */
+
+        public static string BytesToLoggableString(IList<byte> pBytes)
+        {
+            StringBuilder lBuilder = new StringBuilder();
+
+            foreach (byte lByte in pBytes)
+            {
+                if (lByte < cASCII.SPACE || lByte > cASCII.TILDA || lByte == cASCII.GRAVE) lBuilder.AppendFormat("`{0,2:X2}", lByte);
+                else lBuilder.Append((char)lByte);
+            }
+
+            return lBuilder.ToString();
+        }
+
+        public static string BytesToLoggableString(string pNameOfClass, IList<byte> pBytes, int pMaxLength)
+        {
+            StringBuilder lBuilder = new StringBuilder($"{pNameOfClass}(");
+
+            foreach (byte lByte in pBytes)
+            {
+                if (pMaxLength-- == 0)
+                {
+                    lBuilder.Append("```");
+                    break;
+                }
+
+                if (lByte < cASCII.SPACE || lByte > cASCII.TILDA || lByte == cASCII.GRAVE) lBuilder.AppendFormat("`{0,2:X2}", lByte);
                 else lBuilder.Append((char)lByte);
             }
 

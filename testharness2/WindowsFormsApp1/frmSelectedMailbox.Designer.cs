@@ -32,6 +32,7 @@
             this.cmdClose = new System.Windows.Forms.Button();
             this.rtx = new System.Windows.Forms.RichTextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.cmdCopyTo = new System.Windows.Forms.Button();
             this.cmdStore = new System.Windows.Forms.Button();
             this.cmdFilterClear = new System.Windows.Forms.Button();
             this.gbxOverrideSort = new System.Windows.Forms.GroupBox();
@@ -40,7 +41,6 @@
             this.cmdOverrideSortSet = new System.Windows.Forms.Button();
             this.cmdFilter = new System.Windows.Forms.Button();
             this.dgvMessages = new System.Windows.Forms.DataGridView();
-            this.cmdCopyTo = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -108,6 +108,17 @@
             this.splitContainer1.SplitterDistance = 320;
             this.splitContainer1.TabIndex = 0;
             // 
+            // cmdCopyTo
+            // 
+            this.cmdCopyTo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.cmdCopyTo.Location = new System.Drawing.Point(121, 513);
+            this.cmdCopyTo.Name = "cmdCopyTo";
+            this.cmdCopyTo.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopyTo.TabIndex = 5;
+            this.cmdCopyTo.Text = "Copy To ...";
+            this.cmdCopyTo.UseVisualStyleBackColor = true;
+            this.cmdCopyTo.Click += new System.EventHandler(this.cmdCopyTo_Click);
+            // 
             // cmdStore
             // 
             this.cmdStore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -132,7 +143,7 @@
             // 
             // gbxOverrideSort
             // 
-            this.gbxOverrideSort.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.gbxOverrideSort.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.gbxOverrideSort.Controls.Add(this.cmdOverrideSortClear);
             this.gbxOverrideSort.Controls.Add(this.lblOverrideSort);
@@ -146,7 +157,6 @@
             // 
             // cmdOverrideSortClear
             // 
-            this.cmdOverrideSortClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmdOverrideSortClear.Location = new System.Drawing.Point(118, 40);
             this.cmdOverrideSortClear.Name = "cmdOverrideSortClear";
             this.cmdOverrideSortClear.Size = new System.Drawing.Size(100, 25);
@@ -166,7 +176,6 @@
             // 
             // cmdOverrideSortSet
             // 
-            this.cmdOverrideSortSet.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmdOverrideSortSet.Location = new System.Drawing.Point(12, 40);
             this.cmdOverrideSortSet.Name = "cmdOverrideSortSet";
             this.cmdOverrideSortSet.Size = new System.Drawing.Size(100, 25);
@@ -202,17 +211,6 @@
             this.dgvMessages.Size = new System.Drawing.Size(462, 566);
             this.dgvMessages.TabIndex = 0;
             this.dgvMessages.RowHeaderMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgv_RowHeaderMouseDoubleClick);
-            // 
-            // cmdCopyTo
-            // 
-            this.cmdCopyTo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdCopyTo.Location = new System.Drawing.Point(121, 513);
-            this.cmdCopyTo.Name = "cmdCopyTo";
-            this.cmdCopyTo.Size = new System.Drawing.Size(100, 25);
-            this.cmdCopyTo.TabIndex = 5;
-            this.cmdCopyTo.Text = "Copy To ...";
-            this.cmdCopyTo.UseVisualStyleBackColor = true;
-            this.cmdCopyTo.Click += new System.EventHandler(this.cmdCopyTo_Click);
             // 
             // frmSelectedMailbox
             // 

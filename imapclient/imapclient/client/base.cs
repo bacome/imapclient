@@ -110,6 +110,9 @@ namespace work.bacome.imapclient
             mCancellationManager = new cCancellationManager(mSynchroniser.InvokeCancellableCountChanged);
         }
 
+        /// <summary>
+        /// The instance name used to tag trace messages
+        /// </summary>
         public string InstanceName => mInstanceName;
 
         /// <summary>
@@ -184,8 +187,6 @@ namespace work.bacome.imapclient
             remove { mSynchroniser.CallbackException -= value; }
         }
 
-        // async operation management
-
         /// <summary>
         /// Sets the timeout for calls that involve network access
         /// </summary>
@@ -252,8 +253,11 @@ namespace work.bacome.imapclient
         /// The server that the instance should connect to
         /// </summary>
         /// <remarks>
-        /// See the SetServer methods for an easy way to set this
+        /// See the SetServer methods for an easy way to set this property
         /// </remarks>
+        /// <seealso cref="SetServer(string)"/>
+        /// <seealso cref="SetServer(string, bool)"/>
+        /// <seealso cref="SetServer(string, int, bool)"/>
         public cServer Server
         {
             get => mServer;
@@ -266,16 +270,32 @@ namespace work.bacome.imapclient
             }
         } 
 
+        /// <summary>
+        /// Sets the server that the instance should connect to, defaulting the port to 143 and SSL to false
+        /// </summary>
         public void SetServer(string pHost) => Server = new cServer(pHost);
+
+        /// <summary>
+        /// Sets the server that the instance should connect to, specifying whether SSL is required or not.
+        /// If SSL is required the port is set to 993, otherwise it is set to 143.
+        /// </summary>
         public void SetServer(string pHost, bool pSSL) => Server = new cServer(pHost, pSSL);
+
+        /// <summary>
+        /// Sets the server that the instance should connect to, specifying the port and whether SSL is required or not.
+        /// </summary>
         public void SetServer(string pHost, int pPort, bool pSSL) => Server = new cServer(pHost, pPort, pSSL);
 
         /// <summary>
         /// The credentials to be used to connect to the server
         /// </summary>
         /// <remarks>
-        /// See the SetXXXCredentials methods for an easy way to set this
+        /// See the SetXXXCredentials methods for an easy way to set this property
         /// </remarks>
+        /// <seealso cref="SetNoCredentials"/>
+        /// <seealso cref="SetAnonymousCredentials"/>
+        /// <seealso cref="SetPlainCredentials"/>
+        /// <seealso cref="SetXOAuth2Credentials"/>
         public cCredentials Credentials
         {
             get => mCredentials;
@@ -307,8 +327,15 @@ namespace work.bacome.imapclient
         /// Set this to true if you can handle mailbox referrals
         /// </summary>
         /// <remarks>
-        /// If this is set to false the instance will not return remote mailboxes in mailbox lists
+        /// If this is set to false the instance will not return remote mailboxes in mailbox lists.
+        /// Being able to handle mailbox referrals means handling the exceptions that may be raised by the library when accessing remote mailboxes.
+        /// See RFC 2193 and cUnsuccessfulCompletionException
         /// </remarks>
+        /// <seealso cref="cUnsuccessfulCompletionException"/>
+        /// <seealso cref="cUnsuccessfulCompletionException.ResponseText"/>
+        /// <seealso cref="cResponseText.Strings"/>
+        /// <seealso cref="cURL"/>
+        /// <seealso cref="cURI"/>
         public bool MailboxReferrals
         {
             get => mMailboxReferrals;
@@ -358,15 +385,12 @@ namespace work.bacome.imapclient
             }
         }
 
-        // idle config; either IDLE (rfc 2177) or base protocol CHECK and NOOP
-        //  the command pipeline waits until a certain period of inactivity has occurred before starting either an IDLE command or periodic polling
-        //
         /// <summary>
         /// Sets parameters that control what the instance does while idle
         /// </summary>
         /// <remarks>
         /// Set to null to stop the instance from doing anything.
-        /// If set, the instance will wait for the specified delay and then issue an IDLE command (rfc 2177) or CHECK/ NOOP commands periodically.
+        /// If set, the instance determines that it is idle after the specified time and then issues periodic IDLE (rfc 2177) or CHECK/ NOOP commands.
         /// </remarks>
         public cIdleConfiguration IdleConfiguration
         {
@@ -386,7 +410,6 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// You might want to limit this to increase the speed with which you can terminate the instance.
-        /// Higher values are presumably more efficient.
         /// </remarks>
         public cBatchSizerConfiguration AppendStreamReadConfiguration
         {
@@ -400,8 +423,12 @@ namespace work.bacome.imapclient
             }
         }
 
-        // configuration that controls the number of messages fetched at one time
-        //
+        /// <summary>
+        /// The configuration that controls the number of messages fetched at one time
+        /// </summary>
+        /// <remarks>
+        /// You might want to limit this to increase the speed with which you can cancel the fetch.
+        /// </remarks>
         public cBatchSizerConfiguration FetchCacheItemsConfiguration
         {
             get => mFetchCacheItemsConfiguration;
@@ -415,8 +442,12 @@ namespace work.bacome.imapclient
             }
         }
 
-        // configuration that controls the number of bytes fetched at one time
-        //
+        /// <summary>
+        /// The configuration that controls the number of bytes fetched from the server at one time
+        /// </summary>
+        /// <remarks>
+        /// You might want to limit this to increase the speed with which you can cancel the fetch.
+        /// </remarks>
         public cBatchSizerConfiguration FetchBodyReadConfiguration
         {
             get => mFetchBodyReadConfiguration;
@@ -430,8 +461,12 @@ namespace work.bacome.imapclient
             }
         }
 
-        // configuration that controls the number of bytes written at one time
-        //
+        /// <summary>
+        /// The configuration that controls the number of bytes written to the output stream when fetching
+        /// </summary>
+        /// <remarks>
+        /// You might want to limit this to increase the speed with which you can cancel the fetch.
+        /// </remarks>
         public cBatchSizerConfiguration FetchBodyWriteConfiguration
         {
             get => mFetchBodyWriteConfiguration;
@@ -444,8 +479,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        // encoding to use when UTF8 (rfc 6855) is not supported directly by the server
-        //
+        /// <summary>
+        /// The encoding to use when UTF8 (rfc 6855) is not supported directly by the server
+        /// </summary>
         public Encoding Encoding
         {
             get => mEncoding;
@@ -460,8 +496,14 @@ namespace work.bacome.imapclient
             }
         }
 
-        // id command (rfc 2971)
-        
+        /// <summary>
+        /// The ID details to send to the server if it supports the ID command (rfc 2971)
+        /// </summary>
+        /// <remarks>
+        /// This is the ASCII version of the information.
+        /// If the server supports UTF8 and a UTF8 version of the ID information is set, that version will be used in preference to this version.
+        /// </remarks>
+        /// <seealso cref="ClientIdUTF8"/>
         public cClientId ClientId
         {
             get => mClientId;
@@ -474,6 +516,14 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// The ID details to send to the server if it supports the ID command (rfc 2971)
+        /// </summary>
+        /// <remarks>
+        /// This is the UTF8 version of the information.
+        /// If the server does not support UTF8 then the ASCII version will be used.
+        /// </remarks>
+        /// <seealso cref="ClientId"/>
         public cClientIdUTF8 ClientIdUTF8
         {
             get => mClientIdUTF8 ?? mClientId;
@@ -486,10 +536,21 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// The ID details of the server if it supports the ID command (rfc 2971)
+        /// </summary>
+        /// <remarks>
+        /// Will only have a value after connecting to the server.
+        /// </remarks>
         public cId ServerId => mSession?.ServerId;
 
-        // rfc 2342 namespaces (if the server doesn't support namespaces then this will still work - there will be one personal namespace retrieved using LIST)
-        //
+        /// <summary>
+        /// The namespace details for the connected account.
+        /// </summary>
+        /// <remarks>
+        /// Will only have a value after connecting to the server.
+        /// If namespaces (rfc 2342) are not supported the library creates one personal namespace using the delimiter retrieved using LIST.
+        /// </remarks>
         public cNamespaces Namespaces
         {
             get
@@ -503,8 +564,14 @@ namespace work.bacome.imapclient
 
         public cMailbox Inbox => mInbox;
 
+        /// <summary>
+        /// Details of the currently selected mailbox, if any
+        /// </summary>
         public iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
 
+        /// <summary>
+        /// The currently selected mailbox, if any
+        /// </summary>
         public cMailbox SelectedMailbox
         {
             get
@@ -515,6 +582,9 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// Returns a mailbox instance for the mailbox with the specified name
+        /// </summary>
         public cMailbox Mailbox(cMailboxName pMailboxName)
         {
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
@@ -529,8 +599,22 @@ namespace work.bacome.imapclient
             return new cMailbox(this, lHandle);
         }
 
+        /// <summary>
+        /// Intended for internal use by the library
+        /// </summary>
+        /// <remarks>
+        /// Checks if the cache contains mailboxes that are children of the specified mailbox.
+        /// Used when the server has not indicated whether the mailbox has children or not.
+        /// </remarks>
         public bool? HasCachedChildren(iMailboxHandle pHandle) => mSession?.HasCachedChildren(pHandle);
 
+        /// <summary>
+        /// Intended for debugging use.
+        /// </summary>
+        /// <remarks>
+        /// Returns the number of subscriptions to the various events.
+        /// Used to check that events are being 'unsubscribed' correctly.
+        /// </remarks>
         public sEventSubscriptionCounts EventSubscriptionCounts => mSynchroniser.EventSubscriptionCounts;
 
         public void Dispose()

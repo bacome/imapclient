@@ -709,8 +709,8 @@ namespace work.bacome.imapclient
                     if (!lFailed) throw new cTestsException("ZMessageFilterCommandPartsTests Subject.2 - didn't fail as expected", lContext);
 
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, false, true, Encoding.UTF32) != "SUBJECT \"fr«226»«130»«172»d\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.3", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, false, false, Encoding.UTF8) != "CHARSET utf-8 SUBJECT {6}fr«226»«130»«172»d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.4", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, false, true, Encoding.UTF32) != "SUBJECT \"fr`E2`82`ACd\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, false, false, Encoding.UTF8) != "CHARSET utf-8 SUBJECT {6}fr`E2`82`ACd") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.4", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, false, false, Encoding.UTF7) != "CHARSET utf-7 SUBJECT fr+IKw-d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.5", lContext);
 
 
@@ -720,8 +720,8 @@ namespace work.bacome.imapclient
                     catch { lFailed = true; }
                     if (!lFailed) throw new cTestsException("ZMessageFilterCommandPartsTests Subject.6 - didn't fail as expected", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, true, true, Encoding.UTF32) != "UTF-8 SUBJECT \"fr«226»«130»«172»d\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.6", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, true, false, Encoding.UTF8) != "utf-8 SUBJECT {6}fr«226»«130»«172»d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.7", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, true, true, Encoding.UTF32) != "UTF-8 SUBJECT \"fr`E2`82`ACd\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.6", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, true, false, Encoding.UTF8) != "utf-8 SUBJECT {6}fr`E2`82`ACd") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.7", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("fr€d"), lSelectedMailbox, true, false, Encoding.UTF7) != "utf-7 SUBJECT fr+IKw-d") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.8", lContext);
 
                     DateTime lDateTime = new DateTime(1968, 4, 4, 12, 34, 56);

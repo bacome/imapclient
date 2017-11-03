@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
 
                             if (lBackgroundSendTask == null &&
                                 ((mCurrentCommand == null && mQueuedCommands.Count > 0) ||
-                                 (mCurrentCommand != null && !mCurrentCommand.WaitingForContinuationRequest)
+                                 (mCurrentCommand != null && !mCurrentCommand.IsAuthentication && !mCurrentCommand.WaitingForContinuationRequest)
                                 )
                                ) lBackgroundSendTask = ZBackgroundSendAsync(lContext);
 

@@ -2,12 +2,18 @@
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Specifies an IMAP server
+    /// </summary>
     public class cServer
     {
         public readonly string Host;
         public readonly int Port;
         public readonly bool SSL;
 
+        /// <summary>
+        /// Port defaulted to 143 and SSL to false
+        /// </summary>
         public cServer(string pHost)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
@@ -16,6 +22,9 @@ namespace work.bacome.imapclient
             SSL = false;
         }
 
+        /// <summary>
+        /// Port defaulted to 143 if SSL is false, otherwise 993
+        /// </summary>
         public cServer(string pHost, bool pSSL)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));

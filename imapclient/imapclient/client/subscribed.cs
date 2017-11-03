@@ -9,8 +9,14 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        // manual list
-
+        /// <summary>
+        /// List subscribed mailboxes using an IMAP wildcard search
+        /// </summary>
+        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
+        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
+        /// <param name="pHasSubscribedChildren">Include in the list mailboxes that are not themselves subscribed but that have subscribed children</param>
+        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
+        /// <returns>A list of mailboxes</returns>
         public List<cMailbox> Subscribed(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
@@ -19,6 +25,14 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// List subscribed mailboxes using an IMAP wildcard search
+        /// </summary>
+        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
+        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
+        /// <param name="pHasSubscribedChildren">Include in the list mailboxes that are not themselves subscribed but that have subscribed children</param>
+        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
+        /// <returns>A list of mailboxes</returns>
         public Task<List<cMailbox>> SubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));
