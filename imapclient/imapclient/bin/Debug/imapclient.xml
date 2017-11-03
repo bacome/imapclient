@@ -778,6 +778,31 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:work.bacome.imapclient.support.cASCII">
+            <summary>
+            Intended for internal use by the library
+            </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.support.cChar">
+            <summary>
+            Intended for internal use by the library
+            </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.support.cCharset">
+            <summary>
+            Intended for internal use by the library
+            </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.support.cASCIIMonth">
+            <summary>
+            Intended for internal use by the library
+            </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.support.cTools">
+            <summary>
+            Intended for internal use by the library
+            </summary>
+        </member>
         <member name="T:work.bacome.imapclient.cMailbox">
             <summary>
             Provides an API that allows interaction with an IMAP mailbox

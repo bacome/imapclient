@@ -5,9 +5,9 @@ namespace usageexample1
 {
     class Program
     {
-        static string mHost = "192.168.56.101"; // my test server on my internal network - you'll need to change this
-        static string mUserId = "imapusageexample1"; // a valid user on my test server - you'll need to change this
-        static string mPassword = "imapusageexample1"; // the correct password on my test server - you'll need to change this
+        const string kHost = "192.168.56.101"; // my test server on my internal network - you'll need to change this
+        const string kUserId = "imapusageexample1"; // a valid user on my test server - you'll need to change this
+        const string kPassword = "imapusageexample1"; // the correct password on my test server - you'll need to change this
 
         static void Main(string[] args)
         {
@@ -17,8 +17,8 @@ namespace usageexample1
                 {
                     // connect
                     //
-                    lClient.SetServer(mHost); // if you are using this against a production server you'll likely need to specify SSL and maybe the port 
-                    lClient.SetPlainCredentials(mUserId, mPassword, eTLSRequirement.indifferent); // if you are using this against a production server you will most likely want to require TLS (which is the default that I have overridden here)
+                    lClient.SetServer(kHost); // if you are using this against a production server you'll likely need to specify SSL and maybe the port 
+                    lClient.SetPlainCredentials(kUserId, kPassword, eTLSRequirement.indifferent); // if you are using this against a production server you will most likely want to require TLS (which is the default that I have overridden here)
                     lClient.Connect();
 
                     Console.WriteLine(new string('-', 79));
@@ -95,8 +95,8 @@ namespace usageexample1
 cIMAPClient lClient = new cIMAPClient();
 
 // connect
-lClient.SetServer(mHost);
-lClient.SetPlainCredentials(mUserId, mPassword);
+lClient.SetServer(kHost);
+lClient.SetPlainCredentials(kUserId, kPassword);
 lClient.Connect();
 
 Console.WriteLine(new string('-', 79));
@@ -160,6 +160,7 @@ foreach (var lMessage in lClient.Inbox.Messages(!cFilter.Seen))
 
 // done
 lClient.Disconnect();
+lClient.Dispose();
         }
     }
 }

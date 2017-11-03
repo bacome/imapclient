@@ -4,6 +4,9 @@ using System.Collections.ObjectModel;
 
 namespace work.bacome.imapclient.support
 {
+    /// <summary>
+    /// Intended for internal use by the library
+    /// </summary>
     public static class cASCII
     {
         // null
@@ -87,6 +90,7 @@ namespace work.bacome.imapclient.support
         public const byte BACKSL = 92;
         public const byte RBRACKET = 93;
         public const byte UNDERSCORE = 95;
+        public const byte GRAVE = 96;
 
         // a-z
         public const byte a = 97;
@@ -150,6 +154,9 @@ namespace work.bacome.imapclient.support
         }
     }
 
+    /// <summary>
+    /// Intended for internal use by the library
+    /// </summary>
     public static class cChar
     {
         public const char NUL = '\0';
@@ -160,6 +167,9 @@ namespace work.bacome.imapclient.support
         public const char FF = '\u00FF';
     }
 
+    /// <summary>
+    /// Intended for internal use by the library
+    /// </summary>
     public abstract class cCharset
     {
         private const string cListWildcards = "%*";
@@ -819,6 +829,9 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset VSChar = new cVSChar();
     }
 
+    /// <summary>
+    /// Intended for internal use by the library
+    /// </summary>
     public static class cASCIIMonth
     {
         public static readonly cBytes Jan = new cBytes("JAN");

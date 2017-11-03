@@ -6,3 +6,4 @@ C:\Users\barry\Documents\GitHub\imapclient\usageexample1\usageexample1\bin\Debug
 C:\Users\barry\Documents\GitHub\imapclient\usageexample1\usageexample1\obj\Debug\usageexample1.csprojResolveAssemblyReference.cache
 C:\Users\barry\Documents\GitHub\imapclient\usageexample1\usageexample1\obj\Debug\usageexample1.exe
 C:\Users\barry\Documents\GitHub\imapclient\usageexample1\usageexample1\obj\Debug\usageexample1.pdb
+C:\Users\barry\Documents\GitHub\imapclient\usageexample1\usageexample1\bin\Debug\imapclient.xml
