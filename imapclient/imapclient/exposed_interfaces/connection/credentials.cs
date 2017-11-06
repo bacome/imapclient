@@ -109,24 +109,14 @@ namespace work.bacome.imapclient
             return lCredentials;
         }
 
-        /// <summary>
-        /// Generates an XOAUTH2 set of credentials
-        /// </summary>
-        /// <remarks>
-        /// To connect to GMail if you don't want to 'Allow less secure apps' on your account and have implemented OAUTH2 in your application.
-        /// Note that I haven't tested this.
-        /// </remarks>
-        /// <param name="pUserId"></param>
-        /// <param name="pAccessToken"></param>
-        /// <param name="pTryAuthenticateEvenIfXOAuth2IsntAdvertised">Try AUTHENTICATE XOAUTH2 even if it isn't advertised</param>
-        /// <returns></returns>
+        /* not tested yet
         public static cCredentials XOAuth2(string pUserId, string pAccessToken, bool pTryAuthenticateEvenIfXOAuth2IsntAdvertised = false)
         {
             var lXOAuth2 = new cSASLXOAuth2(pUserId, pAccessToken);
             var lCredentials = new cCredentials(pUserId, null, pTryAuthenticateEvenIfXOAuth2IsntAdvertised);
             lCredentials.mSASLs.Add(lXOAuth2);
             return lCredentials;
-        }
+        } */
 
         [Conditional("DEBUG")]
         public static void _Tests(cTrace.cContext pParentContext)

@@ -17,6 +17,8 @@ namespace usageexample2
             WebVersion();
             return;
 
+            fMailboxCacheDataSets.list;
+
             try
             {
                 using (cIMAPClient lClient = new cIMAPClient())

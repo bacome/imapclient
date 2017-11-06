@@ -24,4 +24,3 @@ C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Deb
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmMailboxDialog.resources
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmUID.resources
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmMessageData.resources
-C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\bin\Debug\imapclient.xml
