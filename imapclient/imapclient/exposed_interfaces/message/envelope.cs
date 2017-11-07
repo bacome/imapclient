@@ -2,19 +2,46 @@
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// IMAP message envelope data.
+    /// </summary>
     public class cEnvelope
     {
-        // all may be null
+        /** <summary>The message sent date. May be null.</summary> */
         public readonly DateTime? Sent;
+
+        /** <summary>The message subject. May be null.</summary> */
         public readonly cCulturedString Subject;
-        public readonly string BaseSubject; // as defined by rfc5256
-        public readonly cAddresses From; 
-        public readonly cAddresses Sender; 
+
+        /// <summary>
+        /// <para>The base subject as defined in RFC 5256.</para>
+        /// <para>(i.e. with the RE: FWD: etc stripped off)</para>
+        /// <para>May be null.</para>
+        /// </summary>
+        public readonly string BaseSubject;
+
+        /** <summary>The message 'from' address(s). May be null.</summary> */
+        public readonly cAddresses From;
+
+        /** <summary>The message sender address(s). May be null.</summary> */
+        public readonly cAddresses Sender;
+
+        /** <summary>The message repy-to address(s). May be null.</summary> */
         public readonly cAddresses ReplyTo;
+
+        /** <summary>The message 'to' address(s). May be null.</summary> */
         public readonly cAddresses To;
+
+        /** <summary>The message CC address(s). May be null.</summary> */
         public readonly cAddresses CC;
-        public readonly cAddresses BCC; 
+
+        /** <summary>The message BCC address(s). May be null.</summary> */
+        public readonly cAddresses BCC;
+
+        /** <summary>The in-reply-to message-ids. May be null.</summary> */
         public readonly cHeaderFieldMsgIds InReplyTo;
+
+        /** <summary>The message-id of the message. May be null.</summary> */
         public readonly cHeaderFieldMsgId MessageId;
 
         public cEnvelope(DateTime? pSent, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cHeaderFieldMsgIds pInReplyTo, cHeaderFieldMsgId pMessageId)

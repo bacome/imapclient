@@ -90,30 +90,31 @@ namespace work.bacome.imapclient
     {
         // immutable (for passing in)
 
+        /** <summary>An empty set of flags.</summary> */
         public static readonly cSettableFlags None = new cSettableFlags();
 
-        /** <summary>A set of flags containing just the \Answered flag</summary> */
+        /** <summary>A set of flags containing just the \Answered flag.</summary> */
         public static readonly cSettableFlags Answered = new cSettableFlags(kMessageFlagName.Answered);
 
-        /** <summary>A set of flags containing just the \Flagged flag</summary> */
+        /** <summary>A set of flags containing just the \Flagged flag.</summary> */
         public static readonly cSettableFlags Flagged = new cSettableFlags(kMessageFlagName.Flagged);
 
-        /** <summary>A set of flags containing just the \Deleted flag</summary> */
+        /** <summary>A set of flags containing just the \Deleted flag.</summary> */
         public static readonly cSettableFlags Deleted = new cSettableFlags(kMessageFlagName.Deleted);
 
-        /** <summary>A set of flags containing just the \Seen flag</summary> */
+        /** <summary>A set of flags containing just the \Seen flag.</summary> */
         public static readonly cSettableFlags Seen = new cSettableFlags(kMessageFlagName.Seen);
 
-        /** <summary>A set of flags containing just the \Draft flag</summary> */
+        /** <summary>A set of flags containing just the \Draft flag.</summary> */
         public static readonly cSettableFlags Draft = new cSettableFlags(kMessageFlagName.Draft);
 
-        /** <summary>A set of flags containing just the $Forwarded flag</summary> */
+        /** <summary>A set of flags containing just the $Forwarded flag.</summary> */
         public static readonly cSettableFlags Forwarded = new cSettableFlags(kMessageFlagName.Forwarded);
 
-        /** <summary>A set of flags containing just the $SubmitPending flag</summary> */
+        /** <summary>A set of flags containing just the $SubmitPending flag.</summary> */
         public static readonly cSettableFlags SubmitPending = new cSettableFlags(kMessageFlagName.SubmitPending);
 
-        /** <summary>A set of flags containing just the $Submitted flag</summary> */
+        /** <summary>A set of flags containing just the $Submitted flag.</summary> */
         public static readonly cSettableFlags Submitted = new cSettableFlags(kMessageFlagName.Submitted);
 
         // see comments elsewhere as to why this is commented out

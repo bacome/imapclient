@@ -257,7 +257,7 @@ namespace work.bacome.imapclient
     public class cMultiPartExtensionData : cBodyPartExtensionData
     {
         /// <summary>
-        /// The body parameters of the part.
+        /// The MIME type parameters of the part.
         /// </summary>
         public readonly cBodyStructureParameters Parameters;
 
@@ -318,7 +318,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// The body parameters.
+        /// The MIME type parameters of the part.
         /// </summary>
         public cBodyStructureParameters Parameters => ExtensionData?.Parameters;
 
@@ -417,7 +417,7 @@ namespace work.bacome.imapclient
     public class cSinglePartBody : cBodyPart
     {
         /// <summary>
-        /// The body parameters.
+        /// The MIME type parameters of the part.
         /// </summary>
         public readonly cBodyStructureParameters Parameters;
 
@@ -442,7 +442,7 @@ namespace work.bacome.imapclient
         public readonly eDecodingRequired DecodingRequired;
 
         /// <summary>
-        /// The size of the encoded part in bytes.
+        /// The size in bytes of the encoded part.
         /// </summary>
         public readonly uint SizeInBytes;
 
@@ -494,11 +494,26 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cSinglePartBody)}({base.ToString()},{Parameters},{ContentId},{Description},{ContentTransferEncoding},{DecodingRequired},{SizeInBytes},{ExtensionData})";
     }
 
+    /// <summary>
+    /// Represents a message part that contains a message.
+    /// </summary>
     public class cMessageBodyPart : cSinglePartBody
     {
+        /// <summary>
+        /// The IMAP envelope of the encapsulated message.
+        /// </summary>
         public readonly cEnvelope Envelope;
+
         private readonly cBodyPart mBody;
+
+        /// <summary>
+        /// The IMAP bodystructure information for the encapsulated message.
+        /// </summary>
         public readonly cBodyPart BodyStructure;
+
+        /// <summary>
+        /// The size in text lines of the encapsulated message.
+        /// </summary>
         public readonly uint SizeInLines;
 
         public cMessageBodyPart(cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cEnvelope pEnvelope, cBodyPart pBody, cBodyPart pBodyStructure, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Message, kMimeSubType.RFC822, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
@@ -509,14 +524,27 @@ namespace work.bacome.imapclient
             SizeInLines = pSizeInLines;
         }
 
+        /// <summary>
+        /// The IMAP body or bodystructure information for the encapsulated message, whichever is available.
+        /// </summary>
         public cBodyPart Body => mBody ?? BodyStructure;
 
         public override string ToString() => $"{nameof(cMessageBodyPart)}({base.ToString()},{Envelope},{BodyStructure ?? mBody},{SizeInLines})";
     }
 
+    /// <summary>
+    /// Represents a message part that contains text.
+    /// </summary>
     public class cTextBodyPart : cSinglePartBody
     {
+        /// <summary>
+        /// The MIME subtype of the part in code form.
+        /// </summary>
         public readonly eTextBodyPartSubTypeCode SubTypeCode;
+
+        /// <summary>
+        /// The size in text lines of the part.
+        /// </summary>
         public readonly uint SizeInLines;
 
         public cTextBodyPart(string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, uint pSizeInLines, cSinglePartExtensionData pExtensionData) : base(kMimeType.Text, pSubType, pSection, pParameters, pContentId, pDescription, pContentTransferEncoding, pSizeInBytes, pExtensionData)
@@ -528,6 +556,9 @@ namespace work.bacome.imapclient
             SizeInLines = pSizeInLines;
         }
 
+        /// <summary>
+        /// The character set of the text data.
+        /// </summary>
         public string Charset => Parameters?.First("charset")?.StringValue ?? "us-ascii";
 
         public override string ToString() => $"{nameof(cTextBodyPart)}({base.ToString()},{SizeInLines})";

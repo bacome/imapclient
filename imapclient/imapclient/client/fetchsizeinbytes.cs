@@ -8,6 +8,12 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /// <summary>
+        /// Intended for use by the <see cref="cMessage"/> and <see cref="cAttachment"/> classes.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pPart"></param>
+        /// <returns></returns>
         public int FetchSizeInBytes(iMessageHandle pHandle, cSinglePartBody pPart)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchSizeInBytes));
@@ -16,6 +22,12 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMessage"/> and <see cref="cAttachment"/> classes.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pPart"></param>
+        /// <returns></returns>
         public Task<int> FetchSizeInBytesAsync(iMessageHandle pHandle, cSinglePartBody pPart)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchSizeInBytesAsync));

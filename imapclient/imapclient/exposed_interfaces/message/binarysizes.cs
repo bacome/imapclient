@@ -5,10 +5,17 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// <para>A mapping from a message part to a size in bytes for message parts that can be fetched using the IMAP BINARY command (RFC 3516).</para>
+    /// <para>Using the <see cref="cMessage.FetchSizeInBytes(cSinglePartBody)"/> or <see cref="cAttachment.SaveSizeInBytes"/> methods may create values in this map.</para>
+    /// </summary>
     public class cBinarySizes : ReadOnlyDictionary<string, uint>
     {
         // wrapper: for passing out
 
+        /// <summary>
+        /// An empty mapping.
+        /// </summary>
         public static readonly cBinarySizes None = new cBinarySizes(new Dictionary<string, uint>());
 
         public cBinarySizes(IDictionary<string, uint> pDictionary) : base(pDictionary) { }

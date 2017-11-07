@@ -3,20 +3,29 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// <para>Specifies a set of items that can be cached in the internal message cache.</para>
-    /// <para>Note that the class has three implicit conversions, including one from <see cref="fMessageProperties"/>.</para>
+    /// <para>A set of items that can be cached in the internal message cache.</para>
+    /// <para>Note that the class has three implicit conversions;
+    /// <list type="bullet">
+    /// <item><description> from <see cref="fMessageProperties"/></description></item>
+    /// <item><description> from <see cref="fCacheAttributes"/></description></item>
+    /// <item><description> from <see cref="cHeaderFieldNames"/></description></item>
+    /// </list>
+    /// </para>
     /// </summary>
     public class cCacheItems
     {
+        /// <summary>
+        /// An empty set of items.
+        /// </summary>
         public static readonly cCacheItems None = new cCacheItems(0, cHeaderFieldNames.None);
 
         /// <summary>
-        /// A set of IMAP message attributes
+        /// A set of IMAP message attributes.
         /// </summary>
         public readonly fCacheAttributes Attributes;
 
         /// <summary>
-        /// A list of header field names
+        /// A collection of header field names.
         /// </summary>
         public readonly cHeaderFieldNames Names;
 
@@ -47,6 +56,9 @@ namespace work.bacome.imapclient
             Names = new cHeaderFieldNames(lNames);
         }
 
+        /// <summary>
+        /// Indicates if the set is empty.
+        /// </summary>
         public bool IsNone => Attributes == 0 && Names.Count == 0;
 
         public override bool Equals(object pObject) => this == pObject as cCacheItems;

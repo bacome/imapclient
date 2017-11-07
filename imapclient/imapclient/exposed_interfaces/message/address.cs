@@ -7,7 +7,7 @@ namespace work.bacome.imapclient
 {
     /// <summary>
     /// <para>Represents one email address.</para>
-    /// <para>May be an individual address (<see cref="cEmailAddress"/> or a group address (<see cref="cGroupAddress"/>).</para>
+    /// <para>May be an individual address (<see cref="cEmailAddress"/>) or a group address (<see cref="cGroupAddress"/>).</para>
     /// </summary>
     public abstract class cAddress
     {

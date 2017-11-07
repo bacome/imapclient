@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
         public readonly eAccountType Type;
 
         /// <summary>
-        /// If account's userid, if any.
+        /// The account's userid, if any.
         /// </summary>
         public readonly string UserId;
 

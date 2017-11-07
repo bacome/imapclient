@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of IMAP message attributes
+    /// A set of IMAP message attributes that can be cached in the internal message cache.
     /// </summary>
     [Flags]
     public enum fCacheAttributes

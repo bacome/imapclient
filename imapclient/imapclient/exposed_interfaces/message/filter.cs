@@ -5,48 +5,81 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// <para>Represents a filter that can be passed to the server to restrict the set of messages returned.</para>
+    /// <para>Use the static members of the class to create cFilter instances and the &amp;, | and ! operators to combine the filters together.</para>
+    /// </summary>
     public abstract class cFilter
     {
+        /** <summary>A filter that passes everything through.</summary>*/
         public static readonly cFilter All = new cAll();
 
+        /** <summary>Use this member to generate message sequence number filters.</summary>*/
         public static readonly cFilterMSN MSN = new cFilterMSN();
+
+        /** <summary>Use this member to generate UID filters.</summary>*/
         public static readonly cFilterUID UID = new cFilterUID();
 
+        /** <summary>Use this member to help generate message sequence number filters.</summary>*/
         public static readonly cFilterEnd First = new cFilterEnd(eFilterEnd.first);
+        /** <summary>Use this member to help generate message sequence number filters.</summary>*/
         public static readonly cFilterEnd Last = new cFilterEnd(eFilterEnd.last);
 
+        /** <summary>A filter that passes only answered messages through.</summary>*/
         public static readonly cFilter Answered = new cFilterFlagsContain(kMessageFlagName.Answered);
+        /** <summary>A filter that passes only flagged messages through.</summary>*/
         public static readonly cFilter Flagged = new cFilterFlagsContain(kMessageFlagName.Flagged);
+        /** <summary>A filter that passes only deleted messages through.</summary>*/
         public static readonly cFilter Deleted = new cFilterFlagsContain(kMessageFlagName.Deleted);
+        /** <summary>A filter that passes only seen messages through.</summary>*/
         public static readonly cFilter Seen = new cFilterFlagsContain(kMessageFlagName.Seen);
+        /** <summary>A filter that passes only draft messages through.</summary>*/
         public static readonly cFilter Draft = new cFilterFlagsContain(kMessageFlagName.Draft);
+        /** <summary>A filter that passes only recent messages through.</summary>*/
         public static readonly cFilter Recent = new cFilterFlagsContain(kMessageFlagName.Recent);
 
         // see comments elsewhere for why this is commented out: note: when re-instating it a "MDNRequested" filter should also be added
         //public static readonly cFilter MDNSent = new cFilterFlagsContain(kMessageFlagName.MDNSent);
 
+        /** <summary>A filter that passes only forwarded messages through.</summary>*/
         public static readonly cFilter Forwarded = new cFilterFlagsContain(kMessageFlagName.Forwarded);
+        /** <summary>A filter that passes only submitpending messages through.</summary>*/
         public static readonly cFilter SubmitPending = new cFilterFlagsContain(kMessageFlagName.SubmitPending);
+        /** <summary>A filter that passes only submitted messages through.</summary>*/
         public static readonly cFilter Submitted = new cFilterFlagsContain(kMessageFlagName.Submitted);
 
+        /** <summary>Use this member to generate filters on the content of the message's BCC data.</summary>*/
         public static readonly cFilterPart BCC = new cFilterPart(eFilterPart.bcc);
+        /** <summary>Use this member to generate filters on the content of the message's 'body' data.</summary>*/
         public static readonly cFilterPart Body = new cFilterPart(eFilterPart.body);
+        /** <summary>Use this member to generate filters on the content of the message's CC data.</summary>*/
         public static readonly cFilterPart CC = new cFilterPart(eFilterPart.cc);
+        /** <summary>Use this member to generate filters on the content of the message's 'from' data.</summary>*/
         public static readonly cFilterPart From = new cFilterPart(eFilterPart.from);
+        /** <summary>Use this member to generate filters on the content of the message's 'subject' data.</summary>*/
         public static readonly cFilterPart Subject = new cFilterPart(eFilterPart.subject);
+        /** <summary>Use this member to generate filters on the content of the message's 'text' data.</summary>*/
         public static readonly cFilterPart Text = new cFilterPart(eFilterPart.text);
+        /** <summary>Use this member to generate filters on the content of the message's 'to' data.</summary>*/
         public static readonly cFilterPart To = new cFilterPart(eFilterPart.to);
 
+        /** <summary>Use this member to generate filters on the message's internal date.</summary>*/
         public static readonly cFilterDate Received = new cFilterDate(eFilterDate.arrival);
+        /** <summary>Use this member to generate filters on the message's sent date.</summary>*/
         public static readonly cFilterDate Sent = new cFilterDate(eFilterDate.sent);
 
+        /** <summary>Use this member to generate filters on the message's size.</summary>*/
         public static readonly cFilterSize Size = new cFilterSize();
 
+        /** <summary>Use this member to generate filters on the message's importance.</summary>*/
         public static readonly cFilterImportance Importance = new cFilterImportance();
 
+        /** <summary>A filter that passes nothing through.</summary>*/
         public static readonly cFilter False = Seen & !Seen;
 
+        /** <summary>Intended for internal use.</summary>*/
         public readonly bool ContainsMessageHandles;
+        /** <summary>Intended for internal use.</summary>*/
         public readonly uint? UIDValidity;
 
         protected cFilter()
@@ -73,12 +106,17 @@ namespace work.bacome.imapclient
             UIDValidity = pParams.UIDValidity;
         }
 
+        /** <summary>Use this member to generate filters on the message's flags.</summary>*/
         public static cFilter FlagsContain(params string[] pFlags) => new cFilterFlagsContain(pFlags);
+        /** <summary>Use this member to generate filters on the message's flags.</summary>*/
         public static cFilter FlagsContain(cFetchableFlags pFlags) => new cFilterFlagsContain(pFlags);
 
+        /** <summary>Use this member to generate filters on the contents of a specified header field.</summary>*/
         public static cFilter HeaderFieldContains(string pHeaderField, string pContains) => new cFilterHeaderFieldContains(pHeaderField, pContains);
+        /** <summary>Use this member to generate filters on the existence of a specified header field.</summary>*/
         public static cFilter HasHeaderField(string pHeaderField) => new cFilterHeaderFieldContains(pHeaderField, string.Empty);
 
+        /** <summary>Use this operator to combine two filters.</summary>*/
         public static cFilter operator &(cFilter pA, cFilter pB)
         {
             if (pA == null) throw new ArgumentNullException(nameof(pA));
@@ -103,7 +141,9 @@ namespace work.bacome.imapclient
             return new cFilterAnd(lItems);
         }
 
+        /** <summary>Use this operator to combine two filters.</summary>*/
         public static cFilter operator |(cFilter pA, cFilter pB) => new cFilterOr(pA, pB);
+        /** <summary>Use this operator to negate a filter.</summary>*/
         public static cFilter operator !(cFilter pNot) => new cFilterNot(pNot);
 
         private class cAll : cFilter
@@ -111,6 +151,7 @@ namespace work.bacome.imapclient
             public cAll() { }
         }
 
+        /** <summary>Intended for internal use.</summary>*/
         protected struct sCTorParams
         {
             public bool ContainsMessageHandles;
@@ -118,17 +159,24 @@ namespace work.bacome.imapclient
         }
     }
 
+    /** <summary>Intended for internal use.</summary>*/
     public enum eFilterHandleRelativity { less, lessequal, greaterequal, greater }
+    /** <summary>Intended for internal use.</summary>*/
     public enum eFilterPart { bcc, body, cc, from, subject, text, to }
+    /** <summary>Intended for internal use.</summary>*/
     public enum eFilterDate { arrival, sent }
+    /** <summary>Intended for internal use.</summary>*/
     public enum eFilterDateCompare { before, on, since }
+    /** <summary>Intended for internal use.</summary>*/
     public enum eFilterSizeCompare { smaller, larger }
+    /** <summary>Intended for internal use.</summary>*/
     public enum eFilterEnd { first, last }
 
     // suppress the warnings about not implementing == properly: here == is being used as an expression builder
     #pragma warning disable 660
     #pragma warning disable 661
 
+    /** <summary>Intended for internal use.</summary>*/
     public class cFilterMSNRelativity : cFilter
     {
         public readonly iMessageHandle Handle;
@@ -155,6 +203,7 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterMSNRelativity)}({UIDValidity},{Handle},{End},{Offset},{Relativity})";
     }
 
+    /** <summary>Specifies an MSN offset from a specific message or from the first message in the mailbox or from the last message in the mailbox.</summary>*/
     public class cFilterMSNOffset
     {
         public readonly iMessageHandle Handle;
@@ -178,6 +227,7 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterMSNOffset)}({Handle},{End},{Offset})";
     }
 
+    /** <summary>Represents either the first message in the mailbox or the last message in the mailbox.</summary>*/
     public class cFilterEnd
     {
         public readonly eFilterEnd End;
@@ -186,6 +236,7 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterEnd)}({End})";
     }
 
+    /** <summary>Use the operators defined by the class to generate message sequence number filters.</summary>*/
     public class cFilterMSN
     {
         public cFilterMSN() { }

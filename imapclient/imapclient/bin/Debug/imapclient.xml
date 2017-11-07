@@ -366,6 +366,22 @@
             <param name="pAndUnselect"></param>
             <returns></returns>
         </member>
+        <member name="M:work.bacome.imapclient.cIMAPClient.FetchSizeInBytes(work.bacome.imapclient.support.iMessageHandle,work.bacome.imapclient.cSinglePartBody)">
+            <summary>
+            Intended for use by the <see cref="T:work.bacome.imapclient.cMessage"/> and <see cref="T:work.bacome.imapclient.cAttachment"/> classes.
+            </summary>
+            <param name="pHandle"></param>
+            <param name="pPart"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cIMAPClient.FetchSizeInBytesAsync(work.bacome.imapclient.support.iMessageHandle,work.bacome.imapclient.cSinglePartBody)">
+            <summary>
+            Intended for use by the <see cref="T:work.bacome.imapclient.cMessage"/> and <see cref="T:work.bacome.imapclient.cAttachment"/> classes.
+            </summary>
+            <param name="pHandle"></param>
+            <param name="pPart"></param>
+            <returns></returns>
+        </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.Store(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cMessage},work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cSettableFlags,System.Nullable{System.UInt64})">
             <summary>
             <para>Store flags for a set of messages.</para>
@@ -821,7 +837,7 @@
         </member>
         <member name="T:work.bacome.imapclient.fCacheAttributes">
             <summary>
-            A set of IMAP message attributes
+            A set of IMAP message attributes that can be cached in the internal message cache.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cCopyFeedbackItem">
@@ -868,7 +884,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cAccountId.UserId">
             <summary>
-            If account's userid, if any.
+            The account's userid, if any.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.fCapabilities">
@@ -1865,7 +1881,7 @@
         <member name="T:work.bacome.imapclient.cAddress">
             <summary>
             <para>Represents one email address.</para>
-            <para>May be an individual address (<see cref="T:work.bacome.imapclient.cEmailAddress"/> or a group address (<see cref="T:work.bacome.imapclient.cGroupAddress"/>).</para>
+            <para>May be an individual address (<see cref="T:work.bacome.imapclient.cEmailAddress"/>) or a group address (<see cref="T:work.bacome.imapclient.cGroupAddress"/>).</para>
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cAddress.DisplayName">
@@ -1931,6 +1947,110 @@
         <member name="P:work.bacome.imapclient.cAttachment.TypeCode">
             <summary>
             The MIME type of the attachment in code form.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.SubType">
+            <summary>
+            The MIME subtype of the attachment in text form.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.Parameters">
+            <summary>
+            The MIME type parameters of the attachment.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.ContentId">
+            <summary>
+            The MIME content-id of the attachment.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.Description">
+            <summary>
+            The MIME content description of the attachment.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.ContentTransferEncoding">
+            <summary>
+            The MIME content transfer encoding of the attachment in text form.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.DecodingRequired">
+            <summary>
+            The MIME content transfer encoding of the attachment in code form.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.PartSizeInBytes">
+            <summary>
+            The size in bytes of the encoded attachement.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.FileName">
+            <summary>
+            The suggested filename if provided. May be null.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.CreationDate">
+            <summary>
+            The creation date if provided. May be null.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.ModificationDate">
+            <summary>
+            The modification date if provided. May be null.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.ReadDate">
+            <summary>
+            The last read date if provided. May be null.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.ApproximateFileSizeInBytes">
+            <summary>
+            The approximate size in bytes if provided. May be null.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cAttachment.Languages">
+            <summary>
+            The language(s) of the attachment.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cAttachment.SaveSizeInBytes">
+            <summary>
+            <para>Gets the number of bytes that will have to come over the network to save this attachment.</para>
+            <para>If the server can do the decoding this may be smaller than the <see cref="P:work.bacome.imapclient.cAttachment.PartSizeInBytes"/>.</para>
+            </summary>
+            <returns>The number of bytes.</returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cAttachment.SaveSizeInBytesAsync">
+            <summary>
+            The async version of <see cref="M:work.bacome.imapclient.cAttachment.SaveSizeInBytes"/>.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cAttachment.SaveAs(System.String,work.bacome.imapclient.cBodyFetchConfiguration)">
+            <summary>
+            Saves the attachment to the specified file.
+            </summary>
+            <param name="pPath"></param>
+            <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
+        </member>
+        <member name="M:work.bacome.imapclient.cAttachment.SaveAsAsync(System.String,work.bacome.imapclient.cBodyFetchConfiguration)">
+            <summary>
+            The async version of <see cref="M:work.bacome.imapclient.cAttachment.SaveAs(System.String,work.bacome.imapclient.cBodyFetchConfiguration)"/>.
+            </summary>
+            <param name="pPath"></param>
+            <param name="pConfiguration"></param>
+            <returns></returns>
+        </member>
+        <member name="T:work.bacome.imapclient.cBinarySizes">
+            <summary>
+            <para>A mapping from a message part to a size in bytes for message parts that can be fetched using the IMAP BINARY command (RFC 3516).</para>
+            <para>Using the <see cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/> or <see cref="M:work.bacome.imapclient.cAttachment.SaveSizeInBytes"/> methods may create values in this map.</para>
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cBinarySizes.None">
+            <summary>
+            An empty mapping.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.eBodyPartTypeCode">
@@ -2086,7 +2206,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cMultiPartExtensionData.Parameters">
             <summary>
-            The body parameters of the part.
+            The MIME type parameters of the part.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cSinglePartExtensionData">
@@ -2116,7 +2236,7 @@
         </member>
         <member name="P:work.bacome.imapclient.cMultiPartBody.Parameters">
             <summary>
-            The body parameters.
+            The MIME type parameters of the part.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMultiPartBody.Disposition">
@@ -2191,7 +2311,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cSinglePartBody.Parameters">
             <summary>
-            The body parameters.
+            The MIME type parameters of the part.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cSinglePartBody.ContentId">
@@ -2216,7 +2336,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cSinglePartBody.SizeInBytes">
             <summary>
-            The size of the encoded part in bytes.
+            The size in bytes of the encoded part.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cSinglePartBody.ExtensionData">
@@ -2242,6 +2362,51 @@
         <member name="P:work.bacome.imapclient.cSinglePartBody.ExtensionValues">
             <summary>
             Any additional extension data for the part.
+            </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cMessageBodyPart">
+            <summary>
+            Represents a message part that contains a message.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cMessageBodyPart.Envelope">
+            <summary>
+            The IMAP envelope of the encapsulated message.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cMessageBodyPart.BodyStructure">
+            <summary>
+            The IMAP bodystructure information for the encapsulated message.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cMessageBodyPart.SizeInLines">
+            <summary>
+            The size in text lines of the encapsulated message.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cMessageBodyPart.Body">
+            <summary>
+            The IMAP body or bodystructure information for the encapsulated message, whichever is available.
+            </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cTextBodyPart">
+            <summary>
+            Represents a message part that contains text.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cTextBodyPart.SubTypeCode">
+            <summary>
+            The MIME subtype of the part in code form.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cTextBodyPart.SizeInLines">
+            <summary>
+            The size in text lines of the part.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cTextBodyPart.Charset">
+            <summary>
+            The character set of the text data.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cBodyStructureParameter">
@@ -2296,6 +2461,192 @@
             <param name="pName">The attribute name.</param>
             <returns>The parameter if there is at least one with a matching name, otherwise null.</returns>
         </member>
+        <member name="T:work.bacome.imapclient.cEnvelope">
+            <summary>
+            IMAP message envelope data.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cEnvelope.Sent">
+            <summary>The message sent date. May be null.</summary> 
+        </member>
+        <member name="F:work.bacome.imapclient.cEnvelope.Subject">
+            <summary>The message subject. May be null.</summary> 
+        </member>
+        <member name="F:work.bacome.imapclient.cEnvelope.BaseSubject">
+            <summary>
+            <para>The base subject as defined in RFC 5256.</para>
+            <para>(i.e. with the RE: FWD: etc stripped off)</para>
+            <para>May be null.</para>
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cEnvelope.From">
+            <summary>The message 'from' address(s). May be null.</summary> 
+        </member>
+        <member name="F:work.bacome.imapclient.cEnvelope.Sender">
+            <summary>The message sender address(s). May be null.</summary> 
+        </member>
+        <member name="F:work.bacome.imapclient.cEnvelope.ReplyTo">
+            <summary>The message repy-to address(s). May be null.</summary> 
+        </member>
+        <member name="F:work.bacome.imapclient.cEnvelope.To">
+            <summary>The message 'to' address(s). May be null.</summary> 
+        </member>
+        <member name="F:work.bacome.imapclient.cEnvelope.CC">
+            <summary>The message CC address(s). May be null.</summary> 
+        </member>
+        <member name="F:work.bacome.imapclient.cEnvelope.BCC">
+            <summary>The message BCC address(s). May be null.</summary> 
+        </member>
+        <member name="F:work.bacome.imapclient.cEnvelope.InReplyTo">
+            <summary>The in-reply-to message-ids. May be null.</summary> 
+        </member>
+        <member name="F:work.bacome.imapclient.cEnvelope.MessageId">
+            <summary>The message-id of the message. May be null.</summary> 
+        </member>
+        <member name="T:work.bacome.imapclient.cFilter">
+            <summary>
+            <para>Represents a filter that can be passed to the server to restrict the set of messages returned.</para>
+            <para>Use the static members of the class to create cFilter instances and the &amp;, | and ! operators to combine the filters together.</para>
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.All">
+            <summary>A filter that passes everything through.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.MSN">
+            <summary>Use this member to generate message sequence number filters.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.UID">
+            <summary>Use this member to generate UID filters.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.First">
+            <summary>Use this member to help generate message sequence number filters.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Last">
+            <summary>Use this member to help generate message sequence number filters.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Answered">
+            <summary>A filter that passes only answered messages through.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Flagged">
+            <summary>A filter that passes only flagged messages through.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Deleted">
+            <summary>A filter that passes only deleted messages through.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Seen">
+            <summary>A filter that passes only seen messages through.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Draft">
+            <summary>A filter that passes only draft messages through.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Recent">
+            <summary>A filter that passes only recent messages through.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Forwarded">
+            <summary>A filter that passes only forwarded messages through.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.SubmitPending">
+            <summary>A filter that passes only submitpending messages through.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Submitted">
+            <summary>A filter that passes only submitted messages through.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.BCC">
+            <summary>Use this member to generate filters on the content of the message's BCC data.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Body">
+            <summary>Use this member to generate filters on the content of the message's 'body' data.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.CC">
+            <summary>Use this member to generate filters on the content of the message's CC data.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.From">
+            <summary>Use this member to generate filters on the content of the message's 'from' data.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Subject">
+            <summary>Use this member to generate filters on the content of the message's 'subject' data.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Text">
+            <summary>Use this member to generate filters on the content of the message's 'text' data.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.To">
+            <summary>Use this member to generate filters on the content of the message's 'to' data.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Received">
+            <summary>Use this member to generate filters on the message's internal date.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Sent">
+            <summary>Use this member to generate filters on the message's sent date.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Size">
+            <summary>Use this member to generate filters on the message's size.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.Importance">
+            <summary>Use this member to generate filters on the message's importance.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.False">
+            <summary>A filter that passes nothing through.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.ContainsMessageHandles">
+            <summary>Intended for internal use.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cFilter.UIDValidity">
+            <summary>Intended for internal use.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilter.FlagsContain(System.String[])">
+            <summary>Use this member to generate filters on the message's flags.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilter.FlagsContain(work.bacome.imapclient.cFetchableFlags)">
+            <summary>Use this member to generate filters on the message's flags.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilter.HeaderFieldContains(System.String,System.String)">
+            <summary>Use this member to generate filters on the contents of a specified header field.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilter.HasHeaderField(System.String)">
+            <summary>Use this member to generate filters on the existence of a specified header field.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilter.op_BitwiseAnd(work.bacome.imapclient.cFilter,work.bacome.imapclient.cFilter)">
+            <summary>Use this operator to combine two filters.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilter.op_BitwiseOr(work.bacome.imapclient.cFilter,work.bacome.imapclient.cFilter)">
+            <summary>Use this operator to combine two filters.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilter.op_LogicalNot(work.bacome.imapclient.cFilter)">
+            <summary>Use this operator to negate a filter.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cFilter.sCTorParams">
+            <summary>Intended for internal use.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.eFilterHandleRelativity">
+            <summary>Intended for internal use.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.eFilterPart">
+            <summary>Intended for internal use.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.eFilterDate">
+            <summary>Intended for internal use.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.eFilterDateCompare">
+            <summary>Intended for internal use.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.eFilterSizeCompare">
+            <summary>Intended for internal use.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.eFilterEnd">
+            <summary>Intended for internal use.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cFilterMSNRelativity">
+            <summary>Intended for internal use.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cFilterMSNOffset">
+            <summary>Specifies an MSN offset from a specific message or from the first message in the mailbox or from the last message in the mailbox.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cFilterEnd">
+            <summary>Represents either the first message in the mailbox or the last message in the mailbox.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cFilterMSN">
+            <summary>Use the operators defined by the class to generate message sequence number filters.</summary>
+        </member>
         <member name="T:work.bacome.imapclient.kMessageFlagName">
             <summary>
             Contains named IMAP flag name contants.
@@ -2312,29 +2663,32 @@
             <para>(e.g. It is not possible to set the \Recent flag.)</para>
             </summary>
         </member>
+        <member name="F:work.bacome.imapclient.cSettableFlags.None">
+            <summary>An empty set of flags.</summary> 
+        </member>
         <member name="F:work.bacome.imapclient.cSettableFlags.Answered">
-            <summary>A set of flags containing just the \Answered flag</summary> 
+            <summary>A set of flags containing just the \Answered flag.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.cSettableFlags.Flagged">
-            <summary>A set of flags containing just the \Flagged flag</summary> 
+            <summary>A set of flags containing just the \Flagged flag.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.cSettableFlags.Deleted">
-            <summary>A set of flags containing just the \Deleted flag</summary> 
+            <summary>A set of flags containing just the \Deleted flag.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.cSettableFlags.Seen">
-            <summary>A set of flags containing just the \Seen flag</summary> 
+            <summary>A set of flags containing just the \Seen flag.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.cSettableFlags.Draft">
-            <summary>A set of flags containing just the \Draft flag</summary> 
+            <summary>A set of flags containing just the \Draft flag.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.cSettableFlags.Forwarded">
-            <summary>A set of flags containing just the $Forwarded flag</summary> 
+            <summary>A set of flags containing just the $Forwarded flag.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.cSettableFlags.SubmitPending">
-            <summary>A set of flags containing just the $SubmitPending flag</summary> 
+            <summary>A set of flags containing just the $SubmitPending flag.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.cSettableFlags.Submitted">
-            <summary>A set of flags containing just the $Submitted flag</summary> 
+            <summary>A set of flags containing just the $Submitted flag.</summary> 
         </member>
         <member name="T:work.bacome.imapclient.cFetchableFlags">
             <summary>
@@ -2373,18 +2727,34 @@
         </member>
         <member name="T:work.bacome.imapclient.cCacheItems">
             <summary>
-            <para>Specifies a set of items that can be cached in the internal message cache.</para>
-            <para>Note that the class has three implicit conversions, including one from <see cref="T:work.bacome.imapclient.fMessageProperties"/>.</para>
+            <para>A set of items that can be cached in the internal message cache.</para>
+            <para>Note that the class has three implicit conversions;
+            <list type="bullet">
+            <item><description> from <see cref="T:work.bacome.imapclient.fMessageProperties"/></description></item>
+            <item><description> from <see cref="T:work.bacome.imapclient.fCacheAttributes"/></description></item>
+            <item><description> from <see cref="T:work.bacome.imapclient.cHeaderFieldNames"/></description></item>
+            </list>
+            </para>
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cCacheItems.None">
+            <summary>
+            An empty set of items.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cCacheItems.Attributes">
             <summary>
-            A set of IMAP message attributes
+            A set of IMAP message attributes.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cCacheItems.Names">
             <summary>
-            A list of header field names
+            A collection of header field names.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCacheItems.IsNone">
+            <summary>
+            Indicates if the set is empty.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.eSectionTextPart">
