@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// <para>Instances of this class can connect to an IMAP server.</para>
     /// <para>Before calling one of the <see cref="Connect"/> methods set the <see cref="Server"/> and <see cref="Credentials"/> properties at a minimum.</para>
-    /// <para>See <see cref="SetServer(string, int, bool)"/> and <see cref="SetPlainCredentials(string, string, eTLSRequirement, bool)"/></para>
+    /// <para>See <see cref="SetServer(string, int, bool)"/> and <see cref="SetPlainCredentials(string, string, eTLSRequirement, bool)"/>.</para>
     /// <para>Also consider setting the <see cref="MailboxCacheData"/> property.</para>
     /// </summary>
     public sealed partial class cIMAPClient : IDisposable // sealed so the disposable implementation is simpler
@@ -212,7 +212,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// <para>Returns the number of currently running cancellable operations.</para>
-        /// <para>See <see cref="Cancel"/></para>
+        /// <para>See <see cref="Cancel"/>.</para>
         /// </summary>
         public int CancellableCount => mCancellationManager.Count;
 
@@ -272,7 +272,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// <para>The server that the instance should connect to.</para>
         /// <para>Must be set before connecting.</para>
-        /// <para>See <see cref="SetServer(string)"/>, <see cref="SetServer(string, bool)"/> or <see cref="SetServer(string, int, bool)"/></para>
+        /// <para>See <see cref="SetServer(string)"/>, <see cref="SetServer(string, bool)"/> or <see cref="SetServer(string, int, bool)"/>.</para>
         /// </summary>
         public cServer Server
         {
@@ -308,7 +308,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// <para>The credentials to be used to connect to the server.</para>
         /// <para>Must be set before connecting.</para>
-        /// <para>See <see cref="SetNoCredentials"/>, <see cref="SetAnonymousCredentials"/>, <see cref="SetPlainCredentials"/></para>
+        /// <para>See <see cref="SetNoCredentials"/>, <see cref="SetAnonymousCredentials"/>, <see cref="SetPlainCredentials"/>.</para>
         /// </summary>
         public cCredentials Credentials
         {
@@ -334,9 +334,9 @@ namespace work.bacome.imapclient
         /// <para>Can't be called while connected.</para>
         /// <para>May fall back to LOGIN if SASL ANONYMOUS isn't available.</para>
         /// </summary>
-        /// <param name="pTrace">The trace information sent to the server</param>
+        /// <param name="pTrace">The trace information sent to the server.</param>
         /// <param name="pTLSRequirement"></param>
-        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try SASL ANONYMOUS mechanism even if it isn't advertised</param>
+        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try SASL ANONYMOUS mechanism even if it isn't advertised.</param>
         public void SetAnonymousCredentials(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTLSRequirement, pTryAuthenticateEvenIfAnonymousIsntAdvertised);
 
         /// <summary>
@@ -347,7 +347,7 @@ namespace work.bacome.imapclient
         /// <param name="pUserId"></param>
         /// <param name="pPassword"></param>
         /// <param name="pTLSRequirement"></param>
-        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try SASL PLAIN mechanism even if it isn't advertised</param>
+        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try SASL PLAIN mechanism even if it isn't advertised.</param>
         public void SetPlainCredentials(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
 
         // not tested yet
@@ -407,7 +407,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// <para>Sets parameters that control what the instance does while idle.</para>
         /// <para>Set to null to stop the instance from doing anything.</para>
-        /// <para>If set, the instance determines that it is idle after the specified time and then issues periodic IDLE (rfc 2177) or CHECK/ NOOP commands.</para>
+        /// <para>If set, the instance determines that it is idle after the specified time and then issues periodic IDLE (rfc 2177) or CHECK/ NOOP IMAP commands.</para>
         /// </summary>
         public cIdleConfiguration IdleConfiguration
         {
@@ -592,8 +592,8 @@ namespace work.bacome.imapclient
         /// <summary>
         /// <para>Returns the named mailbox.</para>
         /// </summary>
-        /// <param name="pMailboxName">The mailbox name</param>
-        /// <returns>The named mailbox</returns>
+        /// <param name="pMailboxName">The mailbox name.</param>
+        /// <returns>The named mailbox.</returns>
         public cMailbox Mailbox(cMailboxName pMailboxName)
         {
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));

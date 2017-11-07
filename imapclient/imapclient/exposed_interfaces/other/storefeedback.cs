@@ -7,22 +7,22 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Base class for feedback on one message from a store operation
+    /// Base class for feedback on one message from a store operation.
     /// </summary>
     public abstract class cStoreFeedbackItemBase
     {
         /// <summary>
-        /// True if a fetch response containing the flags for this message was received during the store operation
+        /// True if a fetch response containing the flags for this message was received during the store operation.
         /// </summary>
         public bool ReceivedFlagsUpdate = false;
 
         /// <summary>
-        /// True if this message was mentioned in the RFC 7162 MODIFIED response code from the store operation
+        /// True if this message was mentioned in the RFC 7162 MODIFIED response code from the store operation.
         /// </summary>
         public bool WasNotUnchangedSince = false;
 
         /// <summary>
-        /// Intended for internal use
+        /// Intended for internal use.
         /// </summary>
         /// <param name="pHandle"></param>
         /// <param name="pOperation"></param>
@@ -86,7 +86,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains feedback on one message from a store operation
+    /// Contains feedback on one message from a store operation.
     /// </summary>
     public class cStoreFeedbackItem : cStoreFeedbackItemBase
     {
@@ -101,7 +101,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains feedback from a store operation
+    /// Contains feedback from a store operation.
     /// </summary>
     public class cStoreFeedback : IReadOnlyList<cStoreFeedbackItem>
     {
@@ -167,9 +167,9 @@ namespace work.bacome.imapclient
         public bool AllHaveUID => mItems.TrueForAll(i => i.Handle.UID != null);
 
         /// <summary>
-        /// Gets a summary of the feedback
+        /// Gets a summary of the feedback.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The summary.</returns>
         public sStoreFeedbackSummary Summary()
         {
             sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();
@@ -200,32 +200,39 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A summary of a store operation
+    /// <para>A summary of a store operation.</para>
+    /// <para>Each message counts towards ONE of;
+    /// <list type="bullet">
+    /// <item><description><see cref="UpdatedCount"/></description></item>
+    /// <item><description><see cref="WasNotUnchangedSinceCount"/></description></item>
+    /// <item><description><see cref="ExpungedCount"/></description></item>
+    /// <item><description><see cref="UnknownCount"/></description></item>
+    /// <item><description><see cref="ReflectsOperationCount"/></description></item>
+    /// <item><description><see cref="NotReflectsOperationCount"/></description></item>
+    /// </list>
+    /// </para>
+    /// <para>Generally <see cref="ExpungedCount"/> + <see cref="NotReflectsOperationCount"/> is the number of definite non-updates.</para>
+    /// <para>Generally <see cref="NotReflectsOperationCount"/> > 0 indicates that a <see cref="cIMAPClient.Poll"/> may be worth trying to get any pending updates (which should convert all the notreflects to expunged or reflects).</para>
+    /// <para><see cref="UnknownCount"/> > 0 indicates that a blind update was done so there isn't enough information to say if the store happened or not.</para>
     /// </summary>
-    /// <remarks>
-    /// each message counts towards ONE of the updated, wasnotunchangedsince, expunged, unknown, reflects and notreflects counts
-    ///  generally expunged + notreflects is the number of definite non-updates
-    ///  generally notreflects > 0 indicates that a poll of the server may be worth trying to get any pending updates (which should convert all the notreflects to expunged or reflects)
-    ///  unknown indicates that a blind update was done so there isn't enough information to say if the store happened or not
-    /// </remarks>
     public struct sStoreFeedbackSummary
     {
-        /**<summary> the number where a fetch was received during the command execution and no 'modified' response was received (=> _likely_ to have been updated by the command) </summary>*/
+        /**<summary>The number where a an IMAP FETCH was received during the command execution and no IMAP MODIFIED response was received (=> _likely_ to have been updated by the command).</summary>*/
         public int UpdatedCount;
 
-        /**<summary> a 'modified' response was received (=> _NOT_ updated by the command) </summary>*/
+        /**<summary>An IMAP MODIFIED response was received (=> _NOT_ updated by the command).</summary>*/
         public int WasNotUnchangedSinceCount;
 
-        /**<summary> the number where the message handle indicates that the message is expunged </summary>*/
+        /**<summary>The number where the message cache indicates that the message is expunged.</summary>*/
         public int ExpungedCount;
 
-        /**<summary> the number where the handle isn't known (uidstore) or the handle does not contain the flags </summary>*/
+        /**<summary>The number where the internal message handle isn't known (e.g. from a <see cref="cMailbox.UIDStore(cUID, eStoreOperation, cSettableFlags, ulong?)"/>) or the message cache does not contain the flags.</summary>*/
         public int UnknownCount;
 
-        /**<summary> the flags in the handle reflect the update </summary>*/
+        /**<summary>The number where the flags in the message cache reflect the update.</summary>*/
         public int ReflectsOperationCount;
 
-        /**<summary> the flags in the handle do not reflect the update </summary>*/
+        /**<summary>The number where the flags in the message cache do not reflect the update.</summary>*/
         public int NotReflectsOperationCount;
 
         // calculated values
@@ -237,7 +244,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains feedback on one message from a UID store operation
+    /// Contains feedback on one message from a UID store operation.
     /// </summary>
     public class cUIDStoreFeedbackItem : cStoreFeedbackItemBase
     {
@@ -252,8 +259,10 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cUIDStoreFeedbackItem)}({UID},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
     }
 
+    // TODO: try to work out why the API documentation doesn't generate correctly for the following class (it is missing the Summary method?
+
     /// <summary>
-    /// Contains feedback from a UID store operation
+    /// Contains feedback from a UID store operation.
     /// </summary>
     public class cUIDStoreFeedback : IReadOnlyList<cUIDStoreFeedbackItem>
     {
@@ -293,9 +302,9 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets a summary of the feedback
+        /// Gets a summary of the feedback.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The summary.</returns>
         public sStoreFeedbackSummary Summary()
         {
             sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();

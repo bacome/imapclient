@@ -10,12 +10,12 @@ namespace work.bacome.imapclient
     public partial class cIMAPClient
     {
         /// <summary>
-        /// List mailboxes using an IMAP wildcard search
+        /// List mailboxes using an IMAP wildcard search.
         /// </summary>
-        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
-        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
-        /// <returns>A list of mailboxes</returns>
+        /// <param name="pListMailbox">The search string including IMAP wildcards.</param>
+        /// <param name="pDelimiter">The mailbox name hierarchy delimiter.</param>
+        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes.</param>
+        /// <returns>A list of mailboxes.</returns>
         public List<cMailbox> Mailboxes(string pListMailbox, char? pDelimiter, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
@@ -25,12 +25,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// List mailboxes using an IMAP wildcard search
+        /// The async version of <see cref="Mailboxes(string, char?, fMailboxCacheDataSets)"/>.
         /// </summary>
-        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
-        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
-        /// <returns>A list of mailboxes</returns>
+        /// <param name="pListMailbox"></param>
+        /// <param name="pDelimiter"></param>
+        /// <param name="pDataSets"></param>
+        /// <returns></returns>
         public Task<List<cMailbox>> MailboxesAsync(string pListMailbox, char? pDelimiter, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxesAsync));
@@ -45,8 +45,12 @@ namespace work.bacome.imapclient
             return ZZMailboxesAsync(pListMailbox, pDelimiter, lPattern, pDataSets, lContext);
         }
 
-        // mailbox sub-mailbox list
-
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pDataSets"></param>
+        /// <returns></returns>
         public List<cMailbox> Mailboxes(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
@@ -55,6 +59,12 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pDataSets"></param>
+        /// <returns></returns>
         public Task<List<cMailbox>> MailboxesAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxesAsync));

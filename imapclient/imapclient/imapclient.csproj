@@ -65,7 +65,7 @@
     <Compile Include="client\fetchbody.cs" />
     <Compile Include="client\fetchmailboxdata.cs" />
     <Compile Include="client\rename.cs" />
-    <Compile Include="client\setunseen.cs" />
+    <Compile Include="client\setunseencount.cs" />
     <Compile Include="client\subscribe.cs" />
     <Compile Include="client\subscribed.cs" />
     <Compile Include="client\uidfetchbody.cs" />
@@ -155,14 +155,14 @@
     <Compile Include="session\response\parsers\select_data.cs" />
     <Compile Include="session\response\responseparser.cs" />
     <Compile Include="session\response\parsers\select_textcode.cs" />
-    <Compile Include="session\imap_commands\selected\setunseenextended.cs" />
+    <Compile Include="session\imap_commands\selected\setunseencountextended.cs" />
     <Compile Include="session\support\listextendeditems.cs" />
     <Compile Include="session\mailboxcache\mailboxcacheitem.cs" />
     <Compile Include="session\mailboxcache\processing.cs" />
     <Compile Include="session\response\parsers\list.cs" />
     <Compile Include="session\response\parsers\lsub.cs" />
     <Compile Include="session\selectedmailbox\processing.cs" />
-    <Compile Include="session\imap_commands\selected\setunseen.cs" />
+    <Compile Include="session\imap_commands\selected\setunseencount.cs" />
     <Compile Include="session\mailboxcache\mailboxcache.cs" />
     <Compile Include="exposed_interfaces\support\types\commandpartfactory.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxname.cs" />

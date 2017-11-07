@@ -2,6 +2,9 @@
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// An IMAP message UID
+    /// </summary>
     public class cUID : IComparable<cUID>, IEquatable<cUID>
     {
         public readonly uint UIDValidity;

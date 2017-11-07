@@ -3,16 +3,65 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public enum eSectionTextPart { all, header, headerfields, headerfieldsnot, text, mime }
+    /// <summary>
+    /// <para>Describes a text part of an IMAP message section (see <see cref="cSection"/>).</para>
+    /// </summary>
+    public enum eSectionTextPart
+    {
+        /** <sumary>The entire part.</sumary> */
+        all,
 
+        /** <sumary>The entire header part.</sumary> */
+        header,
+
+        /** <sumary>Specified headers from the header part.</sumary> */
+        headerfields,
+
+        /** <sumary>All headers other than the specified headers from the header part.</sumary> */
+        headerfieldsnot,
+
+        /** <sumary>The entire text part.</sumary> */
+        text,
+
+        /** <sumary>The mime headers of the part.</sumary> */
+        mime
+    }
+
+    /// <summary>
+    /// <para>Describes a section of an IMAP message.</para>
+    /// </summary>
     public class cSection
     {
+        /// <summary>
+        /// Describes the section of a message that includes the entire message.
+        /// </summary>
         public static readonly cSection All = new cSection(null);
+
+        /// <summary>
+        /// Describes the entire header fields section of a message.
+        /// </summary>
         public static readonly cSection Header = new cSection(null, eSectionTextPart.header);
+
+        /// <summary>
+        /// Describes the entire text section of a message.
+        /// </summary>
         public static readonly cSection Text = new cSection(null, eSectionTextPart.text);
 
-        public readonly string Part; // may be null if the section refers to the top-most part
+        /// <summary>
+        /// <para>The part of the message that this section describes.</para>
+        /// <para>A dot separated set of integers e.g. 1, 2, 1.3, 1.1.4.5</para>
+        /// <para>May be null if the section refers to the whole message.</para>
+        /// </summary>
+        public readonly string Part;
+
+        /// <summary>
+        /// The text part of the <see cref="Part"/> that this section describes.
+        /// </summary>
         public readonly eSectionTextPart TextPart;
+
+        /// <summary>
+        /// The header fields included (<see cref="eSectionTextPart.headerfields"/>) or excluded (<see cref="eSectionTextPart.headerfieldsnot"/>) from this section.
+        /// </summary>
         public readonly cHeaderFieldNames Names;
 
         public cSection(string pPart)

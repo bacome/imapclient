@@ -8,6 +8,10 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
         public void Subscribe(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribe));
@@ -15,6 +19,11 @@ namespace work.bacome.imapclient
             mSynchroniser.Wait(lTask, lContext);
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <returns></returns>
         public Task SubscribeAsync(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribeAsync));
@@ -39,6 +48,10 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
         public void Unsubscribe(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Unsubscribe));
@@ -46,6 +59,11 @@ namespace work.bacome.imapclient
             mSynchroniser.Wait(lTask, lContext);
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <returns></returns>
         public Task UnsubscribeAsync(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UnsubscribeAsync));

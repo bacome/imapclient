@@ -10,6 +10,13 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pUID"></param>
+        /// <param name="pItems"></param>
+        /// <returns></returns>
         public cMessage Message(iMailboxHandle pHandle, cUID pUID, cCacheItems pItems)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Message));
@@ -21,6 +28,13 @@ namespace work.bacome.imapclient
             throw new cInternalErrorException(lContext);
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pUID"></param>
+        /// <param name="pItems"></param>
+        /// <returns></returns>
         public async Task<cMessage> MessageAsync(iMailboxHandle pHandle, cUID pUID, cCacheItems pItems)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessageAsync));
@@ -30,6 +44,14 @@ namespace work.bacome.imapclient
             throw new cInternalErrorException(lContext);
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pUIDs"></param>
+        /// <param name="pItems"></param>
+        /// <param name="pConfiguration"></param>
+        /// <returns></returns>
         public List<cMessage> Messages(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));
@@ -38,12 +60,29 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pUIDs"></param>
+        /// <param name="pItems"></param>
+        /// <param name="pConfiguration"></param>
+        /// <returns></returns>
         public Task<List<cMessage>> MessagesAsync(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessagesAsync));
             return ZUIDFetchCacheItemsAsync(pHandle, cUIDList.FromUIDs(pUIDs), pItems, pConfiguration, lContext);
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pFilter"></param>
+        /// <param name="pSort"></param>
+        /// <param name="pItems"></param>
+        /// <param name="pConfiguration"></param>
+        /// <returns></returns>
         public List<cMessage> Messages(iMailboxHandle pHandle, cFilter pFilter, cSort pSort, cCacheItems pItems, cMessageFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));
@@ -52,6 +91,15 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pFilter"></param>
+        /// <param name="pSort"></param>
+        /// <param name="pItems"></param>
+        /// <param name="pConfiguration"></param>
+        /// <returns></returns>
         public Task<List<cMessage>> MessagesAsync(iMailboxHandle pHandle, cFilter pFilter, cSort pSort, cCacheItems pItems, cMessageFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessagesAsync));

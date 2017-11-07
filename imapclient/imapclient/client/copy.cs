@@ -17,6 +17,12 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pSourceHandles"></param>
+        /// <param name="pDestinationHandle"></param>
+        /// <returns></returns>
         public cCopyFeedback Copy(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Copy), 2);
@@ -31,6 +37,12 @@ namespace work.bacome.imapclient
             return ZCopyAsync(cMessageHandleList.FromHandle(pSourceHandle), pDestinationHandle, lContext);
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pSourceHandles"></param>
+        /// <param name="pDestinationHandle"></param>
+        /// <returns></returns>
         public Task<cCopyFeedback> CopyAsync(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 2);

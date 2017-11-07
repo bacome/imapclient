@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
     public partial class cIMAPClient
     {
         /// <summary>
-        /// Poll the server using CHECK (if a mailbox is selected) and NOOP to see if the server has pending notifications for us
+        /// Poll the server using IMAP CHECK (if a mailbox is selected) and IMAP NOOP to see if the server has pending notifications for us.
         /// </summary>
         public void Poll()
         {
@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Poll the server using CHECK (if a mailbox is selected) and NOOP to see if the server has pending notifications for us
+        /// Poll the server using IMAP CHECK (if a mailbox is selected) and IMAP NOOP to see if the server has pending notifications for us.
         /// </summary>
         public Task PollAsync()
         {

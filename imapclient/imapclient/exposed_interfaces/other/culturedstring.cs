@@ -8,9 +8,15 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Represents a string that includes language information as per RFC 2231.
+    /// </summary>
     public class cCulturedString
     {
-        public readonly ReadOnlyCollection<cCulturedStringPart> Parts; // may be null, shouldn't be empty
+        /// <summary>
+        /// The parts of the string. May be null.
+        /// </summary>
+        public readonly ReadOnlyCollection<cCulturedStringPart> Parts;
 
         public cCulturedString(IList<byte> pBytes)
         {
@@ -118,10 +124,20 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// Represents part of a string that includes language information as per RFC 2231.
+    /// </summary>
     public class cCulturedStringPart
     {
+        /// <summary>
+        /// The decoded text.
+        /// </summary>
         public readonly string String;
-        public readonly string LanguageTag; // may be null
+
+        /// <summary>
+        /// Optional language of the text. May be null.
+        /// </summary>
+        public readonly string LanguageTag;
 
         public cCulturedStringPart(string pString, string pLanguageTag)
         {

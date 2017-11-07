@@ -146,9 +146,9 @@ namespace work.bacome.imapclient
                     return (uint)lIndex + 1;
                 }
 
-                public cMessageHandleList SetUnseen(int pMessageCount, cUIntList pMSNs, cTrace.cContext pParentContext)
+                public cMessageHandleList SetUnseenCount(int pMessageCount, cUIntList pMSNs, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetUnseen), pMSNs);
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetUnseenCount), pMSNs);
 
                     // the message count is required because messages can be delivered during the search, after the search results are calculated
                     //  it should be the message count that existed when the command was submitted

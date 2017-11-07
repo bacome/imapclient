@@ -3,12 +3,9 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Specifies a set of items that can be cached in the internal message cache
+    /// <para>Specifies a set of items that can be cached in the internal message cache.</para>
+    /// <para>Note that the class has three implicit conversions, including one from <see cref="fMessageProperties"/>.</para>
     /// </summary>
-    /// <remarks>
-    /// Note that the class has three implicit conversions, including one from fMessageProperties.
-    /// </remarks>
-    /// <seealso cref="fMessageProperties"/>
     public class cCacheItems
     {
         public static readonly cCacheItems None = new cCacheItems(0, cHeaderFieldNames.None);

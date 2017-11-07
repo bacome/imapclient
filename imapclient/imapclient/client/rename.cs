@@ -8,6 +8,12 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pMailboxName"></param>
+        /// <returns></returns>
         public cMailbox Rename(iMailboxHandle pHandle, cMailboxName pMailboxName)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Rename));
@@ -16,6 +22,12 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pMailboxName"></param>
+        /// <returns></returns>
         public Task<cMailbox> RenameAsync(iMailboxHandle pHandle, cMailboxName pMailboxName)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(RenameAsync));

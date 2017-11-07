@@ -10,13 +10,13 @@ namespace work.bacome.imapclient
     public partial class cIMAPClient
     {
         /// <summary>
-        /// List subscribed mailboxes using an IMAP wildcard search
+        /// List subscribed mailboxes using an IMAP wildcard search.
         /// </summary>
-        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
-        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
-        /// <param name="pHasSubscribedChildren">Include in the list mailboxes that are not themselves subscribed but that have subscribed children</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
-        /// <returns>A list of mailboxes</returns>
+        /// <param name="pListMailbox">The search string including IMAP wildcards.</param>
+        /// <param name="pDelimiter">The mailbox name hierarchy delimiter.</param>
+        /// <param name="pHasSubscribedChildren">Include in the list mailboxes that are not themselves subscribed but that have subscribed children.</param>
+        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes.</param>
+        /// <returns>A list of mailboxes.</returns>
         public List<cMailbox> Subscribed(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
@@ -26,13 +26,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// List subscribed mailboxes using an IMAP wildcard search
+        /// The async version of <see cref="Subscribed(string, char?, bool, fMailboxCacheDataSets)"/>.
         /// </summary>
-        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
-        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
-        /// <param name="pHasSubscribedChildren">Include in the list mailboxes that are not themselves subscribed but that have subscribed children</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
-        /// <returns>A list of mailboxes</returns>
+        /// <param name="pListMailbox"></param>
+        /// <param name="pDelimiter"></param>
+        /// <param name="pHasSubscribedChildren"></param>
+        /// <param name="pDataSets"></param>
+        /// <returns></returns>
         public Task<List<cMailbox>> SubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));
@@ -47,8 +47,13 @@ namespace work.bacome.imapclient
             return ZZSubscribedAsync(pListMailbox, pDelimiter, lPattern, pHasSubscribedChildren, pDataSets, lContext);
         }
 
-        // mailbox sub-mailbox list
-
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pDescend"></param>
+        /// <param name="pDataSets"></param>
+        /// <returns></returns>
         public List<cMailbox> Subscribed(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
@@ -57,6 +62,13 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pDescend"></param>
+        /// <param name="pDataSets"></param>
+        /// <returns></returns>
         public Task<List<cMailbox>> SubscribedAsync(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));

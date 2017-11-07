@@ -9,6 +9,15 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pUID"></param>
+        /// <param name="pSection"></param>
+        /// <param name="pDecoding"></param>
+        /// <param name="pStream"></param>
+        /// <param name="pConfiguration"></param>
         public void UIDFetch(iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
         {
             // note: if it fails bytes could have been written to the stream
@@ -17,6 +26,16 @@ namespace work.bacome.imapclient
             mSynchroniser.Wait(lTask, lContext);
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pHandle"></param>
+        /// <param name="pUID"></param>
+        /// <param name="pSection"></param>
+        /// <param name="pDecoding"></param>
+        /// <param name="pStream"></param>
+        /// <param name="pConfiguration"></param>
+        /// <returns></returns>
         public Task UIDFetchAsync(iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
         {
             // note: if it fails bytes could have been written to the stream

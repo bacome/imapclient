@@ -9,6 +9,13 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pSourceHandle"></param>
+        /// <param name="pSourceUID"></param>
+        /// <param name="pDestinationHandle"></param>
+        /// <returns></returns>
         public cCopyFeedback UIDCopy(iMailboxHandle pSourceHandle, cUID pSourceUID, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopy), 1);
@@ -17,6 +24,13 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pSourceHandle"></param>
+        /// <param name="pSourceUIDs"></param>
+        /// <param name="pDestinationHandle"></param>
+        /// <returns></returns>
         public cCopyFeedback UIDCopy(iMailboxHandle pSourceHandle, IEnumerable<cUID> pSourceUIDs, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopy), 2);
@@ -25,12 +39,26 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pSourceHandle"></param>
+        /// <param name="pSourceUID"></param>
+        /// <param name="pDestinationHandle"></param>
+        /// <returns></returns>
         public Task<cCopyFeedback> UIDCopyAsync(iMailboxHandle pSourceHandle, cUID pSourceUID, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopyAsync), 1);
             return ZUIDCopyAsync(pSourceHandle, cUIDList.FromUID(pSourceUID), pDestinationHandle, lContext);
         }
 
+        /// <summary>
+        /// Intended for use by the <see cref="cMailbox"/> class.
+        /// </summary>
+        /// <param name="pSourceHandle"></param>
+        /// <param name="pSourceUIDs"></param>
+        /// <param name="pDestinationHandle"></param>
+        /// <returns></returns>
         public Task<cCopyFeedback> UIDCopyAsync(iMailboxHandle pSourceHandle, IEnumerable<cUID> pSourceUIDs, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopyAsync), 2);

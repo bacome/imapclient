@@ -1672,11 +1672,11 @@ namespace testharness2
                 if (!lClient.Inbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch1.6");
 
                 bool lFailed = false;
-                try { lClient.Inbox.SetUnseen(); }
+                try { lClient.Inbox.SetUnseenCount(); }
                 catch (cUIDValidityChangedException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestSearch1.7");
 
-                lClient.Inbox.SetUnseen();
+                lClient.Inbox.SetUnseenCount();
                 if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 0 || lClient.Inbox.UIDNextUnknownCount != 172 || lClient.Inbox.UIDValidity != 3857529046 || lClient.Inbox.UnseenCount != 3 || lClient.Inbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch1.8");
 
                 lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
@@ -1700,7 +1700,7 @@ namespace testharness2
 
                 if (lMailbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch3.5");
 
-                lMailbox.SetUnseen();
+                lMailbox.SetUnseenCount();
                 if (lMailbox.UnseenCount != 3 || lMailbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch3.7");
 
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));
@@ -1927,11 +1927,11 @@ namespace testharness2
                 if (!lClient.Inbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch2_1.6");
 
                 bool lFailed = false;
-                try { lClient.Inbox.SetUnseen(); }
+                try { lClient.Inbox.SetUnseenCount(); }
                 catch (cUIDValidityChangedException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestSearch2_1.7");
 
-                lClient.Inbox.SetUnseen();
+                lClient.Inbox.SetUnseenCount();
                 if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 0 || lClient.Inbox.UIDNextUnknownCount != 172 || lClient.Inbox.UIDValidity != 3857529046 || lClient.Inbox.UnseenCount != 3 || lClient.Inbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch2_1.8");
 
                 lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
@@ -1955,7 +1955,7 @@ namespace testharness2
 
                 if (lMailbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch2_3.5");
 
-                lMailbox.SetUnseen();
+                lMailbox.SetUnseenCount();
                 if (lMailbox.UnseenCount != 3 || lMailbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch2_3.7");
 
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));

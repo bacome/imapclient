@@ -11,11 +11,11 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private static readonly cCommandPart kSetUnseenExtendedCommandPart = new cTextCommandPart("SEARCH RETURN () UNSEEN");
+            private static readonly cCommandPart kSetUnseenCountCommandPart = new cTextCommandPart("SEARCH UNSEEN");
 
-            public async Task<cMessageHandleList> SetUnseenExtendedAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> SetUnseenCountAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetUnseenExtendedAsync), pMC, pHandle);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetUnseenCountAsync), pMC, pHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
@@ -27,34 +27,36 @@ namespace work.bacome.imapclient
 
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, null);
 
+                    lBuilder.Add(await mSearchExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // search commands must be single threaded (so we can tell which result is which)
+
                     lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity); // if a UIDValidity change happens while the command is running, disbelieve the results
 
-                    lBuilder.Add(kSetUnseenExtendedCommandPart);
+                    lBuilder.Add(kSetUnseenCountCommandPart);
 
-                    var lHook = new cSetUnseenExtendedCommandHook(lBuilder.Tag, lSelectedMailbox);
+                    var lHook = new cSetUnseenCountCommandHook(lSelectedMailbox);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
-                        lContext.TraceInformation("extended setunseen success");
-                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.esearch, "results not received on a successful extended setunseen", lContext);
+                        lContext.TraceInformation("setunseencount success");
+                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(0, "results not received on a successful setunseencount", lContext);
                         return lHook.Handles;
                     }
 
-                    if (lHook.Handles != null) lContext.TraceError("results received on a failed extended setunseen");
+                    if (lHook.Handles != null) lContext.TraceError("results received on a failed setunseencount");
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.esearch, lContext);
-                    throw new cProtocolErrorException(lResult, fCapabilities.esearch, lContext);
+                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
+                    throw new cProtocolErrorException(lResult, 0, lContext);
                 }
             }
 
-            private class cSetUnseenExtendedCommandHook : cCommandHookBaseSearchExtended
+            private class cSetUnseenCountCommandHook : cCommandHookBaseSearch
             {
                 private int mMessageCount;
 
-                public cSetUnseenExtendedCommandHook(cCommandTag pCommandTag, cSelectedMailbox pSelectedMailbox) : base(pCommandTag, pSelectedMailbox) { }
+                public cSetUnseenCountCommandHook(cSelectedMailbox pSelectedMailbox) : base(pSelectedMailbox) { }
 
                 public cMessageHandleList Handles { get; private set; } = null;
 
@@ -65,10 +67,8 @@ namespace work.bacome.imapclient
 
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSetUnseenExtendedCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType != eCommandResultType.ok || mSequenceSets == null) return;
-                    if (!cUIntList.TryConstruct(mSequenceSets, mSelectedMailbox.Cache.Count, true, out var lMSNs)) return;
-                    Handles = mSelectedMailbox.SetUnseen(mMessageCount, lMSNs, lContext);
+                    var lContext = pParentContext.NewMethod(nameof(cSetUnseenCountCommandHook), nameof(CommandCompleted), pResult);
+                    if (pResult.ResultType == eCommandResultType.ok && mMSNs != null) Handles = mSelectedMailbox.SetUnseenCount(mMessageCount, new cUIntList(mMSNs.Distinct()), lContext);
                 }
             }
         }

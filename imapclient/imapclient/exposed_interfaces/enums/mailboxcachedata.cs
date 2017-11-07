@@ -3,74 +3,69 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of optionally cached mailbox attributes
+    /// A set of optionally cached mailbox attributes.
     /// </summary>
     [Flags]
     public enum fMailboxCacheData
     {
         /// <summary>
-        /// the backing data for the cMailbox.IsSubscribed property
+        /// The backing data for <see cref="cMailbox.IsSubscribed"/>.
         /// </summary>
-        /// <seealso cref="cMailbox.IsSubscribed"/>
         subscribed = 1 << 0,
 
         /// <summary>
-        /// the backing data for the cMailbox.HasChildren property
+        /// The backing data for <seea cref="cMailbox.HasChildren"/>.
         /// </summary>
-        /// <seealso cref="cMailbox.HasChildren"/>
         children = 1 << 1,
 
         /// <summary>
-        /// the backing data for the cMailbox Contains* properties and the IsArchive property
+        /// The backing data for;
+        /// <list type="bullet">
+        /// <item><see cref="cMailbox.ContainsAll"/></item>
+        /// <item><see cref="cMailbox.IsArchive"/></item>
+        /// <item><see cref="cMailbox.ContainsDrafts"/></item>
+        /// <item><see cref="cMailbox.ContainsFlagged"/></item>
+        /// <item><see cref="cMailbox.ContainsJunk"/></item>
+        /// <item><see cref="cMailbox.ContainsSent"/></item>
+        /// <item><see cref="cMailbox.ContainsTrash"/></item>
+        /// </list>
         /// </summary>
-        /// <seealso cref="cMailbox.ContainsAll"/>
-        /// <seealso cref="cMailbox.IsArchive"/>
-        /// <seealso cref="cMailbox.ContainsDrafts"/>
-        /// <seealso cref="cMailbox.ContainsFlagged"/>
-        /// <seealso cref="cMailbox.ContainsJunk"/>
-        /// <seealso cref="cMailbox.ContainsSent"/>
-        /// <seealso cref="cMailbox.ContainsTrash"/>
         specialuse = 1 << 2,
 
         /// <summary>
-        /// the backing data for the cMailbox.MessageCount property
+        /// The backing data for <see cref="cMailbox.MessageCount"/>.
         /// </summary>
-        /// <seealso cref="cMailbox.MessageCount"/>
         messagecount = 1 << 3,
 
         /// <summary>
-        /// the backing data for the cMailbox.RecentCount property
+        /// The backing data for <see cref="cMailbox.RecentCount"/>.
         /// </summary>
-        /// <seealso cref="cMailbox.RecentCount"/>
         recentcount = 1 << 4,
 
         /// <summary>
-        /// the backing data for the cMailbox.UIDNext property
+        /// The backing data for <see cref="cMailbox.UIDNext"/>.
         /// </summary>
-        /// <seealso cref="cMailbox.UIDNext"/>
         uidnext = 1 << 5,
 
         /// <summary>
-        /// the backing data for the cMailbox.UIDValidity property
+        /// The backing data for <see cref="cMailbox.UIDValidity"/>.
         /// </summary>
-        /// <seealso cref="cMailbox.UIDValidity"/>
         uidvalidity = 1 << 6,
 
         /// <summary>
-        /// the backing data for the cMailbox.UnseenCount property
+        /// The backing data for <see cref="cMailbox.UnseenCount"/>.
         /// </summary>
-        /// <seealso cref="cMailbox.UnseenCount"/>
         unseencount = 1 << 7,
 
         /// <summary>
-        /// the backing data for the cMailbox.HighestModSeq property
+        /// <para>The backing data for <see cref="cMailbox.HighestModSeq"/>.</para>
+        /// <para>Note that the server or the mailbox may not support CONDSTORE (RFC 7162) so the cached value may not be meaningful.</para>
         /// </summary>
-        /// <remarks>
-        /// Note that if the mailbox does not support CONDSTORE (RFC 7162) then the value will be null
-        /// </remarks>
-        /// <seealso cref="cMailbox.HighestModSeq"/>
         highestmodseq = 1 << 8,
 
+        /// <summary>
+        /// The backing data retrieved by the IMAP STATUS command.
+        /// </summary>
         allstatus = messagecount | recentcount | uidnext | uidvalidity | unseencount | highestmodseq
     }
 }

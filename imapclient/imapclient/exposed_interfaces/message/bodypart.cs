@@ -7,6 +7,9 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// The MIME type of a message part. RFC 2045.
+    /// </summary>
     public enum eBodyPartTypeCode
     {
         unknown,
@@ -19,6 +22,9 @@ namespace work.bacome.imapclient
         message
     }
 
+    /// <summary>
+    /// The disposition type of a message part. RFC 2183.
+    /// </summary>
     public enum eDispositionTypeCode
     {
         unknown,
@@ -26,6 +32,9 @@ namespace work.bacome.imapclient
         attachment
     }
 
+    /// <summary>
+    /// The MIME subtype of a text message part. RFC 2045.
+    /// </summary>
     public enum eTextBodyPartSubTypeCode
     {
         unknown,
@@ -33,6 +42,9 @@ namespace work.bacome.imapclient
         html
     }
 
+    /// <summary>
+    /// The MIME subtype of a multipart message part. RFC 2045.
+    /// </summary>
     public enum eMultiPartBodySubTypeCode
     {
         unknown,
@@ -42,6 +54,9 @@ namespace work.bacome.imapclient
         related
     }
 
+    /// <summary>
+    /// Contains named MIME type constants.
+    /// </summary>
     public static class kMimeType
     {
         public const string Multipart = "Multipart";
@@ -49,16 +64,45 @@ namespace work.bacome.imapclient
         public const string Text = "Text";
     }
 
+    /// <summary>
+    /// Contains named MIME subtype constants.
+    /// </summary>
     public static class kMimeSubType
     {
         public const string RFC822 = "RFC822";
     }
 
+    /// <summary>
+    /// <para>Represents a message part.</para>
+    /// <para>Will be one of;
+    /// <list type="bullet">
+    /// <item><description><see cref="cMultiPartBody"/></description></item>
+    /// <item><description><see cref="cSinglePartBody"/></description></item>
+    /// <item><description><see cref="cMessageBodyPart"/></description></item>
+    /// <item><description><see cref="cTextBodyPart"/></description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
     public abstract class cBodyPart
     {
+        /// <summary>
+        /// The MIME type of the part in text form.
+        /// </summary>
         public readonly string Type;
+
+        /// <summary>
+        /// The MIME subtype of the part in text form.
+        /// </summary>
         public readonly string SubType;
+
+        /// <summary>
+        /// The IMAP section identifier of the part.
+        /// </summary>
         public readonly cSection Section;
+
+        /// <summary>
+        /// The MIME type of the part in code form.
+        /// </summary>
         public readonly eBodyPartTypeCode TypeCode;
 
         public cBodyPart(string pType, string pSubType, cSection pSection)
@@ -77,16 +121,44 @@ namespace work.bacome.imapclient
             else TypeCode = eBodyPartTypeCode.unknown;
         }
 
+        /// <summary>
+        /// The disposition of the part.
+        /// </summary>
         public abstract cBodyPartDisposition Disposition { get; }
+
+        /// <summary>
+        /// The language(s) of the part.
+        /// </summary>
         public abstract cStrings Languages { get; }
+
+        /// <summary>
+        /// The location URI of the part.
+        /// </summary>
         public abstract string Location { get; }
+
+        /// <summary>
+        /// Any additional extension data for the part.
+        /// </summary>
         public abstract cBodyPartExtensionValues ExtensionValues { get; }
 
         public override string ToString() => $"{nameof(cBodyPart)}({Type},{SubType},{Section},{TypeCode})";
     }
 
+    /// <summary>
+    /// <para>Represents an additional extension data element.</para>
+    /// <para>Will be one of;
+    /// <list type="bullet">
+    /// <item><description><see cref="cBodyPartExtensionString"/></description></item>
+    /// <item><description><see cref="cBodyPartExtensionNumber"/></description></item>
+    /// <item><description><see cref="cBodyPartExtensionValues"/></description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
     public abstract class cBodyPartExtensionValue { }
 
+    /// <summary>
+    /// A string extension data element.
+    /// </summary>
     public class cBodyPartExtensionString : cBodyPartExtensionValue
     {
         public string String;
@@ -94,6 +166,9 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cBodyPartExtensionString)}({String})";
     }
 
+    /// <summary>
+    /// A numeric extension data element.
+    /// </summary>
     public class cBodyPartExtensionNumber : cBodyPartExtensionValue
     {
         public uint Number;
@@ -101,6 +176,9 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cBodyPartExtensionNumber)}({Number})";
     }
 
+    /// <summary>
+    /// A collection of extension data elements
+    /// </summary>
     public class cBodyPartExtensionValues : cBodyPartExtensionValue, IEnumerable<cBodyPartExtensionValue>
     {
         public ReadOnlyCollection<cBodyPartExtensionValue> Values;
@@ -116,6 +194,9 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// A collection of message parts.
+    /// </summary>
     public class cBodyParts : ReadOnlyCollection<cBodyPart>
     {
         public cBodyParts(IList<cBodyPart> pParts) : base(pParts) { }
@@ -128,11 +209,35 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// <para>IMAP bodystructure extension data.</para>
+    /// <para>Will be one of;
+    /// <list type="bullet">
+    /// <item><description><see cref="cMultiPartExtensionData"/></description></item>
+    /// <item><description><see cref="cSinglePartExtensionData"/></description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
     public abstract class cBodyPartExtensionData
     {
+        /// <summary>
+        /// The disposition of the part.
+        /// </summary>
         public readonly cBodyPartDisposition Disposition;
+
+        /// <summary>
+        /// The language(s) of the part.
+        /// </summary>
         public readonly cStrings Languages;
+
+        /// <summary>
+        /// The location URI of the part.
+        /// </summary>
         public readonly string Location;
+
+        /// <summary>
+        /// Any additional extension data for the part.
+        /// </summary>
         public readonly cBodyPartExtensionValues ExtensionValues;
 
         public cBodyPartExtensionData(cBodyPartDisposition pDisposition, cStrings pLanguages, string pLocation, cBodyPartExtensionValues pExtensionValues)
@@ -146,8 +251,14 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cBodyPartExtensionData)}({Disposition},{Languages},{Location},{ExtensionValues})";
     }
 
+    /// <summary>
+    /// The IMAP bodystructure extension data of a multipart part message part.
+    /// </summary>
     public class cMultiPartExtensionData : cBodyPartExtensionData
     {
+        /// <summary>
+        /// The body parameters of the part.
+        /// </summary>
         public readonly cBodyStructureParameters Parameters;
 
         public cMultiPartExtensionData(cBodyStructureParameters pParameters, cBodyPartDisposition pDisposition, cStrings pLanguages, string pLocation, cBodyPartExtensionValues pExtensionValues) : base(pDisposition, pLanguages, pLocation, pExtensionValues)
@@ -158,6 +269,9 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cMultiPartExtensionData)}({base.ToString()},{Parameters})";
     }
 
+    /// <summary>
+    /// The IMAP bodystructure extension data of a single part message part.
+    /// </summary>
     public class cSinglePartExtensionData : cBodyPartExtensionData
     {
         public readonly string MD5;
@@ -170,10 +284,24 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cSinglePartExtensionData)}({base.ToString()},{MD5})";
     }
 
+    /// <summary>
+    /// Represents a multipart message part.
+    /// </summary>
     public class cMultiPartBody : cBodyPart
     {
+        /// <summary>
+        /// The contained parts.
+        /// </summary>
         public readonly cBodyParts Parts;
+
+        /// <summary>
+        /// The MIME subtype of the part in code form.
+        /// </summary>
         public readonly eMultiPartBodySubTypeCode SubTypeCode;
+
+        /// <summary>
+        /// The IMAP bodystructure extension data for the part.
+        /// </summary>
         public readonly cMultiPartExtensionData ExtensionData;
 
         public cMultiPartBody(IList<cBodyPart> pParts, string pSubType, cSection pSection, cMultiPartExtensionData pExtensionData) : base(kMimeType.Multipart, pSubType, pSection)
@@ -189,21 +317,52 @@ namespace work.bacome.imapclient
             ExtensionData = pExtensionData;
         }
 
+        /// <summary>
+        /// The body parameters.
+        /// </summary>
         public cBodyStructureParameters Parameters => ExtensionData?.Parameters;
+
+        /// <summary>
+        /// The disposition of the part.
+        /// </summary>
         public override cBodyPartDisposition Disposition => ExtensionData?.Disposition;
+
+        /// <summary>
+        /// The language(s) of the part.
+        /// </summary>
         public override cStrings Languages => ExtensionData?.Languages;
+
+        /// <summary>
+        /// The location URI of the part.
+        /// </summary>
         public override string Location => ExtensionData?.Location;
+
+        /// <summary>
+        /// Any additional extension data for the part.
+        /// </summary>
         public override cBodyPartExtensionValues ExtensionValues => ExtensionData?.ExtensionValues;
 
         public override string ToString() => $"{nameof(cMultiPartBody)}({base.ToString()},{Parts},{ExtensionData})";
     }
 
+    /// <summary>
+    /// RFC 2183 disposition data.
+    /// </summary>
     public class cBodyPartDisposition
     {
-        // rfc 2183
-
+        /// <summary>
+        /// The disposition type in text form. 
+        /// </summary>
         public readonly string Type;
+
+        /// <summary>
+        /// The disposition type in code form. 
+        /// </summary>
         public readonly eDispositionTypeCode TypeCode;
+
+        /// <summary>
+        /// The disposition parameters.
+        /// </summary>
         public readonly cBodyStructureParameters Parameters;
 
         public cBodyPartDisposition(string pType, cBodyStructureParameters pParameters)
@@ -216,12 +375,29 @@ namespace work.bacome.imapclient
             else TypeCode = eDispositionTypeCode.unknown;
         }
 
+        /// <summary>
+        /// The suggested filename if provided. May be null.
+        /// </summary>
         public string FileName => Parameters?.First("filename")?.StringValue;
 
+        /// <summary>
+        /// The creation date if provided. May be null.
+        /// </summary>
         public DateTime? CreationDate => Parameters?.First("creation-date")?.DateTimeValue;
+
+        /// <summary>
+        /// The modification date if provided. May be null.
+        /// </summary>
         public DateTime? ModificationDate => Parameters?.First("modification-date")?.DateTimeValue;
+
+        /// <summary>
+        /// The last read date if provided. May be null.
+        /// </summary>
         public DateTime? ReadDate => Parameters?.First("read-date")?.DateTimeValue;
 
+        /// <summary>
+        /// The approximate size in bytes if provided. May be null.
+        /// </summary>
         public int? Size
         {
             get
@@ -235,14 +411,44 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cBodyPartDisposition)}({Type},{Parameters},{TypeCode})";
     }
 
+    /// <summary>
+    /// Represents a single part message part.
+    /// </summary>
     public class cSinglePartBody : cBodyPart
     {
+        /// <summary>
+        /// The body parameters.
+        /// </summary>
         public readonly cBodyStructureParameters Parameters;
+
+        /// <summary>
+        /// The MIME content-id of the part.
+        /// </summary>
         public readonly string ContentId;
-        public readonly cCulturedString Description; // decoded (the source may contain encoded words)
+
+        /// <summary>
+        /// The MIME content description of the part.
+        /// </summary>
+        public readonly cCulturedString Description;
+
+        /// <summary>
+        /// The MIME content transfer encoding of the part in text form.
+        /// </summary>
         public readonly string ContentTransferEncoding;
+
+        /// <summary>
+        /// The MIME content transfer encoding of the part in code form.
+        /// </summary>
         public readonly eDecodingRequired DecodingRequired;
+
+        /// <summary>
+        /// The size of the encoded part in bytes.
+        /// </summary>
         public readonly uint SizeInBytes;
+
+        /// <summary>
+        /// The IMAP bodystructure extension data for the part.
+        /// </summary>
         public readonly cSinglePartExtensionData ExtensionData;
 
         public cSinglePartBody(string pType, string pSubType, cSection pSection, cBodyStructureParameters pParameters, string pContentId, cCulturedString pDescription, string pContentTransferEncoding, uint pSizeInBytes, cSinglePartExtensionData pExtensionData) : base(pType, pSubType, pSection)
@@ -264,9 +470,25 @@ namespace work.bacome.imapclient
         }
 
         public string MD5 => ExtensionData?.MD5;
+
+        /// <summary>
+        /// The disposition of the part.
+        /// </summary>
         public override cBodyPartDisposition Disposition => ExtensionData?.Disposition;
+
+        /// <summary>
+        /// The language(s) of the part.
+        /// </summary>
         public override cStrings Languages => ExtensionData?.Languages;
+
+        /// <summary>
+        /// The location URI of the part.
+        /// </summary>
         public override string Location => ExtensionData?.Location;
+
+        /// <summary>
+        /// Any additional extension data for the part.
+        /// </summary>
         public override cBodyPartExtensionValues ExtensionValues => ExtensionData?.ExtensionValues;
 
         public override string ToString() => $"{nameof(cSinglePartBody)}({base.ToString()},{Parameters},{ContentId},{Description},{ContentTransferEncoding},{DecodingRequired},{SizeInBytes},{ExtensionData})";
@@ -311,11 +533,32 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cTextBodyPart)}({base.ToString()},{SizeInLines})";
     }
 
+    /// <summary>
+    /// <para>A message part parameter.</para>
+    /// <para>Parameters are attribute value pairs.</para>
+    /// <para>The value may have a language associated with it.</para>
+    /// <para>See RFC 2184.</para>
+    /// </summary>
     public class cBodyStructureParameter
     {
+        /// <summary>
+        /// The name of the attribute.
+        /// </summary>
         public readonly string Name;
+
+        /// <summary>
+        /// The un-decoded value.
+        /// </summary>
         public readonly cBytes RawValue;
+
+        /// <summary>
+        /// The decoded value.
+        /// </summary>
         public readonly string StringValue;
+
+        /// <summary>
+        /// The language tag of the value (if any).
+        /// </summary>
         public readonly string LanguageTag;
 
         public cBodyStructureParameter(IList<byte> pName, IList<byte> pValue)
@@ -338,6 +581,10 @@ namespace work.bacome.imapclient
             LanguageTag = pLanguageTag;
         }
 
+        /// <summary>
+        /// Parse the un-decoded value as a UInt.
+        /// If the value is not a valid UInt, returns null.
+        /// </summary>
         public uint? UIntValue
         {
             get
@@ -348,6 +595,10 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// Parse the un-decoded value as an RFC 822 date and time.
+        /// If the value is not a valid RFC 822 date and time, returns null.
+        /// </summary>
         public DateTime? DateTimeValue
         {
             get
@@ -361,10 +612,18 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cBodyStructureParameter)}({Name},{RawValue},{StringValue},{LanguageTag})";
     }
 
+    /// <summary>
+    /// Message part parameters.
+    /// </summary>
     public class cBodyStructureParameters : ReadOnlyCollection<cBodyStructureParameter>
     {
         public cBodyStructureParameters(IList<cBodyStructureParameter> pParameters) : base(pParameters) { }
 
+        /// <summary>
+        /// Returns the first parameter with the specified attribute name.
+        /// </summary>
+        /// <param name="pName">The attribute name.</param>
+        /// <returns>The parameter if there is at least one with a matching name, otherwise null.</returns>
         public cBodyStructureParameter First(string pName) => this.FirstOrDefault(p => p.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
 
         public override string ToString()

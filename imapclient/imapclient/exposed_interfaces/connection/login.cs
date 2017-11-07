@@ -4,7 +4,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Parameters to use with the LOGIN command
+    /// Parameters to use with the IMAP LOGIN command.
     /// </summary>
     public class cLogin
     {
@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         public readonly string Password;
 
         /// <summary>
-        /// The TLS requirement for LOGIN to be used with this userid and password
+        /// The TLS requirement for the IMAP LOGIN command to be used with this userid and password.
         /// </summary>
         public readonly eTLSRequirement TLSRequirement;
 
@@ -37,8 +37,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Tries to create a cLogin instance.
-        /// LOGIN only allows ASCII userids and passwords, so this may fail.
+        /// <para>IMAP LOGIN only allows ASCII userids and passwords, so this may fail.</para>
         /// </summary>
         /// <param name="pUserId"></param>
         /// <param name="pPassword"></param>

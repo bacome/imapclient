@@ -5,10 +5,17 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Provides an API that allows interaction with an IMAP attachment.
+    /// </summary>
     public class cAttachment
     {
         public readonly cIMAPClient Client;
         public readonly iMessageHandle Handle;
+
+        /// <summary>
+        /// The message body part that this attachment refers to.
+        /// </summary>
         public readonly cSinglePartBody Part;
 
         public cAttachment(cIMAPClient pClient, iMessageHandle pHandle, cSinglePartBody pPart)
@@ -18,8 +25,16 @@ namespace work.bacome.imapclient
             Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
         }
 
+        /// <summary>
+        /// The MIME type of the attachment in text form.
+        /// </summary>
         public string Type => Part.Type;
+
+        /// <summary>
+        /// The MIME type of the attachment in code form.
+        /// </summary>
         public eBodyPartTypeCode TypeCode => Part.TypeCode;
+
         public string SubType => Part.SubType;
         public cBodyStructureParameters Parameters => Part.Parameters;
         public string ContentId => Part.ContentId;

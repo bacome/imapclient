@@ -7,12 +7,22 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Represents an IMAP mailbox name.
+    /// </summary>
     public class cMailboxName : IComparable<cMailboxName>, IEquatable<cMailboxName>
     {
         public const string InboxString = "INBOX";
         public static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
 
+        /// <summary>
+        /// <para>The mailbox name including the full hierarchy.</para>
+        /// </summary>
         public readonly string Path;
+
+        /// <summary>
+        /// <para>The hierarchy delimiter used in <see cref="Path"/>.</para>
+        /// </summary>
         public readonly char? Delimiter;
 
         private cMailboxName(string pPath, char? pDelimiter, bool pValid)
@@ -41,6 +51,10 @@ namespace work.bacome.imapclient
             Delimiter = pDelimiter;
         }
 
+        /// <summary>
+        /// <para>The path of the parent mailbox.</para>
+        /// <para>Will be null if there is no parent mailbox.</para>
+        /// </summary>
         public string ParentPath
         {
             get
@@ -52,6 +66,11 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// <para>The name of the mailbox.</para>
+        /// <para>As compared to <see cref="Path"/> this does not include the hierarchy.</para>
+        /// </summary>
+        /// 
         public string Name
         {
             get
@@ -63,6 +82,9 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// <para>True if this instance represents the inbox.</para>
+        /// </summary>
         public bool IsInbox => ReferenceEquals(Path, InboxString);
 
         public int CompareTo(cMailboxName pOther)
@@ -113,6 +135,13 @@ namespace work.bacome.imapclient
 
         public static bool operator !=(cMailboxName pA, cMailboxName pB) => !(pA == pB);
 
+        /// <summary>
+        /// <para>IMAP mailbox names have few restrictions, but this may fail.</para>
+        /// </summary>
+        /// <param name="pPath"></param>
+        /// <param name="pDelimiter"></param>
+        /// <param name="rResult"></param>
+        /// <returns></returns>
         public static bool TryConstruct(string pPath, char? pDelimiter, out cMailboxName rResult)
         {
             if (string.IsNullOrEmpty(pPath)) { rResult = null; return false; }
@@ -132,6 +161,14 @@ namespace work.bacome.imapclient
             return true;
         }
 
+        /// <summary>
+        /// Intended for internal use.
+        /// </summary>
+        /// <param name="pEncodedMailboxPath"></param>
+        /// <param name="pDelimiter"></param>
+        /// <param name="pUTF8Enabled"></param>
+        /// <param name="rResult"></param>
+        /// <returns></returns>
         public static bool TryConstruct(IList<byte> pEncodedMailboxPath, byte? pDelimiter, bool pUTF8Enabled, out cMailboxName rResult)
         {
             if (pEncodedMailboxPath == null || pEncodedMailboxPath.Count == 0) { rResult = null; return false; }

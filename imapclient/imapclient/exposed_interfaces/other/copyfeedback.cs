@@ -5,6 +5,10 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// <para>Returned from copy operations if the server supports the UIDCOPY response code of RFC 4315.</para>
+    /// <para>Contains a pair of UIDs of messages involved in the copy.</para>
+    /// </summary>
     public class cCopyFeedbackItem
     {
         public readonly cUID Source;
@@ -20,11 +24,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Returned from copy operations if the server supports the UIDCOPY response code of rfc 4315
+    /// <para>Returned from copy operations if the server supports the UIDCOPY response code of RFC 4315.</para>
+    /// <para>Contains pairs of UIDs of messages involved in the copy.</para>
     /// </summary>
-    /// <remarks>
-    /// Contains pairs of UIDs of messages involved in the copy.
-    /// </remarks>
     public class cCopyFeedback : IReadOnlyList<cCopyFeedbackItem>
     {
         private List<cCopyFeedbackItem> mItems = new List<cCopyFeedbackItem>();

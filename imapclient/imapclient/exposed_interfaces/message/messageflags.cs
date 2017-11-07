@@ -8,6 +8,9 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Contains named IMAP flag name contants.
+    /// </summary>
     public static class kMessageFlagName
     {
         public const string CreateNewIsPossible = @"\*";
@@ -52,6 +55,9 @@ namespace work.bacome.imapclient
         } */
     }
 
+    /// <summary>
+    /// A read only collection of IMAP message flags.
+    /// </summary>
     public abstract class cMessageFlags : IReadOnlyCollection<string>
     {
         private readonly cMessageFlagList mFlags;
@@ -76,20 +82,38 @@ namespace work.bacome.imapclient
         public override string ToString() => mFlags.ToString();
     }
 
+    /// <summary>
+    /// <para>A read only collection of settable IMAP message flags.</para>
+    /// <para>(e.g. It is not possible to set the \Recent flag.)</para>
+    /// </summary>
     public class cSettableFlags : cMessageFlags
     {
         // immutable (for passing in)
 
         public static readonly cSettableFlags None = new cSettableFlags();
 
+        /** <summary>A set of flags containing just the \Answered flag</summary> */
         public static readonly cSettableFlags Answered = new cSettableFlags(kMessageFlagName.Answered);
+
+        /** <summary>A set of flags containing just the \Flagged flag</summary> */
         public static readonly cSettableFlags Flagged = new cSettableFlags(kMessageFlagName.Flagged);
+
+        /** <summary>A set of flags containing just the \Deleted flag</summary> */
         public static readonly cSettableFlags Deleted = new cSettableFlags(kMessageFlagName.Deleted);
+
+        /** <summary>A set of flags containing just the \Seen flag</summary> */
         public static readonly cSettableFlags Seen = new cSettableFlags(kMessageFlagName.Seen);
+
+        /** <summary>A set of flags containing just the \Draft flag</summary> */
         public static readonly cSettableFlags Draft = new cSettableFlags(kMessageFlagName.Draft);
 
+        /** <summary>A set of flags containing just the $Forwarded flag</summary> */
         public static readonly cSettableFlags Forwarded = new cSettableFlags(kMessageFlagName.Forwarded);
+
+        /** <summary>A set of flags containing just the $SubmitPending flag</summary> */
         public static readonly cSettableFlags SubmitPending = new cSettableFlags(kMessageFlagName.SubmitPending);
+
+        /** <summary>A set of flags containing just the $Submitted flag</summary> */
         public static readonly cSettableFlags Submitted = new cSettableFlags(kMessageFlagName.Submitted);
 
         // see comments elsewhere as to why this is commented out
@@ -102,6 +126,10 @@ namespace work.bacome.imapclient
         public static implicit operator cSettableFlags(cSettableFlagList pFlags) => new cSettableFlags(pFlags);
     }
 
+    /// <summary>
+    /// <para>A read only collection of fetchable IMAP message flags.</para>
+    /// <para>(e.g. It is not possible to set \Recent flag however it is possible to receive it set on a message.)</para>
+    /// </summary>
     public class cFetchableFlags : cMessageFlags
     {
         // immutable (for passing in and out)
@@ -121,6 +149,10 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// <para>A read only collection of IMAP message flags that it is possible to set permanently on messages in a mailbox.</para>
+    /// <para>(e.g. This may include the \* flag indicating that it is possible to create new flags by setting them.)</para>
+    /// </summary>
     public class cPermanentFlags : cMessageFlags
     {
         // read only wrapper (for passing out)
@@ -135,6 +167,9 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// A list of IMAP message flags.
+    /// </summary>
     public abstract class cMessageFlagList : IReadOnlyCollection<string>
     {
         // implements case insensitivity (note that the specs do NOT explicitly say that keywords are case insensitive OTHER than the spec for MDNSent) via the Comparer [see the notes above though: currently the implementation is case-insensitive]
@@ -199,6 +234,10 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// <para>A list of settable IMAP message flags.</para>
+    /// <para>(e.g. It is not possible to set the \Recent flag.)</para>
+    /// </summary>
     public class cSettableFlagList : cMessageFlagList
     {
         public cSettableFlagList() : base(new List<string>()) { }
@@ -270,6 +309,10 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// <para>A list of fetchable IMAP message flags.</para>
+    /// <para>(e.g. It is not possible to set \Recent flag however it is possible to receive it set on a message.)</para>
+    /// </summary>
     public class cFetchableFlagList : cMessageFlagList
     {
         public cFetchableFlagList() : base(new List<string>()) { }
@@ -308,6 +351,10 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// <para>A list of IMAP message flags that it is possible to set permanently on messages in a mailbox.</para>
+    /// <para>(e.g. This may include the \* flag indicating that it is possible to create new flags by setting them.)</para>
+    /// </summary>
     public class cPermanentFlagList : cMessageFlagList
     {
         private cPermanentFlagList(List<string> pFlags) : base(pFlags) { } // wraps

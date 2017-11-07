@@ -3,40 +3,38 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The type of account
+    /// The type of account.
     /// </summary>
     public enum eAccountType
     {
-        /** <summary> the library has no idea about the account that is in use </summary>"*/
+        /** <summary>The library has no idea about the account.</summary>"*/
         none,
 
-        /** <summary> the account is an anonymous one </summary>"*/
+        /** <summary>The account is an anonymous one.</summary>"*/
         anonymous,
 
-        /** <summary> the account has a userid </summary>"*/
+        /** <summary>The account has a userid.</summary>"*/
         userid
     }
 
     /// <summary>
-    /// Describes an IMAP account
+    /// Describes an IMAP account.
     /// </summary>
     public class cAccountId
     {
         /// <summary>
-        /// The host that contains the account
+        /// The host that contains the account.
         /// </summary>
         public readonly string Host;
 
         /// <summary>
-        /// The account type
+        /// <para>The account type.</para>
+        /// <para>If the connection was IMAP PREAUTHed then this will be <see cref="eAccountType.none"/>.</para>
         /// </summary>
-        /// <remarks>
-        /// If the connection was PREAUTHed then this will be none
-        /// </remarks>
         public readonly eAccountType Type;
 
         /// <summary>
-        /// If account's userid, if any
+        /// If account's userid, if any.
         /// </summary>
         public readonly string UserId;
 
