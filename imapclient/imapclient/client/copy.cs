@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public cCopyFeedback Copy(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
+        internal cCopyFeedback Copy(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Copy), 1);
             var lTask = ZCopyAsync(cMessageHandleList.FromHandle(pSourceHandle), pDestinationHandle, lContext);
@@ -17,13 +17,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pSourceHandles"></param>
-        /// <param name="pDestinationHandle"></param>
-        /// <returns></returns>
-        public cCopyFeedback Copy(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
+        internal cCopyFeedback Copy(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Copy), 2);
             var lTask = ZCopyAsync(cMessageHandleList.FromHandles(pSourceHandles), pDestinationHandle, lContext);
@@ -31,19 +25,13 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<cCopyFeedback> CopyAsync(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
+        internal Task<cCopyFeedback> CopyAsync(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 1);
             return ZCopyAsync(cMessageHandleList.FromHandle(pSourceHandle), pDestinationHandle, lContext);
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pSourceHandles"></param>
-        /// <param name="pDestinationHandle"></param>
-        /// <returns></returns>
-        public Task<cCopyFeedback> CopyAsync(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
+        internal Task<cCopyFeedback> CopyAsync(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 2);
             return ZCopyAsync(cMessageHandleList.FromHandles(pSourceHandles), pDestinationHandle, lContext);

@@ -77,10 +77,8 @@ namespace work.bacome.imapclient
         /** <summary>A filter that passes nothing through.</summary>*/
         public static readonly cFilter False = Seen & !Seen;
 
-        /** <summary>Intended for internal use.</summary>*/
-        public readonly bool ContainsMessageHandles;
-        /** <summary>Intended for internal use.</summary>*/
-        public readonly uint? UIDValidity;
+        internal readonly bool ContainsMessageHandles;
+        internal readonly uint? UIDValidity;
 
         protected cFilter()
         {
@@ -159,24 +157,27 @@ namespace work.bacome.imapclient
         }
     }
 
-    /** <summary>Intended for internal use.</summary>*/
+    /** <summary>The type of message sequence number comparison. Intended for internal use.</summary>*/
     public enum eFilterHandleRelativity { less, lessequal, greaterequal, greater }
-    /** <summary>Intended for internal use.</summary>*/
+    /** <summary>The message attribute being filtered by. Intended for internal use.</summary>*/
     public enum eFilterPart { bcc, body, cc, from, subject, text, to }
-    /** <summary>Intended for internal use.</summary>*/
+    /** <summary>The message date being filtered by. Intended for internal use.</summary>*/
     public enum eFilterDate { arrival, sent }
-    /** <summary>Intended for internal use.</summary>*/
+    /** <summary>The type of date comparison. Intended for internal use.</summary>*/
     public enum eFilterDateCompare { before, on, since }
-    /** <summary>Intended for internal use.</summary>*/
+    /** <summary>The type of size comparison. Intended for internal use.</summary>*/
     public enum eFilterSizeCompare { smaller, larger }
-    /** <summary>Intended for internal use.</summary>*/
+    /** <summary>The end of the message sequence. Intended for internal use.</summary>*/
     public enum eFilterEnd { first, last }
 
     // suppress the warnings about not implementing == properly: here == is being used as an expression builder
     #pragma warning disable 660
     #pragma warning disable 661
 
-    /** <summary>Intended for internal use.</summary>*/
+    /// <summary>
+    /// <para>Represents a message sequence number message filter.</para>
+    /// <para>Use the static member <see cref="cFilter.MSN"/> to generate these.</para>
+    /// </summary>
     public class cFilterMSNRelativity : cFilter
     {
         public readonly iMessageHandle Handle;
@@ -203,7 +204,11 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterMSNRelativity)}({UIDValidity},{Handle},{End},{Offset},{Relativity})";
     }
 
-    /** <summary>Specifies an MSN offset from a specific message or from the first message in the mailbox or from the last message in the mailbox.</summary>*/
+    /// <summary>
+    /// <para>Specifies an offset from a specific message or from the first message in the mailbox or from the last message in the mailbox.</para>
+    /// <para>Use <see cref="cMessage.MSNOffset(int)"/> or the static members <see cref="cFilter.First"/> or <see cref="cFilter.Last"/> to generate instances of this class.</para>
+    /// <para>Use instances of this class with the <see cref="cFilter.MSN"/> static member to generate message sequence number filters.</para>
+    /// </summary>
     public class cFilterMSNOffset
     {
         public readonly iMessageHandle Handle;
@@ -227,16 +232,32 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterMSNOffset)}({Handle},{End},{Offset})";
     }
 
-    /** <summary>Represents either the first message in the mailbox or the last message in the mailbox.</summary>*/
+    /// <summary>
+    /// <para>Represents either the first message in the mailbox or the last message in the mailbox.</para>
+    /// <para>Use the <see cref="cFilter.First"/> and <see cref="cFilter.Last"/> static instances of this class to generate offsets to use with the static <see cref="cFilter.MSN"/> to generate message sequence number filters.</para>
+    /// </summary>
     public class cFilterEnd
     {
         public readonly eFilterEnd End;
+
         public cFilterEnd(eFilterEnd pEnd) { End = pEnd; }
+
+        /// <summary>
+        /// Generates an offset from the end of the mailbox that the instance represents.
+        /// </summary>
+        /// <param name="pOffset">The number of messages to offset by.</param>
+        /// <returns>The offset.</returns>
         public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(End, pOffset);
+
         public override string ToString() => $"{nameof(cFilterEnd)}({End})";
     }
 
-    /** <summary>Use the operators defined by the class to generate message sequence number filters.</summary>*/
+    /// <summary>
+    /// <para>The operators defined on this class generate message sequence number filters.</para>
+    /// <para>Use the <see cref="cFilter.MSN"/> static instance of this class to do this.</para>
+    /// <para>The operators defined are; &lt;, &gt;, &lt;= and &gt;=.</para>
+    /// <para>Use the operators to compare to a <see cref="cMessage"/> or to a <see cref="cFilterMSNOffset"/>.</para>
+    /// </summary>
     public class cFilterMSN
     {
         public cFilterMSN() { }
@@ -290,6 +311,10 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// <para>Represents a UID message filter.</para>
+    /// <para>Use the static member <see cref="cFilter.UID"/> to generate these.</para>
+    /// </summary>
     public class cFilterUIDIn : cFilter
     {
         public readonly cSequenceSet SequenceSet;
@@ -297,6 +322,12 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterUIDIn)}({UIDValidity},{SequenceSet})";
     }
 
+    /// <summary>
+    /// <para>The operators defined on this class generate message UID filters.</para>
+    /// <para>Use the <see cref="cFilter.UID"/> static instance of this class to do this.</para>
+    /// <para>The operators defined are; &lt;, &gt;, &lt;=, &gt;=, == and !=.</para>
+    /// <para>Use the operators to compare to a <see cref="cUID"/> instance.</para>
+    /// </summary>
     public class cFilterUID
     {
         public cFilterUID() { }
@@ -340,6 +371,10 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// <para>Represents a message flag filter.</para>
+    /// <para>Use the static methods <see cref="cFilter.FlagsContain(cFetchableFlags)"/> or <see cref="cFilter.FlagsContain(string[])"/> to generate these.</para>
+    /// </summary>
     public class cFilterFlagsContain : cFilter
     {
         public readonly cFetchableFlags Flags;
@@ -359,6 +394,20 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterFlagsContain)}({Flags})";
     }
 
+    /// <summary>
+    /// <para>Represents a filter on the content of a message part.</para>
+    /// <para>Use the <see cref="cFilterPart.Contains(string)"/> method on the following static members of <see cref="cFilter"/> to generate these;
+    /// <list type="bullet">
+    /// <item><description><see cref="cFilter.BCC"/></description></item>
+    /// <item><description><see cref="cFilter.Body"/></description></item>
+    /// <item><description><see cref="cFilter.CC"/></description></item>
+    /// <item><description><see cref="cFilter.From"/></description></item>
+    /// <item><description><see cref="cFilter.Subject"/></description></item>
+    /// <item><description><see cref="cFilter.Text"/></description></item>
+    /// <item><description><see cref="cFilter.To"/></description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
     public class cFilterPartContains : cFilter
     {
         public readonly eFilterPart Part;
@@ -373,13 +422,42 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterPartContains)}({Part},{Contains})";
     }
 
+    /// <summary>
+    /// <para>The <see cref="Contains(string)"/> method of this class generates a message content filter.</para>
+    /// <para>Use the following static instances of this class to do this;
+    /// <list type="bullet">
+    /// <item><description><see cref="cFilter.BCC"/></description></item>
+    /// <item><description><see cref="cFilter.Body"/></description></item>
+    /// <item><description><see cref="cFilter.CC"/></description></item>
+    /// <item><description><see cref="cFilter.From"/></description></item>
+    /// <item><description><see cref="cFilter.Subject"/></description></item>
+    /// <item><description><see cref="cFilter.Text"/></description></item>
+    /// <item><description><see cref="cFilter.To"/></description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
     public class cFilterPart
     {
         private readonly eFilterPart Part;
         public cFilterPart(eFilterPart pPart) { Part = pPart; }
+
+        /// <summary>
+        /// Generates an object that represents a filter on message content.
+        /// </summary>
+        /// <param name="pContains"></param>
+        /// <returns>An object that represents a filter on message content.</returns>
         public cFilter Contains(string pContains) => new cFilterPartContains(Part, pContains);
     }
 
+    /// <summary>
+    /// <para>Represents a filter on a message date.</para>
+    /// <para>Use the following static members of <see cref="cFilter"/> to generate these;
+    /// <list type="bullet">
+    /// <item><description><see cref="cFilter.Received"/></description></item>
+    /// <item><description><see cref="cFilter.Sent"/></description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
     public class cFilterDateCompare : cFilter
     {
         public readonly eFilterDate Date;
@@ -396,6 +474,11 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterDateCompare)}({Date},{Compare},{WithDate})";
     }
 
+    /// <summary>
+    /// <para>The operators defined on this class generate message date filters.</para>
+    /// <para>Use the static instances of this class, <see cref="cFilter.Received"/> and <see cref="cFilter.Sent"/>, to do this.</para>
+    /// <para>The operators defined are; &lt;, &gt;, &lt;=, &gt;=, == and !=.</para>
+    /// </summary>
     public class cFilterDate
     {
         private readonly eFilterDate Date;
@@ -412,6 +495,10 @@ namespace work.bacome.imapclient
         public static cFilter operator <=(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.before, pDate.AddDays(1));
     }
 
+    /// <summary>
+    /// <para>Represents a message header field content filter.</para>
+    /// <para>Use the <see cref="cFilter.HeaderFieldContains(string, string)"/> static method to generate these.</para>
+    /// </summary>
     public class cFilterHeaderFieldContains : cFilter
     {
         public readonly string HeaderField;
@@ -427,6 +514,10 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterHeaderFieldContains)}({HeaderField},{Contains})";
     }
 
+    /// <summary>
+    /// <para>Represents a message size filter.</para>
+    /// <para>Use the <see cref="cFilter.Size"/> static member to generate these.</para>
+    /// </summary>
     public class cFilterSizeCompare : cFilter
     {
         public readonly eFilterSizeCompare Compare;
@@ -448,6 +539,11 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterSizeCompare)}({Compare},{WithSize})";
     }
 
+    /// <summary>
+    /// <para>The operators defined on this class generate message size filters.</para>
+    /// <para>Use the <see cref="cFilter.Size"/> static instance of this class to do this.</para>
+    /// <para>The &lt; and &gt; operators are defined.</para>
+    /// </summary>
     public class cFilterSize
     {
         public cFilterSize() { }
@@ -457,6 +553,12 @@ namespace work.bacome.imapclient
         public static cFilter operator >(cFilterSize pFitlerSize, uint pSize) => new cFilterSizeCompare(eFilterSizeCompare.larger, pSize);
     }
 
+    /// <summary>
+    /// <para>The operators defined on this class generate message importance filters.</para>
+    /// <para>Use the <see cref="cFilter.Importance"/> static instance of this class to do this.</para>
+    /// <para>The == and != operators are defined.</para>
+    /// <para>Use the operators to compare to a <see cref="eImportance"/> value.</para>
+    /// </summary>
     public class cFilterImportance
     {
         public cFilterImportance() { }
@@ -464,6 +566,10 @@ namespace work.bacome.imapclient
         public static cFilter operator !=(cFilterImportance pImportance, eImportance pValue) => !new cFilterHeaderFieldContains(kHeaderFieldName.Importance, cHeaderFieldImportance.FieldValue(pValue));
     }
 
+    /// <summary>
+    /// <para>Represents the logical and combination of a number of filters.</para>
+    /// <para>Use the &amp; operator defined on the <see cref="cFilter"/> class to generate these.</para>
+    /// </summary>
     public class cFilterAnd : cFilter
     {
         public readonly ReadOnlyCollection<cFilter> Terms;
@@ -499,6 +605,10 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// <para>Represents the logical or combination of two filters.</para>
+    /// <para>Use the | operator defined on the <see cref="cFilter"/> class to generate these.</para>
+    /// </summary>
     public class cFilterOr : cFilter
     {
         public readonly cFilter A;
@@ -530,6 +640,10 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cFilterOr)}({A},{B})";
     }
 
+    /// <summary>
+    /// <para>Represents the negation of a filter.</para>
+    /// <para>Use the ! operator defined on the <see cref="cFilter"/> class to generate these.</para>
+    /// </summary>
     public class cFilterNot : cFilter
     {
         public readonly cFilter Not;

@@ -4,10 +4,7 @@ using System.Collections.ObjectModel;
 
 namespace work.bacome.imapclient.support
 {
-    /// <summary>
-    /// Intended for internal use by the library
-    /// </summary>
-    public static class cASCII
+    internal static class cASCII
     {
         // null
         public const byte NUL = 0;
@@ -154,10 +151,7 @@ namespace work.bacome.imapclient.support
         }
     }
 
-    /// <summary>
-    /// Intended for internal use by the library
-    /// </summary>
-    public static class cChar
+    internal static class cChar
     {
         public const char NUL = '\0';
         public const char CtrlA = '\x01';
@@ -168,7 +162,9 @@ namespace work.bacome.imapclient.support
     }
 
     /// <summary>
-    /// Intended for internal use by the library
+    /// <para>Represents a set of characters that are valid in a parsing context.</para>
+    /// <para>Each static member defines a different set of characters.</para>
+    /// <para>Intended for internal use.</para>
     /// </summary>
     public abstract class cCharset
     {
@@ -829,10 +825,7 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset VSChar = new cVSChar();
     }
 
-    /// <summary>
-    /// Intended for internal use by the library
-    /// </summary>
-    public static class cASCIIMonth
+    internal static class cASCIIMonth
     {
         public static readonly cBytes Jan = new cBytes("JAN");
         public static readonly cBytes Feb = new cBytes("FEB");

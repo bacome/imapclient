@@ -8,7 +8,7 @@ namespace work.bacome.imapclient.support
     public partial class cBytesCursor
     {
         [Conditional("DEBUG")]
-        public static void _Tests(cTrace.cContext pParentContext)
+        internal static void _Tests(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cBytesCursor), nameof(_Tests));
 

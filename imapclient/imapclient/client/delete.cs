@@ -8,23 +8,14 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        public void Delete(iMailboxHandle pHandle)
+        internal void Delete(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Delete));
             var lTask = ZDeleteAsync(pHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <returns></returns>
-        public Task DeleteAsync(iMailboxHandle pHandle)
+        internal Task DeleteAsync(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(DeleteAsync));
             return ZDeleteAsync(pHandle, lContext);

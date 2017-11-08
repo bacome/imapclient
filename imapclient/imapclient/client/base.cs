@@ -590,10 +590,10 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Returns the named mailbox.</para>
+        /// <para>Returns an object that represents the named mailbox.</para>
         /// </summary>
         /// <param name="pMailboxName">The mailbox name.</param>
-        /// <returns>The named mailbox.</returns>
+        /// <returns>An object representing the named mailbox.</returns>
         public cMailbox Mailbox(cMailboxName pMailboxName)
         {
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
@@ -608,12 +608,7 @@ namespace work.bacome.imapclient
             return new cMailbox(this, lHandle);
         }
 
-        /// <summary>
-        /// <para>Intended for internal use by the library.</para>
-        /// <para>Checks if the cache contains mailboxes that are children of the specified mailbox.</para>
-        /// <para>Used when the server has not indicated whether the mailbox has children or not.</para>
-        /// </summary>
-        public bool? HasCachedChildren(iMailboxHandle pHandle) => mSession?.HasCachedChildren(pHandle);
+        internal bool? HasCachedChildren(iMailboxHandle pHandle) => mSession?.HasCachedChildren(pHandle);
 
         /// <summary>
         /// <para>Intended for debugging use.</para>

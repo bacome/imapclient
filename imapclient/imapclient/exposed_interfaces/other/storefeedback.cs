@@ -21,14 +21,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool WasNotUnchangedSince = false;
 
-        /// <summary>
-        /// Intended for internal use.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pOperation"></param>
-        /// <param name="pFlags"></param>
-        /// <param name="pSummary"></param>
-        public void IncrementSummary(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ref sStoreFeedbackSummary pSummary)
+        internal void IncrementSummary(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ref sStoreFeedbackSummary pSummary)
         {
             if (WasNotUnchangedSince)
             {

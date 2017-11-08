@@ -8,25 +8,14 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pForUpdate"></param>
-        public void Select(iMailboxHandle pHandle, bool pForUpdate)
+        internal void Select(iMailboxHandle pHandle, bool pForUpdate)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Select));
             var lTask = ZSelectAsync(pHandle, pForUpdate, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pForUpdate"></param>
-        /// <returns></returns>
-        public Task SelectAsync(iMailboxHandle pHandle, bool pForUpdate)
+        internal Task SelectAsync(iMailboxHandle pHandle, bool pForUpdate)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SelectAsync));
             return ZSelectAsync(pHandle, pForUpdate, lContext);

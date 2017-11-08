@@ -471,7 +471,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cHeaderFieldNames">
             <summary>
-            <para>A unique header field name collection.</para>
+            <para>A collection of unique header field names.</para>
             <para>Header field names are not case sensitive.</para>
             </summary>
         </member>
@@ -504,7 +504,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cHeaderFieldNameList">
             <summary>
-            <para>A unique header field name list.</para>
+            <para>A list of unique header field names.</para>
             <para>Header field names are not case sensitive and can only be formed from <see cref="F:work.bacome.imapclient.support.cCharset.FText"/> characters.</para>
             </summary>
         </member>
@@ -561,22 +561,22 @@
         </member>
         <member name="T:work.bacome.imapclient.cHeaderFieldMsgId">
             <summary>
-            Represents a header field where the value is a message-id.
+            Represents a header field where the value is a message id.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cHeaderFieldMsgId.MsgId">
             <summary>
-            The value of the field as a normalised (delimiters, quoting, comments and white space removed) message-id.
+            The normalised (delimiters, quoting, comments and white space removed) message id.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cHeaderFieldMsgIds">
             <summary>
-            Represents a header field where the value is a set of message-ids.
+            Represents a header field where the value is a set of message ids.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cHeaderFieldMsgIds.MsgIds">
             <summary>
-            The value of the field as normalised (delimiters, quoting, comments and white space removed) message-ids.
+            The normalised (delimiters, quoting, comments and white space removed) message ids.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cHeaderFieldImportance">
@@ -594,7 +594,7 @@
             <summary>The string constant for high importance.</summary>
         </member>
         <member name="F:work.bacome.imapclient.cHeaderFieldImportance.Importance">
-            <summary>The value of the field as an importance code.</summary>
+            <summary>The value as a code.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFieldImportance.FieldValue(work.bacome.imapclient.eImportance)">
             <summary>Returns the string constant associated with the passed <see cref="T:work.bacome.imapclient.eImportance"/> value.</summary>
@@ -609,7 +609,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFields.Contains(System.String)">
             <summary>
-            <para>Returns true if the collection has been populated with all header fields of the name specified.</para>
+            <para>Returns true if the collection has been populated with header fields of the header field name specified.</para>
             <para>Note that a true return value does not mean that the collection contains any fields with the name specified, as the message may not have any of those headers.</para>
             <para>Header field names are case insensitive.</para>
             </summary>
@@ -618,7 +618,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFields.Contains(work.bacome.imapclient.cHeaderFieldNames)">
             <summary>
-            <para>Returns true if the collection has been populated with all header fields of all the names specified.</para>
+            <para>Returns true if the collection has been populated with header fields of all of the header field names specified.</para>
             <para>Note that a true return value does not mean that the collection contains any fields with the names specified, as the message may not have any of those headers.</para>
             <para>Header field names are case insensitive.</para>
             </summary>
@@ -627,7 +627,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFields.ContainsNone(work.bacome.imapclient.cHeaderFieldNames)">
             <summary>
-            <para>Returns false if the collection has been populated with any header fields of the names specified.</para>
+            <para>Returns false if the collection has been populated with header fields of any of the header field names specified.</para>
             <para>Note that a false return value does not mean that the collection contains any fields with the names specified, as the message may not have had any of those headers.</para>
             <para>Header field names are case insensitive.</para>
             </summary>
@@ -636,11 +636,11 @@
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFields.Missing(work.bacome.imapclient.cHeaderFieldNames)">
             <summary>
-            <para>Returns the header field names from the provided collection of names that this collection of fields has not been populated with.</para>
+            <para>Returns the header field names from the provided collection of names that this collection has not been populated with.</para>
             <para>Header field names are case insensitive.</para>
             </summary>
             <param name="pNames">The header field names.</param>
-            <returns>The header field names from the provided collection of names that this collection of fields has not been populated with.</returns>
+            <returns>The header field names from the provided collection of names that this collection has not been populated with.</returns>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFields.FirstNamed(System.String)">
             <summary>
@@ -653,7 +653,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFields.AllNamed(System.String)">
             <summary>
-            <para>Returns all header fields with the header field name specified. Will return zero fields if there are no header fields of that name.</para>
+            <para>Returns all header fields with the header field name specified. Will return a zero fields if there are no header fields of that name.</para>
             <para>If the collection has not been populated with the specified header field name then this method will throw.</para>
             <para>Header field names are case insensitive.</para>
             </summary>
@@ -662,18 +662,13 @@
         </member>
         <member name="P:work.bacome.imapclient.cHeaderFields.References">
             <summary>
-            <para>Returns the normalised (delimiters, quoting, comments and white space removed) message-ids from the references header field, or null if there was no references header field or if the references header field could not be parsed.</para>
-            <para>If the collection has not been populated with the references header field then this method will throw.</para>
+            <para>Returns the normalised (delimiters, quoting, comments and white space removed) message ids from the references header field, or null if there was no references header field or if the references header field could not be parsed.</para>
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cHeaderFields.Importance">
             <summary>
-            <para>Returns the importance value from the importance header field, or null if there was no importance header field or if the importance header field could not be parsed.</para>
-            <para>If the collection has not been populated with the importance header field then this method will throw.</para>
+            <para>Returns the importance value from the importance header field, or null if there was no importance header field of if the importance header field could not be parsed.</para>
             </summary>
-        </member>
-        <member name="T:work.bacome.imapclient.eImportance">
-            <summary>The message importance.</summary>
         </member>
         <member name="T:work.bacome.imapclient.cCopyFeedbackItem">
             <summary>
@@ -1038,7 +1033,6 @@
         <member name="T:work.bacome.imapclient.cMailbox">
             <summary>
             <para>Provides an API that allows interaction with an IMAP mailbox.</para>
-            <para>Instances are only valid whilst the containing cIMAPClient remains connected. Reconnecting the client will not bring mailbox instances back to life.</para>
             </summary>
         </member>
         <member name="E:work.bacome.imapclient.cMailbox.MessageDelivery">
@@ -1636,8 +1630,9 @@
         </member>
         <member name="T:work.bacome.imapclient.fMessageProperties">
             <summary>
-            Specifies a set of <see cref="T:work.bacome.imapclient.cMessage"/> properties.
+            Specifies a set of message class properties
             </summary>
+            <seealso cref="T:work.bacome.imapclient.cMessage"/>
         </member>
         <member name="T:work.bacome.imapclient.cMailboxName">
             <summary>
@@ -2301,10 +2296,10 @@
             <summary>The message BCC address(s). May be null.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.cEnvelope.InReplyTo">
-            <summary>The normalised (delimiters, quoting, comments and white space removed) in-reply-to message-ids. May be null.</summary> 
+            <summary>The in-reply-to message-ids. May be null.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.cEnvelope.MessageId">
-            <summary>The normalised (delimiters, quoting, comments and white space removed) message-id of the message. May be null.</summary> 
+            <summary>The message-id of the message. May be null.</summary> 
         </member>
         <member name="T:work.bacome.imapclient.cFilter">
             <summary>
@@ -2587,329 +2582,6 @@
             <para>Represents the negation of a filter.</para>
             <para>Use the ! operator defined on the <see cref="T:work.bacome.imapclient.cFilter"/> class to generate these.</para>
             </summary>
-        </member>
-        <member name="T:work.bacome.imapclient.cMessage">
-            <summary>
-            <para>Provides an API that allows interaction with an IMAP message.</para>
-            <para>Instances are only valid whilst the containing mailbox remains selected. Re-selecting a mailbox will not bring the message instances back to life.</para>
-            <para>Instances are only valid whilst the containing mailbox has the same UIDValidity.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Expunged">
-            <summary>
-            True if the server has told us that the message has been expunged.
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Envelope">
-            <summary>
-            <para>The IMAP envelope data of the message.</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Sent">
-            <summary>
-            <para>The sent date of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Subject">
-            <summary>
-            <para>The subject of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.BaseSubject">
-            <summary>
-            <para>The base subject (as defined in RFC 5256: with the RE: FWD: etc stripped off) of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.From">
-            <summary>
-            <para>The 'from' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Sender">
-            <summary>
-            <para>The 'sender' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.ReplyTo">
-            <summary>
-            <para>The 'reply-to' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.To">
-            <summary>
-            <para>The 'to' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.CC">
-            <summary>
-            <para>The 'CC' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.BCC">
-            <summary>
-            <para>The 'BCC' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.InReplyTo">
-            <summary>
-            <para>The normalised (delimiters, quoting, comments and white space removed) 'in-reply-to' message-ids of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.MessageId">
-            <summary>
-            <para>The normalised (delimiters, quoting, comments and white space removed) message-id of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Flags">
-            <summary>
-            <para>The flags set for the message.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Answered">
-            <summary>
-            <para>True if the flags contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Answered"/> flag.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.SetAnswered">
-            <summary>Add the <see cref="F:work.bacome.imapclient.kMessageFlagName.Answered"/> flag to the message flags.</summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Flagged">
-            <summary>
-            <para>Get and set the <see cref="F:work.bacome.imapclient.kMessageFlagName.Flagged"/> flag on the message.</para>
-            <para>When getting the value, if the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Deleted">
-            <summary>
-            <para>Get and set the <see cref="F:work.bacome.imapclient.kMessageFlagName.Deleted"/> flag on the message.</para>
-            <para>When getting the value, if the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Seen">
-            <summary>
-            <para>Get and set the <see cref="F:work.bacome.imapclient.kMessageFlagName.Seen"/> flag on the message.</para>
-            <para>When getting the value, if the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Draft">
-            <summary>
-            <para>Get and set the <see cref="F:work.bacome.imapclient.kMessageFlagName.Draft"/> flag on the message.</para>
-            <para>When getting the value, if the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Recent">
-            <summary>
-            <para>True if the flags contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Recent"/> flag.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Forwarded">
-            <summary>
-            <para>True if the flags contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Forwarded"/> flag.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.SetForwarded">
-            <summary>Add the <see cref="F:work.bacome.imapclient.kMessageFlagName.Forwarded"/> flag to the message flags.</summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.SubmitPending">
-            <summary>
-            <para>True if the flags contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.SubmitPending"/> flag.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.SetSubmitPending">
-            <summary>Add the <see cref="F:work.bacome.imapclient.kMessageFlagName.SubmitPending"/> flag to the message flags.</summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Submitted">
-            <summary>
-            <para>True if the flags contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Submitted"/> flag.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Received">
-            <summary>
-            <para>The IMAP internaldate for the message.</para>
-            <para>If the internal message cache does not contain the internaldate of the message, it will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Size">
-            <summary>
-            <para>The size of the entire message in bytes.</para>
-            <para>If the internal message cache does not contain the size of the message, it will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.UID">
-            <summary>
-            <para>The IMAP UID of the message.</para>
-            <para>If the internal message cache does not contain the UID of the message, it will be fetched from the server.</para>
-            <para>May be null if the server does not support unique identifiers.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.ModSeq">
-            <summary>
-            <para>The modification sequence number of the message.</para>
-            <para>If the internal message cache does not contain a modseq for the message, it will be fetched from the server.</para>
-            <para>Will be 0 if the mailbox does not support CONDSTORE.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.BodyStructure">
-            <summary>
-            <para>The IMAP bodystructure of the message.</para>
-            <para>If the internal message cache does not contain the bodystructure of the message, it will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Attachments">
-            <summary>
-            <para>Returns the list of message attachments.</para>
-            <para>If the internal message cache does not contain the bodystructure of the message, it will be fetched from the server.</para>
-            <para>The library defines an attachment as a message part with a disposition of ‘attachment’.</para>
-            <para>If there are alternate versions of an attachment only one of the alternates is included in the returned list (the first one).</para>
-            <para>The returned list may be empty.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.PlainTextSizeInBytes">
-            <summary>
-            <para>The size in bytes of the plain text parts of the message.</para>
-            <para>If the internal message cache does not contain the bodystructure of the message, it will be fetched from the server.</para>
-            <para>The library defines plain text parts as parts with a MIME type of text/plain and without a disposition of 'attachment'.</para>
-            <para>If there are alternate versions of a part only one of the alternates is used in calculating the size (the first one).</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.References">
-            <summary>
-            <para>The normalised (delimiters, quoting, comments and white space removed) message-ids from the references header field, or null if there was no references header field or if the references header field could not be parsed.</para>
-            <para>If the internal message cache does not contain the references header field of the message, it will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cMessage.Importance">
-            <summary>
-            <para>The importance value from the importance header field, or null if there was no importance header field or if the importance header field could not be parsed.</para>
-            <para>If the internal message cache does not contain the importance header field of the message, it will be fetched from the server.</para>
-            </summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cCacheItems)">
-            <summary>
-            <para>Ensures that the internal message cache contains the specified items for this message instance.</para>
-            <para>The missing items will be fetched from the server.</para>
-            </summary>
-            <param name="pItems">
-            <para>The items required in the cache.</para>
-            <para>Note that the <see cref="T:work.bacome.imapclient.cCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/> (so you can use values of those types as parameters to this method).</para>
-            </param>
-            <returns>
-            <para>True if the fetch populated the cache with the requested items, false otherwise.</para>
-            <para>False indicates that the message is expunged.</para>
-            </returns>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cCacheItems)">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cCacheItems)"/>.</summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)">
-            <summary>
-            <para>Returns the fetch size in bytes of a <see cref="T:work.bacome.imapclient.cSinglePartBody"/> part of this message.</para>
-            <para>This may be smaller than the <see cref="F:work.bacome.imapclient.cSinglePartBody.SizeInBytes"/> if the part needs decoding (<see cref="F:work.bacome.imapclient.cSinglePartBody.DecodingRequired"/>) and the server supports RFC 3516.</para>
-            <para>This method may have to fetch the size from the server. (The size will be cached in the internal message cache.)</para>
-            <para></para>
-            </summary>
-            <param name="pPart">The part to get the size for.</param>
-            <returns>The size in bytes.</returns>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.FetchSizeInBytesAsync(work.bacome.imapclient.cSinglePartBody)">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/>.</summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.MSNOffset(System.Int32)">
-            <summary>
-            <para>Generates message sequence number offset for use in message filtering.</para>
-            <para>See <see cref="F:work.bacome.imapclient.cFilter.MSN"/> - a static instance of <see cref="T:work.bacome.imapclient.cFilterMSN"/>.</para>
-            </summary>
-            <param name="pOffset">The offset from this message's sequence number.</param>
-            <returns>A message sequence number offset.</returns>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.PlainText">
-            <summary>
-            <para>Fetches the message's plain text parts from the server, decodes them, and concatenates them yielding the returned value.</para>
-            <para>If the internal message cache does not contain the bodystructure of the message, it will be fetched from the server.</para>
-            <para>The library defines plain text parts as parts with a MIME type of text/plain and without a disposition of 'attachment'.</para>
-            <para>If there are alternate versions of a part only one of the alternates is used in generating the plain text (the first one).</para>
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.PlainTextAsync">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.PlainText"/>.</summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cTextBodyPart)">
-            <summary>
-            <para>Fetches the specified part from the server, decodes, and returns the data in a string.</para>
-            </summary>
-            <param name="pPart">The part to fetch.</param>
-            <returns>The decoded data of the message part.</returns>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cTextBodyPart)">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cTextBodyPart)"/>.</summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection)">
-            <summary>
-            <para>Fetches the specified message section from the server as text (without any content-transfer-decoding) and attempts to return the data as a string.</para>
-            </summary>
-            <param name="pSection">The section to fetch.</param>
-            <returns>The raw data of the section as a string.</returns>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cSection)">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection)"/>.</summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSinglePartBody,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)">
-            <summary>
-            <para>Fetches the specified part from the server and writes the (possibly decoded) bytes into the provided stream.</para>
-            <para>Any decoding required may be done client-side or server-side (if the server supports RFC 3516).</para>
-            <para>To calculate the number of bytes that have to be fetched, use the <see cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/> method. (This is useful if you are intending to display a progress bar.)</para>
-            <para>Optionally you may specify an operation specific timeout, cancellation token, progress callback and write size controller in the <paramref name="pConfiguration"/> parameter.</para>
-            </summary>
-            <param name="pPart">The part to fetch.</param>
-            <param name="pStream">The stream to write into.</param>
-            <param name="pConfiguration">Optionally use this parameter to specify an operation specific timeout, cancellation token, progress callback and write size controller.</param>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cSinglePartBody,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSinglePartBody,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)"/>.</summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection,work.bacome.imapclient.eDecodingRequired,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)">
-            <summary>
-            <para>Fetches the specified section from the server, applying the specified decoding, and writing the resulting bytes into the provided stream.</para>
-            <para>Any decoding required may be done client-side or server-side (if the server supports RFC 3516).</para>
-            <para>Optionally you may specify an operation specific timeout, cancellation token, progress callback and write size controller in the <paramref name="pConfiguration"/> parameter.</para>
-            </summary>
-            <param name="pSection">The section to fetch.</param>
-            <param name="pDecoding">The content-transfer-decoding to apply.</param>
-            <param name="pStream">The stream to write to</param>
-            <param name="pConfiguration">Optionally use this parameter to specify an operation specific timeout, cancellation token, progress callback and write size controller.</param>
-        </member>
-        <member name="M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cSection,work.bacome.imapclient.eDecodingRequired,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cSection,work.bacome.imapclient.eDecodingRequired,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)"/>.</summary>
         </member>
         <member name="T:work.bacome.imapclient.kMessageFlagName">
             <summary>

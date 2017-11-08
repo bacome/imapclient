@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
             mTLSRequirement = pTLSRequirement;
         }
 
-        public static bool TryConstruct(string pTrace, eTLSRequirement pTLSRequirement, out cSASLAnonymous rAnonymous)
+        internal static bool TryConstruct(string pTrace, eTLSRequirement pTLSRequirement, out cSASLAnonymous rAnonymous)
         {
             if (ZIsValid(pTrace))
             {

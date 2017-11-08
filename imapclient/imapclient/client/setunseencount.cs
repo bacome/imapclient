@@ -8,12 +8,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <returns></returns>
-        public cMessageHandleList SetUnseenCount(iMailboxHandle pHandle)
+        internal cMessageHandleList SetUnseenCount(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));
             var lTask = ZSetUnseenCountAsync(pHandle, lContext);
@@ -21,12 +16,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <returns></returns>
-        public Task<cMessageHandleList> SetUnseenCountAsync(iMailboxHandle pHandle)
+        internal Task<cMessageHandleList> SetUnseenCountAsync(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessagesAsync));
             return ZSetUnseenCountAsync(pHandle, lContext);

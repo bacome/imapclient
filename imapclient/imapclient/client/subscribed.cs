@@ -47,14 +47,7 @@ namespace work.bacome.imapclient
             return ZZSubscribedAsync(pListMailbox, pDelimiter, lPattern, pHasSubscribedChildren, pDataSets, lContext);
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pDescend"></param>
-        /// <param name="pDataSets"></param>
-        /// <returns></returns>
-        public List<cMailbox> Subscribed(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
+        internal List<cMailbox> Subscribed(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
             var lTask = ZSubscribedAsync(pHandle, pDescend, pDataSets, lContext);
@@ -62,14 +55,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pDescend"></param>
-        /// <param name="pDataSets"></param>
-        /// <returns></returns>
-        public Task<List<cMailbox>> SubscribedAsync(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
+        internal Task<List<cMailbox>> SubscribedAsync(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));
             return ZSubscribedAsync(pHandle, pDescend, pDataSets, lContext);

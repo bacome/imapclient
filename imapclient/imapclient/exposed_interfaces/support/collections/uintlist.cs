@@ -16,7 +16,7 @@ namespace work.bacome.imapclient.support
             return lBuilder.ToString();
         }
 
-        public static bool TryConstruct(cSequenceSet pSequenceSet, int pAsterisk, bool pDistinct, out cUIntList rResult)
+        internal static bool TryConstruct(cSequenceSet pSequenceSet, int pAsterisk, bool pDistinct, out cUIntList rResult)
         {
             if (pSequenceSet == null) throw new ArgumentNullException(nameof(pSequenceSet));
             if (!ZExpand(pSequenceSet, pAsterisk, out rResult)) return false;
@@ -24,7 +24,7 @@ namespace work.bacome.imapclient.support
             return true;
         }
 
-        public static bool TryConstruct(cSequenceSets pSequenceSets, int pAsterisk, bool pDistinct, out cUIntList rResult)
+        internal static bool TryConstruct(cSequenceSets pSequenceSets, int pAsterisk, bool pDistinct, out cUIntList rResult)
         {
             if (pSequenceSets == null) throw new ArgumentNullException(nameof(pSequenceSets));
 

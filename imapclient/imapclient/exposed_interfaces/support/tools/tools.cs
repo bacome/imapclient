@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text;
 
 namespace work.bacome.imapclient.support
 {
-    /// <summary>
-    /// Intended for internal use by the library
-    /// </summary>
-    public static class cTools
+    internal static class cTools
     {
         public static string ASCIIBytesToString(IList<byte> pBytes)
         {

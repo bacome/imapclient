@@ -8,25 +8,14 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pAndUnselect"></param>
-        public void Expunge(iMailboxHandle pHandle, bool pAndUnselect)
+        internal void Expunge(iMailboxHandle pHandle, bool pAndUnselect)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Expunge));
             var lTask = ZExpungeAsync(pHandle, pAndUnselect, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pAndUnselect"></param>
-        /// <returns></returns>
-        public Task ExpungeAsync(iMailboxHandle pHandle, bool pAndUnselect)
+        internal Task ExpungeAsync(iMailboxHandle pHandle, bool pAndUnselect)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ExpungeAsync));
             return ZExpungeAsync(pHandle, pAndUnselect, lContext);

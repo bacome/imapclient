@@ -8,23 +8,14 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        public void Subscribe(iMailboxHandle pHandle)
+        internal void Subscribe(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribe));
             var lTask = ZSubscribeAsync(pHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <returns></returns>
-        public Task SubscribeAsync(iMailboxHandle pHandle)
+        internal Task SubscribeAsync(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribeAsync));
             return ZSubscribeAsync(pHandle, lContext);
@@ -48,23 +39,14 @@ namespace work.bacome.imapclient
             }
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        public void Unsubscribe(iMailboxHandle pHandle)
+        internal void Unsubscribe(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Unsubscribe));
             var lTask = ZUnsubscribeAsync(pHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <returns></returns>
-        public Task UnsubscribeAsync(iMailboxHandle pHandle)
+        internal Task UnsubscribeAsync(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UnsubscribeAsync));
             return ZUnsubscribeAsync(pHandle, lContext);

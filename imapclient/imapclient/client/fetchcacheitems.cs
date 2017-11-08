@@ -10,13 +10,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        /// <summary>
-        /// Intended for use by the <see cref="cMessage"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pItems"></param>
-        /// <returns></returns>
-        public bool Fetch(iMessageHandle pHandle, cCacheItems pItems)
+        internal bool Fetch(iMessageHandle pHandle, cCacheItems pItems)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(Fetch), 1);
 
@@ -31,14 +25,7 @@ namespace work.bacome.imapclient
             return pHandle.Contains(pItems);
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandles"></param>
-        /// <param name="pItems"></param>
-        /// <param name="pConfiguration"></param>
-        /// <returns></returns>
-        public cMessageHandleList Fetch(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
+        internal cMessageHandleList Fetch(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(Fetch), 2);
 
@@ -55,14 +42,17 @@ namespace work.bacome.imapclient
             return new cMessageHandleList(from h in lHandles where !h.Contains(pItems) select h);
         }
 
+        // TODO: work out why the following XML generates such ugly documentation
+        //  (there are plenty more examples of ugly so this may indicate a larger problem)
+
         /// <summary>
         /// <para>For a set of messages ensure that the specified items are cached.</para>
         /// </summary>
         /// <param name="pMessages">The set of messages.</param>
         /// <param name="pItems">The set of cache items.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <returns>A list of message handles where the cache does NOT contain the requested items (i.e. where the fetch failed).</returns>
-        public cMessageHandleList Fetch(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
+        /// <returns>A list of messages where the cache does NOT contain the requested items (i.e. where the fetch failed).</returns>
+        public List<cMessage> Fetch(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(Fetch), 3);
 
@@ -71,15 +61,15 @@ namespace work.bacome.imapclient
 
             var lHandles = cMessageHandleList.FromMessages(pMessages);
 
-            if (lHandles.All(h => h.Contains(pItems))) return new cMessageHandleList();
+            if (lHandles.All(h => h.Contains(pItems))) return new List<cMessage>();
 
             var lTask = ZFetchCacheItemsAsync(lHandles, pItems, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
-            return new cMessageHandleList(from h in lHandles where !h.Contains(pItems) select h);
+            return new List<cMessage>(from m in pMessages where !m.Handle.Contains(pItems) select m);
         }
 
-        public async Task<bool> FetchAsync(iMessageHandle pHandle, cCacheItems pItems)
+        internal async Task<bool> FetchAsync(iMessageHandle pHandle, cCacheItems pItems)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(FetchAsync), 1);
 
@@ -93,14 +83,7 @@ namespace work.bacome.imapclient
             return pHandle.Contains(pItems);
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandles"></param>
-        /// <param name="pItems"></param>
-        /// <param name="pConfiguration"></param>
-        /// <returns></returns>
-        public async Task<cMessageHandleList> FetchAsync(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
+        internal async Task<cMessageHandleList> FetchAsync(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(FetchAsync), 2);
 
@@ -123,7 +106,7 @@ namespace work.bacome.imapclient
         /// <param name="pItems"></param>
         /// <param name="pConfiguration"></param>
         /// <returns></returns>
-        public async Task<cMessageHandleList> FetchAsync(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
+        public async Task<List<cMessage>> FetchAsync(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(FetchAsync), 3);
 
@@ -132,11 +115,11 @@ namespace work.bacome.imapclient
 
             var lHandles = cMessageHandleList.FromMessages(pMessages);
 
-            if (lHandles.All(h => h.Contains(pItems))) return new cMessageHandleList();
+            if (lHandles.All(h => h.Contains(pItems))) return new List<cMessage>();
 
             await ZFetchCacheItemsAsync(lHandles, pItems, pConfiguration, lContext).ConfigureAwait(false);
 
-            return new cMessageHandleList(from h in lHandles where !h.Contains(pItems) select h);
+            return new List<cMessage>(from m in pMessages where !m.Handle.Contains(pItems) select m);
         }
 
         private async Task ZFetchCacheItemsAsync(cMessageHandleList pHandles, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)

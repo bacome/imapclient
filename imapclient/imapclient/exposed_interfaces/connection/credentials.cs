@@ -55,6 +55,9 @@ namespace work.bacome.imapclient
             TryAllSASLs = pTryAllSASLs;
         }
 
+        /// <summary>
+        /// The set of SASL objects to try when authenticating.
+        /// </summary>
         public ReadOnlyCollection<cSASL> SASLs => mSASLs.AsReadOnly();
 
         /// <summary>
@@ -115,7 +118,7 @@ namespace work.bacome.imapclient
         } */
 
         [Conditional("DEBUG")]
-        public static void _Tests(cTrace.cContext pParentContext)
+        internal static void _Tests(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cCredentials), nameof(_Tests));
 

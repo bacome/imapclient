@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
             mTLSRequirement = pTLSRequirement;
         }
 
-        public static bool TryConstruct(string pAuthenticationId, string pPassword, eTLSRequirement pTLSRequirement, out cSASLPlain rPlain)
+        internal static bool TryConstruct(string pAuthenticationId, string pPassword, eTLSRequirement pTLSRequirement, out cSASLPlain rPlain)
         {
             if (!string.IsNullOrEmpty(pAuthenticationId) &&
                 pAuthenticationId.IndexOf(cChar.NUL) == -1 &&

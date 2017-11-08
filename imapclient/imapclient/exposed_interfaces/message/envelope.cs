@@ -38,10 +38,10 @@ namespace work.bacome.imapclient
         /** <summary>The message BCC address(s). May be null.</summary> */
         public readonly cAddresses BCC;
 
-        /** <summary>The in-reply-to message-ids. May be null.</summary> */
+        /** <summary>The normalised (delimiters, quoting, comments and white space removed) in-reply-to message-ids. May be null.</summary> */
         public readonly cHeaderFieldMsgIds InReplyTo;
 
-        /** <summary>The message-id of the message. May be null.</summary> */
+        /** <summary>The normalised (delimiters, quoting, comments and white space removed) message-id of the message. May be null.</summary> */
         public readonly cHeaderFieldMsgId MessageId;
 
         public cEnvelope(DateTime? pSent, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cHeaderFieldMsgIds pInReplyTo, cHeaderFieldMsgId pMessageId)

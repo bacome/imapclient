@@ -8,6 +8,9 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Contains named message header field name constants.
+    /// </summary>
     public static class kHeaderFieldName
     {
         public const string InReplyTo = "In-Reply-To";
@@ -16,12 +19,19 @@ namespace work.bacome.imapclient
         public const string Importance = "Importance";
     }
 
+    /// <summary>
+    /// <para>A unique header field name collection.</para>
+    /// <para>Header field names are not case sensitive.</para>
+    /// </summary>
     public class cHeaderFieldNames : IReadOnlyCollection<string>
     {
         // immutable (for passing in and out)
 
+        /** <summary>An empty collection.</summary>*/
         public static readonly cHeaderFieldNames None = new cHeaderFieldNames();
+        /** <summary>A collection containing the <see cref="kHeaderFieldName.References"/> header field name.</summary>*/
         public static readonly cHeaderFieldNames References = new cHeaderFieldNames(kHeaderFieldName.References);
+        /** <summary>A collection containing the <see cref="kHeaderFieldName.Importance"/> header field name.</summary>*/
         public static readonly cHeaderFieldNames Importance = new cHeaderFieldNames(kHeaderFieldName.Importance);
 
         private readonly cHeaderFieldNameList mNames;
@@ -32,12 +42,18 @@ namespace work.bacome.imapclient
         public cHeaderFieldNames(cHeaderFieldNameList pNames) => mNames = new cHeaderFieldNameList(pNames); // duplicates
         private cHeaderFieldNames(cHeaderFieldNameList pNames, bool pWrap) => mNames = pNames; // wraps
 
+        /** <summary>Returns true if the collection contains the name (case insensitive).</summary>*/
         public bool Contains(string pName) => mNames.Contains(pName);
+        /** <summary>Returns true if the collection contains all the names (case insensitive).</summary>*/
         public bool Contains(params string[] pNames) => mNames.Contains(pNames);
+        /** <summary>Returns true if the collection contains all the names (case insensitive).</summary>*/
         public bool Contains(IEnumerable<string> pNames) => mNames.Contains(pNames);
 
+        /** <summary>Case insensitive union.</summary>*/
         public cHeaderFieldNames Union(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Union(pOther.mNames), true);
+        /** <summary>Case insensitive intersect.</summary>*/
         public cHeaderFieldNames Intersect(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Intersect(pOther.mNames), true);
+        /** <summary>Case insensitive except.</summary>*/
         public cHeaderFieldNames Except(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Except(pOther.mNames), true);
 
         public int Count => mNames.Count;
@@ -62,7 +78,7 @@ namespace work.bacome.imapclient
 
         public static implicit operator cHeaderFieldNames(cHeaderFieldNameList pNames) => new cHeaderFieldNames(pNames);
 
-        public static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNames rNames)
+        internal static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNames rNames)
         {
             if (!cHeaderFieldNameList.TryConstruct(pNames, out var lNames)) { rNames = null; return false; }
             rNames = new cHeaderFieldNames(lNames, true);
@@ -70,6 +86,10 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// <para>A unique header field name list.</para>
+    /// <para>Header field names are not case sensitive and can only be formed from <see cref="cCharset.FText"/> characters.</para>
+    /// </summary>
     public class cHeaderFieldNameList : IReadOnlyCollection<string>
     {
         // implements case insensitivity
@@ -114,9 +134,11 @@ namespace work.bacome.imapclient
             else mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
+        /** <summary>Returns true if the collection contains the name (case insensitive).</summary>*/
         public bool Contains(string pName) => mNames.Contains(pName, StringComparer.InvariantCultureIgnoreCase);
-
+        /** <summary>Returns true if the collection contains all the names (case insensitive).</summary>*/
         public bool Contains(params string[] pNames) => ZContains(pNames);
+        /** <summary>Returns true if the collection contains all the names (case insensitive).</summary>*/
         public bool Contains(IEnumerable<string> pNames) => ZContains(pNames);
 
         private bool ZContains(IEnumerable<string> pNames)
@@ -126,6 +148,7 @@ namespace work.bacome.imapclient
             return true;
         }
 
+        /** <summary>Adds the name to the list if it isn't already on the list (case insensitive).</summary>*/
         public void Add(string pName)
         {
             if (pName == null) throw new ArgumentNullException(nameof(pName));
@@ -133,7 +156,9 @@ namespace work.bacome.imapclient
             if (!Contains(pName)) mNames.Add(pName);
         }
 
+        /** <summary>Adds each name to the list if it isn't already on the list (case insensitive).</summary>*/
         public void Add(params string[] pNames) => ZAdd(pNames);
+        /** <summary>Adds each name to the list if it isn't already on the list (case insensitive).</summary>*/
         public void Add(IEnumerable<string> pNames) => ZAdd(pNames);
 
         private void ZAdd(IEnumerable<string> pNames)
@@ -143,9 +168,11 @@ namespace work.bacome.imapclient
             foreach (var lName in pNames) if (!Contains(lName)) mNames.Add(lName);
         }
 
+        /** <summary>Removes the name from the list (case insensitive).</summary>*/
         public void Remove(string pName) => mNames.RemoveAll(n => n.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
-
+        /** <summary>Removes the names from the list (case insensitive).</summary>*/
         public void Remove(params string[] pNames) => ZRemove(pNames);
+        /** <summary>Removes the names from the list (case insensitive).</summary>*/
         public void Remove(IEnumerable<string> pNames) => ZRemove(pNames);
 
         private void ZRemove(IEnumerable<string> pNames)
@@ -154,8 +181,11 @@ namespace work.bacome.imapclient
             foreach (var lName in pNames) Remove(lName);
         }
 
+        /** <summary>Case insensitive union.</summary>*/
         public cHeaderFieldNameList Union(cHeaderFieldNameList pOther) => new cHeaderFieldNameList(mNames.Union(pOther.mNames, StringComparer.InvariantCultureIgnoreCase), true);
+        /** <summary>Case insensitive intersect.</summary>*/
         public cHeaderFieldNameList Intersect(cHeaderFieldNameList pOther) => new cHeaderFieldNameList(mNames.Intersect(pOther.mNames, StringComparer.InvariantCultureIgnoreCase), true);
+        /** <summary>Case insensitive except.</summary>*/
         public cHeaderFieldNameList Except(cHeaderFieldNameList pOther) => new cHeaderFieldNameList(mNames.Except(pOther.mNames, StringComparer.InvariantCultureIgnoreCase), true);
 
         public int Count => mNames.Count;
@@ -201,7 +231,7 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        public static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNameList rNames)
+        internal static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNameList rNames)
         {
             if (pNames == null) { rNames = null; return false; }
             foreach (var lName in pNames) if (!ZIsValidName(lName)) { rNames = null; return false; }
@@ -218,7 +248,7 @@ namespace work.bacome.imapclient
 
 
         [Conditional("DEBUG")]
-        public static void _Tests(cTrace.cContext pParentContext)
+        internal static void _Tests(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cHeaderFieldNameList), nameof(_Tests));
 

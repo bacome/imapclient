@@ -45,13 +45,7 @@ namespace work.bacome.imapclient
             return ZZMailboxesAsync(pListMailbox, pDelimiter, lPattern, pDataSets, lContext);
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pDataSets"></param>
-        /// <returns></returns>
-        public List<cMailbox> Mailboxes(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
+        internal List<cMailbox> Mailboxes(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
             var lTask = ZMailboxesAsync(pHandle, pDataSets, lContext);
@@ -59,13 +53,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pDataSets"></param>
-        /// <returns></returns>
-        public Task<List<cMailbox>> MailboxesAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
+        internal Task<List<cMailbox>> MailboxesAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxesAsync));
             return ZMailboxesAsync(pHandle, pDataSets, lContext);

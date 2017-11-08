@@ -142,7 +142,7 @@ namespace work.bacome.imapclient
 
         public static implicit operator cFetchableFlags(cFetchableFlagList pFlags) => new cFetchableFlags(pFlags);
 
-        public static bool TryConstruct(IEnumerable<string> pFlags, out cFetchableFlags rFlags)
+        internal static bool TryConstruct(IEnumerable<string> pFlags, out cFetchableFlags rFlags)
         {
             if (!cFetchableFlagList.TryConstruct(pFlags, out var lFlags)) { rFlags = null; return false; }
             rFlags = new cFetchableFlags(lFlags, true);
@@ -160,7 +160,7 @@ namespace work.bacome.imapclient
 
         private cPermanentFlags(cPermanentFlagList pFlags) : base(pFlags) { }
 
-        public static bool TryConstruct(IEnumerable<string> pFlags, out cPermanentFlags rFlags)
+        internal static bool TryConstruct(IEnumerable<string> pFlags, out cPermanentFlags rFlags)
         {
             if (!cPermanentFlagList.TryConstruct(pFlags, out var lFlags)) { rFlags = null; return false; }
             rFlags = new cPermanentFlags(lFlags);
@@ -270,7 +270,7 @@ namespace work.bacome.imapclient
         }
 
         [Conditional("DEBUG")]
-        public static void _Tests(cTrace.cContext pParentContext)
+        internal static void _Tests(cTrace.cContext pParentContext)
         {
             bool lFailed;
 
@@ -343,7 +343,7 @@ namespace work.bacome.imapclient
             return new List<string>(pFlags.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
-        public static bool TryConstruct(IEnumerable<string> pFlags, out cFetchableFlagList rFlags)
+        internal static bool TryConstruct(IEnumerable<string> pFlags, out cFetchableFlagList rFlags)
         {
             if (pFlags == null) { rFlags = null; return false; }
             foreach (var lFlag in pFlags) if (!ZIsValidFlag(lFlag)) { rFlags = null; return false; }
@@ -376,7 +376,7 @@ namespace work.bacome.imapclient
             return cCommandPartFactory.TryAsAtom(lFlag, out _);
         }
 
-        public static bool TryConstruct(IEnumerable<string> pFlags, out cPermanentFlagList rFlags)
+        internal static bool TryConstruct(IEnumerable<string> pFlags, out cPermanentFlagList rFlags)
         {
             if (pFlags == null) { rFlags = null; return false; }
             foreach (var lFlag in pFlags) if (!ZIsValidFlag(lFlag)) { rFlags = null; return false; }

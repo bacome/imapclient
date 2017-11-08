@@ -2280,29 +2280,31 @@ namespace testharness2
                 if (lMessages[1].Fetch(fCacheAttributes.uid)) throw new cTestsException("ZTestIdleRestart1.3.1"); // this should retrieve nothing (as the message has been deleted), but idle should stop
                 Thread.Sleep(3000); // idle should restart in this wait
 
-                List<iMessageHandle> lList = new List<iMessageHandle>();
-                lList.Add(lMessages[0].Handle);
-                lList.Add(lMessages[1].Handle);
-                lList.Add(lMessages[2].Handle);
-                lList.Add(lMessages[0].Handle);
-                lList.Add(lMessages[1].Handle);
-                lList.Add(lMessages[2].Handle);
-                lList.Add(lMessages[0].Handle);
-                var lMHL = cMessageHandleList.FromHandles(lList);
+                List<iMessageHandle> lHList = new List<iMessageHandle>();
+                lHList.Add(lMessages[0].Handle);
+                lHList.Add(lMessages[1].Handle);
+                lHList.Add(lMessages[2].Handle);
+                lHList.Add(lMessages[0].Handle);
+                lHList.Add(lMessages[1].Handle);
+                lHList.Add(lMessages[2].Handle);
+                lHList.Add(lMessages[0].Handle);
+                var lMHL = cMessageHandleList.FromHandles(lHList);
                 if (lMHL.Count != 3) throw new cTestsException("ZTestIdleRestart1.3.2.a");
 
-                cMessageHandleList lUnfetched;
+                var lList = new cMessage[] { lMessages[0], lMessages[1], lMessages[2] };
+
+                List<cMessage> lUnfetched;
 
                 // only message 1 and 3 should be fetched by this, as message 2 was 168 which should now be gone
                 //  1 should be UID fetched, 3 should be a normal fetch
                 lUnfetched = lClient.Fetch(lList, fCacheAttributes.received, null);
-                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0], lMessages[1].Handle)) throw new cTestsException("ZTestIdleRestart1.3.2");
+                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0].Handle, lMessages[1].Handle)) throw new cTestsException("ZTestIdleRestart1.3.2");
 
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
                 lUnfetched = lClient.Fetch(lMessages, fCacheAttributes.flags, null);
-                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0], lMessages[1].Handle)) throw new cTestsException("ZTestIdleRestart1.3.3");
+                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0].Handle, lMessages[1].Handle)) throw new cTestsException("ZTestIdleRestart1.3.3");
 
 
                 cMailbox lMailbox;

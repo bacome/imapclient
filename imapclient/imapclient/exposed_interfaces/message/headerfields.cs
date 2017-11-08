@@ -8,9 +8,19 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Represents a message header field.
+    /// </summary>
     public class cHeaderField
     {
+        /// <summary>
+        /// The header field name.
+        /// </summary>
         public readonly string Name;
+
+        /// <summary>
+        /// The header field value.
+        /// </summary>
         public readonly cBytes Value;
 
         public cHeaderField(string pName, cBytes pValue)
@@ -22,13 +32,19 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cHeaderField)}({Name},{Value})";
     }
 
+    /// <summary>
+    /// Represents a header field where the value is a message-id.
+    /// </summary>
     public class cHeaderFieldMsgId : cHeaderField
     {
+        /// <summary>
+        /// The value of the field as a normalised (delimiters, quoting, comments and white space removed) message-id.
+        /// </summary>
         public readonly string MsgId;
 
         private cHeaderFieldMsgId(string pName, cBytes pValue, string pMsgId) : base(pName, pValue) { MsgId = pMsgId; }
 
-        public static bool TryConstruct(string pName, IList<byte> pValue, out cHeaderFieldMsgId rMsgId)
+        internal static bool TryConstruct(string pName, IList<byte> pValue, out cHeaderFieldMsgId rMsgId)
         {
             if (pValue == null) { rMsgId = null; return false; }
 
@@ -47,13 +63,19 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cHeaderFieldMsgId)}({MsgId})";
     }
 
+    /// <summary>
+    /// Represents a header field where the value is a set of message-ids.
+    /// </summary>
     public class cHeaderFieldMsgIds : cHeaderField
     {
+        /// <summary>
+        /// The value of the field as normalised (delimiters, quoting, comments and white space removed) message-ids.
+        /// </summary>
         public readonly cStrings MsgIds;
 
         private cHeaderFieldMsgIds(string pName, cBytes pValue, cStrings pMsgIds) : base(pName, pValue) { MsgIds = pMsgIds; }
 
-        public static bool TryConstruct(string pName, IList<byte> pValue, out cHeaderFieldMsgIds rMsgIds)
+        internal static bool TryConstruct(string pName, IList<byte> pValue, out cHeaderFieldMsgIds rMsgIds)
         {
             if (pValue == null) { rMsgIds = null; return false; }
 
@@ -80,21 +102,28 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cHeaderFieldMsgIds)}({MsgIds})";
     }
 
+    /// <summary>
+    /// Represents a header field where the value is an importance.
+    /// </summary>
     public class cHeaderFieldImportance : cHeaderField
     {
+        /** <summary>The string constant for low importance.</summary>*/
         public const string Low = "Low";
+        /** <summary>The string constant for normal importance.</summary>*/
         public const string Normal = "Normal";
+        /** <summary>The string constant for high importance.</summary>*/
         public const string High = "High";
 
         private static readonly cBytes kLow = new cBytes(Low);
         private static readonly cBytes kNormal = new cBytes(Normal);
         private static readonly cBytes kHigh = new cBytes(High);
 
+        /** <summary>The value of the field as an importance code.</summary>*/
         public readonly eImportance Importance;
 
         private cHeaderFieldImportance(cBytes pValue, eImportance pImportance) : base(kHeaderFieldName.Importance, pValue) { Importance = pImportance; }
 
-        public static bool TryConstruct(IList<byte> pValue, out cHeaderFieldImportance rImportance)
+        internal static bool TryConstruct(IList<byte> pValue, out cHeaderFieldImportance rImportance)
         {
             if (pValue == null) { rImportance = null; return false; }
 
@@ -121,6 +150,7 @@ namespace work.bacome.imapclient
             return false;
         }
 
+        /** <summary>Returns the string constant associated with the passed <see cref="eImportance"/> value.</summary>*/
         public static string FieldValue(eImportance pImportance)
         {
             switch (pImportance)
@@ -135,8 +165,12 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cHeaderFieldImportance)}({Importance})";
     }
 
+    /// <summary>
+    /// A collection of message header fields for a message.
+    /// </summary>
     public class cHeaderFields : ReadOnlyCollection<cHeaderField>
     {
+        /** <summary>An empty collection.</summary>*/
         public static readonly cHeaderFields None = new cHeaderFields(cHeaderFieldNames.None, false, new List<cHeaderField>());
 
         private readonly cHeaderFieldNames mNames;
@@ -148,8 +182,22 @@ namespace work.bacome.imapclient
             mNot = pNot;
         }
 
+        /// <summary>
+        /// <para>Returns true if the collection has been populated with all header fields of the name specified.</para>
+        /// <para>Note that a true return value does not mean that the collection contains any fields with the name specified, as the message may not have any of those headers.</para>
+        /// <para>Header field names are case insensitive.</para>
+        /// </summary>
+        /// <param name="pName">The header field name.</param>
+        /// <returns>Whether the collection has been populated with the fields of the name specified.</returns>
         public bool Contains(string pName) => mNot != mNames.Contains(pName);
 
+        /// <summary>
+        /// <para>Returns true if the collection has been populated with all header fields of all the names specified.</para>
+        /// <para>Note that a true return value does not mean that the collection contains any fields with the names specified, as the message may not have any of those headers.</para>
+        /// <para>Header field names are case insensitive.</para>
+        /// </summary>
+        /// <param name="pNames">The header field names.</param>
+        /// <returns>Whether the collection has been populated with all the fields of the names specified.</returns>
         public bool Contains(cHeaderFieldNames pNames)
         {
             if (!mNot) return mNames.Contains(pNames);
@@ -157,6 +205,13 @@ namespace work.bacome.imapclient
             return true;
         }
 
+        /// <summary>
+        /// <para>Returns false if the collection has been populated with any header fields of the names specified.</para>
+        /// <para>Note that a false return value does not mean that the collection contains any fields with the names specified, as the message may not have had any of those headers.</para>
+        /// <para>Header field names are case insensitive.</para>
+        /// </summary>
+        /// <param name="pNames">The header field names.</param>
+        /// <returns>Whether the collection has not been populated with any fields of the names specified.</returns>
         public bool ContainsNone(cHeaderFieldNames pNames)
         {
             if (mNot) return mNames.Contains(pNames);
@@ -164,25 +219,54 @@ namespace work.bacome.imapclient
             return true;
         }
 
+        /// <summary>
+        /// <para>Returns the header field names from the provided collection of names that this collection of fields has not been populated with.</para>
+        /// <para>Header field names are case insensitive.</para>
+        /// </summary>
+        /// <param name="pNames">The header field names.</param>
+        /// <returns>The header field names from the provided collection of names that this collection of fields has not been populated with.</returns>
         public cHeaderFieldNames Missing(cHeaderFieldNames pNames)
         {
             if (mNot) return pNames.Intersect(mNames);
             else return pNames.Except(mNames);
         }
 
+        /// <summary>
+        /// <para>Returns one header field of the name specified, or null if there are no header fields of that name.</para>
+        /// <para>If the collection has not been populated with the specified header field name then this method will throw.</para>
+        /// <para>Header field names are case insensitive.</para>
+        /// </summary>
+        /// <param name="pName">The header field name.</param>
+        /// <returns>A header field instance with the name specified or null.</returns>
         public cHeaderField FirstNamed(string pName)
         {
             if (!Contains(pName)) throw new InvalidOperationException();
             return this.FirstOrDefault(f => f.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
         }
 
+        /// <summary>
+        /// <para>Returns all header fields with the header field name specified. Will return zero fields if there are no header fields of that name.</para>
+        /// <para>If the collection has not been populated with the specified header field name then this method will throw.</para>
+        /// <para>Header field names are case insensitive.</para>
+        /// </summary>
+        /// <param name="pName">The header field name.</param>
+        /// <returns>The set of header fields with the name specified.</returns>
         public IEnumerable<cHeaderField> AllNamed(string pName)
         {
             if (!Contains(pName)) throw new InvalidOperationException();
             return from f in this where f.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase) select f;
         }
 
+        /// <summary>
+        /// <para>Returns the normalised (delimiters, quoting, comments and white space removed) message-ids from the references header field, or null if there was no references header field or if the references header field could not be parsed.</para>
+        /// <para>If the collection has not been populated with the references header field then this method will throw.</para>
+        /// </summary>
         public cStrings References => (FirstNamed(kHeaderFieldName.References) as cHeaderFieldMsgIds)?.MsgIds;
+
+        /// <summary>
+        /// <para>Returns the importance value from the importance header field, or null if there was no importance header field or if the importance header field could not be parsed.</para>
+        /// <para>If the collection has not been populated with the importance header field then this method will throw.</para>
+        /// </summary>
         public eImportance? Importance => (FirstNamed(kHeaderFieldName.Importance) as cHeaderFieldImportance)?.Importance;
 
         public override string ToString()
@@ -194,8 +278,8 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
-        public static bool TryConstruct(IList<byte> pBytes, out cHeaderFields rFields) => ZTryConstruct(cHeaderFieldNames.None, true, pBytes, out rFields);
-        public static bool TryConstruct(cHeaderFieldNames pNames, bool pNot, IList<byte> pBytes, out cHeaderFields rFields) => ZTryConstruct(pNames, pNot, pBytes, out rFields);
+        internal static bool TryConstruct(IList<byte> pBytes, out cHeaderFields rFields) => ZTryConstruct(cHeaderFieldNames.None, true, pBytes, out rFields);
+        internal static bool TryConstruct(cHeaderFieldNames pNames, bool pNot, IList<byte> pBytes, out cHeaderFields rFields) => ZTryConstruct(pNames, pNot, pBytes, out rFields);
 
         private static bool ZTryConstruct(cHeaderFieldNames pNames, bool pNot, IList<byte> pBytes, out cHeaderFields rFields)
         {
@@ -285,7 +369,7 @@ namespace work.bacome.imapclient
 
 
         [Conditional("DEBUG")]
-        public static void _Tests(cTrace.cContext pParentContext)
+        internal static void _Tests(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cHeaderFields), nameof(_Tests));
 

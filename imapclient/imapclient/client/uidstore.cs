@@ -9,16 +9,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pUID"></param>
-        /// <param name="pOperation"></param>
-        /// <param name="pFlags"></param>
-        /// <param name="pIfUnchangedSinceModSeq"></param>
-        /// <returns></returns>
-        public cUIDStoreFeedback UIDStore(iMailboxHandle pHandle, cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal cUIDStoreFeedback UIDStore(iMailboxHandle pHandle, cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
             var lFeedback = new cUIDStoreFeedback(pUID, pOperation, pFlags);
@@ -27,16 +18,7 @@ namespace work.bacome.imapclient
             return lFeedback;
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pUIDs"></param>
-        /// <param name="pOperation"></param>
-        /// <param name="pFlags"></param>
-        /// <param name="pIfUnchangedSinceModSeq"></param>
-        /// <returns></returns>
-        public cUIDStoreFeedback UIDStore(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal cUIDStoreFeedback UIDStore(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
             var lFeedback = new cUIDStoreFeedback(pUIDs, pOperation, pFlags);
@@ -45,16 +27,7 @@ namespace work.bacome.imapclient
             return lFeedback;
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pUID"></param>
-        /// <param name="pOperation"></param>
-        /// <param name="pFlags"></param>
-        /// <param name="pIfUnchangedSinceModSeq"></param>
-        /// <returns></returns>
-        public async Task<cUIDStoreFeedback> UIDStoreAsync(iMailboxHandle pHandle, cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal async Task<cUIDStoreFeedback> UIDStoreAsync(iMailboxHandle pHandle, cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
             var lFeedback = new cUIDStoreFeedback(pUID, pOperation, pFlags);
@@ -62,16 +35,7 @@ namespace work.bacome.imapclient
             return lFeedback;
         }
 
-        /// <summary>
-        /// Intended for use by the <see cref="cMailbox"/> class.
-        /// </summary>
-        /// <param name="pHandle"></param>
-        /// <param name="pUIDs"></param>
-        /// <param name="pOperation"></param>
-        /// <param name="pFlags"></param>
-        /// <param name="pIfUnchangedSinceModSeq"></param>
-        /// <returns></returns>
-        public async Task<cUIDStoreFeedback> UIDStoreAsync(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal async Task<cUIDStoreFeedback> UIDStoreAsync(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
             var lFeedback = new cUIDStoreFeedback(pUIDs, pOperation, pFlags);

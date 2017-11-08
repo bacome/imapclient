@@ -135,6 +135,8 @@ namespace work.bacome.imapclient
 
         public static bool operator !=(cMailboxName pA, cMailboxName pB) => !(pA == pB);
 
+        // TODO: remove this xml
+
         /// <summary>
         /// <para>IMAP mailbox names have few restrictions, but this may fail.</para>
         /// </summary>
@@ -142,7 +144,7 @@ namespace work.bacome.imapclient
         /// <param name="pDelimiter"></param>
         /// <param name="rResult"></param>
         /// <returns></returns>
-        public static bool TryConstruct(string pPath, char? pDelimiter, out cMailboxName rResult)
+        internal static bool TryConstruct(string pPath, char? pDelimiter, out cMailboxName rResult)
         {
             if (string.IsNullOrEmpty(pPath)) { rResult = null; return false; }
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
@@ -161,15 +163,7 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        /// <summary>
-        /// Intended for internal use.
-        /// </summary>
-        /// <param name="pEncodedMailboxPath"></param>
-        /// <param name="pDelimiter"></param>
-        /// <param name="pUTF8Enabled"></param>
-        /// <param name="rResult"></param>
-        /// <returns></returns>
-        public static bool TryConstruct(IList<byte> pEncodedMailboxPath, byte? pDelimiter, bool pUTF8Enabled, out cMailboxName rResult)
+        internal static bool TryConstruct(IList<byte> pEncodedMailboxPath, byte? pDelimiter, bool pUTF8Enabled, out cMailboxName rResult)
         {
             if (pEncodedMailboxPath == null || pEncodedMailboxPath.Count == 0) { rResult = null; return false; }
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
@@ -187,7 +181,7 @@ namespace work.bacome.imapclient
         }
 
         [Conditional("DEBUG")]
-        public static void _Tests(cTrace.cContext pParentContext)
+        internal static void _Tests(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cMailboxName), nameof(_Tests));
 

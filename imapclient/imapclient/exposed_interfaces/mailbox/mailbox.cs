@@ -9,6 +9,7 @@ namespace work.bacome.imapclient
 {
     /// <summary>
     /// <para>Provides an API that allows interaction with an IMAP mailbox.</para>
+    /// <para>Instances are only valid whilst the containing cIMAPClient remains connected. Reconnecting the client will not bring mailbox instances back to life.</para>
     /// </summary>
     public class cMailbox : iMailboxParent
     {
@@ -563,7 +564,7 @@ namespace work.bacome.imapclient
         /// <para>The sets of data to retrieve when getting the child mailboxes.</para>
         /// <para>See <see cref="cIMAPClient.MailboxCacheData"/>.</para>
         /// </param>
-        /// <returns>A list of mailboxes</returns>
+        /// <returns>A list of mailboxes.</returns>
         public List<cMailbox> Mailboxes(fMailboxCacheDataSets pDataSets = 0) => Client.Mailboxes(Handle, pDataSets);
 
         /// <summary>
@@ -598,7 +599,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
         /// <param name="pAsFutureParent">Indicate to the IMAP server that you intend to create child mailboxes in the new mailbox.</param>
-        /// <returns>The newly created mailbox</returns>
+        /// <returns>An object representing the newly created mailbox.</returns>
         public cMailbox CreateChild(string pName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pName), pAsFutureParent);
 
         /// <summary>
@@ -644,7 +645,7 @@ namespace work.bacome.imapclient
         /// <para>Note that this leaves the mailbox in its containing mailbox, just changing the last part of the path hierarchy.</para>
         /// </summary>
         /// <param name="pName">The new mailbox name.</param>
-        /// <returns>The newly created mailbox.</returns>
+        /// <returns>An object representing the newly created mailbox.</returns>
         public cMailbox Rename(string pName) => Client.Rename(Handle, ZRename(pName));
 
         /// <summary>
@@ -799,7 +800,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pUID">The UID to resolve.</param>
         /// <param name="pItems">The set of message cache items to ensure are cached for the returned messages.</param>
-        /// <returns>A message</returns>
+        /// <returns>An object representing the message.</returns>
         public cMessage Message(cUID pUID, cCacheItems pItems) => Client.Message(Handle, pUID, pItems);
 
         /// <summary>
@@ -816,7 +817,7 @@ namespace work.bacome.imapclient
         /// <param name="pUIDs">The UIDs to resolve.</param>
         /// <param name="pItems">The set of message cache items to ensure are cached for the returned messages.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <returns>A list of messages</returns>
+        /// <returns>A list of messages.</returns>
         public List<cMessage> Messages(IEnumerable<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pUIDs, pItems, pConfiguration);
 
         /// <summary>

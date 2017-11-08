@@ -345,7 +345,7 @@ namespace testharness2
             // initialise unseen count
             if (mSelectedMailbox.UnseenUnknownCount > 0 && mTrackUnseen)
             {
-                try { await mSelectedMailbox.SetUnseenAsync(); }
+                try { await mSelectedMailbox.SetUnseenCountAsync(); }
                 catch (Exception ex)
                 {
                     if (!IsDisposed) MessageBox.Show(this, $"an error occurred while setting unseen: {ex}");

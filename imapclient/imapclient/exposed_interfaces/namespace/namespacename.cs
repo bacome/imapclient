@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
             Delimiter = pDelimiter;
         }
 
-        public static bool TryConstruct(string pPrefix, char? pDelimiter, out cNamespaceName rResult)
+        internal static bool TryConstruct(string pPrefix, char? pDelimiter, out cNamespaceName rResult)
         {
             if (pPrefix == null) { rResult = null; return false; }
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        public static bool TryConstruct(IList<byte> pEncodedPrefix, byte? pDelimiter, bool pUTF8Enabled, out cNamespaceName rResult)
+        internal static bool TryConstruct(IList<byte> pEncodedPrefix, byte? pDelimiter, bool pUTF8Enabled, out cNamespaceName rResult)
         {
             if (pEncodedPrefix == null) { rResult = null; return false; }
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
