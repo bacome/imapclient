@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
-    public partial class cBytesCursor
+    internal partial class cBytesCursor
     {
         private static readonly cBytes kCreateNewIsPossibleBytes = new cBytes(kMessageFlagName.CreateNewIsPossible);
 

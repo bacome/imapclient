@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
-    public partial class cBytesCursor
+    internal partial class cBytesCursor
     {
-        public bool GetRFC822Domain(out string rDomain)
+        internal bool GetRFC822Domain(out string rDomain)
         {
             if (GetDomainLiteral(out rDomain)) return true;
 

@@ -4,7 +4,7 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient.support
 {
-    public class cURIParts
+    internal class cURIParts
     {
         // rfc 3986, 6874
         //  TODO: display host conversion using punycode

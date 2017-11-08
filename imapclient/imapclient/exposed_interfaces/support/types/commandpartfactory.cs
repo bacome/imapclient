@@ -4,7 +4,7 @@ using System.Text;
 
 namespace work.bacome.imapclient.support
 {
-    public class cCommandPartFactory
+    internal class cCommandPartFactory
     {
         public static readonly cCommandPartFactory Validation = new cCommandPartFactory(false, null);
 

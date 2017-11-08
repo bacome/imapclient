@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
-    public class cSequenceSets : List<cSequenceSet>
+    internal class cSequenceSets : List<cSequenceSet>
     {
         public cSequenceSets() { }
 

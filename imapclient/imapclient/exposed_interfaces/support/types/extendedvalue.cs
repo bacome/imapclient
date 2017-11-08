@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace work.bacome.imapclient.support
 {
-    public abstract class cExtendedValue
+    internal abstract class cExtendedValue
     {
         public abstract bool Contains(string pAString, StringComparison pComparisonType);
 

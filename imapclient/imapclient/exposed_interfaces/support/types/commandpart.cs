@@ -4,7 +4,7 @@ using System.IO;
 
 namespace work.bacome.imapclient.support
 {
-    public abstract class cCommandPart
+    internal abstract class cCommandPart
     {
         public static readonly cCommandPart Space = new cTextCommandPart(" ");
         public static readonly cCommandPart Nil = new cTextCommandPart("NIL");
@@ -25,7 +25,7 @@ namespace work.bacome.imapclient.support
         }
     }
 
-    public abstract class cLiteralCommandPartBase : cCommandPart
+    internal abstract class cLiteralCommandPartBase : cCommandPart
     {
         public readonly bool Binary;
 
@@ -37,7 +37,7 @@ namespace work.bacome.imapclient.support
         public abstract int Length { get; }
     }
 
-    public class cStreamCommandPart : cLiteralCommandPartBase
+    internal class cStreamCommandPart : cLiteralCommandPartBase
     {
         public readonly Stream Stream;
         private readonly int mLength;
@@ -63,7 +63,7 @@ namespace work.bacome.imapclient.support
         }
     }
 
-    public class cLiteralCommandPart : cLiteralCommandPartBase
+    internal class cLiteralCommandPart : cLiteralCommandPartBase
     {
         public readonly cBytes Bytes;
 
@@ -82,7 +82,7 @@ namespace work.bacome.imapclient.support
         }
     }
 
-    public class cTextCommandPart : cCommandPart
+    internal class cTextCommandPart : cCommandPart
     {
         public readonly cBytes Bytes;
 

@@ -15,7 +15,7 @@ namespace work.bacome.imapclient.support
 
         public override string ToString() => $"{nameof(cLSubFlags)}({Sequence},{Subscribed})";
 
-        public static fMailboxProperties Differences(cLSubFlags pOld, cLSubFlags pNew)
+        internal static fMailboxProperties Differences(cLSubFlags pOld, cLSubFlags pNew)
         {
             if (pNew == null) throw new ArgumentNullException(nameof(pNew));
 

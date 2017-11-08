@@ -4,7 +4,7 @@ using System.Text;
 
 namespace work.bacome.imapclient.support
 {
-    public partial class cBytesCursor
+    internal partial class cBytesCursor
     {
         // APIs that return a string treat the bytes as UTF8 (when in a literal and/or quoted string)
         //  if this is not the desired behaviour then the APIs that return the byte collections should be used

@@ -5,7 +5,7 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient.support
 {
-    public class cURLParts
+    internal class cURLParts
     {
         // IMAP URL (rfc 5092, 5593)
         //  Note: TODO  punycode displayhost

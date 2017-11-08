@@ -4,19 +4,48 @@
         <name>imapclient</name>
     </assembly>
     <members>
+        <member name="T:work.bacome.imapclient.eConnectionState">
+            <summary>
+            Connection state values.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.notconnected">
+            <summary>The instance is not connected and never has been.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.connecting">
+            <summary>The instance is in the process of connecting.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.notauthenticated">
+            <summary>The instance is in the process of connecting, it is currently not authenticated.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.authenticated">
+            <summary>The instance is in the process of connecting, it is currently authenticated.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.enabled">
+            <summary>The instance is in the process of connecting, it is has enabled all the server features it is going to.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.notselected">
+            <summary>The instance connected, there is no mailbox selected.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.selected">
+            <summary>The instance connected, there is a mailbox selected.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.disconnected">
+            <summary>
+            <para>The instance is not connected, but it was connected, or tried to connect, once.</para>
+            <para>In this state some <see cref="T:work.bacome.imapclient.cIMAPClient"/> properties retain their values from when the instance was connecting/ was connected.</para>
+            <para>For example the <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> property may have a value in this state, where it definitely won't have one in the <see cref="F:work.bacome.imapclient.eConnectionState.notconnected"/> state.</para>
+            </summary>
+        </member>
         <member name="T:work.bacome.imapclient.cIMAPClient">
             <summary>
             <para>Instances of this class can connect to an IMAP server.</para>
             <para>Before calling one of the <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/> methods set the <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/> and <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/> properties at a minimum.</para>
             <para>See <see cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Int32,System.Boolean)"/> and <see cref="M:work.bacome.imapclient.cIMAPClient.SetPlainCredentials(System.String,System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)"/>.</para>
             <para>Also consider setting the <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/> property.</para>
+            <para>Note that the class implements <see cref="T:System.IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+            <para>Event callbacks are made on the synchronization context set in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
             </summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cIMAPClient.#ctor(System.String)">
-            <summary>
-            Constructor
-            </summary>
-            <param name="pInstanceName">The instance name used to tag trace messages. Useful if you have multiple instances in one exe.</param>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.InstanceName">
             <summary>
@@ -28,42 +57,56 @@
             <summary>
             <para>The synchronisation context on which callbacks (including events) are made.</para>
             <para>If set to null callbacks are made by the thread that discovers the need to do the callback.</para>
+            <para>Defaults to the synchronisation context of the constructing thread.</para>
+            </summary>
+        </member>
+        <member name="E:work.bacome.imapclient.cIMAPClient.PropertyChanged">
+            <summary>
+            <para>Fired when a property value changes.</para>
+            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
             </summary>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.ResponseText">
             <summary>
             <para>Fired when the server sends response text.</para>
+            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
             <para>The IMAP spec says that alerts MUST be brought to the users attention.</para>
             </summary>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.NetworkReceive">
             <summary>
             <para>Fired when the server sends a response.</para>
+            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
             </summary>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.NetworkSend">
             <summary>
             <para>Fired when the client sends a command.</para>
+            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
             </summary>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MailboxPropertyChanged">
             <summary>
             <para>Fired when a <see cref="T:work.bacome.imapclient.cMailbox"/> instance property changes.</para>
+            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
             </summary>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MailboxMessageDelivery">
             <summary>
             <para>Fired when new messages appear in a <see cref="T:work.bacome.imapclient.cMailbox"/>.</para>
+            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
             </summary>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MessagePropertyChanged">
             <summary>
             <para>Fired when a <see cref="T:work.bacome.imapclient.cMessage"/> instance property changes.</para>
+            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
             </summary>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.CallbackException">
             <summary>
             <para>Fired when an exception is raised by a callback.</para>
+            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
             <para>The library ignores the exception other than raising this event.</para>
             </summary>
         </member>
@@ -82,6 +125,15 @@
             <summary>
             <para>Cancels currently running cancellable operations.</para>
             </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.ConnectionState">
+            <summary>The connection state of the instance.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.IsUnconnected">
+            <summary>True if the instance is currently unconnected.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.IsConnected">
+            <summary>True if the instance is currently connected.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.Capabilities">
             <summary>
@@ -287,6 +339,11 @@
             <para>Intended for debugging use.</para>
             <para>Returns the number of subscriptions to the various events.</para>
             <para>Used to check that events are being 'unsubscribed' correctly.</para>
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIMAPClient.Dispose">
+            <summary>
+            Instances contain a number of disposable resources. You should call dispose when you are finished with the instance.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.Create(work.bacome.imapclient.cMailboxName,System.Boolean)">
@@ -685,6 +742,57 @@
             <summary>
             <para>Returned from copy operations if the server supports the UIDCOPY response code of RFC 4315.</para>
             <para>Contains pairs of UIDs of messages involved in the copy.</para>
+            </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cPropertyFetchConfiguration">
+            <summary>
+            <para>Allows specification of operation specific controls and callbacks.</para>
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cPropertyFetchConfiguration.Timeout">
+            <summary>The timeout for the operation.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cPropertyFetchConfiguration.CancellationToken">
+            <summary>The cancellation token for the operation.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cPropertyFetchConfiguration.Increment">
+            <summary>
+            <para>The progress increment callback for the operation</para>
+            <para>Called many times with an integer specifying the number of messages fetched since the last call.</para>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is set, the callback will be made on that synchronisation context.</para>
+            </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cBodyFetchConfiguration">
+            <summary>
+            <para>Allows specification of operation specific controls and callbacks.</para>
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cBodyFetchConfiguration.Timeout">
+            <summary>The timeout for the operation.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cBodyFetchConfiguration.CancellationToken">
+            <summary>The cancellation token for the operation.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cBodyFetchConfiguration.Increment">
+            <summary>
+            <para>The progress increment callback for the operation</para>
+            <para>Called many times with an integer specifying the number of messages fetched since the last call.</para>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is set, the callback will be made on that synchronisation context.</para>
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cBodyFetchConfiguration.Write">
+            <summary>The configuration for controlling the output stream batch/ buffer size.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cMessageFetchConfiguration">
+            <summary>
+            <para>Allows specification of operation specific controls and callbacks.</para>
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cMessageFetchConfiguration.SetCount">
+            <summary>
+            <para>The progress initialisation callback for the operation</para>
+            <para>Called once at the begining of the operation with an integer specifying the number of messages that will be fetched.</para>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is set, the callback will be made on that synchronisation context.</para>
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.eAccountType">

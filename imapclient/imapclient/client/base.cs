@@ -8,13 +8,41 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
-    public enum eConnectionState { notconnected, connecting, notauthenticated, authenticated, enabled, notselected, selected, disconnected }
+    /// <summary>
+    /// Connection state values.
+    /// </summary>
+    public enum eConnectionState
+    {
+        /**<summary>The instance is not connected and never has been.</summary>*/
+        notconnected,
+        /**<summary>The instance is in the process of connecting.</summary>*/
+        connecting,
+        /**<summary>The instance is in the process of connecting, it is currently not authenticated.</summary>*/
+        notauthenticated,
+        /**<summary>The instance is in the process of connecting, it is currently authenticated.</summary>*/
+        authenticated,
+        /**<summary>The instance is in the process of connecting, it is has enabled all the server features it is going to.</summary>*/
+        enabled,
+        /**<summary>The instance connected, there is no mailbox selected.</summary>*/
+        notselected,
+        /**<summary>The instance connected, there is a mailbox selected.</summary>*/
+        selected,
+
+        /// <summary>
+        /// <para>The instance is not connected, but it was connected, or tried to connect, once.</para>
+        /// <para>In this state some <see cref="cIMAPClient"/> properties retain their values from when the instance was connecting/ was connected.</para>
+        /// <para>For example the <see cref="cIMAPClient.Capabilities"/> property may have a value in this state, where it definitely won't have one in the <see cref="notconnected"/> state.</para>
+        /// </summary>
+        disconnected
+    }
 
     /// <summary>
     /// <para>Instances of this class can connect to an IMAP server.</para>
     /// <para>Before calling one of the <see cref="Connect"/> methods set the <see cref="Server"/> and <see cref="Credentials"/> properties at a minimum.</para>
     /// <para>See <see cref="SetServer(string, int, bool)"/> and <see cref="SetPlainCredentials(string, string, eTLSRequirement, bool)"/>.</para>
     /// <para>Also consider setting the <see cref="MailboxCacheData"/> property.</para>
+    /// <para>Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+    /// <para>Event callbacks are made on the synchronization context set in <see cref="SynchronizationContext"/>.</para>
     /// </summary>
     public sealed partial class cIMAPClient : IDisposable // sealed so the disposable implementation is simpler
     {
@@ -96,10 +124,6 @@ namespace work.bacome.imapclient
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
         private cClientIdUTF8 mClientIdUTF8 = null;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="pInstanceName">The instance name used to tag trace messages. Useful if you have multiple instances in one exe.</param>
         public cIMAPClient(string pInstanceName = TraceSourceName)
         {
             mInstanceName = pInstanceName;
@@ -118,6 +142,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// <para>The synchronisation context on which callbacks (including events) are made.</para>
         /// <para>If set to null callbacks are made by the thread that discovers the need to do the callback.</para>
+        /// <para>Defaults to the synchronisation context of the constructing thread.</para>
         /// </summary>
         public SynchronizationContext SynchronizationContext
         {
@@ -125,6 +150,10 @@ namespace work.bacome.imapclient
             set => mSynchroniser.SynchronizationContext = value;
         }
 
+        /// <summary>
+        /// <para>Fired when a property value changes.</para>
+        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged
         {
             add { mSynchroniser.PropertyChanged += value; }
@@ -133,6 +162,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// <para>Fired when the server sends response text.</para>
+        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
         /// <para>The IMAP spec says that alerts MUST be brought to the users attention.</para>
         /// </summary>
         public event EventHandler<cResponseTextEventArgs> ResponseText
@@ -143,6 +173,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// <para>Fired when the server sends a response.</para>
+        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
         /// </summary>
         public event EventHandler<cNetworkReceiveEventArgs> NetworkReceive
         {
@@ -152,6 +183,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// <para>Fired when the client sends a command.</para>
+        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
         /// </summary>
         public event EventHandler<cNetworkSendEventArgs> NetworkSend
         {
@@ -161,6 +193,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// <para>Fired when a <see cref="cMailbox"/> instance property changes.</para>
+        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
         /// </summary>
         public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged
         {
@@ -170,6 +203,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// <para>Fired when new messages appear in a <see cref="cMailbox"/>.</para>
+        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
         /// </summary>
         public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery
         {
@@ -179,6 +213,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// <para>Fired when a <see cref="cMessage"/> instance property changes.</para>
+        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
         /// </summary>
         public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged
         {
@@ -188,6 +223,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// <para>Fired when an exception is raised by a callback.</para>
+        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
         /// <para>The library ignores the exception other than raising this event.</para>
         /// </summary>
         public event EventHandler<cCallbackExceptionEventArgs> CallbackException
@@ -225,10 +261,11 @@ namespace work.bacome.imapclient
             mCancellationManager.Cancel(lContext);
         }
 
-        // state
-
+        /**<summary>The connection state of the instance.</summary>*/
         public eConnectionState ConnectionState => mSession?.ConnectionState ?? eConnectionState.notconnected;
+        /**<summary>True if the instance is currently unconnected.</summary>*/
         public bool IsUnconnected => mSession == null || mSession.IsUnconnected;
+        /**<summary>True if the instance is currently connected.</summary>*/
         public bool IsConnected => mSession != null && mSession.IsConnected;
 
         /// <summary>
@@ -617,6 +654,9 @@ namespace work.bacome.imapclient
         /// </summary>
         public sEventSubscriptionCounts EventSubscriptionCounts => mSynchroniser.EventSubscriptionCounts;
 
+        /// <summary>
+        /// Instances contain a number of disposable resources. You should call dispose when you are finished with the instance.
+        /// </summary>
         public void Dispose()
         {
             if (mDisposed) return;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
-    public class cByteList : List<byte>
+    internal class cByteList : List<byte>
     {
         public cByteList() { }
         public cByteList(IList<byte> pBytes) : base(pBytes) { }

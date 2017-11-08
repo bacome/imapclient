@@ -2,7 +2,7 @@
 
 namespace work.bacome.imapclient.support
 {
-    public partial class cBytesCursor
+    internal partial class cBytesCursor
     {
         private static readonly cBytes kMon = new cBytes("MON");
         private static readonly cBytes kTue = new cBytes("TUE");

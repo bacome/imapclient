@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient.support
 {
     [Flags]
-    public enum fMailboxProperties
+    internal enum fMailboxProperties
     {
         exists = 1 << 0,
 

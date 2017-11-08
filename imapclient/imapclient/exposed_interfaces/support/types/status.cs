@@ -2,7 +2,7 @@
 
 namespace work.bacome.imapclient.support
 {
-    public class cStatus
+    internal class cStatus
     {
         public readonly int Sequence;
         public readonly uint? Messages;

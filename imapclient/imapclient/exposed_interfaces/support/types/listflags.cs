@@ -50,7 +50,7 @@ namespace work.bacome.imapclient.support
 
         public override string ToString() => $"{nameof(cListFlags)}({Sequence},{Flags})";
 
-        public static fMailboxProperties Differences(cListFlags pOld, cListFlags pNew)
+        internal static fMailboxProperties Differences(cListFlags pOld, cListFlags pNew)
         {
             if (pNew == null) throw new ArgumentNullException(nameof(pNew));
 

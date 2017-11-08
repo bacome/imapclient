@@ -2,7 +2,7 @@
 
 namespace work.bacome.imapclient.support
 {
-    public partial class cBytesCursor
+    internal partial class cBytesCursor
     {
         public bool GetLanguageTag(out string rLanguageTag)
         {

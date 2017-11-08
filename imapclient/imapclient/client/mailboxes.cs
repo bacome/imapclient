@@ -72,9 +72,7 @@ namespace work.bacome.imapclient
             return await ZZMailboxesAsync(lListMailbox, pHandle.MailboxName.Delimiter, lPattern, pDataSets, lContext).ConfigureAwait(false);
         }
 
-        // namespace sub-mailbox list
-
-        public List<cMailbox> Mailboxes(cNamespaceName pNamespaceName, fMailboxCacheDataSets pDataSets)
+        internal List<cMailbox> Mailboxes(cNamespaceName pNamespaceName, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
             var lTask = ZMailboxesAsync(pNamespaceName, pDataSets, lContext);
@@ -82,7 +80,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<List<cMailbox>> MailboxesAsync(cNamespaceName pNamespaceName, fMailboxCacheDataSets pDataSets)
+        internal Task<List<cMailbox>> MailboxesAsync(cNamespaceName pNamespaceName, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxesAsync));
             return ZMailboxesAsync(pNamespaceName, pDataSets, lContext);

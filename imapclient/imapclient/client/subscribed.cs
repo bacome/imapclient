@@ -78,9 +78,7 @@ namespace work.bacome.imapclient
             return await ZZSubscribedAsync(lListMailbox, pHandle.MailboxName.Delimiter, lPattern, !pDescend, pDataSets, lContext).ConfigureAwait(false);
         }
 
-        // namespace sub-mailbox list
-
-        public List<cMailbox> Subscribed(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets)
+        internal List<cMailbox> Subscribed(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
             var lTask = ZSubscribedAsync(pNamespaceName, pDescend, pDataSets, lContext);
@@ -88,7 +86,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<List<cMailbox>> SubscribedAsync(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets)
+        internal Task<List<cMailbox>> SubscribedAsync(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));
             return ZSubscribedAsync(pNamespaceName, pDescend, pDataSets, lContext);

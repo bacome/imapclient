@@ -2,7 +2,7 @@
 
 namespace work.bacome.imapclient.support
 {
-    public partial class cBytesCursor
+    internal partial class cBytesCursor
     {
         private static readonly cBytes kEqualsQuestionMark = new cBytes("=?");
         private static readonly cBytes kQuestionMarkBQuestionMark = new cBytes("?B?");

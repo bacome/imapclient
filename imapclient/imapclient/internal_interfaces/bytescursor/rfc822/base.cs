@@ -2,7 +2,7 @@
 
 namespace work.bacome.imapclient.support
 {
-    public partial class cBytesCursor
+    internal partial class cBytesCursor
     {
         public static readonly cBytes CRLF = new cBytes("\r\n");
         private static readonly cBytes kCRLFTAB = new cBytes("\r\n\t");

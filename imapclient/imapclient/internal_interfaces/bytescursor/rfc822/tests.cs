@@ -5,7 +5,7 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient.support
 {
-    public partial class cBytesCursor
+    internal partial class cBytesCursor
     {
         [Conditional("DEBUG")]
         public static void _Tests_RFC822(cTrace.cContext pParentContext)

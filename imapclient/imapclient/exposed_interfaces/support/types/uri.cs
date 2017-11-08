@@ -4,7 +4,7 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient.support
 {
-    public class cURI
+    internal class cURI
     {
         // rfc 3986, 6874
 

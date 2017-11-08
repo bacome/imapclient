@@ -100,7 +100,7 @@ namespace work.bacome.imapclient.support
 
         public override string ToString() => $"{nameof(cMailboxSelectedProperties)}({mBeenSelected},{mBeenSelectedForUpdate},{mBeenSelectedReadOnly},{mUIDNotSticky},{mMessageFlags},{mForUpdatePermanentFlags},{mReadOnlyPermanentFlags})";
 
-        public static fMailboxProperties Differences(cMailboxSelectedProperties pOld, cMailboxSelectedProperties pNew)
+        internal static fMailboxProperties Differences(cMailboxSelectedProperties pOld, cMailboxSelectedProperties pNew)
         {
             if (pOld == null) throw new ArgumentNullException(nameof(pOld));
             if (pNew == null) throw new ArgumentNullException(nameof(pNew));

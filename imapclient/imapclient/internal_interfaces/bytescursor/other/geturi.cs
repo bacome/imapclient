@@ -3,15 +3,15 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient.support
 {
-    public partial class cBytesCursor
+    internal partial class cBytesCursor
     {
-        public bool GetURL(out cURLParts rParts, out string rString, cTrace.cContext pParentContext)
+        public bool GetURI(out cURIParts rParts, out string rString, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cBytesCursor), nameof(GetURL));
+            var lContext = pParentContext.NewMethod(nameof(cBytesCursor), nameof(GetURI));
 
             var lBookmark = Position;
 
-            if (!cURLParts.Process(this, out rParts, lContext))
+            if (!cURIParts.Process(this, out rParts, lContext))
             {
                 Position = lBookmark;
                 rString = null;

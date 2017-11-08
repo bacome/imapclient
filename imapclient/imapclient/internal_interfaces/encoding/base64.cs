@@ -6,7 +6,7 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient.support
 {
-    public static class cBase64
+    internal static class cBase64
     {
         private static readonly ReadOnlyCollection<byte> kEncode = new cBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 

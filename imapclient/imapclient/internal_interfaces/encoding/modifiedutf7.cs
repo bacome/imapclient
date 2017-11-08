@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
-using work.bacome.imapclient;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient.support
 {
-    public static class cModifiedUTF7
+    internal static class cModifiedUTF7
     {
         private static readonly ReadOnlyCollection<byte> kEncode = new cBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,");
 

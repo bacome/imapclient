@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace work.bacome.imapclient.support
 {
-    public partial class cBytesCursor
+    internal partial class cBytesCursor
     {
         public bool GetRFC822MsgId(out string rMsgId)
         {

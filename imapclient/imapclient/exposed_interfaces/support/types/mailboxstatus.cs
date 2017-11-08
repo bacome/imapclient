@@ -39,7 +39,7 @@ namespace work.bacome.imapclient.support
 
         public override string ToString() => $"{nameof(cMailboxStatus)}({MessageCount},{RecentCount},{UIDNext},{UIDNextUnknownCount},{UIDValidity},{UnseenCount},{UnseenUnknownCount},{HighestModSeq})";
 
-        public static fMailboxProperties Differences(cMailboxStatus pOld, cMailboxStatus pNew)
+        internal static fMailboxProperties Differences(cMailboxStatus pOld, cMailboxStatus pNew)
         {
             if (pNew == null) throw new ArgumentNullException(nameof(pNew));
 

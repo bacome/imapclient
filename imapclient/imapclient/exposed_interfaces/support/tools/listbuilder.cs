@@ -3,7 +3,7 @@ using System.Text;
 
 namespace work.bacome.imapclient.support
 {
-    class cListBuilder
+    internal class cListBuilder
     {
         private StringBuilder mBuilder;
         private bool mFirst = true;
