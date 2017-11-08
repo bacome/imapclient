@@ -17,8 +17,6 @@ namespace usageexample2
             WebVersion();
             return;
 
-            fMailboxCacheDataSets.list;
-
             try
             {
                 using (cIMAPClient lClient = new cIMAPClient())
@@ -70,16 +68,16 @@ namespace usageexample2
                     if (lUIDNext > lFromUID.UID)
                     {
                         // this example is meant to demonstrate filtering, so here it is
-                        var lFilter = cFilter.UID > lFromUID & cFilter.From.Contains("imaptest2@dovecot.bacome.work") & !cFilter.Deleted;
+                        var lFilter = cFilter.UID >= lFromUID & cFilter.From.Contains("imaptest2@dovecot.bacome.work") & !cFilter.Deleted;
 
                         // loop through the messages
-                        foreach (var lMessage in lClient.Inbox.Messages(lFilter))
+                        foreach (var lMessage in lClient.Inbox.Messages(lFilter, cSort.None, fMessageProperties.attachments | fMessageProperties.uid))
                         {
                             // only process the message if it looks as expected
                             if (lMessage.Attachments.Count == 1 && lMessage.PlainText() == "FILE FOR PROCESSING")
                             {
                                 // save the attachement
-                                lMessage.Attachments[0].SaveAs($".\\SavedAttachment.{lFromUID.UIDValidity}.{lFromUID.UID}");
+                                lMessage.Attachments[0].SaveAs($".\\SavedAttachment.{lMessage.UID.UIDValidity}.{lMessage.UID.UID}");
 
                                 // mark the message as deleted
                                 lMessage.Deleted = true;
@@ -168,7 +166,7 @@ if (lUIDNext > lFromUID.UID)
 {
     // this example is meant to demonstrate building a filter, so here it is
     var lFilter = 
-        cFilter.UID > lFromUID &
+        cFilter.UID >= lFromUID &
         cFilter.From.Contains("imaptest2@dovecot.bacome.work") &
         !cFilter.Deleted;
 
@@ -181,7 +179,7 @@ if (lUIDNext > lFromUID.UID)
         {
             // save the attachement
             lMessage.Attachments[0].SaveAs
-                ($".\\SavedAttachment.{lFromUID.UIDValidity}.{lFromUID.UID}");
+                ($".\\SavedAttachment.{lMessage.UID.UIDValidity}.{lMessage.UID.UID}");
 
             // mark the message as deleted
             lMessage.Deleted = true;

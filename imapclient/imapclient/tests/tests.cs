@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
-using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /// <summary>
+        /// Internal library tests.
+        /// </summary>
+        /// <param name="pParentContext"></param>
         [Conditional("DEBUG")]
         public static void _Tests(cTrace.cContext pParentContext)
         {

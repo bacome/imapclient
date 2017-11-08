@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
