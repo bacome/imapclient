@@ -5,6 +5,38 @@ using System.Threading;
 
 namespace work.bacome.trace
 {
+    /// <summary>
+    /// <para>Provides services for tracing to a <see cref="TraceSource"/> with trace message indenting and context information.</para>
+    /// <para>The concept is that trace messages are written in a context. Root-contexts can be established independently and sub-contexts can be created from root-contexts and sub-contexts.</para>
+    /// <para>If a new sub-context is created for each call then call stack information can be built and included in the trace.</para>
+    /// <para>
+    /// Writing of context trace messages can be delayed until a non-context trace message is written, or context trace messages can be written as contexts are created.
+    /// Note that if the writing is delayed then the generation of the context trace message is also delayed.
+    /// If there are mutable objects to be included in the context trace message then this may lead to a misleading context trace message.
+    /// (It is done like this for efficiency reasons.)
+    /// </para>
+    /// <para>
+    /// Tracing can be disabled.
+    /// When tracing is disabled contexts are not created and trace messages are not emitted, so most of the tracing overhead is eliminated.
+    /// Tracing is disabled under the following circumstances;
+    /// <list type="bullet">
+    /// <item><description>The program is compiled without the "TRACE" conditional attribute.</description></item>
+    /// <item><description>If there aren't any listeners attached to the tracesource when the instance is created.</description></item>
+    /// <item><description>If the tracesource isn't configured to emit critical messages when the instance is created.</description></item>
+    /// </list>
+    /// </para>
+    /// <para>Trace messages are written in a tab delimited form, the tab delimited 'columns' contain;
+    /// <list type="bullet">
+    /// <item><description>The <see cref="System.Diagnostics.TraceSource"/> defined data.</description></item>
+    /// <item><description>The date and time that the message was written.</description></item>
+    /// <item><description>The name and number of the root context of this trace message.</description></item>
+    /// <item><description>The thread number on which the trace message was written.</description></item>
+    /// <item><description>The space indented trace message.</description></item>
+    /// </list>
+    /// </para>
+    /// <para>Root-contexts have a name and a number. The name is programmer assigned, the number is internally assigned and is unique for an exe.</para>
+    /// <para>Trace messages are indented by a number of spaces that equals the context stack depth.</para>
+    /// </summary>
     public class cTrace
     {
         private TraceSource mTraceSource = null;
@@ -12,6 +44,10 @@ namespace work.bacome.trace
         private bool mContextTraceMustBeDelayed = true;
         private TraceEventType mContextTraceEventType;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="pTraceSourceName">The trace source name to use.</param>
         public cTrace(string pTraceSourceName)
         {
             ZCtor(pTraceSourceName);
@@ -52,63 +88,189 @@ namespace work.bacome.trace
             mTraceSource.TraceEvent(pEventType, 1, "\t{0:yyyy-MM-dd HH:mm:ss}\t{1}({2})\t{3}\t{4}{5}", DateTime.Now, pInstanceName, pInstanceNumber, Thread.CurrentThread.ManagedThreadId, new string(' ', pLevel), pMessage);
         }
 
+        /// <summary>
+        /// Create a new independent root-context.
+        /// </summary>
+        /// <param name="pInstanceName">The name to give the context.</param>
+        /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed.</param>
+        /// <returns>The new root-context.</returns>
         public cContext NewRoot(string pInstanceName, bool pContextTraceDelay = false)
         {
             if (mTraceSource == null) return cContext.Null;
             return new cContext.cRoot(this, pInstanceName, pContextTraceDelay);
         }
 
+        /// <summary>
+        /// <para>A tracing context.</para>
+        /// <para>Will be either a root-context or a sub-context. See <see cref="cTrace"/> for more information.</para>
+        /// </summary>
         public abstract class cContext
         {
+            /**<summary>A tracing context that is not connected to a trace source. Used to suppress all tracing.</summary>*/
             public readonly static cContext Null = new cNull();
 
+            /// <summary>
+            /// Creates a new root-context tied (in name only) to the root-context of this instance.
+            /// </summary>
+            /// <param name="pInstanceName">The name to use when creating the new the context.</param>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <returns>The new root-context with a name reflecting the root-context name of this instance and the specified name.</returns>
             public abstract cContext NewRoot(string pInstanceName, bool pContextTraceDelay = false);
 
+            /// <summary>
+            /// Creates a new sub-context with a free form trace message.
+            /// </summary>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pMessage">The trace message in <see cref="String.Format(string, object[])"/> form.</param>
+            /// <param name="pArgs">The objects to place in the trace message.</param>
+            /// <returns>A new sub-context.</returns>
             public abstract cContext NewGeneric(bool pContextTraceDelay, string pMessage, params object[] pArgs);
+
+            /// <summary>
+            /// <para>Creates a new sub-context with a trace message in 'object constructor' form.</para>
+            /// <para>Use when creating a context for a constructor.</para>
+            /// </summary>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pVersion">The version of the constructor.</param>
+            /// <param name="pArgs">The parameters to the constructor that you want traced.</param>
+            /// <returns>A new sub-context.</returns>
             public abstract cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs);
+
+            /// <summary>
+            /// <para>Creates a new sub-context with a trace message in 'property setter' form.</para>
+            /// <para>Use when creating a context for a property setter.</para>
+            /// </summary>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pProperty">The name of the property.</param>
+            /// <param name="pValue">The value being set.</param>
+            /// <returns>A new sub-context.</returns>
             public abstract cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue);
+
+            /// <summary>
+            /// <para>Creates a new sub-context with a trace message in 'method' form.</para>
+            /// <para>Use when creating a context for a method.</para>
+            /// </summary>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pMethod">The name of the method.</param>
+            /// <param name="pVersion">The version of the method.</param>
+            /// <param name="pArgs">The parameters to the method that you want traced.</param>
+            /// <returns>A new sub-context.</returns>
             public abstract cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs);
+
+            /// <summary>
+            /// <para>Creates a new root-context with a trace message in 'object constructor' form.</para>
+            /// <para>Use when creating a new root-context in a constructor.</para>
+            /// </summary>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pClass">The name of the class.</param>
+            /// <returns>A new root-context.</returns>
             public abstract cContext NewRootObject(bool pContextTraceDelay, string pClass);
+
+            /// <summary>
+            /// <para>Creates a new root-context with a trace message in 'method' form.</para>
+            /// <para>Use when creating a new root-context in a method.</para>
+            /// </summary>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pClass">The name of the class.</param>
+            /// <param name="pMethod">The name of the method.</param>
+            /// <returns>A new root-context.</returns>
             public abstract cContext NewRootMethod(bool pContextTraceDelay, string pClass, string pMethod);
 
+            /**<summary>A version of <see cref="NewGeneric(bool, string, object[])"/> with delayed tracing set to false.</summary>*/
             public virtual cContext NewGeneric(string pMessage, params object[] pArgs) => NewGeneric(false, pMessage, pArgs);
+            /**<summary>A version of <see cref="NewObjectV(bool, string, int, object[])"/> with delayed tracing set to false and the version number set to 1.</summary>*/
             public virtual cContext NewObject(string pClass, params object[] pArgs) => NewObjectV(false, pClass, 1, pArgs);
+            /**<summary>A version of <see cref="NewObjectV(bool, string, int, object[])"/> with the version number set to 1.</summary>*/
             public virtual cContext NewObject(bool pContextTraceDelay, string pClass, params object[] pArgs) => NewObjectV(pContextTraceDelay, pClass, 1, pArgs);
+            /**<summary>A version of <see cref="NewObjectV(bool, string, int, object[])"/> with delayed tracing set to false.</summary>*/
             public virtual cContext NewObjectV(string pClass, int pVersion, params object[] pArgs) => NewObjectV(false, pClass, pVersion, pArgs);
+            /**<summary>A version of <see cref="NewSetProp(bool, string, string, object)"/> with delayed tracing set to false.</summary>*/
             public virtual cContext NewSetProp(string pClass, string pProperty, object pValue) => NewSetProp(false, pClass, pProperty, pValue);
+            /**<summary>A version of <see cref="NewMethodV(bool, string, string, int, object[])"/> with delayed tracing set to false and the version number set to 1.</summary>*/
             public virtual cContext NewMethod(string pClass, string pMethod, params object[] pArgs) => NewMethodV(false, pClass, pMethod, 1, pArgs);
+            /**<summary>A version of <see cref="NewMethodV(bool, string, string, int, object[])"/> with the version number set to 1.</summary>*/
             public virtual cContext NewMethod(bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) => NewMethodV(pContextTraceDelay, pClass, pMethod, 1, pArgs);
+            /**<summary>A version of <see cref="NewMethodV(bool, string, string, int, object[])"/> with delayed tracing set to false.</summary>*/
             public virtual cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs) => NewMethodV(false, pClass, pMethod, pVersion, pArgs);
+            /**<summary>A version of <see cref="NewRootObject(bool, string)"/> with delayed tracing set to false.</summary>*/
             public virtual cContext NewRootObject(string pClass) => NewRootObject(false, pClass);
+            /**<summary>A version of <see cref="NewRootMethod(bool, string, string)"/> with delayed tracing set to false.</summary>*/
             public virtual cContext NewRootMethod(string pClass, string pMethod) => NewRootMethod(false, pClass, pMethod);
 
+            /**<summary>Indicates if context tracing being delayed. See <see cref="cTrace"/> for more information.</summary>*/
             public abstract bool ContextTraceDelay { get; }
             protected abstract void TraceContext();
 
+            /// <summary>
+            /// Writes a trace message.
+            /// </summary>
+            /// <param name="pTraceEventType">The trace event type.</param>
+            /// <param name="pMessage">The trace message in <see cref="String.Format(string, object[])"/> form.</param>
+            /// <param name="pArgs">The objects to place in the trace message.</param>
             [Conditional("TRACE")]
             public abstract void TraceEvent(TraceEventType pTraceEventType, string pMessage, params object[] pArgs);
 
+            /**<summary>Indicates if trace source emits verbose (the backing data for this property is established when the <see cref="cTrace"/> is constructed).</summary>*/
             public abstract bool EmitsVerbose { get; }
 
+            /// <summary>
+            /// Writes a critcal trace message.
+            /// </summary>
+            /// <param name="pMessage">The trace message in <see cref="String.Format(string, object[])"/> form.</param>
+            /// <param name="pArgs">The objects to place in the trace message.</param>
             [Conditional("TRACE")]
             public void TraceCritical(string pMessage, params object[] pArgs) => TraceEvent(TraceEventType.Critical, pMessage, pArgs);
 
+            /// <summary>
+            /// Writes an error trace message.
+            /// </summary>
+            /// <param name="pMessage">The trace message in <see cref="String.Format(string, object[])"/> form.</param>
+            /// <param name="pArgs">The objects to place in the trace message.</param>
             [Conditional("TRACE")]
             public void TraceError(string pMessage, params object[] pArgs) => TraceEvent(TraceEventType.Error, pMessage, pArgs);
 
+            /// <summary>
+            /// Writes a warning trace message.
+            /// </summary>
+            /// <param name="pMessage">The trace message in <see cref="String.Format(string, object[])"/> form.</param>
+            /// <param name="pArgs">The objects to place in the trace message.</param>
             [Conditional("TRACE")]
             public void TraceWarning(string pMessage, params object[] pArgs) => TraceEvent(TraceEventType.Warning, pMessage, pArgs);
 
+            /// <summary>
+            /// Writes an informational trace message.
+            /// </summary>
+            /// <param name="pMessage">The trace message in <see cref="String.Format(string, object[])"/> form.</param>
+            /// <param name="pArgs">The objects to place in the trace message.</param>
             [Conditional("TRACE")]
             public void TraceInformation(string pMessage, params object[] pArgs) => TraceEvent(TraceEventType.Information, pMessage, pArgs);
 
+            /// <summary>
+            /// Writes a verbose trace message.
+            /// </summary>
+            /// <param name="pMessage">The trace message in <see cref="String.Format(string, object[])"/> form.</param>
+            /// <param name="pArgs">The objects to place in the trace message.</param>
             [Conditional("TRACE")]
             public void TraceVerbose(string pMessage, params object[] pArgs) => TraceEvent(TraceEventType.Verbose, pMessage, pArgs);
 
-            // these methods for tracing exceptions as they 'fly by' using a line like this: catch (exception e) when (x.TraceException(e))
+            /**<summary>A version of <see cref="TraceException(TraceEventType, string, Exception)"/> with the event type set to <see cref="TraceEventType.Error"/> and a default message.</summary>*/
             public bool TraceException(Exception e) { TraceEvent(TraceEventType.Error, "Exception\n{0}", e); return false; }
+            /**<summary>A version of <see cref="TraceException(TraceEventType, string, Exception)"/> with the event type set to <see cref="TraceEventType.Error"/>.</summary>*/
             public bool TraceException(string pMessage, Exception e) { TraceEvent(TraceEventType.Error, "{0}\n{1}", pMessage, e); return false; }
+            /**<summary>A version of <see cref="TraceException(TraceEventType, string, Exception)"/> with a default message.</summary>*/
             public bool TraceException(TraceEventType pTraceEventType, Exception e) { TraceEvent(pTraceEventType, "Exception\n{0}", e); return false; }
+
+            /// <summary>
+            /// <para>Writes a trace message reporting an exception.</para>
+            /// <para>Designed for use in a conditional catch clause to trace the exception as it 'flies by': e.g. <code>catch (Exception e) when (x.TraceException(e)) { }</code>.</para>
+            /// </summary>
+            /// <param name="pTraceEventType">The trace event type to use.</param>
+            /// <param name="pMessage">A message to trace.</param>
+            /// <param name="e">The exception to trace.</param>
+            /// <returns>Always returns false.</returns>
             public bool TraceException(TraceEventType pTraceEventType, string pMessage, Exception e) { TraceEvent(pTraceEventType, "{0}\n{1}", pMessage, e); return false; }
 
             private class cNull : cContext
@@ -148,6 +310,9 @@ namespace work.bacome.trace
                 catch { return $"malformed trace message: '{pMessage}' with {pArgs.Length} parameters"; }
             }
 
+            /// <summary>
+            /// A root context. See <see cref="cContext"/> for a description of the interface.
+            /// </summary>
             public class cRoot : cContext
             {
                 private static int mInstanceNumberRoot = 7;

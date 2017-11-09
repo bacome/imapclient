@@ -99,13 +99,7 @@ namespace work.bacome.imapclient
             return new cMessageHandleList(from h in lHandles where !h.Contains(pItems) select h);
         }
 
-        /// <summary>
-        /// The async version of <see cref="Fetch(IEnumerable{cMessage}, cCacheItems, cPropertyFetchConfiguration)"/>
-        /// </summary>
-        /// <param name="pMessages"></param>
-        /// <param name="pItems"></param>
-        /// <param name="pConfiguration"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Fetch(IEnumerable{cMessage}, cCacheItems, cPropertyFetchConfiguration)"/>.</summary>*/
         public async Task<List<cMessage>> FetchAsync(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(FetchAsync), 3);

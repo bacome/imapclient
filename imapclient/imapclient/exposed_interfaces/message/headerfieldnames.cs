@@ -134,11 +134,11 @@ namespace work.bacome.imapclient
             else mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
-        /** <summary>Returns true if the collection contains the name (case insensitive).</summary>*/
+        /** <summary>Returns true if the list contains the name (case insensitive).</summary>*/
         public bool Contains(string pName) => mNames.Contains(pName, StringComparer.InvariantCultureIgnoreCase);
-        /** <summary>Returns true if the collection contains all the names (case insensitive).</summary>*/
+        /** <summary>Returns true if the list contains all the names (case insensitive).</summary>*/
         public bool Contains(params string[] pNames) => ZContains(pNames);
-        /** <summary>Returns true if the collection contains all the names (case insensitive).</summary>*/
+        /** <summary>Returns true if the list contains all the names (case insensitive).</summary>*/
         public bool Contains(IEnumerable<string> pNames) => ZContains(pNames);
 
         private bool ZContains(IEnumerable<string> pNames)
@@ -148,7 +148,7 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        /** <summary>Adds the name to the list if it isn't already on the list (case insensitive).</summary>*/
+        /** <summary>Adds the name if it isn't already in the list (case insensitive).</summary>*/
         public void Add(string pName)
         {
             if (pName == null) throw new ArgumentNullException(nameof(pName));
@@ -156,9 +156,9 @@ namespace work.bacome.imapclient
             if (!Contains(pName)) mNames.Add(pName);
         }
 
-        /** <summary>Adds each name to the list if it isn't already on the list (case insensitive).</summary>*/
+        /** <summary>Adds each name if it isn't already in the list (case insensitive).</summary>*/
         public void Add(params string[] pNames) => ZAdd(pNames);
-        /** <summary>Adds each name to the list if it isn't already on the list (case insensitive).</summary>*/
+        /** <summary>Adds each name if it isn't already in the list (case insensitive).</summary>*/
         public void Add(IEnumerable<string> pNames) => ZAdd(pNames);
 
         private void ZAdd(IEnumerable<string> pNames)

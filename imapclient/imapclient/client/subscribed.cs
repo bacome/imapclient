@@ -25,14 +25,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        /// <summary>
-        /// The async version of <see cref="Subscribed(string, char?, bool, fMailboxCacheDataSets)"/>.
-        /// </summary>
-        /// <param name="pListMailbox"></param>
-        /// <param name="pDelimiter"></param>
-        /// <param name="pHasSubscribedChildren"></param>
-        /// <param name="pDataSets"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Subscribed(string, char?, bool, fMailboxCacheDataSets)"/>.</summary>*/
         public Task<List<cMailbox>> SubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));

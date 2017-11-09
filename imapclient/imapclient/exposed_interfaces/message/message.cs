@@ -31,15 +31,21 @@ namespace work.bacome.imapclient
 
         public readonly cIMAPClient Client;
         public readonly iMessageHandle Handle;
-        public readonly int Indent; // Indicates the indent of the message. This only means something when compared to the indents of surrounding items in a threaded list of messages. It is a bit of a hack having it in this class.
 
-        public cMessage(cIMAPClient pClient, iMessageHandle pHandle, int pIndent = -1)
+        // re-instate if threading is ever done
+        //public readonly int Indent; // Indicates the indent of the message. This only means something when compared to the indents of surrounding items in a threaded list of messages. It is a bit of a hack having it in this class.
+
+        public cMessage(cIMAPClient pClient, iMessageHandle pHandle) // , int pIndent = -1 // re-instate if threading is ever done
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
-            Indent = pIndent;
+            //Indent = pIndent; // re-instate if threading is ever done
         }
 
+        /// <summary>
+        /// Fired when the server notifies the client of a message property value change.
+        /// Most properties of an IMAP message can never change.
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged
         {
             add
@@ -661,22 +667,35 @@ namespace work.bacome.imapclient
         /**<summary>The async version of <see cref="FetchAsync(cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.</summary>*/
         public Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, pSection, pDecoding, pStream, pConfiguration);
 
-        // set data
-
+        /// <summary>
+        /// <para>Store flags for the message.</para>
+        /// <para>This method will throw if it detects that the store is likely to have failed.</para>
+        /// </summary>
+        /// <param name="pOperation">The type of store operation.</param>
+        /// <param name="pFlags">The flags to store.</param>
+        /// <param name="pIfUnchangedSinceModSeq">
+        /// <para>The modseq to use in the unchangedsince clause of a conditional store (RFC 7162).</para>
+        /// <para>Can only be specified if the mailbox supports RFC 7162.</para>
+        /// <para>If the message has been modified since the specified modseq the server should fail the update.</para>
+        /// </param>
         public void Store(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
             var lFeedback = Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
             if (lFeedback.Summary().LikelyFailedCount != 0) throw new InvalidOperationException(); // the assumption here is that the message has been deleted
         }
 
+        /**<summary>The async version of <see cref="Store(eStoreOperation, cSettableFlags, ulong?)"/>.</summary>*/
         public async Task StoreAsync(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
             var lFeedback = await Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
             if (lFeedback.Summary().LikelyFailedCount != 0) throw new InvalidOperationException(); // the assumption here is that the message has been deleted
         }
 
-        // copy
-
+        /// <summary>
+        /// Copy the message to the specified mailbox.
+        /// </summary>
+        /// <param name="pDestination">The mailbox to copy the message to.</param>
+        /// <returns>If the server provides a UIDCOPY response: the UID of the message in the destination mailbox; otherwise null.</returns>
         public cUID Copy(cMailbox pDestination)
         {
             var lFeedback = Client.Copy(Handle, pDestination.Handle);
@@ -684,6 +703,7 @@ namespace work.bacome.imapclient
             return null;
         }
 
+        /**<summary>The async version of <see cref="Copy(cMailbox)"/>.</summary>*/
         public async Task<cUID> CopyAsync(cMailbox pDestination)
         {
             var lFeedback = await Client.CopyAsync(Handle, pDestination.Handle).ConfigureAwait(false);
@@ -700,6 +720,6 @@ namespace work.bacome.imapclient
         } */
 
         // debugging
-        public override string ToString() => $"{nameof(cMessage)}({Handle},{Indent})";
+        public override string ToString() => $"{nameof(cMessage)}({Handle})"; // ,{Indent} // re-instate if threading is ever done
     }
 }

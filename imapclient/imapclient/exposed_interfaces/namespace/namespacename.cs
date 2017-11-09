@@ -3,11 +3,21 @@ using System.Collections.Generic;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Represents an IMAP namespace name.
+    /// </summary>
     public class cNamespaceName
     {
         // to extend with LANGUAGE translations
 
+        /// <summary>
+        /// The name prefix of the namespace. May be the empty string.
+        /// </summary>
         public readonly string Prefix;
+
+        /// <summary>
+        /// The namespace hierarchy delimiter. May be null if there is no hierarchy.
+        /// </summary>
         public readonly char? Delimiter;
 
         private cNamespaceName(string pPrefix, char? pDelimiter, bool pValid)

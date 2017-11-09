@@ -150,7 +150,7 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        /** <summary>Returns the string constant associated with the passed <see cref="eImportance"/> value.</summary>*/
+        /** <summary>Returns the string constant associated with the passed <paramref name="pImportance"/>.</summary>*/
         public static string FieldValue(eImportance pImportance)
         {
             switch (pImportance)

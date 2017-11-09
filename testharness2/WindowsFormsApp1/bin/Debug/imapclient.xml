@@ -228,7 +228,7 @@
             <para>Indicates if the caller can handle mailbox referrals.</para>
             <para>If this is set to false the instance will not return remote mailboxes in mailbox lists.</para>
             <para>Being able to handle mailbox referrals means handling the exceptions that may be raised by the library when accessing remote mailboxes.</para>
-            <para>See RFC 2193, <see cref="T:work.bacome.imapclient.cUnsuccessfulCompletionException"/>, <see cref="F:work.bacome.imapclient.cUnsuccessfulCompletionException.ResponseText"/>, <see cref="F:work.bacome.imapclient.cResponseText.Strings"/>, <see cref="T:work.bacome.imapclient.cURL"/> and <see cref="T:work.bacome.imapclient.support.cURI"/>.</para>
+            <para>See RFC 2193, <see cref="T:work.bacome.imapclient.cUnsuccessfulCompletionException"/>, <see cref="F:work.bacome.imapclient.cUnsuccessfulCompletionException.ResponseText"/>, <see cref="F:work.bacome.imapclient.cResponseText.Strings"/>, <see cref="T:work.bacome.imapclient.cURL"/> and <see cref="T:work.bacome.imapclient.cURI"/>.</para>
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData">
@@ -462,6 +462,12 @@
             <summary>
             Poll the server using IMAP CHECK (if a mailbox is selected) and IMAP NOOP to see if the server has pending notifications for us.
             </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIMAPClient._Tests(work.bacome.trace.cTrace.cContext)">
+            <summary>
+            Internal library tests.
+            </summary>
+            <param name="pParentContext"></param>
         </member>
         <member name="T:work.bacome.imapclient.fMailboxCacheDataSets">
             <summary>

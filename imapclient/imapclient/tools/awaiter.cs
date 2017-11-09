@@ -5,7 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace work.bacome.async
-{ 
+{
+    /// <summary>
+    /// <para>Provides services for waiting on a number of tasks with timeout and/or cancellation.</para>
+    /// <para>Instances allow waiting for the completion of any one of a number of tasks. If a timeout is specified it runs from when the instance is constructed.</para>
+    /// <para>The static methods allow waiting for the completion of all of a number of tasks.</para>
+    /// <para>Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+    /// </summary>
     public sealed class cAwaiter : IDisposable
     {
         private bool mDisposed = false;
@@ -13,18 +19,34 @@ namespace work.bacome.async
         private readonly CancellationTokenSource mLinkedCancellationTokenSource;
         private readonly Task mTask;
 
+        /// <summary>
+        /// An instance with timeout and cancellation.
+        /// </summary>
+        /// <param name="pMC">The timeout and cancellation to use.</param>
         public cAwaiter(cMethodControl pMC)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pMC.CancellationToken);
             mTask = Task.Delay(pMC.Timeout, mLinkedCancellationTokenSource.Token);
         }
 
+        /// <summary>
+        /// An instance with just cancellation.
+        /// </summary>
+        /// <param name="pCancellationToken">The cancellationtoken to use.</param>
         public cAwaiter(CancellationToken pCancellationToken)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pCancellationToken);
             mTask = Task.Delay(Timeout.Infinite, mLinkedCancellationTokenSource.Token);
         }
 
+        /// <summary>
+        /// <para>The method will complete when any of tasks in <paramref name="pTask"/> and <paramref name="pTasks"/> completes.</para>
+        /// <para>If the task that completed did so because it failed (timed-out, was cancelled, or threw) then this method throws.</para>
+        /// <para>If the constructor's timeout and/or cancellationtoken indicates that waiting for a task to complete should stop, then this method throws.</para>
+        /// </summary>
+        /// <param name="pTask">A task, can't be null.</param>
+        /// <param name="pTasks">A set of tasks, any or all can be null.</param>
+        /// <returns>The task that completed.</returns>
         public async Task<Task> AwaitAny(Task pTask, params Task[] pTasks)
         {
             if (pTask == null) throw new ArgumentNullException(nameof(pTask));
@@ -43,7 +65,24 @@ namespace work.bacome.async
             return lTask;
         }
 
+        /// <summary>
+        /// <para>This method completes when all of the <paramref name="pTasks"/> tasks complete OR when the passed <paramref name="pMC"/> terminates it.</para>
+        /// <para>If any of the tasks completed because they failed (timed-out, was cancelled, or threw) then this method throws.</para>
+        /// <para>If the <paramref name="pMC"/> terminates the method then this method throws.</para>
+        /// </summary>
+        /// <param name="pMC">Controls the execution of the method.</param>
+        /// <param name="pTasks">The set of tasks to wait for. Tasks in the array can be null.</param>
+        /// <returns></returns>
         public static Task AwaitAll(cMethodControl pMC, params Task[] pTasks) => ZAwaitAll(pMC, pTasks);
+
+        /// <summary>
+        /// <para>This method completes when all of the <paramref name="pTasks"/> tasks complete OR when the passed <paramref name="pMC"/> terminates it.</para>
+        /// <para>If any of the tasks completed because they failed (timed-out, was cancelled, or threw) then this method throws.</para>
+        /// <para>If the <paramref name="pMC"/> terminates the method then this method throws.</para>
+        /// </summary>
+        /// <param name="pMC">Controls the execution of the method.</param>
+        /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be null.</param>
+        /// <returns></returns>
         public static Task AwaitAll(cMethodControl pMC, IEnumerable<Task> pTasks) => ZAwaitAll(pMC, pTasks);
 
         private static async Task ZAwaitAll(cMethodControl pMC, IEnumerable<Task> pTasks)

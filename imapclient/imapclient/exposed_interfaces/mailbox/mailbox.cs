@@ -28,8 +28,9 @@ namespace work.bacome.imapclient
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
         }
 
-        // events
-
+        /// <summary>
+        /// Fired when the server notifies the client of a mailbox property value change.
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged
         {
             add
@@ -57,7 +58,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Fired when new messages arrive in the mailbox.</para>
+        /// Fired when the server notifies the client that messages have arrived in the mailbox.
         /// </summary>
         public event EventHandler<cMessageDeliveryEventArgs> MessageDelivery
         {
@@ -566,32 +567,21 @@ namespace work.bacome.imapclient
         /// </param>
         /// <returns>A list of mailboxes.</returns>
         public List<cMailbox> Mailboxes(fMailboxCacheDataSets pDataSets = 0) => Client.Mailboxes(Handle, pDataSets);
-
-        /// <summary>
-        /// The async version of <see cref="Mailboxes(fMailboxCacheDataSets)"/>
-        /// </summary>
-        /// <param name="pDataSets"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Mailboxes(fMailboxCacheDataSets)"/>.</summary>*/
         public Task<List<cMailbox>> MailboxesAsync(fMailboxCacheDataSets pDataSets = 0) => Client.MailboxesAsync(Handle, pDataSets);
 
         /// <summary>
         /// <para>Gets the mailbox's subscribed child mailboxes.</para>
         /// <para>Note that mailboxes that do not currently exist may be returned.</para>
         /// </summary>
-        /// <param name="pDescend">If true all descendants are returned (not just children, also grandchildren ...)</param>
+        /// <param name="pDescend">If true all descendants are returned (not just children, also grandchildren ...).</param>
         /// <param name="pDataSets">
         /// <para>The sets of data to retrieve when getting the child mailboxes.</para>
         /// <para>See <see cref="cIMAPClient.MailboxCacheData"/>.</para>
         /// </param>
         /// <returns>A list of mailboxes.</returns>
         public List<cMailbox> Subscribed(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0) => Client.Subscribed(Handle, pDescend, pDataSets);
-
-        /// <summary>
-        /// The async version of <see cref="Subscribed(bool, fMailboxCacheDataSets)"/>.
-        /// </summary>
-        /// <param name="pDescend"></param>
-        /// <param name="pDataSets"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Subscribed(bool, fMailboxCacheDataSets)"/>.</summary>*/
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(Handle, pDescend, pDataSets);
 
         /// <summary>
@@ -601,13 +591,7 @@ namespace work.bacome.imapclient
         /// <param name="pAsFutureParent">Indicate to the IMAP server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns>An object representing the newly created mailbox.</returns>
         public cMailbox CreateChild(string pName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pName), pAsFutureParent);
-
-        /// <summary>
-        /// The async version of <see cref="CreateChild(string, bool)"/>.
-        /// </summary>
-        /// <param name="pName"></param>
-        /// <param name="pAsFutureParent"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="CreateChild(string, bool)"/>.</summary>*/
         public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = true) => Client.CreateAsync(ZCreateChild(pName), pAsFutureParent);
 
         private cMailboxName ZCreateChild(string pName)
@@ -647,12 +631,7 @@ namespace work.bacome.imapclient
         /// <param name="pName">The new mailbox name.</param>
         /// <returns>An object representing the newly created mailbox.</returns>
         public cMailbox Rename(string pName) => Client.Rename(Handle, ZRename(pName));
-
-        /// <summary>
-        /// The async version of <see cref="Rename(string)"/>.
-        /// </summary>
-        /// <param name="pName"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Rename(string)"/>.</summary>*/
         public Task<cMailbox> RenameAsync(string pName) => Client.RenameAsync(Handle, ZRename(pName));
 
         private cMailboxName ZRename(string pName)
@@ -691,12 +670,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pForUpdate">Indicates if the mailbox should be selected for update or not</param>
         public void Select(bool pForUpdate = false) => Client.Select(Handle, pForUpdate);
-
-        /// <summary>
-        /// The async version of <see cref="Select(bool)"/>.
-        /// </summary>
-        /// <param name="pForUpdate"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Select(bool)"/>.</summary>*/
         public Task SelectAsync(bool pForUpdate = false) => Client.SelectAsync(Handle, pForUpdate);
 
         /// <summary>
@@ -705,12 +679,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pAndUnselect">Indicates if the mailbox should also be un-selected.</param>
         public void Expunge(bool pAndUnselect = false) => Client.Expunge(Handle, pAndUnselect);
-
-        /// <summary>
-        /// The async version of <see cref="Expunge(bool)"/>.
-        /// </summary>
-        /// <param name="pAndUnselect"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Expunge(bool)"/>.</summary>*/
         public Task ExpungeAsync(bool pAndUnselect = false) => Client.ExpungeAsync(Handle, pAndUnselect);
 
         /// <summary>
@@ -732,15 +701,7 @@ namespace work.bacome.imapclient
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <returns>A list of messages.</returns>
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, cCacheItems pItems = null, cMessageFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultCacheItems, pConfiguration);
-
-        /// <summary>
-        /// The async version of <see cref="Messages(cFilter, cSort, cCacheItems, cMessageFetchConfiguration)"/>.
-        /// </summary>
-        /// <param name="pFilter"></param>
-        /// <param name="pSort"></param>
-        /// <param name="pItems"></param>
-        /// <param name="pConfiguration"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Messages(cFilter, cSort, cCacheItems, cMessageFetchConfiguration)"/>.</summary>*/
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, cCacheItems pItems = null, cMessageFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultCacheItems, pConfiguration);
 
         /// <summary>
@@ -760,13 +721,7 @@ namespace work.bacome.imapclient
             return ZMessages(pHandles);
         }
 
-        /// <summary>
-        /// The async version of <see cref="Messages(IEnumerable{iMessageHandle}, cCacheItems, cPropertyFetchConfiguration)"/>.
-        /// </summary>
-        /// <param name="pHandles"></param>
-        /// <param name="pItems"></param>
-        /// <param name="pConfiguration"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Messages(IEnumerable{iMessageHandle}, cCacheItems, cPropertyFetchConfiguration)"/>.</summary>*/
         public async Task<List<cMessage>> MessagesAsync(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems = null, cPropertyFetchConfiguration pConfiguration = null)
         {
             await Client.FetchAsync(pHandles, pItems ?? Client.DefaultCacheItems, pConfiguration).ConfigureAwait(false);
@@ -788,11 +743,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <returns>A list of unseen message handles.</returns>
         public cMessageHandleList SetUnseenCount() => Client.SetUnseenCount(Handle);
-
-        /// <summary>
-        /// The async version of <see cref="SetUnseenCount"/>.
-        /// </summary>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="SetUnseenCount"/>.</summary>*/
         public Task<cMessageHandleList> SetUnseenCountAsync() => Client.SetUnseenCountAsync(Handle);
 
         /// <summary>
@@ -802,13 +753,7 @@ namespace work.bacome.imapclient
         /// <param name="pItems">The set of message cache items to ensure are cached for the returned messages.</param>
         /// <returns>An object representing the message.</returns>
         public cMessage Message(cUID pUID, cCacheItems pItems) => Client.Message(Handle, pUID, pItems);
-
-        /// <summary>
-        /// The async version of <see cref="Message(cUID, cCacheItems)"/>.
-        /// </summary>
-        /// <param name="pUID"></param>
-        /// <param name="pItems"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Message(cUID, cCacheItems)"/>.</summary>*/
         public Task<cMessage> MessageAsync(cUID pUID, cCacheItems pItems) => Client.MessageAsync(Handle, pUID, pItems);
 
         /// <summary>
@@ -819,14 +764,7 @@ namespace work.bacome.imapclient
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <returns>A list of messages.</returns>
         public List<cMessage> Messages(IEnumerable<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pUIDs, pItems, pConfiguration);
-
-        /// <summary>
-        /// The async version of <see cref="MessagesAsync(IEnumerable{cUID}, cCacheItems, cPropertyFetchConfiguration)"/>.
-        /// </summary>
-        /// <param name="pUIDs"></param>
-        /// <param name="pItems"></param>
-        /// <param name="pConfiguration"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="MessagesAsync(IEnumerable{cUID}, cCacheItems, cPropertyFetchConfiguration)"/>.</summary>*/
         public Task<List<cMessage>> MessagesAsync(IEnumerable<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pUIDs, pItems, pConfiguration);
 
         /// <summary>
@@ -834,12 +772,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pDataSets">The sets of data to refresh.</param>
         public void Fetch(fMailboxCacheDataSets pDataSets) => Client.Fetch(Handle, pDataSets);
-
-        /// <summary>
-        /// The async version of <see cref="Fetch(fMailboxCacheDataSets)"/>.
-        /// </summary>
-        /// <param name="pDataSets"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Fetch(fMailboxCacheDataSets)"/>.</summary>*/
         public Task FetchAsync(fMailboxCacheDataSets pDataSets) => Client.FetchAsync(Handle, pDataSets);
 
         /// <summary>
@@ -850,12 +783,7 @@ namespace work.bacome.imapclient
         /// <param name="pMessages">The set of messages to copy.</param>
         /// <returns>If the server provides a UIDCOPY response: the pairs of UIDs for the copied messages; otherwise null.</returns>
         public cCopyFeedback Copy(IEnumerable<cMessage> pMessages) => Client.Copy(cMessageHandleList.FromMessages(pMessages), Handle);
-
-        /// <summary>
-        /// The async version of <see cref="Copy(IEnumerable{cMessage})"/>.
-        /// </summary>
-        /// <param name="pMessages"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Copy(IEnumerable{cMessage})"/>.</summary>*/
         public Task<cCopyFeedback> CopyAsync(IEnumerable<cMessage> pMessages) => Client.CopyAsync(cMessageHandleList.FromMessages(pMessages), Handle);
 
         /// <summary>
@@ -872,16 +800,7 @@ namespace work.bacome.imapclient
         /// <param name="pStream">The stream to write the (decoded) data into.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetch(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);
-
-        /// <summary>
-        /// The async version of <see cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.
-        /// </summary>
-        /// <param name="pUID"></param>
-        /// <param name="pSection"></param>
-        /// <param name="pDecoding"></param>
-        /// <param name="pStream"></param>
-        /// <param name="pConfiguration"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.</summary>*/
         public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetchAsync(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);
 
         /// <summary>
@@ -898,15 +817,7 @@ namespace work.bacome.imapclient
         /// </param>
         /// <returns>Feedback on the success (or otherwise) of the store.</returns>
         public cUIDStoreFeedback UIDStore(cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStore(Handle, pUID, pOperation, pFlags, pIfUnchangedSinceModSeq);
-
-        /// <summary>
-        /// The async version of <see cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.
-        /// </summary>
-        /// <param name="pUID"></param>
-        /// <param name="pOperation"></param>
-        /// <param name="pFlags"></param>
-        /// <param name="pIfUnchangedSinceModSeq"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.</summary>*/
         public Task<cUIDStoreFeedback> UIDStoreAsync(cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStoreAsync(Handle, pUID, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         /// <summary>
@@ -938,13 +849,7 @@ namespace work.bacome.imapclient
         /// <param name="pDestination">The destination mailbox.</param>
         /// <returns>If the server provides a UIDCOPY response: the pairs of UIDs for the copied messages; otherwise null.</returns>
         public cCopyFeedback UIDCopy(cUID pUID, cMailbox pDestination) => Client.UIDCopy(Handle, pUID, pDestination.Handle);
-
-        /// <summary>
-        /// The async version of <see cref="UIDCopy(cUID, cMailbox)"/>.
-        /// </summary>
-        /// <param name="pUID"></param>
-        /// <param name="pDestination"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="UIDCopy(cUID, cMailbox)"/>.</summary>*/
         public Task<cCopyFeedback> UIDCopyAsync(cUID pUID, cMailbox pDestination) => Client.UIDCopyAsync(Handle, pUID, pDestination.Handle);
 
         /// <summary>

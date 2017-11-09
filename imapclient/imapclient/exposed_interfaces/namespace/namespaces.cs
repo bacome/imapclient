@@ -4,10 +4,16 @@ using System.Collections.ObjectModel;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// A collection of <see cref="cNamespace"/> instances.
+    /// </summary>
     public class cNamespaces
     {
+        /**<summary>A collection of personal <see cref="cNamespace"/> instances.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> Personal;
+        /**<summary>A collection of other user <see cref="cNamespace"/> instances.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> OtherUsers;
+        /**<summary>A collection of shared <see cref="cNamespace"/> instances.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> Shared;
 
         public cNamespaces(cIMAPClient pClient, IList<cNamespaceName> pPersonal, IList<cNamespaceName> pOtherUsers, IList<cNamespaceName> pShared)

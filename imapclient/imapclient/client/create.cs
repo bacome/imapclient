@@ -21,12 +21,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        /// <summary>
-        /// The async version of <see cref="Create(cMailboxName, bool)"/>.
-        /// </summary>
-        /// <param name="pMailboxName"></param>
-        /// <param name="pAsFutureParent"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Create(cMailboxName, bool)"/>.</summary>*/
         public Task<cMailbox> CreateAsync(cMailboxName pMailboxName, bool pAsFutureParent)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(CreateAsync));

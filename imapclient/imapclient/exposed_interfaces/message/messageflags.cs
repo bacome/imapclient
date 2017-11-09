@@ -55,7 +55,8 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read only collection of IMAP message flags.
+    /// <para>A unique message flag collection.</para>
+    /// <para>Message flag names are not case sensitive.</para>
     /// </summary>
     public abstract class cMessageFlags : IReadOnlyCollection<string>
     {
@@ -63,10 +64,14 @@ namespace work.bacome.imapclient
 
         public cMessageFlags(cMessageFlagList pFlags) => mFlags = pFlags;
 
+        /** <summary>Returns true if the collection contains the flag (case insensitive).</summary>*/
         public bool Contains(string pFlag) => mFlags.Contains(pFlag);
+        /** <summary>Returns true if the collection contains all the flags (case insensitive).</summary>*/
         public bool Contains(params string[] pFlags) => mFlags.Contains(pFlags);
+        /** <summary>Returns true if the collection contains all the flags (case insensitive).</summary>*/
         public bool Contains(IEnumerable<string> pFlags) => mFlags.Contains(pFlags);
 
+        /**<summary>Gets the symmetric difference between this and the specified collection of flags (case insensitive).</summary>*/
         public IEnumerable<string> SymmetricDifference(cMessageFlags pOther, params string[] pExcept)
         {
             var lSymmetricDifference = mFlags.Except(pOther.mFlags, StringComparer.InvariantCultureIgnoreCase).Union(pOther.mFlags.Except(mFlags, StringComparer.InvariantCultureIgnoreCase), StringComparer.InvariantCultureIgnoreCase);
@@ -82,8 +87,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// <para>A read only collection of settable IMAP message flags.</para>
-    /// <para>(e.g. It is not possible to set the \Recent flag.)</para>
+    /// <para>A unique settable message flag collection.</para>
+    /// <para>Message flag names are not case sensitive.</para>
+    /// <para>(It is not possible to set the \Recent flag.)</para>
     /// </summary>
     public class cSettableFlags : cMessageFlags
     {
@@ -92,28 +98,28 @@ namespace work.bacome.imapclient
         /** <summary>An empty set of flags.</summary> */
         public static readonly cSettableFlags None = new cSettableFlags();
 
-        /** <summary>A set of flags containing just the \Answered flag.</summary> */
+        /** <summary>A collection of flags containing just the \Answered flag.</summary> */
         public static readonly cSettableFlags Answered = new cSettableFlags(kMessageFlagName.Answered);
 
-        /** <summary>A set of flags containing just the \Flagged flag.</summary> */
+        /** <summary>A collection of flags containing just the \Flagged flag.</summary> */
         public static readonly cSettableFlags Flagged = new cSettableFlags(kMessageFlagName.Flagged);
 
-        /** <summary>A set of flags containing just the \Deleted flag.</summary> */
+        /** <summary>A collection of flags containing just the \Deleted flag.</summary> */
         public static readonly cSettableFlags Deleted = new cSettableFlags(kMessageFlagName.Deleted);
 
-        /** <summary>A set of flags containing just the \Seen flag.</summary> */
+        /** <summary>A collection of flags containing just the \Seen flag.</summary> */
         public static readonly cSettableFlags Seen = new cSettableFlags(kMessageFlagName.Seen);
 
-        /** <summary>A set of flags containing just the \Draft flag.</summary> */
+        /** <summary>A collection of flags containing just the \Draft flag.</summary> */
         public static readonly cSettableFlags Draft = new cSettableFlags(kMessageFlagName.Draft);
 
-        /** <summary>A set of flags containing just the $Forwarded flag.</summary> */
+        /** <summary>A collection of flags containing just the $Forwarded flag.</summary> */
         public static readonly cSettableFlags Forwarded = new cSettableFlags(kMessageFlagName.Forwarded);
 
-        /** <summary>A set of flags containing just the $SubmitPending flag.</summary> */
+        /** <summary>A collection of flags containing just the $SubmitPending flag.</summary> */
         public static readonly cSettableFlags SubmitPending = new cSettableFlags(kMessageFlagName.SubmitPending);
 
-        /** <summary>A set of flags containing just the $Submitted flag.</summary> */
+        /** <summary>A collection of flags containing just the $Submitted flag.</summary> */
         public static readonly cSettableFlags Submitted = new cSettableFlags(kMessageFlagName.Submitted);
 
         // see comments elsewhere as to why this is commented out
@@ -127,8 +133,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// <para>A read only collection of fetchable IMAP message flags.</para>
-    /// <para>(e.g. It is not possible to set \Recent flag however it is possible to receive it set on a message.)</para>
+    /// <para>A unique fetchable message flag collection.</para>
+    /// <para>Message flag names are not case sensitive.</para>
+    /// <para>(It is not possible to set \Recent flag however it is possible to receive it set on a message.)</para>
     /// </summary>
     public class cFetchableFlags : cMessageFlags
     {
@@ -150,8 +157,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// <para>A read only collection of IMAP message flags that it is possible to set permanently on messages in a mailbox.</para>
-    /// <para>(e.g. This may include the \* flag indicating that it is possible to create new flags by setting them.)</para>
+    /// <para>A unique permanent flag collection.</para>
+    /// <para>Flag names are not case sensitive.</para>
+    /// <para>(May contain the \* flag indicating that it is possible to create new flags by setting them.)</para>
     /// </summary>
     public class cPermanentFlags : cMessageFlags
     {
@@ -168,7 +176,8 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A list of IMAP message flags.
+    /// <para>A unique message flag list.</para>
+    /// <para>Message flag names are not case sensitive and have a limited grammar (see RFC 3501).</para>
     /// </summary>
     public abstract class cMessageFlagList : IReadOnlyCollection<string>
     {
@@ -183,8 +192,11 @@ namespace work.bacome.imapclient
             mFlags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
         }
 
+        /** <summary>Returns true if the list contains the flag (case insensitive).</summary>*/
         public bool Contains(string pFlag) => mFlags.Contains(pFlag, StringComparer.InvariantCultureIgnoreCase);
+        /** <summary>Returns true if the list contains all the flags (case insensitive).</summary>*/
         public bool Contains(params string[] pFlags) => ZContains(pFlags);
+        /** <summary>Returns true if the list contains all the flags (case insensitive).</summary>*/
         public bool Contains(IEnumerable<string> pFlags) => ZContains(pFlags);
 
         private bool ZContains(IEnumerable<string> pFlags)
@@ -194,13 +206,16 @@ namespace work.bacome.imapclient
             return true;
         }
 
+        /** <summary>Adds the flag if it isn't already in the list.</summary>*/
         public void Add(string pFlag)
         {
             if (!YIsValidFlag(pFlag)) throw new ArgumentOutOfRangeException(nameof(pFlag));
             if (!mFlags.Contains(pFlag, StringComparer.InvariantCultureIgnoreCase)) mFlags.Add(pFlag);
         }
 
+        /** <summary>Adds each flag if it isn't already in the list (case insensitive).</summary>*/
         public void Add(params string[] pFlags) => ZAdd(pFlags);
+        /** <summary>Adds each flag if it isn't already in the list (case insensitive).</summary>*/
         public void Add(IEnumerable<string> pFlags) => ZAdd(pFlags);
 
         private void ZAdd(IEnumerable<string> pFlags)
@@ -210,8 +225,11 @@ namespace work.bacome.imapclient
             foreach (var lFlag in pFlags) if (!mFlags.Contains(lFlag, StringComparer.InvariantCultureIgnoreCase)) mFlags.Add(lFlag);
         }
 
+        /** <summary>Removes the flag from the list (case insensitive).</summary>*/
         public void Remove(string pFlag) => mFlags.RemoveAll(f => f.Equals(pFlag, StringComparison.InvariantCultureIgnoreCase));
+        /** <summary>Removes the flags from the list (case insensitive).</summary>*/
         public void Remove(params string[] pFlags) => ZRemove(pFlags);
+        /** <summary>Removes the flags from the list (case insensitive).</summary>*/
         public void Remove(IEnumerable<string> pFlags) => ZRemove(pFlags);
 
         private void ZRemove(IEnumerable<string> pFlags)

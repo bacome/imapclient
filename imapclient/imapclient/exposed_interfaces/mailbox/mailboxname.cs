@@ -12,8 +12,8 @@ namespace work.bacome.imapclient
     /// </summary>
     public class cMailboxName : IComparable<cMailboxName>, IEquatable<cMailboxName>
     {
-        public const string InboxString = "INBOX";
-        public static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
+        internal const string InboxString = "INBOX";
+        internal static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
 
         /// <summary>
         /// <para>The mailbox name including the full hierarchy.</para>

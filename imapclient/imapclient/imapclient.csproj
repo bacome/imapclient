@@ -289,7 +289,7 @@
     <Compile Include="tools\exclusiveaccess.cs" />
     <Compile Include="tools\methodcontrol.cs" />
     <Compile Include="tools\releaser.cs" />
-    <Compile Include="tools\terminator.cs" />
+    <Compile Include="tools\awaiter.cs" />
     <Compile Include="tools\trace.cs" />
   </ItemGroup>
   <ItemGroup />

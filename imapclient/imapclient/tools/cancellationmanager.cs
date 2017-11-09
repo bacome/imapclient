@@ -4,6 +4,14 @@ using work.bacome.trace;
 
 namespace work.bacome.async
 {
+    /// <summary>
+    /// <para>Manages sets (cancellation-sets) of concurrent asynchronous operations that are attached to a common <see cref="CancellationTokenSource"/>.</para>
+    /// <para>
+    /// Use <see cref="GetToken(cTrace.cContext)"/> to get a disposable object containing a <see cref="CancellationToken"/> that is attached to the current <see cref="CancellationTokenSource"/>.
+    /// Dispose the object when the operation controlled by the contained <see cref="CancellationToken"/> completes.</para>
+    /// <para>Use <see cref="Cancel(cTrace.cContext)"/> to cancel all of the operations currently underway; this causes the allocation of a new internal <see cref="CancellationTokenSource"/> so new operations can be started in a new cancellation-set immediately.</para>
+    /// <para>Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+    /// </summary>
     public sealed class cCancellationManager : IDisposable
     {
         private bool mDisposed = false;
@@ -18,12 +26,22 @@ namespace work.bacome.async
             mCurrentCancellationSet = new cCancellationSet(null);
         }
 
+        /// <summary>
+        /// Construct specifying the callback to be used when count of active concurrent operations changes.
+        /// </summary>
+        /// <param name="pCountChanged"></param>
         public cCancellationManager(Action<cTrace.cContext> pCountChanged)
         {
             mCountChanged = pCountChanged;
             mCurrentCancellationSet = new cCancellationSet(mCountChanged);
         }
 
+        /// <summary>
+        /// <para>Returns a disposable object containing a <see cref="CancellationToken"/>.</para>
+        /// <para>Dispose the object when the operation controlled by the contained <see cref="CancellationToken"/> completes.</para>
+        /// </summary>
+        /// <param name="pParentContext">Context for trace messages.</param>
+        /// <returns>A disposable object containing a <see cref="CancellationToken"/>.</returns>
         public cToken GetToken(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cCancellationManager), nameof(GetToken));
@@ -36,6 +54,9 @@ namespace work.bacome.async
             }
         }
 
+        /// <summary>
+        /// The number of active concurrent operations in the current cancellation-set.
+        /// </summary>
         public int Count
         {
             get
@@ -49,6 +70,10 @@ namespace work.bacome.async
             }
         }
 
+        /// <summary>
+        /// Cancel the active operations in the current cancellation-set.
+        /// </summary>
+        /// <param name="pParentContext">Context for trace messages.</param>
         public void Cancel(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cCancellationManager), nameof(Cancel));
@@ -130,10 +155,19 @@ namespace work.bacome.async
             }
         }
 
+        /// <summary>
+        /// <para>Contains a <see cref="CancellationToken"/> attached to a <see cref="CancellationTokenSource"/> of a <see cref="cCancellationManager"/>.</para>
+        /// <para>Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+        /// </summary>
         public sealed class cToken : IDisposable
         {
             private bool mDisposed = false;
+
+            /// <summary>
+            /// The cancellation token to use in the controlled operation.
+            /// </summary>
             public readonly CancellationToken CancellationToken;
+
             private readonly Action<cTrace.cContext> mReleaseToken;
             private readonly cTrace.cContext mContextToUseWhenDisposing;
 

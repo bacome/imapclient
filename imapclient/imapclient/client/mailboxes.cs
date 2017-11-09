@@ -24,13 +24,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        /// <summary>
-        /// The async version of <see cref="Mailboxes(string, char?, fMailboxCacheDataSets)"/>.
-        /// </summary>
-        /// <param name="pListMailbox"></param>
-        /// <param name="pDelimiter"></param>
-        /// <param name="pDataSets"></param>
-        /// <returns></returns>
+        /**<summary>The async version of <see cref="Mailboxes(string, char?, fMailboxCacheDataSets)"/>.</summary>*/
         public Task<List<cMailbox>> MailboxesAsync(string pListMailbox, char? pDelimiter, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxesAsync));
