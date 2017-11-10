@@ -3,14 +3,15 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// <para>Sets of data that can be fetched about a mailbox.</para>
-    /// <para>The exact data items fetched depend on what is being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.</para>
+    /// Sets of data that can be requested about a mailbox. The exact data items requested depend on the value of <see cref="cIMAPClient.MailboxCacheData"/>. See <see cref="cMailbox.Fetch(fMailboxCacheDataSets)"/>.
     /// </summary>
     [Flags]
     public enum fMailboxCacheDataSets
     {
         /// <summary>
-        /// <para>Data returned by the IMAP LIST command.</para>
+        /// Data returned by the IMAP LIST command.
+        /// </summary>
+        /// <remarks>
         /// <para>This data affects the following <see cref="cMailbox"/> properties;
         /// <list type="bullet">
         /// <item><term>Always:</term><description><see cref="cMailbox.Exists"/>, <see cref="cMailbox.CanHaveChildren"/>, <see cref="cMailbox.CanSelect"/>, <see cref="cMailbox.IsMarked"/>, <see cref="cMailbox.IsRemote"/></description></item>
@@ -18,17 +19,18 @@ namespace work.bacome.imapclient
         /// <item><term>If caching <see cref="fMailboxCacheData.specialuse"/>:</term><description><see cref="cMailbox.ContainsAll"/>, <see cref="cMailbox.IsArchive"/>, <see cref="cMailbox.ContainsDrafts"/> etc</description></item>
         /// </list>
         /// </para>
-        /// </summary>
+        /// </remarks>
         list = 1 << 0,
 
         /// <summary>
-        /// <para>Data returned by the IMAP LSUB command.</para>
-        /// <para>This data affects the <see cref="cMailbox.IsSubscribed"/> property.</para>
+        /// Data returned by the IMAP LSUB command. This data affects the <see cref="cMailbox.IsSubscribed"/> property.
         /// </summary>
         lsub = 1 << 1,
 
         /// <summary>
-        /// <para>Data returned by the IMAP STATUS command.</para>
+        /// Data returned by the IMAP STATUS command.
+        /// </summary>
+        /// <remarks>
         /// <para>This data affects the following <see cref="cMailbox"/> properties;
         /// <list type="bullet">
         /// <item><term>If caching <see cref="fMailboxCacheData.messagecount"/>:</term><description><see cref="cMailbox.MessageCount"/></description></item>
@@ -39,7 +41,7 @@ namespace work.bacome.imapclient
         /// <item><term>If caching <see cref="fMailboxCacheData.highestmodseq"/>:</term><description><see cref="cMailbox.HighestModSeq"/></description></item>
         /// </list>
         /// </para>
-        /// </summary>
+        /// </remarks>
         status = 1 << 2
     }
 }

@@ -7,7 +7,7 @@ using work.bacome.trace;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Describes a set of credentials.
+    /// A set of credentials to use during <see cref="cIMAPClient.Connect"/>. See <see cref="cIMAPClient.Credentials"/>.
     /// </summary>
     public class cCredentials
     {
@@ -17,8 +17,7 @@ namespace work.bacome.imapclient
         public readonly eAccountType Type;
 
         /// <summary>
-        /// <para>The userid for the credentials.</para>
-        /// <para>May be null for anonymous and NONE; must not be null otherwise.</para>
+        /// The userid for the credentials. May be null for <see cref="eAccountType.anonymous"/> and <see cref="eAccountType.none"/>; must not be null otherwise.
         /// </summary>
         public readonly string UserId;
 
@@ -61,17 +60,16 @@ namespace work.bacome.imapclient
         public ReadOnlyCollection<cSASL> SASLs => mSASLs.AsReadOnly();
 
         /// <summary>
-        /// <para>An empty set of credentials.</para>
-        /// <para>Useful for testing, checking what capabilities the server offers without connecting and for pre-authorised connections.</para>
+        /// An empty set of credentials. Useful for testing, getting the <see cref="cIMAPClient.Capabilities"/> the server offers without connecting and for pre-authorised connections.
         /// </summary>
         public static readonly cCredentials None = new cCredentials(eAccountType.none, null);
 
         /// <summary>
-        /// Generates an anonymous set of credentials.
+        /// Returns an anonymous set of credentials to use during <see cref="cIMAPClient.Connect"/>. See <see cref="cIMAPClient.Credentials"/>.
         /// </summary>
-        /// <param name="pTrace">The trace information to be sent to the server when connecting.</param>
+        /// <param name="pTrace">The trace information to use (should be a valid email address).</param>
         /// <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
-        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try AUTHENTICATE ANONYMOUS even if it isn't advertised.</param>
+        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try IMAP AUTHENTICATE ANONYMOUS even if it isn't advertised.</param>
         /// <returns>Anonymous credentials.</returns>
         public static cCredentials Anonymous(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false)
         {
@@ -87,12 +85,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Generates a plain set of credentials.
+        /// Returns a plain set of credentials to use during <see cref="cIMAPClient.Connect"/>. See <see cref="cIMAPClient.Credentials"/>.
         /// </summary>
         /// <param name="pUserId"></param>
         /// <param name="pPassword"></param>
         /// <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
-        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try AUTHENTICATE PLAIN even if it isn't advertised.</param>
+        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try IMAP AUTHENTICATE PLAIN even if it isn't advertised.</param>
         /// <returns>Plain credentials.</returns>
         public static cCredentials Plain(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false)
         {

@@ -3,11 +3,13 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// <para>The TLS requirement.</para>
-    /// <para>TLS can be established by specifying SSL in the server to be used or by the use of the IMAP STARTTLS command during connect if it is supported by the server.</para>
-    /// <para>The library will automatically use IMAP STARTTLS if it is offered and the server does not specify SSL unless the instance has been told to ignore the STARTTLS capability.</para>
-    /// <para>See <see cref="cIMAPClient.Server"/>, <see cref="cIMAPClient.SetServer(string, bool)"/>, <see cref="cIMAPClient.SetServer(string, int, bool)"/> and <see cref="cIMAPClient.IgnoreCapabilities"/>.</para>
+    /// The TLS requirement for the <see cref="cLogin"/> and/ or <see cref="cSASL"/> components of <see cref="cCredentials"/> to be used during <see cref="cIMAPClient.Connect"/>.
     /// </summary>
+    /// <remarks>
+    /// TLS can be established immediately upon connect if the <see cref="cIMAPClient.Server"/> specifies <see cref="cServer.SSL"/> 
+    /// or
+    /// after connecting using the IMAP STARTTLS command if both the client and server support it - see <see cref="cCapabilities.StartTLS"/>, <see cref="cIMAPClient.Capabilities"/> and <see cref="cIMAPClient.IgnoreCapabilities"/>.
+    /// </remarks>
     public enum eTLSRequirement
     {
         /** <summary>Don't care whether TLS is active or not.</summary> */

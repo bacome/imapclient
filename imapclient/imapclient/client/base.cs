@@ -9,7 +9,7 @@ using work.bacome.trace;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Connection state values.
+    /// Connection state values. See <see cref="cIMAPClient.ConnectionState"/>.
     /// </summary>
     public enum eConnectionState
     {
@@ -30,20 +30,22 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// <para>The instance is not connected, but it was connected, or tried to connect, once.</para>
-        /// <para>In this state some <see cref="cIMAPClient"/> properties retain their values from when the instance was connecting/ was connected.</para>
-        /// <para>For example the <see cref="cIMAPClient.Capabilities"/> property may have a value in this state, where it definitely won't have one in the <see cref="notconnected"/> state.</para>
+        /// <para>
+        /// In this state some <see cref="cIMAPClient"/> properties retain their values from when the instance was connecting/ was connected.
+        /// For example the <see cref="cIMAPClient.Capabilities"/> property may have a value in this state, whereas it definitely won't have one in the <see cref="notconnected"/> state.
+        /// </para>
         /// </summary>
         disconnected
     }
 
     /// <summary>
-    /// <para>Instances of this class can connect to an IMAP server.</para>
-    /// <para>Before calling one of the <see cref="Connect"/> methods set the <see cref="Server"/> and <see cref="Credentials"/> properties at a minimum.</para>
-    /// <para>See <see cref="SetServer(string, int, bool)"/> and <see cref="SetPlainCredentials(string, string, eTLSRequirement, bool)"/>.</para>
+    /// Instances of this class can connect to an IMAP server.
+    /// </summary>
+    /// <remarks>
+    /// <para>Before calling <see cref="Connect"/> set the <see cref="Server"/> and <see cref="Credentials"/> properties at a minimum.</para>
     /// <para>Also consider setting the <see cref="MailboxCacheData"/> property.</para>
     /// <para>Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
-    /// <para>Event callbacks are made on the synchronization context set in <see cref="SynchronizationContext"/>.</para>
-    /// </summary>
+    /// </remarks>
     public sealed partial class cIMAPClient : IDisposable // sealed so the disposable implementation is simpler
     {
         // code checks
@@ -88,11 +90,15 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
-        // version and release date of this class
+        /**<summary>The version number of the library. Used in the default <see cref="ClientId"/> value.</summary>*/
         public static Version Version = new Version(0, 3);
+
+        /**<summary>The release date of the library. Used in the default <see cref="ClientId"/> value.</summary>*/
         public static DateTime ReleaseDate = new DateTime(2017, 11, 1);
 
+        /**<summary>The trace source name used when tracing. See <see cref="cTrace"/>.</summary>*/
         public const string TraceSourceName = "work.bacome.cIMAPClient";
+
         private static readonly cTrace mTrace = new cTrace(TraceSourceName);
 
         // mechanics
@@ -124,6 +130,10 @@ namespace work.bacome.imapclient
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
         private cClientIdUTF8 mClientIdUTF8 = null;
 
+        /// <summary>
+        /// Constructor. Optionally specify the instance name used in the tracing done by the instance (see <see cref="cTrace"/>).
+        /// </summary>
+        /// <param name="pInstanceName">The tracing instance name to use. See <see cref="cTrace"/>.</param>
         public cIMAPClient(string pInstanceName = TraceSourceName)
         {
             mInstanceName = pInstanceName;
@@ -134,16 +144,17 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The instance name used to tag trace messages.</para>
-        /// <para>Set using the constructor.</para>
+        /// The instance name used in tracing. See <see cref="cTrace"/>. Set using the constructor.
         /// </summary>
         public string InstanceName => mInstanceName;
 
         /// <summary>
-        /// <para>The synchronisation context on which callbacks (including events) are made.</para>
-        /// <para>If set to null callbacks are made by the thread that discovers the need to do the callback.</para>
-        /// <para>Defaults to the synchronisation context of the constructing thread.</para>
+        /// The <see cref="System.Threading.SynchronizationContext"/> on which callbacks (including events) are made. May be set to null.
         /// </summary>
+        /// <remarks>
+        /// <para>If set to null callbacks are made by the thread that discovers the need to do the callback.</para>
+        /// <para>Defaults to the <see cref="System.Threading.SynchronizationContext"/> of the instantiating thread.</para>
+        /// </remarks>
         public SynchronizationContext SynchronizationContext
         {
             get => mSynchroniser.SynchronizationContext;
@@ -151,9 +162,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Fired when a property value changes.</para>
-        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
+        /// Fired when a property value changes.
         /// </summary>
+        /// <remarks>
+        /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// </remarks>
         public event PropertyChangedEventHandler PropertyChanged
         {
             add { mSynchroniser.PropertyChanged += value; }
@@ -161,10 +174,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Fired when the server sends response text.</para>
-        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
-        /// <para>The IMAP spec says that alerts MUST be brought to the users attention.</para>
+        /// Fired when the server sends response text.
         /// </summary>
+        /// <remarks>
+        /// <para>The IMAP spec says that <see cref="eResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="cResponseTextEventArgs.Text"/></para>
+        /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// </remarks>
         public event EventHandler<cResponseTextEventArgs> ResponseText
         {
             add { mSynchroniser.ResponseText += value; }
@@ -172,9 +187,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Fired when the server sends a response.</para>
-        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
+        /// Fired when the server sends a response.
         /// </summary>
+        /// <remarks>
+        /// <para>Intended for debugging the library.</para>
+        /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// </remarks>
         public event EventHandler<cNetworkReceiveEventArgs> NetworkReceive
         {
             add { mSynchroniser.NetworkReceive += value; }
@@ -182,9 +200,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Fired when the client sends a command.</para>
-        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
+        /// Fired when the client sends an IMAP command.
         /// </summary>
+        /// <remarks>
+        /// <para>Intended for debugging the library.</para>
+        /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// </remarks>
         public event EventHandler<cNetworkSendEventArgs> NetworkSend
         {
             add { mSynchroniser.NetworkSend += value; }
@@ -192,9 +213,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Fired when a <see cref="cMailbox"/> instance property changes.</para>
-        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
+        /// Fired when the backing data of a <see cref="cMailbox"/> property changes.
         /// </summary>
+        /// <remarks>
+        /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// </remarks>
         public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged
         {
             add { mSynchroniser.MailboxPropertyChanged += value; }
@@ -202,9 +225,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Fired when new messages appear in a <see cref="cMailbox"/>.</para>
-        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
+        /// Fired when the server sends notification of new messages in a <see cref="cMailbox"/>.
         /// </summary>
+        /// <remarks>
+        /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// </remarks>
         public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery
         {
             add { mSynchroniser.MailboxMessageDelivery += value; }
@@ -212,9 +237,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Fired when a <see cref="cMessage"/> instance property changes.</para>
-        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
+        /// Fired when the backing data of a <see cref="cMessage"/> property changes.
         /// </summary>
+        /// <remarks>
+        /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// </remarks>
         public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged
         {
             add { mSynchroniser.MessagePropertyChanged += value; }
@@ -222,10 +249,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Fired when an exception is raised by a callback.</para>
-        /// <para>Events are fired on the synchronization context specified in <see cref="SynchronizationContext"/>.</para>
-        /// <para>The library ignores the exception other than raising this event.</para>
+        /// Fired when an exception is raised by a callback or event.
         /// </summary>
+        /// <remarks>
+        /// <para>The library ignores the exception other than raising this event.</para>
+        /// <para>Intended for debugging consuming software.</para>
+        /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// </remarks>
         public event EventHandler<cCallbackExceptionEventArgs> CallbackException
         {
             add { mSynchroniser.CallbackException += value; }
@@ -233,7 +263,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Sets the timeout for calls that involve network access.</para>
+        /// The timeout for library calls where no operation specific value for a timeout can be (or has been) specified.
         /// </summary>
         public int Timeout
         {
@@ -247,13 +277,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Returns the number of currently running cancellable operations.</para>
-        /// <para>See <see cref="Cancel"/>.</para>
+        /// The number of currently running cancellable operations. See <see cref="Cancel"/> and <see cref="cCancellationManager"/>.
         /// </summary>
         public int CancellableCount => mCancellationManager.Count;
 
         /// <summary>
-        /// <para>Cancels currently running cancellable operations.</para>
+        /// Cancels the currently running cancellable operations. See <see cref="cCancellationManager"/> for more detail.
         /// </summary>
         public void Cancel()
         {
@@ -263,36 +292,40 @@ namespace work.bacome.imapclient
 
         /**<summary>The connection state of the instance.</summary>*/
         public eConnectionState ConnectionState => mSession?.ConnectionState ?? eConnectionState.notconnected;
-        /**<summary>True if the instance is currently unconnected.</summary>*/
+        /**<summary>True if the instance is currently unconnected. See <see cref="ConnectionState"/>.</summary>*/
         public bool IsUnconnected => mSession == null || mSession.IsUnconnected;
-        /**<summary>True if the instance is currently connected.</summary>*/
+        /**<summary>True if the instance is currently connected. See <see cref="ConnectionState"/>.</summary>*/
         public bool IsConnected => mSession != null && mSession.IsConnected;
 
         /// <summary>
-        /// <para>Returns the capabilities of the connected (or most recently connected) server.</para>
+        /// The capabilities of the connected (or most recently connected) server. May be null.
         /// </summary>
+        /// <remarks>
+        /// The capabilities reflect the server capabilities less the <see cref="IgnoreCapabilities"/>.
+        /// </remarks>
         public cCapabilities Capabilities => mSession?.Capabilities;
 
         /// <summary>
-        /// <para>Returns the extensions that the library enabled on the connected (or most recently connected) server.</para>
+        /// The extensions that the library has enabled on the connected (or most recently connected) server.
         /// </summary>
         public fEnableableExtensions EnabledExtensions => mSession?.EnabledExtensions ?? fEnableableExtensions.none;
 
         /// <summary>
-        /// <para>Returns the accountid of the current (or most recent) connection.</para>
+        /// The accountid of the current (or most recent) connection. May be null.
         /// </summary>
         public cAccountId ConnectedAccountId => mSession?.ConnectedAccountId;
 
         /// <summary>
-        /// <para>The login referral (rfc 2221), if received.</para>
+        /// The login referral (RFC 2221), if received. May be null.
         /// </summary>
         public cURL HomeServerReferral => mSession?.HomeServerReferral;
 
         /// <summary>
-        /// <para>Capabilities that you wish the instance to ignore.</para>
-        /// <para>Must be set before connecting.</para>
-        /// <para>Useful for testing or if your server (or the library) has a bug in its implementation of an IMAP extension.</para>
+        /// The server capabilities that the instance should ignore. Must be set before connecting. See <see cref="Capabilities"/> and <see cref="cCapabilities.EffectiveCapabilities"/>.
         /// </summary>
+        /// <remarks>
+        /// <para>Useful for testing or if your server (or the library) has a bug in its implementation of an IMAP extension.</para>
+        /// </remarks>
         public fCapabilities IgnoreCapabilities
         {
             get => mIgnoreCapabilities;
@@ -307,10 +340,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The server that the instance should connect to.</para>
-        /// <para>Must be set before connecting.</para>
-        /// <para>See <see cref="SetServer(string)"/>, <see cref="SetServer(string, bool)"/> or <see cref="SetServer(string, int, bool)"/>.</para>
+        /// The server that the instance should connect to. There are helper methods to set this property. Must be set before calling <see cref="Connect"/>. Can only be set while unconnected: see <see cref="IsUnconnected"/>.
         /// </summary>
+        /// <seealso cref="SetServer(string)"/>
+        /// <seealso cref="SetServer(string, bool)"/>
+        /// <seealso cref="SetServer(string, int, bool)"/>
         public cServer Server
         {
             get => mServer;
@@ -323,30 +357,34 @@ namespace work.bacome.imapclient
             }
         }
 
+
         /// <summary>
-        /// <para>Sets the server that the instance should connect to, defaulting the port to 143 and SSL to false.</para>
-        /// <para>Can't be called while connected.</para>
+        /// Sets <see cref="Server"/>, defaulting the port to 143 and SSL to false. Can only be called while unconnected: see <see cref="IsUnconnected"/>.
         /// </summary>
+        /// <param name="pHost">The host name.</param>
         public void SetServer(string pHost) => Server = new cServer(pHost);
 
         /// <summary>
-        /// <para>Sets the server that the instance should connect to, specifying whether SSL is required or not.</para>
-        /// <para>If SSL is required the port is set to 993, otherwise it is set to 143.</para>
-        /// <para>Can't be called while connected.</para>
+        /// Sets <see cref="Server"/>, specifying SSL, defaulting the port to 993 (SSL) or 143 (no SSL). Can only be called while unconnected: see <see cref="IsUnconnected"/>.
         /// </summary>
+        /// <param name="pHost">The host name.</param>
+        /// <param name="pSSL">Indicates if SSL should be used.</param>
         public void SetServer(string pHost, bool pSSL) => Server = new cServer(pHost, pSSL);
 
         /// <summary>
-        /// <para>Sets the server that the instance should connect to, specifying the port and whether SSL is required or not.</para>
-        /// <para>Can't be called while connected.</para>
+        /// Sets <see cref="Server"/>. Can only be called while unconnected: see <see cref="IsUnconnected"/>.
         /// </summary>
+        /// <param name="pHost">The host name.</param>
+        /// <param name="pPort">The port number.</param>
+        /// <param name="pSSL">Indicates if SSL should be used.</param>
         public void SetServer(string pHost, int pPort, bool pSSL) => Server = new cServer(pHost, pPort, pSSL);
 
         /// <summary>
-        /// <para>The credentials to be used to connect to the server.</para>
-        /// <para>Must be set before connecting.</para>
-        /// <para>See <see cref="SetNoCredentials"/>, <see cref="SetAnonymousCredentials"/>, <see cref="SetPlainCredentials"/>.</para>
+        /// The credentials to be used when connecting. There are helper methods to set this property. Must be set before calling <see cref="Connect"/>. Can only be set while unconnected: see <see cref="IsUnconnected"/>.
         /// </summary>
+        /// <seealso cref="SetNoCredentials"/>
+        /// <seealso cref="SetAnonymousCredentials(string, eTLSRequirement, bool)"/>
+        /// <seealso cref="SetPlainCredentials(string, string, eTLSRequirement, bool)"/>
         public cCredentials Credentials
         {
             get => mCredentials;
@@ -360,42 +398,40 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Sets no credentials to be used to connect to the server.</para>
-        /// <para>Can't be called while connected.</para>
-        /// <para>Useful to retrieve the capabilities of the server without connecting or when there is external authentication.</para>
+        /// Sets <see cref="Credentials"/> to no credentials. Can only be called while unconnected: see <see cref="IsUnconnected"/>.
         /// </summary>
+        /// <remarks>
+        /// Useful to retrieve property values of the server (e.g. <see cref="Capabilities"/>) without connecting, or when there is external authentication.
+        /// </remarks>
         public void SetNoCredentials() => Credentials = cCredentials.None;
 
         /// <summary>
-        /// <para>Sets anonymous credentials to be used to connect to the server.</para>
-        /// <para>Can't be called while connected.</para>
-        /// <para>May fall back to LOGIN if SASL ANONYMOUS isn't available.</para>
+        /// Sets <see cref="Credentials"/> to anonymous credentials. Can only be called while unconnected: see <see cref="IsUnconnected"/>. May fall back to IMAP LOGIN if SASL ANONYMOUS isn't available.
         /// </summary>
         /// <param name="pTrace">The trace information sent to the server.</param>
-        /// <param name="pTLSRequirement"></param>
-        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try SASL ANONYMOUS mechanism even if it isn't advertised.</param>
+        /// <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
+        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try the SASL ANONYMOUS mechanism even if it isn't advertised.</param>
         public void SetAnonymousCredentials(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTLSRequirement, pTryAuthenticateEvenIfAnonymousIsntAdvertised);
 
         /// <summary>
-        /// <para>Sets plain credentials to be used to connect to the server.</para>
-        /// <para>Can't be called while connected.</para>
-        /// <para>May fall back to LOGIN if SASL PLAIN isn't available.</para>
+        /// Sets <see cref="Credentials"/> to plain credentials. Can only be called while unconnected: see <see cref="IsUnconnected"/>. May fall back to IMAP LOGIN if SASL PLAIN isn't available.
         /// </summary>
-        /// <param name="pUserId"></param>
-        /// <param name="pPassword"></param>
-        /// <param name="pTLSRequirement"></param>
-        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try SASL PLAIN mechanism even if it isn't advertised.</param>
+        /// <param name="pUserId">The userid to use.</param>
+        /// <param name="pPassword">The password to use.</param>
+        /// <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
+        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try the SASL PLAIN mechanism even if it isn't advertised.</param>
         public void SetPlainCredentials(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
 
         // not tested yet
         //public void SetXOAuth2Credentials(string pUserId, string pAccessToken, bool pTryAuthenticateEvenIfXOAuth2IsntAdvertised = false) => Credentials = cCredentials.XOAuth2(pUserId, pAccessToken, pTryAuthenticateEvenIfXOAuth2IsntAdvertised);
 
         /// <summary>
-        /// <para>Indicates if the caller can handle mailbox referrals.</para>
-        /// <para>If this is set to false the instance will not return remote mailboxes in mailbox lists.</para>
-        /// <para>Being able to handle mailbox referrals means handling the exceptions that may be raised by the library when accessing remote mailboxes.</para>
-        /// <para>See RFC 2193, <see cref="cUnsuccessfulCompletionException"/>, <see cref="cUnsuccessfulCompletionException.ResponseText"/>, <see cref="cResponseText.Strings"/>, <see cref="cURL"/> and <see cref="cURI"/>.</para>
+        /// Indicates if the calling program can handle mailbox referrals. If this is set to false the instance will not return remote mailboxes in mailbox lists.
         /// </summary>
+        /// <remarks>
+        /// <para>Being able to handle mailbox referrals means handling the exceptions that may be raised by the library when accessing remote mailboxes.</para>
+        /// <para>See RFC 2193, <see cref="cUnsuccessfulCompletionException"/>, <see cref="cUnsuccessfulCompletionException.ResponseText"/>, <see cref="cResponseText.Strings"/>, <see cref="cURL"/>.</para>
+        /// </remarks>
         public bool MailboxReferrals
         {
             get => mMailboxReferrals;
@@ -409,8 +445,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Determines what details about mailboxes are available from the mailbox cache.</para>
-        /// <para>Can't be set while connected.</para>
+        /// Determines what details about mailboxes are requested from the server. Can only be set while unconnected: see <see cref="IsUnconnected"/>.
         /// </summary>
         public fMailboxCacheData MailboxCacheData
         {
@@ -425,9 +460,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Controls the size of writes to the network.</para>
-        /// <para>You might want to limit this to increase the speed with which you can terminate the instance.</para>
-        /// <para>Higher values are presumably more efficient.</para>
+        /// Controls the size of writes to the network. You might want to limit this to increase the speed with which you can terminate the instance.
         /// </summary>
         public cBatchSizerConfiguration NetworkWriteConfiguration
         {
@@ -442,9 +475,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Sets parameters that control what the instance does while idle.</para>
-        /// <para>Set to null to stop the instance from doing anything.</para>
-        /// <para>If set, the instance determines that it is idle after the specified time and then issues periodic IDLE (rfc 2177) or CHECK/ NOOP IMAP commands.</para>
+        /// Sets parameters that control what the instance does while idle. Set to null to stop the instance from doing anything. If set, the instance determines that it is idle after the specified time and then issues periodic IMAP IDLE (RFC 2177) or CHECK/ NOOP commands.
         /// </summary>
         public cIdleConfiguration IdleConfiguration
         {
@@ -460,8 +491,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The default control on the size of reads from streams provided to append.</para>
-        /// <para>You might want to limit this to increase the speed with which you can terminate the instance.</para>
+        /// The default control on the size of reads from streams provided to append. You might want to limit this to increase the speed with which you can terminate the instance.
         /// </summary>
         public cBatchSizerConfiguration AppendStreamReadConfiguration
         {
@@ -476,9 +506,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The configuration that controls the number of messages fetched at one time.</para>
-        /// <para>You might want to limit this to increase the speed with which you can cancel the fetch.</para>
+        /// The configuration that controls the number of messages fetched at one time. You might want to limit this to increase the speed with which you can cancel the fetch.
         /// </summary>
+        /// <seealso cref="Fetch(System.Collections.Generic.IEnumerable{cMessage}, cCacheItems, cPropertyFetchConfiguration)"/>
+        /// <seealso cref="cMailbox.Messages(cFilter, cSort, cCacheItems, cMessageFetchConfiguration)"/>
+        /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cCacheItems, cPropertyFetchConfiguration)"/>
+        /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{iMessageHandle}, cCacheItems, cPropertyFetchConfiguration)"/>
         public cBatchSizerConfiguration FetchCacheItemsConfiguration
         {
             get => mFetchCacheItemsConfiguration;
@@ -493,9 +526,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The configuration that controls the number of bytes fetched from the server at one time.</para>
-        /// <para>You might want to limit this to increase the speed with which you can cancel the fetch.</para>
+        /// The configuration that controls the number of bytes fetched from the server at one time. You might want to limit this to increase the speed with which you can cancel the fetch.
         /// </summary>
+        /// <seealso cref="cMessage.Fetch(cSection)"/>
+        /// <seealso cref="cMessage.Fetch(cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
+        /// <seealso cref="cMessage.Fetch(cSinglePartBody, System.IO.Stream, cBodyFetchConfiguration)"/>
+        /// <seealso cref="cMessage.Fetch(cTextBodyPart)"/>
+        /// <seealso cref="cAttachment.SaveAs(string, cBodyFetchConfiguration)"/>
         public cBatchSizerConfiguration FetchBodyReadConfiguration
         {
             get => mFetchBodyReadConfiguration;
@@ -510,9 +547,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The configuration that controls the number of bytes written to the output stream at one time when fetching.</para>
-        /// <para>You might want to limit this to increase the speed with which you can cancel the fetch.</para>
+        /// The configuration that controls the number of bytes written to the output stream at one time when fetching. You might want to limit this to increase the speed with which you can cancel the fetch.
         /// </summary>
+        /// <seealso cref="cMessage.Fetch(cSection)"/>
+        /// <seealso cref="cMessage.Fetch(cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
+        /// <seealso cref="cMessage.Fetch(cSinglePartBody, System.IO.Stream, cBodyFetchConfiguration)"/>
+        /// <seealso cref="cMessage.Fetch(cTextBodyPart)"/>
+        /// <seealso cref="cAttachment.SaveAs(string, cBodyFetchConfiguration)"/>
         public cBatchSizerConfiguration FetchBodyWriteConfiguration
         {
             get => mFetchBodyWriteConfiguration;
@@ -526,8 +567,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The encoding to use when UTF8 (rfc 6855) is not supported directly by the server.</para>
-        /// <para>The default value is UTF8.</para>
+        /// The encoding to use when RFC 6855 is not supported by the server. The default value is UTF8.
         /// </summary>
         public Encoding Encoding
         {
@@ -544,12 +584,9 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The ID details to send to the server if it supports the ID command (rfc 2971).</para>
-        /// <para>This is the ASCII version of the details.</para>
-        /// <para>If the server supports UTF8 and <see cref="ClientIdUTF8"/> is set, those details will be used in preference to these.</para>
-        /// <para>The default details are those of the library.</para>
-        /// <para>Set to null to send nothing.</para>
+        /// The ASCII ID (RFC 2971) details to send to the server during <see cref="Connect"/>. If the server supports RFC 6855 and <see cref="ClientIdUTF8"/> is set, those details will be used in preference to these ones. The default details are those of the library. Set this to null to send nothing.
         /// </summary>
+        /// <seealso cref="Connect"/>.
         public cClientId ClientId
         {
             get => mClientId;
@@ -563,10 +600,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The ID details to send to the server if it supports the ID command (rfc 2971).</para>
-        /// <para>This is the UTF8 version of the details.</para>
-        /// <para>If this is set to null or the server does not support UTF8 then the <see cref="ClientId"/> details will be used instead.</para>
-        /// <para>The default is null.</para>
+        /// The UTF8 ID (RFC 2971) details to send to the server during <see cref="Connect"/>. If this is null or if the server doesn't support RFC 6855 then <see cref="ClientId"/> is used instead. The default is null.
         /// </summary>
         public cClientIdUTF8 ClientIdUTF8
         {
@@ -581,15 +615,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The ID details of the connected (or last connected) server, if it supports the ID command (rfc 2971).</para>
-        /// <para>Set during connect.</para>
+        /// The ID details of the connected (or last connected) server, if it supports the ID (RFC 2971). Set during <see cref="Connect"/>.
         /// </summary>
         public cId ServerId => mSession?.ServerId;
 
         /// <summary>
-        /// <para>The namespace details for the connected (or last connected) account.</para>
-        /// <para>Set during connect.</para>
-        /// <para>If namespaces (rfc 2342) are not supported by the server the library creates one personal namespace using the delimiter retrieved using LIST.</para>
+        /// The namespace details for the connected (or last connected) account. Set during <see cref="Connect"/>. If Namespace (RFC 2342) is not supported by the server the library creates one personal namespace using the delimiter retrieved using IMAP LIST.
         /// </summary>
         public cNamespaces Namespaces
         {
@@ -603,18 +634,17 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The inbox of the connected (or last connected) account.</para>
-        /// <para>Set during connect.</para>
+        /// The inbox of the connected (or last connected) account. Set during <see cref="Connect"/>.
         /// </summary>
         public cMailbox Inbox => mInbox;
 
         /// <summary>
-        /// <para>Details of the currently selected mailbox, if any.</para>
+        /// Details of the currently selected mailbox. Will be null if there is no mailbox currently selected. See <see cref="cMailbox.Select(bool)"/>.
         /// </summary>
         public iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
 
         /// <summary>
-        /// <para>The currently selected mailbox, if any.</para>
+        /// The currently selected mailbox. Will be null if there is no mailbox currently selected. See <see cref="cMailbox.Select(bool)"/>.
         /// </summary>
         public cMailbox SelectedMailbox
         {
@@ -627,7 +657,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Returns an object that represents the named mailbox.</para>
+        /// Returns an object that represents the named mailbox.
         /// </summary>
         /// <param name="pMailboxName">The mailbox name.</param>
         /// <returns>An object representing the named mailbox.</returns>
@@ -648,14 +678,12 @@ namespace work.bacome.imapclient
         internal bool? HasCachedChildren(iMailboxHandle pHandle) => mSession?.HasCachedChildren(pHandle);
 
         /// <summary>
-        /// <para>Intended for debugging use.</para>
-        /// <para>Returns the number of subscriptions to the various events.</para>
-        /// <para>Used to check that events are being 'unsubscribed' correctly.</para>
+        /// Returns the number of subscriptions to the various events. Intended for debugging use. Use it to check that events are being 'unsubscribed' correctly.
         /// </summary>
         public sEventSubscriptionCounts EventSubscriptionCounts => mSynchroniser.EventSubscriptionCounts;
 
         /// <summary>
-        /// Instances contain a number of disposable resources. You should call dispose when you are finished with the instance.
+        /// Instances of this class contain a number of disposable resources. You should call dispose when you are finished with the instance.
         /// </summary>
         public void Dispose()
         {

@@ -2,59 +2,134 @@
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// The type of IMAP response text. See <see cref="cResponseTextEventArgs.TextType"/>.
+    /// </summary>
     public enum eResponseTextType
     {
-        greeting, continuerequest, bye,
-        information, warning, error,
-        success, failure, authenticationcancelled, protocolerror
+        /**<summary>Response text associated with an IMAP greeting.</summary>*/
+        greeting,
+        /**<summary>Response text associated with an IMAP command continuation request.</summary>*/
+        continuerequest,
+        /**<summary>Response text associated with an IMAP BYE.</summary>*/
+        bye,
+        /**<summary>IMAP information text.</summary>*/
+        information,
+        /**<summary>IMAP warning text.</summary>*/
+        warning,
+        /**<summary>IMAP error text.</summary>*/
+        error,
+        /**<summary>Response text associated with an IMAP command success notification.</summary>*/
+        success,
+        /**<summary>Response text associated with an IMAP command failure notification.</summary>*/
+        failure,
+        /**<summary>Response text associated with an IMAP authentication cancellation notification.</summary>*/
+        authenticationcancelled,
+        /**<summary>Response text associated with an IMAP command protocol error notification.</summary>*/
+        protocolerror
     }
 
+    /// <summary>
+    /// The text code associated with IMAP response text. See <see cref="cResponseText.Code"/>.
+    /// </summary>
     public enum eResponseTextCode
     {
-        none, unknown,
-        alert, badcharset, parse, trycreate, // rfc 3501
-        unavailable, authenticationfailed, authorizationfailed, expired, privacyrequired, contactadmin, noperm, inuse, expungeissued, corruption, serverbug, clientbug, cannot, limit, overquota, alreadyexists, nonexistent, // rfc 5530
-        referral, // rfc 2193
-        useattr, // rfc 6154
-        unknowncte // rfc 3516
+        /**<summary>There was no code.</summary>*/
+        none,
+        /**<summary>There was a code, but it wasn't recognised.</summary>*/
+        unknown,
+
+        // rfc 3501
+
+        /**<summary>RFC 3501 ALERT: the text is an alert.</summary>*/
+        alert,
+        /**<summary>RFC 3501 BADCHARSET.</summary>*/
+        badcharset,
+        /**<summary>RFC 3501 PARSE: there was an error parsing a message.</summary>*/
+        parse,
+        /**<summary>RFC 3501 TRYCREATE: try creating the mailbox.</summary>*/
+        trycreate,
+
+        // rfc 5530
+
+        /**<summary>RFC 5530 UNAVAILABLE.</summary>*/
+        unavailable,
+        /**<summary>RFC 5530 AUTHENTICATIONFAILED.</summary>*/
+        authenticationfailed,
+        /**<summary>RFC 5530 AUTHORIZATIONFAILED.</summary>*/
+        authorizationfailed,
+        /**<summary>RFC 5530 EXPIRED.</summary>*/
+        expired,
+        /**<summary>RFC 5530 PRIVACYREQUIRED.</summary>*/
+        privacyrequired,
+        /**<summary>RFC 5530 CONTACTADMIN.</summary>*/
+        contactadmin,
+        /**<summary>RFC 5530 NOPERM.</summary>*/
+        noperm,
+        /**<summary>RFC 5530 INUSE.</summary>*/
+        inuse,
+        /**<summary>RFC 5530 EXPUNGEISSUED.</summary>*/
+        expungeissued,
+        /**<summary>RFC 5530 CORRUPTION.</summary>*/
+        corruption,
+        /**<summary>RFC 5530 SERVERBUG.</summary>*/
+        serverbug,
+        /**<summary>RFC 5530 CLIENTBUG.</summary>*/
+        clientbug,
+        /**<summary>RFC 5530 CANNOT.</summary>*/
+        cannot,
+        /**<summary>RFC 5530 LIMIT.</summary>*/
+        limit,
+        /**<summary>RFC 5530 OVERQUOTA.</summary>*/
+        overquota,
+        /**<summary>RFC 5530 ALREADYEXISTS.</summary>*/
+        alreadyexists,
+        /**<summary>RFC 5530 NONEXISTENT.</summary>*/
+        nonexistent,
+
+        /**<summary>RFC 2193 REFERRAL.</summary>*/
+        referral, 
+
+        /**<summary>RFC 6154 USEATTR.</summary>*/
+        useattr, 
+
+        /**<summary>RFC 3516 UNKNOWNCTE: the server can't decode the content.</summary>*/
+        unknowncte
     }
 
+    /// <summary>
+    /// IMAP response text. See <see cref="cResponseTextEventArgs.Text"/>.
+    /// </summary>
     public class cResponseText
     {
         /// <summary>
-        /// The IMAP response text code associated with the response text
+        /// The code associated with the response text. If this is <see cref="eResponseTextCode.unknown"/> then the text of the code is in <see cref="UnknownCodeAtom"/>.
         /// </summary>
-        /// <remarks>
-        /// If there was no code 'none' is used. 
-        /// If there was a code but it wasn't recognised then 'unknown' is used here and the text of the code is stored in UnknownCodeAtom.
-        /// </remarks>
         public readonly eResponseTextCode Code;
 
         /// <summary>
-        /// Data associated with the response text code
+        /// The data associated with the <see cref="Code"/>. 
+        /// If the code is <see cref="eResponseTextCode.badcharset"/> it may contain a list of valid charsets.
+        /// If the code is <see cref="eResponseTextCode.referral"/> it should contain the URL(s).
         /// </summary>
-        /// <remarks>
-        /// For badcharset it may contain the list of valid charsets.
-        /// For referral it should contain the URL(s).
-        /// </remarks>
         public readonly cStrings Strings; // for badcharset, referrals
 
         /// <summary>
-        /// If the response text code was unrecognised the text of the code is made available here
+        /// If the <see cref="Code"/> is <see cref="eResponseTextCode.unknown"/> this is the text of the code, otherwise null.
         /// </summary>
         public readonly string UnknownCodeAtom;
 
         /// <summary>
-        /// If the unrecognised response text code had text following it the text is made available here
+        /// If the <see cref="Code"/> is <see cref="eResponseTextCode.unknown"/> this is the text following the code, otherwise null. (May also be null if there was no text.)
         /// </summary>
         public readonly string UnknownCodeText;
 
         /// <summary>
-        /// The response text
+        /// The response text.
         /// </summary>
         public readonly string Text;
 
-        public cResponseText(string pText)
+        internal cResponseText(string pText)
         {
             Code = eResponseTextCode.none;
             Strings = null;
@@ -63,7 +138,7 @@ namespace work.bacome.imapclient
             Text = pText;
         }
 
-        public cResponseText(eResponseTextCode pCode, string pText)
+        internal cResponseText(eResponseTextCode pCode, string pText)
         {
             Code = pCode;
             Strings = null;
@@ -72,7 +147,7 @@ namespace work.bacome.imapclient
             Text = pText;
         }
 
-        public cResponseText(eResponseTextCode pCode, cStrings pStrings, string pText)
+        internal cResponseText(eResponseTextCode pCode, cStrings pStrings, string pText)
         {
             Code = pCode;
             Strings = pStrings;
@@ -81,7 +156,7 @@ namespace work.bacome.imapclient
             Text = pText;
         }
 
-        public cResponseText(string pUnknownCodeAtom, string pUnknownCodeText, string pText)
+        internal cResponseText(string pUnknownCodeAtom, string pUnknownCodeText, string pText)
         {
             Code = eResponseTextCode.unknown;
             Strings = null;
@@ -102,6 +177,9 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// See <see cref="cIMAPClient.ResponseText"/>.
+    /// </summary>
     public class cResponseTextEventArgs : EventArgs
     {
         /// <summary>
@@ -113,11 +191,11 @@ namespace work.bacome.imapclient
         public readonly eResponseTextType TextType;
 
         /// <summary>
-        /// The response text
+        /// The response text.
         /// </summary>
         public readonly cResponseText Text;
 
-        public cResponseTextEventArgs(eResponseTextType pTextType, cResponseText pText)
+        internal cResponseTextEventArgs(eResponseTextType pTextType, cResponseText pText)
         {
             TextType = pTextType;
             Text = pText;

@@ -4,10 +4,9 @@ using System.Linq;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// <para>A set of server capabilities.</para>
-    /// <para>The elements of this enum are all the capabilities that the library understands in some way.</para>
-    /// <para>The full list of server capabilities can be found in a <see cref="cCapabilities"/> instance.</para>
+    /// A set of server capabilities. The flags in this set represent the capabilities that the library understands in some way. The full list of server capabilities can be found in <see cref="cCapabilities.Capabilities"/>.
     /// </summary>
+    /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>.
     [Flags]
     public enum fCapabilities
     {
@@ -42,7 +41,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A set of server capabilities.
+    /// A set of server capabilities. See <see cref="cIMAPClient.Capabilities"/>. The properties of this class reflect the flags set in <see cref="EffectiveCapabilities"/>.
     /// </summary>
     public class cCapabilities
     {
@@ -57,12 +56,11 @@ namespace work.bacome.imapclient
         public readonly cStrings AuthenticationMechanisms;
 
         /// <summary>
-        /// <para>The set of server capabilities that the instance is assuming.</para>
-        /// <para>This is the set of recognised capabilities less the set that the instance has been told to ignore (see <see cref="cIMAPClient.IgnoreCapabilities"/>).</para>
+        /// The set of server capabilities that are in use. This is the recognised elements of <see cref="Capabilities"/> less the <see cref="cIMAPClient.IgnoreCapabilities"/>.
         /// </summary>
         public readonly fCapabilities EffectiveCapabilities;
 
-        public cCapabilities(cStrings pCapabilities, cStrings pAuthenticationMechanisms, fCapabilities pIgnoreCapabilities)
+        internal cCapabilities(cStrings pCapabilities, cStrings pAuthenticationMechanisms, fCapabilities pIgnoreCapabilities)
         {
             Capabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
             AuthenticationMechanisms = pAuthenticationMechanisms ?? throw new ArgumentNullException(nameof(pAuthenticationMechanisms));

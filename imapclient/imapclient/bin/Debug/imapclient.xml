@@ -6,7 +6,7 @@
     <members>
         <member name="T:work.bacome.imapclient.eConnectionState">
             <summary>
-            Connection state values.
+            Connection state values. See <see cref="P:work.bacome.imapclient.cIMAPClient.ConnectionState"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.eConnectionState.notconnected">
@@ -33,318 +33,390 @@
         <member name="F:work.bacome.imapclient.eConnectionState.disconnected">
             <summary>
             <para>The instance is not connected, but it was connected, or tried to connect, once.</para>
-            <para>In this state some <see cref="T:work.bacome.imapclient.cIMAPClient"/> properties retain their values from when the instance was connecting/ was connected.</para>
-            <para>For example the <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> property may have a value in this state, where it definitely won't have one in the <see cref="F:work.bacome.imapclient.eConnectionState.notconnected"/> state.</para>
+            <para>
+            In this state some <see cref="T:work.bacome.imapclient.cIMAPClient"/> properties retain their values from when the instance was connecting/ was connected.
+            For example the <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> property may have a value in this state, whereas it definitely won't have one in the <see cref="F:work.bacome.imapclient.eConnectionState.notconnected"/> state.
+            </para>
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cIMAPClient">
             <summary>
-            <para>Instances of this class can connect to an IMAP server.</para>
-            <para>Before calling one of the <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/> methods set the <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/> and <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/> properties at a minimum.</para>
-            <para>See <see cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Int32,System.Boolean)"/> and <see cref="M:work.bacome.imapclient.cIMAPClient.SetPlainCredentials(System.String,System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)"/>.</para>
+            Instances of this class can connect to an IMAP server.
+            </summary>
+            <remarks>
+            <para>Before calling <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/> set the <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/> and <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/> properties at a minimum.</para>
             <para>Also consider setting the <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/> property.</para>
             <para>Note that the class implements <see cref="T:System.IDisposable"/>, so you should dispose instances when you are finished with them.</para>
-            <para>Event callbacks are made on the synchronization context set in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
+            </remarks>
+        </member>
+        <member name="F:work.bacome.imapclient.cIMAPClient.Version">
+            <summary>The version number of the library. Used in the default <see cref="P:work.bacome.imapclient.cIMAPClient.ClientId"/> value.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cIMAPClient.ReleaseDate">
+            <summary>The release date of the library. Used in the default <see cref="P:work.bacome.imapclient.cIMAPClient.ClientId"/> value.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cIMAPClient.TraceSourceName">
+            <summary>The trace source name used when tracing. See <see cref="T:work.bacome.trace.cTrace"/>.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIMAPClient.#ctor(System.String)">
+            <summary>
+            Constructor. Optionally specify the instance name used in the tracing done by the instance (see <see cref="T:work.bacome.trace.cTrace"/>).
             </summary>
+            <param name="pInstanceName">The tracing instance name to use. See <see cref="T:work.bacome.trace.cTrace"/>.</param>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.InstanceName">
             <summary>
-            <para>The instance name used to tag trace messages.</para>
-            <para>Set using the constructor.</para>
+            The instance name used in tracing. See <see cref="T:work.bacome.trace.cTrace"/>. Set using the constructor.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext">
             <summary>
-            <para>The synchronisation context on which callbacks (including events) are made.</para>
-            <para>If set to null callbacks are made by the thread that discovers the need to do the callback.</para>
-            <para>Defaults to the synchronisation context of the constructing thread.</para>
+            The <see cref="T:System.Threading.SynchronizationContext"/> on which callbacks (including events) are made. May be set to null.
             </summary>
+            <remarks>
+            <para>If set to null callbacks are made by the thread that discovers the need to do the callback.</para>
+            <para>Defaults to the <see cref="T:System.Threading.SynchronizationContext"/> of the instantiating thread.</para>
+            </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.PropertyChanged">
             <summary>
-            <para>Fired when a property value changes.</para>
-            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
+            Fired when a property value changes.
             </summary>
+            <remarks>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.ResponseText">
             <summary>
-            <para>Fired when the server sends response text.</para>
-            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
-            <para>The IMAP spec says that alerts MUST be brought to the users attention.</para>
+            Fired when the server sends response text.
             </summary>
+            <remarks>
+            <para>The IMAP spec says that <see cref="F:work.bacome.imapclient.eResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="F:work.bacome.imapclient.cResponseTextEventArgs.Text"/></para>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.NetworkReceive">
             <summary>
-            <para>Fired when the server sends a response.</para>
-            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
+            Fired when the server sends a response.
             </summary>
+            <remarks>
+            <para>Intended for debugging the library.</para>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.NetworkSend">
             <summary>
-            <para>Fired when the client sends a command.</para>
-            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
+            Fired when the client sends an IMAP command.
             </summary>
+            <remarks>
+            <para>Intended for debugging the library.</para>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MailboxPropertyChanged">
             <summary>
-            <para>Fired when a <see cref="T:work.bacome.imapclient.cMailbox"/> instance property changes.</para>
-            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
+            Fired when the backing data of a <see cref="T:work.bacome.imapclient.cMailbox"/> property changes.
             </summary>
+            <remarks>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MailboxMessageDelivery">
             <summary>
-            <para>Fired when new messages appear in a <see cref="T:work.bacome.imapclient.cMailbox"/>.</para>
-            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
+            Fired when the server sends notification of new messages in a <see cref="T:work.bacome.imapclient.cMailbox"/>.
             </summary>
+            <remarks>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MessagePropertyChanged">
             <summary>
-            <para>Fired when a <see cref="T:work.bacome.imapclient.cMessage"/> instance property changes.</para>
-            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
+            Fired when the backing data of a <see cref="T:work.bacome.imapclient.cMessage"/> property changes.
             </summary>
+            <remarks>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.CallbackException">
             <summary>
-            <para>Fired when an exception is raised by a callback.</para>
-            <para>Events are fired on the synchronization context specified in <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/>.</para>
-            <para>The library ignores the exception other than raising this event.</para>
+            Fired when an exception is raised by a callback or event.
             </summary>
+            <remarks>
+            <para>The library ignores the exception other than raising this event.</para>
+            <para>Intended for debugging consuming software.</para>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.Timeout">
             <summary>
-            <para>Sets the timeout for calls that involve network access.</para>
+            The timeout for library calls where no operation specific value for a timeout can be (or has been) specified.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.CancellableCount">
             <summary>
-            <para>Returns the number of currently running cancellable operations.</para>
-            <para>See <see cref="M:work.bacome.imapclient.cIMAPClient.Cancel"/>.</para>
+            The number of currently running cancellable operations. See <see cref="M:work.bacome.imapclient.cIMAPClient.Cancel"/> and <see cref="T:work.bacome.async.cCancellationManager"/>.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.Cancel">
             <summary>
-            <para>Cancels currently running cancellable operations.</para>
+            Cancels the currently running cancellable operations. See <see cref="T:work.bacome.async.cCancellationManager"/> for more detail.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.ConnectionState">
             <summary>The connection state of the instance.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.IsUnconnected">
-            <summary>True if the instance is currently unconnected.</summary>
+            <summary>True if the instance is currently unconnected. See <see cref="P:work.bacome.imapclient.cIMAPClient.ConnectionState"/>.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.IsConnected">
-            <summary>True if the instance is currently connected.</summary>
+            <summary>True if the instance is currently connected. See <see cref="P:work.bacome.imapclient.cIMAPClient.ConnectionState"/>.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.Capabilities">
             <summary>
-            <para>Returns the capabilities of the connected (or most recently connected) server.</para>
+            The capabilities of the connected (or most recently connected) server. May be null.
             </summary>
+            <remarks>
+            The capabilities reflect the server capabilities less the <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>.
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.EnabledExtensions">
             <summary>
-            <para>Returns the extensions that the library enabled on the connected (or most recently connected) server.</para>
+            The extensions that the library has enabled on the connected (or most recently connected) server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.ConnectedAccountId">
             <summary>
-            <para>Returns the accountid of the current (or most recent) connection.</para>
+            The accountid of the current (or most recent) connection. May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.HomeServerReferral">
             <summary>
-            <para>The login referral (rfc 2221), if received.</para>
+            The login referral (RFC 2221), if received. May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities">
             <summary>
-            <para>Capabilities that you wish the instance to ignore.</para>
-            <para>Must be set before connecting.</para>
-            <para>Useful for testing or if your server (or the library) has a bug in its implementation of an IMAP extension.</para>
+            The server capabilities that the instance should ignore. Must be set before connecting. See <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> and <see cref="F:work.bacome.imapclient.cCapabilities.EffectiveCapabilities"/>.
             </summary>
+            <remarks>
+            <para>Useful for testing or if your server (or the library) has a bug in its implementation of an IMAP extension.</para>
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.Server">
             <summary>
-            <para>The server that the instance should connect to.</para>
-            <para>Must be set before connecting.</para>
-            <para>See <see cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String)"/>, <see cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Boolean)"/> or <see cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Int32,System.Boolean)"/>.</para>
+            The server that the instance should connect to. There are helper methods to set this property. Must be set before calling <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. Can only be set while unconnected: see <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </summary>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String)"/>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Boolean)"/>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Int32,System.Boolean)"/>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String)">
             <summary>
-            <para>Sets the server that the instance should connect to, defaulting the port to 143 and SSL to false.</para>
-            <para>Can't be called while connected.</para>
+            Sets <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/>, defaulting the port to 143 and SSL to false. Can only be called while unconnected: see <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </summary>
+            <param name="pHost">The host name.</param>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Boolean)">
             <summary>
-            <para>Sets the server that the instance should connect to, specifying whether SSL is required or not.</para>
-            <para>If SSL is required the port is set to 993, otherwise it is set to 143.</para>
-            <para>Can't be called while connected.</para>
+            Sets <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/>, specifying SSL, defaulting the port to 993 (SSL) or 143 (no SSL). Can only be called while unconnected: see <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </summary>
+            <param name="pHost">The host name.</param>
+            <param name="pSSL">Indicates if SSL should be used.</param>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Int32,System.Boolean)">
             <summary>
-            <para>Sets the server that the instance should connect to, specifying the port and whether SSL is required or not.</para>
-            <para>Can't be called while connected.</para>
+            Sets <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/>. Can only be called while unconnected: see <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </summary>
+            <param name="pHost">The host name.</param>
+            <param name="pPort">The port number.</param>
+            <param name="pSSL">Indicates if SSL should be used.</param>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.Credentials">
             <summary>
-            <para>The credentials to be used to connect to the server.</para>
-            <para>Must be set before connecting.</para>
-            <para>See <see cref="M:work.bacome.imapclient.cIMAPClient.SetNoCredentials"/>, <see cref="M:work.bacome.imapclient.cIMAPClient.SetAnonymousCredentials(System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)"/>, <see cref="M:work.bacome.imapclient.cIMAPClient.SetPlainCredentials(System.String,System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)"/>.</para>
+            The credentials to be used when connecting. There are helper methods to set this property. Must be set before calling <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. Can only be set while unconnected: see <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </summary>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetNoCredentials"/>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetAnonymousCredentials(System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)"/>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetPlainCredentials(System.String,System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)"/>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.SetNoCredentials">
             <summary>
-            <para>Sets no credentials to be used to connect to the server.</para>
-            <para>Can't be called while connected.</para>
-            <para>Useful to retrieve the capabilities of the server without connecting or when there is external authentication.</para>
+            Sets <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/> to no credentials. Can only be called while unconnected: see <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </summary>
+            <remarks>
+            Useful to retrieve property values of the server (e.g. <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/>) without connecting, or when there is external authentication.
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.SetAnonymousCredentials(System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)">
             <summary>
-            <para>Sets anonymous credentials to be used to connect to the server.</para>
-            <para>Can't be called while connected.</para>
-            <para>May fall back to LOGIN if SASL ANONYMOUS isn't available.</para>
+            Sets <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/> to anonymous credentials. Can only be called while unconnected: see <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>. May fall back to IMAP LOGIN if SASL ANONYMOUS isn't available.
             </summary>
             <param name="pTrace">The trace information sent to the server.</param>
-            <param name="pTLSRequirement"></param>
-            <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try SASL ANONYMOUS mechanism even if it isn't advertised.</param>
+            <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
+            <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try the SASL ANONYMOUS mechanism even if it isn't advertised.</param>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.SetPlainCredentials(System.String,System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)">
             <summary>
-            <para>Sets plain credentials to be used to connect to the server.</para>
-            <para>Can't be called while connected.</para>
-            <para>May fall back to LOGIN if SASL PLAIN isn't available.</para>
+            Sets <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/> to plain credentials. Can only be called while unconnected: see <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>. May fall back to IMAP LOGIN if SASL PLAIN isn't available.
             </summary>
-            <param name="pUserId"></param>
-            <param name="pPassword"></param>
-            <param name="pTLSRequirement"></param>
-            <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try SASL PLAIN mechanism even if it isn't advertised.</param>
+            <param name="pUserId">The userid to use.</param>
+            <param name="pPassword">The password to use.</param>
+            <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
+            <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try the SASL PLAIN mechanism even if it isn't advertised.</param>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.MailboxReferrals">
             <summary>
-            <para>Indicates if the caller can handle mailbox referrals.</para>
-            <para>If this is set to false the instance will not return remote mailboxes in mailbox lists.</para>
-            <para>Being able to handle mailbox referrals means handling the exceptions that may be raised by the library when accessing remote mailboxes.</para>
-            <para>See RFC 2193, <see cref="T:work.bacome.imapclient.cUnsuccessfulCompletionException"/>, <see cref="F:work.bacome.imapclient.cUnsuccessfulCompletionException.ResponseText"/>, <see cref="F:work.bacome.imapclient.cResponseText.Strings"/>, <see cref="T:work.bacome.imapclient.cURL"/> and <see cref="T:work.bacome.imapclient.cURI"/>.</para>
+            Indicates if the calling program can handle mailbox referrals. If this is set to false the instance will not return remote mailboxes in mailbox lists.
             </summary>
+            <remarks>
+            <para>Being able to handle mailbox referrals means handling the exceptions that may be raised by the library when accessing remote mailboxes.</para>
+            <para>See RFC 2193, <see cref="T:work.bacome.imapclient.cUnsuccessfulCompletionException"/>, <see cref="F:work.bacome.imapclient.cUnsuccessfulCompletionException.ResponseText"/>, <see cref="F:work.bacome.imapclient.cResponseText.Strings"/>, <see cref="T:work.bacome.imapclient.cURL"/>.</para>
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData">
             <summary>
-            <para>Determines what details about mailboxes are available from the mailbox cache.</para>
-            <para>Can't be set while connected.</para>
+            Determines what details about mailboxes are requested from the server. Can only be set while unconnected: see <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.NetworkWriteConfiguration">
             <summary>
-            <para>Controls the size of writes to the network.</para>
-            <para>You might want to limit this to increase the speed with which you can terminate the instance.</para>
-            <para>Higher values are presumably more efficient.</para>
+            Controls the size of writes to the network. You might want to limit this to increase the speed with which you can terminate the instance.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.IdleConfiguration">
             <summary>
-            <para>Sets parameters that control what the instance does while idle.</para>
-            <para>Set to null to stop the instance from doing anything.</para>
-            <para>If set, the instance determines that it is idle after the specified time and then issues periodic IDLE (rfc 2177) or CHECK/ NOOP IMAP commands.</para>
+            Sets parameters that control what the instance does while idle. Set to null to stop the instance from doing anything. If set, the instance determines that it is idle after the specified time and then issues periodic IMAP IDLE (RFC 2177) or CHECK/ NOOP commands.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.AppendStreamReadConfiguration">
             <summary>
-            <para>The default control on the size of reads from streams provided to append.</para>
-            <para>You might want to limit this to increase the speed with which you can terminate the instance.</para>
+            The default control on the size of reads from streams provided to append. You might want to limit this to increase the speed with which you can terminate the instance.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.FetchCacheItemsConfiguration">
             <summary>
-            <para>The configuration that controls the number of messages fetched at one time.</para>
-            <para>You might want to limit this to increase the speed with which you can cancel the fetch.</para>
+            The configuration that controls the number of messages fetched at one time. You might want to limit this to increase the speed with which you can cancel the fetch.
             </summary>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cMessage},work.bacome.imapclient.cCacheItems,work.bacome.imapclient.cPropertyFetchConfiguration)"/>
+            <seealso cref="M:work.bacome.imapclient.cMailbox.Messages(work.bacome.imapclient.cFilter,work.bacome.imapclient.cSort,work.bacome.imapclient.cCacheItems,work.bacome.imapclient.cMessageFetchConfiguration)"/>
+            <seealso cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cUID},work.bacome.imapclient.cCacheItems,work.bacome.imapclient.cPropertyFetchConfiguration)"/>
+            <seealso cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cCacheItems,work.bacome.imapclient.cPropertyFetchConfiguration)"/>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.FetchBodyReadConfiguration">
             <summary>
-            <para>The configuration that controls the number of bytes fetched from the server at one time.</para>
-            <para>You might want to limit this to increase the speed with which you can cancel the fetch.</para>
+            The configuration that controls the number of bytes fetched from the server at one time. You might want to limit this to increase the speed with which you can cancel the fetch.
             </summary>
+            <seealso cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection)"/>
+            <seealso cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection,work.bacome.imapclient.eDecodingRequired,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)"/>
+            <seealso cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSinglePartBody,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)"/>
+            <seealso cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cTextBodyPart)"/>
+            <seealso cref="M:work.bacome.imapclient.cAttachment.SaveAs(System.String,work.bacome.imapclient.cBodyFetchConfiguration)"/>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.FetchBodyWriteConfiguration">
             <summary>
-            <para>The configuration that controls the number of bytes written to the output stream at one time when fetching.</para>
-            <para>You might want to limit this to increase the speed with which you can cancel the fetch.</para>
+            The configuration that controls the number of bytes written to the output stream at one time when fetching. You might want to limit this to increase the speed with which you can cancel the fetch.
             </summary>
+            <seealso cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection)"/>
+            <seealso cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection,work.bacome.imapclient.eDecodingRequired,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)"/>
+            <seealso cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSinglePartBody,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)"/>
+            <seealso cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cTextBodyPart)"/>
+            <seealso cref="M:work.bacome.imapclient.cAttachment.SaveAs(System.String,work.bacome.imapclient.cBodyFetchConfiguration)"/>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.Encoding">
             <summary>
-            <para>The encoding to use when UTF8 (rfc 6855) is not supported directly by the server.</para>
-            <para>The default value is UTF8.</para>
+            The encoding to use when RFC 6855 is not supported by the server. The default value is UTF8.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.ClientId">
             <summary>
-            <para>The ID details to send to the server if it supports the ID command (rfc 2971).</para>
-            <para>This is the ASCII version of the details.</para>
-            <para>If the server supports UTF8 and <see cref="P:work.bacome.imapclient.cIMAPClient.ClientIdUTF8"/> is set, those details will be used in preference to these.</para>
-            <para>The default details are those of the library.</para>
-            <para>Set to null to send nothing.</para>
+            The ASCII ID (RFC 2971) details to send to the server during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. If the server supports RFC 6855 and <see cref="P:work.bacome.imapclient.cIMAPClient.ClientIdUTF8"/> is set, those details will be used in preference to these ones. The default details are those of the library. Set this to null to send nothing.
             </summary>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>.
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.ClientIdUTF8">
             <summary>
-            <para>The ID details to send to the server if it supports the ID command (rfc 2971).</para>
-            <para>This is the UTF8 version of the details.</para>
-            <para>If this is set to null or the server does not support UTF8 then the <see cref="P:work.bacome.imapclient.cIMAPClient.ClientId"/> details will be used instead.</para>
-            <para>The default is null.</para>
+            The UTF8 ID (RFC 2971) details to send to the server during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. If this is null or if the server doesn't support RFC 6855 then <see cref="P:work.bacome.imapclient.cIMAPClient.ClientId"/> is used instead. The default is null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.ServerId">
             <summary>
-            <para>The ID details of the connected (or last connected) server, if it supports the ID command (rfc 2971).</para>
-            <para>Set during connect.</para>
+            The ID details of the connected (or last connected) server, if it supports the ID (RFC 2971). Set during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.Namespaces">
             <summary>
-            <para>The namespace details for the connected (or last connected) account.</para>
-            <para>Set during connect.</para>
-            <para>If namespaces (rfc 2342) are not supported by the server the library creates one personal namespace using the delimiter retrieved using LIST.</para>
+            The namespace details for the connected (or last connected) account. Set during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. If Namespace (RFC 2342) is not supported by the server the library creates one personal namespace using the delimiter retrieved using IMAP LIST.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.Inbox">
             <summary>
-            <para>The inbox of the connected (or last connected) account.</para>
-            <para>Set during connect.</para>
+            The inbox of the connected (or last connected) account. Set during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.SelectedMailboxDetails">
             <summary>
-            <para>Details of the currently selected mailbox, if any.</para>
+            Details of the currently selected mailbox. Will be null if there is no mailbox currently selected. See <see cref="M:work.bacome.imapclient.cMailbox.Select(System.Boolean)"/>.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.SelectedMailbox">
             <summary>
-            <para>The currently selected mailbox, if any.</para>
+            The currently selected mailbox. Will be null if there is no mailbox currently selected. See <see cref="M:work.bacome.imapclient.cMailbox.Select(System.Boolean)"/>.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.Mailbox(work.bacome.imapclient.cMailboxName)">
             <summary>
-            <para>Returns an object that represents the named mailbox.</para>
+            Returns an object that represents the named mailbox.
             </summary>
             <param name="pMailboxName">The mailbox name.</param>
             <returns>An object representing the named mailbox.</returns>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.EventSubscriptionCounts">
             <summary>
-            <para>Intended for debugging use.</para>
-            <para>Returns the number of subscriptions to the various events.</para>
-            <para>Used to check that events are being 'unsubscribed' correctly.</para>
+            Returns the number of subscriptions to the various events. Intended for debugging use. Use it to check that events are being 'unsubscribed' correctly.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.Dispose">
             <summary>
-            Instances contain a number of disposable resources. You should call dispose when you are finished with the instance.
+            Instances of this class contain a number of disposable resources. You should call dispose when you are finished with the instance.
             </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIMAPClient.Connect">
+            <summary>
+            Connect to the <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/> using the <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/>. Can only be called while unconnected: see <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>. Will throw if an authenticated IMAP connection cannot be established.
+            </summary>
+            <remarks>
+            <para>
+            TLS is established if possible before authentication is attempted.
+            TLS can be established immediately upon connect if the <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/> specifies <see cref="F:work.bacome.imapclient.cServer.SSL"/> 
+            or
+            after connecting using the IMAP STARTTLS command if both the client and server support it - see <see cref="P:work.bacome.imapclient.cCapabilities.StartTLS"/>, <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> and <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>.
+            </para>
+            <para>
+            During authentication the <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> will be set.
+            (Note that the <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/> value is used to determine what actual capabilities are used by the client - see <see cref="F:work.bacome.imapclient.cCapabilities.EffectiveCapabilities"/>.)
+            </para>
+            <para>
+            After authentication depending on what the <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> allow;
+            <list type="bullet">
+            <item>RFC 6855 (UTF8) is enabled (see <see cref="P:work.bacome.imapclient.cCapabilities.UTF8Accept"/>, <see cref="P:work.bacome.imapclient.cCapabilities.UTF8Only"/>).</item>
+            <item>ID (RFC 2971) information is exchanged (see <see cref="P:work.bacome.imapclient.cIMAPClient.ClientId"/> and <see cref="P:work.bacome.imapclient.cIMAPClient.ServerId"/>).</item>
+            <item>Namespace (RFC 2342) information is retrieved from the server (see <see cref="P:work.bacome.imapclient.cIMAPClient.Namespaces"/>).</item>
+            <item>IMAP LIST is used to discover the hierarchy delimiter and one personal namespace is generated using it (see <see cref="P:work.bacome.imapclient.cIMAPClient.Namespaces"/>).</item>
+            </list>
+            </para>
+            <para>(Note normally only one of Namespace and LIST are used: but under some strange circumstances both may be used [specifically if the Namespaces returned do not contain the inbox].)</para>
+            <para>At the end of a successful connect process the <see cref="P:work.bacome.imapclient.cIMAPClient.ConnectionState"/> will be <see cref="F:work.bacome.imapclient.eConnectionState.notselected"/>.</para>
+            <para>Exceptions relating to authentication and their meanings;
+            <list type="bullet">
+            <item><term><see cref="T:work.bacome.imapclient.cCredentialsException"/>:</term><description>Was able to try credentials from <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/> but they didn't work. (If the <see cref="F:work.bacome.imapclient.cCredentialsException.ResponseText"/> is set the server explicitly rejected the credentials.)</description></item>
+            <item><term><see cref="T:work.bacome.imapclient.cAuthenticationMechanismsException"/>:</term><description>Was not able to try any credentials from <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/>.</description></item>
+            <item><term><see cref="T:work.bacome.imapclient.cHomeServerReferralException"/>:</term><description>The server suggests that we try a different server (see <see cref="F:work.bacome.imapclient.cHomeServerReferralException.ResponseText"/> and <see cref="F:work.bacome.imapclient.cResponseText.Strings"/>).</description></item>
+            </list>
+            </para>
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapclient.cIMAPClient.ConnectAsync">
+            <summary>The async version of <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/></summary>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.Create(work.bacome.imapclient.cMailboxName,System.Boolean)">
             <summary>
@@ -440,13 +512,14 @@
         </member>
         <member name="T:work.bacome.imapclient.fMailboxCacheDataSets">
             <summary>
-            <para>Sets of data that can be fetched about a mailbox.</para>
-            <para>The exact data items fetched depend on what is being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</para>
+            Sets of data that can be requested about a mailbox. The exact data items requested depend on the value of <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>. See <see cref="M:work.bacome.imapclient.cMailbox.Fetch(work.bacome.imapclient.fMailboxCacheDataSets)"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.fMailboxCacheDataSets.list">
             <summary>
-            <para>Data returned by the IMAP LIST command.</para>
+            Data returned by the IMAP LIST command.
+            </summary>
+            <remarks>
             <para>This data affects the following <see cref="T:work.bacome.imapclient.cMailbox"/> properties;
             <list type="bullet">
             <item><term>Always:</term><description><see cref="P:work.bacome.imapclient.cMailbox.Exists"/>, <see cref="P:work.bacome.imapclient.cMailbox.CanHaveChildren"/>, <see cref="P:work.bacome.imapclient.cMailbox.CanSelect"/>, <see cref="P:work.bacome.imapclient.cMailbox.IsMarked"/>, <see cref="P:work.bacome.imapclient.cMailbox.IsRemote"/></description></item>
@@ -454,17 +527,18 @@
             <item><term>If caching <see cref="F:work.bacome.imapclient.fMailboxCacheData.specialuse"/>:</term><description><see cref="P:work.bacome.imapclient.cMailbox.ContainsAll"/>, <see cref="P:work.bacome.imapclient.cMailbox.IsArchive"/>, <see cref="P:work.bacome.imapclient.cMailbox.ContainsDrafts"/> etc</description></item>
             </list>
             </para>
-            </summary>
+            </remarks>
         </member>
         <member name="F:work.bacome.imapclient.fMailboxCacheDataSets.lsub">
             <summary>
-            <para>Data returned by the IMAP LSUB command.</para>
-            <para>This data affects the <see cref="P:work.bacome.imapclient.cMailbox.IsSubscribed"/> property.</para>
+            Data returned by the IMAP LSUB command. This data affects the <see cref="P:work.bacome.imapclient.cMailbox.IsSubscribed"/> property.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.fMailboxCacheDataSets.status">
             <summary>
-            <para>Data returned by the IMAP STATUS command.</para>
+            Data returned by the IMAP STATUS command.
+            </summary>
+            <remarks>
             <para>This data affects the following <see cref="T:work.bacome.imapclient.cMailbox"/> properties;
             <list type="bullet">
             <item><term>If caching <see cref="F:work.bacome.imapclient.fMailboxCacheData.messagecount"/>:</term><description><see cref="P:work.bacome.imapclient.cMailbox.MessageCount"/></description></item>
@@ -475,7 +549,7 @@
             <item><term>If caching <see cref="F:work.bacome.imapclient.fMailboxCacheData.highestmodseq"/>:</term><description><see cref="P:work.bacome.imapclient.cMailbox.HighestModSeq"/></description></item>
             </list>
             </para>
-            </summary>
+            </remarks>
         </member>
         <member name="T:work.bacome.imapclient.eStoreOperation">
             <summary>
@@ -772,7 +846,7 @@
         </member>
         <member name="T:work.bacome.imapclient.eAccountType">
             <summary>
-            The type of account.
+            The type of account. See <see cref="T:work.bacome.imapclient.cAccountId"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.eAccountType.none">
@@ -786,7 +860,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cAccountId">
             <summary>
-            Describes an IMAP account.
+            Describes an IMAP account. See <see cref="P:work.bacome.imapclient.cIMAPClient.ConnectedAccountId"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cAccountId.Host">
@@ -795,26 +869,24 @@
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cAccountId.Type">
-            <summary>
-            <para>The account type.</para>
-            <para>If the connection was IMAP PREAUTHed then this will be <see cref="F:work.bacome.imapclient.eAccountType.none"/>.</para>
+            <summary> 
+            The account type. If the connection was IMAP PREAUTHed then this will be <see cref="F:work.bacome.imapclient.eAccountType.none"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cAccountId.UserId">
             <summary>
-            The account's userid, if any.
+            The account's userid, if any. May be null.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.fCapabilities">
             <summary>
-            <para>A set of server capabilities.</para>
-            <para>The elements of this enum are all the capabilities that the library understands in some way.</para>
-            <para>The full list of server capabilities can be found in a <see cref="T:work.bacome.imapclient.cCapabilities"/> instance.</para>
+            A set of server capabilities. The flags in this set represent the capabilities that the library understands in some way. The full list of server capabilities can be found in <see cref="F:work.bacome.imapclient.cCapabilities.Capabilities"/>.
             </summary>
+            <seealso cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>.
         </member>
         <member name="T:work.bacome.imapclient.cCapabilities">
             <summary>
-            A set of server capabilities.
+            A set of server capabilities. See <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/>. The properties of this class reflect the flags set in <see cref="F:work.bacome.imapclient.cCapabilities.EffectiveCapabilities"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cCapabilities.Capabilities">
@@ -829,13 +901,12 @@
         </member>
         <member name="F:work.bacome.imapclient.cCapabilities.EffectiveCapabilities">
             <summary>
-            <para>The set of server capabilities that the instance is assuming.</para>
-            <para>This is the set of recognised capabilities less the set that the instance has been told to ignore (see <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>).</para>
+            The set of server capabilities that are in use. This is the recognised elements of <see cref="F:work.bacome.imapclient.cCapabilities.Capabilities"/> less the <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cCredentials">
             <summary>
-            Describes a set of credentials.
+            A set of credentials to use during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. See <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cCredentials.Type">
@@ -845,8 +916,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cCredentials.UserId">
             <summary>
-            <para>The userid for the credentials.</para>
-            <para>May be null for anonymous and NONE; must not be null otherwise.</para>
+            The userid for the credentials. May be null for <see cref="F:work.bacome.imapclient.eAccountType.anonymous"/> and <see cref="F:work.bacome.imapclient.eAccountType.none"/>; must not be null otherwise.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cCredentials.Login">
@@ -871,27 +941,26 @@
         </member>
         <member name="F:work.bacome.imapclient.cCredentials.None">
             <summary>
-            <para>An empty set of credentials.</para>
-            <para>Useful for testing, checking what capabilities the server offers without connecting and for pre-authorised connections.</para>
+            An empty set of credentials. Useful for testing, getting the <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> the server offers without connecting and for pre-authorised connections.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cCredentials.Anonymous(System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)">
             <summary>
-            Generates an anonymous set of credentials.
+            Returns an anonymous set of credentials to use during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. See <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/>.
             </summary>
-            <param name="pTrace">The trace information to be sent to the server when connecting.</param>
+            <param name="pTrace">The trace information to use (should be a valid email address).</param>
             <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
-            <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try AUTHENTICATE ANONYMOUS even if it isn't advertised.</param>
+            <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try IMAP AUTHENTICATE ANONYMOUS even if it isn't advertised.</param>
             <returns>Anonymous credentials.</returns>
         </member>
         <member name="M:work.bacome.imapclient.cCredentials.Plain(System.String,System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)">
             <summary>
-            Generates a plain set of credentials.
+            Returns a plain set of credentials to use during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. See <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/>.
             </summary>
             <param name="pUserId"></param>
             <param name="pPassword"></param>
             <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
-            <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try AUTHENTICATE PLAIN even if it isn't advertised.</param>
+            <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try IMAP AUTHENTICATE PLAIN even if it isn't advertised.</param>
             <returns>Plain credentials.</returns>
         </member>
         <member name="T:work.bacome.imapclient.cLogin">
@@ -916,26 +985,48 @@
         </member>
         <member name="T:work.bacome.imapclient.cServer">
             <summary>
-            Specifies an IMAP server.
+            An IMAP server to use during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. See <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/>.
             </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cServer.Host">
+            <summary>The host name.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cServer.Port">
+            <summary>The port number.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cServer.SSL">
+            <summary>Indicates if SSL should be used.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cServer.#ctor(System.String)">
             <summary>
-            Port defaulted to 143 and SSL to false.
+            Port set to 143 and SSL set to false.
             </summary>
+            <param name="pHost">The host name.</param>
         </member>
         <member name="M:work.bacome.imapclient.cServer.#ctor(System.String,System.Boolean)">
             <summary>
-            Port defaulted to 143 if SSL is false, otherwise 993.
+            Port set to 143 if SSL is false, otherwise set to 993.
             </summary>
+            <param name="pHost">The host name.</param>
+            <param name="pSSL">Indicates if SSL should be used.</param>
+        </member>
+        <member name="M:work.bacome.imapclient.cServer.#ctor(System.String,System.Int32,System.Boolean)">
+            <summary>
+            Constructor.
+            </summary>
+            <param name="pHost">The host name.</param>
+            <param name="pPort">The port number.</param>
+            <param name="pSSL">Indicates if SSL should be used.</param>
         </member>
         <member name="T:work.bacome.imapclient.eTLSRequirement">
             <summary>
-            <para>The TLS requirement.</para>
-            <para>TLS can be established by specifying SSL in the server to be used or by the use of the IMAP STARTTLS command during connect if it is supported by the server.</para>
-            <para>The library will automatically use IMAP STARTTLS if it is offered and the server does not specify SSL unless the instance has been told to ignore the STARTTLS capability.</para>
-            <para>See <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/>, <see cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Boolean)"/>, <see cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Int32,System.Boolean)"/> and <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>.</para>
+            The TLS requirement for the <see cref="T:work.bacome.imapclient.cLogin"/> and/ or <see cref="T:work.bacome.imapclient.cSASL"/> components of <see cref="T:work.bacome.imapclient.cCredentials"/> to be used during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>.
             </summary>
+            <remarks>
+            TLS can be established immediately upon connect if the <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/> specifies <see cref="F:work.bacome.imapclient.cServer.SSL"/> 
+            or
+            after connecting using the IMAP STARTTLS command if both the client and server support it - see <see cref="P:work.bacome.imapclient.cCapabilities.StartTLS"/>, <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> and <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>.
+            </remarks>
         </member>
         <member name="F:work.bacome.imapclient.eTLSRequirement.indifferent">
             <summary>Don't care whether TLS is active or not.</summary> 
@@ -965,7 +1056,7 @@
         </member>
         <member name="T:work.bacome.imapclient.fMailboxCacheData">
             <summary>
-            A set of optionally cached mailbox attributes.
+            A set of optionally requested mailbox attributes. See <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.fMailboxCacheData.subscribed">
@@ -1019,8 +1110,7 @@
         </member>
         <member name="F:work.bacome.imapclient.fMailboxCacheData.highestmodseq">
             <summary>
-            <para>The backing data for <see cref="P:work.bacome.imapclient.cMailbox.HighestModSeq"/>.</para>
-            <para>Note that the server or the mailbox may not support CONDSTORE (RFC 7162) so the cached value may not be meaningful.</para>
+            The backing data for <see cref="P:work.bacome.imapclient.cMailbox.HighestModSeq"/>. Note that the server or the mailbox may not support CONDSTORE (RFC 7162) so the value may not actually be requested.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.fMailboxCacheData.allstatus">
@@ -1190,7 +1280,7 @@
         <member name="P:work.bacome.imapclient.cMailbox.IsRemote">
             <summary>
             <para>If true the mailbox is definitely a remote mailbox.</para>
-            <para>If the connected server supports rfc 5258, if this flag is false the mailbox is definitely not a remote mailbox, otherwise it still may be one.</para>
+            <para>If the connected server supports RFC 5258, if this flag is false the mailbox is definitely not a remote mailbox, otherwise it still may be one.</para>
             <para>Remote mailboxes will never be returned by the library if the <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxReferrals"/> is set to false.</para>
             </summary>
         </member>
@@ -1245,7 +1335,7 @@
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.IsSubscribed">
             <summary>
-            <para>Indicates if this mailbox is subscribed to.</para>
+            <para>Indicates if this mailbox is subscribed to or not.</para>
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.MessageCount">
@@ -3281,7 +3371,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cNamespace">
             <summary>
-            <para>Provides an API that allows interaction with an IMAP namespace.</para>
+            Provides an API that allows interaction with an IMAP namespace. See <see cref="P:work.bacome.imapclient.cIMAPClient.Namespaces"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cNamespace.NamespaceName">
@@ -3301,38 +3391,24 @@
         </member>
         <member name="M:work.bacome.imapclient.cNamespace.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)">
             <summary>
-            <para>Gets the mailboxes at the top level of hierarchy in the namespace.</para>
+            Gets the mailboxes at the top level of hierarchy in the namespace.
             </summary>
-            <param name="pDataSets">
-            <para>The sets of data to retrieve when getting the mailboxes.</para>
-            <para>See <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</para>
-            </param>
+            <param name="pDataSets"> The sets of data to request when getting the mailboxes. See <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</param>
             <returns>A list of mailboxes.</returns>
         </member>
         <member name="M:work.bacome.imapclient.cNamespace.MailboxesAsync(work.bacome.imapclient.fMailboxCacheDataSets)">
             <summary>The async version of <see cref="M:work.bacome.imapclient.cNamespace.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)"/></summary>
         </member>
-        <member name="M:work.bacome.imapclient.cNamespace.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)">
-            <summary>
-            <para>Gets the subscribed mailboxes in the namespace.</para>
-            <para>Note that mailboxes that do not currently exist may be returned.</para>
-            </summary>
-            <param name="pDescend">If true all subscribed mailboxes are returned, if false only mailboxes at the top level of hierarchy are returned.</param>
-            <param name="pDataSets">
-            <para>The sets of data to retrieve when getting the mailboxes.</para>
-            <para>See <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</para>
-            </param>
-            <returns>A list of mailboxes.</returns>
-        </member>
+        <!-- Badly formed XML comment ignored for member "M:work.bacome.imapclient.cNamespace.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)" -->
         <member name="M:work.bacome.imapclient.cNamespace.SubscribedAsync(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)">
             <summary>The async version of <see cref="M:work.bacome.imapclient.cNamespace.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cNamespace.CreateChild(System.String,System.Boolean)">
             <summary>
-            <para>Creates a mailbox at the top level of this namespace.</para>
+            Creates a mailbox at the top level of this namespace.
             </summary>
             <param name="pName">The mailbox name to use.</param>
-            <param name="pAsFutureParent">Indicate to the IMAP server that you intend to create child mailboxes in the new mailbox.</param>
+            <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns>An object representing the newly created mailbox.</returns>
         </member>
         <member name="M:work.bacome.imapclient.cNamespace.CreateChildAsync(System.String,System.Boolean)">
@@ -3355,14 +3431,14 @@
         </member>
         <member name="T:work.bacome.imapclient.cNamespaces">
             <summary>
-            A collection of <see cref="T:work.bacome.imapclient.cNamespace"/> instances.
+            A collection of <see cref="T:work.bacome.imapclient.cNamespace"/> instances. See <see cref="P:work.bacome.imapclient.cIMAPClient.Namespaces"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cNamespaces.Personal">
             <summary>A collection of personal <see cref="T:work.bacome.imapclient.cNamespace"/> instances.</summary>
         </member>
         <member name="F:work.bacome.imapclient.cNamespaces.OtherUsers">
-            <summary>A collection of other user <see cref="T:work.bacome.imapclient.cNamespace"/> instances.</summary>
+            <summary>A collection of 'other user' <see cref="T:work.bacome.imapclient.cNamespace"/> instances.</summary>
         </member>
         <member name="F:work.bacome.imapclient.cNamespaces.Shared">
             <summary>A collection of shared <see cref="T:work.bacome.imapclient.cNamespace"/> instances.</summary>
@@ -3404,88 +3480,82 @@
         </member>
         <member name="T:work.bacome.imapclient.cIMAPException">
             <summary>
-            Base class for all of the library's custom exceptions
+            Base class for all of the library's custom exceptions.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cUnsuccessfulCompletionException">
             <summary>
-            Thrown on a 'NO' command response
+            Thrown on a 'NO' command response.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cUnsuccessfulCompletionException.ResponseText">
             <summary>
-            The response text associated with the 'NO'
+            The response text associated with the 'NO'.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cUnsuccessfulCompletionException.TryIgnoring">
             <summary>
-            If set an indication that ignoring these capabilities may have prevented the exception
+            If set this is an indication that ignoring these capabilities (see <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
             </summary>
-            <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>
         </member>
         <member name="T:work.bacome.imapclient.cProtocolErrorException">
             <summary>
-            Thrown on a 'NO' or 'BAD' command response
+            Thrown on a 'NO' or 'BAD' command response. (Thrown on a 'NO' only when the 'NO' is an unexpected possibility.)
             </summary>
-            <remarks>
-            Thrown on a 'NO' only when the 'NO' is an unexpected possibility
-            </remarks>
         </member>
         <member name="F:work.bacome.imapclient.cProtocolErrorException.CommandResult">
             <summary>
-            The command result associated with the response
+            The command result associated with the response.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cProtocolErrorException.TryIgnoring">
             <summary>
-            If set an indication that ignoring these capabilities may have prevented the exception
+            If set this is an indication that ignoring these capabilities (see <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
             </summary>
-            <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>
         </member>
         <member name="T:work.bacome.imapclient.cUnexpectedServerActionException">
             <summary>
-            thrown when something happens that shouldn't (according to my reading of the rfcs)
+            Thrown when something happens that shouldn't (according to my reading of the RFCs).
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cUnexpectedServerActionException.TryIgnoring">
             <summary>
-            If set an indication that ignoring these capabilities may have prevented the exception
+            If set this is an indication that ignoring these capabilities (see <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
             </summary>
-            <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>
         </member>
         <member name="T:work.bacome.imapclient.cInternalErrorException">
             <summary>
-            thrown when something happens that shouldn't
+            Thrown when something happens that shouldn't.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cConnectByeException">
             <summary>
-            thrown when the server said bye at connect
+            Thrown when the server said bye at connect.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cConnectByeException.ResponseText">
             <summary>
-            The response text associated with the 'BYE'
+            The response text associated with the 'BYE'.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cHomeServerReferralException">
             <summary>
-            thrown when the server rejects connection but suggests that we try a different server
+            Thrown when the server rejects connection but suggests that we try a different server.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cHomeServerReferralException.ResponseText">
             <summary>
-            The response text associated with the rejection
+            The response text associated with the rejection.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cCredentialsException">
             <summary>
-            thrown when the server didn't accept the credentials provided
+            Thrown when the server didn't accept the credentials provided.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cCredentialsException.ResponseText">
             <summary>
-            Filled in if there was an explicit rejection of the credetials by the server
+            Has a value if there was an explicit rejection of the credetials by the server.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cAuthenticationMechanismsException">
@@ -3548,37 +3618,398 @@
             The handle that couldn't be resolved to an MSN
             </summary>
         </member>
+        <member name="T:work.bacome.imapclient.iId">
+            <summary>
+            An ID (RFC 2971) field/ value collection.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.iId.Name">
+            <summary>The name of the program.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.iId.Version">
+            <summary>The version number of the program.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.iId.OS">
+            <summary>The name of the operating system.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.iId.OSVersion">
+            <summary>The version of the operating system.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.iId.Vendor">
+            <summary>The vendor of the client/server.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.iId.SupportURL">
+            <summary>The URL to contact for support.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.iId.Address">
+            <summary>The postal address of contact/vendor.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.iId.Date">
+            <summary>The date program was released.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.iId.Command">
+            <summary>The command used to start the program.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.iId.Arguments">
+            <summary>The arguments supplied on the command line, if any.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.iId.Environment">
+            <summary>A description of environment.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.kIdFieldName">
+            <summary>
+            Contains ID (RFC 2971) field name named constants.
+            </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cId">
+            <summary>
+            An ID (RFC 2971) field/ value collection.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cId.#ctor(System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            Construct from a field/ value dictionary. Field names are case insensitive.
+            </summary>
+            <param name="pDictionary">A field/ value dictionary.</param>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Count">
+            <summary>Gets the number of field/ value pairs in the collection.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Values">
+            <summary>Gets the values that are in the collection.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Keys">
+            <summary>Gets the fields that are in the collection.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cId.ContainsKey(System.String)">
+            <summary>Determines whether the collection contains a field.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cId.TryGetValue(System.String,System.String@)">
+            <summary>Retrieves the field value.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cId.GetEnumerator">
+            <summary>Returns an enumerator that iterates through the field/ values.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Item(System.String)">
+            <summary>Retrieves the field value.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Name">
+            <summary>The name of the program.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Version">
+            <summary>The version number of the program.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.OS">
+            <summary>The name of the operating system.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.OSVersion">
+            <summary>The version of the operating system.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Vendor">
+            <summary>The vendor of the client/server.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.SupportURL">
+            <summary>The URL to contact for support.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Address">
+            <summary>The postal address of contact/vendor.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Date">
+            <summary>The date program was released.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Command">
+            <summary>The command used to start the program.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Arguments">
+            <summary>The arguments supplied on the command line, if any.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cId.Environment">
+            <summary>A description of environment.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cClientIdUTF8">
+            <summary>
+            An ID (RFC 2971) field/ value collection. See <see cref="P:work.bacome.imapclient.cIMAPClient.ClientIdUTF8"/>. This class defines an implicit conversion from <see cref="T:work.bacome.imapclient.cIdDictionary"/> and enforces the limits of RFC 2971.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cClientIdUTF8.#ctor(System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            Construct from a field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
+            </summary>
+            <param name="pDictionary">A field/ value dictionary.</param>
+        </member>
+        <member name="M:work.bacome.imapclient.cClientIdUTF8.op_Implicit(work.bacome.imapclient.cIdDictionary)~work.bacome.imapclient.cClientIdUTF8">
+            <summary>
+            Implicit conversion.
+            </summary>
+            <param name="pDictionary">The dictionary to get the field/ value data from.</param>
+            <returns>The copied field/ values.</returns>
+        </member>
+        <member name="T:work.bacome.imapclient.cClientId">
+            <summary>
+            An ID (RFC 2971) field/ value collection. See <see cref="P:work.bacome.imapclient.cIMAPClient.ClientId"/>. This class defines an implicit conversion from <see cref="T:work.bacome.imapclient.cIdDictionary"/> and enforces the limits of RFC 2971.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cClientId.#ctor(System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            Construct from a field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
+            </summary>
+            <param name="pDictionary">A field/ value dictionary.</param>
+        </member>
+        <member name="M:work.bacome.imapclient.cClientId.op_Implicit(work.bacome.imapclient.cIdDictionary)~work.bacome.imapclient.cClientId">
+            <summary>
+            Implicit conversion.
+            </summary>
+            <param name="pDictionary">The dictionary to get the field/ value data from.</param>
+            <returns>The copied field/ values.</returns>
+        </member>
+        <member name="T:work.bacome.imapclient.cIdDictionary">
+            <summary>
+            An ID (RFC 2971) field/ value dictionary. See <see cref="T:work.bacome.imapclient.cClientId"/> and <see cref="T:work.bacome.imapclient.cClientIdUTF8"/>. Note that field names are case insensitive.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.#ctor(System.Boolean)">
+            <summary>
+            Construct an empty or a default dictionary. A default dictionary contains details about the library.
+            </summary>
+            <param name="pDefault">Indicates if a default or an empty dictionary should be constructed.</param>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Count">
+            <summary>Gets the number of field/ value pairs in the dictionary.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.IsReadOnly">
+            <summary>false</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Values">
+            <summary>Gets the values that are in the dictionary.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Keys">
+            <summary>Gets the fields that are in the dictionary.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.ContainsKey(System.String)">
+            <summary>Determines whether the dictionary contains a field.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.TryGetValue(System.String,System.String@)">
+            <summary>Retrieves the field value.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.Add(System.String,System.String)">
+            <summary>Adds the specified field/ value to the dictionary.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.Remove(System.String)">
+            <summary>Removes the field from the dictionary.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.Contains(System.Collections.Generic.KeyValuePair{System.String,System.String})">
+            <summary>Determines whether the dictionary contains a field/ value pair.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.Add(System.Collections.Generic.KeyValuePair{System.String,System.String})">
+            <summary>Adds the specified field/ value to the dictionary.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.Remove(System.Collections.Generic.KeyValuePair{System.String,System.String})">
+            <summary>Removes the field/ value pair from the dictionary.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.Clear">
+            <summary>Removes all field/ value pairs from the dictionary.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.CopyTo(System.Collections.Generic.KeyValuePair{System.String,System.String}[],System.Int32)">
+            <summary>Copies the field/ value pairs to an array.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.GetEnumerator">
+            <summary>Returns an enumerator that iterates through the field/ values.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Item(System.String)">
+            <summary>Retrieves the field value.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Name">
+            <summary>The name of the program.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Version">
+            <summary>The version number of the program.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.OS">
+            <summary>The name of the operating system.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.OSVersion">
+            <summary>The version of the operating system.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Vendor">
+            <summary>The vendor of the client/server.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.SupportURL">
+            <summary>The URL to contact for support.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Address">
+            <summary>The postal address of contact/vendor.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Date">
+            <summary>The date program was released.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cIdDictionary.SetDate(System.DateTime)">
+            <summary>
+            Set the <see cref="P:work.bacome.imapclient.cIdDictionary.Date"/>. This method converts the supplied date to RFC 3501 date format.
+            </summary>
+            <param name="pDate">The value to set the <see cref="P:work.bacome.imapclient.cIdDictionary.Date"/> to.</param>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Command">
+            <summary>The command used to start the program.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Arguments">
+            <summary>The arguments supplied on the command line, if any.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cIdDictionary.Environment">
+            <summary>A description of environment.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.eResponseTextType">
+            <summary>
+            The type of IMAP response text. See <see cref="F:work.bacome.imapclient.cResponseTextEventArgs.TextType"/>.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextType.greeting">
+            <summary>Response text associated with an IMAP greeting.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextType.continuerequest">
+            <summary>Response text associated with an IMAP command continuation request.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextType.bye">
+            <summary>Response text associated with an IMAP BYE.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextType.information">
+            <summary>IMAP information text.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextType.warning">
+            <summary>IMAP warning text.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextType.error">
+            <summary>IMAP error text.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextType.success">
+            <summary>Response text associated with an IMAP command success notification.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextType.failure">
+            <summary>Response text associated with an IMAP command failure notification.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextType.authenticationcancelled">
+            <summary>Response text associated with an IMAP authentication cancellation notification.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextType.protocolerror">
+            <summary>Response text associated with an IMAP command protocol error notification.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.eResponseTextCode">
+            <summary>
+            The text code associated with IMAP response text. See <see cref="F:work.bacome.imapclient.cResponseText.Code"/>.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.none">
+            <summary>There was no code.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.unknown">
+            <summary>There was a code, but it wasn't recognised.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.alert">
+            <summary>RFC 3501 ALERT: the text is an alert.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.badcharset">
+            <summary>RFC 3501 BADCHARSET.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.parse">
+            <summary>RFC 3501 PARSE: there was an error parsing a message.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.trycreate">
+            <summary>RFC 3501 TRYCREATE: try creating the mailbox.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.unavailable">
+            <summary>RFC 5530 UNAVAILABLE.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.authenticationfailed">
+            <summary>RFC 5530 AUTHENTICATIONFAILED.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.authorizationfailed">
+            <summary>RFC 5530 AUTHORIZATIONFAILED.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.expired">
+            <summary>RFC 5530 EXPIRED.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.privacyrequired">
+            <summary>RFC 5530 PRIVACYREQUIRED.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.contactadmin">
+            <summary>RFC 5530 CONTACTADMIN.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.noperm">
+            <summary>RFC 5530 NOPERM.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.inuse">
+            <summary>RFC 5530 INUSE.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.expungeissued">
+            <summary>RFC 5530 EXPUNGEISSUED.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.corruption">
+            <summary>RFC 5530 CORRUPTION.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.serverbug">
+            <summary>RFC 5530 SERVERBUG.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.clientbug">
+            <summary>RFC 5530 CLIENTBUG.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.cannot">
+            <summary>RFC 5530 CANNOT.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.limit">
+            <summary>RFC 5530 LIMIT.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.overquota">
+            <summary>RFC 5530 OVERQUOTA.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.alreadyexists">
+            <summary>RFC 5530 ALREADYEXISTS.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.nonexistent">
+            <summary>RFC 5530 NONEXISTENT.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.referral">
+            <summary>RFC 2193 REFERRAL.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.useattr">
+            <summary>RFC 6154 USEATTR.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextCode.unknowncte">
+            <summary>RFC 3516 UNKNOWNCTE: the server can't decode the content.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cResponseText">
+            <summary>
+            IMAP response text. See <see cref="F:work.bacome.imapclient.cResponseTextEventArgs.Text"/>.
+            </summary>
+        </member>
         <member name="F:work.bacome.imapclient.cResponseText.Code">
             <summary>
-            The IMAP response text code associated with the response text
+            The code associated with the response text. If this is <see cref="F:work.bacome.imapclient.eResponseTextCode.unknown"/> then the text of the code is in <see cref="F:work.bacome.imapclient.cResponseText.UnknownCodeAtom"/>.
             </summary>
-            <remarks>
-            If there was no code 'none' is used. 
-            If there was a code but it wasn't recognised then 'unknown' is used here and the text of the code is stored in UnknownCodeAtom.
-            </remarks>
         </member>
         <member name="F:work.bacome.imapclient.cResponseText.Strings">
             <summary>
-            Data associated with the response text code
+            The data associated with the <see cref="F:work.bacome.imapclient.cResponseText.Code"/>. 
+            If the code is <see cref="F:work.bacome.imapclient.eResponseTextCode.badcharset"/> it may contain a list of valid charsets.
+            If the code is <see cref="F:work.bacome.imapclient.eResponseTextCode.referral"/> it should contain the URL(s).
             </summary>
-            <remarks>
-            For badcharset it may contain the list of valid charsets.
-            For referral it should contain the URL(s).
-            </remarks>
         </member>
         <member name="F:work.bacome.imapclient.cResponseText.UnknownCodeAtom">
             <summary>
-            If the response text code was unrecognised the text of the code is made available here
+            If the <see cref="F:work.bacome.imapclient.cResponseText.Code"/> is <see cref="F:work.bacome.imapclient.eResponseTextCode.unknown"/> this is the text of the code, otherwise null.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cResponseText.UnknownCodeText">
             <summary>
-            If the unrecognised response text code had text following it the text is made available here
+            If the <see cref="F:work.bacome.imapclient.cResponseText.Code"/> is <see cref="F:work.bacome.imapclient.eResponseTextCode.unknown"/> this is the text following the code, otherwise null. (May also be null if there was no text.)
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cResponseText.Text">
             <summary>
-            The response text
+            The response text.
+            </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cResponseTextEventArgs">
+            <summary>
+            See <see cref="E:work.bacome.imapclient.cIMAPClient.ResponseText"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cResponseTextEventArgs.TextType">
@@ -3591,29 +4022,30 @@
         </member>
         <member name="F:work.bacome.imapclient.cResponseTextEventArgs.Text">
             <summary>
-            The response text
+            The response text.
             </summary>
         </member>
         <member name="T:work.bacome.async.cCancellationManager">
             <summary>
-            <para>Manages sets (cancellation-sets) of concurrent asynchronous operations that are attached to a common <see cref="T:System.Threading.CancellationTokenSource"/>.</para>
+            Manages sets (cancellation-sets) of concurrent asynchronous operations that are attached to a common <see cref="T:System.Threading.CancellationTokenSource"/>.
+            </summary>
+            <remarks>
             <para>
             Use <see cref="M:work.bacome.async.cCancellationManager.GetToken(work.bacome.trace.cTrace.cContext)"/> to get a disposable object containing a <see cref="T:System.Threading.CancellationToken"/> that is attached to the current <see cref="T:System.Threading.CancellationTokenSource"/>.
-            Dispose the object when the operation controlled by the contained <see cref="T:System.Threading.CancellationToken"/> completes.</para>
+            Dispose the object when the operation controlled by the contained <see cref="T:System.Threading.CancellationToken"/> completes.
+            </para>
             <para>Use <see cref="M:work.bacome.async.cCancellationManager.Cancel(work.bacome.trace.cTrace.cContext)"/> to cancel all of the operations currently underway; this causes the allocation of a new internal <see cref="T:System.Threading.CancellationTokenSource"/> so new operations can be started in a new cancellation-set immediately.</para>
             <para>Note that the class implements <see cref="T:System.IDisposable"/>, so you should dispose instances when you are finished with them.</para>
-            </summary>
+            </remarks>
         </member>
         <member name="M:work.bacome.async.cCancellationManager.#ctor(System.Action{work.bacome.trace.cTrace.cContext})">
             <summary>
-            Construct specifying the callback to be used when count of active concurrent operations changes.
+            Constructor specifying a callback to be used when <see cref="P:work.bacome.async.cCancellationManager.Count"/> changes.
             </summary>
-            <param name="pCountChanged"></param>
+            <param name="pCountChanged">A callback to be used when <see cref="P:work.bacome.async.cCancellationManager.Count"/> changes.</param>
         </member>
         <member name="M:work.bacome.async.cCancellationManager.GetToken(work.bacome.trace.cTrace.cContext)">
-            <summary>
-            <para>Returns a disposable object containing a <see cref="T:System.Threading.CancellationToken"/>.</para>
-            <para>Dispose the object when the operation controlled by the contained <see cref="T:System.Threading.CancellationToken"/> completes.</para>
+            <summary>Returns a disposable object containing a <see cref="T:System.Threading.CancellationToken"/>. Dispose the object when the operation controlled by the contained <see cref="T:System.Threading.CancellationToken"/> completes.
             </summary>
             <param name="pParentContext">Context for trace messages.</param>
             <returns>A disposable object containing a <see cref="T:System.Threading.CancellationToken"/>.</returns>
@@ -3631,8 +4063,7 @@
         </member>
         <member name="T:work.bacome.async.cCancellationManager.cToken">
             <summary>
-            <para>Contains a <see cref="F:work.bacome.async.cCancellationManager.cToken.CancellationToken"/> attached to a <see cref="T:System.Threading.CancellationTokenSource"/> of a <see cref="T:work.bacome.async.cCancellationManager"/>.</para>
-            <para>Note that the class implements <see cref="T:System.IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+            Contains a <see cref="F:work.bacome.async.cCancellationManager.cToken.CancellationToken"/> attached to a <see cref="T:System.Threading.CancellationTokenSource"/> of a <see cref="T:work.bacome.async.cCancellationManager"/>. Note that the class implements <see cref="T:System.IDisposable"/>, so you should dispose instances when you are finished with them.
             </summary>
         </member>
         <member name="F:work.bacome.async.cCancellationManager.cToken.CancellationToken">
@@ -3865,7 +4296,9 @@
         </member>
         <member name="T:work.bacome.trace.cTrace">
             <summary>
-            <para>Provides services for tracing to a <see cref="T:System.Diagnostics.TraceSource"/> with trace message indenting and context information.</para>
+            Provides services for tracing to a <see cref="T:System.Diagnostics.TraceSource"/> with trace message indenting and context information.
+            </summary>
+            <remarks>
             <para>The concept is that trace messages are written in a context. Root-contexts can be established independently and sub-contexts can be created from root-contexts and sub-contexts.</para>
             <para>If a new sub-context is created for each call then call stack information can be built and included in the trace.</para>
             <para>
@@ -3879,27 +4312,27 @@
             When tracing is disabled contexts are not created and trace messages are not emitted, so most of the tracing overhead is eliminated.
             Tracing is disabled under the following circumstances;
             <list type="bullet">
-            <item><description>The program is compiled without the "TRACE" conditional attribute.</description></item>
-            <item><description>If there aren't any listeners attached to the tracesource when the instance is created.</description></item>
-            <item><description>If the tracesource isn't configured to emit critical messages when the instance is created.</description></item>
-            </list>
-            </para>
-            <para>Trace messages are written in a tab delimited form, the tab delimited 'columns' contain;
-            <list type="bullet">
-            <item><description>The <see cref="T:System.Diagnostics.TraceSource"/> defined data.</description></item>
-            <item><description>The date and time that the message was written.</description></item>
-            <item><description>The name and number of the root context of this trace message.</description></item>
-            <item><description>The thread number on which the trace message was written.</description></item>
-            <item><description>The space indented trace message.</description></item>
+            <item><description>The assembly is compiled without the "TRACE" conditional attribute.</description></item>
+            <item><description>If there aren't any listeners attached to the <see cref="T:System.Diagnostics.TraceSource"/> when the instance is created.</description></item>
+            <item><description>The <see cref="T:System.Diagnostics.TraceSource"/> isn't configured to emit critical messages when the instance is created.</description></item>
             </list>
             </para>
             <para>Root-contexts have a name and a number. The name is programmer assigned, the number is internally assigned and is unique for an exe.</para>
             <para>Trace messages are indented by a number of spaces that equals the context stack depth.</para>
-            </summary>
+            <para>Trace messages are written in a tab delimited form, the tab delimited 'columns' contain;
+            <list type="bullet">
+            <item><description>The <see cref="T:System.Diagnostics.TraceSource"/> defined data.</description></item>
+            <item><description>The date and time that the message was written.</description></item>
+            <item><description>The name and number of the root-context of this trace message.</description></item>
+            <item><description>The thread number on which the trace message was written.</description></item>
+            <item><description>The space indented trace message.</description></item>
+            </list>
+            </para>
+            </remarks>
         </member>
         <member name="M:work.bacome.trace.cTrace.#ctor(System.String)">
             <summary>
-            Constructor
+            Constructor.
             </summary>
             <param name="pTraceSourceName">The trace source name to use.</param>
         </member>
@@ -3913,12 +4346,14 @@
         </member>
         <member name="T:work.bacome.trace.cTrace.cContext">
             <summary>
-            <para>A tracing context.</para>
-            <para>Will be either a root-context or a sub-context. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</para>
+            A <see cref="T:work.bacome.trace.cTrace"/> tracing context.
             </summary>
+            <remarks>
+            Will be either a root-context or a sub-context. See <see cref="T:work.bacome.trace.cTrace"/> for more information.
+            </remarks>
         </member>
         <member name="F:work.bacome.trace.cTrace.cContext.Null">
-            <summary>A tracing context that is not connected to a trace source. Used to suppress all tracing.</summary>
+            <summary>A tracing context that does not create contexts or emit messages. Used to suppress tracing.</summary>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewRoot(System.String,System.Boolean)">
             <summary>
@@ -3939,8 +4374,8 @@
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewObjectV(System.Boolean,System.String,System.Int32,System.Object[])">
             <summary>
-            <para>Creates a new sub-context with a trace message in 'object constructor' form.</para>
-            <para>Use when creating a context for a constructor.</para>
+            Creates a new sub-context with a trace message in 'object constructor' form.
+            Use when creating a context for a constructor.
             </summary>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
             <param name="pClass">The name of the class.</param>
@@ -3950,8 +4385,8 @@
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewSetProp(System.Boolean,System.String,System.String,System.Object)">
             <summary>
-            <para>Creates a new sub-context with a trace message in 'property setter' form.</para>
-            <para>Use when creating a context for a property setter.</para>
+            Creates a new sub-context with a trace message in 'property setter' form.
+            Use when creating a context for a property setter.
             </summary>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
             <param name="pClass">The name of the class.</param>
@@ -3961,8 +4396,8 @@
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewMethodV(System.Boolean,System.String,System.String,System.Int32,System.Object[])">
             <summary>
-            <para>Creates a new sub-context with a trace message in 'method' form.</para>
-            <para>Use when creating a context for a method.</para>
+            Creates a new sub-context with a trace message in 'method' form.
+            Use when creating a context for a method.
             </summary>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
             <param name="pClass">The name of the class.</param>
@@ -3973,8 +4408,8 @@
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewRootObject(System.Boolean,System.String)">
             <summary>
-            <para>Creates a new root-context with a trace message in 'object constructor' form.</para>
-            <para>Use when creating a new root-context in a constructor.</para>
+            Creates a new root-context with a trace message in 'object constructor' form.
+            Use when creating a new root-context in a constructor.
             </summary>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
             <param name="pClass">The name of the class.</param>
@@ -3982,8 +4417,8 @@
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewRootMethod(System.Boolean,System.String,System.String)">
             <summary>
-            <para>Creates a new root-context with a trace message in 'method' form.</para>
-            <para>Use when creating a new root-context in a method.</para>
+            Creates a new root-context with a trace message in 'method' form.
+            Use when creating a new root-context in a method.
             </summary>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
             <param name="pClass">The name of the class.</param>
@@ -4032,7 +4467,7 @@
             <param name="pArgs">The objects to place in the trace message.</param>
         </member>
         <member name="P:work.bacome.trace.cTrace.cContext.EmitsVerbose">
-            <summary>Indicates if trace source emits verbose (the backing data for this property is established when the <see cref="T:work.bacome.trace.cTrace"/> is constructed).</summary>
+            <summary>Indicates if the underlying context emits verbose trace messages.</summary>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.TraceCritical(System.String,System.Object[])">
             <summary>
@@ -4080,9 +4515,11 @@
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.TraceException(System.Diagnostics.TraceEventType,System.String,System.Exception)">
             <summary>
-            <para>Writes a trace message reporting an exception.</para>
-            <para>Designed for use in a conditional catch clause to trace the exception as it 'flies by': e.g. <code>catch (Exception e) when (x.TraceException(e)) { }</code>.</para>
+            Writes a trace message reporting an exception.
             </summary>
+            <remarks>
+            Designed for use in a conditional catch clause to trace the exception as it 'flies by': e.g. <code>catch (Exception e) when (lContext.TraceException(e)) { }</code>.
+            </remarks>
             <param name="pTraceEventType">The trace event type to use.</param>
             <param name="pMessage">A message to trace.</param>
             <param name="e">The exception to trace.</param>
@@ -4090,7 +4527,7 @@
         </member>
         <member name="T:work.bacome.trace.cTrace.cContext.cRoot">
             <summary>
-            A root context. See <see cref="T:work.bacome.trace.cTrace.cContext"/> for a description of the interface.
+            A <see cref="T:work.bacome.trace.cTrace"/> root-context.
             </summary>
         </member>
     </members>

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// <para>Provides an API that allows interaction with an IMAP namespace.</para>
+    /// Provides an API that allows interaction with an IMAP namespace. See <see cref="cIMAPClient.Namespaces"/>.
     /// </summary>
     public class cNamespace : iMailboxParent
     {
@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly cNamespaceName NamespaceName;
 
-        public cNamespace(cIMAPClient pClient, cNamespaceName pNamespaceName)
+        internal cNamespace(cIMAPClient pClient, cNamespaceName pNamespaceName)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             NamespaceName = pNamespaceName ?? throw new ArgumentNullException(nameof(pNamespaceName));
@@ -33,36 +33,28 @@ namespace work.bacome.imapclient
         public char? Delimiter => NamespaceName.Delimiter;
 
         /// <summary>
-        /// <para>Gets the mailboxes at the top level of hierarchy in the namespace.</para>
+        /// Gets the mailboxes at the top level of hierarchy in the namespace.
         /// </summary>
-        /// <param name="pDataSets">
-        /// <para>The sets of data to retrieve when getting the mailboxes.</para>
-        /// <para>See <see cref="cIMAPClient.MailboxCacheData"/>.</para>
-        /// </param>
+        /// <param name="pDataSets"> The sets of data to request when getting the mailboxes. See <see cref="cIMAPClient.MailboxCacheData"/>.</param>
         /// <returns>A list of mailboxes.</returns>
         public List<cMailbox> Mailboxes(fMailboxCacheDataSets pDataSets = 0) => Client.Mailboxes(NamespaceName, pDataSets);
         /**<summary>The async version of <see cref="Mailboxes(fMailboxCacheDataSets)"/></summary>*/
         public Task<List<cMailbox>> MailboxesAsync(fMailboxCacheDataSets pDataSets = 0) => Client.MailboxesAsync(NamespaceName, pDataSets);
 
         /// <summary>
-        /// <para>Gets the subscribed mailboxes in the namespace.</para>
-        /// <para>Note that mailboxes that do not currently exist may be returned.</para>
-        /// </summary>
-        /// <param name="pDescend">If true all subscribed mailboxes are returned, if false only mailboxes at the top level of hierarchy are returned.</param>
-        /// <param name="pDataSets">
-        /// <para>The sets of data to retrieve when getting the mailboxes.</para>
-        /// <para>See <see cref="cIMAPClient.MailboxCacheData"/>.</para>
-        /// </param>
+        /// Gets the subscribed mailboxes in the namespace. Note that mailboxes that do not currently exist may be returned.
+        /// <param name="pDescend">If true all subscribed mailboxes in the namespace are returned, if false only mailboxes at the top level of hierarchy are returned.</param>
+        /// <param name="pDataSets">The sets of data to request when getting the mailboxes. See <see cref="cIMAPClient.MailboxCacheData"/>.</param>
         /// <returns>A list of mailboxes.</returns>
         public List<cMailbox> Subscribed(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0) => Client.Subscribed(NamespaceName, pDescend, pDataSets);
         /**<summary>The async version of <see cref="Subscribed(bool, fMailboxCacheDataSets)"/>.</summary>*/
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(NamespaceName, pDescend, pDataSets);
 
         /// <summary>
-        /// <para>Creates a mailbox at the top level of this namespace.</para>
+        /// Creates a mailbox at the top level of this namespace.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
-        /// <param name="pAsFutureParent">Indicate to the IMAP server that you intend to create child mailboxes in the new mailbox.</param>
+        /// <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns>An object representing the newly created mailbox.</returns>
         public cMailbox CreateChild(string pName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pName), pAsFutureParent);
         /**<summary>The async version of <see cref="CreateChild(string, bool)"/>.</summary>*/

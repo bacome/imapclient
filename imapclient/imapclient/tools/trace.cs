@@ -6,7 +6,9 @@ using System.Threading;
 namespace work.bacome.trace
 {
     /// <summary>
-    /// <para>Provides services for tracing to a <see cref="TraceSource"/> with trace message indenting and context information.</para>
+    /// Provides services for tracing to a <see cref="TraceSource"/> with trace message indenting and context information.
+    /// </summary>
+    /// <remarks>
     /// <para>The concept is that trace messages are written in a context. Root-contexts can be established independently and sub-contexts can be created from root-contexts and sub-contexts.</para>
     /// <para>If a new sub-context is created for each call then call stack information can be built and included in the trace.</para>
     /// <para>
@@ -20,23 +22,23 @@ namespace work.bacome.trace
     /// When tracing is disabled contexts are not created and trace messages are not emitted, so most of the tracing overhead is eliminated.
     /// Tracing is disabled under the following circumstances;
     /// <list type="bullet">
-    /// <item><description>The program is compiled without the "TRACE" conditional attribute.</description></item>
-    /// <item><description>If there aren't any listeners attached to the tracesource when the instance is created.</description></item>
-    /// <item><description>If the tracesource isn't configured to emit critical messages when the instance is created.</description></item>
-    /// </list>
-    /// </para>
-    /// <para>Trace messages are written in a tab delimited form, the tab delimited 'columns' contain;
-    /// <list type="bullet">
-    /// <item><description>The <see cref="System.Diagnostics.TraceSource"/> defined data.</description></item>
-    /// <item><description>The date and time that the message was written.</description></item>
-    /// <item><description>The name and number of the root context of this trace message.</description></item>
-    /// <item><description>The thread number on which the trace message was written.</description></item>
-    /// <item><description>The space indented trace message.</description></item>
+    /// <item><description>The assembly is compiled without the "TRACE" conditional attribute.</description></item>
+    /// <item><description>If there aren't any listeners attached to the <see cref="TraceSource"/> when the instance is created.</description></item>
+    /// <item><description>The <see cref="TraceSource"/> isn't configured to emit critical messages when the instance is created.</description></item>
     /// </list>
     /// </para>
     /// <para>Root-contexts have a name and a number. The name is programmer assigned, the number is internally assigned and is unique for an exe.</para>
     /// <para>Trace messages are indented by a number of spaces that equals the context stack depth.</para>
-    /// </summary>
+    /// <para>Trace messages are written in a tab delimited form, the tab delimited 'columns' contain;
+    /// <list type="bullet">
+    /// <item><description>The <see cref="System.Diagnostics.TraceSource"/> defined data.</description></item>
+    /// <item><description>The date and time that the message was written.</description></item>
+    /// <item><description>The name and number of the root-context of this trace message.</description></item>
+    /// <item><description>The thread number on which the trace message was written.</description></item>
+    /// <item><description>The space indented trace message.</description></item>
+    /// </list>
+    /// </para>
+    /// </remarks>
     public class cTrace
     {
         private TraceSource mTraceSource = null;
@@ -45,7 +47,7 @@ namespace work.bacome.trace
         private TraceEventType mContextTraceEventType;
 
         /// <summary>
-        /// Constructor
+        /// Constructor.
         /// </summary>
         /// <param name="pTraceSourceName">The trace source name to use.</param>
         public cTrace(string pTraceSourceName)
@@ -101,12 +103,14 @@ namespace work.bacome.trace
         }
 
         /// <summary>
-        /// <para>A tracing context.</para>
-        /// <para>Will be either a root-context or a sub-context. See <see cref="cTrace"/> for more information.</para>
+        /// A <see cref="cTrace"/> tracing context.
         /// </summary>
+        /// <remarks>
+        /// Will be either a root-context or a sub-context. See <see cref="cTrace"/> for more information.
+        /// </remarks>
         public abstract class cContext
         {
-            /**<summary>A tracing context that is not connected to a trace source. Used to suppress all tracing.</summary>*/
+            /**<summary>A tracing context that does not create contexts or emit messages. Used to suppress tracing.</summary>*/
             public readonly static cContext Null = new cNull();
 
             /// <summary>
@@ -127,8 +131,8 @@ namespace work.bacome.trace
             public abstract cContext NewGeneric(bool pContextTraceDelay, string pMessage, params object[] pArgs);
 
             /// <summary>
-            /// <para>Creates a new sub-context with a trace message in 'object constructor' form.</para>
-            /// <para>Use when creating a context for a constructor.</para>
+            /// Creates a new sub-context with a trace message in 'object constructor' form.
+            /// Use when creating a context for a constructor.
             /// </summary>
             /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
@@ -138,8 +142,8 @@ namespace work.bacome.trace
             public abstract cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs);
 
             /// <summary>
-            /// <para>Creates a new sub-context with a trace message in 'property setter' form.</para>
-            /// <para>Use when creating a context for a property setter.</para>
+            /// Creates a new sub-context with a trace message in 'property setter' form.
+            /// Use when creating a context for a property setter.
             /// </summary>
             /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
@@ -149,8 +153,8 @@ namespace work.bacome.trace
             public abstract cContext NewSetProp(bool pContextTraceDelay, string pClass, string pProperty, object pValue);
 
             /// <summary>
-            /// <para>Creates a new sub-context with a trace message in 'method' form.</para>
-            /// <para>Use when creating a context for a method.</para>
+            /// Creates a new sub-context with a trace message in 'method' form.
+            /// Use when creating a context for a method.
             /// </summary>
             /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
@@ -161,8 +165,8 @@ namespace work.bacome.trace
             public abstract cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs);
 
             /// <summary>
-            /// <para>Creates a new root-context with a trace message in 'object constructor' form.</para>
-            /// <para>Use when creating a new root-context in a constructor.</para>
+            /// Creates a new root-context with a trace message in 'object constructor' form.
+            /// Use when creating a new root-context in a constructor.
             /// </summary>
             /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
@@ -170,8 +174,8 @@ namespace work.bacome.trace
             public abstract cContext NewRootObject(bool pContextTraceDelay, string pClass);
 
             /// <summary>
-            /// <para>Creates a new root-context with a trace message in 'method' form.</para>
-            /// <para>Use when creating a new root-context in a method.</para>
+            /// Creates a new root-context with a trace message in 'method' form.
+            /// Use when creating a new root-context in a method.
             /// </summary>
             /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
@@ -213,7 +217,7 @@ namespace work.bacome.trace
             [Conditional("TRACE")]
             public abstract void TraceEvent(TraceEventType pTraceEventType, string pMessage, params object[] pArgs);
 
-            /**<summary>Indicates if trace source emits verbose (the backing data for this property is established when the <see cref="cTrace"/> is constructed).</summary>*/
+            /**<summary>Indicates if the underlying context emits verbose trace messages.</summary>*/
             public abstract bool EmitsVerbose { get; }
 
             /// <summary>
@@ -264,9 +268,11 @@ namespace work.bacome.trace
             public bool TraceException(TraceEventType pTraceEventType, Exception e) { TraceEvent(pTraceEventType, "Exception\n{0}", e); return false; }
 
             /// <summary>
-            /// <para>Writes a trace message reporting an exception.</para>
-            /// <para>Designed for use in a conditional catch clause to trace the exception as it 'flies by': e.g. <code>catch (Exception e) when (x.TraceException(e)) { }</code>.</para>
+            /// Writes a trace message reporting an exception.
             /// </summary>
+            /// <remarks>
+            /// Designed for use in a conditional catch clause to trace the exception as it 'flies by': e.g. <code>catch (Exception e) when (lContext.TraceException(e)) { }</code>.
+            /// </remarks>
             /// <param name="pTraceEventType">The trace event type to use.</param>
             /// <param name="pMessage">A message to trace.</param>
             /// <param name="e">The exception to trace.</param>
@@ -311,7 +317,7 @@ namespace work.bacome.trace
             }
 
             /// <summary>
-            /// A root context. See <see cref="cContext"/> for a description of the interface.
+            /// A <see cref="cTrace"/> root-context.
             /// </summary>
             public class cRoot : cContext
             {

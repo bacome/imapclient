@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The type of account.
+    /// The type of account. See <see cref="cAccountId"/>.
     /// </summary>
     public enum eAccountType
     {
@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Describes an IMAP account.
+    /// Describes an IMAP account. See <see cref="cIMAPClient.ConnectedAccountId"/>.
     /// </summary>
     public class cAccountId
     {
@@ -27,18 +27,17 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly string Host;
 
-        /// <summary>
-        /// <para>The account type.</para>
-        /// <para>If the connection was IMAP PREAUTHed then this will be <see cref="eAccountType.none"/>.</para>
+        /// <summary> 
+        /// The account type. If the connection was IMAP PREAUTHed then this will be <see cref="eAccountType.none"/>.
         /// </summary>
         public readonly eAccountType Type;
 
         /// <summary>
-        /// The account's userid, if any.
+        /// The account's userid, if any. May be null.
         /// </summary>
         public readonly string UserId;
 
-        public cAccountId(string pHost, eAccountType pType)
+        internal cAccountId(string pHost, eAccountType pType)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
             if (pType == eAccountType.userid) throw new ArgumentOutOfRangeException(nameof(pType));
@@ -48,7 +47,7 @@ namespace work.bacome.imapclient
             UserId = null;
         }
 
-        public cAccountId(string pHost, string pUserId)
+        internal cAccountId(string pHost, string pUserId)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
@@ -58,7 +57,7 @@ namespace work.bacome.imapclient
             UserId = pUserId;
         }
 
-        public cAccountId(string pHost, eAccountType pType, string pUserId)
+        internal cAccountId(string pHost, eAccountType pType, string pUserId)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
 

@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of optionally cached mailbox attributes.
+    /// A set of optionally requested mailbox attributes. See <see cref="cIMAPClient.MailboxCacheData"/>.
     /// </summary>
     [Flags]
     public enum fMailboxCacheData
@@ -58,8 +58,7 @@ namespace work.bacome.imapclient
         unseencount = 1 << 7,
 
         /// <summary>
-        /// <para>The backing data for <see cref="cMailbox.HighestModSeq"/>.</para>
-        /// <para>Note that the server or the mailbox may not support CONDSTORE (RFC 7162) so the cached value may not be meaningful.</para>
+        /// The backing data for <see cref="cMailbox.HighestModSeq"/>. Note that the server or the mailbox may not support CONDSTORE (RFC 7162) so the value may not actually be requested.
         /// </summary>
         highestmodseq = 1 << 8,
 

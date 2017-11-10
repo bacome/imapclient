@@ -175,7 +175,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// <para>If true the mailbox is definitely a remote mailbox.</para>
-        /// <para>If the connected server supports rfc 5258, if this flag is false the mailbox is definitely not a remote mailbox, otherwise it still may be one.</para>
+        /// <para>If the connected server supports RFC 5258, if this flag is false the mailbox is definitely not a remote mailbox, otherwise it still may be one.</para>
         /// <para>Remote mailboxes will never be returned by the library if the <see cref="cIMAPClient.MailboxReferrals"/> is set to false.</para>
         /// </summary>
         public bool IsRemote
@@ -318,7 +318,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Indicates if this mailbox is subscribed to.</para>
+        /// <para>Indicates if this mailbox is subscribed to or not.</para>
         /// </summary>
         public bool IsSubscribed
         {

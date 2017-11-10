@@ -5,13 +5,16 @@ using work.bacome.trace;
 namespace work.bacome.async
 {
     /// <summary>
-    /// <para>Manages sets (cancellation-sets) of concurrent asynchronous operations that are attached to a common <see cref="CancellationTokenSource"/>.</para>
+    /// Manages sets (cancellation-sets) of concurrent asynchronous operations that are attached to a common <see cref="CancellationTokenSource"/>.
+    /// </summary>
+    /// <remarks>
     /// <para>
     /// Use <see cref="GetToken(cTrace.cContext)"/> to get a disposable object containing a <see cref="CancellationToken"/> that is attached to the current <see cref="CancellationTokenSource"/>.
-    /// Dispose the object when the operation controlled by the contained <see cref="CancellationToken"/> completes.</para>
+    /// Dispose the object when the operation controlled by the contained <see cref="CancellationToken"/> completes.
+    /// </para>
     /// <para>Use <see cref="Cancel(cTrace.cContext)"/> to cancel all of the operations currently underway; this causes the allocation of a new internal <see cref="CancellationTokenSource"/> so new operations can be started in a new cancellation-set immediately.</para>
     /// <para>Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
-    /// </summary>
+    /// </remarks>
     public sealed class cCancellationManager : IDisposable
     {
         private bool mDisposed = false;
@@ -27,18 +30,16 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Construct specifying the callback to be used when count of active concurrent operations changes.
+        /// Constructor specifying a callback to be used when <see cref="Count"/> changes.
         /// </summary>
-        /// <param name="pCountChanged"></param>
+        /// <param name="pCountChanged">A callback to be used when <see cref="Count"/> changes.</param>
         public cCancellationManager(Action<cTrace.cContext> pCountChanged)
         {
             mCountChanged = pCountChanged;
             mCurrentCancellationSet = new cCancellationSet(mCountChanged);
         }
 
-        /// <summary>
-        /// <para>Returns a disposable object containing a <see cref="CancellationToken"/>.</para>
-        /// <para>Dispose the object when the operation controlled by the contained <see cref="CancellationToken"/> completes.</para>
+        /// <summary>Returns a disposable object containing a <see cref="CancellationToken"/>. Dispose the object when the operation controlled by the contained <see cref="CancellationToken"/> completes.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         /// <returns>A disposable object containing a <see cref="CancellationToken"/>.</returns>
@@ -156,8 +157,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// <para>Contains a <see cref="CancellationToken"/> attached to a <see cref="CancellationTokenSource"/> of a <see cref="cCancellationManager"/>.</para>
-        /// <para>Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+        /// Contains a <see cref="CancellationToken"/> attached to a <see cref="CancellationTokenSource"/> of a <see cref="cCancellationManager"/>. Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
         /// </summary>
         public sealed class cToken : IDisposable
         {
@@ -171,7 +171,7 @@ namespace work.bacome.async
             private readonly Action<cTrace.cContext> mReleaseToken;
             private readonly cTrace.cContext mContextToUseWhenDisposing;
 
-            public cToken(CancellationToken pCancellationToken, Action<cTrace.cContext> pReleaseToken, cTrace.cContext pContextToUseWhenDisposing)
+            internal cToken(CancellationToken pCancellationToken, Action<cTrace.cContext> pReleaseToken, cTrace.cContext pContextToUseWhenDisposing)
             {
                 CancellationToken = pCancellationToken;
                 mReleaseToken = pReleaseToken ?? throw new ArgumentNullException(nameof(pReleaseToken));

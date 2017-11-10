@@ -3,17 +3,21 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Specifies an IMAP server.
+    /// An IMAP server to use during <see cref="cIMAPClient.Connect"/>. See <see cref="cIMAPClient.Server"/>.
     /// </summary>
     public class cServer
     {
+        /**<summary>The host name.</summary>*/
         public readonly string Host;
+        /**<summary>The port number.</summary>*/
         public readonly int Port;
+        /**<summary>Indicates if SSL should be used.</summary>*/
         public readonly bool SSL;
 
         /// <summary>
-        /// Port defaulted to 143 and SSL to false.
+        /// Port set to 143 and SSL set to false.
         /// </summary>
+        /// <param name="pHost">The host name.</param>
         public cServer(string pHost)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
@@ -23,8 +27,10 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Port defaulted to 143 if SSL is false, otherwise 993.
+        /// Port set to 143 if SSL is false, otherwise set to 993.
         /// </summary>
+        /// <param name="pHost">The host name.</param>
+        /// <param name="pSSL">Indicates if SSL should be used.</param>
         public cServer(string pHost, bool pSSL)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
@@ -33,6 +39,12 @@ namespace work.bacome.imapclient
             SSL = pSSL;
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="pHost">The host name.</param>
+        /// <param name="pPort">The port number.</param>
+        /// <param name="pSSL">Indicates if SSL should be used.</param>
         public cServer(string pHost, int pPort, bool pSSL)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));

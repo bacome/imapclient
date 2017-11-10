@@ -5,18 +5,18 @@ using System.Collections.ObjectModel;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A collection of <see cref="cNamespace"/> instances.
+    /// A collection of <see cref="cNamespace"/> instances. See <see cref="cIMAPClient.Namespaces"/>.
     /// </summary>
     public class cNamespaces
     {
         /**<summary>A collection of personal <see cref="cNamespace"/> instances.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> Personal;
-        /**<summary>A collection of other user <see cref="cNamespace"/> instances.</summary>*/
+        /**<summary>A collection of 'other user' <see cref="cNamespace"/> instances.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> OtherUsers;
         /**<summary>A collection of shared <see cref="cNamespace"/> instances.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> Shared;
 
-        public cNamespaces(cIMAPClient pClient, IList<cNamespaceName> pPersonal, IList<cNamespaceName> pOtherUsers, IList<cNamespaceName> pShared)
+        internal cNamespaces(cIMAPClient pClient, IList<cNamespaceName> pPersonal, IList<cNamespaceName> pOtherUsers, IList<cNamespaceName> pShared)
         {
             if (pPersonal != null && pPersonal.Count == 0) throw new ArgumentOutOfRangeException(nameof(pPersonal));
             if (pOtherUsers != null && pOtherUsers.Count == 0) throw new ArgumentOutOfRangeException(nameof(pOtherUsers));

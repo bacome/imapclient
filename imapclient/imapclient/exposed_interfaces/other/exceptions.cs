@@ -5,32 +5,31 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Base class for all of the library's custom exceptions
+    /// Base class for all of the library's custom exceptions.
     /// </summary>
     public abstract class cIMAPException : Exception
     {
-        public cIMAPException() { }
-        public cIMAPException(string pMessage) : base(pMessage) { }
-        public cIMAPException(string pMessage, Exception pInnerException) : base(pMessage, pInnerException) { }
+        internal cIMAPException() { }
+        internal cIMAPException(string pMessage) : base(pMessage) { }
+        internal cIMAPException(string pMessage, Exception pInnerException) : base(pMessage, pInnerException) { }
     }
 
     /// <summary>
-    /// Thrown on a 'NO' command response
+    /// Thrown on a 'NO' command response.
     /// </summary>
     public class cUnsuccessfulCompletionException : cIMAPException
     {
         /// <summary>
-        /// The response text associated with the 'NO'
+        /// The response text associated with the 'NO'.
         /// </summary>
         public readonly cResponseText ResponseText;
 
         /// <summary>
-        /// If set an indication that ignoring these capabilities may have prevented the exception
+        /// If set this is an indication that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
         /// </summary>
-        /// <see cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
-        public cUnsuccessfulCompletionException(cResponseText pResponseText, fCapabilities pTryIgnoring, cTrace.cContext pContext)
+        internal cUnsuccessfulCompletionException(cResponseText pResponseText, fCapabilities pTryIgnoring, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
             TryIgnoring = pTryIgnoring;
@@ -48,25 +47,21 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown on a 'NO' or 'BAD' command response
+    /// Thrown on a 'NO' or 'BAD' command response. (Thrown on a 'NO' only when the 'NO' is an unexpected possibility.)
     /// </summary>
-    /// <remarks>
-    /// Thrown on a 'NO' only when the 'NO' is an unexpected possibility
-    /// </remarks>
     public class cProtocolErrorException : cIMAPException
     {
         /// <summary>
-        /// The command result associated with the response
+        /// The command result associated with the response.
         /// </summary>
         public readonly cCommandResult CommandResult;
 
         /// <summary>
-        /// If set an indication that ignoring these capabilities may have prevented the exception
+        /// If set this is an indication that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
         /// </summary>
-        /// <see cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
-        public cProtocolErrorException(cCommandResult pCommandResult, fCapabilities pTryIgnoring, cTrace.cContext pContext)
+        internal cProtocolErrorException(cCommandResult pCommandResult, fCapabilities pTryIgnoring, cTrace.cContext pContext)
         {
             CommandResult = pCommandResult;
             TryIgnoring = pTryIgnoring;
@@ -84,17 +79,16 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// thrown when something happens that shouldn't (according to my reading of the rfcs)
+    /// Thrown when something happens that shouldn't (according to my reading of the RFCs).
     /// </summary>
     public class cUnexpectedServerActionException : cIMAPException
     {
         /// <summary>
-        /// If set an indication that ignoring these capabilities may have prevented the exception
+        /// If set this is an indication that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
         /// </summary>
-        /// <see cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
-        public cUnexpectedServerActionException(fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
+        internal cUnexpectedServerActionException(fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
         {
             TryIgnoring = pTryIgnoring;
             pContext.TraceError("{0}: {1}", nameof(cUnexpectedServerActionException), pMessage);
@@ -110,27 +104,27 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// thrown when something happens that shouldn't
+    /// Thrown when something happens that shouldn't.
     /// </summary>
     public class cInternalErrorException : cIMAPException
     {
-        public cInternalErrorException() { }
-        public cInternalErrorException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInternalErrorException));
-        public cInternalErrorException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cInternalErrorException), pMessage);
-        public cInternalErrorException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cInternalErrorException), pMessage, pInner);
+        internal cInternalErrorException() { }
+        internal cInternalErrorException(cTrace.cContext pContext) => pContext.TraceError(nameof(cInternalErrorException));
+        internal cInternalErrorException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cInternalErrorException), pMessage);
+        internal cInternalErrorException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cInternalErrorException), pMessage, pInner);
     }
 
     /// <summary>
-    /// thrown when the server said bye at connect
+    /// Thrown when the server said bye at connect.
     /// </summary>
     public class cConnectByeException : cIMAPException
     {
         /// <summary>
-        /// The response text associated with the 'BYE'
+        /// The response text associated with the 'BYE'.
         /// </summary>
         public readonly cResponseText ResponseText;
 
-        public cConnectByeException(cResponseText pResponseText, cTrace.cContext pContext)
+        internal cConnectByeException(cResponseText pResponseText, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
             pContext.TraceError("{0}: {1}", nameof(cConnectByeException), pResponseText);
@@ -146,16 +140,16 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// thrown when the server rejects connection but suggests that we try a different server
+    /// Thrown when the server rejects connection but suggests that we try a different server.
     /// </summary>
     public class cHomeServerReferralException : cIMAPException
     {
         /// <summary>
-        /// The response text associated with the rejection
+        /// The response text associated with the rejection.
         /// </summary>
         public readonly cResponseText ResponseText;
 
-        public cHomeServerReferralException(cResponseText pResponseText, cTrace.cContext pContext)
+        internal cHomeServerReferralException(cResponseText pResponseText, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
             pContext.TraceError("{0}: {1}", nameof(cHomeServerReferralException), pResponseText);
@@ -171,12 +165,12 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// thrown when the server didn't accept the credentials provided
+    /// Thrown when the server didn't accept the credentials provided.
     /// </summary>
     public class cCredentialsException : cIMAPException
     {
         /// <summary>
-        /// Filled in if there was an explicit rejection of the credetials by the server
+        /// Has a value if there was an explicit rejection of the credetials by the server.
         /// </summary>
         public readonly cResponseText ResponseText;
 
