@@ -166,6 +166,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// <para>If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
         /// </remarks>
         public event PropertyChangedEventHandler PropertyChanged
         {
@@ -177,8 +178,9 @@ namespace work.bacome.imapclient
         /// Fired when the server sends response text.
         /// </summary>
         /// <remarks>
-        /// <para>The IMAP spec says that <see cref="eResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="cResponseTextEventArgs.Text"/></para>
+        /// <para>The IMAP spec says that <see cref="eResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="cResponseTextEventArgs.Text"/>.</para>
         /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// <para>If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
         /// </remarks>
         public event EventHandler<cResponseTextEventArgs> ResponseText
         {
@@ -192,6 +194,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <para>Intended for debugging the library.</para>
         /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// <para>If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
         /// </remarks>
         public event EventHandler<cNetworkReceiveEventArgs> NetworkReceive
         {
@@ -205,6 +208,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <para>Intended for debugging the library.</para>
         /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// <para>If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
         /// </remarks>
         public event EventHandler<cNetworkSendEventArgs> NetworkSend
         {
@@ -217,6 +221,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// <para>If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
         /// </remarks>
         public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged
         {
@@ -229,6 +234,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// <para>If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
         /// </remarks>
         public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery
         {
@@ -241,6 +247,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// <para>If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
         /// </remarks>
         public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged
         {
@@ -249,12 +256,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Fired when an exception is raised by a callback or event.
+        /// Fired when an exception is raised by a callback or event handler.
         /// </summary>
         /// <remarks>
         /// <para>The library ignores the exception other than raising this event.</para>
         /// <para>Intended for debugging consuming software.</para>
         /// <para>If <see cref="SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
+        /// <para>If an exception is raised in an event handler of this event the exception is ignored.</para>
         /// </remarks>
         public event EventHandler<cCallbackExceptionEventArgs> CallbackException
         {

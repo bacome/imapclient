@@ -54,7 +54,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// An ID (RFC 2971) field/ value collection.
+    /// An ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ServerId"/>.
     /// </summary>
     public class cId : iId
     {
@@ -79,9 +79,19 @@ namespace work.bacome.imapclient
         /**<summary>Gets the fields that are in the collection.</summary>*/
         public IEnumerable<string> Keys => mDictionary.Keys;
 
-        /**<summary>Determines whether the collection contains a field.</summary>*/
+        /// <summary>
+        /// Determines whether the collection contains a field.
+        /// </summary>
+        /// <param name="pKey"></param>
+        /// <returns></returns>
         public bool ContainsKey(string pKey) => mDictionary.ContainsKey(pKey);
-        /**<summary>Retrieves the field value.</summary>*/
+
+        /// <summary>
+        /// Retrieves the field value.
+        /// </summary>
+        /// <param name="pKey"></param>
+        /// <param name="rValue"></param>
+        /// <returns></returns>
         public bool TryGetValue(string pKey, out string rValue) => mDictionary.TryGetValue(pKey, out rValue);
 
         /**<summary>Returns an enumerator that iterates through the field/ values.</summary>*/
@@ -131,6 +141,14 @@ namespace work.bacome.imapclient
     /// <summary>
     /// An ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ClientIdUTF8"/>. This class defines an implicit conversion from <see cref="cIdDictionary"/> and enforces the limits of RFC 2971.
     /// </summary>
+    /// <remarks>
+    /// <para>The limits of RFC 2971 are;</para>
+    /// <list type="bullet">
+    /// <item><description>Field names no longer than 30 bytes.</description></item>
+    /// <item><description>Values no longer than 1024 bytes.</description></item>
+    /// <item><description>No more than 30 field/ value pairs.</description></item>
+    /// </list>
+    /// </remarks>
     public class cClientIdUTF8 : cId
     {
         /// <summary>
@@ -165,6 +183,14 @@ namespace work.bacome.imapclient
     /// <summary>
     /// An ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ClientId"/>. This class defines an implicit conversion from <see cref="cIdDictionary"/> and enforces the limits of RFC 2971.
     /// </summary>
+    /// <remarks>
+    /// <para>The limits of RFC 2971 are;</para>
+    /// <list type="bullet">
+    /// <item><description>Field names no longer than 30 bytes.</description></item>
+    /// <item><description>Values no longer than 1024 bytes.</description></item>
+    /// <item><description>No more than 30 field/ value pairs.</description></item>
+    /// </list>
+    /// </remarks>
     public class cClientId : cClientIdUTF8
     {
         /// <summary>
@@ -249,24 +275,65 @@ namespace work.bacome.imapclient
         IEnumerable<string> IReadOnlyDictionary<string, string>.Values => mDictionary.Values;
         IEnumerable<string> IReadOnlyDictionary<string, string>.Keys => mDictionary.Keys;
 
-        /**<summary>Determines whether the dictionary contains a field.</summary>*/
+        /// <summary>
+        /// Determines whether the dictionary contains a field.
+        /// </summary>
+        /// <param name="pKey"></param>
+        /// <returns></returns>
         public bool ContainsKey(string pKey) => mDictionary.ContainsKey(pKey);
-        /**<summary>Retrieves the field value.</summary>*/
+
+        /// <summary>
+        /// Retrieves the field value.
+        /// </summary>
+        /// <param name="pKey"></param>
+        /// <param name="rValue"></param>
+        /// <returns></returns>
         public bool TryGetValue(string pKey, out string rValue) => mDictionary.TryGetValue(pKey, out rValue);
-        /**<summary>Adds the specified field/ value to the dictionary.</summary>*/
+
+        /// <summary>
+        /// Adds the specified field/ value to the dictionary.
+        /// </summary>
+        /// <param name="pKey"></param>
+        /// <param name="pValue"></param>
         public void Add(string pKey, string pValue) => mDictionary.Add(pKey, pValue);
-        /**<summary>Removes the field from the dictionary.</summary>*/
+
+        /// <summary>
+        /// Removes the field from the dictionary.
+        /// </summary>
+        /// <param name="pKey"></param>
+        /// <returns></returns>
         public bool Remove(string pKey) => mDictionary.Remove(pKey);
 
-        /**<summary>Determines whether the dictionary contains a field/ value pair.</summary>*/
+        /// <summary>
+        /// Determines whether the dictionary contains a field/ value pair.
+        /// </summary>
+        /// <param name="pEntry"></param>
+        /// <returns></returns>
         public bool Contains(KeyValuePair<string, string> pEntry) => ((ICollection<KeyValuePair<string, string>>)mDictionary).Contains(pEntry);
-        /**<summary>Adds the specified field/ value to the dictionary.</summary>*/
+
+        /// <summary>
+        /// Adds the specified field/ value to the dictionary.
+        /// </summary>
+        /// <param name="pEntry"></param>
         public void Add(KeyValuePair<string, string> pEntry) => mDictionary.Add(pEntry.Key, pEntry.Value);
-        /**<summary>Removes the field/ value pair from the dictionary.</summary>*/
+
+        /// <summary>
+        /// Removes the field/ value pair from the dictionary.
+        /// </summary>
+        /// <param name="pEntry"></param>
+        /// <returns></returns>
         public bool Remove(KeyValuePair<string, string> pEntry) => mDictionary.Remove(pEntry.Key);
-        /**<summary>Removes all field/ value pairs from the dictionary.</summary>*/
+
+        /// <summary>
+        /// Removes all field/ value pairs from the dictionary.
+        /// </summary>
         public void Clear() => mDictionary.Clear();
-        /**<summary>Copies the field/ value pairs to an array.</summary>*/
+
+        /// <summary>
+        /// Copies the field/ value pairs to an array.
+        /// </summary>
+        /// <param name="pArray"></param>
+        /// <param name="pIndex"></param>
         public void CopyTo(KeyValuePair<string, string>[] pArray, int pIndex) => ((ICollection<KeyValuePair<string, string>>)mDictionary).CopyTo(pArray, pIndex);
 
         /**<summary>Returns an enumerator that iterates through the field/ values.</summary>*/

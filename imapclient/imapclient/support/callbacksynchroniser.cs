@@ -101,14 +101,14 @@ namespace work.bacome.imapclient
                 get
                 {
                     sEventSubscriptionCounts lResult = new sEventSubscriptionCounts();
-                    lResult.PropertyChanged = PropertyChanged?.GetInvocationList().Length ?? 0;
-                    lResult.ResponseText = ResponseText?.GetInvocationList().Length ?? 0;
-                    lResult.NetworkReceive = NetworkReceive?.GetInvocationList().Length ?? 0;
-                    lResult.NetworkSend = NetworkSend?.GetInvocationList().Length ?? 0;
-                    lResult.MailboxPropertyChanged = MailboxPropertyChanged?.GetInvocationList().Length ?? 0;
-                    lResult.MailboxMessageDelivery = MailboxMessageDelivery?.GetInvocationList().Length ?? 0;
-                    lResult.MessagePropertyChanged = MessagePropertyChanged?.GetInvocationList().Length ?? 0;
-                    lResult.CallbackException = CallbackException?.GetInvocationList().Length ?? 0;
+                    lResult.PropertyChangedSubscriptionCount = PropertyChanged?.GetInvocationList().Length ?? 0;
+                    lResult.ResponseTextSubscriptionCount = ResponseText?.GetInvocationList().Length ?? 0;
+                    lResult.NetworkReceiveSubscriptionCount = NetworkReceive?.GetInvocationList().Length ?? 0;
+                    lResult.NetworkSendSubscriptionCount = NetworkSend?.GetInvocationList().Length ?? 0;
+                    lResult.MailboxPropertyChangedSubscriptionCount = MailboxPropertyChanged?.GetInvocationList().Length ?? 0;
+                    lResult.MailboxMessageDeliverySubscriptionCount = MailboxMessageDelivery?.GetInvocationList().Length ?? 0;
+                    lResult.MessagePropertyChangedSubscriptionCount = MessagePropertyChanged?.GetInvocationList().Length ?? 0;
+                    lResult.CallbackExceptionSubscriptionCount = CallbackException?.GetInvocationList().Length ?? 0;
                     return lResult;
 
                 }
@@ -525,18 +525,29 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// Counts of event subscriptions. See <see cref="cIMAPClient.EventSubscriptionCounts"/>.
+        /// </summary>
         public struct sEventSubscriptionCounts
         {
-            public int PropertyChanged;
-            public int ResponseText;
-            public int NetworkReceive;
-            public int NetworkSend;
-            public int MailboxPropertyChanged;
-            public int MailboxMessageDelivery;
-            public int MessagePropertyChanged;
-            public int CallbackException;
+            /**<summary>The number of subscriptions to the <see cref="cIMAPClient.PropertyChanged"/> event.</summary>*/
+            public int PropertyChangedSubscriptionCount;
+            /**<summary>The number of subscriptions to the <see cref="cIMAPClient.ResponseText"/> event.</summary>*/
+            public int ResponseTextSubscriptionCount;
+            /**<summary>The number of subscriptions to the <see cref="cIMAPClient.NetworkReceive"/> event.</summary>*/
+            public int NetworkReceiveSubscriptionCount;
+            /**<summary>The number of subscriptions to the <see cref="cIMAPClient.NetworkSend"/> event.</summary>*/
+            public int NetworkSendSubscriptionCount;
+            /**<summary>The number of subscriptions to the <see cref="cIMAPClient.MailboxPropertyChanged"/> event. The count includes one for each <see cref="cMailbox"/> with some <see cref="cMailbox.PropertyChanged"/> subscriptions.</summary>*/
+            public int MailboxPropertyChangedSubscriptionCount;
+            /**<summary>The number of subscriptions to the <see cref="cIMAPClient.MailboxMessageDelivery"/> event. The count includes one for each <see cref="cMailbox"/> with some <see cref="cMailbox.MessageDelivery"/> subscriptions.</summary>*/
+            public int MailboxMessageDeliverySubscriptionCount;
+            /**<summary>The number of subscriptions to the <see cref="cIMAPClient.MessagePropertyChanged"/> event. The count includes one for each <see cref="cMessage"/> with some <see cref="cMessage.PropertyChanged"/> subscriptions.</summary>*/
+            public int MessagePropertyChangedSubscriptionCount;
+            /**<summary>The number of subscriptions to the <see cref="cIMAPClient.CallbackException"/> event.</summary>*/
+            public int CallbackExceptionSubscriptionCount;
 
-            public override string ToString() => $"{nameof(PropertyChanged)}:{PropertyChanged} {nameof(ResponseText)}:{ResponseText} {nameof(NetworkReceive)}:{NetworkReceive} {nameof(NetworkSend)}:{NetworkSend} {nameof(MailboxPropertyChanged)}:{MailboxPropertyChanged} {nameof(MailboxMessageDelivery)}:{MailboxMessageDelivery} {nameof(MessagePropertyChanged)}:{MessagePropertyChanged} {nameof(CallbackException)}:{CallbackException}";
+            public override string ToString() => $"{nameof(PropertyChanged)}:{PropertyChangedSubscriptionCount} {nameof(ResponseText)}:{ResponseTextSubscriptionCount} {nameof(NetworkReceive)}:{NetworkReceiveSubscriptionCount} {nameof(NetworkSend)}:{NetworkSendSubscriptionCount} {nameof(MailboxPropertyChanged)}:{MailboxPropertyChangedSubscriptionCount} {nameof(MailboxMessageDelivery)}:{MailboxMessageDeliverySubscriptionCount} {nameof(MessagePropertyChanged)}:{MessagePropertyChangedSubscriptionCount} {nameof(CallbackException)}:{CallbackExceptionSubscriptionCount}";
         }
     }
 }

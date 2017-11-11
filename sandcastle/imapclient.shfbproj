@@ -41,12 +41,11 @@
     <VisibleItems>InheritedMembers, InheritedFrameworkMembers, ProtectedInternalAsProtected</VisibleItems>
     <RootNamespaceTitle>work.bacome</RootNamespaceTitle>
     <NamespaceSummaries>
-      <NamespaceSummaryItem name="work.bacome.async" isDocumented="True" xmlns="">A collection of generic async tools.</NamespaceSummaryItem>
-      <NamespaceSummaryItem name="work.bacome.imapclient (Group)" isGroup="True" isDocumented="True" xmlns="">The IMAP Client.</NamespaceSummaryItem>
-      <NamespaceSummaryItem name="work.bacome.imapclient" isDocumented="True" xmlns="">The main IMAP Client components.</NamespaceSummaryItem>
-      <NamespaceSummaryItem name="work.bacome.imapclient.support" isDocumented="True" xmlns="">Some support IMAP Client components.</NamespaceSummaryItem>
-      <NamespaceSummaryItem name="work.bacome.trace" isDocumented="True" xmlns="">Tools for tracing.</NamespaceSummaryItem>
-    </NamespaceSummaries>
+      <NamespaceSummaryItem name="work.bacome.async" isDocumented="True">Generic async tools.</NamespaceSummaryItem>
+<NamespaceSummaryItem name="work.bacome.imapclient (Group)" isGroup="True" isDocumented="True">IMAP Client components.</NamespaceSummaryItem>
+<NamespaceSummaryItem name="work.bacome.imapclient" isDocumented="True">The main IMAP Client components.</NamespaceSummaryItem>
+<NamespaceSummaryItem name="work.bacome.imapclient.support" isDocumented="True">Some IMAP Client support components.</NamespaceSummaryItem>
+<NamespaceSummaryItem name="work.bacome.trace" isDocumented="True">Tools for tracing.</NamespaceSummaryItem></NamespaceSummaries>
     <WarnOnMissingSourceContext>False</WarnOnMissingSourceContext>
     <WorkingPath>..\..\..\Sandcastle\imapclient\Work\</WorkingPath>
   </PropertyGroup>

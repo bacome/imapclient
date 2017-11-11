@@ -84,6 +84,7 @@
             </summary>
             <remarks>
             <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            <para>If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
             </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.ResponseText">
@@ -91,8 +92,9 @@
             Fired when the server sends response text.
             </summary>
             <remarks>
-            <para>The IMAP spec says that <see cref="F:work.bacome.imapclient.eResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="F:work.bacome.imapclient.cResponseTextEventArgs.Text"/></para>
+            <para>The IMAP spec says that <see cref="F:work.bacome.imapclient.eResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="F:work.bacome.imapclient.cResponseTextEventArgs.Text"/>.</para>
             <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            <para>If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
             </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.NetworkReceive">
@@ -102,6 +104,7 @@
             <remarks>
             <para>Intended for debugging the library.</para>
             <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            <para>If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
             </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.NetworkSend">
@@ -111,6 +114,7 @@
             <remarks>
             <para>Intended for debugging the library.</para>
             <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            <para>If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
             </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MailboxPropertyChanged">
@@ -119,6 +123,7 @@
             </summary>
             <remarks>
             <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            <para>If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
             </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MailboxMessageDelivery">
@@ -127,6 +132,7 @@
             </summary>
             <remarks>
             <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            <para>If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
             </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MessagePropertyChanged">
@@ -135,16 +141,18 @@
             </summary>
             <remarks>
             <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            <para>If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
             </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.CallbackException">
             <summary>
-            Fired when an exception is raised by a callback or event.
+            Fired when an exception is raised by a callback or event handler.
             </summary>
             <remarks>
             <para>The library ignores the exception other than raising this event.</para>
             <para>Intended for debugging consuming software.</para>
             <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            <para>If an exception is raised in an event handler of this event the exception is ignored.</para>
             </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.Timeout">
@@ -503,6 +511,35 @@
             <summary>
             Poll the server using IMAP CHECK (if a mailbox is selected) and IMAP NOOP to see if the server has pending notifications for us.
             </summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cIMAPClient.sEventSubscriptionCounts">
+            <summary>
+            Counts of event subscriptions. See <see cref="P:work.bacome.imapclient.cIMAPClient.EventSubscriptionCounts"/>.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cIMAPClient.sEventSubscriptionCounts.PropertyChangedSubscriptionCount">
+            <summary>The number of subscriptions to the <see cref="E:work.bacome.imapclient.cIMAPClient.PropertyChanged"/> event.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cIMAPClient.sEventSubscriptionCounts.ResponseTextSubscriptionCount">
+            <summary>The number of subscriptions to the <see cref="E:work.bacome.imapclient.cIMAPClient.ResponseText"/> event.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cIMAPClient.sEventSubscriptionCounts.NetworkReceiveSubscriptionCount">
+            <summary>The number of subscriptions to the <see cref="E:work.bacome.imapclient.cIMAPClient.NetworkReceive"/> event.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cIMAPClient.sEventSubscriptionCounts.NetworkSendSubscriptionCount">
+            <summary>The number of subscriptions to the <see cref="E:work.bacome.imapclient.cIMAPClient.NetworkSend"/> event.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cIMAPClient.sEventSubscriptionCounts.MailboxPropertyChangedSubscriptionCount">
+            <summary>The number of subscriptions to the <see cref="E:work.bacome.imapclient.cIMAPClient.MailboxPropertyChanged"/> event. The count includes one for each <see cref="T:work.bacome.imapclient.cMailbox"/> with some <see cref="E:work.bacome.imapclient.cMailbox.PropertyChanged"/> subscriptions.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cIMAPClient.sEventSubscriptionCounts.MailboxMessageDeliverySubscriptionCount">
+            <summary>The number of subscriptions to the <see cref="E:work.bacome.imapclient.cIMAPClient.MailboxMessageDelivery"/> event. The count includes one for each <see cref="T:work.bacome.imapclient.cMailbox"/> with some <see cref="E:work.bacome.imapclient.cMailbox.MessageDelivery"/> subscriptions.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cIMAPClient.sEventSubscriptionCounts.MessagePropertyChangedSubscriptionCount">
+            <summary>The number of subscriptions to the <see cref="E:work.bacome.imapclient.cIMAPClient.MessagePropertyChanged"/> event. The count includes one for each <see cref="T:work.bacome.imapclient.cMessage"/> with some <see cref="E:work.bacome.imapclient.cMessage.PropertyChanged"/> subscriptions.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cIMAPClient.sEventSubscriptionCounts.CallbackExceptionSubscriptionCount">
+            <summary>The number of subscriptions to the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient._Tests(work.bacome.trace.cTrace.cContext)">
             <summary>
@@ -904,6 +941,78 @@
             The set of server capabilities that are in use. This is the recognised elements of <see cref="F:work.bacome.imapclient.cCapabilities.Capabilities"/> less the <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>.
             </summary>
         </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.LoginDisabled">
+            <summary>IMAP LOGINDISABLED</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.StartTLS">
+            <summary>IMAP STARTTLS</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.Idle">
+            <summary>RFC 2177 - IDLE</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.LiteralPlus">
+            <summary>RFC 7888 - LITERAL+</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.LiteralMinus">
+            <summary>RFC 7888 - LITERAL-</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.Enable">
+            <summary>RFC 5161 - ENABLE</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.UTF8Accept">
+            <summary>RFC 6855 - UTF8=ACCEPT</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.UTF8Only">
+            <summary>RFC 6855 - UTF8=ONLY</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.ListExtended">
+            <summary>RFC 5258 - LIST extensions</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.Children">
+            <summary>RFC 3348 - Child mailboxes</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.SASL_IR">
+            <summary>RFC 4959 - SASL initial client response</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.LoginReferrals">
+            <summary>RFC 2221 - Login referrals</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.MailboxReferrals">
+            <summary>RFC 2193 - Mailbox referrals</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.Id">
+            <summary>RFC 2971 - Id</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.Binary">
+            <summary>RFC 3516 - Binary content</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.Namespace">
+            <summary>RFC 2342 - Namespaces</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.ListStatus">
+            <summary>RFC 5819 - STATUS information in LIST</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.SpecialUse">
+            <summary>RFC 6154 - Special use</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.ESearch">
+            <summary>RFC 4731 - ESEARCH</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.Sort">
+            <summary>RFC 5256 - SORT</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.SortDisplay">
+            <summary>RFC 5256 - SORT=DISPLAY</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.ESort">
+            <summary>RFC 5267 - ESORT</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.CondStore">
+            <summary>RFC 7162 - CONDSTORE</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cCapabilities.QResync">
+            <summary>RFC 7162 - QRESYNC</summary>
+        </member>
         <member name="T:work.bacome.imapclient.cCredentials">
             <summary>
             A set of credentials to use during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. See <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/>.
@@ -1200,6 +1309,81 @@
             Gets a summary of the feedback.
             </summary>
             <returns>The summary.</returns>
+        </member>
+        <member name="T:work.bacome.imapclient.support.cBinarySizes">
+            <summary>
+            A mapping from a message part to a size in bytes for message parts that can be fetched using the IMAP BINARY command (RFC 3516). See <see cref="P:work.bacome.imapclient.support.iMessageHandle.BinarySizes"/>.
+            </summary>
+            <remarks>
+            <para>Using the <see cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/> or <see cref="M:work.bacome.imapclient.cAttachment.SaveSizeInBytes"/> methods may create values in this map.</para>
+            </remarks>
+        </member>
+        <member name="F:work.bacome.imapclient.support.cBinarySizes.None">
+            <summary>
+            An empty mapping.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.support.cBinarySizes.op_Addition(work.bacome.imapclient.support.cBinarySizes,work.bacome.imapclient.support.cBinarySizes)">
+            <summary>
+            Combine two maps into one.
+            </summary>
+            <param name="pA">The first map to combine.</param>
+            <param name="pB">The second map to combine.</param>
+            <returns>A map containing the union of the two specified maps.</returns>
+        </member>
+        <member name="T:work.bacome.imapclient.support.iMessageHandle">
+            <summary>
+            Represents a message in an internal message cache.
+            </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.Cache">
+            <summary>The cache that this message belongs to.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.CacheSequence">
+            <summary>The sequence of this message in the cache.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.Expunged">
+            <summary>True if the server indicated that the message has been expunged.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.Attributes">
+            <summary>The message attributes that the cache currently contains for this message.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.Body">
+            <summary>The IMAP BODY data - i.e. the <see cref="P:work.bacome.imapclient.support.iMessageHandle.BodyStructure"/> data without the extension data (see <see cref="T:work.bacome.imapclient.cBodyPartExtensionData"/>).</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.BodyStructure">
+            <summary>The IMAP BODYSTRUCTURE data.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.Envelope">
+            <summary>The IMAP ENVELOPE data.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.Flags">
+            <summary>The IMAP FLAGS data.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.ModSeq">
+            <summary>The RFC 7162 modification sequence. This may be zero if the mailbox does not support CONDSTORE.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.Received">
+            <summary>The IMAP INTERNALDATE data.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.Size">
+            <summary>The IMAP RFC822.SIZE data.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.UID">
+            <summary>The UID of the message.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.HeaderFields">
+            <summary>A (possibly partial) set of header fields for the message.</summary>
+        </member>
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.BinarySizes">
+            <summary>A (possiblity partial) set of binary part sizes for the message.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.support.iMessageHandle.Contains(work.bacome.imapclient.cCacheItems)">
+            <summary>
+            
+            </summary>
+            <param name="pItems"></param>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.support.cCharset">
             <summary>
@@ -1934,35 +2118,24 @@
         <member name="M:work.bacome.imapclient.cAttachment.SaveAsAsync(System.String,work.bacome.imapclient.cBodyFetchConfiguration)">
             <summary>The async version of <see cref="M:work.bacome.imapclient.cAttachment.SaveAs(System.String,work.bacome.imapclient.cBodyFetchConfiguration)"/>.</summary>
         </member>
-        <member name="T:work.bacome.imapclient.cBinarySizes">
-            <summary>
-            <para>A mapping from a message part to a size in bytes for message parts that can be fetched using the IMAP BINARY command (RFC 3516).</para>
-            <para>Using the <see cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/> or <see cref="M:work.bacome.imapclient.cAttachment.SaveSizeInBytes"/> methods may create values in this map.</para>
-            </summary>
-        </member>
-        <member name="F:work.bacome.imapclient.cBinarySizes.None">
-            <summary>
-            An empty mapping.
-            </summary>
-        </member>
         <member name="T:work.bacome.imapclient.eBodyPartTypeCode">
             <summary>
-            The MIME type of a message part. RFC 2045.
+            The RFC 2045 MIME type of a message part.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.eDispositionTypeCode">
             <summary>
-            The disposition type of a message part. RFC 2183.
+            The RFC 2183 disposition type of a message part.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.eTextBodyPartSubTypeCode">
             <summary>
-            The MIME subtype of a text message part. RFC 2045.
+            The RFC 2045 MIME subtype of a text message part.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.eMultiPartBodySubTypeCode">
             <summary>
-            The MIME subtype of a multipart message part. RFC 2045.
+            The RFC 2045 MIME subtype of a multipart message part.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.kMimeType">
@@ -1977,7 +2150,9 @@
         </member>
         <member name="T:work.bacome.imapclient.cBodyPart">
             <summary>
-            <para>Represents a message part.</para>
+            Represents a message part.
+            </summary>
+            <remarks>
             <para>Will be one of;
             <list type="bullet">
             <item><description><see cref="T:work.bacome.imapclient.cMultiPartBody"/></description></item>
@@ -1986,7 +2161,7 @@
             <item><description><see cref="T:work.bacome.imapclient.cTextBodyPart"/></description></item>
             </list>
             </para>
-            </summary>
+            </remarks>
         </member>
         <member name="F:work.bacome.imapclient.cBodyPart.Type">
             <summary>
@@ -2062,14 +2237,17 @@
         </member>
         <member name="T:work.bacome.imapclient.cBodyPartExtensionData">
             <summary>
-            <para>IMAP bodystructure extension data.</para>
+            IMAP bodystructure extension data.
+            </summary>
+            <remarks>
             <para>Will be one of;
             <list type="bullet">
             <item><description><see cref="T:work.bacome.imapclient.cMultiPartExtensionData"/></description></item>
             <item><description><see cref="T:work.bacome.imapclient.cSinglePartExtensionData"/></description></item>
             </list>
             </para>
-            </summary>
+            <para>See </para>
+            </remarks>
         </member>
         <member name="F:work.bacome.imapclient.cBodyPartExtensionData.Disposition">
             <summary>
@@ -3039,28 +3217,61 @@
         </member>
         <member name="T:work.bacome.imapclient.cMessageFlags">
             <summary>
-            <para>A unique message flag collection.</para>
-            <para>Message flag names are not case sensitive.</para>
+            A unique read-only message flag collection. Message flag names are case insensitive. See <see cref="P:work.bacome.imapclient.cMailbox.ForUpdatePermanentFlags"/> and <see cref="P:work.bacome.imapclient.cMailbox.ReadOnlyPermanentFlags"/>.
             </summary>
         </member>
+        <member name="M:work.bacome.imapclient.cMessageFlags.#ctor(work.bacome.imapclient.cMessageFlagList)">
+            <summary>
+            Makes a read-only wrapper around the specified list.
+            </summary>
+            <param name="pFlags"></param>
+        </member>
         <member name="M:work.bacome.imapclient.cMessageFlags.Contains(System.String)">
-            <summary>Returns true if the collection contains the flag (case insensitive).</summary>
+            <summary>
+            Returns true if the collection contains the flag (case insensitive).
+            </summary>
+            <param name="pFlag"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessageFlags.Contains(System.String[])">
-            <summary>Returns true if the collection contains all the flags (case insensitive).</summary>
+            <summary>
+            Returns true if the collection contains all the flags (case insensitive).
+            </summary>
+            <param name="pFlags"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessageFlags.Contains(System.Collections.Generic.IEnumerable{System.String})">
-            <summary>Returns true if the collection contains all the flags (case insensitive).</summary>
+            <summary>
+            Returns true if the collection contains all the flags (case insensitive).
+            </summary>
+            <param name="pFlags"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessageFlags.SymmetricDifference(work.bacome.imapclient.cMessageFlags,System.String[])">
-            <summary>Gets the symmetric difference between this and the specified collection of flags (case insensitive).</summary>
+            <summary>
+            Gets the symmetric difference between this and the specified collection of flags ignoring an optional set of flags (case insensitive).
+            </summary>
+            <param name="pOther">The collection to do the symmetric difference with.</param>
+            <param name="pExcept">The flags to ignore when doing the difference.</param>
+            <returns>The symmetric difference less the flags to ignore.</returns>
+        </member>
+        <member name="P:work.bacome.imapclient.cMessageFlags.Count">
+            <summary>Gets the number of flags in the collection.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cMessageFlags.GetEnumerator">
+            <summary>Returns an enumerator that iterates through the flags.</summary>
         </member>
         <member name="T:work.bacome.imapclient.cSettableFlags">
             <summary>
-            <para>A unique settable message flag collection.</para>
-            <para>Message flag names are not case sensitive.</para>
-            <para>(It is not possible to set the \Recent flag.)</para>
+            A unique read-only settable message flag collection. Message flag names are case insensitive. (The <see cref="F:work.bacome.imapclient.kMessageFlagName.Recent"/> flag is not a settable flag.) Used in store APIs.
             </summary>
+            <remarks>
+            See 
+            <see cref="M:work.bacome.imapclient.cMessage.Store(work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cSettableFlags,System.Nullable{System.UInt64})"/>,
+            <see cref="M:work.bacome.imapclient.cMailbox.UIDStore(work.bacome.imapclient.cUID,work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cSettableFlags,System.Nullable{System.UInt64})"/>,
+            <see cref="M:work.bacome.imapclient.cMailbox.UIDStore(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cUID},work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cSettableFlags,System.Nullable{System.UInt64})"/>,
+            <see cref="M:work.bacome.imapclient.cIMAPClient.Store(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cMessage},work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cSettableFlags,System.Nullable{System.UInt64})"/>
+            </remarks>
         </member>
         <member name="F:work.bacome.imapclient.cSettableFlags.None">
             <summary>An empty set of flags.</summary> 
@@ -3089,18 +3300,62 @@
         <member name="F:work.bacome.imapclient.cSettableFlags.Submitted">
             <summary>A collection of flags containing just the $Submitted flag.</summary> 
         </member>
+        <member name="M:work.bacome.imapclient.cSettableFlags.#ctor(System.String[])">
+            <summary>
+            Creates a duplicate free copy of the specified flags, validating that they are settable flags. May throw if the specified flags aren't valid IMAP settable flags.
+            </summary>
+            <param name="pFlags"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cSettableFlags.#ctor(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Creates a duplicate free copy of the specified flags, validating that they are settable flags. May throw if the specified flags aren't valid IMAP settable flags.
+            </summary>
+            <param name="pFlags"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cSettableFlags.#ctor(work.bacome.imapclient.cSettableFlagList)">
+            <summary>
+            Copies the specified settable flag list.
+            </summary>
+            <param name="pFlags"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cSettableFlags.op_Implicit(work.bacome.imapclient.cSettableFlagList)~work.bacome.imapclient.cSettableFlags">
+            <summary>
+            Copies the specified settable flag list.
+            </summary>
+            <param name="pFlags"></param>
+        </member>
         <member name="T:work.bacome.imapclient.cFetchableFlags">
             <summary>
-            <para>A unique fetchable message flag collection.</para>
-            <para>Message flag names are not case sensitive.</para>
-            <para>(It is not possible to set \Recent flag however it is possible to receive it set on a message.)</para>
+            A unique read-only fetchable message flag collection. Message flag names are case insensitive. (The <see cref="F:work.bacome.imapclient.kMessageFlagName.CreateNewIsPossible"/> flag is not a fetchable flag.) See <see cref="P:work.bacome.imapclient.cMessage.Flags"/>, <see cref="P:work.bacome.imapclient.cMailbox.MessageFlags"/>, <see cref="M:work.bacome.imapclient.cFilter.FlagsContain(work.bacome.imapclient.cFetchableFlags)"/>.
             </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cFetchableFlags.#ctor(System.String[])">
+            <summary>
+            Creates a duplicate free copy of the specified flags, validating that they are fetchable flags. May throw if the specified flags aren't valid IMAP fetchable flags.
+            </summary>
+            <param name="pFlags"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cFetchableFlags.#ctor(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Creates a duplicate free copy of the specified flags, validating that they are fetchable flags. May throw if the specified flags aren't valid IMAP fetchable flags.
+            </summary>
+            <param name="pFlags"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cFetchableFlags.#ctor(work.bacome.imapclient.cFetchableFlagList)">
+            <summary>
+            Copies the specified fetchable flag list.
+            </summary>
+            <param name="pFlags"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cFetchableFlags.op_Implicit(work.bacome.imapclient.cFetchableFlagList)~work.bacome.imapclient.cFetchableFlags">
+            <summary>
+            Copies the specified fetchable flag list.
+            </summary>
+            <param name="pFlags"></param>
         </member>
         <member name="T:work.bacome.imapclient.cPermanentFlags">
             <summary>
-            <para>A unique permanent flag collection.</para>
-            <para>Flag names are not case sensitive.</para>
-            <para>(May contain the \* flag indicating that it is possible to create new flags by setting them.)</para>
+            A unique read-only permanent flag collection. Flag names are not case sensitive. May contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.CreateNewIsPossible"/> flag indicating that it is possible to create new flags by setting them.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cMessageFlagList">
@@ -3663,7 +3918,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cId">
             <summary>
-            An ID (RFC 2971) field/ value collection.
+            An ID (RFC 2971) field/ value collection. See <see cref="P:work.bacome.imapclient.cIMAPClient.ServerId"/>.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cId.#ctor(System.Collections.Generic.IDictionary{System.String,System.String})">
@@ -3682,10 +3937,19 @@
             <summary>Gets the fields that are in the collection.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cId.ContainsKey(System.String)">
-            <summary>Determines whether the collection contains a field.</summary>
+            <summary>
+            Determines whether the collection contains a field.
+            </summary>
+            <param name="pKey"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cId.TryGetValue(System.String,System.String@)">
-            <summary>Retrieves the field value.</summary>
+            <summary>
+            Retrieves the field value.
+            </summary>
+            <param name="pKey"></param>
+            <param name="rValue"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cId.GetEnumerator">
             <summary>Returns an enumerator that iterates through the field/ values.</summary>
@@ -3730,6 +3994,14 @@
             <summary>
             An ID (RFC 2971) field/ value collection. See <see cref="P:work.bacome.imapclient.cIMAPClient.ClientIdUTF8"/>. This class defines an implicit conversion from <see cref="T:work.bacome.imapclient.cIdDictionary"/> and enforces the limits of RFC 2971.
             </summary>
+            <remarks>
+            <para>The limits of RFC 2971 are;</para>
+            <list type="bullet">
+            <item><description>Field names no longer than 30 bytes.</description></item>
+            <item><description>Values no longer than 1024 bytes.</description></item>
+            <item><description>No more than 30 field/ value pairs.</description></item>
+            </list>
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cClientIdUTF8.#ctor(System.Collections.Generic.IDictionary{System.String,System.String})">
             <summary>
@@ -3748,6 +4020,14 @@
             <summary>
             An ID (RFC 2971) field/ value collection. See <see cref="P:work.bacome.imapclient.cIMAPClient.ClientId"/>. This class defines an implicit conversion from <see cref="T:work.bacome.imapclient.cIdDictionary"/> and enforces the limits of RFC 2971.
             </summary>
+            <remarks>
+            <para>The limits of RFC 2971 are;</para>
+            <list type="bullet">
+            <item><description>Field names no longer than 30 bytes.</description></item>
+            <item><description>Values no longer than 1024 bytes.</description></item>
+            <item><description>No more than 30 field/ value pairs.</description></item>
+            </list>
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cClientId.#ctor(System.Collections.Generic.IDictionary{System.String,System.String})">
             <summary>
@@ -3786,31 +4066,65 @@
             <summary>Gets the fields that are in the dictionary.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.ContainsKey(System.String)">
-            <summary>Determines whether the dictionary contains a field.</summary>
+            <summary>
+            Determines whether the dictionary contains a field.
+            </summary>
+            <param name="pKey"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.TryGetValue(System.String,System.String@)">
-            <summary>Retrieves the field value.</summary>
+            <summary>
+            Retrieves the field value.
+            </summary>
+            <param name="pKey"></param>
+            <param name="rValue"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.Add(System.String,System.String)">
-            <summary>Adds the specified field/ value to the dictionary.</summary>
+            <summary>
+            Adds the specified field/ value to the dictionary.
+            </summary>
+            <param name="pKey"></param>
+            <param name="pValue"></param>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.Remove(System.String)">
-            <summary>Removes the field from the dictionary.</summary>
+            <summary>
+            Removes the field from the dictionary.
+            </summary>
+            <param name="pKey"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.Contains(System.Collections.Generic.KeyValuePair{System.String,System.String})">
-            <summary>Determines whether the dictionary contains a field/ value pair.</summary>
+            <summary>
+            Determines whether the dictionary contains a field/ value pair.
+            </summary>
+            <param name="pEntry"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.Add(System.Collections.Generic.KeyValuePair{System.String,System.String})">
-            <summary>Adds the specified field/ value to the dictionary.</summary>
+            <summary>
+            Adds the specified field/ value to the dictionary.
+            </summary>
+            <param name="pEntry"></param>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.Remove(System.Collections.Generic.KeyValuePair{System.String,System.String})">
-            <summary>Removes the field/ value pair from the dictionary.</summary>
+            <summary>
+            Removes the field/ value pair from the dictionary.
+            </summary>
+            <param name="pEntry"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.Clear">
-            <summary>Removes all field/ value pairs from the dictionary.</summary>
+            <summary>
+            Removes all field/ value pairs from the dictionary.
+            </summary>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.CopyTo(System.Collections.Generic.KeyValuePair{System.String,System.String}[],System.Int32)">
-            <summary>Copies the field/ value pairs to an array.</summary>
+            <summary>
+            Copies the field/ value pairs to an array.
+            </summary>
+            <param name="pArray"></param>
+            <param name="pIndex"></param>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.GetEnumerator">
             <summary>Returns an enumerator that iterates through the field/ values.</summary>

@@ -489,7 +489,7 @@ namespace work.bacome.imapclient
         /// <para>The defined flags in the mailbox.</para>
         /// <para>Null if the mailbox has never been selected.</para>
         /// </summary>
-        public cMessageFlags MessageFlags
+        public cFetchableFlags MessageFlags
         {
             get
             {

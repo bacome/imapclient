@@ -97,31 +97,55 @@ namespace work.bacome.imapclient
             EffectiveCapabilities = lCapabilities & ~pIgnoreCapabilities;
         }
 
+        /**<summary>IMAP LOGINDISABLED</summary>*/
         public bool LoginDisabled => (EffectiveCapabilities & fCapabilities.logindisabled) != 0;
+        /**<summary>IMAP STARTTLS</summary>*/
         public bool StartTLS => (EffectiveCapabilities & fCapabilities.starttls) != 0;
+        /**<summary>RFC 2177 - IDLE</summary>*/
         public bool Idle => (EffectiveCapabilities & fCapabilities.idle) != 0;
+        /**<summary>RFC 7888 - LITERAL+</summary>*/
         public bool LiteralPlus => (EffectiveCapabilities & fCapabilities.literalplus) != 0;
+        /**<summary>RFC 7888 - LITERAL-</summary>*/
         public bool LiteralMinus => (EffectiveCapabilities & fCapabilities.literalminus) != 0;
+        /**<summary>RFC 5161 - ENABLE</summary>*/
         public bool Enable => (EffectiveCapabilities & fCapabilities.enable) != 0;
+        /**<summary>RFC 6855 - UTF8=ACCEPT</summary>*/
         public bool UTF8Accept => (EffectiveCapabilities & fCapabilities.utf8accept) != 0;
+        /**<summary>RFC 6855 - UTF8=ONLY</summary>*/
         public bool UTF8Only => (EffectiveCapabilities & fCapabilities.utf8only) != 0;
+        /**<summary>RFC 5258 - LIST extensions</summary>*/
         public bool ListExtended => (EffectiveCapabilities & fCapabilities.listextended) != 0;
+        /**<summary>RFC 3348 - Child mailboxes</summary>*/
         public bool Children => (EffectiveCapabilities & fCapabilities.children) != 0;
+        /**<summary>RFC 4959 - SASL initial client response</summary>*/
         public bool SASL_IR => (EffectiveCapabilities & fCapabilities.sasl_ir) != 0;
+        /**<summary>RFC 2221 - Login referrals</summary>*/
         public bool LoginReferrals => (EffectiveCapabilities & fCapabilities.loginreferrals) != 0;
+        /**<summary>RFC 2193 - Mailbox referrals</summary>*/
         public bool MailboxReferrals => (EffectiveCapabilities & fCapabilities.mailboxreferrals) != 0;
+        /**<summary>RFC 2971 - Id</summary>*/
         public bool Id => (EffectiveCapabilities & fCapabilities.id) != 0;
+        /**<summary>RFC 3516 - Binary content</summary>*/
         public bool Binary => (EffectiveCapabilities & fCapabilities.binary) != 0;
+        /**<summary>RFC 2342 - Namespaces</summary>*/
         public bool Namespace => (EffectiveCapabilities & fCapabilities.namespaces) != 0;
+        /**<summary>RFC 5819 - STATUS information in LIST</summary>*/
         public bool ListStatus => (EffectiveCapabilities & fCapabilities.liststatus) != 0;
+        /**<summary>RFC 6154 - Special use</summary>*/
         public bool SpecialUse => (EffectiveCapabilities & fCapabilities.specialuse) != 0;
+        /**<summary>RFC 4731 - ESEARCH</summary>*/
         public bool ESearch => (EffectiveCapabilities & fCapabilities.esearch) != 0;
+        /**<summary>RFC 5256 - SORT</summary>*/
         public bool Sort => (EffectiveCapabilities & fCapabilities.sort) != 0;
+        /**<summary>RFC 5256 - SORT=DISPLAY</summary>*/
         public bool SortDisplay => (EffectiveCapabilities & fCapabilities.sortdisplay) != 0;
+        /**<summary>RFC 5267 - ESORT</summary>*/
         public bool ESort => (EffectiveCapabilities & fCapabilities.esort) != 0;
         //public bool ThreadOrderedSubject => (EffectiveCapabilities & fCapabilities.threadorderedsubject) != 0;
         //public bool ThreadReferences => (EffectiveCapabilities & fCapabilities.threadreferences) != 0;
+        /**<summary>RFC 7162 - CONDSTORE</summary>*/
         public bool CondStore => (EffectiveCapabilities & fCapabilities.condstore) != 0;
+        /**<summary>RFC 7162 - QRESYNC</summary>*/
         public bool QResync => (EffectiveCapabilities & fCapabilities.qresync) != 0;
 
         public override string ToString() => $"{nameof(cCapabilities)}({Capabilities},{AuthenticationMechanisms},{EffectiveCapabilities})";

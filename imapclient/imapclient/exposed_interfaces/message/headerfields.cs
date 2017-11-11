@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly cBytes Value;
 
-        public cHeaderField(string pName, cBytes pValue)
+        internal cHeaderField(string pName, cBytes pValue)
         {
             Name = pName ?? throw new ArgumentNullException(nameof(pName));
             Value = pValue ?? throw new ArgumentNullException(nameof(pValue));

@@ -8,7 +8,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The MIME type of a message part. RFC 2045.
+    /// The RFC 2045 MIME type of a message part.
     /// </summary>
     public enum eBodyPartTypeCode
     {
@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The disposition type of a message part. RFC 2183.
+    /// The RFC 2183 disposition type of a message part.
     /// </summary>
     public enum eDispositionTypeCode
     {
@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The MIME subtype of a text message part. RFC 2045.
+    /// The RFC 2045 MIME subtype of a text message part.
     /// </summary>
     public enum eTextBodyPartSubTypeCode
     {
@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The MIME subtype of a multipart message part. RFC 2045.
+    /// The RFC 2045 MIME subtype of a multipart message part.
     /// </summary>
     public enum eMultiPartBodySubTypeCode
     {
@@ -73,7 +73,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// <para>Represents a message part.</para>
+    /// Represents a message part.
+    /// </summary>
+    /// <remarks>
     /// <para>Will be one of;
     /// <list type="bullet">
     /// <item><description><see cref="cMultiPartBody"/></description></item>
@@ -82,7 +84,7 @@ namespace work.bacome.imapclient
     /// <item><description><see cref="cTextBodyPart"/></description></item>
     /// </list>
     /// </para>
-    /// </summary>
+    /// </remarks>
     public abstract class cBodyPart
     {
         /// <summary>
@@ -105,7 +107,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly eBodyPartTypeCode TypeCode;
 
-        public cBodyPart(string pType, string pSubType, cSection pSection)
+        internal cBodyPart(string pType, string pSubType, cSection pSection)
         {
             Type = pType ?? throw new ArgumentNullException(nameof(pType));
             SubType = pSubType ?? throw new ArgumentNullException(nameof(pSubType));
@@ -209,15 +211,23 @@ namespace work.bacome.imapclient
         }
     }
 
+    // TODO ;?; // fill in the "see"
+
+
+
+
     /// <summary>
-    /// <para>IMAP bodystructure extension data.</para>
+    /// IMAP bodystructure extension data.
+    /// </summary>
+    /// <remarks>
     /// <para>Will be one of;
     /// <list type="bullet">
     /// <item><description><see cref="cMultiPartExtensionData"/></description></item>
     /// <item><description><see cref="cSinglePartExtensionData"/></description></item>
     /// </list>
     /// </para>
-    /// </summary>
+    /// <para>See </para>
+    /// </remarks>
     public abstract class cBodyPartExtensionData
     {
         /// <summary>
@@ -240,7 +250,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly cBodyPartExtensionValues ExtensionValues;
 
-        public cBodyPartExtensionData(cBodyPartDisposition pDisposition, cStrings pLanguages, string pLocation, cBodyPartExtensionValues pExtensionValues)
+        internal cBodyPartExtensionData(cBodyPartDisposition pDisposition, cStrings pLanguages, string pLocation, cBodyPartExtensionValues pExtensionValues)
         {
             Disposition = pDisposition;
             Languages = pLanguages;
