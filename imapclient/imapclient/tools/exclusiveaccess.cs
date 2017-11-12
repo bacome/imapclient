@@ -6,12 +6,14 @@ using work.bacome.trace;
 namespace work.bacome.async
 {
     /// <summary>
-    /// Instances provide a mechanism to control exclusive access using a <see cref="cToken"/>.
+    /// Instances provide a mechanism to control exclusive access using token objects and block objects.
     /// </summary>
     /// <remarks>
-    /// <para>Each instance is allocated a unique sequence number (within the exe) that is used in <see cref="cTrace"/> messages.</para>
-    /// <para>The granting of exclusive access may be blocked by the previous issue of blocks. Several blocks can be on issue at the same time.</para>
-    /// <para>Blocks will not be issued while exclusive access is granted.</para>
+    /// <para>The granting of exclusive access is done by issuing a token object. To release the exclusive access the token object is disposed.</para>
+    /// <para>The issuing of token objects may be blocked by the previous issue of block objects. Several block objects can be on issue at the same time. Blocks are released by disposing the block objects.</para>
+    /// <para>Block objects will not be issued while a token object is issued. Token objects will not be issued while block objects are issued (nor while a token object is issued).</para>
+    /// <para>Instance sequence numbers (specified in the constructor) can be used by external code to ensure that the program's exclusive accesses are being taken in a consistent order (to avoid deadlocks).</para>
+    /// <para>Each instance of this class is allocated a unique instance number that is used in <see cref="cTrace"/> messages to aid debugging.</para>
     /// <para>Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
     /// </remarks>
     public sealed class cExclusiveAccess : IDisposable
@@ -52,7 +54,7 @@ namespace work.bacome.async
         /// </summary>
         /// <param name="pMC">Controls the execution of the method.</param>
         /// <param name="pParentContext">Context for trace messages.</param>
-        /// <returns>An object that represents a block on the issue exclusive access.</returns>
+        /// <returns>An object that represents a block on the issue of exclusive access.</returns>
         public async Task<cBlock> GetBlockAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cExclusiveAccess), nameof(GetBlockAsync), mName, mInstance);
@@ -67,8 +69,8 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// May return a disposable object that represents a block on the issue exclusive access.
-        /// This method will return a block if the exclusive access is not currently issued, otherwise it will return null.
+        /// May return a disposable object that represents a block on the issue of exclusive access.
+        /// This method will return a block if the exclusive access is not currently granted, otherwise it will return null.
         /// Dispose the returned object to release the block.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
@@ -88,6 +90,8 @@ namespace work.bacome.async
         /// This method will not complete until the exclusive access is granted or it throws due to <see cref="cMethodControl"/>.
         /// Dispose the object to release the exclusive access.
         /// </summary>
+        /// <remarks>
+        /// </remarks>
         /// <param name="pMC">Controls the execution of the method.</param>
         /// <param name="pParentContext">Context for trace messages.</param>
         /// <returns>An object that represents a grant of exclusive access.</returns>

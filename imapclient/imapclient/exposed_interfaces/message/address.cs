@@ -5,20 +5,20 @@ using System.Collections.ObjectModel;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// <para>Represents one email address.</para>
-    /// <para>May be an individual address (<see cref="cEmailAddress"/>) or a group address (<see cref="cGroupAddress"/>).</para>
+    /// Represents an email address. May be an individual address (<see cref="cEmailAddress"/>) or a group address (<see cref="cGroupAddress"/>).
     /// </summary>
     public abstract class cAddress
     {
         /// <summary>
-        /// The display name for this address.
+        /// Gets the display name for this address.
         /// </summary>
         public readonly cCulturedString DisplayName;
-        public cAddress(cCulturedString pDisplayName) { DisplayName = pDisplayName; }
+
+        internal cAddress(cCulturedString pDisplayName) { DisplayName = pDisplayName; }
     }
 
     /// <summary>
-    /// <para>Represents a set of <see cref="cAddress"/>.</para>
+    /// <para>A read-only collection of addresses.</para>
     /// </summary>
     public class cAddresses : ReadOnlyCollection<cAddress>
     {
@@ -32,7 +32,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly string DisplaySortString;
 
-        public cAddresses(string pSortString, string pDisplaySortString, IList<cAddress> pAddresses) : base(pAddresses)
+        internal cAddresses(string pSortString, string pDisplaySortString, IList<cAddress> pAddresses) : base(pAddresses)
         {
             SortString = pSortString ?? throw new ArgumentNullException(nameof(pSortString));
             DisplaySortString = pDisplaySortString ?? throw new ArgumentNullException(nameof(pDisplaySortString));
@@ -63,7 +63,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly string DisplayAddress; // host name should be converted from punycode (rfc 3492) [currently not implemented] // TODO
 
-        public cEmailAddress(cCulturedString pDisplayName, string pAddress, string pDisplayAddress) : base(pDisplayName)
+        internal cEmailAddress(cCulturedString pDisplayName, string pAddress, string pDisplayAddress) : base(pDisplayName)
         {
             Address = pAddress;
             DisplayAddress = pDisplayAddress;
@@ -82,7 +82,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly ReadOnlyCollection<cEmailAddress> Addresses;
 
-        public cGroupAddress(cCulturedString pDisplayName, IList<cEmailAddress> pAddresses) : base(pDisplayName)
+        internal cGroupAddress(cCulturedString pDisplayName, IList<cEmailAddress> pAddresses) : base(pDisplayName)
         {
             Addresses = new ReadOnlyCollection<cEmailAddress>(pAddresses);
         }

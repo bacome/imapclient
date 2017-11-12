@@ -98,6 +98,7 @@
     <Compile Include="exposed_interfaces\other\childmailboxes.cs" />
     <Compile Include="exposed_interfaces\message\messageproperties.cs" />
     <Compile Include="support\charsets.cs" />
+    <Compile Include="support\filter.cs" />
     <Compile Include="support\mailboxpropertiies.cs" />
     <Compile Include="exposed_interfaces\support\lsubflags.cs" />
     <Compile Include="exposed_interfaces\support\messagecache.cs" />

@@ -6,11 +6,13 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents a filter that can be passed to the server to restrict the set of messages returned. Use the static members of the class to create cFilter instances and the &amp;, | and ! operators to combine the filters together. 
+    /// Represents a filter that can be passed to the server to filter the set of messages in a mailbox.
+    /// Only the messages that 'pass through' the filter are returned to the client.
+    /// Use the static members and operators of this class to create and combine filters. 
     /// </summary>
     public abstract class cFilter
     {
-        /** <summary>A filter that passes everything through.</summary>*/
+        /** <summary>A filter that passes all messages through.</summary>*/
         public static readonly cFilter All = new cAll();
 
         /** <summary>Use this member to generate message sequence number filters.</summary>*/
@@ -103,17 +105,41 @@ namespace work.bacome.imapclient
             UIDValidity = pParams.UIDValidity;
         }
 
-        /** <summary>Use this member to generate filters on the message's flags.</summary>*/
+        /// <summary>
+        /// Returns a filter that passes through only messages with the specified flags.
+        /// </summary>
+        /// <param name="pFlags">The flags that the message should have set.</param>
+        /// <returns>A message flags filter.</returns>
         public static cFilter FlagsContain(params string[] pFlags) => new cFilterFlagsContain(pFlags);
-        /** <summary>Use this member to generate filters on the message's flags.</summary>*/
+
+        /// <summary>
+        /// Returns a filter that passes through only messages with the specified flags.
+        /// </summary>
+        /// <param name="pFlags">The flags that the message should have set.</param>
+        /// <returns>A message flags filter.</returns>
         public static cFilter FlagsContain(cFetchableFlags pFlags) => new cFilterFlagsContain(pFlags);
 
-        /** <summary>Use this member to generate filters on the contents of a specified header field.</summary>*/
+        /// <summary>
+        /// Returns a filter that passes through messages with the specified content in the specified header field.
+        /// </summary>
+        /// <param name="pHeaderField">The header field name. (Header field names are case insensitive.)</param>
+        /// <param name="pContains">The content to check for.</param>
+        /// <returns>A header field contents filter.</returns>
         public static cFilter HeaderFieldContains(string pHeaderField, string pContains) => new cFilterHeaderFieldContains(pHeaderField, pContains);
-        /** <summary>Use this member to generate filters on the existence of a specified header field.</summary>*/
+
+        /// <summary>
+        /// Returns a filter that passes through messages with the specified header field.
+        /// </summary>
+        /// <param name="pHeaderField">The header field name. (Header field names are case insensitive.)</param>
+        /// <returns>A header field existence filter.</returns>
         public static cFilter HasHeaderField(string pHeaderField) => new cFilterHeaderFieldContains(pHeaderField, string.Empty);
 
-        /** <summary>Use this operator to combine two filters.</summary>*/
+        /// <summary>
+        /// Returns a filter that is the logical AND of the two specified filters.
+        /// </summary>
+        /// <param name="pA">One of the filters to AND.</param>
+        /// <param name="pB">One of the filters to AND.</param>
+        /// <returns>An AND combination filters.</returns>
         public static cFilter operator &(cFilter pA, cFilter pB)
         {
             if (pA == null) throw new ArgumentNullException(nameof(pA));
@@ -138,9 +164,19 @@ namespace work.bacome.imapclient
             return new cFilterAnd(lItems);
         }
 
-        /** <summary>Use this operator to combine two filters.</summary>*/
+        /// <summary>
+        /// Returns a filter that is the logical OR of the two specified filters.
+        /// </summary>
+        /// <param name="pA">One of the filters to OR.</param>
+        /// <param name="pB">One of the filters to OR.</param>
+        /// <returns>An OR combination filter.</returns>
         public static cFilter operator |(cFilter pA, cFilter pB) => new cFilterOr(pA, pB);
-        /** <summary>Use this operator to negate a filter.</summary>*/
+
+        /// <summary>
+        /// Returns a filter that is the logical NOT of the specified filter.
+        /// </summary>
+        /// <param name="pNot">The filter to invert.</param>
+        /// <returns>The logical NOT of the specified filter.</returns>
         public static cFilter operator !(cFilter pNot) => new cFilterNot(pNot);
 
         private class cAll : cFilter
@@ -148,7 +184,6 @@ namespace work.bacome.imapclient
             public cAll() { }
         }
 
-        /** <summary>Intended for internal use.</summary>*/
         protected struct sCTorParams
         {
             public bool ContainsMessageHandles;
@@ -156,72 +191,29 @@ namespace work.bacome.imapclient
         }
     }
 
-    /** <summary>The type of message sequence number comparison. Intended for internal use.</summary>*/
-    public enum eFilterHandleRelativity { less, lessequal, greaterequal, greater }
-    /** <summary>The message attribute being filtered by. Intended for internal use.</summary>*/
-    public enum eFilterPart { bcc, body, cc, from, subject, text, to }
-    /** <summary>The message date being filtered by. Intended for internal use.</summary>*/
-    public enum eFilterDate { arrival, sent }
-    /** <summary>The type of date comparison. Intended for internal use.</summary>*/
-    public enum eFilterDateCompare { before, on, since }
-    /** <summary>The type of size comparison. Intended for internal use.</summary>*/
-    public enum eFilterSizeCompare { smaller, larger }
-    /** <summary>The end of the message sequence. Intended for internal use.</summary>*/
-    public enum eFilterEnd { first, last }
-
     // suppress the warnings about not implementing == properly: here == is being used as an expression builder
     #pragma warning disable 660
     #pragma warning disable 661
 
     /// <summary>
-    /// <para>Represents a message sequence number message filter.</para>
-    /// <para>Use the static member <see cref="cFilter.MSN"/> to generate these.</para>
-    /// </summary>
-    public class cFilterMSNRelativity : cFilter
-    {
-        public readonly iMessageHandle Handle;
-        public readonly eFilterEnd? End;
-        public readonly int Offset;
-        public readonly eFilterHandleRelativity Relativity;
-
-        public cFilterMSNRelativity(iMessageHandle pHandle, eFilterHandleRelativity pRelativity) : base(true, pHandle.Cache.UIDValidity)
-        {
-            Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
-            End = null;
-            Offset = 0;
-            Relativity = pRelativity;
-        }
-
-        public cFilterMSNRelativity(cFilterMSNOffset pOffset, eFilterHandleRelativity pRelativity)
-        {
-            End = pOffset.End;
-            Handle = pOffset.Handle;
-            Offset = pOffset.Offset;
-            Relativity = pRelativity;
-        }
-
-        public override string ToString() => $"{nameof(cFilterMSNRelativity)}({UIDValidity},{Handle},{End},{Offset},{Relativity})";
-    }
-
-    /// <summary>
-    /// <para>Specifies an offset from a specific message or from the first message in the mailbox or from the last message in the mailbox.</para>
-    /// <para>Use <see cref="cMessage.MSNOffset(int)"/> or the static members <see cref="cFilter.First"/> or <see cref="cFilter.Last"/> to generate instances of this class.</para>
-    /// <para>Use instances of this class with the <see cref="cFilter.MSN"/> static member to generate message sequence number filters.</para>
+    /// Specifies an offset from a specific message or from the first message in the mailbox or from the last message in the mailbox.
+    /// Use <see cref="cMessage.MSNOffset(int)"/> or the static members <see cref="cFilter.First"/> or <see cref="cFilter.Last"/> to generate instances of this class.
+    /// Use instances of this class with the <see cref="cFilter.MSN"/> static member to generate message sequence number filters.
     /// </summary>
     public class cFilterMSNOffset
     {
-        public readonly iMessageHandle Handle;
-        public readonly eFilterEnd? End;
-        public readonly int Offset;
+        internal readonly iMessageHandle Handle;
+        internal readonly eFilterEnd? End;
+        internal readonly int Offset;
 
-        public cFilterMSNOffset(iMessageHandle pHandle, int pOffset)
+        internal cFilterMSNOffset(iMessageHandle pHandle, int pOffset)
         {
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
             End = null; 
             Offset = pOffset;
         }
 
-        public cFilterMSNOffset(eFilterEnd pEnd, int pOffset)
+        internal cFilterMSNOffset(eFilterEnd pEnd, int pOffset)
         {
             Handle = null;
             End = pEnd;
@@ -232,14 +224,14 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// <para>Represents either the first message in the mailbox or the last message in the mailbox.</para>
-    /// <para>Use the <see cref="cFilter.First"/> and <see cref="cFilter.Last"/> static instances of this class to generate offsets to use with the static <see cref="cFilter.MSN"/> to generate message sequence number filters.</para>
+    /// Represents either the first message in the mailbox or the last message in the mailbox.
+    /// Use the <see cref="cFilter.First"/> and <see cref="cFilter.Last"/> static instances of this class to generate offsets to use with the static <see cref="cFilter.MSN"/> to generate message sequence number filters.
     /// </summary>
     public class cFilterEnd
     {
-        public readonly eFilterEnd End;
+        internal readonly eFilterEnd End;
 
-        public cFilterEnd(eFilterEnd pEnd) { End = pEnd; }
+        internal cFilterEnd(eFilterEnd pEnd) { End = pEnd; }
 
         /// <summary>
         /// Generates an offset from the end of the mailbox that the instance represents.
@@ -252,57 +244,103 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// <para>The operators defined on this class generate message sequence number filters.</para>
-    /// <para>Use the <see cref="cFilter.MSN"/> static instance of this class to do this.</para>
-    /// <para>The operators defined are; &lt;, &gt;, &lt;= and &gt;=.</para>
-    /// <para>Use the operators to compare to a <see cref="cMessage"/> or to a <see cref="cFilterMSNOffset"/>.</para>
+    /// The operators defined on this class generate message sequence number filters.
+    /// Use the <see cref="cFilter.MSN"/> static instance of this class to do this.
     /// </summary>
     public class cFilterMSN
     {
-        public cFilterMSN() { }
+        internal cFilterMSN() { }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a sequence number less than the sequence number of the specified message.
+        /// </summary>
+        /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
+        /// <param name="pMessage">The message to get the sequence number from.</param>
+        /// <returns>A message sequence number filter.</returns>
         public static cFilter operator <(cFilterMSN pFilterMSN, cMessage pMessage)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
             return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.less);
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a sequence number greater than the sequence number of the specified message.
+        /// </summary>
+        /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
+        /// <param name="pMessage">The message to get the sequence number from.</param>
+        /// <returns>A message sequence number filter.</returns>
         public static cFilter operator >(cFilterMSN pFilterMSN, cMessage pMessage)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
             return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.greater);
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a sequence number less than the specified sequence number offset.
+        /// </summary>
+        /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
+        /// <param name="pOffset">The sequence number offset.</param>
+        /// <returns>A message sequence number filter.</returns>
         public static cFilter operator <(cFilterMSN pFilterMSN, cFilterMSNOffset pOffset)
         {
             if (pOffset == null) throw new ArgumentNullException(nameof(pOffset));
             return new cFilterMSNRelativity(pOffset, eFilterHandleRelativity.less);
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a sequence number greater than the specified sequence number offset.
+        /// </summary>
+        /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
+        /// <param name="pOffset">The sequence number offset.</param>
+        /// <returns>A message sequence number filter.</returns>
         public static cFilter operator >(cFilterMSN pFilterMSN, cFilterMSNOffset pOffset)
         {
             if (pOffset == null) throw new ArgumentNullException(nameof(pOffset));
             return new cFilterMSNRelativity(pOffset, eFilterHandleRelativity.greater);
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a sequence number less than or equal to the sequence number of the specified message.
+        /// </summary>
+        /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
+        /// <param name="pMessage">The message to get the sequence number from.</param>
+        /// <returns>A message sequence number filter.</returns>
         public static cFilter operator <=(cFilterMSN pFilterMSN, cMessage pMessage)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
             return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.lessequal);
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a sequence number greater than or equal to the sequence number of the specified message.
+        /// </summary>
+        /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
+        /// <param name="pMessage">The message to get the sequence number from.</param>
+        /// <returns>A message sequence number filter.</returns>
         public static cFilter operator >=(cFilterMSN pFilterMSN, cMessage pMessage)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
             return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.greaterequal);
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a sequence number less than or equal to the specified sequence number offset.
+        /// </summary>
+        /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
+        /// <param name="pOffset">The sequence number offset.</param>
+        /// <returns>A message sequence number filter.</returns>
         public static cFilter operator <=(cFilterMSN pFilterMSN, cFilterMSNOffset pOffset)
         {
             if (pOffset == null) throw new ArgumentNullException(nameof(pOffset));
             return new cFilterMSNRelativity(pOffset, eFilterHandleRelativity.lessequal);
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a sequence number greater than or equal to the specified sequence number offset.
+        /// </summary>
+        /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
+        /// <param name="pOffset">The sequence number offset.</param>
+        /// <returns>A message sequence number filter.</returns>
         public static cFilter operator >=(cFilterMSN pFilterMSN, cFilterMSNOffset pOffset)
         {
             if (pOffset == null) throw new ArgumentNullException(nameof(pOffset));
@@ -311,26 +349,18 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// <para>Represents a UID message filter.</para>
-    /// <para>Use the static member <see cref="cFilter.UID"/> to generate these.</para>
-    /// </summary>
-    public class cFilterUIDIn : cFilter
-    {
-        public readonly cSequenceSet SequenceSet;
-        public cFilterUIDIn(uint pUIDValidity, cSequenceSet pSequenceSet) : base(pUIDValidity) { SequenceSet = pSequenceSet ?? throw new ArgumentNullException(nameof(pSequenceSet)); }
-        public override string ToString() => $"{nameof(cFilterUIDIn)}({UIDValidity},{SequenceSet})";
-    }
-
-    /// <summary>
-    /// <para>The operators defined on this class generate message UID filters.</para>
-    /// <para>Use the <see cref="cFilter.UID"/> static instance of this class to do this.</para>
-    /// <para>The operators defined are; &lt;, &gt;, &lt;=, &gt;=, == and !=.</para>
-    /// <para>Use the operators to compare to a <see cref="cUID"/> instance.</para>
+    /// The operators defined on this class generate message UID filters. Use the <see cref="cFilter.UID"/> static instance of this class to do this.
     /// </summary>
     public class cFilterUID
     {
-        public cFilterUID() { }
+        internal cFilterUID() { }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a UID less than the specified UID.
+        /// </summary>
+        /// <param name="pFilterUID"><see cref="cFilter.UID"/></param>
+        /// <param name="pUID">The UID.</param>
+        /// <returns>A UID filter.</returns>
         public static cFilter operator <(cFilterUID pFilterUID, cUID pUID)
         {
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
@@ -338,6 +368,12 @@ namespace work.bacome.imapclient
             return new cFilterUIDIn(pUID.UIDValidity, new cSequenceSet(1, pUID.UID - 1));
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a UID greater than the specified UID.
+        /// </summary>
+        /// <param name="pFilterUID"><see cref="cFilter.UID"/></param>
+        /// <param name="pUID">The UID.</param>
+        /// <returns>A UID filter.</returns>
         public static cFilter operator >(cFilterUID pFilterUID, cUID pUID)
         {
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
@@ -345,24 +381,48 @@ namespace work.bacome.imapclient
             return new cFilterUIDIn(pUID.UIDValidity, new cSequenceSet(pUID.UID + 1, uint.MaxValue));
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a UID less than or equal to the specified UID.
+        /// </summary>
+        /// <param name="pFilterUID"><see cref="cFilter.UID"/></param>
+        /// <param name="pUID">The UID.</param>
+        /// <returns>A UID filter.</returns>
         public static cFilter operator <=(cFilterUID pFilterUID, cUID pUID)
         {
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             return new cFilterUIDIn(pUID.UIDValidity, new cSequenceSet(1, pUID.UID));
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a UID greater than or equal to the specified UID.
+        /// </summary>
+        /// <param name="pFilterUID"><see cref="cFilter.UID"/></param>
+        /// <param name="pUID">The UID.</param>
+        /// <returns>A UID filter.</returns>
         public static cFilter operator >=(cFilterUID pFilterUID, cUID pUID)
         {
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             return new cFilterUIDIn(pUID.UIDValidity, new cSequenceSet(pUID.UID, uint.MaxValue));
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a UID equal to the specified UID.
+        /// </summary>
+        /// <param name="pFilterUID"><see cref="cFilter.UID"/></param>
+        /// <param name="pUID">The UID.</param>
+        /// <returns>A UID filter.</returns>
         public static cFilter operator ==(cFilterUID pFilterUID, cUID pUID)
         {
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             return new cFilterUIDIn(pUID.UIDValidity, new cSequenceSet(pUID.UID));
         }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a UID different to the specified UID.
+        /// </summary>
+        /// <param name="pFilterUID"><see cref="cFilter.UID"/></param>
+        /// <param name="pUID">The UID.</param>
+        /// <returns>A UID filter.</returns>
         public static cFilter operator !=(cFilterUID pFilterUID, cUID pUID)
         {
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
@@ -371,31 +431,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// <para>Represents a message flag filter.</para>
-    /// <para>Use the static methods <see cref="cFilter.FlagsContain(cFetchableFlags)"/> or <see cref="cFilter.FlagsContain(string[])"/> to generate these.</para>
-    /// </summary>
-    public class cFilterFlagsContain : cFilter
-    {
-        public readonly cFetchableFlags Flags;
-
-        public cFilterFlagsContain(params string[] pFlags)
-        {
-            if (pFlags == null || pFlags.Length == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-            Flags = new cFetchableFlags(pFlags);
-        }
-
-        public cFilterFlagsContain(cFetchableFlags pFlags)
-        {
-            if (pFlags == null || pFlags.Count == 0) throw new ArgumentOutOfRangeException(nameof(pFlags));
-            Flags = pFlags;
-        }
-
-        public override string ToString() => $"{nameof(cFilterFlagsContain)}({Flags})";
-    }
-
-    /// <summary>
-    /// <para>Represents a filter on the content of a message part.</para>
-    /// <para>Use the <see cref="cFilterPart.Contains(string)"/> method on the following static members of <see cref="cFilter"/> to generate these;
+    /// Use the <see cref="Contains(string)"/> method on the following static instances of this class to generate a message content filters;
     /// <list type="bullet">
     /// <item><see cref="cFilter.BCC"/></item>
     /// <item><see cref="cFilter.Body"/></item>
@@ -405,85 +441,37 @@ namespace work.bacome.imapclient
     /// <item><see cref="cFilter.Text"/></item>
     /// <item><see cref="cFilter.To"/></item>
     /// </list>
-    /// </para>
-    /// </summary>
-    public class cFilterPartContains : cFilter
-    {
-        public readonly eFilterPart Part;
-        public readonly string Contains; // have to convert to an astring
-
-        public cFilterPartContains(eFilterPart pPart, string pContains)
-        {
-            Part = pPart;
-            Contains = pContains ?? throw new ArgumentNullException(nameof(pContains));
-        }
-
-        public override string ToString() => $"{nameof(cFilterPartContains)}({Part},{Contains})";
-    }
-
-    /// <summary>
-    /// <para>The <see cref="Contains(string)"/> method of this class generates a message content filter.</para>
-    /// <para>Use the following static instances of this class to do this;
-    /// <list type="bullet">
-    /// <item><see cref="cFilter.BCC"/></item>
-    /// <item><see cref="cFilter.Body"/></item>
-    /// <item><see cref="cFilter.CC"/></item>
-    /// <item><see cref="cFilter.From"/></item>
-    /// <item><see cref="cFilter.Subject"/></item>
-    /// <item><see cref="cFilter.Text"/></item>
-    /// <item><see cref="cFilter.To"/></item>
-    /// </list>
-    /// </para>
     /// </summary>
     public class cFilterPart
     {
         private readonly eFilterPart Part;
-        public cFilterPart(eFilterPart pPart) { Part = pPart; }
-
+        internal cFilterPart(eFilterPart pPart) { Part = pPart; }
+    
         /// <summary>
         /// Generates an object that represents a filter on message content.
         /// </summary>
         /// <param name="pContains"></param>
-        /// <returns>An object that represents a filter on message content.</returns>
+        /// <returns>A message content filter.</returns>
         public cFilter Contains(string pContains) => new cFilterPartContains(Part, pContains);
     }
 
     /// <summary>
-    /// <para>Represents a filter on a message date.</para>
-    /// <para>Use the following static members of <see cref="cFilter"/> to generate these;
-    /// <list type="bullet">
-    /// <item><see cref="cFilter.Received"/></item>
-    /// <item><see cref="cFilter.Sent"/></item>
-    /// </list>
-    /// </para>
-    /// </summary>
-    public class cFilterDateCompare : cFilter
-    {
-        public readonly eFilterDate Date;
-        public readonly eFilterDateCompare Compare;
-        public readonly DateTime WithDate;
-
-        public cFilterDateCompare(eFilterDate pDate, eFilterDateCompare pCompare, DateTime pWithDate)
-        {
-            Date = pDate;
-            Compare = pCompare;
-            WithDate = pWithDate;
-        }
-
-        public override string ToString() => $"{nameof(cFilterDateCompare)}({Date},{Compare},{WithDate})";
-    }
-
-    /// <summary>
-    /// <para>The operators defined on this class generate message date filters.</para>
-    /// <para>Use the static instances of this class, <see cref="cFilter.Received"/> and <see cref="cFilter.Sent"/>, to do this.</para>
-    /// <para>The operators defined are; &lt;, &gt;, &lt;=, &gt;=, == and !=.</para>
+    /// The operators defined on this class generate message date filters.
+    /// Use the static instances of this class, <see cref="cFilter.Received"/> and <see cref="cFilter.Sent"/>, to do this.
     /// </summary>
     public class cFilterDate
     {
         private readonly eFilterDate Date;
 
-        public cFilterDate(eFilterDate pDate) { Date = pDate; }
+        internal cFilterDate(eFilterDate pDate) { Date = pDate; }
 
+        ;?;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pFilterDate"></param>
+        /// <param name="pDate"></param>
+        /// <returns></returns>
         public static cFilter operator <(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.before, pDate);
         public static cFilter operator >(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.since, pDate.AddDays(1));
 

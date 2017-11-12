@@ -4,10 +4,22 @@ using System.Collections.ObjectModel;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// A read-only string collection.
+    /// </summary>
     public class cStrings : ReadOnlyCollection<string>
     {
+        /// <summary>
+        /// Makes a read-only wrapper around the specified list.
+        /// </summary>
+        /// <param name="pStrings"></param>
         public cStrings(IList<string> pStrings) : base(pStrings) { }
 
+        /// <summary>
+        /// Determines if two lists contain equal strings in the same order.
+        /// </summary>
+        /// <param name="pObject">The instance to compare to.</param>
+        /// <returns>True if the two lists contain equal strings in the same order.</returns>
         public override bool Equals(object pObject) => this == pObject as cStrings;
 
         public override int GetHashCode()
@@ -27,6 +39,12 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
+        /// <summary>
+        /// Determines if two lists contain equal strings in the same order.
+        /// </summary>
+        /// <param name="pA">One of the lists to compare.</param>
+        /// <param name="pB">One of the lists to compare.</param>
+        /// <returns>True if the two lists contain equal strings in the same order.</returns>
         public static bool operator ==(cStrings pA, cStrings pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -37,6 +55,12 @@ namespace work.bacome.imapclient
             return true;
         }
 
+        /// <summary>
+        /// Determines if two lists contain equal strings in the same order.
+        /// </summary>
+        /// <param name="pA">One of the lists to compare.</param>
+        /// <param name="pB">One of the lists to compare.</param>
+        /// <returns>False if the two lists contain equal strings in the same order.</returns>
         public static bool operator !=(cStrings pA, cStrings pB) => !(pA == pB);
     }
 }

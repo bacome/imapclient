@@ -5,7 +5,7 @@ using work.bacome.trace;
 
 namespace work.bacome.async
 {
-    /// <summary>Instances coordinate tasks that work together using internal coordinating tasks.</summary>
+    /// <summary>Instances coordinate tasks (one worker and possibly many work creators) that work together using internal coordinating tasks.</summary>
     /// <remarks>
     /// <para>One of the coordinated tasks is the worker task. This task does work when it is available. This task should;
     /// <list type="number">
@@ -92,7 +92,7 @@ namespace work.bacome.async
         /// Determines if the current coordinating task is complete.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
-        /// <returns></returns>
+        /// <returns>True if the current coordinating task is complete</returns>
         public bool IsReleased(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cReleaser), nameof(IsReleased), mName, mInstance);

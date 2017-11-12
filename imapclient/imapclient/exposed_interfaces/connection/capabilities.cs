@@ -9,29 +9,53 @@ namespace work.bacome.imapclient
     [Flags]
     public enum fCapabilities
     {
+        /**<summary>IMAP LOGINDISABLED</summary>*/
         logindisabled = 1 << 0,
+        /**<summary>IMAP STARTTLS</summary>*/
         starttls = 1 << 1,
+        /**<summary>RFC 2177 - IDLE</summary>*/
         idle = 1 << 2,
+        /**<summary>RFC 7888 - LITERAL+</summary>*/
         literalplus = 1 << 3,
+        /**<summary>RFC 7888 - LITERAL-</summary>*/
         literalminus = 1 << 4,
+        /**<summary>RFC 5161 - ENABLE</summary>*/
         enable = 1 << 5,
+        /**<summary>RFC 6855 - UTF8=ACCEPT</summary>*/
         utf8accept = 1 << 6,
+        /**<summary>RFC 6855 - UTF8=ONLY</summary>*/
         utf8only = 1 << 7,
+        /**<summary>RFC 5258 - LIST extensions</summary>*/
         listextended = 1 << 8,
+        /**<summary>RFC 3348 - Child mailboxes</summary>*/
         children = 1 << 9,
+        /**<summary>RFC 4959 - SASL initial client response</summary>*/
         sasl_ir = 1 << 10,
+        /**<summary>RFC 2221 - Login referrals</summary>*/
         loginreferrals = 1 << 11,
+        /**<summary>RFC 2193 - Mailbox referrals</summary>*/
         mailboxreferrals = 1 << 12,
+        /**<summary>RFC 2971 - Id</summary>*/
         id = 1 << 13,
+        /**<summary>RFC 3516 - Binary content</summary>*/
         binary = 1 << 14,
+        /**<summary>RFC 2342 - Namespaces</summary>*/
         namespaces = 1 << 15,
+        /**<summary>RFC 5819 - STATUS information in LIST</summary>*/
         liststatus = 1 << 16,
+        /**<summary>RFC 6154 - Special use</summary>*/
         specialuse = 1 << 17,
+        /**<summary>RFC 4731 - ESEARCH</summary>*/
         esearch = 1 << 18,
+        /**<summary>RFC 5256 - SORT</summary>*/
         sort = 1 << 19,
+        /**<summary>RFC 5256 - SORT=DISPLAY</summary>*/
         sortdisplay = 1 << 20,
+        /**<summary>RFC 5267 - ESORT</summary>*/
         esort = 1 << 21,
+        /**<summary>RFC 7162 - CONDSTORE</summary>*/
         condstore = 1 << 22,
+        /**<summary>RFC 7162 - QRESYNC</summary>*/
         qresync = 1 << 23
 
         /* deimplemented pending a requirement to complete it

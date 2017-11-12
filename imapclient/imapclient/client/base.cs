@@ -131,7 +131,7 @@ namespace work.bacome.imapclient
         private cClientIdUTF8 mClientIdUTF8 = null;
 
         /// <summary>
-        /// Constructor. Optionally specify the instance name used in the tracing done by the instance (see <see cref="cTrace"/>).
+        /// Initialises a new instance, optionally specifying the instance name used in the tracing done by the instance (see <see cref="cTrace"/>).
         /// </summary>
         /// <param name="pInstanceName">The tracing instance name to use. See <see cref="cTrace"/>.</param>
         public cIMAPClient(string pInstanceName = TraceSourceName)
@@ -144,7 +144,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// The instance name used in tracing. See <see cref="cTrace"/>. Set using the constructor.
+        /// Gets the instance name used in tracing done by the instance. See <see cref="cTrace"/>. Set using the constructor.
         /// </summary>
         public string InstanceName => mInstanceName;
 

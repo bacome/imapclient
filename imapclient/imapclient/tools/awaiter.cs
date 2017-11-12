@@ -8,8 +8,10 @@ namespace work.bacome.async
 {
     /// <summary>
     /// Provides services for waiting on a number of tasks with timeout and/or cancellation.
-    /// Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
     /// </summary>
+    /// <remarks>
+    /// Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
+    /// </remarks>
     public sealed class cAwaiter : IDisposable
     {
         private bool mDisposed = false;
@@ -18,7 +20,7 @@ namespace work.bacome.async
         private readonly Task mTask;
 
         /// <summary>
-        /// Creates an instance with timeout and cancellation. If a timeout is specified then it runs from when the instance is created.
+        /// Initialises a new instance with timeout and cancellation controls. If a timeout is specified then it runs from when the instance is created.
         /// </summary>
         /// <param name="pMC">The timeout and cancellation to use.</param>
         public cAwaiter(cMethodControl pMC)
@@ -28,9 +30,9 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Creates an instance with just cancellation.
+        /// Initialises a new instance with cancellation control but no timeout.
         /// </summary>
-        /// <param name="pCancellationToken">The cancellationtoken to use.</param>
+        /// <param name="pCancellationToken">The cancellation token to use.</param>
         public cAwaiter(CancellationToken pCancellationToken)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pCancellationToken);
@@ -39,9 +41,11 @@ namespace work.bacome.async
 
         /// <summary>
         /// This method completes when any one of the passed tasks completes.
-        /// If the task that completed failed (timed-out, was cancelled, or threw) then this method throws.
-        /// If the instance timeout or cancellation token indicate that waiting should stop before a task completes, then this method throws.
         /// </summary>
+        /// <remarks>
+        /// If the task that completes did so because it failed (timed-out, was cancelled, or threw) then this method throws.
+        /// If the instance controls indicate timeout or cancellation before a task completes, then this method throws.
+        /// </remarks>
         /// <param name="pTask">A task, can't be null.</param>
         /// <param name="pTasks">A set of tasks, any or all can be null.</param>
         /// <returns>The task that completed.</returns>
@@ -64,20 +68,24 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// This method completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates that waiting should stop.
-        /// If any of the passed tasks fail (timed-out, was cancelled, or threw) then this method throws.
-        /// If the <see cref="cMethodControl"/> indicates that waiting should stop before all the tasks complete then this method throws.
+        /// This method completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates timeout or cancellation.
         /// </summary>
+        /// <remarks>
+        /// If any of the passed tasks fail (timed-out, were cancelled, or threw) then this method throws.
+        /// If the <see cref="cMethodControl"/> indicates timeout or cancellation before all the tasks complete then this method throws.
+        /// </remarks>
         /// <param name="pMC">Controls the execution of the method.</param>
         /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be null.</param>
         /// <returns>A task that can be awaited</returns>
         public static Task AwaitAll(cMethodControl pMC, params Task[] pTasks) => ZAwaitAll(pMC, pTasks);
 
         /// <summary>
-        /// This method completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates that waiting should stop.
-        /// If any of the passed tasks fail (timed-out, was cancelled, or threw) then this method throws.
-        /// If the <see cref="cMethodControl"/> indicates that waiting should stop before all the tasks complete then this method throws.
+        /// This method completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates timeout or cancellation.
         /// </summary>
+        /// <remarks>
+        /// If any of the passed tasks fail (timed-out, were cancelled, or threw) then this method throws.
+        /// If the <see cref="cMethodControl"/> indicates timeout or cancellation before all the tasks complete then this method throws.
+        /// </remarks>
         /// <param name="pMC">Controls the execution of the method.</param>
         /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be null.</param>
         /// <returns>A task that can be awaited</returns>

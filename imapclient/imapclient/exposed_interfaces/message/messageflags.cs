@@ -72,36 +72,36 @@ namespace work.bacome.imapclient
         private readonly cMessageFlagList mFlags;
 
         /// <summary>
-        /// Makes a read-only wrapper around the specified list.
+        /// Creates a read-only wrapper around the specified list.
         /// </summary>
         /// <param name="pFlags"></param>
         public cMessageFlags(cMessageFlagList pFlags) => mFlags = pFlags;
 
         /// <summary>
-        /// Returns true if the collection contains the flag (case insensitive).
+        /// Determines if the collection contains the flag (case insensitive).
         /// </summary>
         /// <param name="pFlag"></param>
-        /// <returns></returns>
+        /// <returns>True if the collection contains the flag.</returns>
         public bool Contains(string pFlag) => mFlags.Contains(pFlag);
 
         /// <summary>
-        /// Returns true if the collection contains all the flags (case insensitive).
+        /// Determines if the collection contains all the flags (case insensitive).
         /// </summary>
         /// <param name="pFlags"></param>
-        /// <returns></returns>
+        /// <returns>True if the collection contains all the flags.</returns>
         public bool Contains(params string[] pFlags) => mFlags.Contains(pFlags);
 
         /// <summary>
-        /// Returns true if the collection contains all the flags (case insensitive).
+        /// Determines if the collection contains all the flags (case insensitive).
         /// </summary>
         /// <param name="pFlags"></param>
-        /// <returns></returns>
+        /// <returns>True if the collection contains all the flags.</returns>
         public bool Contains(IEnumerable<string> pFlags) => mFlags.Contains(pFlags);
 
         /// <summary>
-        /// Gets the symmetric difference between this and the specified collection of flags ignoring an optional set of flags (case insensitive).
+        /// Gets the symmetric difference between two collections of flags ignoring an optional set of flags (case insensitive).
         /// </summary>
-        /// <param name="pOther">The collection to do the symmetric difference with.</param>
+        /// <param name="pOther">The other collection.</param>
         /// <param name="pExcept">The flags to ignore when doing the difference.</param>
         /// <returns>The symmetric difference less the flags to ignore.</returns>
         public IEnumerable<string> SymmetricDifference(cMessageFlags pOther, params string[] pExcept)

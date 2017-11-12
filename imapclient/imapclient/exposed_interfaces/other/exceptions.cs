@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
         public readonly cResponseText ResponseText;
 
         /// <summary>
-        /// If set this is an indication that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
+        /// Indicates that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
         /// </summary>
         public readonly fCapabilities TryIgnoring;
 
@@ -57,7 +57,7 @@ namespace work.bacome.imapclient
         public readonly cCommandResult CommandResult;
 
         /// <summary>
-        /// If set this is an indication that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
+        /// Indicates that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
         /// </summary>
         public readonly fCapabilities TryIgnoring;
 
@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
     public class cUnexpectedServerActionException : cIMAPException
     {
         /// <summary>
-        /// If set this is an indication that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
+        /// Indicates that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
         /// </summary>
         public readonly fCapabilities TryIgnoring;
 
@@ -174,13 +174,13 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly cResponseText ResponseText;
 
-        public cCredentialsException(cTrace.cContext pContext)
+        internal cCredentialsException(cTrace.cContext pContext)
         {
             ResponseText = null;
             pContext.TraceError(nameof(cCredentialsException));
         }
 
-        public cCredentialsException(cResponseText pResponseText, cTrace.cContext pContext)
+        internal cCredentialsException(cResponseText pResponseText, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
             pContext.TraceError("{0}: {1}", nameof(cCredentialsException), pResponseText);
@@ -196,16 +196,16 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// thrown to indicate that the inability to connect is related to the lack of usable authentication mechanisms offered by the server
+    /// Thrown to indicate that the inability to connect is related to the lack of usable authentication mechanisms offered by the server.
     /// </summary>
     public class cAuthenticationMechanismsException : cIMAPException
     {
         /// <summary>
-        /// This is set to true if the problem might be fixed by using TLS
+        /// Indicates if the problem might be fixed by using TLS.
         /// </summary>
         public readonly bool TLSIssue;
 
-        public cAuthenticationMechanismsException(bool pTLSIssue, cTrace.cContext pContext)
+        internal cAuthenticationMechanismsException(bool pTLSIssue, cTrace.cContext pContext)
         {
             TLSIssue = pTLSIssue;
             pContext.TraceError("{0}: {1}", nameof(cAuthenticationMechanismsException), pTLSIssue);
@@ -221,16 +221,16 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// thrown to indicate that a server initiated 'BYE' occurred
+    /// Thrown to indicate that a server initiated unilateral 'BYE' occurred.
     /// </summary>
     public class cUnilateralByeException : cIMAPException
     {
         /// <summary>
-        /// The response text associated with the 'BYE'
+        /// The response text associated with the 'BYE'.
         /// </summary>
         public readonly cResponseText ResponseText;
 
-        public cUnilateralByeException(cResponseText pResponseText, cTrace.cContext pContext)
+        internal cUnilateralByeException(cResponseText pResponseText, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
             pContext.TraceError("{0}: {1}", nameof(cUnilateralByeException), pResponseText);
@@ -246,97 +246,72 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// thrown when SASL security layer encoding or decoding fails
+    /// Thrown when the installed SASL security layer encoding or decoding fails.
     /// </summary>
     public class cSASLSecurityException : cIMAPException
     {
-        public cSASLSecurityException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cSASLSecurityException), pMessage);
-        public cSASLSecurityException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cSASLSecurityException), pMessage, pInner);
+        internal cSASLSecurityException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cSASLSecurityException), pMessage);
+        internal cSASLSecurityException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cSASLSecurityException), pMessage, pInner);
     }
 
     /// <summary>
-    /// thrown when there are two pipelined commands that conflict in some way
+    /// Thrown when there are two pipelined commands that conflict in some way. Indicates a bug in the library.
     /// </summary>
     public class cPipelineConflictException : cIMAPException
     {
-        public cPipelineConflictException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineConflictException));
+        internal cPipelineConflictException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineConflictException));
     }
 
     /// <summary>
-    /// thrown when the internal command pipeline has stopped processing commands
+    /// Thrown when the internal command pipeline has stopped processing commands.
     /// </summary>
     public class cPipelineStoppedException : cIMAPException
     {
-        public cPipelineStoppedException() { }
-        public cPipelineStoppedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineStoppedException));
-        public cPipelineStoppedException(Exception pInner, cTrace.cContext pContext) : base(string.Empty, pInner) => pContext.TraceError("{0}\n{1}", nameof(cPipelineStoppedException), pInner);
+        internal cPipelineStoppedException() { }
+        internal cPipelineStoppedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cPipelineStoppedException));
+        internal cPipelineStoppedException(Exception pInner, cTrace.cContext pContext) : base(string.Empty, pInner) => pContext.TraceError("{0}\n{1}", nameof(cPipelineStoppedException), pInner);
     }
 
     /// <summary>
-    /// thrown when the internal network stream has been closed
+    /// Thrown when the internal network stream has been closed.
     /// </summary>
     public class cStreamClosedException : cIMAPException
     {
-        public cStreamClosedException() { }
-        public cStreamClosedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cStreamClosedException));
-        public cStreamClosedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cStreamClosedException), pMessage);
-        public cStreamClosedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamClosedException), pMessage, pInner);
+        internal cStreamClosedException() { }
+        internal cStreamClosedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cStreamClosedException));
+        internal cStreamClosedException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cStreamClosedException), pMessage);
+        internal cStreamClosedException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cStreamClosedException), pMessage, pInner);
     }
 
     /// <summary>
-    /// thrown when the UIDValidity changed while doing something that depended on it not changing
+    /// Thrown when the UIDValidity changed while doing something that depended on it not changing.
     /// </summary>
     public class cUIDValidityChangedException : cIMAPException
     {
-        public cUIDValidityChangedException() { }
-        public cUIDValidityChangedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityChangedException));
+        internal cUIDValidityChangedException() { }
+        internal cUIDValidityChangedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityChangedException));
     }
 
     /// <summary>
-    /// thrown when the CTE can't be handled
+    /// Thrown when the content-transfer-encoding can't be handled.
     /// </summary>
     public class cContentTransferDecodingException : cIMAPException
     {
-        public cContentTransferDecodingException(cTrace.cContext pContext) => pContext.TraceError(nameof(cContentTransferDecodingException));
-        public cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
+        internal cContentTransferDecodingException(cTrace.cContext pContext) => pContext.TraceError(nameof(cContentTransferDecodingException));
+        internal cContentTransferDecodingException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError("{0}: {1}", nameof(cContentTransferDecodingException), pMessage);
     }
-
-    /*
-    // thrown when a required capability for the call isn't available on the server
-    public class cUnsupportedByServerException : cIMAPException
-    {
-        public readonly fKnownCapabilities Required;
-
-        public cUnsupportedByServerException(fKnownCapabilities pRequired, cTrace.cContext pContext)
-        {
-            Required = pRequired;
-            pContext.TraceError("{0}: {1}", nameof(cUnsupportedByServerException), pRequired);
-        }
-    }
-
-    // thrown when a required capability for the call isn't available for the mailbox
-    public class cUnsupportedByMailboxException : cIMAPException
-    {
-        public readonly fKnownCapabilities Required;
-
-        public cUnsupportedByMailboxException(fKnownCapabilities pRequired, cTrace.cContext pContext)
-        {
-            Required = pRequired;
-            pContext.TraceError("{0}: {1}", nameof(cUnsupportedByMailboxException), pRequired);
-        }
-    } */
 
     /// <summary>
-    /// thrown when a handle can't resolved when building the filter
+    /// Thrown when a message sequence number couldn't be determined when building a message filter (see <see cref="cFilterMSN"/>). Probably due to the message being expunged.
     /// </summary>
     public class cFilterMSNException : cIMAPException
     {
         /// <summary>
-        /// The handle that couldn't be resolved to an MSN
+        /// The message handle that couldn't be resolved to a message sequence number.
         /// </summary>
         public readonly iMessageHandle Handle;
 
-        public cFilterMSNException(iMessageHandle pHandle) { Handle = pHandle; }
+        internal cFilterMSNException(iMessageHandle pHandle) { Handle = pHandle; }
 
         public override string ToString()
         {
@@ -347,6 +322,9 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// Thrown when an internal test fails.
+    /// </summary>
     public class cTestsException : Exception
     {
         public cTestsException() { }

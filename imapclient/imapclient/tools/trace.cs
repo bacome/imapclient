@@ -47,9 +47,9 @@ namespace work.bacome.trace
         private TraceEventType mContextTraceEventType;
 
         /// <summary>
-        /// Constructor.
+        /// Initialises a new instance with a <see cref="TraceSource"/> name.
         /// </summary>
-        /// <param name="pTraceSourceName">The trace source name to use.</param>
+        /// <param name="pTraceSourceName">The <see cref="TraceSource"/> name to use.</param>
         public cTrace(string pTraceSourceName)
         {
             ZCtor(pTraceSourceName);
@@ -91,7 +91,7 @@ namespace work.bacome.trace
         }
 
         /// <summary>
-        /// Create a new independent root-context.
+        /// Creates a new independent root-context.
         /// </summary>
         /// <param name="pInstanceName">The name to give the context.</param>
         /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed.</param>
@@ -103,10 +103,10 @@ namespace work.bacome.trace
         }
 
         /// <summary>
-        /// A <see cref="cTrace"/> tracing context.
+        /// Instances represent a <see cref="cTrace"/> tracing context.
         /// </summary>
         /// <remarks>
-        /// Will be either a root-context or a sub-context. See <see cref="cTrace"/> for more information.
+        /// Instances will be either a root-context or a sub-context. See <see cref="cTrace"/> for more information.
         /// </remarks>
         public abstract class cContext
         {
@@ -217,7 +217,7 @@ namespace work.bacome.trace
             [Conditional("TRACE")]
             public abstract void TraceEvent(TraceEventType pTraceEventType, string pMessage, params object[] pArgs);
 
-            /**<summary>Indicates if the underlying context emits verbose trace messages.</summary>*/
+            /**<summary>Indicates if the underlying <see cref="TraceSource"/> emits verbose trace messages. This value is determined at the time the containing <see cref="cTrace"/> is constructed.</summary>*/
             public abstract bool EmitsVerbose { get; }
 
             /// <summary>

@@ -10,7 +10,9 @@ namespace work.bacome.imapclient
     /// </summary>
     public class cAttachment
     {
+        /**<summary>The client that this instance was created by.</summary>*/
         public readonly cIMAPClient Client;
+        /**<summary>The message that this instance is attached to.</summary>*/
         public readonly iMessageHandle Handle;
 
         /// <summary>
@@ -18,7 +20,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly cSinglePartBody Part;
 
-        public cAttachment(cIMAPClient pClient, iMessageHandle pHandle, cSinglePartBody pPart)
+        internal cAttachment(cIMAPClient pClient, iMessageHandle pHandle, cSinglePartBody pPart)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
@@ -70,6 +72,9 @@ namespace work.bacome.imapclient
         /// </summary>
         public int PartSizeInBytes => (int)Part.SizeInBytes;
 
+        /// <summary>
+        /// The MD5 value of the attachment.
+        /// </summary>
         public string MD5 => Part.ExtensionData?.MD5;
 
         /// <summary>
@@ -112,9 +117,9 @@ namespace work.bacome.imapclient
         public Task<int> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(Handle, Part);
 
         /// <summary>
-        /// Saves the attachment to the specified file.
+        /// Saves the attachment to the specified path.
         /// </summary>
-        /// <param name="pPath"></param>
+        /// <param name="pPath">The target path.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         public void SaveAs(string pPath, cBodyFetchConfiguration pConfiguration = null)
         {
@@ -128,7 +133,12 @@ namespace work.bacome.imapclient
             if (Part.Disposition?.ReadDate != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDate.Value);
         }
 
-        /**<summary>The async version of <see cref="SaveAs(string, cBodyFetchConfiguration)"/>.</summary>*/
+        /// <summary>
+        /// Asynchronously saves the attachment to the specified path.
+        /// </summary>
+        /// <param name="pPath">The target path.</param>
+        /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
+        /// <returns>A task that represents the asynchronous save.</returns>
         public async Task SaveAsAsync(string pPath, cBodyFetchConfiguration pConfiguration = null)
         {
             using (FileStream lStream = new FileStream(pPath, FileMode.Create))

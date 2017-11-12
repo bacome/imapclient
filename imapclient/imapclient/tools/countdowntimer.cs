@@ -6,9 +6,11 @@ using work.bacome.trace;
 namespace work.bacome.async
 {
     /// <summary>
-    /// Manages tasks that complete after a specified length of time.
-    /// Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
+    /// Instances manage a sequence of tasks that complete after a specified length of time.
     /// </summary>
+    /// <remarks>
+    /// Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
+    /// </remarks>
     public sealed class cCountdownTimer : IDisposable
     {
         private bool mDisposed = false;
@@ -17,9 +19,9 @@ namespace work.bacome.async
         private Task mTask;
 
         /// <summary>
-        /// Constructs a new instance. The first countdown commences immediately.
+        /// Initialises a new instance with a timeout and <see cref="System.Threading.CancellationToken"/>. The first countdown commences immediately.
         /// </summary>
-        /// <param name="pTimeout">The duration of each countdown task.</param>
+        /// <param name="pTimeout">The duration of each successive countdown task.</param>
         /// <param name="pParentContext">Context for trace messages.</param>
         public cCountdownTimer(int pTimeout, cTrace.cContext pParentContext)
         {
@@ -39,8 +41,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Starts a new countdown task.
-        /// Cannot be called if there is a countdown running.
+        /// Starts a new countdown task. Cannot be called if there is a countdown already running.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         public void Restart(cTrace.cContext pParentContext)
