@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal cStoreFeedback Store(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal cStoreFeedback Store(iMessageHandle pHandle, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Store), 1);
             var lFeedback = new cStoreFeedback(pHandle, pOperation, pFlags);
@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
             return lFeedback;
         }
 
-        internal cStoreFeedback Store(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal cStoreFeedback Store(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Store), 2);
             var lFeedback = new cStoreFeedback(pHandles, pOperation, pFlags);
@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
         /// <para>If the message has been modified since the specified modseq the server should fail the update.</para>
         /// </param>
         /// <returns>Feedback on the success (or otherwise) of the store.</returns>
-        public cStoreFeedback Store(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        public cStoreFeedback Store(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Store), 3);
             var lFeedback = new cStoreFeedback(pMessages, pOperation, pFlags);
@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
             return lFeedback;
         }
 
-        internal async Task<cStoreFeedback> StoreAsync(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal async Task<cStoreFeedback> StoreAsync(iMessageHandle pHandle, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 1);
             var lFeedback = new cStoreFeedback(pHandle, pOperation, pFlags);
@@ -57,7 +57,7 @@ namespace work.bacome.imapclient
             return lFeedback;
         }
 
-        internal async Task<cStoreFeedback> StoreAsync(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal async Task<cStoreFeedback> StoreAsync(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 2);
             var lFeedback = new cStoreFeedback(pHandles, pOperation, pFlags);
@@ -65,8 +65,8 @@ namespace work.bacome.imapclient
             return lFeedback;
         }
 
-        /**<summary>The async version of <see cref="Store(IEnumerable{cMessage}, eStoreOperation, cSettableFlags, ulong?)"/>.</summary>*/
-        public async Task<cStoreFeedback> StoreAsync(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        /**<summary>The async version of <see cref="Store(IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)"/>.</summary>*/
+        public async Task<cStoreFeedback> StoreAsync(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 3);
             var lFeedback = new cStoreFeedback(pMessages, pOperation, pFlags);
@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
             return lFeedback;
         }
 
-        private async Task ZStoreAsync(cStoreFeedback pFeedback, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
+        private async Task ZStoreAsync(cStoreFeedback pFeedback, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZStoreAsync), pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq);
 

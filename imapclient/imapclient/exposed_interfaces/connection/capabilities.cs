@@ -4,9 +4,8 @@ using System.Linq;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of server capabilities. The flags in this set represent the capabilities that the library understands in some way. The full list of server capabilities can be found in <see cref="cCapabilities.Capabilities"/>.
+    /// A set of server capabilities. The flags in this set represent the capabilities that the library understands in some way. The full list of server capabilities can be found in <see cref="cCapabilities.Capabilities"/>. See <see cref="cIMAPClient.IgnoreCapabilities"/>.
     /// </summary>
-    /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>.
     [Flags]
     public enum fCapabilities
     {

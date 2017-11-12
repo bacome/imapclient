@@ -12,18 +12,28 @@ namespace work.bacome.imapclient
     /// </summary>
     public static class kMessageFlagName
     {
+        /**<summary>\*</summary>*/
         public const string CreateNewIsPossible = @"\*";
+        /**<summary>\Recent</summary>*/
         public const string Recent = @"\Recent";
 
+        /**<summary>\Answered</summary>*/
         public const string Answered = @"\Answered";
+        /**<summary>\Flagged</summary>*/
         public const string Flagged = @"\Flagged";
+        /**<summary>\Deleted</summary>*/
         public const string Deleted = @"\Deleted";
+        /**<summary>\Seen</summary>*/
         public const string Seen = @"\Seen";
+        /**<summary>\Draft</summary>*/
         public const string Draft = @"\Draft";
 
         // rfc 5788/ 5550
+        /**<summary>$Forwarded</summary>*/
         public const string Forwarded = "$Forwarded";
+        /**<summary>$SubmitPending</summary>*/
         public const string SubmitPending = "$SubmitPending";
+        /**<summary>$Submitted</summary>*/
         public const string Submitted = "$Submitted";
 
         // rfc 3503/ 5550
@@ -112,72 +122,72 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A unique read-only settable message flag collection. Message flag names are case insensitive. (The <see cref="kMessageFlagName.Recent"/> flag is not a settable flag.) Used in store APIs.
+    /// A unique read-only storable message flag collection. Message flag names are case insensitive. The <see cref="kMessageFlagName.Recent"/> flag is not a storable flag. Used in the 'store' APIs. This class defines an implicit conversion from <see cref="cStorableFlagList"/>.
     /// </summary>
     /// <remarks>
     /// See 
-    /// <see cref="cMessage.Store(eStoreOperation, cSettableFlags, ulong?)"/>,
-    /// <see cref="cMailbox.UIDStore(cUID, eStoreOperation, cSettableFlags, ulong?)"/>,
-    /// <see cref="cMailbox.UIDStore(IEnumerable{cUID}, eStoreOperation, cSettableFlags, ulong?)"/>,
-    /// <see cref="cIMAPClient.Store(IEnumerable{cMessage}, eStoreOperation, cSettableFlags, ulong?)"/>
+    /// <see cref="cMessage.Store(eStoreOperation, cStorableFlags, ulong?)"/>,
+    /// <see cref="cMailbox.UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>,
+    /// <see cref="cMailbox.UIDStore(IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>,
+    /// <see cref="cIMAPClient.Store(IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)"/>
     /// </remarks>
-    public class cSettableFlags : cMessageFlags
+    public class cStorableFlags : cMessageFlags
     {
         // immutable (for passing in)
 
         /** <summary>An empty set of flags.</summary> */
-        public static readonly cSettableFlags None = new cSettableFlags();
+        public static readonly cStorableFlags None = new cStorableFlags();
 
-        /** <summary>A collection of flags containing just the \Answered flag.</summary> */
-        public static readonly cSettableFlags Answered = new cSettableFlags(kMessageFlagName.Answered);
+        /** <summary>A collection of flags containing just the <see cref="kMessageFlagName.Answered"/> flag.</summary> */
+        public static readonly cStorableFlags Answered = new cStorableFlags(kMessageFlagName.Answered);
 
-        /** <summary>A collection of flags containing just the \Flagged flag.</summary> */
-        public static readonly cSettableFlags Flagged = new cSettableFlags(kMessageFlagName.Flagged);
+        /** <summary>A collection of flags containing just the <see cref="kMessageFlagName.Flagged"/> flag.</summary> */
+        public static readonly cStorableFlags Flagged = new cStorableFlags(kMessageFlagName.Flagged);
 
-        /** <summary>A collection of flags containing just the \Deleted flag.</summary> */
-        public static readonly cSettableFlags Deleted = new cSettableFlags(kMessageFlagName.Deleted);
+        /** <summary>A collection of flags containing just the <see cref="kMessageFlagName.Deleted"/> flag.</summary> */
+        public static readonly cStorableFlags Deleted = new cStorableFlags(kMessageFlagName.Deleted);
 
-        /** <summary>A collection of flags containing just the \Seen flag.</summary> */
-        public static readonly cSettableFlags Seen = new cSettableFlags(kMessageFlagName.Seen);
+        /** <summary>A collection of flags containing just the <see cref="kMessageFlagName.Seen"/> flag.</summary> */
+        public static readonly cStorableFlags Seen = new cStorableFlags(kMessageFlagName.Seen);
 
-        /** <summary>A collection of flags containing just the \Draft flag.</summary> */
-        public static readonly cSettableFlags Draft = new cSettableFlags(kMessageFlagName.Draft);
+        /** <summary>A collection of flags containing just the <see cref="kMessageFlagName.Draft "/> flag.</summary> */
+        public static readonly cStorableFlags Draft = new cStorableFlags(kMessageFlagName.Draft);
 
-        /** <summary>A collection of flags containing just the $Forwarded flag.</summary> */
-        public static readonly cSettableFlags Forwarded = new cSettableFlags(kMessageFlagName.Forwarded);
+        /** <summary>A collection of flags containing just the <see cref="kMessageFlagName.Forwarded"/> flag.</summary> */
+        public static readonly cStorableFlags Forwarded = new cStorableFlags(kMessageFlagName.Forwarded);
 
-        /** <summary>A collection of flags containing just the $SubmitPending flag.</summary> */
-        public static readonly cSettableFlags SubmitPending = new cSettableFlags(kMessageFlagName.SubmitPending);
+        /** <summary>A collection of flags containing just the <see cref="kMessageFlagName.SubmitPending"/> flag.</summary> */
+        public static readonly cStorableFlags SubmitPending = new cStorableFlags(kMessageFlagName.SubmitPending);
 
-        /** <summary>A collection of flags containing just the $Submitted flag.</summary> */
-        public static readonly cSettableFlags Submitted = new cSettableFlags(kMessageFlagName.Submitted);
+        /** <summary>A collection of flags containing just the <see cref="kMessageFlagName.Submitted"/> flag.</summary> */
+        public static readonly cStorableFlags Submitted = new cStorableFlags(kMessageFlagName.Submitted);
 
         // see comments elsewhere as to why this is commented out
         //public static readonly cSettableFlags MDNSent = new cSettableFlags(kMessageFlagName.MDNSent);
 
         /// <summary>
-        /// Creates a duplicate free copy of the specified flags, validating that they are settable flags. May throw if the specified flags aren't valid IMAP settable flags.
+        /// Creates a duplicate free copy of the specified flags, validating that they are storable flags. May throw if the specified flags aren't valid storable flags.
         /// </summary>
         /// <param name="pFlags"></param>
-        public cSettableFlags(params string[] pFlags) : base(new cSettableFlagList(pFlags)) { }
+        public cStorableFlags(params string[] pFlags) : base(new cStorableFlagList(pFlags)) { }
 
         /// <summary>
-        /// Creates a duplicate free copy of the specified flags, validating that they are settable flags. May throw if the specified flags aren't valid IMAP settable flags.
+        /// Creates a duplicate free copy of the specified flags, validating that they are storable flags. May throw if the specified flags aren't valid IMAP storable flags.
         /// </summary>
         /// <param name="pFlags"></param>
-        public cSettableFlags(IEnumerable<string> pFlags) : base(new cSettableFlagList(pFlags)) { }
+        public cStorableFlags(IEnumerable<string> pFlags) : base(new cStorableFlagList(pFlags)) { }
 
         /// <summary>
-        /// Copies the specified settable flag list.
+        /// Creates a copy of the specified storable flag list.
         /// </summary>
         /// <param name="pFlags"></param>
-        public cSettableFlags(cSettableFlagList pFlags) : base(new cSettableFlagList(pFlags)) { }
+        public cStorableFlags(cStorableFlagList pFlags) : base(new cStorableFlagList(pFlags)) { }
 
         /// <summary>
-        /// Copies the specified settable flag list.
+        /// Creates a copy of the specified storable flag list.
         /// </summary>
         /// <param name="pFlags"></param>
-        public static implicit operator cSettableFlags(cSettableFlagList pFlags) => new cSettableFlags(pFlags);
+        public static implicit operator cStorableFlags(cStorableFlagList pFlags) => new cStorableFlags(pFlags);
     }
 
     /// <summary>
@@ -221,20 +231,6 @@ namespace work.bacome.imapclient
         }
     }
 
-    internal class cPermanentFlags : cMessageFlags
-    {
-        // read only wrapper (for passing out)
-
-        private cPermanentFlags(cPermanentFlagList pFlags) : base(pFlags) { }
-
-        internal static bool TryConstruct(IEnumerable<string> pFlags, out cPermanentFlags rFlags)
-        {
-            if (!cPermanentFlagList.TryConstruct(pFlags, out var lFlags)) { rFlags = null; return false; }
-            rFlags = new cPermanentFlags(lFlags);
-            return true;
-        }
-    }
-
     /// <summary>
     /// A unique message flag list. Message flag names are case insensitive and have a limited grammar (see RFC 3501).
     /// </summary>
@@ -255,12 +251,25 @@ namespace work.bacome.imapclient
             mFlags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
         }
 
-        ;?; // 
-        /** <summary>Returns true if the list contains the flag (case insensitive).</summary>*/
+        /// <summary>
+        /// Determines whether the list contains the flag (case insensitive).
+        /// </summary>
+        /// <param name="pFlag"></param>
+        /// <returns></returns>
         public bool Contains(string pFlag) => mFlags.Contains(pFlag, StringComparer.InvariantCultureIgnoreCase);
-        /** <summary>Returns true if the list contains all the flags (case insensitive).</summary>*/
+
+        /// <summary>
+        /// Determines whether the list contains all the specified flags (case insensitive).
+        /// </summary>
+        /// <param name="pFlags"></param>
+        /// <returns></returns>
         public bool Contains(params string[] pFlags) => ZContains(pFlags);
-        /** <summary>Returns true if the list contains all the flags (case insensitive).</summary>*/
+
+        /// <summary>
+        /// Determines whether the list contains all the specified flags (case insensitive).
+        /// </summary>
+        /// <param name="pFlags"></param>
+        /// <returns></returns>
         public bool Contains(IEnumerable<string> pFlags) => ZContains(pFlags);
 
         private bool ZContains(IEnumerable<string> pFlags)
@@ -270,16 +279,26 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        /** <summary>Adds the flag if it isn't already in the list.</summary>*/
+        /// <summary>
+        /// Adds the flag to the list if it isn't already there (case insensitive).
+        /// </summary>
+        /// <param name="pFlag"></param>
         public void Add(string pFlag)
         {
             if (!YIsValidFlag(pFlag)) throw new ArgumentOutOfRangeException(nameof(pFlag));
             if (!mFlags.Contains(pFlag, StringComparer.InvariantCultureIgnoreCase)) mFlags.Add(pFlag);
         }
 
-        /** <summary>Adds each flag if it isn't already in the list (case insensitive).</summary>*/
+        /// <summary>
+        /// Adds each flag to the list if it isn't already there (case insensitive).
+        /// </summary>
+        /// <param name="pFlags"></param>
         public void Add(params string[] pFlags) => ZAdd(pFlags);
-        /** <summary>Adds each flag if it isn't already in the list (case insensitive).</summary>*/
+
+        /// <summary>
+        /// Adds each flag to the list if it isn't already there (case insensitive).
+        /// </summary>
+        /// <param name="pFlags"></param>
         public void Add(IEnumerable<string> pFlags) => ZAdd(pFlags);
 
         private void ZAdd(IEnumerable<string> pFlags)
@@ -289,11 +308,22 @@ namespace work.bacome.imapclient
             foreach (var lFlag in pFlags) if (!mFlags.Contains(lFlag, StringComparer.InvariantCultureIgnoreCase)) mFlags.Add(lFlag);
         }
 
-        /** <summary>Removes the flag from the list (case insensitive).</summary>*/
+        /// <summary>
+        /// Removes the flag from the list if it is there (case insensitive).
+        /// </summary>
+        /// <param name="pFlag"></param>
         public void Remove(string pFlag) => mFlags.RemoveAll(f => f.Equals(pFlag, StringComparison.InvariantCultureIgnoreCase));
-        /** <summary>Removes the flags from the list (case insensitive).</summary>*/
+
+        /// <summary>
+        /// Removes the flags from the list if they are there (case insensitive).
+        /// </summary>
+        /// <param name="pFlags"></param>
         public void Remove(params string[] pFlags) => ZRemove(pFlags);
-        /** <summary>Removes the flags from the list (case insensitive).</summary>*/
+
+        /// <summary>
+        /// Removes the flags from the list if they are there (case insensitive).
+        /// </summary>
+        /// <param name="pFlags"></param>
         public void Remove(IEnumerable<string> pFlags) => ZRemove(pFlags);
 
         private void ZRemove(IEnumerable<string> pFlags)
@@ -302,7 +332,9 @@ namespace work.bacome.imapclient
             foreach (var lFlag in pFlags) mFlags.RemoveAll(f => f.Equals(lFlag, StringComparison.InvariantCultureIgnoreCase));
         }
 
+        /**<summary>Gets the number of flags in the list.</summary>*/
         public int Count => mFlags.Count;
+        /**<summary>Returns an enumerator that iterates through the flags.</summary>*/
         public IEnumerator<string> GetEnumerator() => mFlags.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mFlags.GetEnumerator();
 
@@ -317,15 +349,32 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// <para>A list of settable IMAP message flags.</para>
-    /// <para>(e.g. It is not possible to set the \Recent flag.)</para>
+    /// A unique storable message flag list. Message flag names are case insensitive and have a limited grammar (see RFC 3501). The <see cref="kMessageFlagName.Recent"/> flag is not a storable flag. See <see cref="cStorableFlags"/>.
     /// </summary>
-    public class cSettableFlagList : cMessageFlagList
+    public class cStorableFlagList : cMessageFlagList
     {
-        public cSettableFlagList() : base(new List<string>()) { }
-        public cSettableFlagList(params string[] pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
-        public cSettableFlagList(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
-        public cSettableFlagList(cSettableFlagList pFlags) : base(new List<string>(pFlags)) { } // duplicates
+        /// <summary>
+        /// Creates an empty list.
+        /// </summary>
+        public cStorableFlagList() : base(new List<string>()) { }
+
+        /// <summary>
+        /// Creates a duplicate free copy of the specified flags, validating that they are storable flags. May throw if the specified flags aren't valid storable flags.
+        /// </summary>
+        /// <param name="pFlags"></param>
+        public cStorableFlagList(params string[] pFlags) : base(ZCtor(pFlags)) { }
+
+        /// <summary>
+        /// Creates a duplicate free copy of the specified flags, validating that they are storable flags. May throw if the specified flags aren't valid storable flags.
+        /// </summary>
+        /// <param name="pFlags"></param>
+        public cStorableFlagList(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { }
+
+        /// <summary>
+        /// Creates a copy of the specified storable flag list.
+        /// </summary>
+        /// <param name="pFlags"></param>
+        public cStorableFlagList(cStorableFlagList pFlags) : base(new List<string>(pFlags)) { }
 
         protected override bool YIsValidFlag(string pFlag) => ZIsValidFlag(pFlag);
 
@@ -355,7 +404,7 @@ namespace work.bacome.imapclient
         {
             bool lFailed;
 
-            var lFlags = new cSettableFlagList();
+            var lFlags = new cStorableFlagList();
 
             lFlags.Add("a");
             lFlags.Add("b");
@@ -367,40 +416,58 @@ namespace work.bacome.imapclient
             lFailed = false;
             try { lFlags.Add("fr ed"); }
             catch { lFailed = true; }
-            if (!lFailed) throw new cTestsException($"{nameof(cSettableFlagList)}.1");
+            if (!lFailed) throw new cTestsException($"{nameof(cStorableFlagList)}.1");
 
             lFailed = false;
             try { lFlags.Add(kMessageFlagName.Answered, kMessageFlagName.Deleted, kMessageFlagName.Draft, kMessageFlagName.Recent); }
             catch { lFailed = true; }
-            if (!lFailed) throw new cTestsException($"{nameof(cSettableFlagList)}.1");
+            if (!lFailed) throw new cTestsException($"{nameof(cStorableFlagList)}.1");
 
-            if (lFlags.Count != 5) throw new cTestsException($"{nameof(cSettableFlagList)}.2");
-            if (!lFlags.Contains("A") || !lFlags.Contains("B") || !lFlags.Contains(@"\aNswereD") || lFlags.Contains(kMessageFlagName.Draft) || !lFlags.Contains("$forwarded")) throw new cTestsException($"{nameof(cSettableFlagList)}.3");
+            if (lFlags.Count != 5) throw new cTestsException($"{nameof(cStorableFlagList)}.2");
+            if (!lFlags.Contains("A") || !lFlags.Contains("B") || !lFlags.Contains(@"\aNswereD") || lFlags.Contains(kMessageFlagName.Draft) || !lFlags.Contains("$forwarded")) throw new cTestsException($"{nameof(cStorableFlagList)}.3");
 
-            cSettableFlags lF1 = new cSettableFlags("a", "A", "b", @"\answered", "\\deleted", kMessageFlagName.Forwarded);
+            cStorableFlags lF1 = new cStorableFlags("a", "A", "b", @"\answered", "\\deleted", kMessageFlagName.Forwarded);
             cFetchableFlags lF2 = new cFetchableFlags("a", "A", "b", @"\answered", "\\deleted", kMessageFlagName.Recent);
-            cSettableFlags lF3 = new cSettableFlags("a", "b", "\\deleted", kMessageFlagName.Forwarded);
+            cStorableFlags lF3 = new cStorableFlags("a", "b", "\\deleted", kMessageFlagName.Forwarded);
 
-            if (!lFlags.Contains(lF1) || lFlags.Contains(lF2) || !lFlags.Contains(lF3)) throw new cTestsException($"{nameof(cSettableFlagList)}.4");
+            if (!lFlags.Contains(lF1) || lFlags.Contains(lF2) || !lFlags.Contains(lF3)) throw new cTestsException($"{nameof(cStorableFlagList)}.4");
 
             lFlags.Remove("A");
-            if (lFlags.Count != 4 || lFlags.Contains(lF1) || lFlags.Contains(lF3)) throw new cTestsException($"{nameof(cSettableFlagList)}.5");
+            if (lFlags.Count != 4 || lFlags.Contains(lF1) || lFlags.Contains(lF3)) throw new cTestsException($"{nameof(cStorableFlagList)}.5");
 
             lFlags.Remove("B", "$forwarded", @"\answered");
-            if (lFlags.Count != 1 || lFlags.Contains(lF3)) throw new cTestsException($"{nameof(cSettableFlagList)}.6");
+            if (lFlags.Count != 1 || lFlags.Contains(lF3)) throw new cTestsException($"{nameof(cStorableFlagList)}.6");
         }
     }
 
     /// <summary>
-    /// <para>A list of fetchable IMAP message flags.</para>
-    /// <para>(e.g. It is not possible to set \Recent flag however it is possible to receive it set on a message.)</para>
+    /// A unique fetchable message flag list. Message flag names are case insensitive and have a limited grammar (see RFC 3501). The <see cref="kMessageFlagName.CreateNewIsPossible"/> flag is not a fetchable flag. See <see cref="cFetchableFlags"/>.
     /// </summary>
     public class cFetchableFlagList : cMessageFlagList
     {
+        /// <summary>
+        /// Creates an empty list.
+        /// </summary>
         public cFetchableFlagList() : base(new List<string>()) { }
-        public cFetchableFlagList(params string[] pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
-        public cFetchableFlagList(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { } // validates, duplicates, removes duplicates
-        public cFetchableFlagList(cFetchableFlagList pFlags) : base(new List<string>(pFlags)) { } // duplicates
+
+        /// <summary>
+        /// Creates a duplicate free copy of the specified flags, validating that they are fetchable flags. May throw if the specified flags aren't valid fetchable flags.
+        /// </summary>
+        /// <param name="pFlags"></param>
+        public cFetchableFlagList(params string[] pFlags) : base(ZCtor(pFlags)) { }
+
+        /// <summary>
+        /// Creates a duplicate free copy of the specified flags, validating that they are fetchable flags. May throw if the specified flags aren't valid fetchable flags.
+        /// </summary>
+        /// <param name="pFlags"></param>
+        public cFetchableFlagList(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { } 
+
+        /// <summary>
+        /// Creates a copy of the specified fetchable flag list.
+        /// </summary>
+        /// <param name="pFlags"></param>
+        public cFetchableFlagList(cFetchableFlagList pFlags) : base(new List<string>(pFlags)) { } 
+
         private cFetchableFlagList(List<string> pFlags) : base(pFlags) { } // wraps
 
         protected override bool YIsValidFlag(string pFlag) => ZIsValidFlag(pFlag);
@@ -429,39 +496,6 @@ namespace work.bacome.imapclient
             if (pFlags == null) { rFlags = null; return false; }
             foreach (var lFlag in pFlags) if (!ZIsValidFlag(lFlag)) { rFlags = null; return false; }
             rFlags = new cFetchableFlagList(new List<string>(pFlags.Distinct(StringComparer.InvariantCultureIgnoreCase)));
-            return true;
-        }
-    }
-
-    /// <summary>
-    /// <para>A list of IMAP message flags that it is possible to set permanently on messages in a mailbox.</para>
-    /// <para>(e.g. This may include the \* flag indicating that it is possible to create new flags by setting them.)</para>
-    /// </summary>
-    public class cPermanentFlagList : cMessageFlagList
-    {
-        private cPermanentFlagList(List<string> pFlags) : base(pFlags) { } // wraps
-
-        protected override bool YIsValidFlag(string pFlag) => ZIsValidFlag(pFlag);
-
-        private static bool ZIsValidFlag(string pFlag)
-        {
-            if (pFlag == null) return false;
-            if (pFlag.Length == 0) return false;
-
-            if (pFlag == kMessageFlagName.CreateNewIsPossible) return true;
-
-            string lFlag;
-            if (pFlag[0] == '\\') lFlag = pFlag.Remove(0, 1);
-            else lFlag = pFlag;
-
-            return cCommandPartFactory.TryAsAtom(lFlag, out _);
-        }
-
-        internal static bool TryConstruct(IEnumerable<string> pFlags, out cPermanentFlagList rFlags)
-        {
-            if (pFlags == null) { rFlags = null; return false; }
-            foreach (var lFlag in pFlags) if (!ZIsValidFlag(lFlag)) { rFlags = null; return false; }
-            rFlags = new cPermanentFlagList(new List<string>(pFlags.Distinct(StringComparer.InvariantCultureIgnoreCase)));
             return true;
         }
     }

@@ -263,7 +263,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool Answered => ZFlagsContain(kMessageFlagName.Answered);
         /**<summary>Add the <see cref="kMessageFlagName.Answered"/> flag to the message flags.</summary>*/
-        public void SetAnswered() { ZFlagSet(cSettableFlags.Answered, true); }
+        public void SetAnswered() { ZFlagSet(cStorableFlags.Answered, true); }
 
         /// <summary>
         /// <para>Get and set the <see cref="kMessageFlagName.Flagged"/> flag on the message.</para>
@@ -272,7 +272,7 @@ namespace work.bacome.imapclient
         public bool Flagged
         {
             get => ZFlagsContain(kMessageFlagName.Flagged);
-            set => ZFlagSet(cSettableFlags.Flagged, value);
+            set => ZFlagSet(cStorableFlags.Flagged, value);
         }
 
         /// <summary>
@@ -282,7 +282,7 @@ namespace work.bacome.imapclient
         public bool Deleted
         {
             get => ZFlagsContain(kMessageFlagName.Deleted);
-            set => ZFlagSet(cSettableFlags.Deleted, value);
+            set => ZFlagSet(cStorableFlags.Deleted, value);
         }
 
         /// <summary>
@@ -292,7 +292,7 @@ namespace work.bacome.imapclient
         public bool Seen
         {
             get => ZFlagsContain(kMessageFlagName.Seen);
-            set => ZFlagSet(cSettableFlags.Seen, value);
+            set => ZFlagSet(cStorableFlags.Seen, value);
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace work.bacome.imapclient
         public bool Draft
         {
             get => ZFlagsContain(kMessageFlagName.Draft);
-            set => ZFlagSet(cSettableFlags.Draft, value);
+            set => ZFlagSet(cStorableFlags.Draft, value);
         }
 
         /// <summary>
@@ -321,7 +321,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool Forwarded => ZFlagsContain(kMessageFlagName.Forwarded);
         /**<summary>Add the <see cref="kMessageFlagName.Forwarded"/> flag to the message flags.</summary>*/
-        public void SetForwarded() { ZFlagSet(cSettableFlags.Forwarded, true); }
+        public void SetForwarded() { ZFlagSet(cStorableFlags.Forwarded, true); }
 
         /// <summary>
         /// <para>True if the flags contain the <see cref="kMessageFlagName.SubmitPending"/> flag.</para>
@@ -329,7 +329,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool SubmitPending => ZFlagsContain(kMessageFlagName.SubmitPending);
         /**<summary>Add the <see cref="kMessageFlagName.SubmitPending"/> flag to the message flags.</summary>*/
-        public void SetSubmitPending() { ZFlagSet(cSettableFlags.SubmitPending, true); }
+        public void SetSubmitPending() { ZFlagSet(cStorableFlags.SubmitPending, true); }
 
         /// <summary>
         /// <para>True if the flags contain the <see cref="kMessageFlagName.Submitted"/> flag.</para>
@@ -343,7 +343,7 @@ namespace work.bacome.imapclient
             return Handle.Flags.Contains(pFlag);
         }
 
-        private void ZFlagSet(cSettableFlags pFlags, bool pValue)
+        private void ZFlagSet(cStorableFlags pFlags, bool pValue)
         {
             cStoreFeedback lFeedback;
             if (pValue) lFeedback = Client.Store(Handle, eStoreOperation.add, pFlags, null);
@@ -678,14 +678,14 @@ namespace work.bacome.imapclient
         /// <para>Can only be specified if the mailbox supports RFC 7162.</para>
         /// <para>If the message has been modified since the specified modseq the server should fail the update.</para>
         /// </param>
-        public void Store(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
+        public void Store(eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
             var lFeedback = Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
             if (lFeedback.Summary().LikelyFailedCount != 0) throw new InvalidOperationException(); // the assumption here is that the message has been deleted
         }
 
-        /**<summary>The async version of <see cref="Store(eStoreOperation, cSettableFlags, ulong?)"/>.</summary>*/
-        public async Task StoreAsync(eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
+        /**<summary>The async version of <see cref="Store(eStoreOperation, cStorableFlags, ulong?)"/>.</summary>*/
+        public async Task StoreAsync(eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
             var lFeedback = await Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
             if (lFeedback.Summary().LikelyFailedCount != 0) throw new InvalidOperationException(); // the assumption here is that the message has been deleted

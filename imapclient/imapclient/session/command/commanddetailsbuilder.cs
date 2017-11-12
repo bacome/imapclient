@@ -572,7 +572,7 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public void Add(eStoreOperation pOperation, cSettableFlags pFlags)
+                public void Add(eStoreOperation pOperation, cStorableFlags pFlags)
                 {
                     if (mEmitted) throw new InvalidOperationException();
 

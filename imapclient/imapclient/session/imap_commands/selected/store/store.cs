@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kStoreCommandPartStoreSpace = new cTextCommandPart("STORE ");
 
-            private async Task ZStoreAsync(cMethodControl pMC, cStoreFeedback pFeedback, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
+            private async Task ZStoreAsync(cMethodControl pMC, cStoreFeedback pFeedback, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZStoreAsync), pMC, pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq);
 

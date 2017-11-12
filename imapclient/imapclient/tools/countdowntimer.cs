@@ -6,10 +6,8 @@ using work.bacome.trace;
 namespace work.bacome.async
 {
     /// <summary>
-    /// <para>Manages tasks that complete after a specified length of time.</para>
-    /// <para>Use <see cref="GetAwaitCountdownTask"/> to get the currently running countdown task.</para>
-    /// <para>Use <see cref="Restart(cTrace.cContext)"/> to start a new countdown task (can only be used after the current countdown task completes).</para>
-    /// <para>Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+    /// Manages tasks that complete after a specified length of time.
+    /// Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
     /// </summary>
     public sealed class cCountdownTimer : IDisposable
     {
@@ -19,7 +17,7 @@ namespace work.bacome.async
         private Task mTask;
 
         /// <summary>
-        /// Constructor.
+        /// Constructs a new instance. The first countdown commences immediately.
         /// </summary>
         /// <param name="pTimeout">The duration of each countdown task.</param>
         /// <param name="pParentContext">Context for trace messages.</param>
@@ -31,7 +29,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Returns the currently running countdown task.
+        /// Gets the currently running countdown task.
         /// </summary>
         /// <returns>The currently running countdown task.</returns>
         public Task GetAwaitCountdownTask()
@@ -41,8 +39,8 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// <para>Starts a new countdown task.</para>
-        /// <para>Can only be used after the current countdown task completes.</para>
+        /// Starts a new countdown task.
+        /// Cannot be called if there is a countdown running.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         public void Restart(cTrace.cContext pParentContext)

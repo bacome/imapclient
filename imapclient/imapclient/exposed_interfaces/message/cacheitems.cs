@@ -6,9 +6,9 @@ namespace work.bacome.imapclient
     /// <para>A set of items that can be cached in the internal message cache.</para>
     /// <para>Note that the class has three implicit conversions;
     /// <list type="bullet">
-    /// <item><description> from <see cref="fMessageProperties"/></description></item>
-    /// <item><description> from <see cref="fCacheAttributes"/></description></item>
-    /// <item><description> from <see cref="cHeaderFieldNames"/></description></item>
+    /// <item> from <see cref="fMessageProperties"/></item>
+    /// <item> from <see cref="fCacheAttributes"/></item>
+    /// <item> from <see cref="cHeaderFieldNames"/></item>
     /// </list>
     /// </para>
     /// </summary>

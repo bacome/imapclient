@@ -5,24 +5,24 @@ using work.bacome.trace;
 
 namespace work.bacome.async
 {
-    /// <summary>
-    /// <para>Coordinates tasks that work together using a task.</para>
-    /// <para>One task is the worker task that should do work when it is available. This task;
-    /// <list type="bullet">
-    /// <item><description>Uses the <see cref="Reset(cTrace.cContext)"/> method to indicate that it is working, then</description></item>
-    /// <item><description>Checks for and does work, then</description></item>
-    /// <item><description>Waits on the task returned by the <see cref="GetAwaitReleaseTask(cTrace.cContext)"/> method.</description></item>
+    /// <summary>Instances coordinate tasks that work together using internal coordinating tasks.</summary>
+    /// <remarks>
+    /// <para>One of the coordinated tasks is the worker task. This task does work when it is available. This task should;
+    /// <list type="number">
+    /// <item>Call the <see cref="Reset(cTrace.cContext)"/> method to indicate that it is about to start working.</item>
+    /// <item>Check for and do all the work available.</item>
+    /// <item>Call the <see cref="GetAwaitReleaseTask(cTrace.cContext)"/> method to get a coordinating task, and await that task.</item>
     /// </list>
     /// </para>
-    /// <para>The other tasks are work requesting tasks, they;
-    /// <list type="bullet">
-    /// <item><description>Queue the work somehow, then</description></item>
-    /// <item><description>Use the <see cref="Release(cTrace.cContext)"/> method, which causes the task returned by <see cref="GetAwaitReleaseTask(cTrace.cContext)"/> to complete.</description></item>
+    /// <para>The other coordinated tasks are work requesting tasks. These tasks should;
+    /// <list type="number">
+    /// <item>Queue items of work.</item>
+    /// <item>Call the <see cref="Release(cTrace.cContext)"/> method (this causes the current coordinating task to complete).</item>
     /// </list>
     /// </para>
-    /// <para>Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
-    /// <para>Also note that before disposing an instance the cancellation token provided to the constructor must be cancelled, otherwise the dispose may never complete.</para>
-    /// </summary>
+    /// <para>Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+    /// <para>Also note that before disposing an instance the <see cref="System.Threading.CancellationToken"/> provided to the constructor must be cancelled, otherwise the dispose may never complete.</para>
+    /// </remarks>
     public sealed class cReleaser : IDisposable
     {
         private static int mInstanceSource = 7;
@@ -35,10 +35,10 @@ namespace work.bacome.async
         private Task mTask = null;
 
         /// <summary>
-        /// <para>Constructor.</para>
+        /// <para>Initialises a new instance with a name and a <see cref="CancellationToken"/>.</para>
         /// </summary>
         /// <param name="pName">A name to use when tracing.</param>
-        /// <param name="pCancellationToken">A cancellation token to use on the internal coordination task.</param>
+        /// <param name="pCancellationToken">A cancellation token to use on the coordinating tasks.</param>
         public cReleaser(string pName, CancellationToken pCancellationToken)
         {
             mName = pName;
@@ -60,10 +60,10 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Get the current coordination task.
+        /// Gets the current coordinating task.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
-        /// <returns>The coordination task.</returns>
+        /// <returns>The coordinating task.</returns>
         public Task GetAwaitReleaseTask(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cReleaser), nameof(GetAwaitReleaseTask), mName, mInstance);
@@ -72,7 +72,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Complete the current coordination task.
+        /// Completes the current coordinating task.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         public void Release(cTrace.cContext pParentContext)
@@ -89,10 +89,10 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// True if the current coordination task is complete.
+        /// Determines if the current coordinating task is complete.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
-        /// <returns>True if the current coordination task is complete.</returns>
+        /// <returns></returns>
         public bool IsReleased(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cReleaser), nameof(IsReleased), mName, mInstance);
@@ -101,7 +101,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Indicate that work is about to be checked for and done.
+        /// Indicates that work is about to be checked for and done.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         public void Reset(cTrace.cContext pParentContext)

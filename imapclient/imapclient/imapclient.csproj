@@ -143,6 +143,7 @@
     <Compile Include="session\session\copy.cs" />
     <Compile Include="session\store\store.cs" />
     <Compile Include="session\store\storefeedbackcollector.cs" />
+    <Compile Include="support\permanentflags.cs" />
     <Compile Include="support\progress.cs" />
     <Compile Include="session\imap_commands\authenticated\create.cs" />
     <Compile Include="session\imap_commands\authenticated\delete.cs" />

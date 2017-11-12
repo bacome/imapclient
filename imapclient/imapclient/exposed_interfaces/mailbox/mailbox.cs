@@ -816,9 +816,9 @@ namespace work.bacome.imapclient
         /// <para>If the message has been modified since the specified modseq the server should fail the update.</para>
         /// </param>
         /// <returns>Feedback on the success (or otherwise) of the store.</returns>
-        public cUIDStoreFeedback UIDStore(cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStore(Handle, pUID, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public cUIDStoreFeedback UIDStore(cUID pUID, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStore(Handle, pUID, pOperation, pFlags, pIfUnchangedSinceModSeq);
         /**<summary>The async version of <see cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.</summary>*/
-        public Task<cUIDStoreFeedback> UIDStoreAsync(cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStoreAsync(Handle, pUID, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public Task<cUIDStoreFeedback> UIDStoreAsync(cUID pUID, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStoreAsync(Handle, pUID, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         /// <summary>
         /// The multiple message version of <see cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.
@@ -828,7 +828,7 @@ namespace work.bacome.imapclient
         /// <param name="pFlags"></param>
         /// <param name="pIfUnchangedSinceModSeq"></param>
         /// <returns></returns>
-        public cUIDStoreFeedback UIDStore(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStore(Handle, pUIDs, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public cUIDStoreFeedback UIDStore(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStore(Handle, pUIDs, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         /// <summary>
         /// The async multiple message version of <see cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.
@@ -838,7 +838,7 @@ namespace work.bacome.imapclient
         /// <param name="pFlags"></param>
         /// <param name="pIfUnchangedSinceModSeq"></param>
         /// <returns></returns>
-        public Task<cUIDStoreFeedback> UIDStoreAsync(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStoreAsync(Handle, pUIDs, pOperation, pFlags, pIfUnchangedSinceModSeq);
+        public Task<cUIDStoreFeedback> UIDStoreAsync(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStoreAsync(Handle, pUIDs, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         /// <summary>
         /// <para>Copy a message to another mailbox.</para>

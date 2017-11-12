@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kUIDStoreCommandPartUIDStoreSpace = new cTextCommandPart("UID STORE ");
 
-            private async Task ZUIDStoreAsync(cMethodControl pMC, iMailboxHandle pHandle, uint pUIDValidity, cStoreFeedbackCollector pFeedbackCollector, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cUIDStoreFeedback pFeedback, cTrace.cContext pParentContext)
+            private async Task ZUIDStoreAsync(cMethodControl pMC, iMailboxHandle pHandle, uint pUIDValidity, cStoreFeedbackCollector pFeedbackCollector, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cUIDStoreFeedback pFeedback, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZStoreAsync), pMC, pHandle, pUIDValidity, pFeedbackCollector, pOperation, pFlags, pIfUnchangedSinceModSeq, pFeedback);
 

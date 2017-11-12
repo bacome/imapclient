@@ -7,7 +7,7 @@ using System.Text;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// An ID (RFC 2971) field/ value collection.
+    /// An ID (RFC 2971) field/ value collection. See <see cref="cId"/> and <see cref="cIdDictionary"/>.
     /// </summary>
     public interface iId : IReadOnlyDictionary<string, string>
     {
@@ -80,14 +80,14 @@ namespace work.bacome.imapclient
         public IEnumerable<string> Keys => mDictionary.Keys;
 
         /// <summary>
-        /// Determines whether the collection contains a field.
+        /// Determines whether the collection contains a field (field names are case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <returns></returns>
         public bool ContainsKey(string pKey) => mDictionary.ContainsKey(pKey);
 
         /// <summary>
-        /// Retrieves the field value.
+        /// Retrieves the field value (field names are case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <param name="rValue"></param>
@@ -98,7 +98,7 @@ namespace work.bacome.imapclient
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => mDictionary.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mDictionary.GetEnumerator();
 
-        /**<summary>Retrieves the field value.</summary>*/
+        /**<summary>Retrieves the field value (field names are case insensitive).</summary>*/
         public string this[string pKey] => mDictionary[pKey];
 
         private string ZGetValue(string pIdFieldName)
@@ -144,15 +144,15 @@ namespace work.bacome.imapclient
     /// <remarks>
     /// <para>The limits of RFC 2971 are;</para>
     /// <list type="bullet">
-    /// <item><description>Field names no longer than 30 bytes.</description></item>
-    /// <item><description>Values no longer than 1024 bytes.</description></item>
-    /// <item><description>No more than 30 field/ value pairs.</description></item>
+    /// <item>Field names no longer than 30 bytes.</item>
+    /// <item>Values no longer than 1024 bytes.</item>
+    /// <item>No more than 30 field/ value pairs.</item>
     /// </list>
     /// </remarks>
     public class cClientIdUTF8 : cId
     {
         /// <summary>
-        /// Construct from a field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
+        /// Initialises a new instance using a field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
         /// </summary>
         /// <param name="pDictionary">A field/ value dictionary.</param>
         public cClientIdUTF8(IDictionary<string, string> pDictionary) : base(pDictionary)
@@ -186,9 +186,9 @@ namespace work.bacome.imapclient
     /// <remarks>
     /// <para>The limits of RFC 2971 are;</para>
     /// <list type="bullet">
-    /// <item><description>Field names no longer than 30 bytes.</description></item>
-    /// <item><description>Values no longer than 1024 bytes.</description></item>
-    /// <item><description>No more than 30 field/ value pairs.</description></item>
+    /// <item>Field names no longer than 30 bytes.</item>
+    /// <item>Values no longer than 1024 bytes.</item>
+    /// <item>No more than 30 field/ value pairs.</item>
     /// </list>
     /// </remarks>
     public class cClientId : cClientIdUTF8
@@ -221,7 +221,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// An ID (RFC 2971) field/ value dictionary. See <see cref="cClientId"/> and <see cref="cClientIdUTF8"/>. Note that field names are case insensitive.
+    /// An ID (RFC 2971) field/ value dictionary. See <see cref="cClientId"/> and <see cref="cClientIdUTF8"/>. Field names are case insensitive.
     /// </summary>
     public class cIdDictionary : iId, IDictionary<string, string>
     {
@@ -276,14 +276,14 @@ namespace work.bacome.imapclient
         IEnumerable<string> IReadOnlyDictionary<string, string>.Keys => mDictionary.Keys;
 
         /// <summary>
-        /// Determines whether the dictionary contains a field.
+        /// Determines whether the dictionary contains a field (field names are case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <returns></returns>
         public bool ContainsKey(string pKey) => mDictionary.ContainsKey(pKey);
 
         /// <summary>
-        /// Retrieves the field value.
+        /// Retrieves the field value (field names are case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <param name="rValue"></param>
@@ -291,34 +291,34 @@ namespace work.bacome.imapclient
         public bool TryGetValue(string pKey, out string rValue) => mDictionary.TryGetValue(pKey, out rValue);
 
         /// <summary>
-        /// Adds the specified field/ value to the dictionary.
+        /// Adds the specified field/ value to the dictionary (field names are case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <param name="pValue"></param>
         public void Add(string pKey, string pValue) => mDictionary.Add(pKey, pValue);
 
         /// <summary>
-        /// Removes the field from the dictionary.
+        /// Removes the field from the dictionary (field names are case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <returns></returns>
         public bool Remove(string pKey) => mDictionary.Remove(pKey);
 
         /// <summary>
-        /// Determines whether the dictionary contains a field/ value pair.
+        /// Determines whether the dictionary contains a field/ value pair (field names are case insensitive).
         /// </summary>
         /// <param name="pEntry"></param>
         /// <returns></returns>
         public bool Contains(KeyValuePair<string, string> pEntry) => ((ICollection<KeyValuePair<string, string>>)mDictionary).Contains(pEntry);
 
         /// <summary>
-        /// Adds the specified field/ value to the dictionary.
+        /// Adds the specified field/ value to the dictionary (field names are case insensitive).
         /// </summary>
         /// <param name="pEntry"></param>
         public void Add(KeyValuePair<string, string> pEntry) => mDictionary.Add(pEntry.Key, pEntry.Value);
 
         /// <summary>
-        /// Removes the field/ value pair from the dictionary.
+        /// Removes the field/ value pair from the dictionary (field names are case insensitive).
         /// </summary>
         /// <param name="pEntry"></param>
         /// <returns></returns>
@@ -340,7 +340,7 @@ namespace work.bacome.imapclient
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => mDictionary.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mDictionary.GetEnumerator();
 
-        /**<summary>Retrieves the field value.</summary>*/
+        /**<summary>Retrieves the field value (field names are case insensitive).</summary>*/
         public string this[string pKey]
         {
             get => mDictionary[pKey];

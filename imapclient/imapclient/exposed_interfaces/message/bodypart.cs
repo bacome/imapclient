@@ -78,10 +78,10 @@ namespace work.bacome.imapclient
     /// <remarks>
     /// <para>Will be one of;
     /// <list type="bullet">
-    /// <item><description><see cref="cMultiPartBody"/></description></item>
-    /// <item><description><see cref="cSinglePartBody"/></description></item>
-    /// <item><description><see cref="cMessageBodyPart"/></description></item>
-    /// <item><description><see cref="cTextBodyPart"/></description></item>
+    /// <item><see cref="cMultiPartBody"/></item>
+    /// <item><see cref="cSinglePartBody"/></item>
+    /// <item><see cref="cMessageBodyPart"/></item>
+    /// <item><see cref="cTextBodyPart"/></item>
     /// </list>
     /// </para>
     /// </remarks>
@@ -150,9 +150,9 @@ namespace work.bacome.imapclient
     /// <para>Represents an additional extension data element.</para>
     /// <para>Will be one of;
     /// <list type="bullet">
-    /// <item><description><see cref="cBodyPartExtensionString"/></description></item>
-    /// <item><description><see cref="cBodyPartExtensionNumber"/></description></item>
-    /// <item><description><see cref="cBodyPartExtensionValues"/></description></item>
+    /// <item><see cref="cBodyPartExtensionString"/></item>
+    /// <item><see cref="cBodyPartExtensionNumber"/></item>
+    /// <item><see cref="cBodyPartExtensionValues"/></item>
     /// </list>
     /// </para>
     /// </summary>
@@ -222,8 +222,8 @@ namespace work.bacome.imapclient
     /// <remarks>
     /// <para>Will be one of;
     /// <list type="bullet">
-    /// <item><description><see cref="cMultiPartExtensionData"/></description></item>
-    /// <item><description><see cref="cSinglePartExtensionData"/></description></item>
+    /// <item><see cref="cMultiPartExtensionData"/></item>
+    /// <item><see cref="cSinglePartExtensionData"/></item>
     /// </list>
     /// </para>
     /// <para>See </para>

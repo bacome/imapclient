@@ -22,20 +22,20 @@ namespace work.bacome.trace
     /// When tracing is disabled contexts are not created and trace messages are not emitted, so most of the tracing overhead is eliminated.
     /// Tracing is disabled under the following circumstances;
     /// <list type="bullet">
-    /// <item><description>The assembly is compiled without the "TRACE" conditional attribute.</description></item>
-    /// <item><description>If there aren't any listeners attached to the <see cref="TraceSource"/> when the instance is created.</description></item>
-    /// <item><description>The <see cref="TraceSource"/> isn't configured to emit critical messages when the instance is created.</description></item>
+    /// <item>The assembly is compiled without the "TRACE" conditional attribute.</item>
+    /// <item>If there aren't any listeners attached to the <see cref="TraceSource"/> when the instance is created.</item>
+    /// <item>The <see cref="TraceSource"/> isn't configured to emit critical messages when the instance is created.</item>
     /// </list>
     /// </para>
     /// <para>Root-contexts have a name and a number. The name is programmer assigned, the number is internally assigned and is unique for an exe.</para>
     /// <para>Trace messages are indented by a number of spaces that equals the context stack depth.</para>
     /// <para>Trace messages are written in a tab delimited form, the tab delimited 'columns' contain;
-    /// <list type="bullet">
-    /// <item><description>The <see cref="System.Diagnostics.TraceSource"/> defined data.</description></item>
-    /// <item><description>The date and time that the message was written.</description></item>
-    /// <item><description>The name and number of the root-context of this trace message.</description></item>
-    /// <item><description>The thread number on which the trace message was written.</description></item>
-    /// <item><description>The space indented trace message.</description></item>
+    /// <list type="number">
+    /// <item>The <see cref="System.Diagnostics.TraceSource"/> defined data.</item>
+    /// <item>The date and time that the message was written.</item>
+    /// <item>The name and number of the root-context of this trace message.</item>
+    /// <item>The thread number on which the trace message was written.</item>
+    /// <item>The space indented trace message.</item>
     /// </list>
     /// </para>
     /// </remarks>

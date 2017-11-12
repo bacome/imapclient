@@ -6,8 +6,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// <para>Represents a filter that can be passed to the server to restrict the set of messages returned.</para>
-    /// <para>Use the static members of the class to create cFilter instances and the &amp;, | and ! operators to combine the filters together.</para>
+    /// Represents a filter that can be passed to the server to restrict the set of messages returned. Use the static members of the class to create cFilter instances and the &amp;, | and ! operators to combine the filters together. 
     /// </summary>
     public abstract class cFilter
     {
@@ -398,13 +397,13 @@ namespace work.bacome.imapclient
     /// <para>Represents a filter on the content of a message part.</para>
     /// <para>Use the <see cref="cFilterPart.Contains(string)"/> method on the following static members of <see cref="cFilter"/> to generate these;
     /// <list type="bullet">
-    /// <item><description><see cref="cFilter.BCC"/></description></item>
-    /// <item><description><see cref="cFilter.Body"/></description></item>
-    /// <item><description><see cref="cFilter.CC"/></description></item>
-    /// <item><description><see cref="cFilter.From"/></description></item>
-    /// <item><description><see cref="cFilter.Subject"/></description></item>
-    /// <item><description><see cref="cFilter.Text"/></description></item>
-    /// <item><description><see cref="cFilter.To"/></description></item>
+    /// <item><see cref="cFilter.BCC"/></item>
+    /// <item><see cref="cFilter.Body"/></item>
+    /// <item><see cref="cFilter.CC"/></item>
+    /// <item><see cref="cFilter.From"/></item>
+    /// <item><see cref="cFilter.Subject"/></item>
+    /// <item><see cref="cFilter.Text"/></item>
+    /// <item><see cref="cFilter.To"/></item>
     /// </list>
     /// </para>
     /// </summary>
@@ -426,13 +425,13 @@ namespace work.bacome.imapclient
     /// <para>The <see cref="Contains(string)"/> method of this class generates a message content filter.</para>
     /// <para>Use the following static instances of this class to do this;
     /// <list type="bullet">
-    /// <item><description><see cref="cFilter.BCC"/></description></item>
-    /// <item><description><see cref="cFilter.Body"/></description></item>
-    /// <item><description><see cref="cFilter.CC"/></description></item>
-    /// <item><description><see cref="cFilter.From"/></description></item>
-    /// <item><description><see cref="cFilter.Subject"/></description></item>
-    /// <item><description><see cref="cFilter.Text"/></description></item>
-    /// <item><description><see cref="cFilter.To"/></description></item>
+    /// <item><see cref="cFilter.BCC"/></item>
+    /// <item><see cref="cFilter.Body"/></item>
+    /// <item><see cref="cFilter.CC"/></item>
+    /// <item><see cref="cFilter.From"/></item>
+    /// <item><see cref="cFilter.Subject"/></item>
+    /// <item><see cref="cFilter.Text"/></item>
+    /// <item><see cref="cFilter.To"/></item>
     /// </list>
     /// </para>
     /// </summary>
@@ -453,8 +452,8 @@ namespace work.bacome.imapclient
     /// <para>Represents a filter on a message date.</para>
     /// <para>Use the following static members of <see cref="cFilter"/> to generate these;
     /// <list type="bullet">
-    /// <item><description><see cref="cFilter.Received"/></description></item>
-    /// <item><description><see cref="cFilter.Sent"/></description></item>
+    /// <item><see cref="cFilter.Received"/></item>
+    /// <item><see cref="cFilter.Sent"/></item>
     /// </list>
     /// </para>
     /// </summary>

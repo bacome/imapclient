@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool WasNotUnchangedSince = false;
 
-        internal void IncrementSummary(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags, ref sStoreFeedbackSummary pSummary)
+        internal void IncrementSummary(iMessageHandle pHandle, eStoreOperation pOperation, cStorableFlags pFlags, ref sStoreFeedbackSummary pSummary)
         {
             if (WasNotUnchangedSince)
             {
@@ -100,9 +100,9 @@ namespace work.bacome.imapclient
     {
         private List<cStoreFeedbackItem> mItems;
         private eStoreOperation mOperation;
-        private cSettableFlags mFlags;
+        private cStorableFlags mFlags;
 
-        public cStoreFeedback(iMessageHandle pHandle, eStoreOperation pOperation, cSettableFlags pFlags)
+        public cStoreFeedback(iMessageHandle pHandle, eStoreOperation pOperation, cStorableFlags pFlags)
         {
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
@@ -114,7 +114,7 @@ namespace work.bacome.imapclient
             mFlags = pFlags;
         }
 
-        public cStoreFeedback(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cSettableFlags pFlags)
+        public cStoreFeedback(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cStorableFlags pFlags)
         {
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
@@ -133,7 +133,7 @@ namespace work.bacome.imapclient
             mFlags = pFlags;
         }
 
-        public cStoreFeedback(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cSettableFlags pFlags)
+        public cStoreFeedback(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags)
         {
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
@@ -196,12 +196,12 @@ namespace work.bacome.imapclient
     /// <para>A summary of a store operation.</para>
     /// <para>Each message counts towards ONE of;
     /// <list type="bullet">
-    /// <item><description><see cref="UpdatedCount"/></description></item>
-    /// <item><description><see cref="WasNotUnchangedSinceCount"/></description></item>
-    /// <item><description><see cref="ExpungedCount"/></description></item>
-    /// <item><description><see cref="UnknownCount"/></description></item>
-    /// <item><description><see cref="ReflectsOperationCount"/></description></item>
-    /// <item><description><see cref="NotReflectsOperationCount"/></description></item>
+    /// <item><see cref="UpdatedCount"/></item>
+    /// <item><see cref="WasNotUnchangedSinceCount"/></item>
+    /// <item><see cref="ExpungedCount"/></item>
+    /// <item><see cref="UnknownCount"/></item>
+    /// <item><see cref="ReflectsOperationCount"/></item>
+    /// <item><see cref="NotReflectsOperationCount"/></item>
     /// </list>
     /// </para>
     /// <para>Generally <see cref="ExpungedCount"/> + <see cref="NotReflectsOperationCount"/> is the number of definite non-updates.</para>
@@ -219,7 +219,7 @@ namespace work.bacome.imapclient
         /**<summary>The number where the message cache indicates that the message is expunged.</summary>*/
         public int ExpungedCount;
 
-        /**<summary>The number where the internal message handle isn't known (e.g. from a <see cref="cMailbox.UIDStore(cUID, eStoreOperation, cSettableFlags, ulong?)"/>) or the message cache does not contain the flags.</summary>*/
+        /**<summary>The number where the internal message handle isn't known (e.g. from a <see cref="cMailbox.UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>) or the message cache does not contain the flags.</summary>*/
         public int UnknownCount;
 
         /**<summary>The number where the flags in the message cache reflect the update.</summary>*/
@@ -261,9 +261,9 @@ namespace work.bacome.imapclient
     {
         private List<cUIDStoreFeedbackItem> mItems;
         private eStoreOperation mOperation;
-        private cSettableFlags mFlags;
+        private cStorableFlags mFlags;
 
-        public cUIDStoreFeedback(cUID pUID, eStoreOperation pOperation, cSettableFlags pFlags)
+        public cUIDStoreFeedback(cUID pUID, eStoreOperation pOperation, cStorableFlags pFlags)
         {
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
@@ -275,7 +275,7 @@ namespace work.bacome.imapclient
             mFlags = pFlags;
         }
 
-        public cUIDStoreFeedback(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cSettableFlags pFlags)
+        public cUIDStoreFeedback(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cStorableFlags pFlags)
         {
             if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));

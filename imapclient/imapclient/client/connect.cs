@@ -34,9 +34,9 @@ namespace work.bacome.imapclient
         /// <para>At the end of a successful connect process the <see cref="ConnectionState"/> will be <see cref="eConnectionState.notselected"/>.</para>
         /// <para>Exceptions relating to authentication and their meanings;
         /// <list type="bullet">
-        /// <item><term><see cref="cCredentialsException"/>:</term><description>Was able to try credentials from <see cref="Credentials"/> but they didn't work. (If the <see cref="cCredentialsException.ResponseText"/> is set the server explicitly rejected the credentials.)</description></item>
-        /// <item><term><see cref="cAuthenticationMechanismsException"/>:</term><description>Was not able to try any credentials from <see cref="Credentials"/>.</description></item>
-        /// <item><term><see cref="cHomeServerReferralException"/>:</term><description>The server suggests that we try a different server (see <see cref="cHomeServerReferralException.ResponseText"/> and <see cref="cResponseText.Strings"/>).</description></item>
+        /// <item><term><see cref="cCredentialsException"/></term><description>Was able to try credentials from <see cref="Credentials"/> but they didn't work. (If the <see cref="cCredentialsException.ResponseText"/> is set the server explicitly rejected the credentials.)</item>
+        /// <item><term><see cref="cAuthenticationMechanismsException"/></term><description>Was not able to try any credentials from <see cref="Credentials"/>.</item>
+        /// <item><term><see cref="cHomeServerReferralException"/></term><description>The server suggests that we try a different server (see <see cref="cHomeServerReferralException.ResponseText"/> and <see cref="cResponseText.Strings"/>).</item>
         /// </list>
         /// </para>
         /// </remarks>
