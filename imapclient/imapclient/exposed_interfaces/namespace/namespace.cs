@@ -43,6 +43,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// Gets the subscribed mailboxes in the namespace. Note that mailboxes that do not currently exist may be returned.
+        /// </summary>
         /// <param name="pDescend">If true all subscribed mailboxes in the namespace are returned, if false only mailboxes at the top level of hierarchy are returned.</param>
         /// <param name="pDataSets">The sets of data to request when getting the mailboxes. See <see cref="cIMAPClient.MailboxCacheData"/>.</param>
         /// <returns>A list of mailboxes.</returns>

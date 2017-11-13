@@ -11,7 +11,14 @@ namespace work.bacome.imapclient
     /// Provides an API that allows interaction with an IMAP mailbox.
     /// </summary>
     /// <remarks>
-    /// Instances are only valid whilst the containing <see cref="cIMAPClient"/> remains connected. Reconnecting the client will not bring mailbox instances back to life.
+    /// <para>Instances are only valid whilst the containing <see cref="cIMAPClient"/> remains connected. Reconnecting the client will not bring mailbox instances back to life.</para>
+    /// <para>
+    /// To interact with messages in a mailbox, IMAP requires that the mailbox be selected - use the <see cref="Select(bool)"/> method of this class to select the mailbox associated with the instance.
+    /// Each IMAP connection (and hence each <see cref="cIMAPClient"/> instance) can have at most one selected mailbox – selecting a mailbox automatically un-selects the previously selected mailbox.
+    /// An instance of this class may be selected and un-selected many times in its lifetime.
+    /// Each time an instance is selected a new ‘select session’ is started.
+    /// <see cref="cMessage"/> instances are valid only within a 'select session'.
+    /// </para>
     /// </remarks>
     /// <seealso cref="cIMAPClient.Inbox"/>
     /// <seealso cref="cIMAPClient.SelectedMailbox"/>
@@ -40,7 +47,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Fired when the server notifies the client of a mailbox property value change.
+        /// Fired when the server notifies the client of a property value change that affects the mailbox associated with this instance.
         /// </summary>
         /// <remarks>
         /// <para>If <see cref="cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
@@ -73,7 +80,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Fired when the server notifies the client that messages have arrived in the mailbox.
+        /// Fired when the server notifies the client that messages have arrived in the mailbox associated with this instance.
         /// </summary>
         /// <remarks>
         /// <para>If <see cref="cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="System.Threading.SynchronizationContext"/>.</para>
@@ -132,7 +139,7 @@ namespace work.bacome.imapclient
         public bool IsInbox => Handle.MailboxName.IsInbox;
 
         /// <summary>
-        /// Indicates if the mailbox exists on the server. Subscribed mailboxes and levels in the mailbox hierarchy do not necessarily exist. Mailboxes can also be deleted.
+        /// Indicates if the associated mailbox exists on the server. Subscribed mailboxes and levels in the mailbox hierarchy do not necessarily exist. Mailboxes can also be deleted.
         /// </summary>
         public bool Exists
         {
@@ -144,7 +151,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox can definitely not contain child mailboxes. See the IMAP \Noinferiors flag. May be null if the mailbox does not exist.
+        /// Indicates if the associated mailbox can definitely not contain child mailboxes. See the IMAP \Noinferiors flag. May be null if the associated mailbox does not exist.
         /// </summary>
         public bool? CanHaveChildren
         {
@@ -158,7 +165,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox can be selected. See the IMAP \Noselect flag.
+        /// Indicates if the associated mailbox can be selected. See the IMAP \Noselect flag.
         /// </summary>
         public bool CanSelect
         {
@@ -172,7 +179,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox has been marked "interesting" by the server. Null indicates that the server didn't say either way. See the IMAP \Marked and \Unmarked flags.
+        /// Indicates if the associated mailbox has been marked "interesting" by the server. Null indicates that the server didn't say either way. See the IMAP \Marked and \Unmarked flags.
         /// </summary>
         public bool? IsMarked
         {
@@ -186,7 +193,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox is a remote mailbox. May be null if this can't be determined.
+        /// Indicates if the associated mailbox is a remote mailbox. May be null if this can't be determined.
         /// </summary>
         /// <remarks>
         /// Null will be returned under the following set of circumstances;
@@ -195,7 +202,7 @@ namespace work.bacome.imapclient
         /// <item>The connected server supports <see cref="cCapabilities.MailboxReferrals"/>.</item>
         /// <item>The connected server does not support <see cref="cCapabilities.ListExtended"/>.</item>
         /// </list>
-        /// Under these circumstances it is not possible to reliably determine if the mailbox is remote or not.
+        /// Under these circumstances it is not possible to reliably determine if the associated mailbox is remote or not.
         /// </remarks>
         public bool? IsRemote
         {
@@ -211,7 +218,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox had children when the property was refreshed. Null indicates that the server didn't say either way. See the IMAP \HasChildren and \HasNoChildren flags.
+        /// Indicates if the associated mailbox had children when the property value was last refreshed. Null indicates that the server didn't say either way. See the IMAP \HasChildren and \HasNoChildren flags.
         /// </summary>
         public bool? HasChildren
         {
@@ -226,7 +233,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox contains all messages (see the <see cref="cCapabilities.SpecialUse"/> \All flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
+        /// Indicates if the associated mailbox contains all messages (see the <see cref="cCapabilities.SpecialUse"/> \All flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
         /// </summary>
         public bool? ContainsAll
         {
@@ -241,7 +248,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox contains the message archive (see the <see cref="cCapabilities.SpecialUse"/> \Archive flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
+        /// Indicates if the associated mailbox contains the message archive (see the <see cref="cCapabilities.SpecialUse"/> \Archive flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
         /// </summary>
         public bool? IsArchive
         {
@@ -256,7 +263,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox contains message drafts (see the <see cref="cCapabilities.SpecialUse"/> \Drafts flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
+        /// Indicates if the associated mailbox contains message drafts (see the <see cref="cCapabilities.SpecialUse"/> \Drafts flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
         /// </summary>
         public bool? ContainsDrafts
         {
@@ -271,7 +278,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox contains flagged messages (see the <see cref="cCapabilities.SpecialUse"/> \Flagged flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
+        /// Indicates if the associated mailbox contains flagged messages (see the <see cref="cCapabilities.SpecialUse"/> \Flagged flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
         /// </summary>
         public bool? ContainsFlagged
         {
@@ -286,7 +293,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox contains junk mail (see the <see cref="cCapabilities.SpecialUse"/> \Junk flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
+        /// Indicates if the associated mailbox contains junk mail (see the <see cref="cCapabilities.SpecialUse"/> \Junk flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
         /// </summary>
         public bool? ContainsJunk
         {
@@ -301,7 +308,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox contains sent messages (see the <see cref="cCapabilities.SpecialUse"/> \Sent flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
+        /// Indicates if the associated mailbox contains sent messages (see the <see cref="cCapabilities.SpecialUse"/> \Sent flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
         /// </summary>
         public bool? ContainsSent
         {
@@ -316,7 +323,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox contains deleted or to-be deleted messages (see the <see cref="cCapabilities.SpecialUse"/> \Trash flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
+        /// Indicates if the associated mailbox contains deleted or to-be deleted messages (see the <see cref="cCapabilities.SpecialUse"/> \Trash flag). Null indicates that the <see cref="fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="cIMAPClient.MailboxCacheData"/>.
         /// </summary>
         public bool? ContainsTrash
         {
@@ -331,7 +338,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if this mailbox is subscribed to or not.
+        /// Indicates if this associated mailbox is subscribed to or not.
         /// </summary>
         public bool IsSubscribed
         {
@@ -344,10 +351,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the number of messages in the mailbox. 
-        /// Null indicates that <see cref="fMailboxCacheData.messagecount"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or the value was not sent.
-        /// This property always has an up-to-date value when the mailbox is selected.
+        /// Gets the number of messages in the associated mailbox.
+        /// May be null (see <see cref="cIMAPClient.MailboxCacheData"/>).
+        /// This property always has an up-to-date value when the associated mailbox is selected.
         /// </summary>
+        /// <remarks>
+        /// Null indicates that <see cref="fMailboxCacheData.messagecount"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or that the value was not sent when requested.
+        /// </remarks>
         public int? MessageCount
         {
             get
@@ -361,10 +371,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the number of recent messages in the mailbox. 
-        /// Null indicates that <see cref="fMailboxCacheData.recentcount"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or the value was not sent.
-        /// This property always has an up-to-date value when the mailbox is selected.
+        /// Gets the number of messages in the associated mailbox.
+        /// May be null (see <see cref="cIMAPClient.MailboxCacheData"/>).
+        /// This property always has an up-to-date value when the associated mailbox is selected.
         /// </summary>
+        /// <remarks>
+        /// Null indicates that <see cref="fMailboxCacheData.recentcount"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or that the value was not sent when requested.
+        /// </remarks>
         public int? RecentCount
         {
             get
@@ -378,16 +391,17 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the predicted next UID for the mailbox. 
-        /// Null indicates that <see cref="fMailboxCacheData.uidnext"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or the value was not sent.
-        /// This property always has a value when the mailbox is selected, but it may not be up to date.
+        /// Gets the predicted next UID for the associated mailbox. 
+        /// May be null (see <see cref="cIMAPClient.MailboxCacheData"/>).
+        /// This property always has a value when the associated mailbox is selected, but it may not be up-to-date.
         /// </summary>
         /// <remarks>
-        /// <para>When the mailbox is selected, zero indicates that the value is unknown.</para>
-        /// <para>While the mailbox is selected the value of this property may not be up-to-date: see the value of <see cref="UIDNextUnknownCount"/> for the potential inaccuracy in this property value.</para>
-        /// <para>IMAP does not mandate that the server keep the client updated with this value while the mailbox is selected but also disallows retrieving the value while the mailbox is selected.</para>
-        /// <para>While the mailbox is selected the library internally maintains the value of this property by monitoring IMAP FETCH responses from the server, but these responses have to be explicitly requested.</para>
-        /// <para>If it is important to you that the value of this property be accurate when the mailbox is selected then you must fetch the <see cref="fCacheAttributes.uid"/> for new messages as they arrive.</para>
+        /// <para>Null indicates that <see cref="fMailboxCacheData.uidnext"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or that the value was not sent when requested.</para>
+        /// <para>When the associated mailbox is selected, 0 indicates that the value is unknown.</para>
+        /// <para>While the associated mailbox is selected the value of this property may not be up-to-date: see the value of <see cref="UIDNextUnknownCount"/> for the potential inaccuracy in this property value.</para>
+        /// <para>IMAP does not mandate that the server keep the client updated with this value while a mailbox is selected but it also disallows retrieving the value for a mailbox while the mailbox is selected.</para>
+        /// <para>While the associated mailbox is selected the library internally maintains the value of this property by monitoring IMAP FETCH responses from the server, but these responses have to be explicitly requested.</para>
+        /// <para>If it is important to you that the value of this property be accurate when the associated mailbox is selected then you must fetch the <see cref="fCacheAttributes.uid"/> for new messages as they arrive.</para>
         /// <para>See <see cref="MessageDelivery"/>, <see cref="Messages(IEnumerable{iMessageHandle}, cCacheItems, cPropertyFetchConfiguration)"/> and <see cref="cCacheItems"/>.</para>
         /// </remarks>
         public uint? UIDNext
@@ -403,7 +417,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the number of messages that have arrived since the mailbox was selected for which the library has not seen the value of the UID.
+        /// Gets the number of messages that have arrived since the associated mailbox was selected for which the library has not seen the value of the UID.
         /// Indicates how inaccurate the <see cref="UIDNext"/> is.
         /// </summary>
         public int UIDNextUnknownCount
@@ -417,10 +431,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the UIDValidity of the mailbox.
-        /// Null indicates that the mailbox does not support UIDs or that the <see cref="fMailboxCacheData.uidvalidity"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or that the value was not sent.
-        /// This property always has a value when the mailbox is selected; zero indicates that the server does not support UIDs.
+        /// Gets the UIDValidity of the associated mailbox.
+        /// May be null (see <see cref="cIMAPClient.MailboxCacheData"/>).
+        /// This property always has a value when the associated mailbox is selected; however a value of 0 indicates that the server does not support UIDs.
         /// </summary>
+        /// <remarks>
+        /// Null indicates that the associated mailbox does not support UIDs or that the <see cref="fMailboxCacheData.uidvalidity"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or that the value was not sent when requested.
+        /// </remarks>
         /// <seealso cref="UIDNotSticky"/>
         public uint? UIDValidity
         {
@@ -436,14 +453,15 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// Gets the number of unseen messages in the mailbox.
-        /// Null indicates that <see cref="fMailboxCacheData.unseencount"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or the value was not sent.
-        /// This property always has a value when the mailbox is selected, but it may not be up to date.
+        /// May be null (see <see cref="cIMAPClient.MailboxCacheData"/>).
+        /// This property always has a value when the mailbox is selected, but it may not be up-to-date.
         /// </summary>
         /// <remarks>
-        /// <para>While the mailbox is selected the value of this property may not be up-to-date: see the value of <see cref="UnseenUnknownCount"/> for the potential inaccuracy in this property value.</para>
-        /// <para>IMAP does not provide a mechanism for getting this value while the mailbox is selected.</para>
-        /// <para>While the mailbox is selected the library internally maintains the value of this property by monitoring IMAP FETCH responses from the server, but the property value has to be explicitly initialised and the FETCH responses have to be explicitly requested.</para>
-        /// <para>If it is important to you that the value of this property be accurate when the mailbox is selected then you must initialise the value by using <see cref="SetUnseenCount"/> and also fetch the <see cref="fCacheAttributes.flags"/> for new messages as they arrive.</para>
+        /// <para>Null indicates that <see cref="fMailboxCacheData.unseencount"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or that the value was not sent when requested.</para>
+        /// <para>While the associated mailbox is selected the value of this property may not be up-to-date: see the value of <see cref="UnseenUnknownCount"/> for the potential inaccuracy in this property value.</para>
+        /// <para>IMAP does not provide a mechanism for getting this value while a mailbox is selected.</para>
+        /// <para>While the associated mailbox is selected the library internally maintains the value of this property by monitoring IMAP FETCH responses from the server, but the property value has to be explicitly initialised and the FETCH responses have to be explicitly requested.</para>
+        /// <para>If it is important to you that the value of this property be accurate when the associated mailbox is selected then you must initialise the value by using <see cref="SetUnseenCount"/> and also fetch the <see cref="fCacheAttributes.flags"/> for new messages as they arrive.</para>
         /// <para>See <see cref="MessageDelivery"/>, <see cref="Messages(IEnumerable{iMessageHandle}, cCacheItems, cPropertyFetchConfiguration)"/> and <see cref="cCacheItems"/>.</para>
         /// </remarks>
         public int? UnseenCount
@@ -473,11 +491,15 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the modification sequence number for the mailbox. 
+        /// Gets the modification sequence number for the associated mailbox. 
         /// See RFC 7162.
-        /// Null indicates that <see cref="fMailboxCacheData.highestmodseq"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or the value was not sent.
-        /// When the mailbox is selected this property will always have a value but zero indicates that <see cref="cCapabilities.CondStore"/> is not supported on the mailbox.
+        /// May be null (see <see cref="cIMAPClient.MailboxCacheData"/>).
+        /// When the associated mailbox is selected this property will always have a value but it could be 0.
         /// </summary>
+        /// <remarks>
+        /// <para>Null indicates that <see cref="fMailboxCacheData.highestmodseq"/> is not being cached (see <see cref="cIMAPClient.MailboxCacheData"/>) or that the value was not sent when requested.</para>
+        /// <para>0 indicates that <see cref="cCapabilities.CondStore"/> is not supported on the associated mailbox.</para>
+        /// </remarks>
         public ulong? HighestModSeq
         {
             get
@@ -491,27 +513,27 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox has been selected once in this session.
+        /// Indicates if the associated mailbox has been selected once in this <see cref="cIMAPClient"/> session.
         /// </summary>
         public bool HasBeenSelected => Handle.SelectedProperties.HasBeenSelected;
 
         /// <summary>
-        /// Indicates if the mailbox has been selected for update once in this session.
+        /// Indicates if the associated mailbox has been selected for update once in this <see cref="cIMAPClient"/> session.
         /// </summary>
         public bool HasBeenSelectedForUpdate => Handle.SelectedProperties.HasBeenSelectedForUpdate;
 
         /// <summary>
-        /// Indicates if the mailbox has been selected readonly once in this session.
+        /// Indicates if the associated mailbox has been selected readonly once in this <see cref="cIMAPClient"/> session.
         /// </summary>
         public bool HasBeenSelectedReadOnly => Handle.SelectedProperties.HasBeenSelectedReadOnly;
 
         /// <summary>
-        /// Indicates if the mailbox does not have persistent UIDs (see RFC 4315). Null if the mailbox has never been selected in this session.
+        /// Indicates if the associated mailbox does not have persistent UIDs (see RFC 4315). Null if the associated mailbox has never been selected in this <see cref="cIMAPClient"/> session.
         /// </summary>
         public bool? UIDNotSticky => Handle.SelectedProperties.UIDNotSticky;
 
         /// <summary>
-        /// Gets the defined flags in the mailbox. Null if the mailbox has never been selected in this session.
+        /// Gets the defined flags in the associated mailbox. Null if the associated mailbox has never been selected in this <see cref="cIMAPClient"/> session.
         /// </summary>
         public cFetchableFlags MessageFlags
         {
@@ -524,7 +546,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the flags that the client can change permanently in this mailbox when it is selected for update. Null if the mailbox has never been selected for update in this session.
+        /// Gets the flags that the client can change permanently in the associated mailbox when it is selected for update. Null if the associated mailbox has never been selected in this <see cref="cIMAPClient"/> session.
         /// </summary>
         public cMessageFlags ForUpdatePermanentFlags
         {
@@ -537,7 +559,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the flags that the client can change permanently in this mailbox when it is selected readonly. Null if the mailbox has never been selected read-only in this session.
+        /// Gets the flags that the client can change permanently in the associated mailbox when it is selected readonly. Null if the associated mailbox has never been selected in this <see cref="cIMAPClient"/> session.
         /// </summary>
         public cMessageFlags ReadOnlyPermanentFlags
         {
@@ -550,12 +572,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox is currently the selected mailbox.
+        /// Indicates if the associated mailbox is currently the selected mailbox.
         /// </summary>
         public bool IsSelected => ReferenceEquals(Client.SelectedMailboxDetails?.Handle, Handle);
 
         /// <summary>
-        /// Indicates if the mailbox is currently selected for update.
+        /// Indicates if the associated mailbox is currently selected for update.
         /// </summary>
         public bool IsSelectedForUpdate
         {
@@ -568,7 +590,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the mailbox is currently selected but the mailbox can't be modified.
+        /// Indicates if the associated mailbox is currently selected but can't be modified.
         /// </summary>
         public bool IsAccessReadOnly
         {
@@ -581,21 +603,21 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the mailbox's child mailboxes.
+        /// Gets the associated mailbox's child mailboxes.
         /// </summary>
         /// <param name="pDataSets">The sets of data to retrieve when getting the child mailboxes. See <see cref="cIMAPClient.MailboxCacheData"/>.</param>
         /// <returns></returns>
         public List<cMailbox> Mailboxes(fMailboxCacheDataSets pDataSets = 0) => Client.Mailboxes(Handle, pDataSets);
 
         /// <summary>
-        /// Asynchronously gets the mailbox's child mailboxes.
+        /// Asynchronously gets the associated mailbox's child mailboxes.
         /// </summary>
         /// <param name="pDataSets">The sets of data to retrieve when getting the child mailboxes. See <see cref="cIMAPClient.MailboxCacheData"/>.</param>
         /// <returns></returns>
         public Task<List<cMailbox>> MailboxesAsync(fMailboxCacheDataSets pDataSets = 0) => Client.MailboxesAsync(Handle, pDataSets);
 
         /// <summary>
-        /// Gets the mailbox's subscribed child mailboxes. Note that mailboxes that do not currently exist may be returned.
+        /// Gets the associated mailbox's subscribed child mailboxes. Note that mailboxes that do not currently exist may be returned.
         /// </summary>
         /// <param name="pDescend">If true all descendants are returned (not just children, but also grandchildren ...).</param>
         /// <param name="pDataSets">The sets of data to retrieve when getting the child mailboxes. See <see cref="cIMAPClient.MailboxCacheData"/>.</param>
@@ -603,7 +625,7 @@ namespace work.bacome.imapclient
         public List<cMailbox> Subscribed(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0) => Client.Subscribed(Handle, pDescend, pDataSets);
 
         /// <summary>
-        /// Asynchronously gets the mailbox's subscribed child mailboxes. Note that mailboxes that do not currently exist may be returned.
+        /// Asynchronously gets the associated mailbox's subscribed child mailboxes. Note that mailboxes that do not currently exist may be returned.
         /// </summary>
         /// <param name="pDescend">If true all descendants are returned (not just children, but also grandchildren ...).</param>
         /// <param name="pDataSets">The sets of data to retrieve when getting the child mailboxes. See <see cref="cIMAPClient.MailboxCacheData"/>.</param>
@@ -611,7 +633,7 @@ namespace work.bacome.imapclient
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(Handle, pDescend, pDataSets);
 
         /// <summary>
-        /// Creates a child mailbox of this mailbox.
+        /// Creates a child mailbox of the associated mailbox.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
         /// <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
@@ -619,7 +641,7 @@ namespace work.bacome.imapclient
         public cMailbox CreateChild(string pName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pName), pAsFutureParent);
 
         /// <summary>
-        /// Asynchronously creates a child mailbox of this mailbox.
+        /// Asynchronously creates a child mailbox of the associated mailbox.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
         /// <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
@@ -636,28 +658,28 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Subscribes to this mailbox.
+        /// Subscribes to the associated mailbox.
         /// </summary>
         public void Subscribe() => Client.Subscribe(Handle);
 
         /// <summary>
-        /// Asynchronously subscribes to this mailbox.
+        /// Asynchronously subscribes to the associated mailbox.
         /// </summary>
         /// <returns></returns>
         public Task SubscribeAsync() => Client.SubscribeAsync(Handle);
 
         /// <summary>
-        /// Unsubscribes from this mailbox.
+        /// Unsubscribes from the associated mailbox.
         /// </summary>
         public void Unsubscribe() => Client.Unsubscribe(Handle);
 
         /// <summary>
-        /// Asynchronously unsubscribes from this mailbox.
+        /// Asynchronously unsubscribes from the associated mailbox.
         /// </summary>
         public Task UnsubscribeAsync() => Client.UnsubscribeAsync(Handle);
-    
+
         /// <summary>
-        /// Changes the name of this mailbox.
+        /// Changes the name of the associated mailbox.
         /// Note that this method leaves the mailbox in its containing mailbox, just changing the last part of the path hierarchy.
         /// </summary>
         /// <param name="pName">The new mailbox name.</param>
@@ -665,7 +687,7 @@ namespace work.bacome.imapclient
         public cMailbox Rename(string pName) => Client.Rename(Handle, ZRename(pName));
 
         /// <summary>
-        /// Ansynchronously changes the name of this mailbox.
+        /// Ansynchronously changes the name of the associated mailbox.
         /// Note that this method leaves the mailbox in its containing mailbox, just changing the last part of the path hierarchy.
         /// </summary>
         /// <param name="pName">The new mailbox name.</param>
@@ -693,75 +715,99 @@ namespace work.bacome.imapclient
         } */
 
         /// <summary>
-        /// Deletes this mailbox.
+        /// Deletes the associated mailbox.
         /// </summary>
         public void Delete() => Client.Delete(Handle);
 
         /// <summary>
-        /// Asynchronously deletes this mailbox.
+        /// Asynchronously deletes the associated mailbox.
         /// </summary>
         public Task DeleteAsync() => Client.DeleteAsync(Handle);
 
-        ;?;
+        /// <summary>
+        /// Selects the associated mailbox.
+        /// Selecting a mailbox un-selects the previously selected mailbox (if there was one).
+        /// </summary>
+        /// <param name="pForUpdate">Indicates if the associated mailbox should be selected for update or not</param>
+        public void Select(bool pForUpdate = false) => Client.Select(Handle, pForUpdate);
 
         /// <summary>
-        /// <para>Select this mailbox.</para>
-        /// <para>Selecting a mailbox un-selects the previously selected mailbox (if there was one).</para>
+        /// Asynchronously selects the associated mailbox.
+        /// Selecting a mailbox un-selects the previously selected mailbox (if there was one).
         /// </summary>
-        /// <param name="pForUpdate">Indicates if the mailbox should be selected for update or not</param>
-        public void Select(bool pForUpdate = false) => Client.Select(Handle, pForUpdate);
-        /**<summary>The async version of <see cref="Select(bool)"/>.</summary>*/
+        /// <param name="pForUpdate">Indicates if the associated mailbox should be selected for update or not</param>
+        /// <returns></returns>
         public Task SelectAsync(bool pForUpdate = false) => Client.SelectAsync(Handle, pForUpdate);
 
         /// <summary>
-        /// <para>Expunge messages marked with the deleted flag (see <see cref="cMessage.Deleted"/>) from the mailbox.</para>
-        /// <para>Setting <paramref name="pAndUnselect"/> to true also un-selects the mailbox. This reduces the amount of network activity associated with the expunge.</para>
+        /// Expunges messages marked with the <see cref="kMessageFlagName.Deleted"/> flag from the associated mailbox. The associated mailbox must be selected.
         /// </summary>
-        /// <param name="pAndUnselect">Indicates if the mailbox should also be un-selected.</param>
+        /// <param name="pAndUnselect">Indicates if the associated mailbox should also be un-selected.</param>
+        /// <remarks>
+        /// <para>Setting <paramref name="pAndUnselect"/> to true also un-selects the associated mailbox; this reduces the amount of network activity associated with the expunge.</para>
+        /// </remarks>
+        /// <seealso cref="cMessage.Deleted"/>
+        /// <seealso cref="cMessage.Store(eStoreOperation, cStorableFlags, ulong?)"/>,
+        /// <seealso cref="UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>,
+        /// <seealso cref="UIDStore(IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>,
+        /// <seealso cref="cIMAPClient.Store(IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)"/>
         public void Expunge(bool pAndUnselect = false) => Client.Expunge(Handle, pAndUnselect);
-        /**<summary>The async version of <see cref="Expunge(bool)"/>.</summary>*/
+
+        /// <summary>
+        /// Asynchronously expunges messages marked with the <see cref="kMessageFlagName.Deleted"/> flag from the associated mailbox. The associated mailbox must be selected.
+        /// </summary>
+        /// <param name="pAndUnselect">Indicates if the associated mailbox should also be un-selected.</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// <para>Setting <paramref name="pAndUnselect"/> to true also un-selects the associated mailbox; this reduces the amount of network activity associated with the expunge.</para>
+        /// </remarks>
+        /// <seealso cref="cMessage.Deleted"/>
+        /// <seealso cref="cMessage.StoreAsync(eStoreOperation, cStorableFlags, ulong?)"/>,
+        /// <seealso cref="UIDStoreAsync(cUID, eStoreOperation, cStorableFlags, ulong?)"/>,
+        /// <seealso cref="UIDStoreAsync(IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>,
+        /// <seealso cref="cIMAPClient.StoreAsync(IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)"/>
         public Task ExpungeAsync(bool pAndUnselect = false) => Client.ExpungeAsync(Handle, pAndUnselect);
 
         /// <summary>
-        /// <para>Get a list of messages contained in the mailbox from the server.</para>
+        /// Gets a list of messages contained in the associated mailbox from the server. The associated mailbox must be selected.
         /// </summary>
-        /// <param name="pFilter">
-        /// <para>The filter to use to restrict the set of messages returned.</para>
-        /// <para>Use the static members and operators of the <see cref="cFilter"/> class to create an optional message filter.</para>
-        /// </param>
-        /// <param name="pSort">
-        /// <para>The sort to use to order the set of messages returned.</para>
-        /// <para>Use the static members of the <see cref="cSortItem"/> class as parameters to a <see cref="cSort"/> constructor to create an optional sort specification.</para>
-        /// <para>If not specified the default (<see cref="cIMAPClient.DefaultSort"/>) will be used.</para>
-        /// </param>
-        /// <param name="pItems">
-        /// <para>The set of message cache items to ensure are cached for the returned messages.</para>
-        /// <para>If not specified the default (<see cref="cIMAPClient.DefaultCacheItems"/>) will be used.</para>
-        /// </param>
+        /// <param name="pFilter">The filter to use to restrict the set of messages returned.</param>
+        /// <param name="pSort">The sort to use to order the set of messages returned. If not specified the default (<see cref="cIMAPClient.DefaultSort"/>) will be used.</param>
+        /// <param name="pItems">The set of message cache items to ensure are cached for the returned messages. If not specified the default (<see cref="cIMAPClient.DefaultCacheItems"/>) will be used.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <returns>A list of messages.</returns>
+        /// <returns></returns>
         public List<cMessage> Messages(cFilter pFilter = null, cSort pSort = null, cCacheItems pItems = null, cMessageFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultCacheItems, pConfiguration);
-        /**<summary>The async version of <see cref="Messages(cFilter, cSort, cCacheItems, cMessageFetchConfiguration)"/>.</summary>*/
+
+        /// <summary>
+        /// Asynchronously gets a list of messages contained in the associated mailbox from the server. The associated mailbox must be selected.
+        /// </summary>
+        /// <param name="pFilter">The filter to use to restrict the set of messages returned.</param>
+        /// <param name="pSort">The sort to use to order the set of messages returned. If not specified the default (<see cref="cIMAPClient.DefaultSort"/>) will be used.</param>
+        /// <param name="pItems">The set of message cache items to ensure are cached for the returned messages. If not specified the default (<see cref="cIMAPClient.DefaultCacheItems"/>) will be used.</param>
+        /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
+        /// <returns></returns>
         public Task<List<cMessage>> MessagesAsync(cFilter pFilter = null, cSort pSort = null, cCacheItems pItems = null, cMessageFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pFilter ?? cFilter.All, pSort ?? Client.DefaultSort, pItems ?? Client.DefaultCacheItems, pConfiguration);
 
         /// <summary>
-        /// <para>Get a list of messages from a set of handles.</para>
-        /// <para>Useful when handling the <see cref="MessageDelivery"/> event.</para>
+        /// Creates message instances from internal message cache items. (Useful when handling the <see cref="MessageDelivery"/> event.)
         /// </summary>
-        /// <param name="pHandles">A set of message handles.</param>
-        /// <param name="pItems">
-        /// <para>The set of message cache items to ensure are cached for the returned messages.</para>
-        /// <para>If not specified the default (<see cref="cIMAPClient.DefaultCacheItems"/>) will be used.</para>
-        /// </param>
+        /// <param name="pHandles"></param>
+        /// <param name="pItems">The set of message cache items to ensure are cached for the returned messages. If not specified the default (<see cref="cIMAPClient.DefaultCacheItems"/>) will be used.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <returns>A list of messages where the cache does NOT contain the requested items (i.e. where the fetch failed).</returns>
+        /// <returns></returns>
         public List<cMessage> Messages(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems = null, cPropertyFetchConfiguration pConfiguration = null)
         {
             Client.Fetch(pHandles, pItems ?? Client.DefaultCacheItems, pConfiguration);
             return ZMessages(pHandles);
         }
 
-        /**<summary>The async version of <see cref="Messages(IEnumerable{iMessageHandle}, cCacheItems, cPropertyFetchConfiguration)"/>.</summary>*/
+        /// <summary>
+        /// Asynchronously creates message instances from internal message cache items. (Useful when handling the <see cref="MessageDelivery"/> event.)
+        /// </summary>
+        /// <param name="pHandles"></param>
+        /// <param name="pItems">The set of message cache items to ensure are cached for the returned messages. If not specified the default (<see cref="cIMAPClient.DefaultCacheItems"/>) will be used.</param>
+        /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
+        /// <returns></returns>
         public async Task<List<cMessage>> MessagesAsync(IEnumerable<iMessageHandle> pHandles, cCacheItems pItems = null, cPropertyFetchConfiguration pConfiguration = null)
         {
             await Client.FetchAsync(pHandles, pItems ?? Client.DefaultCacheItems, pConfiguration).ConfigureAwait(false);
@@ -776,136 +822,197 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>When the mailbox is selected use this method to initialise the <see cref="UnseenCount"/>.</para>
-        /// <para>IMAP does not have a mechanism for getting the unseencount when the mailbox is selected.</para>
-        /// <para>Once the value is initialised it needs to be maintained by fetching the flags of newly arrived messages.</para>
-        /// <para>You need to handle the <see cref="MessageDelivery"/> event and use the <see cref="Messages(IEnumerable{iMessageHandle}, cCacheItems, cPropertyFetchConfiguration)"/> method to achieve this.</para>
+        /// Initialises the value of <see cref="UnseenCount"/>. See <see cref="UnseenCount"/> to understand why and when you might want to do this. The associated mailbox must be selected.
         /// </summary>
-        /// <returns>A list of unseen message handles.</returns>
+        /// <returns>A list of internal message cache items for messages in the associated mailbox that do not have the <see cref="kMessageFlagName.Seen"/> flag.</returns>
         public cMessageHandleList SetUnseenCount() => Client.SetUnseenCount(Handle);
-        /**<summary>The async version of <see cref="SetUnseenCount"/>.</summary>*/
+
+        /// <summary>
+        /// Asynchronously initialises the value of <see cref="UnseenCount"/>. See <see cref="UnseenCount"/> to understand why and when you might want to do this. The associated mailbox must be selected.
+        /// </summary>
+        /// <returns>A list of internal message cache items for messages in the associated mailbox that do not have the <see cref="kMessageFlagName.Seen"/> flag.</returns>
         public Task<cMessageHandleList> SetUnseenCountAsync() => Client.SetUnseenCountAsync(Handle);
 
         /// <summary>
-        /// <para>Resolve a UID to a message instance and ensure that the specified items are cached.</para>
+        /// Gets a <see cref="cMessage"/> instance. The associated mailbox must be selected.
         /// </summary>
-        /// <param name="pUID">The UID to resolve.</param>
-        /// <param name="pItems">The set of message cache items to ensure are cached for the returned messages.</param>
-        /// <returns>An object representing the message.</returns>
+        /// <param name="pUID"></param>
+        /// <param name="pItems">The set of message cache items to ensure are cached for the returned message.</param>
+        /// <returns></returns>
         public cMessage Message(cUID pUID, cCacheItems pItems) => Client.Message(Handle, pUID, pItems);
-        /**<summary>The async version of <see cref="Message(cUID, cCacheItems)"/>.</summary>*/
+
+        /// <summary>
+        /// Asynchronously gets a <see cref="cMessage"/> instance. The associated mailbox must be selected.
+        /// </summary>
+        /// <param name="pUID"></param>
+        /// <param name="pItems">The set of message cache items to ensure are cached for the returned message.</param>
+        /// <returns></returns>
         public Task<cMessage> MessageAsync(cUID pUID, cCacheItems pItems) => Client.MessageAsync(Handle, pUID, pItems);
 
         /// <summary>
-        /// <para>Resolve a set of UIDs to message instances and ensure that the specified items are cached.</para>
+        /// Gets a set of <see cref="cMessage"/> instances. The associated mailbox must be selected.
         /// </summary>
-        /// <param name="pUIDs">The UIDs to resolve.</param>
+        /// <param name="pUIDs">.</param>
         /// <param name="pItems">The set of message cache items to ensure are cached for the returned messages.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <returns>A list of messages.</returns>
+        /// <returns></returns>
         public List<cMessage> Messages(IEnumerable<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.Messages(Handle, pUIDs, pItems, pConfiguration);
-        /**<summary>The async version of <see cref="MessagesAsync(IEnumerable{cUID}, cCacheItems, cPropertyFetchConfiguration)"/>.</summary>*/
+
+        /// <summary>
+        /// Asynchronously gets a set of <see cref="cMessage"/> instances. The associated mailbox must be selected.
+        /// </summary>
+        /// <param name="pUIDs"></param>
+        /// <param name="pItems">The set of message cache items to ensure are cached for the returned messages.</param>
+        /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
+        /// <returns></returns>
         public Task<List<cMessage>> MessagesAsync(IEnumerable<cUID> pUIDs, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pUIDs, pItems, pConfiguration);
 
         /// <summary>
-        /// <para>Refresh the mailbox cache data for this mailbox.</para>
+        /// Refreshes the mailbox cache data for this mailbox.
         /// </summary>
         /// <param name="pDataSets">The sets of data to refresh.</param>
         public void Fetch(fMailboxCacheDataSets pDataSets) => Client.Fetch(Handle, pDataSets);
-        /**<summary>The async version of <see cref="Fetch(fMailboxCacheDataSets)"/>.</summary>*/
+
+        /// <summary>
+        /// Asynchronously refreshes the mailbox cache data for this mailbox.
+        /// </summary>
+        /// <param name="pDataSets">The sets of data to refresh.</param>
+        /// <returns></returns>
         public Task FetchAsync(fMailboxCacheDataSets pDataSets) => Client.FetchAsync(Handle, pDataSets);
 
         /// <summary>
-        /// <para>Copy a set of messages to this mailbox.</para>
-        /// <para>The source messages must be in the currently selected mailbox.</para>
-        /// <para>If the server provides the UIDCOPY response code of RFC 4315 pairs of UIDs of the copied messages are returned.</para>
+        /// Copies a set of messages to the mailbox associated with this instance.
+        /// The messages must be in the currently selected mailbox.
         /// </summary>
-        /// <param name="pMessages">The set of messages to copy.</param>
-        /// <returns>If the server provides a UIDCOPY response: the pairs of UIDs for the copied messages; otherwise null.</returns>
+        /// <param name="pMessages"></param>
+        /// <returns>If the server provides an RFC 4315 UIDCOPY response the pairs of UIDs for the copied messages; otherwise null.</returns>
         public cCopyFeedback Copy(IEnumerable<cMessage> pMessages) => Client.Copy(cMessageHandleList.FromMessages(pMessages), Handle);
-        /**<summary>The async version of <see cref="Copy(IEnumerable{cMessage})"/>.</summary>*/
+
+        /// <summary>
+        /// Asynchronously copies a set of messages to the mailbox associated with this instance.
+        /// The messages must be in the currently selected mailbox.
+        /// </summary>
+        /// <param name="pMessages"></param>
+        /// <returns>If the server provides an RFC 4315 UIDCOPY response the pairs of UIDs for the copied messages; otherwise null.</returns>
         public Task<cCopyFeedback> CopyAsync(IEnumerable<cMessage> pMessages) => Client.CopyAsync(cMessageHandleList.FromMessages(pMessages), Handle);
 
         /// <summary>
-        /// <para>Fetch a section of a message into a stream.</para>
-        /// <para>This mailbox must be selected.</para>
-        /// <para>Will throw if the <paramref name="pUID"/> does not exist in the mailbox.</para>
+        /// Fetches a section of a message in the associated mailbox into a stream. 
+        /// The associated mailbox must be selected.
+        /// Will throw if the <paramref name="pUID"/> does not exist in the mailbox.
         /// </summary>
-        /// <param name="pUID">The UID of the message.</param>
-        /// <param name="pSection">The section of the message to fetch.</param>
+        /// <param name="pUID"></param>
+        /// <param name="pSection"></param>
         /// <param name="pDecoding">
-        /// <para>What decoding should be applied to the fetched data.</para>
-        /// <para>If the connected server supports RFC 3516 and the entire part (<see cref="eSectionTextPart.all"/>) is being fetched then this may be <see cref="eDecodingRequired.unknown"/> to get the server to do the decoding.</para>
+        /// Specifies the decoding should be applied to the fetched data.
+        /// If the connected server supports <see cref="cCapabilities.Binary"/> and the entire part (<see cref="eSectionTextPart.all"/>) is being fetched then this may be <see cref="eDecodingRequired.unknown"/> to get the server to do the decoding.
         /// </param>
-        /// <param name="pStream">The stream to write the (decoded) data into.</param>
+        /// <param name="pStream"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         public void UIDFetch(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetch(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);
-        /**<summary>The async version of <see cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.</summary>*/
+
+        /// <summary>
+        /// Asynchronously fetches a section of a message in the associated mailbox into a stream. 
+        /// The associated mailbox must be selected.
+        /// Will throw if the <paramref name="pUID"/> does not exist in the mailbox.
+        /// </summary>
+        /// <param name="pUID"></param>
+        /// <param name="pSection"></param>
+        /// <param name="pDecoding">
+        /// Specifies the decoding should be applied to the fetched data.
+        /// If the connected server supports <see cref="cCapabilities.Binary"/> and the entire part (<see cref="eSectionTextPart.all"/>) is being fetched then this may be <see cref="eDecodingRequired.unknown"/> to get the server to do the decoding.
+        /// </param>
+        /// <param name="pStream"></param>
+        /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
+        /// <returns></returns>
         public Task UIDFetchAsync(cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.UIDFetchAsync(Handle, pUID, pSection, pDecoding, pStream, pConfiguration);
 
         /// <summary>
-        /// <para>Store flags for a message.</para>
-        /// <para>This mailbox must be selected.</para>
+        /// Stores flags for a message. The associated mailbox must be selected.
         /// </summary>
-        /// <param name="pUID">The UID of the message.</param>
+        /// <param name="pUID"></param>
         /// <param name="pOperation">The type of store operation.</param>
-        /// <param name="pFlags">The flags to store.</param>
+        /// <param name="pFlags"></param>
         /// <param name="pIfUnchangedSinceModSeq">
-        /// <para>The modseq to use in the unchangedsince clause of a conditional store (RFC 7162).</para>
-        /// <para>Can only be specified if the mailbox supports RFC 7162.</para>
-        /// <para>If the message has been modified since the specified modseq the server should fail the update.</para>
+        /// The modseq to use in the UNCHANGEDSINCE clause of a conditional store (see RFC 7162).
+        /// Can only be specified if the associated mailbox supports CONDSTORE.
+        /// If the message has been modified since the specified modseq the server should fail the update.
         /// </param>
         /// <returns>Feedback on the success (or otherwise) of the store.</returns>
         public cUIDStoreFeedback UIDStore(cUID pUID, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStore(Handle, pUID, pOperation, pFlags, pIfUnchangedSinceModSeq);
-        /**<summary>The async version of <see cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.</summary>*/
+
+        /// <summary>
+        /// Asynchronously stores flags for a message. The associated mailbox must be selected.
+        /// </summary>
+        /// <param name="pUID"></param>
+        /// <param name="pOperation">The type of store operation.</param>
+        /// <param name="pFlags"></param>
+        /// <param name="pIfUnchangedSinceModSeq">
+        /// The modseq to use in the UNCHANGEDSINCE clause of a conditional store (see RFC 7162).
+        /// Can only be specified if the associated mailbox supports CONDSTORE.
+        /// If the message has been modified since the specified modseq the server should fail the update.
+        /// </param>
+        /// <returns>Feedback on the success (or otherwise) of the store.</returns>
         public Task<cUIDStoreFeedback> UIDStoreAsync(cUID pUID, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStoreAsync(Handle, pUID, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         /// <summary>
-        /// The multiple message version of <see cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.
+        /// Stores flags for a set of messages. The associated mailbox must be selected.
         /// </summary>
         /// <param name="pUIDs"></param>
-        /// <param name="pOperation"></param>
+        /// <param name="pOperation">The type of store operation.</param>
         /// <param name="pFlags"></param>
-        /// <param name="pIfUnchangedSinceModSeq"></param>
-        /// <returns></returns>
+        /// <param name="pIfUnchangedSinceModSeq">
+        /// The modseq to use in the UNCHANGEDSINCE clause of a conditional store (see RFC 7162).
+        /// Can only be specified if the associated mailbox supports CONDSTORE.
+        /// If any of the messages have been modified since the specified modseq the server should fail the update to that message.
+        /// </param>
+        /// <returns>Feedback on the success (or otherwise) of the store.</returns>
         public cUIDStoreFeedback UIDStore(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStore(Handle, pUIDs, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         /// <summary>
-        /// The async multiple message version of <see cref="UIDFetch(cUID, cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)"/>.
+        /// Asynchronously stores flags for a set of messages. The associated mailbox must be selected.
         /// </summary>
         /// <param name="pUIDs"></param>
-        /// <param name="pOperation"></param>
+        /// <param name="pOperation">The type of store operation.</param>
         /// <param name="pFlags"></param>
-        /// <param name="pIfUnchangedSinceModSeq"></param>
-        /// <returns></returns>
+        /// <param name="pIfUnchangedSinceModSeq">
+        /// The modseq to use in the UNCHANGEDSINCE clause of a conditional store (see RFC 7162).
+        /// Can only be specified if the associated mailbox supports CONDSTORE.
+        /// If any of the messages have been modified since the specified modseq the server should fail the update to that message.
+        /// </param>
+        /// <returns>Feedback on the success (or otherwise) of the store.</returns>
         public Task<cUIDStoreFeedback> UIDStoreAsync(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStoreAsync(Handle, pUIDs, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         /// <summary>
-        /// <para>Copy a message to another mailbox.</para>
-        /// <para>This mailbox must be selected.</para>
-        /// <para>If the server provides the UIDCOPY response code of RFC 4315 pairs of UIDs of the copied messages are returned.</para>
+        /// Copies a message in this mailbox to another mailbox. The mailbox associated with this instance must be selected.
         /// </summary>
-        /// <param name="pUID">The UID of the message to copy.</param>
-        /// <param name="pDestination">The destination mailbox.</param>
-        /// <returns>If the server provides a UIDCOPY response: the pairs of UIDs for the copied messages; otherwise null.</returns>
+        /// <param name="pUID"></param>
+        /// <param name="pDestination"></param>
+        /// <returns>If the server provides an RFC 4315 UIDCOPY response the pairs of UIDs for the copied messages; otherwise null.</returns>
         public cCopyFeedback UIDCopy(cUID pUID, cMailbox pDestination) => Client.UIDCopy(Handle, pUID, pDestination.Handle);
-        /**<summary>The async version of <see cref="UIDCopy(cUID, cMailbox)"/>.</summary>*/
+
+        /// <summary>
+        /// Asynchronously copies a message in this mailbox to another mailbox. The mailbox associated with this instance must be selected.
+        /// </summary>
+        /// <param name="pUID"></param>
+        /// <param name="pDestination"></param>
+        /// <returns>If the server provides an RFC 4315 UIDCOPY response the pairs of UIDs for the copied messages; otherwise null.</returns>
         public Task<cCopyFeedback> UIDCopyAsync(cUID pUID, cMailbox pDestination) => Client.UIDCopyAsync(Handle, pUID, pDestination.Handle);
 
         /// <summary>
-        /// The multiple message version of <see cref="UIDCopy(cUID, cMailbox)"/>.
+        /// Copies messages in this mailbox to another mailbox. The mailbox associated with this instance must be selected.
         /// </summary>
         /// <param name="pUIDs"></param>
         /// <param name="pDestination"></param>
-        /// <returns></returns>
+        /// <returns>If the server provides an RFC 4315 UIDCOPY response the pairs of UIDs for the copied messages; otherwise null.</returns>
         public cCopyFeedback UIDCopy(IEnumerable<cUID> pUIDs, cMailbox pDestination) => Client.UIDCopy(Handle, pUIDs, pDestination.Handle);
 
         /// <summary>
-        /// The async multiple message version of <see cref="UIDCopy(cUID, cMailbox)"/>.
+        /// Asynchronously copies messages in this mailbox to another mailbox. The mailbox associated with this instance must be selected.
         /// </summary>
         /// <param name="pUIDs"></param>
         /// <param name="pDestination"></param>
-        /// <returns></returns>
+        /// <returns>If the server provides an RFC 4315 UIDCOPY response the pairs of UIDs for the copied messages; otherwise null.</returns>
         public Task<cCopyFeedback> UIDCopyAsync(IEnumerable<cUID> pUIDs, cMailbox pDestination) => Client.UIDCopyAsync(Handle, pUIDs, pDestination.Handle);
 
         // blah

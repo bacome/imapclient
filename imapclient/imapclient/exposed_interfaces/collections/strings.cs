@@ -15,9 +15,8 @@ namespace work.bacome.imapclient
         /// <param name="pStrings"></param>
         public cStrings(IList<string> pStrings) : base(pStrings) { }
 
-        ;?;
         /// <summary>
-        /// Determines if two lists contain equal strings in the same order.
+        /// Determines whether this instance and a specified object have the same items in the same order.
         /// </summary>
         /// <param name="pObject"></param>
         /// <returns></returns>
@@ -45,7 +44,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines if two lists contain equal strings in the same order.
+        /// Determines whether two instances have the same items in the same order.
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>
@@ -61,7 +60,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines if two lists contain equal strings in the same order.
+        /// Determines whether two instances have different items or different orders.
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>

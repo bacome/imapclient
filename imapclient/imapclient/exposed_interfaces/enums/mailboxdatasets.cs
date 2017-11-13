@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
         /// <list type="bullet">
         /// <item><term>If caching <see cref="fMailboxCacheData.messagecount"/></term><description><see cref="cMailbox.MessageCount"/></description></item>
         /// <item><term>If caching <see cref="fMailboxCacheData.recentcount"/></term><description><see cref="cMailbox.RecentCount"/></description></item>
-        /// <item><term>If caching <see cref="fMailboxCacheData.uidnext"/></term><description><see cref="cMailbox.UIDNext"/</description>></item>
+        /// <item><term>If caching <see cref="fMailboxCacheData.uidnext"/></term><description><see cref="cMailbox.UIDNext"/></description>></item>
         /// <item><term>If caching <see cref="fMailboxCacheData.uidvalidity"/></term><description><see cref="cMailbox.UIDValidity"/></description></item>
         /// <item><term>If caching <see cref="fMailboxCacheData.unseencount"/></term><description><see cref="cMailbox.UnseenCount"/></description></item>
         /// <item><term>If caching <see cref="fMailboxCacheData.highestmodseq"/></term><description><see cref="cMailbox.HighestModSeq"/></description></item>

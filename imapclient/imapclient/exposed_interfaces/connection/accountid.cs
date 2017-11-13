@@ -76,7 +76,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines if two instances have the same <see cref="Host"/>, <see cref="Type"/> and <see cref="UserId"/>.
+        /// Determines whether this instance and a specified object have the same values.
         /// </summary>
         /// <param name="pObject"></param>
         /// <returns></returns>
@@ -100,7 +100,7 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cAccountId)}({Host},{Type},{UserId})";
 
         /// <summary>
-        /// Determines if two instances have the same <see cref="Host"/>, <see cref="Type"/> and <see cref="UserId"/>.
+        /// Determines whether two instances have the same values.
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>
@@ -114,7 +114,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines if two instances have the same <see cref="Host"/>, <see cref="Type"/> and <see cref="UserId"/>.
+        /// Determines whether two instances have different values.
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>
