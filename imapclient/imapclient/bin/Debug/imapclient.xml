@@ -1043,6 +1043,16 @@
             <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is set, the callback will be made on that synchronisation context.</para>
             </summary>
         </member>
+        <member name="T:work.bacome.imapclient.cMessageHandleList">
+            <summary>
+            A list of messages in the internal message cache.
+            </summary>
+            <seealso cref="M:work.bacome.imapclient.cMailbox.SetUnseenCount"/>
+            <seealso cref="F:work.bacome.imapclient.cMessageDeliveryEventArgs.Handles"/>
+        </member>
+        <member name="M:work.bacome.imapclient.cMessageHandleList.ToString">
+            <summary>Returns a string that represents the list.</summary>
+        </member>
         <member name="T:work.bacome.imapclient.cStrings">
             <summary>
             A read-only string collection.
@@ -1535,6 +1545,39 @@
             The backing data retrieved by the IMAP STATUS command.
             </summary>
         </member>
+        <member name="T:work.bacome.imapclient.cNetworkReceiveEventArgs">
+            <summary>
+            Represents data received from a server.
+            </summary>
+            <seealso cref="E:work.bacome.imapclient.cIMAPClient.NetworkReceive"/>
+        </member>
+        <member name="F:work.bacome.imapclient.cNetworkReceiveEventArgs.Lines">
+            <summary>
+            The bytes received.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cNetworkReceiveEventArgs.ToString">
+            <summary>Returns a string that represents the data received.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.cNetworkSendEventArgs">
+            <summary>
+            Represents data sent to the server.
+            </summary>
+            <seealso cref="E:work.bacome.imapclient.cIMAPClient.NetworkSend"/>
+        </member>
+        <member name="F:work.bacome.imapclient.cNetworkSendEventArgs.Bytes">
+            <summary>
+            The number of bytes sent (null if this can't be disclosed).
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cNetworkSendEventArgs.Buffers">
+            <summary>
+            The bytes sent (sensitive data redacted).
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cNetworkSendEventArgs.ToString">
+            <summary>Returns a string that represents the data sent.</summary>
+        </member>
         <member name="T:work.bacome.imapclient.cStoreFeedbackItemBase">
             <summary>
             Base class for feedback on one message in a store operation.
@@ -1697,16 +1740,15 @@
         </member>
         <member name="T:work.bacome.imapclient.support.cBinarySizes">
             <summary>
-            A mapping from a message part to a size in bytes for message parts that can be fetched using the BINARY (RFC 3516) command. See <see cref="P:work.bacome.imapclient.support.iMessageHandle.BinarySizes"/>.
+            A mapping from a message part to a size in bytes for message parts that can be fetched using the BINARY (RFC 3516) command.
             </summary>
             <remarks>
-            <para>Using the <see cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/> or <see cref="M:work.bacome.imapclient.cAttachment.SaveSizeInBytes"/> methods may create values in this map.</para>
+            Using the <see cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/> or <see cref="M:work.bacome.imapclient.cAttachment.SaveSizeInBytes"/> methods may create values in this map.
             </remarks>
+            <seealso cref="P:work.bacome.imapclient.support.iMessageHandle.BinarySizes"/>
         </member>
-        <member name="F:work.bacome.imapclient.support.cBinarySizes.None">
-            <summary>
-            An empty mapping.
-            </summary>
+        <member name="M:work.bacome.imapclient.support.cBinarySizes.ToString">
+            <summary>Returns a string that represents the map.</summary>
         </member>
         <member name="M:work.bacome.imapclient.support.cBinarySizes.op_Addition(work.bacome.imapclient.support.cBinarySizes,work.bacome.imapclient.support.cBinarySizes)">
             <summary>
@@ -1718,7 +1760,7 @@
         </member>
         <member name="T:work.bacome.imapclient.support.iMessageHandle">
             <summary>
-            Represents a message in the internal message cache.
+            Represents an message in the internal message cache.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.Cache">
@@ -1728,7 +1770,7 @@
             <summary>The sequence of this message in the cache.</summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.Expunged">
-            <summary>True if the server indicated that the message has been expunged.</summary>
+            <summary>True if the server has indicated that the message has been expunged.</summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.Attributes">
             <summary>The message attributes that the cache currently contains for this message.</summary>
@@ -1784,12 +1826,63 @@
             <param name="pItems"></param>
             <returns></returns>
         </member>
+        <member name="T:work.bacome.imapclient.support.cBytes">
+            <summary>
+            A read-only collection of bytes.
+            </summary>
+            <seealso cref="F:work.bacome.imapclient.cNetworkSendEventArgs.Buffers"/>
+        </member>
+        <member name="M:work.bacome.imapclient.support.cBytes.ToString">
+            <summary>Returns a string that represents the collection.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.support.cBytesLine">
+            <summary>
+            Represents a line of bytes received from a server.
+            </summary>
+            <seealso cref="T:work.bacome.imapclient.support.cBytesLines"/>
+        </member>
+        <member name="M:work.bacome.imapclient.support.cBytesLine.ToString">
+            <summary>Returns a string that represents the line.</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.support.cBytesLines">
+            <summary>
+            Represents a response received from a server.
+            </summary>
+            <seealso cref="F:work.bacome.imapclient.cNetworkReceiveEventArgs.Lines"/>
+        </member>
+        <member name="M:work.bacome.imapclient.support.cBytesLines.ToString">
+            <summary>Returns a string that represents the response.</summary>
+        </member>
         <member name="T:work.bacome.imapclient.support.cCharset">
             <summary>
-            <para>Represents a set of characters that are valid in a parsing context.</para>
-            <para>Each static member defines a different set of characters.</para>
-            <para>Intended for internal use.</para>
+            Represents a set of characters that are valid in a parsing context. Each static member defines a different set of characters. Intended for internal use.
             </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.support.cCharset.Contains(System.Byte)">
+            <summary>
+            Determines if the specified byte is contained in the set of characters.
+            </summary>
+            <param name="pByte"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.support.cCharset.Contains(System.Char)">
+            <summary>
+            Determines if the specified char is contained in the set of characters.
+            </summary>
+            <param name="pChar"></param>
+            <returns></returns>
+        </member>
+        <member name="F:work.bacome.imapclient.support.cCharset.Alpha">
+            <summary>A-Z, a-z</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.support.cCharset.Digit">
+            <summary>0-9</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.support.cCharset.AlphaNumeric">
+            <summary>A-Z, 0-9, a-z</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.support.cCharset.Scheme">
+            <summary>RFC 3986 scheme</summary>
         </member>
         <member name="T:work.bacome.imapclient.cMailbox">
             <summary>
@@ -5540,9 +5633,6 @@
             <summary>
             The response text.
             </summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cUIDList.ToString">
-            <summary>Returns a string that represents the instance.</summary>
         </member>
         <member name="T:work.bacome.async.cCancellationManager">
             <summary>

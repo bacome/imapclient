@@ -123,7 +123,7 @@ namespace work.bacome.imapclient
         public bool Equals(cMailboxName pOther) => this == pOther;
 
         /// <summary>
-        /// Determines whether this instance and a specified object have the same value.
+        /// Determines whether this instance and the specified object have the same value.
         /// </summary>
         /// <param name="pObject"></param>
         /// <returns></returns>

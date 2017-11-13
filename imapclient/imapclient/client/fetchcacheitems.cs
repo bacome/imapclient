@@ -42,16 +42,13 @@ namespace work.bacome.imapclient
             return new cMessageHandleList(from h in lHandles where !h.Contains(pItems) select h);
         }
 
-        // TODO: work out why the following XML generates such ugly documentation
-        //  (there are plenty more examples of ugly so this may indicate a larger problem)
-
         /// <summary>
-        /// <para>For a set of messages ensure that the specified items are cached.</para>
+        /// For a set of messages ensure that the specified items are cached.
         /// </summary>
-        /// <param name="pMessages">The set of messages.</param>
-        /// <param name="pItems">The set of cache items.</param>
+        /// <param name="pMessages"></param>
+        /// <param name="pItems"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <returns>A list of messages where the cache does NOT contain the requested items (i.e. where the fetch failed).</returns>
+        /// <returns>A list of messages where the cache does NOT contain the requested items (i.e. where something went wrong).</returns>
         public List<cMessage> Fetch(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(Fetch), 3);
@@ -99,6 +96,7 @@ namespace work.bacome.imapclient
             return new cMessageHandleList(from h in lHandles where !h.Contains(pItems) select h);
         }
 
+    ;?;
         /**<summary>The async version of <see cref="Fetch(IEnumerable{cMessage}, cCacheItems, cPropertyFetchConfiguration)"/>.</summary>*/
         public async Task<List<cMessage>> FetchAsync(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {

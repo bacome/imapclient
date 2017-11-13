@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// Represents an message in the internal message cache.
+    /// Represents a message in the internal message cache.
     /// </summary>
     public interface iMessageHandle
     {

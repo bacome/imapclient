@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     public class cNetworkReceiveEventArgs : EventArgs
     {
         /// <summary>
-        /// The bytes received.
+        /// The data received.
         /// </summary>
         public readonly cBytesLines Lines;
 
