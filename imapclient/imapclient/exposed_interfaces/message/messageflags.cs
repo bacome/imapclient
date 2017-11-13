@@ -118,6 +118,7 @@ namespace work.bacome.imapclient
         public IEnumerator<string> GetEnumerator() => mFlags.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mFlags.GetEnumerator();
 
+        /**<summary>Returns a string that represents the collection.</summary>*/
         public override string ToString() => mFlags.ToString();
     }
 
@@ -178,13 +179,13 @@ namespace work.bacome.imapclient
         public cStorableFlags(IEnumerable<string> pFlags) : base(new cStorableFlagList(pFlags)) { }
 
         /// <summary>
-        /// Creates a copy of the specified storable flag list.
+        /// Copies the specified storable flag list.
         /// </summary>
         /// <param name="pFlags"></param>
         public cStorableFlags(cStorableFlagList pFlags) : base(new cStorableFlagList(pFlags)) { }
 
         /// <summary>
-        /// Creates a copy of the specified storable flag list.
+        /// Copies the specified storable flag list.
         /// </summary>
         /// <param name="pFlags"></param>
         public static implicit operator cStorableFlags(cStorableFlagList pFlags) => new cStorableFlags(pFlags);
@@ -338,8 +339,10 @@ namespace work.bacome.imapclient
         public IEnumerator<string> GetEnumerator() => mFlags.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mFlags.GetEnumerator();
 
+        /**<summary></summary>*/
         protected abstract bool YIsValidFlag(string pFlag);
 
+        /**<summary>Returns a string that represents the list.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cMessageFlagList));
@@ -371,11 +374,12 @@ namespace work.bacome.imapclient
         public cStorableFlagList(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { }
 
         /// <summary>
-        /// Creates a copy of the specified storable flag list.
+        /// Copies the specified storable flag list.
         /// </summary>
         /// <param name="pFlags"></param>
         public cStorableFlagList(cStorableFlagList pFlags) : base(new List<string>(pFlags)) { }
 
+        /**<summary></summary>*/
         protected override bool YIsValidFlag(string pFlag) => ZIsValidFlag(pFlag);
 
         private static bool ZIsValidFlag(string pFlag)
@@ -463,13 +467,14 @@ namespace work.bacome.imapclient
         public cFetchableFlagList(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { } 
 
         /// <summary>
-        /// Creates a copy of the specified fetchable flag list.
+        /// Copies the specified fetchable flag list.
         /// </summary>
         /// <param name="pFlags"></param>
         public cFetchableFlagList(cFetchableFlagList pFlags) : base(new List<string>(pFlags)) { } 
 
         private cFetchableFlagList(List<string> pFlags) : base(pFlags) { } // wraps
 
+        /**<summary></summary>*/
         protected override bool YIsValidFlag(string pFlag) => ZIsValidFlag(pFlag);
 
         private static bool ZIsValidFlag(string pFlag)

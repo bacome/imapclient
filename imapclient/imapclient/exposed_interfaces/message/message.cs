@@ -796,7 +796,7 @@ namespace work.bacome.imapclient
             ;?; // TODO
         } */
 
-        // debugging
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cMessage)}({Handle})"; // ,{Indent} // re-instate if threading is ever done
     }
 }

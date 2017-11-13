@@ -6,16 +6,22 @@ using System.Threading;
 namespace work.bacome.trace
 {
     /// <summary>
-    /// Provides services for tracing to a <see cref="TraceSource"/> with trace message indenting and context information.
+    /// Instances wrap a <see cref="TraceSource"/> and provide services to write trace messages with indenting and context information.
     /// </summary>
     /// <remarks>
-    /// <para>The concept is that trace messages are written in a context. Root-contexts can be established independently and sub-contexts can be created from root-contexts and sub-contexts.</para>
-    /// <para>If a new sub-context is created for each call then call stack information can be built and included in the trace.</para>
     /// <para>
-    /// Writing of context trace messages can be delayed until a non-context trace message is written, or context trace messages can be written as contexts are created.
-    /// Note that if the writing is delayed then the generation of the context trace message is also delayed.
-    /// If there are mutable objects to be included in the context trace message then this may lead to a misleading context trace message.
-    /// (It is done like this for efficiency reasons.)
+    /// The concept is that trace messages are written in a context.
+    /// The context starts with independent root-contexts.
+    /// Sub-contexts can be established within root-contexts and within other sub-contexts.
+    /// </para>
+    /// <para>
+    /// If a new sub-context is created for each call then call stack information can be built and included in the trace.
+    /// </para>
+    /// <para>
+    /// The writing of context trace messages can be delayed until a non-context trace message is written, or context trace messages can be written as the contexts are created.
+    /// (Note however that if the writing is delayed then the generation of the context trace messages is also delayed.
+    /// If there are mutable objects to be included in the context trace message then this may lead to misleading context trace messages.
+    /// It is done like this for efficiency reasons.)
     /// </para>
     /// <para>
     /// Tracing can be disabled.
@@ -23,17 +29,18 @@ namespace work.bacome.trace
     /// Tracing is disabled under the following circumstances;
     /// <list type="bullet">
     /// <item>The assembly is compiled without the "TRACE" conditional attribute.</item>
-    /// <item>If there aren't any listeners attached to the <see cref="TraceSource"/> when the instance is created.</item>
+    /// <item>There aren't any listeners attached to the <see cref="TraceSource"/> when the instance is created.</item>
     /// <item>The <see cref="TraceSource"/> isn't configured to emit critical messages when the instance is created.</item>
+    /// <item>The <see cref="cContext.Null"/> context is used.</item>
     /// </list>
     /// </para>
-    /// <para>Root-contexts have a name and a number. The name is programmer assigned, the number is internally assigned and is unique for an exe.</para>
+    /// <para>Root-contexts have a name and a number. The name is programmer assigned, the number is internally assigned and is unique.</para>
     /// <para>Trace messages are indented by a number of spaces that equals the context stack depth.</para>
-    /// <para>Trace messages are written in a tab delimited form, the tab delimited 'columns' contain;
+    /// <para>Trace messages are written in a tab delimited form, the tab delimited columns contain;
     /// <list type="number">
     /// <item>The <see cref="System.Diagnostics.TraceSource"/> defined data.</item>
     /// <item>The date and time that the message was written.</item>
-    /// <item>The name and number of the root-context of this trace message.</item>
+    /// <item>The name and number of the root-context associated with the trace message.</item>
     /// <item>The thread number on which the trace message was written.</item>
     /// <item>The space indented trace message.</item>
     /// </list>
@@ -94,7 +101,7 @@ namespace work.bacome.trace
         /// Returns a new independent root-context.
         /// </summary>
         /// <param name="pInstanceName">The name to give the context.</param>
-        /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed.</param>
+        /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts.</param>
         /// <returns></returns>
         public cContext NewRoot(string pInstanceName, bool pContextTraceDelay = false)
         {
@@ -117,14 +124,14 @@ namespace work.bacome.trace
             /// Returns a new root-context tied (in name only) to the root-context of this instance.
             /// </summary>
             /// <param name="pInstanceName">A name to use when creating the name of the new context.</param>
-            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
             /// <returns></returns>
             public abstract cContext NewRoot(string pInstanceName, bool pContextTraceDelay = false);
 
             /// <summary>
             /// Returns a new sub-context with a free form trace message.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pMessage">The trace message in <see cref="String.Format(string, object[])"/> form.</param>
             /// <param name="pArgs">The objects to place in the trace message.</param>
             /// <returns></returns>
@@ -134,10 +141,10 @@ namespace work.bacome.trace
             /// Returns a new sub-context with a trace message in 'object constructor' form.
             /// Use when creating a context for a constructor.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pVersion">The version of the constructor.</param>
-            /// <param name="pArgs">The parameters to the constructor that you want traced.</param>
+            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
             /// <returns></returns>
             public abstract cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs);
 
@@ -145,7 +152,7 @@ namespace work.bacome.trace
             /// Returns a new sub-context with a trace message in 'property setter' form.
             /// Use when creating a context for a property setter.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pProperty">The name of the property.</param>
             /// <param name="pValue">The value being set.</param>
@@ -156,11 +163,11 @@ namespace work.bacome.trace
             /// Returns a new sub-context with a trace message in 'method' form.
             /// Use when creating a context for a method.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pMethod">The name of the method.</param>
             /// <param name="pVersion">The version of the method.</param>
-            /// <param name="pArgs">The parameters to the method that you want traced.</param>
+            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
             /// <returns></returns>
             public abstract cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs);
 
@@ -168,7 +175,7 @@ namespace work.bacome.trace
             /// Returns a new root-context with a trace message in 'object constructor' form.
             /// Use when creating a new root-context in a constructor.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
             /// <returns></returns>
             public abstract cContext NewRootObject(bool pContextTraceDelay, string pClass);
@@ -177,7 +184,7 @@ namespace work.bacome.trace
             /// Returns a new root-context with a trace message in 'method' form.
             /// Use when creating a new root-context in a method.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pMethod">The name of the method.</param>
             /// <returns></returns>
@@ -196,7 +203,7 @@ namespace work.bacome.trace
             /// Use when creating a context for a constructor.
             /// </summary>
             /// <param name="pClass">The name of the class.</param>
-            /// <param name="pArgs">The parameters to the constructor that you want traced.</param>
+            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
             /// <returns></returns>
             public virtual cContext NewObject(string pClass, params object[] pArgs) => NewObjectV(false, pClass, 1, pArgs);
 
@@ -204,9 +211,9 @@ namespace work.bacome.trace
             /// Returns a new sub-context with a trace message in 'object constructor' form.
             /// Use when creating a context for a constructor.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
-            /// <param name="pArgs">The parameters to the constructor that you want traced.</param>
+            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
             /// <returns></returns>
             public virtual cContext NewObject(bool pContextTraceDelay, string pClass, params object[] pArgs) => NewObjectV(pContextTraceDelay, pClass, 1, pArgs);
 
@@ -216,7 +223,7 @@ namespace work.bacome.trace
             /// </summary>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pVersion">The version of the constructor.</param>
-            /// <param name="pArgs">The parameters to the constructor that you want traced.</param>
+            /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
             /// <returns></returns>
             public virtual cContext NewObjectV(string pClass, int pVersion, params object[] pArgs) => NewObjectV(false, pClass, pVersion, pArgs);
 
@@ -236,7 +243,7 @@ namespace work.bacome.trace
             /// </summary>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pMethod">The name of the method.</param>
-            /// <param name="pArgs">The parameters to the method that you want traced.</param>
+            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
             /// <returns></returns>
             public virtual cContext NewMethod(string pClass, string pMethod, params object[] pArgs) => NewMethodV(false, pClass, pMethod, 1, pArgs);
 
@@ -244,10 +251,10 @@ namespace work.bacome.trace
             /// Returns a new sub-context with a trace message in 'method' form.
             /// Use when creating a context for a method.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+            /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pMethod">The name of the method.</param>
-            /// <param name="pArgs">The parameters to the method that you want traced.</param>
+            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
             /// <returns></returns>
             public virtual cContext NewMethod(bool pContextTraceDelay, string pClass, string pMethod, params object[] pArgs) => NewMethodV(pContextTraceDelay, pClass, pMethod, 1, pArgs);
 
@@ -258,7 +265,7 @@ namespace work.bacome.trace
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pMethod">The name of the method.</param>
             /// <param name="pVersion">The version of the method.</param>
-            /// <param name="pArgs">The parameters to the method that you want traced.</param>
+            /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
             /// <returns></returns>
             public virtual cContext NewMethodV(string pClass, string pMethod, int pVersion, params object[] pArgs) => NewMethodV(false, pClass, pMethod, pVersion, pArgs);
 
@@ -279,7 +286,7 @@ namespace work.bacome.trace
             /// <returns></returns>
             public virtual cContext NewRootMethod(string pClass, string pMethod) => NewRootMethod(false, pClass, pMethod);
 
-            /**<summary>Indicates if context tracing is being delayed. See <see cref="cTrace"/> for more information.</summary>*/
+            /**<summary>Indicates if context tracing is being delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</summary>*/
             public abstract bool ContextTraceDelay { get; }
             protected abstract void TraceContext();
 
@@ -393,7 +400,7 @@ namespace work.bacome.trace
             }
 
             /// <summary>
-            /// A <see cref="cTrace"/> root-context.
+            /// Instances represent a <see cref="cTrace"/> root-context.
             /// </summary>
             public class cRoot : cContext
             {
@@ -407,7 +414,7 @@ namespace work.bacome.trace
                 private object mLock;
                 private volatile bool mLogged = false;
 
-                public cRoot(cTrace pTraceSource, string pInstanceName, bool pContextTraceDelay)
+                internal cRoot(cTrace pTraceSource, string pInstanceName, bool pContextTraceDelay)
                 {
                     ZCtor(pTraceSource, pInstanceName, pContextTraceDelay);
                 }
@@ -433,7 +440,7 @@ namespace work.bacome.trace
                 /// Returns a new root-context tied (in name only) to the root-context of this instance.
                 /// </summary>
                 /// <param name="pInstanceName">A name to use when creating the name of the new context.</param>
-                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
                 /// <returns></returns>
                 public override cContext NewRoot(string pInstanceName, bool pContextTraceDelay)
                 {
@@ -444,7 +451,7 @@ namespace work.bacome.trace
                 /// <summary>
                 /// Returns a new sub-context with a free form trace message.
                 /// </summary>
-                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
                 /// <param name="pMessage">The trace message in <see cref="String.Format(string, object[])"/> form.</param>
                 /// <param name="pArgs">The objects to place in the trace message.</param>
                 /// <returns></returns>
@@ -461,10 +468,10 @@ namespace work.bacome.trace
                 /// Returns a new sub-context with a trace message in 'object constructor' form.
                 /// Use when creating a context for a constructor.
                 /// </summary>
-                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
                 /// <param name="pClass">The name of the class.</param>
                 /// <param name="pVersion">The version of the constructor.</param>
-                /// <param name="pArgs">The parameters to the constructor that you want traced.</param>
+                /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
                 /// <returns></returns>
                 public override cContext NewObjectV(bool pContextTraceDelay, string pClass, int pVersion, params object[] pArgs)
                 {
@@ -479,7 +486,7 @@ namespace work.bacome.trace
                 /// Returns a new sub-context with a trace message in 'property setter' form.
                 /// Use when creating a context for a property setter.
                 /// </summary>
-                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
                 /// <param name="pClass">The name of the class.</param>
                 /// <param name="pProperty">The name of the property.</param>
                 /// <param name="pValue">The value being set.</param>
@@ -497,11 +504,11 @@ namespace work.bacome.trace
                 /// Returns a new sub-context with a trace message in 'method' form.
                 /// Use when creating a context for a method.
                 /// </summary>
-                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
                 /// <param name="pClass">The name of the class.</param>
                 /// <param name="pMethod">The name of the method.</param>
                 /// <param name="pVersion">The version of the method.</param>
-                /// <param name="pArgs">The parameters to the method that you want traced.</param>
+                /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
                 /// <returns></returns>
                 public override cContext NewMethodV(bool pContextTraceDelay, string pClass, string pMethod, int pVersion, params object[] pArgs)
                 {
@@ -516,7 +523,7 @@ namespace work.bacome.trace
                 /// Returns a new root-context with a trace message in 'object constructor' form.
                 /// Use when creating a new root-context in a constructor.
                 /// </summary>
-                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
                 /// <param name="pClass">The name of the class.</param>
                 /// <returns></returns>
                 public override cContext NewRootObject(bool pContextTraceDelay, string pClass)
@@ -529,7 +536,7 @@ namespace work.bacome.trace
                 /// Returns a new root-context with a trace message in 'method' form.
                 /// Use when creating a new root-context in a method.
                 /// </summary>
-                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="cTrace"/> for more information.</param>
+                /// <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</param>
                 /// <param name="pClass">The name of the class.</param>
                 /// <param name="pMethod">The name of the method.</param>
                 /// <returns></returns>
@@ -539,7 +546,7 @@ namespace work.bacome.trace
                     return new cRoot(mTraceSource, $"{mInstanceName}.{pClass}.{pMethod}", mContextTraceDelay || pContextTraceDelay);
                 }
 
-                /**<summary>Indicates if context tracing is being delayed. See <see cref="cTrace"/> for more information.</summary>*/
+                /**<summary>Indicates if context tracing is being delayed for the context and its sub-contexts. See <see cref="cTrace"/> for more information.</summary>*/
                 public override bool ContextTraceDelay => mContextTraceDelay;
 
                 protected override void TraceContext()

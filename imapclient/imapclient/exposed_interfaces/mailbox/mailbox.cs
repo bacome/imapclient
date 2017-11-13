@@ -1015,7 +1015,7 @@ namespace work.bacome.imapclient
         /// <returns>If the server provides an RFC 4315 UIDCOPY response the pairs of UIDs for the copied messages; otherwise null.</returns>
         public Task<cCopyFeedback> UIDCopyAsync(IEnumerable<cUID> pUIDs, cMailbox pDestination) => Client.UIDCopyAsync(Handle, pUIDs, pDestination.Handle);
 
-        // blah
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cMailbox)}({Handle})";
     }
 }

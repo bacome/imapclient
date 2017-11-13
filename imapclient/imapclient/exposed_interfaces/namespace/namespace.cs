@@ -70,6 +70,7 @@ namespace work.bacome.imapclient
             return lMailboxName;
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cMailbox)}({NamespaceName})";
     }
 }

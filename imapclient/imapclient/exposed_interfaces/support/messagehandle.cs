@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// Represents a message in the internal message cache.
+    /// Represents an message in the internal message cache.
     /// </summary>
     public interface iMessageHandle
     {
@@ -11,7 +11,7 @@ namespace work.bacome.imapclient.support
         iMessageCache Cache { get; }
         /**<summary>The sequence of this message in the cache.</summary>*/
         int CacheSequence { get; }
-        /**<summary>True if the server indicated that the message has been expunged.</summary>*/
+        /**<summary>True if the server has indicated that the message has been expunged.</summary>*/
         bool Expunged { get; }
         /**<summary>The message attributes that the cache currently contains for this message.</summary>*/
         fCacheAttributes Attributes { get; }

@@ -94,6 +94,7 @@ namespace work.bacome.imapclient
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cStoreFeedbackItem)}({Handle},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
     }
 
@@ -187,6 +188,7 @@ namespace work.bacome.imapclient
         public IEnumerator<cStoreFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cStoreFeedback));
@@ -250,6 +252,7 @@ namespace work.bacome.imapclient
         /**<summary>Gets the count of messages for which doing a <see cref="cIMAPClient.Poll"/> may increase our knowledge of what happened.</summary>*/
         public bool LikelyWorthPolling => NotReflectsOperationCount > 0;
 
+        /**<summary>Returns a string that represents the summary.</summary>*/
         public override string ToString() => $"{nameof(sStoreFeedbackSummary)}(Updated:{UpdatedCount}, WasNotUnchangedSince:{WasNotUnchangedSinceCount}, Expunged:{ExpungedCount}, Unknown:{UnknownCount}, Reflects:{ReflectsOperationCount}, NotReflects:{NotReflectsOperationCount})";
     }
 
@@ -269,6 +272,7 @@ namespace work.bacome.imapclient
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cUIDStoreFeedbackItem)}({UID},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
     }
 
@@ -337,6 +341,7 @@ namespace work.bacome.imapclient
         public IEnumerator<cUIDStoreFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUIDStoreFeedback));

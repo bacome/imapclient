@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace work.bacome.imapclient
 {
-    public class cUIDList : List<cUID>
+    internal class cUIDList : List<cUID>
     {
         public cUIDList() { }
         public cUIDList(IEnumerable<cUID> pUIDs) : base(pUIDs) { }

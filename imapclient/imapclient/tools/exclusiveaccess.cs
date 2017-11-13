@@ -9,11 +9,11 @@ namespace work.bacome.async
     /// Instances provide a mechanism to control exclusive access using token objects and block objects.
     /// </summary>
     /// <remarks>
-    /// <para>The granting of exclusive access is done by issuing a token object. To release the exclusive access the token object is disposed.</para>
+    /// <para>The granting of exclusive access is done by issuing a token object. To release the exclusive access the token object must be disposed.</para>
     /// <para>The issuing of token objects may be blocked by the previous issue of block objects. Several block objects can be on issue at the same time. Blocks are released by disposing the block objects.</para>
     /// <para>Block objects will not be issued while a token object is issued. Token objects will not be issued while block objects are issued (nor while a token object is issued).</para>
-    /// <para>Instance sequence numbers (specified in the constructor) can be used by external code to ensure that the program's exclusive accesses are being taken in a consistent order (to avoid deadlocks).</para>
-    /// <para>Each instance of this class is allocated a unique instance number that is used in <see cref="cTrace"/> messages to aid debugging.</para>
+    /// <para>Instance sequence numbers (specified in the constructor) can be used by external code to ensure that the program's locks are being taken in a consistent order (to avoid deadlocks).</para>
+    /// <para>Each instance of this class is allocated a unique instance number internally that is used in <see cref="cTrace"/> messages to aid debugging.</para>
     /// <para>Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
     /// </remarks>
     public sealed class cExclusiveAccess : IDisposable
@@ -132,6 +132,7 @@ namespace work.bacome.async
             mDisposed = true;
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cExclusiveAccess)}({mName},{mInstance},{mBlocks})";
 
         /// <summary>
@@ -166,6 +167,7 @@ namespace work.bacome.async
                 mDisposed = true;
             }
 
+            /**<summary>Returns a string that represents the instance.</summary>*/
             public override string ToString() => $"{nameof(cBlock)}({mName},{mInstance})";
         }
 
@@ -201,6 +203,7 @@ namespace work.bacome.async
                 mDisposed = true;
             }
 
+            /**<summary>Returns a string that represents the instance.</summary>*/
             public override string ToString() => $"{nameof(cToken)}({mName},{mInstance})";
         }
     }

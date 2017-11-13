@@ -90,7 +90,7 @@ namespace work.bacome.imapclient
         public bool IsInbox => ReferenceEquals(Path, InboxString);
 
         /// <summary>
-        /// Compares this instance with a specified <see cref="cMailboxName"/> object.
+        /// Compares this instance with the specified <see cref="cMailboxName"/> object.
         /// </summary>
         /// <param name="pOther"></param>
         /// <returns></returns>
@@ -116,7 +116,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines whether this instance and a specified object have the same value.
+        /// Determines whether this instance and the specified object have the same value.
         /// </summary>
         /// <param name="pOther"></param>
         /// <returns></returns>
@@ -144,6 +144,7 @@ namespace work.bacome.imapclient
             }
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cMailboxName)}({Path},{Delimiter})";
 
         /// <summary>

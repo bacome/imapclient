@@ -5,22 +5,21 @@ using System.Collections.ObjectModel;
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// A mapping from a message part to a size in bytes for message parts that can be fetched using the BINARY (RFC 3516) command. See <see cref="iMessageHandle.BinarySizes"/>.
+    /// A mapping from a message part to a size in bytes for message parts that can be fetched using the BINARY (RFC 3516) command.
     /// </summary>
     /// <remarks>
-    /// <para>Using the <see cref="cMessage.FetchSizeInBytes(cSinglePartBody)"/> or <see cref="cAttachment.SaveSizeInBytes"/> methods may create values in this map.</para>
+    /// Using the <see cref="cMessage.FetchSizeInBytes(cSinglePartBody)"/> or <see cref="cAttachment.SaveSizeInBytes"/> methods may create values in this map.
     /// </remarks>
+    /// <seealso cref="iMessageHandle.BinarySizes"/>
     public class cBinarySizes : ReadOnlyDictionary<string, uint>
     {
         // wrapper: for passing out
 
-        /// <summary>
-        /// An empty mapping.
-        /// </summary>
-        public static readonly cBinarySizes None = new cBinarySizes(new Dictionary<string, uint>());
+        internal static readonly cBinarySizes None = new cBinarySizes(new Dictionary<string, uint>());
 
         internal cBinarySizes(IDictionary<string, uint> pDictionary) : base(pDictionary) { }
 
+        /**<summary>Returns a string that represents the map.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cBinarySizes));

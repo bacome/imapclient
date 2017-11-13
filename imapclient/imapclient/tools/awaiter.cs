@@ -20,7 +20,7 @@ namespace work.bacome.async
         private readonly Task mTask;
 
         /// <summary>
-        /// Initialises a new instance with timeout and cancellation controls. If a timeout is specified then it runs from when the instance is created.
+        /// Initialises a new instance with a <see cref="cMethodControl"/>. If a timeout is specified then it runs from when the instance is created.
         /// </summary>
         /// <param name="pMC">The timeout and cancellation to use.</param>
         public cAwaiter(cMethodControl pMC)
@@ -30,7 +30,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Initialises a new instance with cancellation control but no timeout.
+        /// Initialises a new instance with a <see cref="CancellationToken"/> but no timeout.
         /// </summary>
         /// <param name="pCancellationToken">The cancellation token to use.</param>
         public cAwaiter(CancellationToken pCancellationToken)
@@ -40,14 +40,14 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// This method completes when any one of the passed tasks completes.
+        /// Returns the first task to complete from the set of passed tasks OR throws if the instance times-out or is cancelled.
         /// </summary>
         /// <param name="pTask">A task, can't be null.</param>
         /// <param name="pTasks">A set of tasks, any or all can be null.</param>
         /// <returns>The task that completed.</returns>
         /// <remarks>
         /// If the task that completes did so because it failed (timed-out, was cancelled, or threw) then this method throws.
-        /// If the instance controls indicate timeout or cancellation before a task completes, then this method throws.
+        /// If the instance times-out or is cancelled before a task completes, then this method throws.
         /// </remarks>
         public async Task<Task> AwaitAny(Task pTask, params Task[] pTasks)
         {
@@ -68,7 +68,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// The returned task completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates timeout or cancellation.
+        /// Returns a task that completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates timeout or cancellation.
         /// </summary>
         /// <param name="pMC">Controls the execution of the method.</param>
         /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be null.</param>
@@ -80,7 +80,7 @@ namespace work.bacome.async
         public static Task AwaitAll(cMethodControl pMC, params Task[] pTasks) => ZAwaitAll(pMC, pTasks);
 
         /// <summary>
-        /// The returned task completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates timeout or cancellation.
+        /// Returns a task that completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates timeout or cancellation.
         /// </summary>
         /// <param name="pMC">Controls the execution of the method.</param>
         /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be null.</param>

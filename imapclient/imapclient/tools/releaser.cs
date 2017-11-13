@@ -5,19 +5,19 @@ using work.bacome.trace;
 
 namespace work.bacome.async
 {
-    /// <summary>Instances coordinate tasks (one worker and possibly many work creators) that work together using internal coordinating tasks.</summary>
+    /// <summary>Instances coordinate tasks (one worker task and many work creating tasks) using internal coordinating tasks.</summary>
     /// <remarks>
-    /// <para>One of the coordinated tasks is the worker task. This task does work when it is available. This task should;
+    /// <para>The worker task should;
     /// <list type="number">
     /// <item>Call the <see cref="Reset(cTrace.cContext)"/> method to indicate that it is about to start working.</item>
     /// <item>Check for and do all the work available.</item>
-    /// <item>Call the <see cref="GetAwaitReleaseTask(cTrace.cContext)"/> method to get a coordinating task, and await that task.</item>
+    /// <item>Awair on the task returned by <see cref="GetAwaitReleaseTask(cTrace.cContext)"/>.</item>
     /// </list>
     /// </para>
-    /// <para>The other coordinated tasks are work requesting tasks. These tasks should;
+    /// <para>The work creating tasks should;
     /// <list type="number">
     /// <item>Queue items of work.</item>
-    /// <item>Call the <see cref="Release(cTrace.cContext)"/> method (this causes the current coordinating task to complete).</item>
+    /// <item>Call the <see cref="Release(cTrace.cContext)"/> method.</item>
     /// </list>
     /// </para>
     /// <para>Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
@@ -60,7 +60,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Gets the current coordinating task.
+        /// Gets the current internal coordinating task.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         /// <returns></returns>
@@ -72,7 +72,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Completes the current coordinating task.
+        /// Completes the current internal coordinating task.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         public void Release(cTrace.cContext pParentContext)
@@ -101,7 +101,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Indicates that work is about to be checked for and done.
+        /// Disposes the current internal coordinating task if it is complete, allowing a new internal coordinating task to be started.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         public void Reset(cTrace.cContext pParentContext)

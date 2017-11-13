@@ -4,9 +4,7 @@ using System.Collections.Generic;
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// <para>Represents a set of characters that are valid in a parsing context.</para>
-    /// <para>Each static member defines a different set of characters.</para>
-    /// <para>Intended for internal use.</para>
+    /// Represents a set of characters that are valid in a parsing context. Each static member defines a different set of characters. Intended for internal use.
     /// </summary>
     public abstract class cCharset
     {
@@ -89,7 +87,18 @@ namespace work.bacome.imapclient.support
 
         // what must be overridden
 
+        /// <summary>
+        /// Determines if the specified byte is contained in the set of characters.
+        /// </summary>
+        /// <param name="pByte"></param>
+        /// <returns></returns>
         public abstract bool Contains(byte pByte);
+
+        /// <summary>
+        /// Determines if the specified char is contained in the set of characters.
+        /// </summary>
+        /// <param name="pChar"></param>
+        /// <returns></returns>
         public abstract bool Contains(char pChar);
 
         // implementations
@@ -635,9 +644,13 @@ namespace work.bacome.imapclient.support
 
         // instances
 
+        /**<summary>A-Z, a-z</summary>*/
         public static readonly cCharset Alpha = new cAlpha();
+        /**<summary>0-9</summary>*/
         public static readonly cCharset Digit = new cDigit();
+        /**<summary>A-Z, 0-9, a-z</summary>*/
         public static readonly cCharset AlphaNumeric = new cAlphaNumeric();
+        /**<summary>RFC 3986 scheme</summary>*/
         public static readonly cCharset Scheme = new cScheme();
         public static readonly cCharset UserInfo = new cUserInfo();
         public static readonly cCharset Atom = new cAtom();

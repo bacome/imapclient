@@ -5,13 +5,19 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// A list of messages in the internal message cache.
+    /// </summary>
+    /// <seealso cref="cMailbox.SetUnseenCount"/>
+    /// <seealso cref="cMessageDeliveryEventArgs.Handles"/>
     public class cMessageHandleList : List<iMessageHandle>
     {
-        public cMessageHandleList() { }
-        public cMessageHandleList(IEnumerable<iMessageHandle> pHandles) : base(pHandles) { }
+        internal cMessageHandleList() { }
+        internal cMessageHandleList(IEnumerable<iMessageHandle> pHandles) : base(pHandles) { }
 
-        public void SortByCacheSequence() => Sort(ZCompareCacheSequence);
+        internal void SortByCacheSequence() => Sort(ZCompareCacheSequence);
 
+        /**<summary>Returns a string that represents the list.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cMessageHandleList));
@@ -49,7 +55,7 @@ namespace work.bacome.imapclient
             return pX.CacheSequence.CompareTo(pY.CacheSequence);
         }
 
-        public static cMessageHandleList FromHandle(iMessageHandle pHandle)
+        internal static cMessageHandleList FromHandle(iMessageHandle pHandle)
         {
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             var lResult = new cMessageHandleList();
@@ -57,7 +63,7 @@ namespace work.bacome.imapclient
             return lResult;
         }
 
-        public static cMessageHandleList FromHandles(IEnumerable<iMessageHandle> pHandles)
+        internal static cMessageHandleList FromHandles(IEnumerable<iMessageHandle> pHandles)
         {
             if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
 
@@ -73,7 +79,7 @@ namespace work.bacome.imapclient
             return new cMessageHandleList(pHandles.Distinct());
         }
 
-        public static cMessageHandleList FromMessages(IEnumerable<cMessage> pMessages)
+        internal static cMessageHandleList FromMessages(IEnumerable<cMessage> pMessages)
         {
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
 

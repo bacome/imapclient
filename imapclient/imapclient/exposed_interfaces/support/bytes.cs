@@ -4,11 +4,15 @@ using System.Collections.ObjectModel;
 
 namespace work.bacome.imapclient.support
 {
+    /// <summary>
+    /// A read-only collection of bytes.
+    /// </summary>
+    /// <seealso cref="cNetworkSendEventArgs.Buffers"/>
     public class cBytes : ReadOnlyCollection<byte>
     {
-        public cBytes(IList<byte> pBytes) : base(pBytes) { }
+        internal cBytes(IList<byte> pBytes) : base(pBytes) { }
 
-        public cBytes(string pString) : base(ZCtor(pString)) { } // required for static constants
+        internal cBytes(string pString) : base(ZCtor(pString)) { } // required for static constants
 
         private static cByteList ZCtor(string pString)
         {
@@ -21,7 +25,9 @@ namespace work.bacome.imapclient.support
             return lBytes;
         }
 
+        /**<summary>Returns a string that represents the collection.</summary>*/
         public override string ToString() => cTools.BytesToLoggableString(nameof(cBytes), this, 1000);
-        public string ToString(int pMaxLength) => cTools.BytesToLoggableString(nameof(cBytes), this, pMaxLength);
+
+        internal string ToString(int pMaxLength) => cTools.BytesToLoggableString(nameof(cBytes), this, pMaxLength);
     }
 }

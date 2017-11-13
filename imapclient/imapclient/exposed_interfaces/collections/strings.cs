@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
         public cStrings(IList<string> pStrings) : base(pStrings) { }
 
         /// <summary>
-        /// Determines whether this instance and a specified object have the same items in the same order.
+        /// Determines whether this instance and the specified object have the same items in the same order.
         /// </summary>
         /// <param name="pObject"></param>
         /// <returns></returns>
@@ -36,6 +36,7 @@ namespace work.bacome.imapclient
             }
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cStrings));

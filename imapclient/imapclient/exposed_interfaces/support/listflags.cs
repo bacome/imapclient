@@ -2,47 +2,24 @@
 
 namespace work.bacome.imapclient.support
 {
-    [Flags]
-    public enum fListFlags
-    {
-        // rfc 3501
-        noinferiors = 1 << 0, // hasnochildren will be set if this is set
-        noselect = 1 << 1, // \ 
-        marked = 1 << 2, //    > only one of these may be true
-        unmarked = 1 << 3, // /
-
-        // rfc 5258
-        nonexistent = 1 << 4, // noselect will be set if this is set
-        subscribed = 1 << 5,
-        remote = 1 << 6,
-        haschildren = 1 << 7, // rfc 3348
-        hasnochildren = 1 << 8, // rfc 3348
-
-        // next 7 rfc 6154 (specialuse)
-        all = 1 << 9,
-        archive = 1 << 10,
-        drafts = 1 << 11,
-        flagged = 1 << 12,
-        junk = 1 << 13,
-        sent = 1 << 14,
-        trash = 1 << 15
-    }
-
+    /// <summary>
+    /// A set of IMAP mailbox flags.
+    /// </summary>
     public class cListFlags
     {
-        public readonly int Sequence;
-        public readonly fListFlags Flags;
+        internal readonly int Sequence;
+        internal readonly fListFlags Flags;
 
-        public cListFlags(int pSequence, fListFlags pFlags)
+        internal cListFlags(int pSequence, fListFlags pFlags)
         {
             Sequence = pSequence;
             Flags = pFlags;
         }
 
-        public bool CanHaveChildren => (Flags & fListFlags.noinferiors) == 0;
-        public bool CanSelect => (Flags & fListFlags.noselect) == 0;
+        internal bool CanHaveChildren => (Flags & fListFlags.noinferiors) == 0;
+        internal bool CanSelect => (Flags & fListFlags.noselect) == 0;
 
-        public bool? IsMarked
+        internal bool? IsMarked
         {
             get
             {
@@ -53,9 +30,9 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public bool IsRemote => (Flags & fListFlags.remote) != 0;
+        internal bool IsRemote => (Flags & fListFlags.remote) != 0;
 
-        public bool? HasChildren
+        internal bool? HasChildren
         {
             get
             {
@@ -66,14 +43,15 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        public bool ContainsAll => (Flags & fListFlags.all) != 0;
-        public bool IsArchive => (Flags & fListFlags.archive) != 0;
-        public bool ContainsDrafts => (Flags & fListFlags.drafts) != 0;
-        public bool ContainsFlagged => (Flags & fListFlags.flagged) != 0;
-        public bool ContainsJunk => (Flags & fListFlags.junk) != 0;
-        public bool ContainsSent => (Flags & fListFlags.sent) != 0;
-        public bool ContainsTrash => (Flags & fListFlags.trash) != 0;
+        internal bool ContainsAll => (Flags & fListFlags.all) != 0;
+        internal bool IsArchive => (Flags & fListFlags.archive) != 0;
+        internal bool ContainsDrafts => (Flags & fListFlags.drafts) != 0;
+        internal bool ContainsFlagged => (Flags & fListFlags.flagged) != 0;
+        internal bool ContainsJunk => (Flags & fListFlags.junk) != 0;
+        internal bool ContainsSent => (Flags & fListFlags.sent) != 0;
+        internal bool ContainsTrash => (Flags & fListFlags.trash) != 0;
 
+        /**<summary>Returns a string that represents the set.</summary>*/
         public override string ToString() => $"{nameof(cListFlags)}({Sequence},{Flags})";
 
         internal static fMailboxProperties Differences(cListFlags pOld, cListFlags pNew)

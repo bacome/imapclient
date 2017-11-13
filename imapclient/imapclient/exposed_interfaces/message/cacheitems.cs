@@ -69,7 +69,7 @@ namespace work.bacome.imapclient
         public bool IsNone => Attributes == 0 && Names.Count == 0;
 
         /// <summary>
-        /// Determines whether this instance and a specified object have the same values.
+        /// Determines whether this instance and the specified object have the same values.
         /// </summary>
         /// <param name="pObject"></param>
         /// <returns></returns>
@@ -90,6 +90,7 @@ namespace work.bacome.imapclient
             }
         }
 
+        /**<summary>Returns a string that represents the set.</summary>*/
         public override string ToString() => $"{nameof(cCacheItems)}({Attributes},{Names})";
 
         /// <summary>

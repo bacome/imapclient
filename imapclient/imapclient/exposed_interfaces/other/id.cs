@@ -40,16 +40,27 @@ namespace work.bacome.imapclient
     /// </summary>
     public static class kIdFieldName
     {
+        /**<summary>name</summary>*/
         public const string Name = "name";
+        /**<summary>version</summary>*/
         public const string Version = "version";
+        /**<summary>os</summary>*/
         public const string OS = "os";
+        /**<summary>os-version</summary>*/
         public const string OSVersion = "os-version";
+        /**<summary>vendor</summary>*/
         public const string Vendor = "vendor";
+        /**<summary>support-url</summary>*/
         public const string SupportURL = "support-url";
+        /**<summary>address</summary>*/
         public const string Address = "address";
+        /**<summary>date</summary>*/
         public const string Date = "date";
+        /**<summary>command</summary>*/
         public const string Command = "command";
+        /**<summary>arguments</summary>*/
         public const string Arguments = "arguments";
+        /**<summary>environment</summary>*/
         public const string Environment = "environment";
     }
 
@@ -60,6 +71,7 @@ namespace work.bacome.imapclient
     {
         // immutable (for passing in and out)
 
+        /**<summary></summary>*/
         protected readonly ReadOnlyDictionary<string, string> mDictionary;
 
         /// <summary>
@@ -134,6 +146,7 @@ namespace work.bacome.imapclient
         /**<summary>>Gets the description of environment.</summary>*/
         public string Environment => ZGetValue(kIdFieldName.Environment);
 
+        /**<summary>Returns a string that represents the collection.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cId));
@@ -436,6 +449,7 @@ namespace work.bacome.imapclient
             set => mDictionary[kIdFieldName.Environment] = value;
         }
 
+        /**<summary>Returns a string that represents the dictionary.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cIdDictionary));

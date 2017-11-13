@@ -14,9 +14,9 @@ namespace work.bacome.imapclient
         public readonly cCulturedString Subject;
 
         /// <summary>
-        /// <para>The base subject as defined in RFC 5256.</para>
-        /// <para>(i.e. with the RE: FWD: etc stripped off)</para>
-        /// <para>May be null.</para>
+        /// The base subject as defined in RFC 5256.
+        /// (i.e. with the RE: FWD: etc stripped off.)
+        /// May be null.
         /// </summary>
         public readonly string BaseSubject;
 
@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
         /** <summary>The normalised (delimiters, quoting, comments and white space removed) message-id of the message. May be null.</summary> */
         public readonly cHeaderFieldMsgId MessageId;
 
-        public cEnvelope(DateTime? pSent, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cHeaderFieldMsgIds pInReplyTo, cHeaderFieldMsgId pMessageId)
+        internal cEnvelope(DateTime? pSent, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cHeaderFieldMsgIds pInReplyTo, cHeaderFieldMsgId pMessageId)
         {
             Sent = pSent;
             Subject = pSubject;
@@ -59,6 +59,7 @@ namespace work.bacome.imapclient
             MessageId = pMessageId;
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cEnvelope)}({Sent},{Subject},{BaseSubject},{From},{Sender},{ReplyTo},{To},{CC},{BCC},{InReplyTo},{MessageId})";
     }
 }

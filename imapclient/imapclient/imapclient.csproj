@@ -99,6 +99,7 @@
     <Compile Include="exposed_interfaces\message\messageproperties.cs" />
     <Compile Include="support\charsets.cs" />
     <Compile Include="support\filter.cs" />
+    <Compile Include="support\listflags.cs" />
     <Compile Include="support\mailboxpropertiies.cs" />
     <Compile Include="exposed_interfaces\support\lsubflags.cs" />
     <Compile Include="exposed_interfaces\support\messagecache.cs" />
@@ -285,7 +286,7 @@
     <Compile Include="support\body.cs" />
     <Compile Include="support\callbacksynchroniser.cs" />
     <Compile Include="support\mailboxnamepattern.cs" />
-    <Compile Include="exposed_interfaces\collections\uidlist.cs" />
+    <Compile Include="support\uidlist.cs" />
     <Compile Include="tests\tests.cs" />
     <Compile Include="tools\countdowntimer.cs" />
     <Compile Include="tools\exclusiveaccess.cs" />

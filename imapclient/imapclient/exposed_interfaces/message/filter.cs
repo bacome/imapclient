@@ -220,6 +220,7 @@ namespace work.bacome.imapclient
             Offset = pOffset;
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cFilterMSNOffset)}({Handle},{End},{Offset})";
     }
 
@@ -240,6 +241,7 @@ namespace work.bacome.imapclient
         /// <returns></returns>
         public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(End, pOffset);
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cFilterEnd)}({End})";
     }
 
@@ -465,13 +467,53 @@ namespace work.bacome.imapclient
 
         internal cFilterDate(eFilterDate pDate) { Date = pDate; }
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a date less than the specified date.
+        /// </summary>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pDate"></param>
+        /// <returns></returns>
         public static cFilter operator <(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.before, pDate);
+
+        /// <summary>
+        /// Returns a filter that passes through messages with a date greater than the specified date.
+        /// </summary>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pDate"></param>
+        /// <returns></returns>
         public static cFilter operator >(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.since, pDate.AddDays(1));
 
+
+        /// <summary>
+        /// Returns a filter that passes through messages with a date equal to the specified date.
+        /// </summary>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pDate"></param>
+        /// <returns></returns>
         public static cFilter operator ==(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.on, pDate);
+
+        /// <summary>
+        /// Returns a filter that passes through messages with a date different to the specified date.
+        /// </summary>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pDate"></param>
+        /// <returns></returns>
         public static cFilter operator !=(cFilterDate pFilterDate, DateTime pDate) => new cFilterNot(new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.on, pDate));
 
+        /// <summary>
+        /// Returns a filter that passes through messages with a date greater than or equal to the specified date.
+        /// </summary>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pDate"></param>
+        /// <returns></returns>
         public static cFilter operator >=(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.since, pDate);
+
+        /// <summary>
+        /// Returns a filter that passes through messages with a date less than or equal to the specified date.
+        /// </summary>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pDate"></param>
+        /// <returns></returns>
         public static cFilter operator <=(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.before, pDate.AddDays(1));
     }
 
@@ -481,10 +523,38 @@ namespace work.bacome.imapclient
     /// </summary>
     public class cFilterSize
     {
-        public cFilterSize() { }
+        internal cFilterSize() { }
+
+        /// <summary>
+        /// Returns a filter that passes through messages with a size less than the specified size.
+        /// </summary>
+        /// <param name="pFitlerSize"><see cref="cFilter.Size"/></param>
+        /// <param name="pSize"></param>
+        /// <returns></returns>
         public static cFilter operator <(cFilterSize pFitlerSize, int pSize) => new cFilterSizeCompare(eFilterSizeCompare.smaller, pSize);
+
+        /// <summary>
+        /// Returns a filter that passes through messages with a size greater than the specified size.
+        /// </summary>
+        /// <param name="pFitlerSize"><see cref="cFilter.Size"/></param>
+        /// <param name="pSize"></param>
+        /// <returns></returns>
         public static cFilter operator >(cFilterSize pFitlerSize, int pSize) => new cFilterSizeCompare(eFilterSizeCompare.larger, pSize);
+
+        /// <summary>
+        /// Returns a filter that passes through messages with a size less than the specified size.
+        /// </summary>
+        /// <param name="pFitlerSize"><see cref="cFilter.Size"/></param>
+        /// <param name="pSize"></param>
+        /// <returns></returns>
         public static cFilter operator <(cFilterSize pFitlerSize, uint pSize) => new cFilterSizeCompare(eFilterSizeCompare.smaller, pSize);
+
+        /// <summary>
+        /// Returns a filter that passes through messages with a size greater than the specified size.
+        /// </summary>
+        /// <param name="pFitlerSize"><see cref="cFilter.Size"/></param>
+        /// <param name="pSize"></param>
+        /// <returns></returns>
         public static cFilter operator >(cFilterSize pFitlerSize, uint pSize) => new cFilterSizeCompare(eFilterSizeCompare.larger, pSize);
     }
 
@@ -494,8 +564,22 @@ namespace work.bacome.imapclient
     /// </summary>
     public class cFilterImportance
     {
-        public cFilterImportance() { }
+        internal cFilterImportance() { }
+
+        /// <summary>
+        /// Returns a filter that passes through messages with an importance equal to the specified importance.
+        /// </summary>
+        /// <param name="pImportance"><see cref="cFilter.Importance"/></param>
+        /// <param name="pValue"></param>
+        /// <returns></returns>
         public static cFilter operator ==(cFilterImportance pImportance, eImportance pValue) => new cFilterHeaderFieldContains(kHeaderFieldName.Importance, cHeaderFieldImportance.FieldValue(pValue));
+
+        /// <summary>
+        /// Returns a filter that passes through messages with an importance different to the specified importance.
+        /// </summary>
+        /// <param name="pImportance"><see cref="cFilter.Importance"/></param>
+        /// <param name="pValue"></param>
+        /// <returns></returns>
         public static cFilter operator !=(cFilterImportance pImportance, eImportance pValue) => !new cFilterHeaderFieldContains(kHeaderFieldName.Importance, cHeaderFieldImportance.FieldValue(pValue));
     }
 }
