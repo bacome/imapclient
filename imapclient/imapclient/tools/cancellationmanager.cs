@@ -40,11 +40,11 @@ namespace work.bacome.async
         /// <summary>
         /// Gets a disposable object containing a <see cref="CancellationToken"/> that is attached to the current <see cref="CancellationTokenSource"/>.
         /// </summary>
+        /// <param name="pParentContext">Context for trace messages.</param>
+        /// <returns></returns>
         /// <remarks>
         /// Dispose the returned object when the operation being controlled by the contained <see cref="CancellationToken"/> completes.
         /// </remarks>
-        /// <param name="pParentContext">Context for trace messages.</param>
-        /// <returns>A disposable object containing a <see cref="CancellationToken"/>.</returns>
         public cToken GetToken(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cCancellationManager), nameof(GetToken));
@@ -76,10 +76,10 @@ namespace work.bacome.async
         /// <summary>
         /// Cancels all of the operations attached to the current <see cref="CancellationTokenSource"/>.
         /// </summary>
-        /// <remarks>
-        /// Calling this method causes the allocation of a new internal <see cref="CancellationTokenSource"/> so a new set of operations can be started immediately.
-        /// </remarks>
         /// <param name="pParentContext">Context for trace messages.</param>
+        /// <remarks>
+        /// Calling this method also causes the allocation of a new internal <see cref="CancellationTokenSource"/> so a new set of operations can be started immediately.
+        /// </remarks>
         public void Cancel(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cCancellationManager), nameof(Cancel));

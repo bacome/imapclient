@@ -11,27 +11,27 @@ namespace work.bacome.imapclient
     /// </summary>
     public interface iId : IReadOnlyDictionary<string, string>
     {
-        /**<summary>The name of the program.</summary>*/
+        /**<summary>Gets the name of the program.</summary>*/
         string Name { get; }
-        /**<summary>The version number of the program.</summary>*/
+        /**<summary>Gets the version number of the program.</summary>*/
         string Version { get; }
-        /**<summary>The name of the operating system.</summary>*/
+        /**<summary>Gets the name of the operating system.</summary>*/
         string OS { get; }
-        /**<summary>The version of the operating system.</summary>*/
+        /**<summary>Gets the version of the operating system.</summary>*/
         string OSVersion { get; }
-        /**<summary>The vendor of the client/server.</summary>*/
+        /**<summary>Gets the vendor of the client/server.</summary>*/
         string Vendor { get; }
-        /**<summary>The URL to contact for support.</summary>*/
+        /**<summary>Gets the URL to contact for support.</summary>*/
         string SupportURL { get; }
-        /**<summary>The postal address of contact/vendor.</summary>*/
+        /**<summary>Gets the postal address of contact/vendor.</summary>*/
         string Address { get; }
-        /**<summary>The date program was released.</summary>*/
+        /**<summary>Gets the date program was released.</summary>*/
         string Date { get; }
-        /**<summary>The command used to start the program.</summary>*/
+        /**<summary>Gets the command used to start the program.</summary>*/
         string Command { get; }
-        /**<summary>The arguments supplied on the command line, if any.</summary>*/
+        /**<summary>Gets the arguments supplied on the command line, if any.</summary>*/
         string Arguments { get; }
-        /**<summary>A description of environment.</summary>*/
+        /**<summary>Gets the description of the environment.</summary>*/
         string Environment { get; }
     }
 
@@ -54,7 +54,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// An ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ServerId"/>.
+    /// A read-only ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ServerId"/>.
     /// </summary>
     public class cId : iId
     {
@@ -63,9 +63,9 @@ namespace work.bacome.imapclient
         protected readonly ReadOnlyDictionary<string, string> mDictionary;
 
         /// <summary>
-        /// Construct from a field/ value dictionary. Field names are case insensitive.
+        /// Initialise a new instance, copying the values from the supplied field/ value dictionary. Field names are case insensitive.
         /// </summary>
-        /// <param name="pDictionary">A field/ value dictionary.</param>
+        /// <param name="pDictionary"></param>
         public cId(IDictionary<string, string> pDictionary)
         {
             mDictionary = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(pDictionary, StringComparer.InvariantCultureIgnoreCase));
@@ -98,7 +98,11 @@ namespace work.bacome.imapclient
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => mDictionary.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mDictionary.GetEnumerator();
 
-        /**<summary>Retrieves the field value (field names are case insensitive).</summary>*/
+        /// <summary>
+        /// Retrieves the field value (field names are case insensitive).
+        /// </summary>
+        /// <param name="pKey"></param>
+        /// <returns></returns>
         public string this[string pKey] => mDictionary[pKey];
 
         private string ZGetValue(string pIdFieldName)
@@ -107,27 +111,27 @@ namespace work.bacome.imapclient
             return null;
         }
 
-        /**<summary>The name of the program.</summary>*/
+        /**<summary>Gets the name of the program.</summary>*/
         public string Name => ZGetValue(kIdFieldName.Name);
-        /**<summary>The version number of the program.</summary>*/
+        /**<summary>>Gets the version number of the program.</summary>*/
         public string Version => ZGetValue(kIdFieldName.Version);
-        /**<summary>The name of the operating system.</summary>*/
+        /**<summary>>Gets the name of the operating system.</summary>*/
         public string OS => ZGetValue(kIdFieldName.OS);
-        /**<summary>The version of the operating system.</summary>*/
+        /**<summary>>Gets the version of the operating system.</summary>*/
         public string OSVersion => ZGetValue(kIdFieldName.OSVersion);
-        /**<summary>The vendor of the client/server.</summary>*/
+        /**<summary>>Gets the vendor of the client/server.</summary>*/
         public string Vendor => ZGetValue(kIdFieldName.Vendor);
-        /**<summary>The URL to contact for support.</summary>*/
+        /**<summary>>Gets the URL to contact for support.</summary>*/
         public string SupportURL => ZGetValue(kIdFieldName.SupportURL);
-        /**<summary>The postal address of contact/vendor.</summary>*/
+        /**<summary>>Gets the postal address of contact/vendor.</summary>*/
         public string Address => ZGetValue(kIdFieldName.Address);
-        /**<summary>The date program was released.</summary>*/
+        /**<summary>>Gets the date program was released.</summary>*/
         public string Date => ZGetValue(kIdFieldName.Date);
-        /**<summary>The command used to start the program.</summary>*/
+        /**<summary>>Gets the command used to start the program.</summary>*/
         public string Command => ZGetValue(kIdFieldName.Command);
-        /**<summary>The arguments supplied on the command line, if any.</summary>*/
+        /**<summary>>Gets the arguments supplied on the command line, if any.</summary>*/
         public string Arguments => ZGetValue(kIdFieldName.Arguments);
-        /**<summary>A description of environment.</summary>*/
+        /**<summary>>Gets the description of environment.</summary>*/
         public string Environment => ZGetValue(kIdFieldName.Environment);
 
         public override string ToString()
@@ -139,7 +143,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// An ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ClientIdUTF8"/>. This class defines an implicit conversion from <see cref="cIdDictionary"/> and enforces the limits of RFC 2971.
+    /// A read-only ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ClientIdUTF8"/>. This class defines an implicit conversion from <see cref="cIdDictionary"/> and enforces the limits of RFC 2971.
     /// </summary>
     /// <remarks>
     /// <para>The limits of RFC 2971 are;</para>
@@ -152,9 +156,9 @@ namespace work.bacome.imapclient
     public class cClientIdUTF8 : cId
     {
         /// <summary>
-        /// Initialises a new instance using a field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
+        /// Initialise a new instance, copying the values from the supplied field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
         /// </summary>
-        /// <param name="pDictionary">A field/ value dictionary.</param>
+        /// <param name="pDictionary"></param>
         public cClientIdUTF8(IDictionary<string, string> pDictionary) : base(pDictionary)
         {
             if (pDictionary.Count > 30) throw new ArgumentOutOfRangeException(nameof(pDictionary));
@@ -173,15 +177,15 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Implicit conversion.
+        /// Implicit conversion. See <see cref="cClientIdUTF8(IDictionary{string, string})"/>.
         /// </summary>
-        /// <param name="pDictionary">The dictionary to get the field/ value data from.</param>
-        /// <returns>The copied field/ values.</returns>
+        /// <param name="pDictionary"></param>
+        /// <returns></returns>
         public static implicit operator cClientIdUTF8(cIdDictionary pDictionary) => new cClientIdUTF8(pDictionary);
     }
 
     /// <summary>
-    /// An ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ClientId"/>. This class defines an implicit conversion from <see cref="cIdDictionary"/> and enforces the limits of RFC 2971.
+    /// A read-only ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ClientId"/>. This class defines an implicit conversion from <see cref="cIdDictionary"/> and enforces the limits of RFC 2971.
     /// </summary>
     /// <remarks>
     /// <para>The limits of RFC 2971 are;</para>
@@ -194,9 +198,9 @@ namespace work.bacome.imapclient
     public class cClientId : cClientIdUTF8
     {
         /// <summary>
-        /// Construct from a field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
+        /// Initialise a new instance, copying the values from the supplied field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
         /// </summary>
-        /// <param name="pDictionary">A field/ value dictionary.</param>
+        /// <param name="pDictionary"></param>
         public cClientId(IDictionary<string, string> pDictionary) : base(pDictionary)
         {
             foreach (var lEntry in pDictionary)
@@ -213,10 +217,10 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Implicit conversion.
+        /// Implicit conversion. See <see cref="cClientId(IDictionary{string, string})"/>.
         /// </summary>
-        /// <param name="pDictionary">The dictionary to get the field/ value data from.</param>
-        /// <returns>The copied field/ values.</returns>
+        /// <param name="pDictionary"></param>
+        /// <returns></returns>
         public static implicit operator cClientId(cIdDictionary pDictionary) => new cClientId(pDictionary);
     }
 
@@ -228,7 +232,7 @@ namespace work.bacome.imapclient
         private readonly Dictionary<string, string> mDictionary = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
-        /// Construct an empty or a default dictionary. A default dictionary contains details about the library.
+        /// Initialises a new instance as an empty or a default dictionary. A default dictionary contains details about the library.
         /// </summary>
         /// <param name="pDefault">Indicates if a default or an empty dictionary should be constructed.</param>
         public cIdDictionary(bool pDefault = true)
@@ -265,7 +269,7 @@ namespace work.bacome.imapclient
 
         /**<summary>Gets the number of field/ value pairs in the dictionary.</summary>*/
         public int Count => mDictionary.Count;
-        /**<summary>false</summary>*/
+        /**<summary>Always returns false.</summary>*/
         public bool IsReadOnly => false;
 
         /**<summary>Gets the values that are in the dictionary.</summary>*/
@@ -353,79 +357,79 @@ namespace work.bacome.imapclient
             return null;
         }
 
-        /**<summary>The name of the program.</summary>*/
+        /**<summary>Gets and sets the name of the program.</summary>*/
         public string Name
         {
             get => ZGetValue(kIdFieldName.Name);
             set => mDictionary[kIdFieldName.Name] = value;
         }
 
-        /**<summary>The version number of the program.</summary>*/
+        /**<summary>Gets and sets the version number of the program.</summary>*/
         public string Version
         {
             get => ZGetValue(kIdFieldName.Version);
             set => mDictionary[kIdFieldName.Version] = value;
         }
 
-        /**<summary>The name of the operating system.</summary>*/
+        /**<summary>Gets and sets the name of the operating system.</summary>*/
         public string OS
         {
             get => ZGetValue(kIdFieldName.OS);
             set => mDictionary[kIdFieldName.OS] = value;
         }
 
-        /**<summary>The version of the operating system.</summary>*/
+        /**<summary>Gets and sets the version of the operating system.</summary>*/
         public string OSVersion
         {
             get => ZGetValue(kIdFieldName.OSVersion);
             set => mDictionary[kIdFieldName.OSVersion] = value;
         }
 
-        /**<summary>The vendor of the client/server.</summary>*/
+        /**<summary>Gets and sets the vendor of the client/server.</summary>*/
         public string Vendor
         {
             get => ZGetValue(kIdFieldName.Vendor);
             set => mDictionary[kIdFieldName.Vendor] = value;
         }
 
-        /**<summary>The URL to contact for support.</summary>*/
+        /**<summary>Gets and sets the URL to contact for support.</summary>*/
         public string SupportURL
         {
             get => ZGetValue(kIdFieldName.SupportURL);
             set => mDictionary[kIdFieldName.SupportURL] = value;
         }
 
-        /**<summary>The postal address of contact/vendor.</summary>*/
+        /**<summary>Gets and sets the postal address of contact/vendor.</summary>*/
         public string Address
         {
             get => ZGetValue(kIdFieldName.Address);
             set => mDictionary[kIdFieldName.Address] = value;
         }
 
-        /**<summary>The date program was released.</summary>*/
+        /**<summary>Gets the date program was released.</summary>*/
         public string Date => ZGetValue(kIdFieldName.Date);
 
         /// <summary>
-        /// Set the <see cref="Date"/>. This method converts the supplied date to RFC 3501 date format.
+        /// Sets the <see cref="Date"/>. This method converts the supplied date to RFC 3501 date format.
         /// </summary>
-        /// <param name="pDate">The value to set the <see cref="Date"/> to.</param>
+        /// <param name="pDate"></param>
         public void SetDate(DateTime pDate) => mDictionary[kIdFieldName.Date] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(pDate).Bytes);
 
-        /**<summary>The command used to start the program.</summary>*/
+        /**<summary>Gets and sets the command used to start the program.</summary>*/
         public string Command
         {
             get => ZGetValue(kIdFieldName.Command);
             set => mDictionary[kIdFieldName.Command] = value;
         }
 
-        /**<summary>The arguments supplied on the command line, if any.</summary>*/
+        /**<summary>Gets and sets the arguments supplied on the command line, if any.</summary>*/
         public string Arguments
         {
             get => ZGetValue(kIdFieldName.Arguments);
             set => mDictionary[kIdFieldName.Arguments] = value;
         }
 
-        /**<summary>A description of environment.</summary>*/
+        /**<summary>Gets and sets the description of the environment.</summary>*/
         public string Environment
         {
             get => ZGetValue(kIdFieldName.Environment);

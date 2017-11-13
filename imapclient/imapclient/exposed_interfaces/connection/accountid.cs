@@ -78,14 +78,14 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Determines if two instances have the same <see cref="Host"/>, <see cref="Type"/> and <see cref="UserId"/>.
         /// </summary>
-        /// <param name="pObject">The instance to compare to.</param>
-        /// <returns>True if the instances are the same.</returns>
+        /// <param name="pObject"></param>
+        /// <returns></returns>
         public override bool Equals(object pObject) => this == pObject as cAccountId;
 
         /// <summary>
         /// Returns the hash code for this <see cref="cAccountId"/>.
         /// </summary>
-        /// <returns>The hash code for this <see cref="cAccountId"/>.</returns>
+        /// <returns></returns>
         public override int GetHashCode()
         {
             unchecked
@@ -102,9 +102,9 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Determines if two instances have the same <see cref="Host"/>, <see cref="Type"/> and <see cref="UserId"/>.
         /// </summary>
-        /// <param name="pA">One of the instances to compare.</param>
-        /// <param name="pB">One of the instances to compare.</param>
-        /// <returns>True if the instances have the same <see cref="Host"/>, <see cref="Type"/> and <see cref="UserId"/>.</returns>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator ==(cAccountId pA, cAccountId pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -116,9 +116,9 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Determines if two instances have the same <see cref="Host"/>, <see cref="Type"/> and <see cref="UserId"/>.
         /// </summary>
-        /// <param name="pA">One of the instances to compare.</param>
-        /// <param name="pB">One of the instances to compare.</param>
-        /// <returns>False if the instances have the same <see cref="Host"/>, <see cref="Type"/> and <see cref="UserId"/>.</returns>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator !=(cAccountId pA, cAccountId pB) => !(pA == pB);
     }
 }

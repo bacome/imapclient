@@ -668,7 +668,7 @@ namespace work.bacome.imapclient
         /// Returns an object that represents the named mailbox.
         /// </summary>
         /// <param name="pMailboxName">The mailbox name.</param>
-        /// <returns>An object representing the named mailbox.</returns>
+        /// <returns></returns>
         public cMailbox Mailbox(cMailboxName pMailboxName)
         {
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));

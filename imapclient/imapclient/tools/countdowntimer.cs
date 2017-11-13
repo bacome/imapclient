@@ -33,7 +33,7 @@ namespace work.bacome.async
         /// <summary>
         /// Gets the currently running countdown task.
         /// </summary>
-        /// <returns>The currently running countdown task.</returns>
+        /// <returns></returns>
         public Task GetAwaitCountdownTask()
         {
             if (mDisposed) throw new ObjectDisposedException(nameof(cCountdownTimer));

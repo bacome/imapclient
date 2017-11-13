@@ -31,6 +31,11 @@ namespace work.bacome.imapclient
             Delimiter = pDelimiter;
         }
 
+        /// <summary>
+        /// Initialises an new instance. May throw if the parameters provided are not valid IMAP values.
+        /// </summary>
+        /// <param name="pPath"></param>
+        /// <param name="pDelimiter"></param>
         public cMailboxName(string pPath, char? pDelimiter)
         {
             if (string.IsNullOrEmpty(pPath)) throw new ArgumentNullException(nameof(pPath));
@@ -52,8 +57,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The path of the parent mailbox.</para>
-        /// <para>Will be null if there is no parent mailbox.</para>
+        /// Gets the path of the parent mailbox. Will be null if there is no parent mailbox.
         /// </summary>
         public string ParentPath
         {
@@ -67,10 +71,8 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>The name of the mailbox.</para>
-        /// <para>As compared to <see cref="Path"/> this does not include the hierarchy.</para>
+        /// Gets the name of the mailbox. As compared to <see cref="Path"/> this does not include the hierarchy.
         /// </summary>
-        /// 
         public string Name
         {
             get
@@ -83,10 +85,15 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>True if this instance represents the inbox.</para>
+        /// Determines if this instance's path is 'INBOX'.
         /// </summary>
         public bool IsInbox => ReferenceEquals(Path, InboxString);
 
+        /// <summary>
+        /// Compares this instance with a specified <see cref="cMailboxName"/> object.
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
         public int CompareTo(cMailboxName pOther)
         {
             if (pOther == null) return 1;
@@ -108,10 +115,24 @@ namespace work.bacome.imapclient
             return Delimiter.Value.CompareTo(pOther.Delimiter.Value);
         }
 
+        /// <summary>
+        /// Determines whether this instance and a specified object have the same value.
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
         public bool Equals(cMailboxName pOther) => this == pOther;
 
+        /// <summary>
+        /// Determines whether this instance and a specified object have the same value.
+        /// </summary>
+        /// <param name="pObject"></param>
+        /// <returns></returns>
         public override bool Equals(object pObject) => this == pObject as cMailboxName;
 
+        /// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns></returns>
         public override int GetHashCode()
         {
             unchecked
@@ -125,6 +146,12 @@ namespace work.bacome.imapclient
 
         public override string ToString() => $"{nameof(cMailboxName)}({Path},{Delimiter})";
 
+        /// <summary>
+        /// Determines whether two instances have the same value.
+        /// </summary>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator ==(cMailboxName pA, cMailboxName pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -133,17 +160,14 @@ namespace work.bacome.imapclient
             return pA.Path == pB.Path && pA.Delimiter == pB.Delimiter;
         }
 
+        /// <summary>
+        /// Determines whether two instances have different values.
+        /// </summary>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator !=(cMailboxName pA, cMailboxName pB) => !(pA == pB);
 
-        // TODO: remove this xml
-
-        /// <summary>
-        /// <para>IMAP mailbox names have few restrictions, but this may fail.</para>
-        /// </summary>
-        /// <param name="pPath"></param>
-        /// <param name="pDelimiter"></param>
-        /// <param name="rResult"></param>
-        /// <returns></returns>
         internal static bool TryConstruct(string pPath, char? pDelimiter, out cMailboxName rResult)
         {
             if (string.IsNullOrEmpty(pPath)) { rResult = null; return false; }

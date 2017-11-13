@@ -81,29 +81,29 @@ namespace work.bacome.imapclient
         /// Determines if the collection contains the flag (case insensitive).
         /// </summary>
         /// <param name="pFlag"></param>
-        /// <returns>True if the collection contains the flag.</returns>
+        /// <returns></returns>
         public bool Contains(string pFlag) => mFlags.Contains(pFlag);
 
         /// <summary>
         /// Determines if the collection contains all the flags (case insensitive).
         /// </summary>
         /// <param name="pFlags"></param>
-        /// <returns>True if the collection contains all the flags.</returns>
+        /// <returns></returns>
         public bool Contains(params string[] pFlags) => mFlags.Contains(pFlags);
 
         /// <summary>
         /// Determines if the collection contains all the flags (case insensitive).
         /// </summary>
         /// <param name="pFlags"></param>
-        /// <returns>True if the collection contains all the flags.</returns>
+        /// <returns></returns>
         public bool Contains(IEnumerable<string> pFlags) => mFlags.Contains(pFlags);
 
         /// <summary>
         /// Gets the symmetric difference between two collections of flags ignoring an optional set of flags (case insensitive).
         /// </summary>
-        /// <param name="pOther">The other collection.</param>
+        /// <param name="pOther"></param>
         /// <param name="pExcept">The flags to ignore when doing the difference.</param>
-        /// <returns>The symmetric difference less the flags to ignore.</returns>
+        /// <returns></returns>
         public IEnumerable<string> SymmetricDifference(cMessageFlags pOther, params string[] pExcept)
         {
             var lSymmetricDifference = mFlags.Except(pOther.mFlags, StringComparer.InvariantCultureIgnoreCase).Union(pOther.mFlags.Except(mFlags, StringComparer.InvariantCultureIgnoreCase), StringComparer.InvariantCultureIgnoreCase);

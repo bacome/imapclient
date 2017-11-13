@@ -63,7 +63,7 @@ namespace work.bacome.async
         /// Gets the current coordinating task.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
-        /// <returns>The coordinating task.</returns>
+        /// <returns></returns>
         public Task GetAwaitReleaseTask(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cReleaser), nameof(GetAwaitReleaseTask), mName, mInstance);
@@ -92,7 +92,7 @@ namespace work.bacome.async
         /// Determines if the current coordinating task is complete.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
-        /// <returns>True if the current coordinating task is complete</returns>
+        /// <returns></returns>
         public bool IsReleased(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cReleaser), nameof(IsReleased), mName, mInstance);

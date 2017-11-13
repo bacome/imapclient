@@ -54,7 +54,7 @@ namespace work.bacome.async
         /// </summary>
         /// <param name="pMC">Controls the execution of the method.</param>
         /// <param name="pParentContext">Context for trace messages.</param>
-        /// <returns>An object that represents a block on the issue of exclusive access.</returns>
+        /// <returns></returns>
         public async Task<cBlock> GetBlockAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cExclusiveAccess), nameof(GetBlockAsync), mName, mInstance);
@@ -74,7 +74,7 @@ namespace work.bacome.async
         /// Dispose the returned object to release the block.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
-        /// <returns>An object that represents a block on the issue of exclusive access, or null.</returns>
+        /// <returns></returns>
         public cBlock TryGetBlock(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cExclusiveAccess), nameof(TryGetBlock), mName, mInstance);
@@ -90,11 +90,9 @@ namespace work.bacome.async
         /// This method will not complete until the exclusive access is granted or it throws due to <see cref="cMethodControl"/>.
         /// Dispose the object to release the exclusive access.
         /// </summary>
-        /// <remarks>
-        /// </remarks>
         /// <param name="pMC">Controls the execution of the method.</param>
         /// <param name="pParentContext">Context for trace messages.</param>
-        /// <returns>An object that represents a grant of exclusive access.</returns>
+        /// <returns></returns>
         public async Task<cToken> GetTokenAsync(cMethodControl pMC, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cExclusiveAccess), nameof(GetTokenAsync), mName, mInstance);

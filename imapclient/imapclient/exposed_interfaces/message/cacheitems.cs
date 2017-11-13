@@ -3,15 +3,13 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// <para>A set of items that can be cached in the internal message cache.</para>
-    /// <para>Note that the class has three implicit conversions;
-    /// <list type="bullet">
-    /// <item> from <see cref="fMessageProperties"/></item>
-    /// <item> from <see cref="fCacheAttributes"/></item>
-    /// <item> from <see cref="cHeaderFieldNames"/></item>
-    /// </list>
-    /// </para>
+    /// A set of items that can be cached in the internal message cache. Note that the class has three implicit conversions.
     /// </summary>
+    /// <seealso cref="cMessage.Fetch(cCacheItems)"/>
+    /// <seealso cref="cMailbox.Message(cUID, cCacheItems)"/>
+    /// <seealso cref="cMailbox.Messages(cFilter, cSort, cCacheItems, cMessageFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cCacheItems, cPropertyFetchConfiguration)"/>
+    /// <seealso cref="cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{cMessage}, cCacheItems, cPropertyFetchConfiguration)"/>
     public class cCacheItems
     {
         /// <summary>
@@ -20,21 +18,30 @@ namespace work.bacome.imapclient
         public static readonly cCacheItems None = new cCacheItems(0, cHeaderFieldNames.None);
 
         /// <summary>
-        /// A set of IMAP message attributes.
+        /// A set of IMAP message attributes to cache.
         /// </summary>
         public readonly fCacheAttributes Attributes;
 
         /// <summary>
-        /// A collection of header field names.
+        /// A collection of header field names to cache.
         /// </summary>
         public readonly cHeaderFieldNames Names;
 
+        /// <summary>
+        /// Initialises a new instance with the specified attributes and header field names.
+        /// </summary>
+        /// <param name="pAttributes"></param>
+        /// <param name="pNames">Can't be null, may be empty.</param>
         public cCacheItems(fCacheAttributes pAttributes, cHeaderFieldNames pNames)
         {
             Attributes = pAttributes;
             Names = pNames ?? throw new ArgumentNullException(nameof(pNames));
         }
 
+        /// <summary>
+        /// Initialises a new instance with the attributes and header field names required for the specified properties of <see cref="cMessage"/>.
+        /// </summary>
+        /// <param name="pProperties"></param>
         public cCacheItems(fMessageProperties pProperties)
         {
             Attributes = 0;
@@ -61,8 +68,17 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool IsNone => Attributes == 0 && Names.Count == 0;
 
+        /// <summary>
+        /// Determines if two instances have the same values.
+        /// </summary>
+        /// <param name="pObject"></param>
+        /// <returns></returns>
         public override bool Equals(object pObject) => this == pObject as cCacheItems;
 
+        /// <summary>
+        /// Returns the hash code for this set.
+        /// </summary>
+        /// <returns></returns>
         public override int GetHashCode()
         {
             unchecked
@@ -76,6 +92,12 @@ namespace work.bacome.imapclient
 
         public override string ToString() => $"{nameof(cCacheItems)}({Attributes},{Names})";
 
+        /// <summary>
+        /// Determines if two instances have the same values.
+        /// </summary>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator ==(cCacheItems pA, cCacheItems pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -84,10 +106,30 @@ namespace work.bacome.imapclient
             return pA.Attributes == pB.Attributes && pA.Names == pB.Names;
         }
 
+        /// <summary>
+        /// Determines if two instances are different.
+        /// </summary>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator !=(cCacheItems pA, cCacheItems pB) => !(pA == pB);
 
+        /// <summary>
+        /// Implicit conversion. See <see cref="cCacheItems(fCacheAttributes, cHeaderFieldNames)"/>.
+        /// </summary>
+        /// <param name="pAttributes"></param>
         public static implicit operator cCacheItems(fCacheAttributes pAttributes) => new cCacheItems(pAttributes, cHeaderFieldNames.None);
+
+        /// <summary>
+        /// Implicit conversion. See <see cref="cCacheItems(fCacheAttributes, cHeaderFieldNames)"/>.
+        /// </summary>
+        /// <param name="pNames"></param>
         public static implicit operator cCacheItems(cHeaderFieldNames pNames) => new cCacheItems(0, pNames);
+
+        /// <summary>
+        /// Implicit conversion. See <see cref="cCacheItems(fMessageProperties)"/>.
+        /// </summary>
+        /// <param name="pProperties"></param>
         public static implicit operator cCacheItems(fMessageProperties pProperties) => new cCacheItems(pProperties);
     }
 }

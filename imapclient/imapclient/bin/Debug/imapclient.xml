@@ -376,7 +376,7 @@
             Returns an object that represents the named mailbox.
             </summary>
             <param name="pMailboxName">The mailbox name.</param>
-            <returns>An object representing the named mailbox.</returns>
+            <returns></returns>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.EventSubscriptionCounts">
             <summary>
@@ -833,24 +833,30 @@
             <summary>
             Determines if two lists contain equal strings in the same order.
             </summary>
-            <param name="pObject">The instance to compare to.</param>
-            <returns>True if the two lists contain equal strings in the same order.</returns>
+            <param name="pObject"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cStrings.GetHashCode">
+            <summary>
+            Returns the hash code for this collection.
+            </summary>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cStrings.op_Equality(work.bacome.imapclient.cStrings,work.bacome.imapclient.cStrings)">
             <summary>
             Determines if two lists contain equal strings in the same order.
             </summary>
-            <param name="pA">One of the lists to compare.</param>
-            <param name="pB">One of the lists to compare.</param>
-            <returns>True if the two lists contain equal strings in the same order.</returns>
+            <param name="pA"></param>
+            <param name="pB"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cStrings.op_Inequality(work.bacome.imapclient.cStrings,work.bacome.imapclient.cStrings)">
             <summary>
             Determines if two lists contain equal strings in the same order.
             </summary>
-            <param name="pA">One of the lists to compare.</param>
-            <param name="pB">One of the lists to compare.</param>
-            <returns>False if the two lists contain equal strings in the same order.</returns>
+            <param name="pA"></param>
+            <param name="pB"></param>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.eAccountType">
             <summary>
@@ -890,30 +896,30 @@
             <summary>
             Determines if two instances have the same <see cref="F:work.bacome.imapclient.cAccountId.Host"/>, <see cref="F:work.bacome.imapclient.cAccountId.Type"/> and <see cref="F:work.bacome.imapclient.cAccountId.UserId"/>.
             </summary>
-            <param name="pObject">The instance to compare to.</param>
-            <returns>True if the instances are the same.</returns>
+            <param name="pObject"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cAccountId.GetHashCode">
             <summary>
             Returns the hash code for this <see cref="T:work.bacome.imapclient.cAccountId"/>.
             </summary>
-            <returns>The hash code for this <see cref="T:work.bacome.imapclient.cAccountId"/>.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cAccountId.op_Equality(work.bacome.imapclient.cAccountId,work.bacome.imapclient.cAccountId)">
             <summary>
             Determines if two instances have the same <see cref="F:work.bacome.imapclient.cAccountId.Host"/>, <see cref="F:work.bacome.imapclient.cAccountId.Type"/> and <see cref="F:work.bacome.imapclient.cAccountId.UserId"/>.
             </summary>
-            <param name="pA">One of the instances to compare.</param>
-            <param name="pB">One of the instances to compare.</param>
-            <returns>True if the instances have the same <see cref="F:work.bacome.imapclient.cAccountId.Host"/>, <see cref="F:work.bacome.imapclient.cAccountId.Type"/> and <see cref="F:work.bacome.imapclient.cAccountId.UserId"/>.</returns>
+            <param name="pA"></param>
+            <param name="pB"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cAccountId.op_Inequality(work.bacome.imapclient.cAccountId,work.bacome.imapclient.cAccountId)">
             <summary>
             Determines if two instances have the same <see cref="F:work.bacome.imapclient.cAccountId.Host"/>, <see cref="F:work.bacome.imapclient.cAccountId.Type"/> and <see cref="F:work.bacome.imapclient.cAccountId.UserId"/>.
             </summary>
-            <param name="pA">One of the instances to compare.</param>
-            <param name="pB">One of the instances to compare.</param>
-            <returns>False if the instances have the same <see cref="F:work.bacome.imapclient.cAccountId.Host"/>, <see cref="F:work.bacome.imapclient.cAccountId.Type"/> and <see cref="F:work.bacome.imapclient.cAccountId.UserId"/>.</returns>
+            <param name="pA"></param>
+            <param name="pB"></param>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.fCapabilities">
             <summary>
@@ -1396,11 +1402,11 @@
         </member>
         <member name="M:work.bacome.imapclient.support.cBinarySizes.op_Addition(work.bacome.imapclient.support.cBinarySizes,work.bacome.imapclient.support.cBinarySizes)">
             <summary>
-            Combine two maps into one.
+            Combine two maps.
             </summary>
-            <param name="pA">The first map to combine.</param>
-            <param name="pB">The second map to combine.</param>
-            <returns>A map containing the union of the two specified maps.</returns>
+            <param name="pA"></param>
+            <param name="pB"></param>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.support.iMessageHandle">
             <summary>
@@ -1479,160 +1485,181 @@
         </member>
         <member name="T:work.bacome.imapclient.cMailbox">
             <summary>
-            <para>Provides an API that allows interaction with an IMAP mailbox.</para>
-            <para>Instances are only valid whilst the containing cIMAPClient remains connected. Reconnecting the client will not bring mailbox instances back to life.</para>
+            Provides an API that allows interaction with an IMAP mailbox.
             </summary>
+            <remarks>
+            Instances are only valid whilst the containing <see cref="T:work.bacome.imapclient.cIMAPClient"/> remains connected. Reconnecting the client will not bring mailbox instances back to life.
+            </remarks>
+            <seealso cref="P:work.bacome.imapclient.cIMAPClient.Inbox"/>
+            <seealso cref="P:work.bacome.imapclient.cIMAPClient.SelectedMailbox"/>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.Mailbox(work.bacome.imapclient.cMailboxName)"/>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.Mailboxes(System.String,System.Nullable{System.Char},work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.Subscribed(System.String,System.Nullable{System.Char},System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.cNamespace.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.cNamespace.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
+        </member>
+        <member name="F:work.bacome.imapclient.cMailbox.Client">
+            <summary>The client that this instance was created by.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cMailbox.Handle">
+            <summary>The internal mailbox cache item that this instance is attached to.</summary>
         </member>
         <member name="E:work.bacome.imapclient.cMailbox.PropertyChanged">
             <summary>
             Fired when the server notifies the client of a mailbox property value change.
             </summary>
+            <remarks>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            <para>If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
+            </remarks>
         </member>
         <member name="E:work.bacome.imapclient.cMailbox.MessageDelivery">
             <summary>
             Fired when the server notifies the client that messages have arrived in the mailbox.
             </summary>
+            <remarks>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            <para>If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.Path">
             <summary>
-            <para>The mailbox name including the full hierarchy.</para>
+            <para>Gets the mailbox name including the full hierarchy.</para>
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.Delimiter">
             <summary>
-            <para>The hierarchy delimiter used in <see cref="P:work.bacome.imapclient.cMailbox.Path"/>.</para>
+            <para>Gets the hierarchy delimiter used in <see cref="P:work.bacome.imapclient.cMailbox.Path"/>.</para>
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.ParentPath">
             <summary>
-            <para>The path of the parent mailbox.</para>
-            <para>Will be null if there is no parent mailbox.</para>
+            Gets the path of the parent mailbox. Will be null if there is no parent mailbox.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.Name">
             <summary>
-            <para>The name of the mailbox.</para>
-            <para>As compared to <see cref="P:work.bacome.imapclient.cMailbox.Path"/> this does not include the hierarchy.</para>
+            Gets the name of the mailbox. As compared to <see cref="P:work.bacome.imapclient.cMailbox.Path"/> this does not include the hierarchy.
             </summary>
             
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.IsInbox">
             <summary>
-            <para>True if this instance represents the inbox.</para>
+            Determines if this instance represents the INBOX.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.Exists">
             <summary>
-            <para>True if the mailbox exists on the server.</para>
-            <para>Subscribed mailboxes and levels in the mailbox hierarchy do not need to exist.</para>
+            Indicates if the mailbox exists on the server. Subscribed mailboxes and levels in the mailbox hierarchy do not necessarily exist. Mailboxes can also be deleted.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.CanHaveChildren">
             <summary>
-            <para>False if the mailbox can definitely not contain child mailboxes.</para>
-            <para>See the IMAP \Noinferiors flag.</para>
+            Indicates if the mailbox can definitely not contain child mailboxes. See the IMAP \Noinferiors flag.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.CanSelect">
             <summary>
-            <para>True if the mailbox can be selected.</para>
-            <para>See the IMAP \Noselect flag.</para>
+            Indicates if the mailbox can be selected. See the IMAP \Noselect flag.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.IsMarked">
             <summary>
-            <para>Indicates if the mailbox has been marked "interesting" by the server.</para>
-            <para>Null indicates that the server didn't say either way.</para>
-            <para>See the IMAP \Marked and \Unmarked flags.</para>
+            Indicates if the mailbox has been marked "interesting" by the server. Null indicates that the server didn't say either way. See the IMAP \Marked and \Unmarked flags.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.IsRemote">
             <summary>
-            <para>If true the mailbox is definitely a remote mailbox.</para>
-            <para>If the connected server supports RFC 5258, if this flag is false the mailbox is definitely not a remote mailbox, otherwise it still may be one.</para>
-            <para>Remote mailboxes will never be returned by the library if the <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxReferrals"/> is set to false.</para>
+            Indicates if the mailbox is a remote mailbox. May be null if this can't be determined.
             </summary>
+            <remarks>
+            Null will be returned under the following set of circumstances;
+            <list type="bullet">
+            <item>The instance has <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxReferrals"/> set to true.</item>
+            <item>The connected server supports <see cref="P:work.bacome.imapclient.cCapabilities.MailboxReferrals"/>.</item>
+            <item>The connected server does not support <see cref="P:work.bacome.imapclient.cCapabilities.ListExtended"/>.</item>
+            </list>
+            Under these circumstances it is not possible to reliably determine if the mailbox is remote or not.
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.HasChildren">
             <summary>
-            <para>Indicates if the mailbox had children when the property was refreshed.</para>
-            <para>Null indicates that the server didn't say either way.</para>
-            <para>See the IMAP \HasChildren and \HasNoChildren flags.</para>
+            Indicates if the mailbox had children when the property was refreshed. Null indicates that the server didn't say either way. See the IMAP \HasChildren and \HasNoChildren flags.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.ContainsAll">
             <summary>
-            <para>If true the mailbox was marked with the IMAP \All flag indicating that the mailbox contains all messages.</para>
-            <para>Null indicates that the specialuse flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</para>
+            Indicates if the mailbox contains all messages (see the <see cref="P:work.bacome.imapclient.cCapabilities.SpecialUse"/> \All flag). Null indicates that the <see cref="F:work.bacome.imapclient.fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.IsArchive">
             <summary>
-            <para>If true the mailbox was marked with the IMAP \Archive flag indicating that the mailbox contains the message archive.</para>
-            <para>Null indicates that the specialuse flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</para>
+            Indicates if the mailbox contains the message archive (see the <see cref="P:work.bacome.imapclient.cCapabilities.SpecialUse"/> \Archive flag). Null indicates that the <see cref="F:work.bacome.imapclient.fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.ContainsDrafts">
             <summary>
-            <para>If true the mailbox was marked with the IMAP \Drafts flag indicating that the mailbox contains draft messages.</para>
-            <para>Null indicates that the specialuse flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</para>
+            Indicates if the mailbox contains message drafts (see the <see cref="P:work.bacome.imapclient.cCapabilities.SpecialUse"/> \Drafts flag). Null indicates that the <see cref="F:work.bacome.imapclient.fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.ContainsFlagged">
             <summary>
-            <para>If true the mailbox was marked with the IMAP \Flagged flag indicating that the mailbox contains flagged messages.</para>
-            <para>Null indicates that the specialuse flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</para>
+            Indicates if the mailbox contains flagged messages (see the <see cref="P:work.bacome.imapclient.cCapabilities.SpecialUse"/> \Flagged flag). Null indicates that the <see cref="F:work.bacome.imapclient.fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.ContainsJunk">
             <summary>
-            <para>If true the mailbox was marked with the IMAP \Junk flag indicating that the mailbox contains junk mail.</para>
-            <para>Null indicates that the specialuse flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</para>
+            Indicates if the mailbox contains junk mail (see the <see cref="P:work.bacome.imapclient.cCapabilities.SpecialUse"/> \Junk flag). Null indicates that the <see cref="F:work.bacome.imapclient.fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.ContainsSent">
             <summary>
-            <para>If true the mailbox was marked with the IMAP \Sent flag indicating that the mailbox contains copies of messages that have been sent.</para>
-            <para>Null indicates that the specialuse flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</para>
+            Indicates if the mailbox contains sent messages (see the <see cref="P:work.bacome.imapclient.cCapabilities.SpecialUse"/> \Sent flag). Null indicates that the <see cref="F:work.bacome.imapclient.fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.ContainsTrash">
             <summary>
-            <para>If true the mailbox was marked with the IMAP \Trash flag indicating that the mailbox contains copies of messages that are deleted.</para>
-            <para>Null indicates that the specialuse flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</para>
+            Indicates if the mailbox contains deleted or to-be deleted messages (see the <see cref="P:work.bacome.imapclient.cCapabilities.SpecialUse"/> \Trash flag). Null indicates that the <see cref="F:work.bacome.imapclient.fMailboxCacheData.specialuse"/> flags are not being cached, see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.IsSubscribed">
             <summary>
-            <para>Indicates if this mailbox is subscribed to or not.</para>
+            Indicates if this mailbox is subscribed to or not.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.MessageCount">
             <summary>
-            <para>The number of messages in the mailbox.</para>
-            <para>Null indicates that the messagecount is not being cached (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>) or was not sent by the server when requested.</para>
-            <para>This property always has an up-to-date value when the mailbox is selected.</para>
+            Gets the number of messages in the mailbox. 
+            Null indicates that <see cref="F:work.bacome.imapclient.fMailboxCacheData.messagecount"/> is not being cached (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>) or the value was not sent.
+            This property always has an up-to-date value when the mailbox is selected.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.RecentCount">
             <summary>
-            <para>The number of recent messages in the mailbox.</para>
-            <para>Null indicates that the recentcount is not being cached (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>) or was not sent by the server when requested.</para>
-            <para>This property always has an up-to-date value when the mailbox is selected.</para>
+            Gets the number of recent messages in the mailbox. 
+            Null indicates that <see cref="F:work.bacome.imapclient.fMailboxCacheData.recentcount"/> is not being cached (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>) or the value was not sent.
+            This property always has an up-to-date value when the mailbox is selected.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.UIDNext">
             <summary>
-            <para>The predicted UID that will be given to the next new message entering the mailbox.</para>
-            <para>Null indicates that the uidnext is not being cached (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>) or was not sent by the server when requested.</para>
-            <para>When the mailbox is selected, zero indicates that the value is unknown.</para>
-            <para>When the mailbox is selected this property may not be up-to-date: see the value of <see cref="P:work.bacome.imapclient.cMailbox.UIDNextUnknownCount"/> for the potential inaccuracy in this property value.</para>
+            Gets the predicted next UID for the mailbox. 
+            Null indicates that <see cref="F:work.bacome.imapclient.fMailboxCacheData.uidnext"/> is not being cached (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>) or the value was not sent.
+            This property always has a value when the mailbox is selected, but it may not be up to date.
             </summary>
+            <remarks>
+            <para>When the mailbox is selected, zero indicates that the value is unknown.</para>
+            <para>While the mailbox is selected this property may not be up-to-date: see the value of <see cref="P:work.bacome.imapclient.cMailbox.UIDNextUnknownCount"/> for the potential inaccuracy in this property value.</para>
+            <para>IMAP does not mandate that the server keep the client updated with this value while the mailbox is selected but also disallows retrieving the value while the mailbox is selected.</para>
+            <para>While the mailbox is selected the library internally maintains the value of this property by monitoring IMAP FETCH responses from the server, but these responses have to be explicitly requested.</para>
+            <para>If it is important to you that the value of this property be accurate when the mailbox is selected then you must fetch the UID for new messages as they arrive.</para>
+            <para>See <see cref="E:work.bacome.imapclient.cMailbox.MessageDelivery"/>, <see cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cCacheItems,work.bacome.imapclient.cPropertyFetchConfiguration)"/> and <see cref="T:work.bacome.imapclient.cCacheItems"/>.</para>
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.UIDNextUnknownCount">
             <summary>
-            <para>This is the number of messages that arrived since the mailbox was opened for which the library has not seen the value of the UID.</para>
-            <para>Indicates how inaccurate the <see cref="P:work.bacome.imapclient.cMailbox.UIDNext"/> is.</para>
+            Gets the number of messages that have arrived since the mailbox was selected for which the library has not seen the value of the UID.
+            Indicates how inaccurate the <see cref="P:work.bacome.imapclient.cMailbox.UIDNext"/> is.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.UIDValidity">
@@ -1719,16 +1746,7 @@
             <para>Indicates if the mailbox is currently selected but the mailbox can't be modified.</para>
             </summary>
         </member>
-        <member name="M:work.bacome.imapclient.cMailbox.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)">
-            <summary>
-            <para>Gets the mailbox's child mailboxes.</para>
-            </summary>
-            <param name="pDataSets">
-            <para>The sets of data to retrieve when getting the child mailboxes.</para>
-            <para>See <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheData"/>.</para>
-            </param>
-            <returns>A list of mailboxes.</returns>
-        </member>
+        <!-- Badly formed XML comment ignored for member "M:work.bacome.imapclient.cMailbox.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)" -->
         <member name="M:work.bacome.imapclient.cMailbox.MailboxesAsync(work.bacome.imapclient.fMailboxCacheDataSets)">
             <summary>The async version of <see cref="M:work.bacome.imapclient.cMailbox.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)"/>.</summary>
         </member>
@@ -2020,31 +2038,69 @@
             <para>The hierarchy delimiter used in <see cref="F:work.bacome.imapclient.cMailboxName.Path"/>.</para>
             </summary>
         </member>
+        <member name="M:work.bacome.imapclient.cMailboxName.#ctor(System.String,System.Nullable{System.Char})">
+            <summary>
+            Initialises an new instance. May throw if the parameters provided are not valid IMAP values.
+            </summary>
+            <param name="pPath"></param>
+            <param name="pDelimiter"></param>
+        </member>
         <member name="P:work.bacome.imapclient.cMailboxName.ParentPath">
             <summary>
-            <para>The path of the parent mailbox.</para>
-            <para>Will be null if there is no parent mailbox.</para>
+            Gets the path of the parent mailbox. Will be null if there is no parent mailbox.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMailboxName.Name">
             <summary>
-            <para>The name of the mailbox.</para>
-            <para>As compared to <see cref="F:work.bacome.imapclient.cMailboxName.Path"/> this does not include the hierarchy.</para>
+            Gets the name of the mailbox. As compared to <see cref="F:work.bacome.imapclient.cMailboxName.Path"/> this does not include the hierarchy.
             </summary>
-            
         </member>
         <member name="P:work.bacome.imapclient.cMailboxName.IsInbox">
             <summary>
-            <para>True if this instance represents the inbox.</para>
+            Determines if this instance's path is 'INBOX'.
             </summary>
         </member>
-        <member name="M:work.bacome.imapclient.cMailboxName.TryConstruct(System.String,System.Nullable{System.Char},work.bacome.imapclient.cMailboxName@)">
+        <member name="M:work.bacome.imapclient.cMailboxName.CompareTo(work.bacome.imapclient.cMailboxName)">
             <summary>
-            <para>IMAP mailbox names have few restrictions, but this may fail.</para>
+            Compares this instance with a specified <see cref="T:work.bacome.imapclient.cMailboxName"/> object.
             </summary>
-            <param name="pPath"></param>
-            <param name="pDelimiter"></param>
-            <param name="rResult"></param>
+            <param name="pOther"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cMailboxName.Equals(work.bacome.imapclient.cMailboxName)">
+            <summary>
+            Determines whether this instance and a specified object have the same value.
+            </summary>
+            <param name="pOther"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cMailboxName.Equals(System.Object)">
+            <summary>
+            Determines whether this instance and a specified object have the same value.
+            </summary>
+            <param name="pObject"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cMailboxName.GetHashCode">
+            <summary>
+            Returns the hash code for this instance.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cMailboxName.op_Equality(work.bacome.imapclient.cMailboxName,work.bacome.imapclient.cMailboxName)">
+            <summary>
+            Determines whether two instances have the same value.
+            </summary>
+            <param name="pA"></param>
+            <param name="pB"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cMailboxName.op_Inequality(work.bacome.imapclient.cMailboxName,work.bacome.imapclient.cMailboxName)">
+            <summary>
+            Determines whether two instances have different values.
+            </summary>
+            <param name="pA"></param>
+            <param name="pB"></param>
             <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.cAddress">
@@ -2106,117 +2162,129 @@
             <summary>The client that this instance was created by.</summary>
         </member>
         <member name="F:work.bacome.imapclient.cAttachment.Handle">
-            <summary>The message that this instance is attached to.</summary>
+            <summary>The message cache item that this instance is attached to.</summary>
         </member>
         <member name="F:work.bacome.imapclient.cAttachment.Part">
-            <summary>
-            The message body part that this attachment refers to.
-            </summary>
+            <summary>The message body part that this attachment refers to.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.Type">
             <summary>
-            The MIME type of the attachment in text form.
+            Gets the MIME type of the attachment in text form.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.TypeCode">
             <summary>
-            The MIME type of the attachment in code form.
+            Gets the MIME type of the attachment in code form.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.SubType">
             <summary>
-            The MIME subtype of the attachment in text form.
+            Gets the MIME subtype of the attachment in text form.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.Parameters">
             <summary>
-            The MIME type parameters of the attachment.
+            Gets the MIME type parameters of the attachment.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.ContentId">
             <summary>
-            The MIME content-id of the attachment.
+            Gets the MIME content-id of the attachment.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.Description">
             <summary>
-            The MIME content description of the attachment.
+            Gets the MIME content description of the attachment.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.ContentTransferEncoding">
             <summary>
-            The MIME content transfer encoding of the attachment in text form.
+            Gets the MIME content transfer encoding of the attachment in text form.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.DecodingRequired">
             <summary>
-            The MIME content transfer encoding of the attachment in code form.
+            Gets the MIME content transfer encoding of the attachment in code form.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.PartSizeInBytes">
             <summary>
-            The size in bytes of the encoded attachement.
+            Gets the size in bytes of the encoded attachement.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.MD5">
             <summary>
-            The MD5 value of the attachment.
+            Gets the MD5 value of the attachment.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.FileName">
             <summary>
-            The suggested filename if provided. May be null.
+            Gets the suggested filename of the attachment if provided. May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.CreationDate">
             <summary>
-            The creation date if provided. May be null.
+            Gets the creation date of the attachment if provided. May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.ModificationDate">
             <summary>
-            The modification date if provided. May be null.
+            Gets the modification date of the attachment if provided. May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.ReadDate">
             <summary>
-            The last read date if provided. May be null.
+            Gets the last read date of the attachment if provided. May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.ApproximateFileSizeInBytes">
             <summary>
-            The approximate size in bytes if provided. May be null.
+            Gets the approximate size in bytes of the attachment if provided. May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.Languages">
             <summary>
-            The language(s) of the attachment.
+            Gets the language(s) of the attachment if provided.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cAttachment.SaveSizeInBytes">
             <summary>
-            <para>Gets the number of bytes that will have to come over the network to save this attachment.</para>
-            <para>If the server can do the decoding this may be smaller than the <see cref="P:work.bacome.imapclient.cAttachment.PartSizeInBytes"/>.</para>
+            Gets the number of bytes that will have to come over the network to save this attachment.
+            This may be smaller than the <see cref="P:work.bacome.imapclient.cAttachment.PartSizeInBytes"/>.
             </summary>
-            <returns>The number of bytes.</returns>
+            <returns></returns>
+            <remarks>
+            This may be smaller than the <see cref="P:work.bacome.imapclient.cAttachment.PartSizeInBytes"/> if the part needs decoding (see <see cref="P:work.bacome.imapclient.cAttachment.DecodingRequired"/>) and the server supports <see cref="P:work.bacome.imapclient.cCapabilities.Binary"/>.
+            The size may have to be fetched from the server. 
+            Once fetched the size will be cached in the internal message cache.
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cAttachment.SaveSizeInBytesAsync">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cAttachment.SaveSizeInBytes"/>.</summary>
+            <summary>
+            Asynchronously gets the number of bytes that will have to come over the network to save this attachment.
+            This may be smaller than the <see cref="P:work.bacome.imapclient.cAttachment.PartSizeInBytes"/>.
+            </summary>
+            <returns></returns>
+            <remarks>
+            This may be smaller than the <see cref="P:work.bacome.imapclient.cAttachment.PartSizeInBytes"/> if the part needs decoding (see <see cref="P:work.bacome.imapclient.cAttachment.DecodingRequired"/>) and the server supports <see cref="P:work.bacome.imapclient.cCapabilities.Binary"/>.
+            The size may have to be fetched from the server. 
+            Once fetched the size will be cached in the internal message cache.
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cAttachment.SaveAs(System.String,work.bacome.imapclient.cBodyFetchConfiguration)">
             <summary>
             Saves the attachment to the specified path.
             </summary>
-            <param name="pPath">The target path.</param>
+            <param name="pPath"></param>
             <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         </member>
         <member name="M:work.bacome.imapclient.cAttachment.SaveAsAsync(System.String,work.bacome.imapclient.cBodyFetchConfiguration)">
             <summary>
             Asynchronously saves the attachment to the specified path.
             </summary>
-            <param name="pPath">The target path.</param>
+            <param name="pPath"></param>
             <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-            <returns>A task that represents the asynchronous save.</returns>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.eBodyPartTypeCode">
             <summary>
@@ -2675,11 +2743,13 @@
         </member>
         <member name="T:work.bacome.imapclient.cFilter">
             <summary>
-            Represents a filter that can be passed to the server to restrict the set of messages returned. Use the static members of the class to create cFilter instances and the &amp;, | and ! operators to combine the filters together. 
+            Represents a filter that can be passed to the server to filter the set of messages in a mailbox.
+            Only the messages that 'pass through' the filter are returned to the client.
+            Use the static members and operators of this class to create and combine filters. 
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cFilter.All">
-            <summary>A filter that passes everything through.</summary>
+            <summary>A filter that passes all messages through.</summary>
         </member>
         <member name="F:work.bacome.imapclient.cFilter.MSN">
             <summary>Use this member to generate message sequence number filters.</summary>
@@ -2761,144 +2831,199 @@
             Returns a filter that passes through only messages with the specified flags.
             </summary>
             <param name="pFlags">The flags that the message should have set.</param>
-            <returns>A message filter that passes through only messages with the specified flags.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cFilter.FlagsContain(work.bacome.imapclient.cFetchableFlags)">
             <summary>
             Returns a filter that passes through only messages with the specified flags.
             </summary>
             <param name="pFlags">The flags that the message should have set.</param>
-            <returns>A message filter that passes through only messages with the specified flags.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cFilter.HeaderFieldContains(System.String,System.String)">
             <summary>
             Returns a filter that passes through messages with the specified content in the specified header field.
             </summary>
             <param name="pHeaderField">The header field name. (Header field names are case insensitive.)</param>
-            <param name="pContains">The content to check for.</param>
-            <returns>A message filter that passes through messages with the specified content in the specified header field.</returns>
+            <param name="pContains"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cFilter.HasHeaderField(System.String)">
             <summary>
             Returns a filter that passes through messages with the specified header field.
             </summary>
             <param name="pHeaderField">The header field name. (Header field names are case insensitive.)</param>
-            <returns>A message a filter that passes through messages with the specified header field</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cFilter.op_BitwiseAnd(work.bacome.imapclient.cFilter,work.bacome.imapclient.cFilter)">
             <summary>
             Returns a filter that is the logical AND of the two specified filters.
             </summary>
-            <param name="pA">One of the filters to AND.</param>
-            <param name="pB">One of the filters to AND.</param>
-            <returns>The AND combination of the two filters.</returns>
+            <param name="pA"></param>
+            <param name="pB"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cFilter.op_BitwiseOr(work.bacome.imapclient.cFilter,work.bacome.imapclient.cFilter)">
             <summary>
             Returns a filter that is the logical OR of the two specified filters.
             </summary>
-            <param name="pA">One of the filters to OR.</param>
-            <param name="pB">One of the filters to OR.</param>
-            <returns>The OR combination of the two filters.</returns>
+            <param name="pA"></param>
+            <param name="pB"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cFilter.op_LogicalNot(work.bacome.imapclient.cFilter)">
             <summary>
             Returns a filter that is the logical NOT of the specified filter.
             </summary>
-            <param name="pNot">The filter to invert.</param>
-            <returns>The logical NOT of the specified filter.</returns>
-        </member>
-        <member name="T:work.bacome.imapclient.eFilterHandleRelativity">
-            <summary>The type of message sequence number comparison. Intended for internal use.</summary>
-        </member>
-        <member name="T:work.bacome.imapclient.eFilterPart">
-            <summary>The message attribute being filtered by. Intended for internal use.</summary>
-        </member>
-        <member name="T:work.bacome.imapclient.eFilterDate">
-            <summary>The message date being filtered by. Intended for internal use.</summary>
-        </member>
-        <member name="T:work.bacome.imapclient.eFilterDateCompare">
-            <summary>The type of date comparison. Intended for internal use.</summary>
-        </member>
-        <member name="T:work.bacome.imapclient.eFilterSizeCompare">
-            <summary>The type of size comparison. Intended for internal use.</summary>
-        </member>
-        <member name="T:work.bacome.imapclient.eFilterEnd">
-            <summary>The end of the message sequence. Intended for internal use.</summary>
-        </member>
-        <member name="T:work.bacome.imapclient.cFilterMSNRelativity">
-            <summary>
-            Represents a message sequence number message filter. Use the static member <see cref="F:work.bacome.imapclient.cFilter.MSN"/> to generate these.
-            </summary>
+            <param name="pNot"></param>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.cFilterMSNOffset">
             <summary>
-            <para>Specifies an offset from a specific message or from the first message in the mailbox or from the last message in the mailbox.</para>
-            <para>Use <see cref="M:work.bacome.imapclient.cMessage.MSNOffset(System.Int32)"/> or the static members <see cref="F:work.bacome.imapclient.cFilter.First"/> or <see cref="F:work.bacome.imapclient.cFilter.Last"/> to generate instances of this class.</para>
-            <para>Use instances of this class with the <see cref="F:work.bacome.imapclient.cFilter.MSN"/> static member to generate message sequence number filters.</para>
+            Specifies an offset from a specific message or from the first message in the mailbox or from the last message in the mailbox.
+            Use <see cref="M:work.bacome.imapclient.cMessage.MSNOffset(System.Int32)"/> or the static members <see cref="F:work.bacome.imapclient.cFilter.First"/> or <see cref="F:work.bacome.imapclient.cFilter.Last"/> to generate instances of this class.
+            Use instances of this class with the <see cref="F:work.bacome.imapclient.cFilter.MSN"/> static member to generate message sequence number filters.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cFilterEnd">
             <summary>
-            <para>Represents either the first message in the mailbox or the last message in the mailbox.</para>
-            <para>Use the <see cref="F:work.bacome.imapclient.cFilter.First"/> and <see cref="F:work.bacome.imapclient.cFilter.Last"/> static instances of this class to generate offsets to use with the static <see cref="F:work.bacome.imapclient.cFilter.MSN"/> to generate message sequence number filters.</para>
+            Represents either the first message in the mailbox or the last message in the mailbox.
+            Use the <see cref="F:work.bacome.imapclient.cFilter.First"/> and <see cref="F:work.bacome.imapclient.cFilter.Last"/> static instances of this class to generate offsets to use with the static <see cref="F:work.bacome.imapclient.cFilter.MSN"/> to generate message sequence number filters.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cFilterEnd.MSNOffset(System.Int32)">
             <summary>
             Generates an offset from the end of the mailbox that the instance represents.
             </summary>
-            <param name="pOffset">The number of messages to offset by.</param>
-            <returns>The offset.</returns>
+            <param name="pOffset"></param>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.cFilterMSN">
             <summary>
-            <para>The operators defined on this class generate message sequence number filters.</para>
-            <para>Use the <see cref="F:work.bacome.imapclient.cFilter.MSN"/> static instance of this class to do this.</para>
-            <para>The operators defined are; &lt;, &gt;, &lt;= and &gt;=.</para>
-            <para>Use the operators to compare to a <see cref="T:work.bacome.imapclient.cMessage"/> or to a <see cref="T:work.bacome.imapclient.cFilterMSNOffset"/>.</para>
+            The operators defined on this class generate message sequence number filters.
+            Use the <see cref="F:work.bacome.imapclient.cFilter.MSN"/> static instance of this class to do this.
             </summary>
         </member>
-        <member name="T:work.bacome.imapclient.cFilterUIDIn">
+        <member name="M:work.bacome.imapclient.cFilterMSN.op_LessThan(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cMessage)">
             <summary>
-            <para>Represents a UID message filter.</para>
-            <para>Use the static member <see cref="F:work.bacome.imapclient.cFilter.UID"/> to generate these.</para>
+            Returns a filter that passes through messages with a sequence number less than the sequence number of the specified message.
             </summary>
+            <param name="pFilterMSN"><see cref="F:work.bacome.imapclient.cFilter.MSN"/></param>
+            <param name="pMessage">The message to get the sequence number from.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilterMSN.op_GreaterThan(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cMessage)">
+            <summary>
+            Returns a filter that passes through messages with a sequence number greater than the sequence number of the specified message.
+            </summary>
+            <param name="pFilterMSN"><see cref="F:work.bacome.imapclient.cFilter.MSN"/></param>
+            <param name="pMessage">The message to get the sequence number from.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilterMSN.op_LessThan(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cFilterMSNOffset)">
+            <summary>
+            Returns a filter that passes through messages with a sequence number less than the specified sequence number offset.
+            </summary>
+            <param name="pFilterMSN"><see cref="F:work.bacome.imapclient.cFilter.MSN"/></param>
+            <param name="pOffset">The sequence number offset.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilterMSN.op_GreaterThan(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cFilterMSNOffset)">
+            <summary>
+            Returns a filter that passes through messages with a sequence number greater than the specified sequence number offset.
+            </summary>
+            <param name="pFilterMSN"><see cref="F:work.bacome.imapclient.cFilter.MSN"/></param>
+            <param name="pOffset">The sequence number offset.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilterMSN.op_LessThanOrEqual(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cMessage)">
+            <summary>
+            Returns a filter that passes through messages with a sequence number less than or equal to the sequence number of the specified message.
+            </summary>
+            <param name="pFilterMSN"><see cref="F:work.bacome.imapclient.cFilter.MSN"/></param>
+            <param name="pMessage">The message to get the sequence number from.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilterMSN.op_GreaterThanOrEqual(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cMessage)">
+            <summary>
+            Returns a filter that passes through messages with a sequence number greater than or equal to the sequence number of the specified message.
+            </summary>
+            <param name="pFilterMSN"><see cref="F:work.bacome.imapclient.cFilter.MSN"/></param>
+            <param name="pMessage">The message to get the sequence number from.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilterMSN.op_LessThanOrEqual(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cFilterMSNOffset)">
+            <summary>
+            Returns a filter that passes through messages with a sequence number less than or equal to the specified sequence number offset.
+            </summary>
+            <param name="pFilterMSN"><see cref="F:work.bacome.imapclient.cFilter.MSN"/></param>
+            <param name="pOffset"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilterMSN.op_GreaterThanOrEqual(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cFilterMSNOffset)">
+            <summary>
+            Returns a filter that passes through messages with a sequence number greater than or equal to the specified sequence number offset.
+            </summary>
+            <param name="pFilterMSN"><see cref="F:work.bacome.imapclient.cFilter.MSN"/></param>
+            <param name="pOffset"></param>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.cFilterUID">
             <summary>
-            <para>The operators defined on this class generate message UID filters.</para>
-            <para>Use the <see cref="F:work.bacome.imapclient.cFilter.UID"/> static instance of this class to do this.</para>
-            <para>The operators defined are; &lt;, &gt;, &lt;=, &gt;=, == and !=.</para>
-            <para>Use the operators to compare to a <see cref="T:work.bacome.imapclient.cUID"/> instance.</para>
+            The operators defined on this class generate message UID filters. Use the <see cref="F:work.bacome.imapclient.cFilter.UID"/> static instance of this class to do this.
             </summary>
         </member>
-        <member name="T:work.bacome.imapclient.cFilterFlagsContain">
+        <member name="M:work.bacome.imapclient.cFilterUID.op_LessThan(work.bacome.imapclient.cFilterUID,work.bacome.imapclient.cUID)">
             <summary>
-            <para>Represents a message flag filter.</para>
-            <para>Use the static methods <see cref="M:work.bacome.imapclient.cFilter.FlagsContain(work.bacome.imapclient.cFetchableFlags)"/> or <see cref="M:work.bacome.imapclient.cFilter.FlagsContain(System.String[])"/> to generate these.</para>
+            Returns a filter that passes through messages with a UID less than the specified UID.
             </summary>
+            <param name="pFilterUID"><see cref="F:work.bacome.imapclient.cFilter.UID"/></param>
+            <param name="pUID"></param>
+            <returns></returns>
         </member>
-        <member name="T:work.bacome.imapclient.cFilterPartContains">
+        <member name="M:work.bacome.imapclient.cFilterUID.op_GreaterThan(work.bacome.imapclient.cFilterUID,work.bacome.imapclient.cUID)">
             <summary>
-            <para>Represents a filter on the content of a message part.</para>
-            <para>Use the <see cref="M:work.bacome.imapclient.cFilterPart.Contains(System.String)"/> method on the following static members of <see cref="T:work.bacome.imapclient.cFilter"/> to generate these;
-            <list type="bullet">
-            <item><see cref="F:work.bacome.imapclient.cFilter.BCC"/></item>
-            <item><see cref="F:work.bacome.imapclient.cFilter.Body"/></item>
-            <item><see cref="F:work.bacome.imapclient.cFilter.CC"/></item>
-            <item><see cref="F:work.bacome.imapclient.cFilter.From"/></item>
-            <item><see cref="F:work.bacome.imapclient.cFilter.Subject"/></item>
-            <item><see cref="F:work.bacome.imapclient.cFilter.Text"/></item>
-            <item><see cref="F:work.bacome.imapclient.cFilter.To"/></item>
-            </list>
-            </para>
+            Returns a filter that passes through messages with a UID greater than the specified UID.
             </summary>
+            <param name="pFilterUID"><see cref="F:work.bacome.imapclient.cFilter.UID"/></param>
+            <param name="pUID"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilterUID.op_LessThanOrEqual(work.bacome.imapclient.cFilterUID,work.bacome.imapclient.cUID)">
+            <summary>
+            Returns a filter that passes through messages with a UID less than or equal to the specified UID.
+            </summary>
+            <param name="pFilterUID"><see cref="F:work.bacome.imapclient.cFilter.UID"/></param>
+            <param name="pUID"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilterUID.op_GreaterThanOrEqual(work.bacome.imapclient.cFilterUID,work.bacome.imapclient.cUID)">
+            <summary>
+            Returns a filter that passes through messages with a UID greater than or equal to the specified UID.
+            </summary>
+            <param name="pFilterUID"><see cref="F:work.bacome.imapclient.cFilter.UID"/></param>
+            <param name="pUID"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilterUID.op_Equality(work.bacome.imapclient.cFilterUID,work.bacome.imapclient.cUID)">
+            <summary>
+            Returns a filter that passes through messages with a UID equal to the specified UID.
+            </summary>
+            <param name="pFilterUID"><see cref="F:work.bacome.imapclient.cFilter.UID"/></param>
+            <param name="pUID"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.cFilterUID.op_Inequality(work.bacome.imapclient.cFilterUID,work.bacome.imapclient.cUID)">
+            <summary>
+            Returns a filter that passes through messages with a UID different to the specified UID.
+            </summary>
+            <param name="pFilterUID"><see cref="F:work.bacome.imapclient.cFilter.UID"/></param>
+            <param name="pUID"></param>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.cFilterPart">
             <summary>
-            <para>The <see cref="M:work.bacome.imapclient.cFilterPart.Contains(System.String)"/> method of this class generates a message content filter.</para>
-            <para>Use the following static instances of this class to do this;
+            Use the <see cref="M:work.bacome.imapclient.cFilterPart.Contains(System.String)"/> method on the following static instances of this class to generate a message content filters;
             <list type="bullet">
             <item><see cref="F:work.bacome.imapclient.cFilter.BCC"/></item>
             <item><see cref="F:work.bacome.imapclient.cFilter.Body"/></item>
@@ -2908,7 +3033,6 @@
             <item><see cref="F:work.bacome.imapclient.cFilter.Text"/></item>
             <item><see cref="F:work.bacome.imapclient.cFilter.To"/></item>
             </list>
-            </para>
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cFilterPart.Contains(System.String)">
@@ -2916,385 +3040,418 @@
             Generates an object that represents a filter on message content.
             </summary>
             <param name="pContains"></param>
-            <returns>An object that represents a filter on message content.</returns>
-        </member>
-        <member name="T:work.bacome.imapclient.cFilterDateCompare">
-            <summary>
-            <para>Represents a filter on a message date.</para>
-            <para>Use the following static members of <see cref="T:work.bacome.imapclient.cFilter"/> to generate these;
-            <list type="bullet">
-            <item><see cref="F:work.bacome.imapclient.cFilter.Received"/></item>
-            <item><see cref="F:work.bacome.imapclient.cFilter.Sent"/></item>
-            </list>
-            </para>
-            </summary>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.cFilterDate">
             <summary>
-            <para>The operators defined on this class generate message date filters.</para>
-            <para>Use the static instances of this class, <see cref="F:work.bacome.imapclient.cFilter.Received"/> and <see cref="F:work.bacome.imapclient.cFilter.Sent"/>, to do this.</para>
-            <para>The operators defined are; &lt;, &gt;, &lt;=, &gt;=, == and !=.</para>
-            </summary>
-        </member>
-        <member name="T:work.bacome.imapclient.cFilterHeaderFieldContains">
-            <summary>
-            <para>Represents a message header field content filter.</para>
-            <para>Use the <see cref="M:work.bacome.imapclient.cFilter.HeaderFieldContains(System.String,System.String)"/> static method to generate these.</para>
-            </summary>
-        </member>
-        <member name="T:work.bacome.imapclient.cFilterSizeCompare">
-            <summary>
-            <para>Represents a message size filter.</para>
-            <para>Use the <see cref="F:work.bacome.imapclient.cFilter.Size"/> static member to generate these.</para>
+            The operators defined on this class generate message date filters.
+            Use the static instances of this class, <see cref="F:work.bacome.imapclient.cFilter.Received"/> and <see cref="F:work.bacome.imapclient.cFilter.Sent"/>, to do this.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cFilterSize">
             <summary>
-            <para>The operators defined on this class generate message size filters.</para>
-            <para>Use the <see cref="F:work.bacome.imapclient.cFilter.Size"/> static instance of this class to do this.</para>
-            <para>The &lt; and &gt; operators are defined.</para>
+            The operators defined on this class generate message size filters.
+            Use the <see cref="F:work.bacome.imapclient.cFilter.Size"/> static instance of this class to do this.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cFilterImportance">
             <summary>
-            <para>The operators defined on this class generate message importance filters.</para>
-            <para>Use the <see cref="F:work.bacome.imapclient.cFilter.Importance"/> static instance of this class to do this.</para>
-            <para>The == and != operators are defined.</para>
-            <para>Use the operators to compare to a <see cref="T:work.bacome.imapclient.eImportance"/> value.</para>
-            </summary>
-        </member>
-        <member name="T:work.bacome.imapclient.cFilterAnd">
-            <summary>
-            <para>Represents the logical and combination of a number of filters.</para>
-            <para>Use the &amp; operator defined on the <see cref="T:work.bacome.imapclient.cFilter"/> class to generate these.</para>
-            </summary>
-        </member>
-        <member name="T:work.bacome.imapclient.cFilterOr">
-            <summary>
-            <para>Represents the logical or combination of two filters.</para>
-            <para>Use the | operator defined on the <see cref="T:work.bacome.imapclient.cFilter"/> class to generate these.</para>
-            </summary>
-        </member>
-        <member name="T:work.bacome.imapclient.cFilterNot">
-            <summary>
-            <para>Represents the negation of a filter.</para>
-            <para>Use the ! operator defined on the <see cref="T:work.bacome.imapclient.cFilter"/> class to generate these.</para>
+            The operators defined on this class generate message importance filters.
+            Use the <see cref="F:work.bacome.imapclient.cFilter.Importance"/> static instance of this class to do this.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cMessage">
             <summary>
-            <para>Provides an API that allows interaction with an IMAP message.</para>
-            <para>Instances are only valid whilst the containing mailbox remains selected. Re-selecting a mailbox will not bring the message instances back to life.</para>
-            <para>Instances are only valid whilst the containing mailbox has the same UIDValidity.</para>
+            Provides an API that allows interaction with an IMAP message.
             </summary>
+            <remarks>
+            Instances are only valid whilst the containing mailbox remains selected. 
+            Re-selecting a mailbox will not bring the message instances back to life.
+            Instances are only valid whilst the containing mailbox has the same UIDValidity.
+            </remarks>
+        </member>
+        <member name="F:work.bacome.imapclient.cMessage.Client">
+            <summary>The client that this instance was created by.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cMessage.Handle">
+            <summary>The internal message cache item that this instance is attached to.</summary>
         </member>
         <member name="E:work.bacome.imapclient.cMessage.PropertyChanged">
             <summary>
             Fired when the server notifies the client of a message property value change.
             Most properties of an IMAP message can never change.
             </summary>
+            <remarks>
+            <para>If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is non-null, events are fired on the specified <see cref="T:System.Threading.SynchronizationContext"/>.</para>
+            <para>If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.</para>
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Expunged">
             <summary>
-            True if the server has told us that the message has been expunged.
+            Indicates whether the server has told us that the message has been expunged.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Envelope">
             <summary>
-            <para>The IMAP envelope data of the message.</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
+            Gets the IMAP envelope data of the message.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Sent">
             <summary>
-            <para>The sent date of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
+            Gets the sent date of the message from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
+            May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Subject">
             <summary>
-            <para>The subject of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
+            Gets the subject of the message from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
+            May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.BaseSubject">
             <summary>
-            <para>The base subject (as defined in RFC 5256: with the RE: FWD: etc stripped off) of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
+            Gets the base subject of the message from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
+            May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.From">
             <summary>
-            <para>The 'from' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
+            Gets the 'from' addresses of the message from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
+            May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Sender">
             <summary>
-            <para>The 'sender' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
+            Gets the 'sender' addresses of the message from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
+            May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.ReplyTo">
             <summary>
-            <para>The 'reply-to' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
+            Gets the 'reply-to' addresses of the message from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
+            May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.To">
             <summary>
-            <para>The 'to' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
+            Gets the 'to' addresses of the message from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
+            May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.CC">
             <summary>
-            <para>The 'CC' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
+            Gets the 'CC' addresses of the message from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
+            May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.BCC">
             <summary>
-            <para>The 'BCC' addresses of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
+            Gets the 'BCC' addresses of the message from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
+            May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.InReplyTo">
             <summary>
-            <para>The normalised (delimiters, quoting, comments and white space removed) 'in-reply-to' message-ids of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
+            Gets the normalised (delimiters, quoting, comments and white space removed) 'in-reply-to' message-ids of the message from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
+            May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.MessageId">
             <summary>
-            <para>The normalised (delimiters, quoting, comments and white space removed) message-id of the message (from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>).</para>
-            <para>If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.</para>
-            <para>May be null.</para>
+            Gets the normalised (delimiters, quoting, comments and white space removed) message-id of the message from the <see cref="P:work.bacome.imapclient.cMessage.Envelope"/>.
+            If the internal message cache does not contain the envelope data of the message, it will be fetched from the server.
+            May be null.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Flags">
             <summary>
-            <para>The flags set for the message.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
+            Gets the flags set for the message.
+            If the internal message cache does not contain the flags of the message, they will be fetched from the server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Answered">
             <summary>
-            <para>True if the flags contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Answered"/> flag.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
+            Determines if the <see cref="P:work.bacome.imapclient.cMessage.Flags"/> contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Answered"/> flag.
+            If the internal message cache does not contain flags for the message, they will be fetched from the server.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.SetAnswered">
-            <summary>Add the <see cref="F:work.bacome.imapclient.kMessageFlagName.Answered"/> flag to the message flags.</summary>
+            <summary>Adds the <see cref="F:work.bacome.imapclient.kMessageFlagName.Answered"/> flag to the message flags.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Flagged">
             <summary>
-            <para>Get and set the <see cref="F:work.bacome.imapclient.kMessageFlagName.Flagged"/> flag on the message.</para>
-            <para>When getting the value, if the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
+            Gets and sets <see cref="F:work.bacome.imapclient.kMessageFlagName.Flagged"/> flag of the message.
+            When getting the value, if the internal message cache does not contain the flags of the message, they will be fetched from the server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Deleted">
             <summary>
-            <para>Get and set the <see cref="F:work.bacome.imapclient.kMessageFlagName.Deleted"/> flag on the message.</para>
-            <para>When getting the value, if the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
+            Gets and sets <see cref="F:work.bacome.imapclient.kMessageFlagName.Deleted"/> flag of the message.
+            When getting the value, if the internal message cache does not contain the flags of the message, they will be fetched from the server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Seen">
             <summary>
-            <para>Get and set the <see cref="F:work.bacome.imapclient.kMessageFlagName.Seen"/> flag on the message.</para>
-            <para>When getting the value, if the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
+            Gets and sets <see cref="F:work.bacome.imapclient.kMessageFlagName.Seen"/> flag of the message.
+            When getting the value, if the internal message cache does not contain the flags of the message, they will be fetched from the server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Draft">
             <summary>
-            <para>Get and set the <see cref="F:work.bacome.imapclient.kMessageFlagName.Draft"/> flag on the message.</para>
-            <para>When getting the value, if the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
+            Gets and sets <see cref="F:work.bacome.imapclient.kMessageFlagName.Draft"/> flag of the message.
+            When getting the value, if the internal message cache does not contain the flags of the message, they will be fetched from the server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Recent">
             <summary>
-            <para>True if the flags contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Recent"/> flag.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
+            Determines if the <see cref="P:work.bacome.imapclient.cMessage.Flags"/> contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Recent"/> flag.
+            If the internal message cache does not contain flags for the message, they will be fetched from the server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Forwarded">
             <summary>
-            <para>True if the flags contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Forwarded"/> flag.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
+            Determines if the <see cref="P:work.bacome.imapclient.cMessage.Flags"/> contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Forwarded"/> flag.
+            If the internal message cache does not contain flags for the message, they will be fetched from the server.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.SetForwarded">
-            <summary>Add the <see cref="F:work.bacome.imapclient.kMessageFlagName.Forwarded"/> flag to the message flags.</summary>
+            <summary>Adds the <see cref="F:work.bacome.imapclient.kMessageFlagName.Forwarded"/> flag to the message flags.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.SubmitPending">
             <summary>
-            <para>True if the flags contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.SubmitPending"/> flag.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
+            Determines if the <see cref="P:work.bacome.imapclient.cMessage.Flags"/> contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.SubmitPending"/> flag.
+            If the internal message cache does not contain flags for the message, they will be fetched from the server.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.SetSubmitPending">
-            <summary>Add the <see cref="F:work.bacome.imapclient.kMessageFlagName.SubmitPending"/> flag to the message flags.</summary>
+            <summary>Adds the <see cref="F:work.bacome.imapclient.kMessageFlagName.SubmitPending"/> flag to the message flags.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Submitted">
             <summary>
-            <para>True if the flags contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Submitted"/> flag.</para>
-            <para>If the internal message cache does not contain flags for the message, they will be fetched from the server.</para>
+            Determines if the <see cref="P:work.bacome.imapclient.cMessage.Flags"/> contain the <see cref="F:work.bacome.imapclient.kMessageFlagName.Submitted"/> flag.
+            If the internal message cache does not contain flags for the message, they will be fetched from the server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Received">
             <summary>
-            <para>The IMAP internaldate for the message.</para>
-            <para>If the internal message cache does not contain the internaldate of the message, it will be fetched from the server.</para>
+            Gets the IMAP INTERNALDATE of the message.
+            If the internal message cache does not contain the internal date of the message, it will be fetched from the server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Size">
             <summary>
-            <para>The size of the entire message in bytes.</para>
-            <para>If the internal message cache does not contain the size of the message, it will be fetched from the server.</para>
+            Gets the size of the entire message in bytes.
+            If the internal message cache does not contain the size of the message, it will be fetched from the server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.UID">
             <summary>
-            <para>The IMAP UID of the message.</para>
-            <para>If the internal message cache does not contain the UID of the message, it will be fetched from the server.</para>
-            <para>May be null if the server does not support unique identifiers.</para>
+            Gets the IMAP UID of the message.
+            If the internal message cache does not contain the UID of the message, it will be fetched from the server.
+            May be null if the server does not support unique identifiers.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.ModSeq">
             <summary>
-            <para>The modification sequence number of the message.</para>
-            <para>If the internal message cache does not contain a modseq for the message, it will be fetched from the server.</para>
-            <para>Will be 0 if the mailbox does not support CONDSTORE.</para>
+            Gets the modification sequence number of the message.
+            If the internal message cache does not contain a modseq for the message, it will be fetched from the server.
+            Will be 0 if the mailbox does not support CONDSTORE.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.BodyStructure">
             <summary>
-            <para>The IMAP bodystructure of the message.</para>
-            <para>If the internal message cache does not contain the bodystructure of the message, it will be fetched from the server.</para>
+            Gets the IMAP BODYSTRUCTURE of the message.
+            If the internal message cache does not contain the body structure of the message, it will be fetched from the server.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Attachments">
             <summary>
-            <para>Returns the list of message attachments.</para>
-            <para>If the internal message cache does not contain the bodystructure of the message, it will be fetched from the server.</para>
-            <para>The library defines an attachment as a message part with a disposition of ‘attachment’.</para>
-            <para>If there are alternate versions of an attachment only one of the alternates is included in the returned list (the first one).</para>
-            <para>The returned list may be empty.</para>
+            Gets the list of message attachments.
+            If the internal message cache does not contain the body structure of the message, it will be fetched from the server.
+            The returned list may be empty.
             </summary>
+            <remarks>
+            The library defines an attachment as a message part with a disposition of ‘attachment’.
+            If there are alternate versions of an attachment only one of the alternates is included in the returned list (the first one).
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.PlainTextSizeInBytes">
             <summary>
-            <para>The size in bytes of the plain text parts of the message.</para>
-            <para>If the internal message cache does not contain the bodystructure of the message, it will be fetched from the server.</para>
-            <para>The library defines plain text parts as parts with a MIME type of text/plain and without a disposition of 'attachment'.</para>
-            <para>If there are alternate versions of a part only one of the alternates is used in calculating the size (the first one).</para>
+            Gets the size in bytes of the plain text parts of the message.
+            If the internal message cache does not contain the body structure of the message, it will be fetched from the server.
+            May be zero.
             </summary>
+            <remarks>
+            The library defines plain text parts as parts with a MIME type of text/plain and without a disposition of 'attachment'.
+            If there are alternate versions of a part only one of the alternates is used in calculating the size (the first one).
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.References">
             <summary>
-            <para>The normalised (delimiters, quoting, comments and white space removed) message-ids from the references header field, or null if there was no references header field or if the references header field could not be parsed.</para>
-            <para>If the internal message cache does not contain the references header field of the message, it will be fetched from the server.</para>
+            Gets the normalised (delimiters, quoting, comments and white space removed) message-ids from the references header field.
+            If the internal message cache does not contain the references header field of the message, it will be fetched from the server.
+            May be null.
             </summary>
+            <remarks>
+            May be null if there is no references header field or if the references header field can not be parsed by the library.
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Importance">
             <summary>
-            <para>The importance value from the importance header field, or null if there was no importance header field or if the importance header field could not be parsed.</para>
-            <para>If the internal message cache does not contain the importance header field of the message, it will be fetched from the server.</para>
+            Gets the importance value from the importance header field.
+            If the internal message cache does not contain the importance header field of the message, it will be fetched from the server.
+            May be null.
             </summary>
+            <remarks>
+            May be null if there is no importance header field or if the importance header field can not be parsed by the library.
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cCacheItems)">
             <summary>
-            <para>Ensures that the internal message cache contains the specified items for this message instance.</para>
-            <para>The missing items will be fetched from the server.</para>
+            Ensures that the internal message cache contains the specified items for this message instance.
+            The missing items will be fetched from the server.
             </summary>
             <param name="pItems">
-            <para>The items required in the cache.</para>
-            <para>Note that the <see cref="T:work.bacome.imapclient.cCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/> (so you can use values of those types as parameters to this method).</para>
+            The items required in the cache.
+            Note that <see cref="T:work.bacome.imapclient.cCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/> (so you can use values of those types as parameters to this method).
             </param>
             <returns>
-            <para>True if the fetch populated the cache with the requested items, false otherwise.</para>
-            <para>False indicates that the message is expunged.</para>
+            True if the fetch populated the cache with the requested items, false otherwise.
+            False indicates that the message is expunged.
             </returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cCacheItems)">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cCacheItems)"/>.</summary>
+            <summary>
+            Ansynchronously ensures that the internal message cache contains the specified items for this message instance.
+            The missing items will be fetched from the server.
+            </summary>
+            <param name="pItems">
+            The items required in the cache.
+            Note that <see cref="T:work.bacome.imapclient.cCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/> (so you can use values of those types as parameters to this method).
+            </param>
+            <returns>
+            True if the fetch populated the cache with the requested items, false otherwise.
+            False indicates that the message is expunged.
+            </returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)">
             <summary>
-            <para>Returns the fetch size in bytes of a <see cref="T:work.bacome.imapclient.cSinglePartBody"/> part of this message.</para>
-            <para>This may be smaller than the <see cref="F:work.bacome.imapclient.cSinglePartBody.SizeInBytes"/> if the part needs decoding (<see cref="F:work.bacome.imapclient.cSinglePartBody.DecodingRequired"/>) and the server supports RFC 3516.</para>
-            <para>This method may have to fetch the size from the server. (The size will be cached in the internal message cache.)</para>
-            <para></para>
+            Gets the fetch size in bytes of a <see cref="T:work.bacome.imapclient.cSinglePartBody"/> part of this message. This may be smaller than the <see cref="F:work.bacome.imapclient.cSinglePartBody.SizeInBytes"/>.
             </summary>
-            <param name="pPart">The part to get the size for.</param>
-            <returns>The size in bytes.</returns>
+            <param name="pPart"></param>
+            <returns></returns>
+            <remarks>
+            This may be smaller than the <see cref="F:work.bacome.imapclient.cSinglePartBody.SizeInBytes"/> if the part needs decoding (see <see cref="F:work.bacome.imapclient.cSinglePartBody.DecodingRequired"/>) and the server supports <see cref="P:work.bacome.imapclient.cCapabilities.Binary"/>.
+            The size may have to be fetched from the server. 
+            Once fetched the size will be cached in the internal message cache.
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.FetchSizeInBytesAsync(work.bacome.imapclient.cSinglePartBody)">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/>.</summary>
+            <summary>
+            Asynchronously gets the fetch size in bytes of a <see cref="T:work.bacome.imapclient.cSinglePartBody"/> part of this message. This may be smaller than the <see cref="F:work.bacome.imapclient.cSinglePartBody.SizeInBytes"/>.
+            </summary>
+            <param name="pPart"></param>
+            <returns></returns>
+            <remarks>
+            This may be smaller than the <see cref="F:work.bacome.imapclient.cSinglePartBody.SizeInBytes"/> if the part needs decoding (see <see cref="F:work.bacome.imapclient.cSinglePartBody.DecodingRequired"/>) and the server supports <see cref="P:work.bacome.imapclient.cCapabilities.Binary"/>.
+            The size may have to be fetched from the server. 
+            Once fetched the size will be cached in the internal message cache.
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.MSNOffset(System.Int32)">
             <summary>
-            <para>Generates message sequence number offset for use in message filtering.</para>
-            <para>See <see cref="F:work.bacome.imapclient.cFilter.MSN"/> - a static instance of <see cref="T:work.bacome.imapclient.cFilterMSN"/>.</para>
+            Returns a message sequence number offset for use in message filtering. See <see cref="F:work.bacome.imapclient.cFilter.MSN"/>.
             </summary>
             <param name="pOffset">The offset from this message's sequence number.</param>
-            <returns>A message sequence number offset.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.PlainText">
             <summary>
-            <para>Fetches the message's plain text parts from the server, decodes them, and concatenates them yielding the returned value.</para>
-            <para>If the internal message cache does not contain the bodystructure of the message, it will be fetched from the server.</para>
-            <para>The library defines plain text parts as parts with a MIME type of text/plain and without a disposition of 'attachment'.</para>
-            <para>If there are alternate versions of a part only one of the alternates is used in generating the plain text (the first one).</para>
+            Fetches the message's plain text parts from the server, decoding if required, and concatenates them yielding the returned value.
+            If the internal message cache does not contain the bodystructure of the message, it will be fetched from the server.
             </summary>
             <returns></returns>
+            <remarks>
+            The library defines plain text parts as parts with a MIME type of text/plain and without a disposition of 'attachment'.
+            If there are alternate versions of a part only one of the alternates is used in generating the plain text (the first one).
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.PlainTextAsync">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.PlainText"/>.</summary>
+            <summary>
+            Ansynchronously fetches the message's plain text parts from the server, decoding if required, and concatenates them yielding the returned value.
+            If the internal message cache does not contain the bodystructure of the message, it will be fetched from the server.
+            </summary>
+            <returns></returns>
+            <remarks>
+            The library defines plain text parts as parts with a MIME type of text/plain and without a disposition of 'attachment'.
+            If there are alternate versions of a part only one of the alternates is used in generating the plain text (the first one).
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cTextBodyPart)">
             <summary>
-            <para>Fetches the specified part from the server, decodes, and returns the data in a string.</para>
+            Fetches the specified part from the server, decoding if required, and returns the data in a string.
             </summary>
-            <param name="pPart">The part to fetch.</param>
-            <returns>The decoded data of the message part.</returns>
+            <param name="pPart"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cTextBodyPart)">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cTextBodyPart)"/>.</summary>
+            <summary>
+            Asynchronously fetches the specified part from the server, decoding if required, and returns the data in a string.
+            </summary>
+            <param name="pPart"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection)">
             <summary>
-            <para>Fetches the specified message section from the server as text (without any content-transfer-decoding) and attempts to return the data as a string.</para>
+            Fetches the specified message section from the server as text (without any decoding) and attempts to return the data as a string.
             </summary>
-            <param name="pSection">The section to fetch.</param>
-            <returns>The raw data of the section as a string.</returns>
+            <param name="pSection"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cSection)">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection)"/>.</summary>
+            <summary>
+            Asynchronously fetches the specified message section from the server as text (without any decoding) and attempts to return the data as a string.
+            </summary>
+            <param name="pSection"></param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSinglePartBody,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)">
             <summary>
-            <para>Fetches the specified part from the server and writes the (possibly decoded) bytes into the provided stream.</para>
-            <para>Any decoding required may be done client-side or server-side (if the server supports RFC 3516).</para>
-            <para>To calculate the number of bytes that have to be fetched, use the <see cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/> method. (This is useful if you are intending to display a progress bar.)</para>
-            <para>Optionally you may specify an operation specific timeout, cancellation token, progress callback and write size controller in the <paramref name="pConfiguration"/> parameter.</para>
+            Fetches the specified part from the server, decoding if required, and writes the part data into the provided stream.
             </summary>
-            <param name="pPart">The part to fetch.</param>
-            <param name="pStream">The stream to write into.</param>
-            <param name="pConfiguration">Optionally use this parameter to specify an operation specific timeout, cancellation token, progress callback and write size controller.</param>
+            <param name="pPart"></param>
+            <param name="pStream"></param>
+            <param name="pConfiguration">An operation specific timeout, cancellation token, progress callback and write size controller.</param>
+            <remarks>
+            Any decoding required may be done client-side or server-side.
+            To calculate the number of bytes that have to be fetched, use the <see cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/> method. 
+            (This is useful if you are intending to display a progress bar.)
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cSinglePartBody,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)">
-            <summary>The async version of <see cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSinglePartBody,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)"/>.</summary>
+            <summary>
+            Asynchronously fetches the specified part from the server, decoding if required, and writes the part data into the provided stream.
+            </summary>
+            <param name="pPart"></param>
+            <param name="pStream"></param>
+            <param name="pConfiguration">An operation specific timeout, cancellation token, progress callback and write size controller.</param>
+            <returns></returns>
+            <remarks>
+            Any decoding required may be done client-side or server-side.
+            To calculate the number of bytes that have to be fetched, use the <see cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/> method. 
+            (This is useful if you are intending to display a progress bar.)
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection,work.bacome.imapclient.eDecodingRequired,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)">
             <summary>
@@ -3387,29 +3544,29 @@
             Determines if the collection contains the flag (case insensitive).
             </summary>
             <param name="pFlag"></param>
-            <returns>True if the collection contains the flag.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessageFlags.Contains(System.String[])">
             <summary>
             Determines if the collection contains all the flags (case insensitive).
             </summary>
             <param name="pFlags"></param>
-            <returns>True if the collection contains all the flags.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessageFlags.Contains(System.Collections.Generic.IEnumerable{System.String})">
             <summary>
             Determines if the collection contains all the flags (case insensitive).
             </summary>
             <param name="pFlags"></param>
-            <returns>True if the collection contains all the flags.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessageFlags.SymmetricDifference(work.bacome.imapclient.cMessageFlags,System.String[])">
             <summary>
             Gets the symmetric difference between two collections of flags ignoring an optional set of flags (case insensitive).
             </summary>
-            <param name="pOther">The other collection.</param>
+            <param name="pOther"></param>
             <param name="pExcept">The flags to ignore when doing the difference.</param>
-            <returns>The symmetric difference less the flags to ignore.</returns>
+            <returns></returns>
         </member>
         <member name="P:work.bacome.imapclient.cMessageFlags.Count">
             <summary>Gets the number of flags in the collection.</summary>
@@ -4114,37 +4271,37 @@
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.iId.Name">
-            <summary>The name of the program.</summary>
+            <summary>Gets the name of the program.</summary>
         </member>
         <member name="P:work.bacome.imapclient.iId.Version">
-            <summary>The version number of the program.</summary>
+            <summary>Gets the version number of the program.</summary>
         </member>
         <member name="P:work.bacome.imapclient.iId.OS">
-            <summary>The name of the operating system.</summary>
+            <summary>Gets the name of the operating system.</summary>
         </member>
         <member name="P:work.bacome.imapclient.iId.OSVersion">
-            <summary>The version of the operating system.</summary>
+            <summary>Gets the version of the operating system.</summary>
         </member>
         <member name="P:work.bacome.imapclient.iId.Vendor">
-            <summary>The vendor of the client/server.</summary>
+            <summary>Gets the vendor of the client/server.</summary>
         </member>
         <member name="P:work.bacome.imapclient.iId.SupportURL">
-            <summary>The URL to contact for support.</summary>
+            <summary>Gets the URL to contact for support.</summary>
         </member>
         <member name="P:work.bacome.imapclient.iId.Address">
-            <summary>The postal address of contact/vendor.</summary>
+            <summary>Gets the postal address of contact/vendor.</summary>
         </member>
         <member name="P:work.bacome.imapclient.iId.Date">
-            <summary>The date program was released.</summary>
+            <summary>Gets the date program was released.</summary>
         </member>
         <member name="P:work.bacome.imapclient.iId.Command">
-            <summary>The command used to start the program.</summary>
+            <summary>Gets the command used to start the program.</summary>
         </member>
         <member name="P:work.bacome.imapclient.iId.Arguments">
-            <summary>The arguments supplied on the command line, if any.</summary>
+            <summary>Gets the arguments supplied on the command line, if any.</summary>
         </member>
         <member name="P:work.bacome.imapclient.iId.Environment">
-            <summary>A description of environment.</summary>
+            <summary>Gets the description of the environment.</summary>
         </member>
         <member name="T:work.bacome.imapclient.kIdFieldName">
             <summary>
@@ -4153,14 +4310,14 @@
         </member>
         <member name="T:work.bacome.imapclient.cId">
             <summary>
-            An ID (RFC 2971) field/ value collection. See <see cref="P:work.bacome.imapclient.cIMAPClient.ServerId"/>.
+            A read-only ID (RFC 2971) field/ value collection. See <see cref="P:work.bacome.imapclient.cIMAPClient.ServerId"/>.
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cId.#ctor(System.Collections.Generic.IDictionary{System.String,System.String})">
             <summary>
-            Construct from a field/ value dictionary. Field names are case insensitive.
+            Initialise a new instance, copying the values from the supplied field/ value dictionary. Field names are case insensitive.
             </summary>
-            <param name="pDictionary">A field/ value dictionary.</param>
+            <param name="pDictionary"></param>
         </member>
         <member name="P:work.bacome.imapclient.cId.Count">
             <summary>Gets the number of field/ value pairs in the collection.</summary>
@@ -4190,44 +4347,48 @@
             <summary>Returns an enumerator that iterates through the field/ values.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cId.Item(System.String)">
-            <summary>Retrieves the field value (field names are case insensitive).</summary>
+            <summary>
+            Retrieves the field value (field names are case insensitive).
+            </summary>
+            <param name="pKey"></param>
+            <returns></returns>
         </member>
         <member name="P:work.bacome.imapclient.cId.Name">
-            <summary>The name of the program.</summary>
+            <summary>Gets the name of the program.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cId.Version">
-            <summary>The version number of the program.</summary>
+            <summary>>Gets the version number of the program.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cId.OS">
-            <summary>The name of the operating system.</summary>
+            <summary>>Gets the name of the operating system.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cId.OSVersion">
-            <summary>The version of the operating system.</summary>
+            <summary>>Gets the version of the operating system.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cId.Vendor">
-            <summary>The vendor of the client/server.</summary>
+            <summary>>Gets the vendor of the client/server.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cId.SupportURL">
-            <summary>The URL to contact for support.</summary>
+            <summary>>Gets the URL to contact for support.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cId.Address">
-            <summary>The postal address of contact/vendor.</summary>
+            <summary>>Gets the postal address of contact/vendor.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cId.Date">
-            <summary>The date program was released.</summary>
+            <summary>>Gets the date program was released.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cId.Command">
-            <summary>The command used to start the program.</summary>
+            <summary>>Gets the command used to start the program.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cId.Arguments">
-            <summary>The arguments supplied on the command line, if any.</summary>
+            <summary>>Gets the arguments supplied on the command line, if any.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cId.Environment">
-            <summary>A description of environment.</summary>
+            <summary>>Gets the description of environment.</summary>
         </member>
         <member name="T:work.bacome.imapclient.cClientIdUTF8">
             <summary>
-            An ID (RFC 2971) field/ value collection. See <see cref="P:work.bacome.imapclient.cIMAPClient.ClientIdUTF8"/>. This class defines an implicit conversion from <see cref="T:work.bacome.imapclient.cIdDictionary"/> and enforces the limits of RFC 2971.
+            A read-only ID (RFC 2971) field/ value collection. See <see cref="P:work.bacome.imapclient.cIMAPClient.ClientIdUTF8"/>. This class defines an implicit conversion from <see cref="T:work.bacome.imapclient.cIdDictionary"/> and enforces the limits of RFC 2971.
             </summary>
             <remarks>
             <para>The limits of RFC 2971 are;</para>
@@ -4240,20 +4401,20 @@
         </member>
         <member name="M:work.bacome.imapclient.cClientIdUTF8.#ctor(System.Collections.Generic.IDictionary{System.String,System.String})">
             <summary>
-            Initialises a new instance using a field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
+            Initialise a new instance, copying the values from the supplied field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
             </summary>
-            <param name="pDictionary">A field/ value dictionary.</param>
+            <param name="pDictionary"></param>
         </member>
         <member name="M:work.bacome.imapclient.cClientIdUTF8.op_Implicit(work.bacome.imapclient.cIdDictionary)~work.bacome.imapclient.cClientIdUTF8">
             <summary>
-            Implicit conversion.
+            Implicit conversion. See <see cref="M:work.bacome.imapclient.cClientIdUTF8.#ctor(System.Collections.Generic.IDictionary{System.String,System.String})"/>.
             </summary>
-            <param name="pDictionary">The dictionary to get the field/ value data from.</param>
-            <returns>The copied field/ values.</returns>
+            <param name="pDictionary"></param>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.cClientId">
             <summary>
-            An ID (RFC 2971) field/ value collection. See <see cref="P:work.bacome.imapclient.cIMAPClient.ClientId"/>. This class defines an implicit conversion from <see cref="T:work.bacome.imapclient.cIdDictionary"/> and enforces the limits of RFC 2971.
+            A read-only ID (RFC 2971) field/ value collection. See <see cref="P:work.bacome.imapclient.cIMAPClient.ClientId"/>. This class defines an implicit conversion from <see cref="T:work.bacome.imapclient.cIdDictionary"/> and enforces the limits of RFC 2971.
             </summary>
             <remarks>
             <para>The limits of RFC 2971 are;</para>
@@ -4266,16 +4427,16 @@
         </member>
         <member name="M:work.bacome.imapclient.cClientId.#ctor(System.Collections.Generic.IDictionary{System.String,System.String})">
             <summary>
-            Construct from a field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
+            Initialise a new instance, copying the values from the supplied field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
             </summary>
-            <param name="pDictionary">A field/ value dictionary.</param>
+            <param name="pDictionary"></param>
         </member>
         <member name="M:work.bacome.imapclient.cClientId.op_Implicit(work.bacome.imapclient.cIdDictionary)~work.bacome.imapclient.cClientId">
             <summary>
-            Implicit conversion.
+            Implicit conversion. See <see cref="M:work.bacome.imapclient.cClientId.#ctor(System.Collections.Generic.IDictionary{System.String,System.String})"/>.
             </summary>
-            <param name="pDictionary">The dictionary to get the field/ value data from.</param>
-            <returns>The copied field/ values.</returns>
+            <param name="pDictionary"></param>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.imapclient.cIdDictionary">
             <summary>
@@ -4284,7 +4445,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.#ctor(System.Boolean)">
             <summary>
-            Construct an empty or a default dictionary. A default dictionary contains details about the library.
+            Initialises a new instance as an empty or a default dictionary. A default dictionary contains details about the library.
             </summary>
             <param name="pDefault">Indicates if a default or an empty dictionary should be constructed.</param>
         </member>
@@ -4292,7 +4453,7 @@
             <summary>Gets the number of field/ value pairs in the dictionary.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.IsReadOnly">
-            <summary>false</summary>
+            <summary>Always returns false.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.Values">
             <summary>Gets the values that are in the dictionary.</summary>
@@ -4368,43 +4529,43 @@
             <summary>Retrieves the field value (field names are case insensitive).</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.Name">
-            <summary>The name of the program.</summary>
+            <summary>Gets and sets the name of the program.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.Version">
-            <summary>The version number of the program.</summary>
+            <summary>Gets and sets the version number of the program.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.OS">
-            <summary>The name of the operating system.</summary>
+            <summary>Gets and sets the name of the operating system.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.OSVersion">
-            <summary>The version of the operating system.</summary>
+            <summary>Gets and sets the version of the operating system.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.Vendor">
-            <summary>The vendor of the client/server.</summary>
+            <summary>Gets and sets the vendor of the client/server.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.SupportURL">
-            <summary>The URL to contact for support.</summary>
+            <summary>Gets and sets the URL to contact for support.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.Address">
-            <summary>The postal address of contact/vendor.</summary>
+            <summary>Gets and sets the postal address of contact/vendor.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.Date">
-            <summary>The date program was released.</summary>
+            <summary>Gets the date program was released.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.SetDate(System.DateTime)">
             <summary>
-            Set the <see cref="P:work.bacome.imapclient.cIdDictionary.Date"/>. This method converts the supplied date to RFC 3501 date format.
+            Sets the <see cref="P:work.bacome.imapclient.cIdDictionary.Date"/>. This method converts the supplied date to RFC 3501 date format.
             </summary>
-            <param name="pDate">The value to set the <see cref="P:work.bacome.imapclient.cIdDictionary.Date"/> to.</param>
+            <param name="pDate"></param>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.Command">
-            <summary>The command used to start the program.</summary>
+            <summary>Gets and sets the command used to start the program.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.Arguments">
-            <summary>The arguments supplied on the command line, if any.</summary>
+            <summary>Gets and sets the arguments supplied on the command line, if any.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.Environment">
-            <summary>A description of environment.</summary>
+            <summary>Gets and sets the description of the environment.</summary>
         </member>
         <member name="T:work.bacome.imapclient.eResponseTextType">
             <summary>
@@ -4597,11 +4758,11 @@
             <summary>
             Gets a disposable object containing a <see cref="T:System.Threading.CancellationToken"/> that is attached to the current <see cref="T:System.Threading.CancellationTokenSource"/>.
             </summary>
+            <param name="pParentContext">Context for trace messages.</param>
+            <returns></returns>
             <remarks>
             Dispose the returned object when the operation being controlled by the contained <see cref="T:System.Threading.CancellationToken"/> completes.
             </remarks>
-            <param name="pParentContext">Context for trace messages.</param>
-            <returns>A disposable object containing a <see cref="T:System.Threading.CancellationToken"/>.</returns>
         </member>
         <member name="P:work.bacome.async.cCancellationManager.Count">
             <summary>
@@ -4612,10 +4773,10 @@
             <summary>
             Cancels all of the operations attached to the current <see cref="T:System.Threading.CancellationTokenSource"/>.
             </summary>
-            <remarks>
-            Calling this method causes the allocation of a new internal <see cref="T:System.Threading.CancellationTokenSource"/> so a new set of operations can be started immediately.
-            </remarks>
             <param name="pParentContext">Context for trace messages.</param>
+            <remarks>
+            Calling this method also causes the allocation of a new internal <see cref="T:System.Threading.CancellationTokenSource"/> so a new set of operations can be started immediately.
+            </remarks>
         </member>
         <member name="T:work.bacome.async.cCancellationManager.cToken">
             <summary>
@@ -4647,7 +4808,7 @@
             <summary>
             Gets the currently running countdown task.
             </summary>
-            <returns>The currently running countdown task.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.async.cCountdownTimer.Restart(work.bacome.trace.cTrace.cContext)">
             <summary>
@@ -4688,7 +4849,7 @@
             </summary>
             <param name="pMC">Controls the execution of the method.</param>
             <param name="pParentContext">Context for trace messages.</param>
-            <returns>An object that represents a block on the issue of exclusive access.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.async.cExclusiveAccess.TryGetBlock(work.bacome.trace.cTrace.cContext)">
             <summary>
@@ -4697,7 +4858,7 @@
             Dispose the returned object to release the block.
             </summary>
             <param name="pParentContext">Context for trace messages.</param>
-            <returns>An object that represents a block on the issue of exclusive access, or null.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.async.cExclusiveAccess.GetTokenAsync(work.bacome.async.cMethodControl,work.bacome.trace.cTrace.cContext)">
             <summary>
@@ -4705,11 +4866,9 @@
             This method will not complete until the exclusive access is granted or it throws due to <see cref="T:work.bacome.async.cMethodControl"/>.
             Dispose the object to release the exclusive access.
             </summary>
-            <remarks>
-            </remarks>
             <param name="pMC">Controls the execution of the method.</param>
             <param name="pParentContext">Context for trace messages.</param>
-            <returns>An object that represents a grant of exclusive access.</returns>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.async.cExclusiveAccess.cBlock">
             <summary>
@@ -4786,7 +4945,7 @@
             Gets the current coordinating task.
             </summary>
             <param name="pParentContext">Context for trace messages.</param>
-            <returns>The coordinating task.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.async.cReleaser.Release(work.bacome.trace.cTrace.cContext)">
             <summary>
@@ -4799,7 +4958,7 @@
             Determines if the current coordinating task is complete.
             </summary>
             <param name="pParentContext">Context for trace messages.</param>
-            <returns>True if the current coordinating task is complete</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.async.cReleaser.Reset(work.bacome.trace.cTrace.cContext)">
             <summary>
@@ -4831,37 +4990,37 @@
             <summary>
             This method completes when any one of the passed tasks completes.
             </summary>
+            <param name="pTask">A task, can't be null.</param>
+            <param name="pTasks">A set of tasks, any or all can be null.</param>
+            <returns>The task that completed.</returns>
             <remarks>
             If the task that completes did so because it failed (timed-out, was cancelled, or threw) then this method throws.
             If the instance controls indicate timeout or cancellation before a task completes, then this method throws.
             </remarks>
-            <param name="pTask">A task, can't be null.</param>
-            <param name="pTasks">A set of tasks, any or all can be null.</param>
-            <returns>The task that completed.</returns>
         </member>
         <member name="M:work.bacome.async.cAwaiter.AwaitAll(work.bacome.async.cMethodControl,System.Threading.Tasks.Task[])">
             <summary>
-            This method completes when all of the passed tasks complete OR when the <see cref="T:work.bacome.async.cMethodControl"/> indicates timeout or cancellation.
+            The returned task completes when all of the passed tasks complete OR when the <see cref="T:work.bacome.async.cMethodControl"/> indicates timeout or cancellation.
             </summary>
+            <param name="pMC">Controls the execution of the method.</param>
+            <param name="pTasks">The set of tasks to wait for. Tasks in the set can be null.</param>
+            <returns></returns>
             <remarks>
             If any of the passed tasks fail (timed-out, were cancelled, or threw) then this method throws.
             If the <see cref="T:work.bacome.async.cMethodControl"/> indicates timeout or cancellation before all the tasks complete then this method throws.
             </remarks>
-            <param name="pMC">Controls the execution of the method.</param>
-            <param name="pTasks">The set of tasks to wait for. Tasks in the set can be null.</param>
-            <returns>A task that can be awaited</returns>
         </member>
         <member name="M:work.bacome.async.cAwaiter.AwaitAll(work.bacome.async.cMethodControl,System.Collections.Generic.IEnumerable{System.Threading.Tasks.Task})">
             <summary>
-            This method completes when all of the passed tasks complete OR when the <see cref="T:work.bacome.async.cMethodControl"/> indicates timeout or cancellation.
+            The returned task completes when all of the passed tasks complete OR when the <see cref="T:work.bacome.async.cMethodControl"/> indicates timeout or cancellation.
             </summary>
+            <param name="pMC">Controls the execution of the method.</param>
+            <param name="pTasks">The set of tasks to wait for. Tasks in the set can be null.</param>
+            <returns></returns>
             <remarks>
             If any of the passed tasks fail (timed-out, were cancelled, or threw) then this method throws.
             If the <see cref="T:work.bacome.async.cMethodControl"/> indicates timeout or cancellation before all the tasks complete then this method throws.
             </remarks>
-            <param name="pMC">Controls the execution of the method.</param>
-            <param name="pTasks">The set of tasks to wait for. Tasks in the set can be null.</param>
-            <returns>A task that can be awaited</returns>
         </member>
         <member name="T:work.bacome.trace.cTrace">
             <summary>
@@ -4907,11 +5066,11 @@
         </member>
         <member name="M:work.bacome.trace.cTrace.NewRoot(System.String,System.Boolean)">
             <summary>
-            Creates a new independent root-context.
+            Returns a new independent root-context.
             </summary>
             <param name="pInstanceName">The name to give the context.</param>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed.</param>
-            <returns>The new root-context.</returns>
+            <returns></returns>
         </member>
         <member name="T:work.bacome.trace.cTrace.cContext">
             <summary>
@@ -4926,46 +5085,46 @@
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewRoot(System.String,System.Boolean)">
             <summary>
-            Creates a new root-context tied (in name only) to the root-context of this instance.
+            Returns a new root-context tied (in name only) to the root-context of this instance.
             </summary>
-            <param name="pInstanceName">The name to use when creating the new the context.</param>
+            <param name="pInstanceName">A name to use when creating the name of the new context.</param>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
-            <returns>The new root-context with a name reflecting the root-context name of this instance and the specified name.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewGeneric(System.Boolean,System.String,System.Object[])">
             <summary>
-            Creates a new sub-context with a free form trace message.
+            Returns a new sub-context with a free form trace message.
             </summary>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
             <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> form.</param>
             <param name="pArgs">The objects to place in the trace message.</param>
-            <returns>A new sub-context.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewObjectV(System.Boolean,System.String,System.Int32,System.Object[])">
             <summary>
-            Creates a new sub-context with a trace message in 'object constructor' form.
+            Returns a new sub-context with a trace message in 'object constructor' form.
             Use when creating a context for a constructor.
             </summary>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
             <param name="pClass">The name of the class.</param>
             <param name="pVersion">The version of the constructor.</param>
             <param name="pArgs">The parameters to the constructor that you want traced.</param>
-            <returns>A new sub-context.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewSetProp(System.Boolean,System.String,System.String,System.Object)">
             <summary>
-            Creates a new sub-context with a trace message in 'property setter' form.
+            Returns a new sub-context with a trace message in 'property setter' form.
             Use when creating a context for a property setter.
             </summary>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
             <param name="pClass">The name of the class.</param>
             <param name="pProperty">The name of the property.</param>
             <param name="pValue">The value being set.</param>
-            <returns>A new sub-context.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewMethodV(System.Boolean,System.String,System.String,System.Int32,System.Object[])">
             <summary>
-            Creates a new sub-context with a trace message in 'method' form.
+            Returns a new sub-context with a trace message in 'method' form.
             Use when creating a context for a method.
             </summary>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
@@ -4973,59 +5132,125 @@
             <param name="pMethod">The name of the method.</param>
             <param name="pVersion">The version of the method.</param>
             <param name="pArgs">The parameters to the method that you want traced.</param>
-            <returns>A new sub-context.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewRootObject(System.Boolean,System.String)">
             <summary>
-            Creates a new root-context with a trace message in 'object constructor' form.
+            Returns a new root-context with a trace message in 'object constructor' form.
             Use when creating a new root-context in a constructor.
             </summary>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
             <param name="pClass">The name of the class.</param>
-            <returns>A new root-context.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewRootMethod(System.Boolean,System.String,System.String)">
             <summary>
-            Creates a new root-context with a trace message in 'method' form.
+            Returns a new root-context with a trace message in 'method' form.
             Use when creating a new root-context in a method.
             </summary>
             <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
             <param name="pClass">The name of the class.</param>
             <param name="pMethod">The name of the method.</param>
-            <returns>A new root-context.</returns>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewGeneric(System.String,System.Object[])">
-            <summary>A version of <see cref="M:work.bacome.trace.cTrace.cContext.NewGeneric(System.Boolean,System.String,System.Object[])"/> with delayed tracing set to false.</summary>
+            <summary>
+            Returns a new sub-context with a free form trace message.
+            </summary>
+            <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> form.</param>
+            <param name="pArgs">The objects to place in the trace message.</param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewObject(System.String,System.Object[])">
-            <summary>A version of <see cref="M:work.bacome.trace.cTrace.cContext.NewObjectV(System.Boolean,System.String,System.Int32,System.Object[])"/> with delayed tracing set to false and the version number set to 1.</summary>
+            <summary>
+            Returns a new sub-context with a trace message in 'object constructor' form.
+            Use when creating a context for a constructor.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pArgs">The parameters to the constructor that you want traced.</param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewObject(System.Boolean,System.String,System.Object[])">
-            <summary>A version of <see cref="M:work.bacome.trace.cTrace.cContext.NewObjectV(System.Boolean,System.String,System.Int32,System.Object[])"/> with the version number set to 1.</summary>
+            <summary>
+            Returns a new sub-context with a trace message in 'object constructor' form.
+            Use when creating a context for a constructor.
+            </summary>
+            <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pArgs">The parameters to the constructor that you want traced.</param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewObjectV(System.String,System.Int32,System.Object[])">
-            <summary>A version of <see cref="M:work.bacome.trace.cTrace.cContext.NewObjectV(System.Boolean,System.String,System.Int32,System.Object[])"/> with delayed tracing set to false.</summary>
+            <summary>
+            Returns a new sub-context with a trace message in 'object constructor' form.
+            Use when creating a context for a constructor.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pVersion">The version of the constructor.</param>
+            <param name="pArgs">The parameters to the constructor that you want traced.</param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewSetProp(System.String,System.String,System.Object)">
-            <summary>A version of <see cref="M:work.bacome.trace.cTrace.cContext.NewSetProp(System.Boolean,System.String,System.String,System.Object)"/> with delayed tracing set to false.</summary>
+            <summary>
+            Returns a new sub-context with a trace message in 'property setter' form.
+            Use when creating a context for a property setter.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pProperty">The name of the property.</param>
+            <param name="pValue">The value being set.</param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewMethod(System.String,System.String,System.Object[])">
-            <summary>A version of <see cref="M:work.bacome.trace.cTrace.cContext.NewMethodV(System.Boolean,System.String,System.String,System.Int32,System.Object[])"/> with delayed tracing set to false and the version number set to 1.</summary>
+            <summary>
+            Returns a new sub-context with a trace message in 'method' form.
+            Use when creating a context for a method.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pArgs">The parameters to the method that you want traced.</param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewMethod(System.Boolean,System.String,System.String,System.Object[])">
-            <summary>A version of <see cref="M:work.bacome.trace.cTrace.cContext.NewMethodV(System.Boolean,System.String,System.String,System.Int32,System.Object[])"/> with the version number set to 1.</summary>
+            <summary>
+            Returns a new sub-context with a trace message in 'method' form.
+            Use when creating a context for a method.
+            </summary>
+            <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pArgs">The parameters to the method that you want traced.</param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewMethodV(System.String,System.String,System.Int32,System.Object[])">
-            <summary>A version of <see cref="M:work.bacome.trace.cTrace.cContext.NewMethodV(System.Boolean,System.String,System.String,System.Int32,System.Object[])"/> with delayed tracing set to false.</summary>
+            <summary>
+            Returns a new sub-context with a trace message in 'method' form.
+            Use when creating a context for a method.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pVersion">The version of the method.</param>
+            <param name="pArgs">The parameters to the method that you want traced.</param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewRootObject(System.String)">
-            <summary>A version of <see cref="M:work.bacome.trace.cTrace.cContext.NewRootObject(System.Boolean,System.String)"/> with delayed tracing set to false.</summary>
+            <summary>
+            Returns a new root-context with a trace message in 'object constructor' form.
+            Use when creating a new root-context in a constructor.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewRootMethod(System.String,System.String)">
-            <summary>A version of <see cref="M:work.bacome.trace.cTrace.cContext.NewRootMethod(System.Boolean,System.String,System.String)"/> with delayed tracing set to false.</summary>
+            <summary>
+            Returns a new root-context with a trace message in 'method' form.
+            Use when creating a new root-context in a method.
+            </summary>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <returns></returns>
         </member>
         <member name="P:work.bacome.trace.cTrace.cContext.ContextTraceDelay">
-            <summary>Indicates if context tracing being delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</summary>
+            <summary>Indicates if context tracing is being delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</summary>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.TraceEvent(System.Diagnostics.TraceEventType,System.String,System.Object[])">
             <summary>
@@ -5086,18 +5311,103 @@
             <summary>
             Writes a trace message reporting an exception.
             </summary>
-            <remarks>
-            Designed for use in a conditional catch clause to trace the exception as it 'flies by': e.g. <code>catch (Exception e) when (lContext.TraceException(e)) { }</code>.
-            </remarks>
-            <param name="pTraceEventType">The trace event type to use.</param>
-            <param name="pMessage">A message to trace.</param>
-            <param name="e">The exception to trace.</param>
+            <param name="pTraceEventType"></param>
+            <param name="pMessage"></param>
+            <param name="e"></param>
             <returns>Always returns false.</returns>
+            <remarks>
+            Designed for use in a conditional catch clause to trace the exception as it 'flies by': e.g.
+            <code>catch (Exception e) when (lContext.TraceException(e)) { }</code>.
+            </remarks>
         </member>
         <member name="T:work.bacome.trace.cTrace.cContext.cRoot">
             <summary>
             A <see cref="T:work.bacome.trace.cTrace"/> root-context.
             </summary>
+        </member>
+        <member name="M:work.bacome.trace.cTrace.cContext.cRoot.NewRoot(System.String,System.Boolean)">
+            <summary>
+            Returns a new root-context tied (in name only) to the root-context of this instance.
+            </summary>
+            <param name="pInstanceName">A name to use when creating the name of the new context.</param>
+            <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.trace.cTrace.cContext.cRoot.NewGeneric(System.Boolean,System.String,System.Object[])">
+            <summary>
+            Returns a new sub-context with a free form trace message.
+            </summary>
+            <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
+            <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> form.</param>
+            <param name="pArgs">The objects to place in the trace message.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.trace.cTrace.cContext.cRoot.NewObjectV(System.Boolean,System.String,System.Int32,System.Object[])">
+            <summary>
+            Returns a new sub-context with a trace message in 'object constructor' form.
+            Use when creating a context for a constructor.
+            </summary>
+            <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pVersion">The version of the constructor.</param>
+            <param name="pArgs">The parameters to the constructor that you want traced.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.trace.cTrace.cContext.cRoot.NewSetProp(System.Boolean,System.String,System.String,System.Object)">
+            <summary>
+            Returns a new sub-context with a trace message in 'property setter' form.
+            Use when creating a context for a property setter.
+            </summary>
+            <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pProperty">The name of the property.</param>
+            <param name="pValue">The value being set.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.trace.cTrace.cContext.cRoot.NewMethodV(System.Boolean,System.String,System.String,System.Int32,System.Object[])">
+            <summary>
+            Returns a new sub-context with a trace message in 'method' form.
+            Use when creating a context for a method.
+            </summary>
+            <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <param name="pVersion">The version of the method.</param>
+            <param name="pArgs">The parameters to the method that you want traced.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.trace.cTrace.cContext.cRoot.NewRootObject(System.Boolean,System.String)">
+            <summary>
+            Returns a new root-context with a trace message in 'object constructor' form.
+            Use when creating a new root-context in a constructor.
+            </summary>
+            <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
+            <param name="pClass">The name of the class.</param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.trace.cTrace.cContext.cRoot.NewRootMethod(System.Boolean,System.String,System.String)">
+            <summary>
+            Returns a new root-context with a trace message in 'method' form.
+            Use when creating a new root-context in a method.
+            </summary>
+            <param name="pContextTraceDelay">Whether writing of context trace messages should be delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</param>
+            <param name="pClass">The name of the class.</param>
+            <param name="pMethod">The name of the method.</param>
+            <returns></returns>
+        </member>
+        <member name="P:work.bacome.trace.cTrace.cContext.cRoot.ContextTraceDelay">
+            <summary>Indicates if context tracing is being delayed. See <see cref="T:work.bacome.trace.cTrace"/> for more information.</summary>
+        </member>
+        <member name="M:work.bacome.trace.cTrace.cContext.cRoot.TraceEvent(System.Diagnostics.TraceEventType,System.String,System.Object[])">
+            <summary>
+            Writes a trace message.
+            </summary>
+            <param name="pTraceEventType">The trace event type.</param>
+            <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> form.</param>
+            <param name="pArgs">The objects to place in the trace message.</param>
+        </member>
+        <member name="P:work.bacome.trace.cTrace.cContext.cRoot.EmitsVerbose">
+            <summary>Indicates if the underlying <see cref="T:System.Diagnostics.TraceSource"/> emits verbose trace messages. This value is determined at the time the containing <see cref="T:work.bacome.trace.cTrace"/> is constructed.</summary>
         </member>
     </members>
 </doc>

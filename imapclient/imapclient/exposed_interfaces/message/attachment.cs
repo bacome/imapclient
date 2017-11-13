@@ -12,12 +12,9 @@ namespace work.bacome.imapclient
     {
         /**<summary>The client that this instance was created by.</summary>*/
         public readonly cIMAPClient Client;
-        /**<summary>The message that this instance is attached to.</summary>*/
+        /**<summary>The message cache item that this instance is attached to.</summary>*/
         public readonly iMessageHandle Handle;
-
-        /// <summary>
-        /// The message body part that this attachment refers to.
-        /// </summary>
+        /**<summary>The message body part that this attachment refers to.</summary>*/
         public readonly cSinglePartBody Part;
 
         internal cAttachment(cIMAPClient pClient, iMessageHandle pHandle, cSinglePartBody pPart)
@@ -28,98 +25,113 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// The MIME type of the attachment in text form.
+        /// Gets the MIME type of the attachment in text form.
         /// </summary>
         public string Type => Part.Type;
 
         /// <summary>
-        /// The MIME type of the attachment in code form.
+        /// Gets the MIME type of the attachment in code form.
         /// </summary>
         public eBodyPartTypeCode TypeCode => Part.TypeCode;
 
         /// <summary>
-        /// The MIME subtype of the attachment in text form.
+        /// Gets the MIME subtype of the attachment in text form.
         /// </summary>
         public string SubType => Part.SubType;
 
         /// <summary>
-        /// The MIME type parameters of the attachment.
+        /// Gets the MIME type parameters of the attachment.
         /// </summary>
         public cBodyStructureParameters Parameters => Part.Parameters;
 
         /// <summary>
-        /// The MIME content-id of the attachment.
+        /// Gets the MIME content-id of the attachment.
         /// </summary>
         public string ContentId => Part.ContentId;
 
         /// <summary>
-        /// The MIME content description of the attachment.
+        /// Gets the MIME content description of the attachment.
         /// </summary>
         public cCulturedString Description => Part.Description;
 
         /// <summary>
-        /// The MIME content transfer encoding of the attachment in text form.
+        /// Gets the MIME content transfer encoding of the attachment in text form.
         /// </summary>
         public string ContentTransferEncoding => Part.ContentTransferEncoding;
 
         /// <summary>
-        /// The MIME content transfer encoding of the attachment in code form.
+        /// Gets the MIME content transfer encoding of the attachment in code form.
         /// </summary>
         public eDecodingRequired DecodingRequired => Part.DecodingRequired;
 
         /// <summary>
-        /// The size in bytes of the encoded attachement.
+        /// Gets the size in bytes of the encoded attachement.
         /// </summary>
         public int PartSizeInBytes => (int)Part.SizeInBytes;
 
         /// <summary>
-        /// The MD5 value of the attachment.
+        /// Gets the MD5 value of the attachment.
         /// </summary>
         public string MD5 => Part.ExtensionData?.MD5;
 
         /// <summary>
-        /// The suggested filename if provided. May be null.
+        /// Gets the suggested filename of the attachment if provided. May be null.
         /// </summary>
         public string FileName => Part.Disposition?.FileName;
 
         /// <summary>
-        /// The creation date if provided. May be null.
+        /// Gets the creation date of the attachment if provided. May be null.
         /// </summary>
         public DateTime? CreationDate => Part.Disposition?.CreationDate;
 
         /// <summary>
-        /// The modification date if provided. May be null.
+        /// Gets the modification date of the attachment if provided. May be null.
         /// </summary>
         public DateTime? ModificationDate => Part.Disposition?.ModificationDate;
 
         /// <summary>
-        /// The last read date if provided. May be null.
+        /// Gets the last read date of the attachment if provided. May be null.
         /// </summary>
         public DateTime? ReadDate => Part.Disposition?.ReadDate;
 
         /// <summary>
-        /// The approximate size in bytes if provided. May be null.
+        /// Gets the approximate size in bytes of the attachment if provided. May be null.
         /// </summary>
         public int? ApproximateFileSizeInBytes => Part.Disposition?.Size;
 
         /// <summary>
-        /// The language(s) of the attachment.
+        /// Gets the language(s) of the attachment if provided.
         /// </summary>
         public cStrings Languages => Part.ExtensionData?.Languages;
 
         /// <summary>
-        /// <para>Gets the number of bytes that will have to come over the network to save this attachment.</para>
-        /// <para>If the server can do the decoding this may be smaller than the <see cref="PartSizeInBytes"/>.</para>
+        /// Gets the number of bytes that will have to come over the network to save this attachment.
+        /// This may be smaller than the <see cref="PartSizeInBytes"/>.
         /// </summary>
-        /// <returns>The number of bytes.</returns>
+        /// <returns></returns>
+        /// <remarks>
+        /// This may be smaller than the <see cref="PartSizeInBytes"/> if the part needs decoding (see <see cref="DecodingRequired"/>) and the server supports <see cref="cCapabilities.Binary"/>.
+        /// The size may have to be fetched from the server. 
+        /// Once fetched the size will be cached in the internal message cache.
+        /// </remarks>
         public int SaveSizeInBytes() => Client.FetchSizeInBytes(Handle, Part);
-        /**<summary>The async version of <see cref="SaveSizeInBytes"/>.</summary>*/
+
+        /// <summary>
+        /// Asynchronously gets the number of bytes that will have to come over the network to save this attachment.
+        /// This may be smaller than the <see cref="PartSizeInBytes"/>.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// This may be smaller than the <see cref="PartSizeInBytes"/> if the part needs decoding (see <see cref="DecodingRequired"/>) and the server supports <see cref="cCapabilities.Binary"/>.
+        /// The size may have to be fetched from the server. 
+        /// Once fetched the size will be cached in the internal message cache.
+        /// </remarks>
         public Task<int> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(Handle, Part);
 
         /// <summary>
         /// Saves the attachment to the specified path.
         /// </summary>
-        /// <param name="pPath">The target path.</param>
+        /// <param name="pPath"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         public void SaveAs(string pPath, cBodyFetchConfiguration pConfiguration = null)
         {
@@ -136,9 +148,9 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Asynchronously saves the attachment to the specified path.
         /// </summary>
-        /// <param name="pPath">The target path.</param>
+        /// <param name="pPath"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <returns>A task that represents the asynchronous save.</returns>
+        /// <returns></returns>
         public async Task SaveAsAsync(string pPath, cBodyFetchConfiguration pConfiguration = null)
         {
             using (FileStream lStream = new FileStream(pPath, FileMode.Create))

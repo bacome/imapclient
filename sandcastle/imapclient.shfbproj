@@ -29,7 +29,7 @@
     <CleanIntermediates>True</CleanIntermediates>
     <HelpFileVersion>1.0.0.0</HelpFileVersion>
     <MaximumGroupParts>2</MaximumGroupParts>
-    <NamespaceGrouping>True</NamespaceGrouping>
+    <NamespaceGrouping>False</NamespaceGrouping>
     <SyntaxFilters>C#</SyntaxFilters>
     <SdkLinkTarget>Blank</SdkLinkTarget>
     <RootNamespaceContainer>True</RootNamespaceContainer>
@@ -48,6 +48,7 @@
 <NamespaceSummaryItem name="work.bacome.trace" isDocumented="True">Tools for tracing.</NamespaceSummaryItem></NamespaceSummaries>
     <WarnOnMissingSourceContext>False</WarnOnMissingSourceContext>
     <WorkingPath>..\..\..\Sandcastle\imapclient\Work\</WorkingPath>
+    <MissingTags>Summary, AutoDocumentCtors, Namespace, TypeParameter, AutoDocumentDispose</MissingTags>
   </PropertyGroup>
   <!-- There are no properties for these groups.  AnyCPU needs to appear in order for Visual Studio to perform
 			 the build.  The others are optional common platform types that may appear. -->

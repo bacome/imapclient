@@ -15,13 +15,18 @@ namespace work.bacome.imapclient
         /// <param name="pStrings"></param>
         public cStrings(IList<string> pStrings) : base(pStrings) { }
 
+        ;?;
         /// <summary>
         /// Determines if two lists contain equal strings in the same order.
         /// </summary>
-        /// <param name="pObject">The instance to compare to.</param>
-        /// <returns>True if the two lists contain equal strings in the same order.</returns>
+        /// <param name="pObject"></param>
+        /// <returns></returns>
         public override bool Equals(object pObject) => this == pObject as cStrings;
 
+        /// <summary>
+        /// Returns the hash code for this collection.
+        /// </summary>
+        /// <returns></returns>
         public override int GetHashCode()
         {
             unchecked
@@ -42,9 +47,9 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Determines if two lists contain equal strings in the same order.
         /// </summary>
-        /// <param name="pA">One of the lists to compare.</param>
-        /// <param name="pB">One of the lists to compare.</param>
-        /// <returns>True if the two lists contain equal strings in the same order.</returns>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator ==(cStrings pA, cStrings pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -58,9 +63,9 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Determines if two lists contain equal strings in the same order.
         /// </summary>
-        /// <param name="pA">One of the lists to compare.</param>
-        /// <param name="pB">One of the lists to compare.</param>
-        /// <returns>False if the two lists contain equal strings in the same order.</returns>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator !=(cStrings pA, cStrings pB) => !(pA == pB);
     }
 }

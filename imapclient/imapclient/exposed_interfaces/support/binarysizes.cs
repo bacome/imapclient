@@ -29,11 +29,11 @@ namespace work.bacome.imapclient.support
         }
 
         /// <summary>
-        /// Combine two maps into one.
+        /// Combine two maps.
         /// </summary>
-        /// <param name="pA">The first map to combine.</param>
-        /// <param name="pB">The second map to combine.</param>
-        /// <returns>A map containing the union of the two specified maps.</returns>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static cBinarySizes operator +(cBinarySizes pA, cBinarySizes pB)
         {
             if (pA == null || pA.Count == 0) return pB ?? None; // pA is null or None

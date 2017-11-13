@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
         subscribed = 1 << 0,
 
         /// <summary>
-        /// The backing data for <seea cref="cMailbox.HasChildren"/>.
+        /// The backing data for <see cref="cMailbox.HasChildren"/>.
         /// </summary>
         children = 1 << 1,
 
