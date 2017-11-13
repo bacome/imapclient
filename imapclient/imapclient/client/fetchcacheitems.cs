@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// For a set of messages ensure that the specified items are cached.
+        /// Ensures that the specified items are cached for a set of messages.
         /// </summary>
         /// <param name="pMessages"></param>
         /// <param name="pItems"></param>
@@ -96,8 +96,13 @@ namespace work.bacome.imapclient
             return new cMessageHandleList(from h in lHandles where !h.Contains(pItems) select h);
         }
 
-    ;?;
-        /**<summary>The async version of <see cref="Fetch(IEnumerable{cMessage}, cCacheItems, cPropertyFetchConfiguration)"/>.</summary>*/
+        /// <summary>
+        /// Asynchronously ensures that the specified items are cached for a set of messages.
+        /// </summary>
+        /// <param name="pMessages"></param>
+        /// <param name="pItems"></param>
+        /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
+        /// <returns>A list of messages where the cache does NOT contain the requested items (i.e. where something went wrong).</returns>
         public async Task<List<cMessage>> FetchAsync(IEnumerable<cMessage> pMessages, cCacheItems pItems, cPropertyFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(FetchAsync), 3);

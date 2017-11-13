@@ -7,33 +7,33 @@ namespace work.bacome.imapclient.support
     /// </summary>
     public interface iMessageHandle
     {
-        /**<summary>The cache that this message belongs to.</summary>*/
+        /**<summary>Gets the cache that this message handle belongs to.</summary>*/
         iMessageCache Cache { get; }
-        /**<summary>The sequence of this message in the cache.</summary>*/
+        /**<summary>Gets the sequence of this message handle in the cache.</summary>*/
         int CacheSequence { get; }
-        /**<summary>True if the server has indicated that the message has been expunged.</summary>*/
+        /**<summary>Indicates if the server has informed the client that the message has been expunged.</summary>*/
         bool Expunged { get; }
-        /**<summary>The message attributes that the cache currently contains for this message.</summary>*/
+        /**<summary>Gets the message attributes that the cache currently contains for this message.</summary>*/
         fCacheAttributes Attributes { get; }
-        /**<summary>The IMAP BODY data - i.e. the <see cref="BodyStructure"/> data without the extension data (see <see cref="cBodyPartExtensionData"/>).</summary>*/
+        /**<summary>Gets the IMAP BODY data - i.e. the <see cref="BodyStructure"/> data without the extension data (see <see cref="cBodyPartExtensionData"/>) - if it is cached.</summary>*/
         cBodyPart Body { get; }
-        /**<summary>The IMAP BODYSTRUCTURE data.</summary>*/
+        /**<summary>Gets the IMAP BODYSTRUCTURE data if it is cached.</summary>*/
         cBodyPart BodyStructure { get; }
-        /**<summary>The IMAP ENVELOPE data.</summary>*/
+        /**<summary>Gets the IMAP ENVELOPE data if it is cached.</summary>*/
         cEnvelope Envelope { get; }
-        /**<summary>The IMAP FLAGS data.</summary>*/
+        /**<summary>Gets the IMAP FLAGS data if it is cached.</summary>*/
         cFetchableFlags Flags { get; }
-        /**<summary>The RFC 7162 modification sequence. This may be zero if the mailbox does not support CONDSTORE.</summary>*/
+        /**<summary>Gets the RFC 7162 modification sequence if it is cached. This may be zero if the mailbox does not support CONDSTORE.</summary>*/
         ulong? ModSeq { get; }
-        /**<summary>The IMAP INTERNALDATE data.</summary>*/
+        /**<summary>Gets the IMAP INTERNALDATE data if it is cached.</summary>*/
         DateTime? Received { get; }
-        /**<summary>The IMAP RFC822.SIZE data.</summary>*/
+        /**<summary>Gets the IMAP RFC822.SIZE data if it is cached.</summary>*/
         uint? Size { get; }
-        /**<summary>The UID of the message.</summary>*/
+        /**<summary>Gets the UID of the message if it is cached.</summary>*/
         cUID UID { get; }
-        /**<summary>A (possibly partial) set of header fields for the message.</summary>*/
+        /**<summary>Gets the set of header fields that are cached for the message, may be null if none have been cached.</summary>*/
         cHeaderFields HeaderFields { get; }
-        /**<summary>A (possiblity partial) set of binary part sizes for the message.</summary>*/
+        /**<summary>Gets the binary part sizes that are cached for the message, may be null if none have been cached.</summary>*/
         cBinarySizes BinarySizes { get; }
 
         /// <summary>
