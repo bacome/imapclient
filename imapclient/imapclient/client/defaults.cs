@@ -7,8 +7,9 @@ namespace work.bacome.imapclient
         private cCacheItems mDefaultCacheItems = cCacheItems.None;
         private cSort mDefaultSort = cSort.None;
 
+        ;?; // xref
         /// <summary>
-        /// Specifies the cache items that are fetched by default when message lists are generated using <see cref="cMailbox.Messages(cFilter, cSort, cCacheItems, cMessageFetchConfiguration)"/>.
+        /// Gets and sets the cache items that are fetched by default when message lists are generated.
         /// </summary>
         public cCacheItems DefaultCacheItems
         {

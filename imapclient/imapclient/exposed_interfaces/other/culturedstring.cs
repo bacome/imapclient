@@ -11,6 +11,11 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents a string that includes language information as per RFC 2231.
     /// </summary>
+    /// <seealso cref="cAddress.DisplayName"/>
+    /// <seealso cref="cEnvelope.Subject"/>
+    /// <seealso cref="cMessage.Subject"/>
+    /// <seealso cref="cSinglePartBody.Description"/>
+    /// <seealso cref="cAttachment.Description"/>
     public class cCulturedString
     {
         /// <summary>
@@ -18,7 +23,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly ReadOnlyCollection<cCulturedStringPart> Parts;
 
-        public cCulturedString(IList<byte> pBytes)
+        internal cCulturedString(IList<byte> pBytes)
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
 
@@ -70,7 +75,7 @@ namespace work.bacome.imapclient
             Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
         }
 
-        public cCulturedString(string pString)
+        internal cCulturedString(string pString)
         {
             if (pString == null) throw new ArgumentNullException(nameof(pString));
             List<cCulturedStringPart> lParts = new List<cCulturedStringPart>();
@@ -78,6 +83,7 @@ namespace work.bacome.imapclient
             Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
         }
 
+        /**<summary>Returns the string data sans the language information.</summary>*/
         public override string ToString()
         {
             if (Parts == null) return string.Empty;
@@ -87,6 +93,10 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
+        /// <summary>
+        /// Implicit conversion to a string. The string will be sans the language information. 
+        /// </summary>
+        /// <param name="pString"></param>
         public static implicit operator string(cCulturedString pString) => pString?.ToString();
 
         [Conditional("DEBUG")]
@@ -139,12 +149,13 @@ namespace work.bacome.imapclient
         /// </summary>
         public readonly string LanguageTag;
 
-        public cCulturedStringPart(string pString, string pLanguageTag)
+        internal cCulturedStringPart(string pString, string pLanguageTag)
         {
             String = pString ?? throw new ArgumentNullException(nameof(pString));
             LanguageTag = pLanguageTag;
         }
 
+        /**<summary>Returns a string that represents the part (including any language information).</summary>*/
         public override string ToString() => $"{nameof(cCulturedStringPart)}({String},{LanguageTag})";
     }
 }

@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
                 // preauth
 
                 ZSetHomeServerReferral(lGreeting.ResponseText, lContext);
-                ZSetConnectedAccountId(new cAccountId(pServer.Host, eAccountType.none), lContext);
+                ZSetConnectedAccountId(new cAccountId(pServer.Host, eAccountType.unknown), lContext);
             }
         } 
     }

@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
         public readonly eAccountType Type;
 
         /// <summary>
-        /// The userid for the credentials. May be null for <see cref="eAccountType.anonymous"/> and <see cref="eAccountType.none"/>; must not be null otherwise.
+        /// The userid for the credentials. May be null for <see cref="eAccountType.anonymous"/> and <see cref="eAccountType.unknown"/>; must not be null otherwise.
         /// </summary>
         public readonly string UserId;
 
@@ -62,7 +62,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// An empty set of credentials. Useful for testing, getting the <see cref="cIMAPClient.Capabilities"/> the server offers without connecting and for pre-authorised connections.
         /// </summary>
-        public static readonly cCredentials None = new cCredentials(eAccountType.none, null);
+        public static readonly cCredentials None = new cCredentials(eAccountType.unknown, null);
 
         /// <summary>
         /// Returns an anonymous set of credentials to use during <see cref="cIMAPClient.Connect"/>. See <see cref="cIMAPClient.Credentials"/>.

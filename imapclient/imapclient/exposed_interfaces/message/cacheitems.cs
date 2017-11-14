@@ -8,8 +8,8 @@ namespace work.bacome.imapclient
     /// <seealso cref="cMessage.Fetch(cCacheItems)"/>
     /// <seealso cref="cMailbox.Message(cUID, cCacheItems)"/>
     /// <seealso cref="cMailbox.Messages(cFilter, cSort, cCacheItems, cMessageFetchConfiguration)"/>
-    /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cCacheItems, cPropertyFetchConfiguration)"/>
-    /// <seealso cref="cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{cMessage}, cCacheItems, cPropertyFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cCacheItems, cCacheItemFetchConfiguration)"/>
+    /// <seealso cref="cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{cMessage}, cCacheItems, cCacheItemFetchConfiguration)"/>
     public class cCacheItems
     {
         /// <summary>

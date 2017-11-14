@@ -4,14 +4,22 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
-    internal class cURI
+    /// <summary>
+    /// Represents a parsed URI.
+    /// </summary>
+    public class cURI
     {
         // rfc 3986, 6874
 
+        /**<summary>The string that the instance was constructed from.</summary>*/
         public readonly string OriginalString;
         private readonly cURIParts mParts;
         private readonly cURLParts mURLParts;
 
+        /// <summary>
+        /// Initialises a new instance. Will throw if the string is not a valid URI.
+        /// </summary>
+        /// <param name="pURI"></param>
         public cURI(string pURI)
         {
             if (string.IsNullOrEmpty(pURI)) throw new ArgumentOutOfRangeException(nameof(pURI));
@@ -68,6 +76,7 @@ namespace work.bacome.imapclient
         public bool IsAuthorisable => mURLParts != null && mURLParts.IsAuthorisable;
         public bool IsAuthorised => mURLParts != null && mURLParts.IsAuthorised;
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cURI));
@@ -76,6 +85,12 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
+        /// <summary>
+        /// Tries to parse a string into a URI.
+        /// </summary>
+        /// <param name="pURI"></param>
+        /// <param name="rURI"></param>
+        /// <returns></returns>
         public static bool TryParse(string pURI, out cURI rURI)
         {
             if (string.IsNullOrWhiteSpace(pURI)) { rURI = null; return false; }

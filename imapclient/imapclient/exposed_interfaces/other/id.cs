@@ -7,8 +7,10 @@ using System.Text;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// An ID (RFC 2971) field/ value collection. See <see cref="cId"/> and <see cref="cIdDictionary"/>.
+    /// An ID (RFC 2971) field/ value dictionary.
     /// </summary>
+    /// <seealso cref="cId"/>
+    /// <seealso cref="cIdDictionary"/>
     public interface iId : IReadOnlyDictionary<string, string>
     {
         /**<summary>Gets the name of the program.</summary>*/
@@ -36,7 +38,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains ID (RFC 2971) field name named constants.
+    /// Contains ID (RFC 2971) field name constants.
     /// </summary>
     public static class kIdFieldName
     {
@@ -65,8 +67,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ServerId"/>.
+    /// A read-only ID (RFC 2971) field/ value dictionary.
     /// </summary>
+    /// <seealso cref="cIMAPClient.ServerId"/>
     public class cId : iId
     {
         // immutable (for passing in and out)
@@ -83,16 +86,16 @@ namespace work.bacome.imapclient
             mDictionary = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(pDictionary, StringComparer.InvariantCultureIgnoreCase));
         }
 
-        /**<summary>Gets the number of field/ value pairs in the collection.</summary>*/
+        /**<summary>Gets the number of field/ value pairs in the dictionary.</summary>*/
         public int Count => mDictionary.Count;
 
-        /**<summary>Gets the values that are in the collection.</summary>*/
+        /**<summary>Gets the values that are in the dictionary.</summary>*/
         public IEnumerable<string> Values => mDictionary.Values;
-        /**<summary>Gets the fields that are in the collection.</summary>*/
+        /**<summary>Gets the fields that are in the dictionary.</summary>*/
         public IEnumerable<string> Keys => mDictionary.Keys;
 
         /// <summary>
-        /// Determines whether the collection contains a field (field names are case insensitive).
+        /// Determines whether the dictionary contains a field (field names are case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <returns></returns>
@@ -125,28 +128,28 @@ namespace work.bacome.imapclient
 
         /**<summary>Gets the name of the program.</summary>*/
         public string Name => ZGetValue(kIdFieldName.Name);
-        /**<summary>>Gets the version number of the program.</summary>*/
+        /**<summary>Gets the version number of the program.</summary>*/
         public string Version => ZGetValue(kIdFieldName.Version);
-        /**<summary>>Gets the name of the operating system.</summary>*/
+        /**<summary>Gets the name of the operating system.</summary>*/
         public string OS => ZGetValue(kIdFieldName.OS);
-        /**<summary>>Gets the version of the operating system.</summary>*/
+        /**<summary>Gets the version of the operating system.</summary>*/
         public string OSVersion => ZGetValue(kIdFieldName.OSVersion);
-        /**<summary>>Gets the vendor of the client/server.</summary>*/
+        /**<summary>Gets the vendor of the client/server.</summary>*/
         public string Vendor => ZGetValue(kIdFieldName.Vendor);
-        /**<summary>>Gets the URL to contact for support.</summary>*/
+        /**<summary>Gets the URL to contact for support.</summary>*/
         public string SupportURL => ZGetValue(kIdFieldName.SupportURL);
-        /**<summary>>Gets the postal address of contact/vendor.</summary>*/
+        /**<summary>Gets the postal address of contact/vendor.</summary>*/
         public string Address => ZGetValue(kIdFieldName.Address);
-        /**<summary>>Gets the date program was released.</summary>*/
+        /**<summary>Gets the date program was released.</summary>*/
         public string Date => ZGetValue(kIdFieldName.Date);
-        /**<summary>>Gets the command used to start the program.</summary>*/
+        /**<summary>Gets the command used to start the program.</summary>*/
         public string Command => ZGetValue(kIdFieldName.Command);
-        /**<summary>>Gets the arguments supplied on the command line, if any.</summary>*/
+        /**<summary>Gets the arguments supplied on the command line, if any.</summary>*/
         public string Arguments => ZGetValue(kIdFieldName.Arguments);
-        /**<summary>>Gets the description of environment.</summary>*/
+        /**<summary>Gets the description of environment.</summary>*/
         public string Environment => ZGetValue(kIdFieldName.Environment);
 
-        /**<summary>Returns a string that represents the collection.</summary>*/
+        /**<summary>Returns a string that represents the dictionary.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cId));
@@ -156,7 +159,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ClientIdUTF8"/>. This class defines an implicit conversion from <see cref="cIdDictionary"/> and enforces the limits of RFC 2971.
+    /// A read-only ID (RFC 2971) field/ value dictionary. This class enforces the limits of RFC 2971.
     /// </summary>
     /// <remarks>
     /// <para>The limits of RFC 2971 are;</para>
@@ -166,6 +169,7 @@ namespace work.bacome.imapclient
     /// <item>No more than 30 field/ value pairs.</item>
     /// </list>
     /// </remarks>
+    /// <seealso cref="cIMAPClient.ClientIdUTF8"/>
     public class cClientIdUTF8 : cId
     {
         /// <summary>
@@ -198,7 +202,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only ID (RFC 2971) field/ value collection. See <see cref="cIMAPClient.ClientId"/>. This class defines an implicit conversion from <see cref="cIdDictionary"/> and enforces the limits of RFC 2971.
+    /// A read-only ID (RFC 2971) field/ value dictionary. This class enforces the limits of RFC 2971.
     /// </summary>
     /// <remarks>
     /// <para>The limits of RFC 2971 are;</para>
@@ -208,6 +212,7 @@ namespace work.bacome.imapclient
     /// <item>No more than 30 field/ value pairs.</item>
     /// </list>
     /// </remarks>
+    /// <seealso cref="cIMAPClient.ClientId"/>
     public class cClientId : cClientIdUTF8
     {
         /// <summary>
@@ -238,8 +243,10 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// An ID (RFC 2971) field/ value dictionary. See <see cref="cClientId"/> and <see cref="cClientIdUTF8"/>. Field names are case insensitive.
+    /// An ID (RFC 2971) field/ value dictionary. Field names are case insensitive.
     /// </summary>
+    /// <seealso cref="cClientId"/>
+    /// <seealso cref="cClientIdUTF8"/>
     public class cIdDictionary : iId, IDictionary<string, string>
     {
         private readonly Dictionary<string, string> mDictionary = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);

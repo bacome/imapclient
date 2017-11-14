@@ -3,8 +3,9 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The type of IMAP response text. See <see cref="cResponseTextEventArgs.TextType"/>.
+    /// The type of IMAP response text.
     /// </summary>
+    /// <seealso cref="cResponseTextEventArgs.TextType"/>
     public enum eResponseTextType
     {
         /**<summary>Response text associated with an IMAP greeting.</summary>*/
@@ -98,8 +99,14 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// IMAP response text. See <see cref="cResponseTextEventArgs.Text"/>.
+    /// IMAP response text.
     /// </summary>
+    /// <seealso cref="cResponseTextEventArgs.Text"/>
+    /// <seealso cref="cUnsuccessfulCompletionException.ResponseText"/>
+    /// <seealso cref="cConnectByeException.ResponseText"/>
+    /// <seealso cref="cHomeServerReferralException.ResponseText"/>
+    /// <seealso cref="cCredentialsException.ResponseText"/>
+    /// <seealso cref="cCommandResult.ResponseText"/>
     public class cResponseText
     {
         /// <summary>
@@ -109,8 +116,8 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// The data associated with the <see cref="Code"/>. 
-        /// If the code is <see cref="eResponseTextCode.badcharset"/> it may contain a list of valid charsets.
-        /// If the code is <see cref="eResponseTextCode.referral"/> it should contain the URL(s).
+        /// If the code is <see cref="eResponseTextCode.badcharset"/> this may contain a list of valid charsets.
+        /// If the code is <see cref="eResponseTextCode.referral"/> this should contain the URI(s).
         /// </summary>
         public readonly cStrings Strings; // for badcharset, referrals
 
@@ -165,6 +172,7 @@ namespace work.bacome.imapclient
             Text = pText;
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cResponseText));
@@ -183,11 +191,8 @@ namespace work.bacome.imapclient
     public class cResponseTextEventArgs : EventArgs
     {
         /// <summary>
-        /// The response text type
+        /// The response text type. This indicates the situation in which the response text was received
         /// </summary>
-        /// <remarks>
-        /// Indicates the situation in which the response text was received
-        /// </remarks>
         public readonly eResponseTextType TextType;
 
         /// <summary>
@@ -201,6 +206,7 @@ namespace work.bacome.imapclient
             Text = pText;
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString()
         {
             return $"{nameof(cResponseTextEventArgs)}({TextType},{Text})";

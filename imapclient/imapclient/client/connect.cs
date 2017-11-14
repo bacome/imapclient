@@ -8,35 +8,71 @@ namespace work.bacome.imapclient
     public partial class cIMAPClient
     {
         /// <summary>
-        /// Connect to the <see cref="Server"/> using the <see cref="Credentials"/>. Can only be called while unconnected: see <see cref="IsUnconnected"/>. Will throw if an authenticated IMAP connection cannot be established.
+        /// Connects to the <see cref="Server"/> using the <see cref="Credentials"/>. 
+        /// Can only be called when the instance <see cref="IsUnconnected"/>.
+        /// Will throw if an authenticated IMAP connection cannot be established.
         /// </summary>
         /// <remarks>
         /// <para>
         /// TLS is established if possible before authentication is attempted.
-        /// TLS can be established immediately upon connect if the <see cref="Server"/> specifies <see cref="cServer.SSL"/> 
-        /// or
-        /// after connecting using the IMAP STARTTLS command if both the client and server support it - see <see cref="cCapabilities.StartTLS"/>, <see cref="Capabilities"/> and <see cref="IgnoreCapabilities"/>.
+        /// TLS will be established immediately upon TCP connect if the <see cref="Server"/> specifies <see cref="cServer.SSL"/>,
+        /// otherwise the library will use the IMAP STARTTLS command if both the server and client support it (see <see cref="cCapabilities.StartTLS"/> and <see cref="IgnoreCapabilities"/>).
         /// </para>
         /// <para>
-        /// During authentication the <see cref="Capabilities"/> will be set.
-        /// (Note that the <see cref="IgnoreCapabilities"/> value is used to determine what actual capabilities are used by the client - see <see cref="cCapabilities.EffectiveCapabilities"/>.)
+        /// During the authentication part of connecting the <see cref="Capabilities"/> will be set (most likely more than once).
+        /// The <see cref="IgnoreCapabilities"/> value is used to determine what capabilities offered by the server are actually used by the client.
+        /// It is possible that the <see cref="HomeServerReferral"/> will be set during authentication: this indicates that the connected server suggests that we disconnect and try a different server.
+        /// If authentication is successful then the <see cref="ConnectedAccountId"/> will be set.
         /// </para>
         /// <para>
-        /// After authentication depending on what the <see cref="Capabilities"/> allow;
+        /// After authentication, depending on what the <see cref="Capabilities"/> allow;
         /// <list type="bullet">
-        /// <item>RFC 6855 (UTF8) is enabled (see <see cref="cCapabilities.UTF8Accept"/>, <see cref="cCapabilities.UTF8Only"/>).</item>
-        /// <item>ID (RFC 2971) information is exchanged (see <see cref="ClientId"/> and <see cref="ServerId"/>).</item>
-        /// <item>Namespace (RFC 2342) information is retrieved from the server (see <see cref="Namespaces"/>).</item>
-        /// <item>IMAP LIST is used to discover the hierarchy delimiter and one personal namespace is generated using it (see <see cref="Namespaces"/>).</item>
+        /// <item><see cref="fEnableableExtensions.utf8"/> is enabled (see <see cref="cCapabilities.UTF8Accept"/>, <see cref="cCapabilities.UTF8Only"/>); this sets the <see cref="EnabledExtensions"/> property.</item>
+        /// <item>ID (RFC 2971) information is exchanged with the server; this sends the <see cref="ClientId"/> (or <see cref="ClientIdUTF8"/>) and sets the <see cref="ServerId"/> property.</item>
+        /// <item>Namespace (RFC 2342) information is retrieved from the server; this sets the <see cref="Namespaces"/> property.</item>
+        /// <item>A special syntax IMAP LIST command is used to discover the hierarchy delimiter and one personal namespace may be generated using it (setting the <see cref="Namespaces"/> property).</item>
         /// </list>
         /// </para>
-        /// <para>(Note normally only one of Namespace and LIST are used: but under some strange circumstances both may be used [specifically if the Namespaces returned do not contain the inbox].)</para>
-        /// <para>At the end of a successful connect process the <see cref="ConnectionState"/> will be <see cref="eConnectionState.notselected"/>.</para>
-        /// <para>Exceptions relating to authentication and their meanings;
+        /// <para>
+        /// Normally only one of Namespace and LIST are used during connect, but under some strange circumstances both may be required.
+        /// (The specific case is when the personal namespaces retrieved from the server do not contain the INBOX.)
+        /// Once the <see cref="Namespaces"/> are known the <see cref="Inbox"/> property is set.
+        /// </para>
+        /// <para>
+        /// At the end of a successful connect the <see cref="ConnectionState"/> will be <see cref="eConnectionState.notselected"/>,
+        /// at the end of a failed connect the <see cref="ConnectionState"/> will be <see cref="eConnectionState.disconnected"/> and this method will throw.
+        /// </para>
+        /// <para>Some of the exceptions that might be thrown and why;
         /// <list type="bullet">
-        /// <item><term><see cref="cCredentialsException"/></term><description>Was able to try credentials from <see cref="Credentials"/> but they didn't work. (If the <see cref="cCredentialsException.ResponseText"/> is set the server explicitly rejected the credentials.)</description></item>
-        /// <item><term><see cref="cAuthenticationMechanismsException"/></term><description>Was not able to try any credentials from <see cref="Credentials"/>.</description></item>
-        /// <item><term><see cref="cHomeServerReferralException"/></term><description>The server suggests that we try a different server (see <see cref="cHomeServerReferralException.ResponseText"/> and <see cref="cResponseText.Strings"/>).</description></item>
+        /// <item>
+        ///   <term><see cref="cConnectByeException"/></term>
+        ///   <description>
+        ///   The server actively rejected the connection.
+        ///   </description>
+        /// </item>
+        /// <item>
+        ///   <term><see cref="cCredentialsException"/></term>
+        ///   <description>
+        ///   The client was able to try credentials from <see cref="Credentials"/>, but they didn't work.
+        ///   If the server explicitly rejected the credentials using one of the 
+        ///   <see cref="eResponseTextCode.authenticationfailed"/>, <see cref="eResponseTextCode.authorizationfailed"/> or <see cref="eResponseTextCode.expired"/> codes,
+        ///   then the <see cref="cCredentialsException.ResponseText"/> will contain the details (otherwise the <see cref="cCredentialsException.ResponseText"/> will be null).
+        ///   </description>
+        /// </item>
+        /// <item>
+        ///   <term><see cref="cAuthenticationMechanismsException"/></term>
+        ///   <description>
+        ///   The client was not able to try any credentials from <see cref="Credentials"/>. 
+        ///   If the TLS state was to blame for this then <see cref="cAuthenticationMechanismsException.TLSIssue"/> will be set to true.
+        ///   </description>
+        /// </item>
+        /// <item>
+        ///   <term><see cref="cHomeServerReferralException"/></term>
+        ///   <description>
+        ///   While connecting the server either refused to connect or refused to authenticate and suggested that we try a different server instead
+        ///   (see <see cref="cHomeServerReferralException.ResponseText"/> and the contained <see cref="cResponseText.Strings"/>).
+        ///   </description>
+        /// </item>
         /// </list>
         /// </para>
         /// </remarks>
@@ -46,7 +82,15 @@ namespace work.bacome.imapclient
             mSynchroniser.Wait(ZConnectAsync(lContext), lContext);
         }
 
-        /**<summary>The async version of <see cref="Connect"/></summary>*/
+        /// <summary>
+        /// Connects to the <see cref="Server"/> using the <see cref="Credentials"/>. 
+        /// Can only be called when the instance <see cref="IsUnconnected"/>.
+        /// Will throw if an authenticated IMAP connection cannot be established.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// Please see <see cref="Connect"/> for details.
+        /// </remarks>
         public Task ConnectAsync()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConnectAsync));

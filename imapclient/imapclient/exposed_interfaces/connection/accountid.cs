@@ -3,23 +3,24 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The type of account. See <see cref="cAccountId"/>.
+    /// The type of account.
     /// </summary>
+    /// <seealso cref="cCredentials.Type"/>
+    /// <seealso cref="cAccountId.Type"/>
     public enum eAccountType
     {
-        /** <summary>The library has no idea about the account.</summary>"*/
-        none,
-
+        /** <summary>The library has no idea about the type of the account.</summary>"*/
+        unknown,
         /** <summary>The account is an anonymous one.</summary>"*/
         anonymous,
-
         /** <summary>The account has a userid.</summary>"*/
         userid
     }
 
     /// <summary>
-    /// Describes an IMAP account. See <see cref="cIMAPClient.ConnectedAccountId"/>.
+    /// Describes an IMAP account.
     /// </summary>
+    /// <seealso cref="cIMAPClient.ConnectedAccountId"/>
     public class cAccountId
     {
         /// <summary>
@@ -28,7 +29,7 @@ namespace work.bacome.imapclient
         public readonly string Host;
 
         /// <summary> 
-        /// The account type. If the connection was IMAP PREAUTHed then this will be <see cref="eAccountType.none"/>.
+        /// The account type. If the connection was IMAP PREAUTHed then this will be <see cref="eAccountType.unknown"/>.
         /// </summary>
         public readonly eAccountType Type;
 
@@ -83,7 +84,7 @@ namespace work.bacome.imapclient
         public override bool Equals(object pObject) => this == pObject as cAccountId;
 
         /// <summary>
-        /// Returns the hash code for this <see cref="cAccountId"/>.
+        /// Returns the hash code for this instance.
         /// </summary>
         /// <returns></returns>
         public override int GetHashCode()

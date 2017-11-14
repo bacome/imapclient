@@ -3,8 +3,9 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of optionally requested mailbox attributes. See <see cref="cIMAPClient.MailboxCacheData"/>.
+    /// A set of optionally requested mailbox attributes.
     /// </summary>
+    /// <seealso cref="cIMAPClient.MailboxCacheData"/>
     [Flags]
     public enum fMailboxCacheData
     {

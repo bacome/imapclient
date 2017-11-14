@@ -5,7 +5,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Base class for all of the library's custom exceptions.
+    /// The abstract base class for all of the library's custom exceptions.
     /// </summary>
     public abstract class cIMAPException : Exception
     {
@@ -25,7 +25,7 @@ namespace work.bacome.imapclient
         public readonly cResponseText ResponseText;
 
         /// <summary>
-        /// Indicates that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
+        /// Indicates that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the problem.
         /// </summary>
         public readonly fCapabilities TryIgnoring;
 
@@ -36,6 +36,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cUnsuccessfulCompletionException), pResponseText);
         }
 
+        /**<summary>Returns a string that represents the exception.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUnsuccessfulCompletionException));
@@ -68,6 +69,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cProtocolErrorException), pCommandResult);
         }
 
+        /**<summary>Returns a string that represents the exception.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cProtocolErrorException));
@@ -94,6 +96,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cUnexpectedServerActionException), pMessage);
         }
 
+        /**<summary>Returns a string that represents the exception.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUnexpectedServerActionException));
@@ -117,6 +120,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown when the server said bye at connect.
     /// </summary>
+    /// <seealso cref="cIMAPClient.Connect"/>
     public class cConnectByeException : cIMAPException
     {
         /// <summary>
@@ -130,6 +134,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cConnectByeException), pResponseText);
         }
 
+        /**<summary>Returns a string that represents the exception.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cConnectByeException));
@@ -142,6 +147,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown when the server rejects connection but suggests that we try a different server.
     /// </summary>
+    /// <seealso cref="cIMAPClient.Connect"/>
     public class cHomeServerReferralException : cIMAPException
     {
         /// <summary>
@@ -155,6 +161,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cHomeServerReferralException), pResponseText);
         }
 
+        /**<summary>Returns a string that represents the exception.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cHomeServerReferralException));
@@ -167,6 +174,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown when the server didn't accept the credentials provided.
     /// </summary>
+    /// <seealso cref="cIMAPClient.Connect"/>
     public class cCredentialsException : cIMAPException
     {
         /// <summary>
@@ -186,6 +194,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cCredentialsException), pResponseText);
         }
 
+        /**<summary>Returns a string that represents the exception.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cCredentialsException));
@@ -198,6 +207,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Thrown to indicate that the inability to connect is related to the lack of usable authentication mechanisms offered by the server.
     /// </summary>
+    /// <seealso cref="cIMAPClient.Connect"/>
     public class cAuthenticationMechanismsException : cIMAPException
     {
         /// <summary>
@@ -211,6 +221,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cAuthenticationMechanismsException), pTLSIssue);
         }
 
+        /**<summary>Returns a string that represents the exception.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cAuthenticationMechanismsException));
@@ -236,6 +247,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cUnilateralByeException), pResponseText);
         }
 
+        /**<summary>Returns a string that represents the exception.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUnilateralByeException));
@@ -313,6 +325,7 @@ namespace work.bacome.imapclient
 
         internal cFilterMSNException(iMessageHandle pHandle) { Handle = pHandle; }
 
+        /**<summary>Returns a string that represents the exception.</summary>*/
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cFilterMSNException));
@@ -327,10 +340,10 @@ namespace work.bacome.imapclient
     /// </summary>
     public class cTestsException : Exception
     {
-        public cTestsException() { }
-        public cTestsException(string pMessage) : base(pMessage) { }
-        public cTestsException(string pMessage, Exception pInner) : base(pMessage, pInner) { }
-        public cTestsException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError(pMessage);
-        public cTestsException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}\n{1}", pMessage, pInner);
+        internal cTestsException() { }
+        internal cTestsException(string pMessage) : base(pMessage) { }
+        internal cTestsException(string pMessage, Exception pInner) : base(pMessage, pInner) { }
+        internal cTestsException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError(pMessage);
+        internal cTestsException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}\n{1}", pMessage, pInner);
     }
 }

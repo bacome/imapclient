@@ -4,8 +4,13 @@ using System.Linq;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of server capabilities. The flags in this set represent the capabilities that the library understands in some way. The full list of server capabilities can be found in <see cref="cCapabilities.Capabilities"/>. See <see cref="cIMAPClient.IgnoreCapabilities"/>.
+    /// A set of capabilities that the library understands in some way.
     /// </summary>
+    /// <seealso cref="cCapabilities.EffectiveCapabilities"/>
+    /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
+    /// <seealso cref="cProtocolErrorException.TryIgnoring"/>
+    /// <seealso cref="cUnexpectedServerActionException.TryIgnoring"/>
+    /// <seealso cref="cUnsuccessfulCompletionException.TryIgnoring"/>
     [Flags]
     public enum fCapabilities
     {
@@ -64,8 +69,13 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A set of server capabilities. See <see cref="cIMAPClient.Capabilities"/>. The properties of this class reflect the flags set in <see cref="EffectiveCapabilities"/>.
+    /// A set of capabilities.
     /// </summary>
+    /// <remarks>
+    /// The properties of this class reflect the flags set in <see cref="EffectiveCapabilities"/>.
+    /// </remarks>
+    /// <seealso cref="cIMAPClient.Capabilities"/>
+    /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
     public class cCapabilities
     {
         /// <summary>
@@ -74,13 +84,16 @@ namespace work.bacome.imapclient
         public readonly cStrings Capabilities;
 
         /// <summary>
-        /// The authentication mechanisms supported by the server.
+        /// The authentication mechanisms as presented by the server.
         /// </summary>
         public readonly cStrings AuthenticationMechanisms;
 
         /// <summary>
-        /// The set of server capabilities that are in use. This is the recognised elements of <see cref="Capabilities"/> less the <see cref="cIMAPClient.IgnoreCapabilities"/>.
+        /// The set of server capabilities that are in use.
         /// </summary>
+        /// <remarks>
+        /// This value reflects the recognised elements of <see cref="Capabilities"/> less the <see cref="cIMAPClient.IgnoreCapabilities"/>.
+        /// </remarks>
         public readonly fCapabilities EffectiveCapabilities;
 
         internal cCapabilities(cStrings pCapabilities, cStrings pAuthenticationMechanisms, fCapabilities pIgnoreCapabilities)
@@ -120,57 +133,58 @@ namespace work.bacome.imapclient
             EffectiveCapabilities = lCapabilities & ~pIgnoreCapabilities;
         }
 
-        /**<summary>IMAP LOGINDISABLED</summary>*/
+        /**<summary>Indicates if IMAP LOGIN is disabled.</summary>*/
         public bool LoginDisabled => (EffectiveCapabilities & fCapabilities.logindisabled) != 0;
-        /**<summary>IMAP STARTTLS</summary>*/
+        /**<summary>Indicates if IMAP STARTTLS can be used.</summary>*/
         public bool StartTLS => (EffectiveCapabilities & fCapabilities.starttls) != 0;
-        /**<summary>RFC 2177 - IDLE</summary>*/
+        /**<summary>Indicates if RFC 2177 - IDLE can be used.</summary>*/
         public bool Idle => (EffectiveCapabilities & fCapabilities.idle) != 0;
-        /**<summary>RFC 7888 - LITERAL+</summary>*/
+        /**<summary>Indicates if RFC 7888 - LITERAL+ can be used.</summary>*/
         public bool LiteralPlus => (EffectiveCapabilities & fCapabilities.literalplus) != 0;
-        /**<summary>RFC 7888 - LITERAL-</summary>*/
+        /**<summary>Indicates if RFC 7888 - LITERAL- can be used.</summary>*/
         public bool LiteralMinus => (EffectiveCapabilities & fCapabilities.literalminus) != 0;
-        /**<summary>RFC 5161 - ENABLE</summary>*/
+        /**<summary>Indicates if RFC 5161 - ENABLE can be used.</summary>*/
         public bool Enable => (EffectiveCapabilities & fCapabilities.enable) != 0;
-        /**<summary>RFC 6855 - UTF8=ACCEPT</summary>*/
+        /**<summary>Indicates if RFC 6855 - UTF8=ACCEPT can be used.</summary>*/
         public bool UTF8Accept => (EffectiveCapabilities & fCapabilities.utf8accept) != 0;
-        /**<summary>RFC 6855 - UTF8=ONLY</summary>*/
+        /**<summary>Indicates if RFC 6855 - UTF8=ONLY can be used.</summary>*/
         public bool UTF8Only => (EffectiveCapabilities & fCapabilities.utf8only) != 0;
-        /**<summary>RFC 5258 - LIST extensions</summary>*/
+        /**<summary>Indicates if RFC 5258 - LIST extensions can be used.</summary>*/
         public bool ListExtended => (EffectiveCapabilities & fCapabilities.listextended) != 0;
-        /**<summary>RFC 3348 - Child mailboxes</summary>*/
+        /**<summary>Indicates if RFC 3348 - Child mailboxes can be used.</summary>*/
         public bool Children => (EffectiveCapabilities & fCapabilities.children) != 0;
-        /**<summary>RFC 4959 - SASL initial client response</summary>*/
+        /**<summary>Indicates if RFC 4959 - SASL initial client response can be used.</summary>*/
         public bool SASL_IR => (EffectiveCapabilities & fCapabilities.sasl_ir) != 0;
-        /**<summary>RFC 2221 - Login referrals</summary>*/
+        /**<summary>Indicates if RFC 2221 - Login referrals can be used.</summary>*/
         public bool LoginReferrals => (EffectiveCapabilities & fCapabilities.loginreferrals) != 0;
-        /**<summary>RFC 2193 - Mailbox referrals</summary>*/
+        /**<summary>Indicates if RFC 2193 - Mailbox referrals can be used.</summary>*/
         public bool MailboxReferrals => (EffectiveCapabilities & fCapabilities.mailboxreferrals) != 0;
-        /**<summary>RFC 2971 - Id</summary>*/
+        /**<summary>Indicates if RFC 2971 - Id can be used.</summary>*/
         public bool Id => (EffectiveCapabilities & fCapabilities.id) != 0;
-        /**<summary>RFC 3516 - Binary content</summary>*/
+        /**<summary>Indicates if RFC 3516 - Binary content can be used.</summary>*/
         public bool Binary => (EffectiveCapabilities & fCapabilities.binary) != 0;
-        /**<summary>RFC 2342 - Namespaces</summary>*/
+        /**<summary>Indicates if RFC 2342 - Namespaces can be used.</summary>*/
         public bool Namespace => (EffectiveCapabilities & fCapabilities.namespaces) != 0;
-        /**<summary>RFC 5819 - STATUS information in LIST</summary>*/
+        /**<summary>Indicates if RFC 5819 - STATUS information in LIST can be used.</summary>*/
         public bool ListStatus => (EffectiveCapabilities & fCapabilities.liststatus) != 0;
-        /**<summary>RFC 6154 - Special use</summary>*/
+        /**<summary>Indicates if RFC 6154 - Special use can be used.</summary>*/
         public bool SpecialUse => (EffectiveCapabilities & fCapabilities.specialuse) != 0;
-        /**<summary>RFC 4731 - ESEARCH</summary>*/
+        /**<summary>Indicates if RFC 4731 - ESEARCH can be used.</summary>*/
         public bool ESearch => (EffectiveCapabilities & fCapabilities.esearch) != 0;
-        /**<summary>RFC 5256 - SORT</summary>*/
+        /**<summary>Indicates if RFC 5256 - SORT can be used.</summary>*/
         public bool Sort => (EffectiveCapabilities & fCapabilities.sort) != 0;
-        /**<summary>RFC 5256 - SORT=DISPLAY</summary>*/
+        /**<summary>Indicates if RFC 5256 - SORT=DISPLAY can be used.</summary>*/
         public bool SortDisplay => (EffectiveCapabilities & fCapabilities.sortdisplay) != 0;
-        /**<summary>RFC 5267 - ESORT</summary>*/
+        /**<summary>Indicates if RFC 5267 - ESORT can be used.</summary>*/
         public bool ESort => (EffectiveCapabilities & fCapabilities.esort) != 0;
         //public bool ThreadOrderedSubject => (EffectiveCapabilities & fCapabilities.threadorderedsubject) != 0;
         //public bool ThreadReferences => (EffectiveCapabilities & fCapabilities.threadreferences) != 0;
-        /**<summary>RFC 7162 - CONDSTORE</summary>*/
+        /**<summary>Indicates if RFC 7162 - CONDSTORE can be used.</summary>*/
         public bool CondStore => (EffectiveCapabilities & fCapabilities.condstore) != 0;
-        /**<summary>RFC 7162 - QRESYNC</summary>*/
+        /**<summary>Indicates if RFC 7162 - QRESYNC can be used.</summary>*/
         public bool QResync => (EffectiveCapabilities & fCapabilities.qresync) != 0;
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cCapabilities)}({Capabilities},{AuthenticationMechanisms},{EffectiveCapabilities})";
     }
 }
