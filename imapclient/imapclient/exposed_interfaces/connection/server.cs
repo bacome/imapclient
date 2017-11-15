@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
         public readonly bool SSL;
 
         /// <summary>
-        /// Initialises a new instance with the port set to 143 and SSL set to false.
+        /// Initialises a new instance with the port set to 143 and SSL set to <see langword="false"/>.
         /// </summary>
         /// <param name="pHost"></param>
         public cServer(string pHost)
@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance with the port set to 143 if <paramref name="pSSL"/> is false, otherwise set to 993.
+        /// Initialises a new instance with the port set to 143 if <paramref name="pSSL"/> is <see langword="false"/>, otherwise set to 993.
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pSSL">Indicates if TLS should be established immediately upon TCP connect.</param>

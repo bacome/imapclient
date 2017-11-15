@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A read-only string collection.
+    /// A read-only collection of strings.
     /// </summary>
     public class cStrings : ReadOnlyCollection<string>
     {
@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
         public cStrings(IList<string> pStrings) : base(pStrings) { }
 
         /// <summary>
-        /// Determines whether this instance and the specified object have the same items in the same order.
+        /// Determines whether this instance and the specified object contain the same strings in the same order.
         /// </summary>
         /// <param name="pObject"></param>
         /// <returns></returns>
@@ -45,7 +45,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines whether two instances have the same items in the same order.
+        /// Determines whether two instances contain the same strings in the same order.
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>
@@ -61,7 +61,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines whether two instances have different items or different orders.
+        /// Determines whether two instances contain different strings or have then in a different order.
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>

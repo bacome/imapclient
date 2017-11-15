@@ -9,7 +9,7 @@ namespace work.bacome.imapclient.support
     {
         /**<summary>Gets the cache that this mailbox handle belongs to.</summary>*/
         object Cache { get; }
-        /**<summary>Gets the mailbox name associated with the handle, may be null.</summary>*/
+        /**<summary>Gets the mailbox name associated with the handle, may be <see langword="null"/>.</summary>*/
         cMailboxName MailboxName { get; }
         /**<summary>Indicates if the referenced mailbox on the server exists.</summary>*/
         bool? Exists { get; }

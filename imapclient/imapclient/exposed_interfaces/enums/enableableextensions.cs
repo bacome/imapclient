@@ -9,11 +9,11 @@ namespace work.bacome.imapclient
     [Flags]
     public enum fEnableableExtensions
     {
-        /**<summary>A constant for no extensions</summary>*/
+        /**<summary>A constant representing no extensions.</summary>*/
         none = 0,
-        /**<summary>RFC 6855</summary>*/
+        /**<summary>RFC 6855.</summary>*/
         utf8 = 1,
-        /**<summary>A mask for all extensions</summary>*/
+        /**<summary>A mask representing all extensions.</summary>*/
         all = 0b1
     }
 }

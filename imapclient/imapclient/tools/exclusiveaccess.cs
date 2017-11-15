@@ -70,7 +70,7 @@ namespace work.bacome.async
 
         /// <summary>
         /// May return a disposable object that represents a block on the issue of exclusive access.
-        /// This method will return a block if the exclusive access is not currently granted, otherwise it will return null.
+        /// This method will return a block if the exclusive access is not currently granted, otherwise it will return <see langword="null"/>.
         /// Dispose the returned object to release the block.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>

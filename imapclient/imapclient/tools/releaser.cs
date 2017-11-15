@@ -11,7 +11,7 @@ namespace work.bacome.async
     /// <list type="number">
     /// <item>Call the <see cref="Reset(cTrace.cContext)"/> method to indicate that it is about to start working.</item>
     /// <item>Check for and do all the work available.</item>
-    /// <item>Awair on the task returned by <see cref="GetAwaitReleaseTask(cTrace.cContext)"/>.</item>
+    /// <item><see langword="await"/> on the task returned by <see cref="GetAwaitReleaseTask(cTrace.cContext)"/>.</item>
     /// </list>
     /// </para>
     /// <para>The work creating tasks should;

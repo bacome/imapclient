@@ -6,11 +6,11 @@ namespace work.bacome.imapclient
     /// <summary>
     /// A set of capabilities that the library understands in some way.
     /// </summary>
-    /// <seealso cref="cCapabilities.EffectiveCapabilities"/>
+    /// <seealso cref="cCapabilities"/>
     /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
-    /// <seealso cref="cProtocolErrorException.TryIgnoring"/>
-    /// <seealso cref="cUnexpectedServerActionException.TryIgnoring"/>
-    /// <seealso cref="cUnsuccessfulCompletionException.TryIgnoring"/>
+    /// <seealso cref="cProtocolErrorException"/>
+    /// <seealso cref="cUnexpectedServerActionException"/>
+    /// <seealso cref="cUnsuccessfulCompletionException"/>
     [Flags]
     public enum fCapabilities
     {
@@ -18,49 +18,49 @@ namespace work.bacome.imapclient
         logindisabled = 1 << 0,
         /**<summary>IMAP STARTTLS</summary>*/
         starttls = 1 << 1,
-        /**<summary>RFC 2177 - IDLE</summary>*/
+        /**<summary>RFC 2177 IDLE</summary>*/
         idle = 1 << 2,
-        /**<summary>RFC 7888 - LITERAL+</summary>*/
+        /**<summary>RFC 7888 LITERAL+</summary>*/
         literalplus = 1 << 3,
-        /**<summary>RFC 7888 - LITERAL-</summary>*/
+        /**<summary>RFC 7888 LITERAL-</summary>*/
         literalminus = 1 << 4,
-        /**<summary>RFC 5161 - ENABLE</summary>*/
+        /**<summary>RFC 5161 ENABLE</summary>*/
         enable = 1 << 5,
-        /**<summary>RFC 6855 - UTF8=ACCEPT</summary>*/
+        /**<summary>RFC 6855 UTF8=ACCEPT</summary>*/
         utf8accept = 1 << 6,
-        /**<summary>RFC 6855 - UTF8=ONLY</summary>*/
+        /**<summary>RFC 6855 UTF8=ONLY</summary>*/
         utf8only = 1 << 7,
-        /**<summary>RFC 5258 - LIST extensions</summary>*/
+        /**<summary>RFC 5258 LIST extensions</summary>*/
         listextended = 1 << 8,
-        /**<summary>RFC 3348 - Child mailboxes</summary>*/
+        /**<summary>RFC 3348 Child mailboxes</summary>*/
         children = 1 << 9,
-        /**<summary>RFC 4959 - SASL initial client response</summary>*/
+        /**<summary>RFC 4959 SASL initial client response</summary>*/
         sasl_ir = 1 << 10,
-        /**<summary>RFC 2221 - Login referrals</summary>*/
+        /**<summary>RFC 2221 Login referrals</summary>*/
         loginreferrals = 1 << 11,
-        /**<summary>RFC 2193 - Mailbox referrals</summary>*/
+        /**<summary>RFC 2193 Mailbox referrals</summary>*/
         mailboxreferrals = 1 << 12,
-        /**<summary>RFC 2971 - Id</summary>*/
+        /**<summary>RFC 2971 Id</summary>*/
         id = 1 << 13,
-        /**<summary>RFC 3516 - Binary content</summary>*/
+        /**<summary>RFC 3516 Binary content</summary>*/
         binary = 1 << 14,
-        /**<summary>RFC 2342 - Namespaces</summary>*/
+        /**<summary>RFC 2342 Namespaces</summary>*/
         namespaces = 1 << 15,
-        /**<summary>RFC 5819 - STATUS information in LIST</summary>*/
+        /**<summary>RFC 5819 STATUS information in LIST</summary>*/
         liststatus = 1 << 16,
-        /**<summary>RFC 6154 - Special use</summary>*/
+        /**<summary>RFC 6154 Special use</summary>*/
         specialuse = 1 << 17,
-        /**<summary>RFC 4731 - ESEARCH</summary>*/
+        /**<summary>RFC 4731 ESEARCH</summary>*/
         esearch = 1 << 18,
-        /**<summary>RFC 5256 - SORT</summary>*/
+        /**<summary>RFC 5256 SORT</summary>*/
         sort = 1 << 19,
-        /**<summary>RFC 5256 - SORT=DISPLAY</summary>*/
+        /**<summary>RFC 5256 SORT=DISPLAY</summary>*/
         sortdisplay = 1 << 20,
-        /**<summary>RFC 5267 - ESORT</summary>*/
+        /**<summary>RFC 5267 ESORT</summary>*/
         esort = 1 << 21,
-        /**<summary>RFC 7162 - CONDSTORE</summary>*/
+        /**<summary>RFC 7162 CONDSTORE</summary>*/
         condstore = 1 << 22,
-        /**<summary>RFC 7162 - QRESYNC</summary>*/
+        /**<summary>RFC 7162 QRESYNC</summary>*/
         qresync = 1 << 23
 
         /* deimplemented pending a requirement to complete it
@@ -75,7 +75,6 @@ namespace work.bacome.imapclient
     /// The properties of this class reflect the flags set in <see cref="EffectiveCapabilities"/>.
     /// </remarks>
     /// <seealso cref="cIMAPClient.Capabilities"/>
-    /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
     public class cCapabilities
     {
         /// <summary>
@@ -137,51 +136,51 @@ namespace work.bacome.imapclient
         public bool LoginDisabled => (EffectiveCapabilities & fCapabilities.logindisabled) != 0;
         /**<summary>Indicates if IMAP STARTTLS can be used.</summary>*/
         public bool StartTLS => (EffectiveCapabilities & fCapabilities.starttls) != 0;
-        /**<summary>Indicates if RFC 2177 - IDLE can be used.</summary>*/
+        /**<summary>Indicates if RFC 2177 IDLE can be used.</summary>*/
         public bool Idle => (EffectiveCapabilities & fCapabilities.idle) != 0;
-        /**<summary>Indicates if RFC 7888 - LITERAL+ can be used.</summary>*/
+        /**<summary>Indicates if RFC 7888 LITERAL+ can be used.</summary>*/
         public bool LiteralPlus => (EffectiveCapabilities & fCapabilities.literalplus) != 0;
-        /**<summary>Indicates if RFC 7888 - LITERAL- can be used.</summary>*/
+        /**<summary>Indicates if RFC 7888 LITERAL- can be used.</summary>*/
         public bool LiteralMinus => (EffectiveCapabilities & fCapabilities.literalminus) != 0;
-        /**<summary>Indicates if RFC 5161 - ENABLE can be used.</summary>*/
+        /**<summary>Indicates if RFC 5161 ENABLE can be used.</summary>*/
         public bool Enable => (EffectiveCapabilities & fCapabilities.enable) != 0;
-        /**<summary>Indicates if RFC 6855 - UTF8=ACCEPT can be used.</summary>*/
+        /**<summary>Indicates if RFC 6855 UTF8=ACCEPT can be used.</summary>*/
         public bool UTF8Accept => (EffectiveCapabilities & fCapabilities.utf8accept) != 0;
-        /**<summary>Indicates if RFC 6855 - UTF8=ONLY can be used.</summary>*/
+        /**<summary>Indicates if RFC 6855 UTF8=ONLY can be used.</summary>*/
         public bool UTF8Only => (EffectiveCapabilities & fCapabilities.utf8only) != 0;
-        /**<summary>Indicates if RFC 5258 - LIST extensions can be used.</summary>*/
+        /**<summary>Indicates if RFC 5258 LIST extensions can be used.</summary>*/
         public bool ListExtended => (EffectiveCapabilities & fCapabilities.listextended) != 0;
-        /**<summary>Indicates if RFC 3348 - Child mailboxes can be used.</summary>*/
+        /**<summary>Indicates if RFC 3348 Child mailboxes can be used.</summary>*/
         public bool Children => (EffectiveCapabilities & fCapabilities.children) != 0;
-        /**<summary>Indicates if RFC 4959 - SASL initial client response can be used.</summary>*/
+        /**<summary>Indicates if RFC 4959 SASL initial client response can be used.</summary>*/
         public bool SASL_IR => (EffectiveCapabilities & fCapabilities.sasl_ir) != 0;
-        /**<summary>Indicates if RFC 2221 - Login referrals can be used.</summary>*/
+        /**<summary>Indicates if RFC 2221 Login referrals can be used.</summary>*/
         public bool LoginReferrals => (EffectiveCapabilities & fCapabilities.loginreferrals) != 0;
-        /**<summary>Indicates if RFC 2193 - Mailbox referrals can be used.</summary>*/
+        /**<summary>Indicates if RFC 2193 Mailbox referrals can be used.</summary>*/
         public bool MailboxReferrals => (EffectiveCapabilities & fCapabilities.mailboxreferrals) != 0;
-        /**<summary>Indicates if RFC 2971 - Id can be used.</summary>*/
+        /**<summary>Indicates if RFC 2971 Id can be used.</summary>*/
         public bool Id => (EffectiveCapabilities & fCapabilities.id) != 0;
-        /**<summary>Indicates if RFC 3516 - Binary content can be used.</summary>*/
+        /**<summary>Indicates if RFC 3516 Binary content can be used.</summary>*/
         public bool Binary => (EffectiveCapabilities & fCapabilities.binary) != 0;
-        /**<summary>Indicates if RFC 2342 - Namespaces can be used.</summary>*/
+        /**<summary>Indicates if RFC 2342 Namespaces can be used.</summary>*/
         public bool Namespace => (EffectiveCapabilities & fCapabilities.namespaces) != 0;
-        /**<summary>Indicates if RFC 5819 - STATUS information in LIST can be used.</summary>*/
+        /**<summary>Indicates if RFC 5819 STATUS information in LIST can be used.</summary>*/
         public bool ListStatus => (EffectiveCapabilities & fCapabilities.liststatus) != 0;
-        /**<summary>Indicates if RFC 6154 - Special use can be used.</summary>*/
+        /**<summary>Indicates if RFC 6154 Special use can be used.</summary>*/
         public bool SpecialUse => (EffectiveCapabilities & fCapabilities.specialuse) != 0;
-        /**<summary>Indicates if RFC 4731 - ESEARCH can be used.</summary>*/
+        /**<summary>Indicates if RFC 4731 ESEARCH can be used.</summary>*/
         public bool ESearch => (EffectiveCapabilities & fCapabilities.esearch) != 0;
-        /**<summary>Indicates if RFC 5256 - SORT can be used.</summary>*/
+        /**<summary>Indicates if RFC 5256 SORT can be used.</summary>*/
         public bool Sort => (EffectiveCapabilities & fCapabilities.sort) != 0;
-        /**<summary>Indicates if RFC 5256 - SORT=DISPLAY can be used.</summary>*/
+        /**<summary>Indicates if RFC 5256 SORT=DISPLAY can be used.</summary>*/
         public bool SortDisplay => (EffectiveCapabilities & fCapabilities.sortdisplay) != 0;
-        /**<summary>Indicates if RFC 5267 - ESORT can be used.</summary>*/
+        /**<summary>Indicates if RFC 5267 ESORT can be used.</summary>*/
         public bool ESort => (EffectiveCapabilities & fCapabilities.esort) != 0;
         //public bool ThreadOrderedSubject => (EffectiveCapabilities & fCapabilities.threadorderedsubject) != 0;
         //public bool ThreadReferences => (EffectiveCapabilities & fCapabilities.threadreferences) != 0;
-        /**<summary>Indicates if RFC 7162 - CONDSTORE can be used.</summary>*/
+        /**<summary>Indicates if RFC 7162 CONDSTORE can be used.</summary>*/
         public bool CondStore => (EffectiveCapabilities & fCapabilities.condstore) != 0;
-        /**<summary>Indicates if RFC 7162 - QRESYNC can be used.</summary>*/
+        /**<summary>Indicates if RFC 7162 QRESYNC can be used.</summary>*/
         public bool QResync => (EffectiveCapabilities & fCapabilities.qresync) != 0;
 
         /**<summary>Returns a string that represents the instance.</summary>*/

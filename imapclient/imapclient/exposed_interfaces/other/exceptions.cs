@@ -25,8 +25,9 @@ namespace work.bacome.imapclient
         public readonly cResponseText ResponseText;
 
         /// <summary>
-        /// Indicates that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the problem.
+        /// Indicates that ignoring these capabilities may have prevented the problem.
         /// </summary>
+        /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
         internal cUnsuccessfulCompletionException(cResponseText pResponseText, fCapabilities pTryIgnoring, cTrace.cContext pContext)
@@ -58,8 +59,9 @@ namespace work.bacome.imapclient
         public readonly cCommandResult CommandResult;
 
         /// <summary>
-        /// Indicates that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
+        /// Indicates that ignoring these capabilities may have prevented the exception.
         /// </summary>
+        /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
         internal cProtocolErrorException(cCommandResult pCommandResult, fCapabilities pTryIgnoring, cTrace.cContext pContext)
@@ -86,8 +88,9 @@ namespace work.bacome.imapclient
     public class cUnexpectedServerActionException : cIMAPException
     {
         /// <summary>
-        /// Indicates that ignoring these capabilities (see <see cref="cIMAPClient.IgnoreCapabilities"/>) may have prevented the exception.
+        /// Indicates that ignoring these capabilities may have prevented the exception.
         /// </summary>
+        /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
         internal cUnexpectedServerActionException(fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
@@ -314,8 +317,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when a message sequence number couldn't be determined when building a message filter (see <see cref="cFilterMSN"/>). Probably due to the message being expunged.
+    /// Thrown when a message sequence number couldn't be determined when building a message filter. Probably due to the message being expunged.
     /// </summary>
+    /// <seealso cref="cFilterMSN"/>
     public class cFilterMSNException : cIMAPException
     {
         /// <summary>

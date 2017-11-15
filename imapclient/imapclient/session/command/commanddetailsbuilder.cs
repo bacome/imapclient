@@ -655,10 +655,10 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandDetailsBuilder), nameof(_Tests));
 
-                    cCallbackSynchroniser lES = new cCallbackSynchroniser(new object(), cTrace.cContext.Null);
+                    cCallbackSynchroniser lES = new cCallbackSynchroniser(new object(), cTrace.cContext.None);
                     cStrings lStrings = new cStrings(new List<string>());
                     cMailboxCache lMC = new cMailboxCache(lES, 0, cCommandPartFactory.Validation, new cCapabilities(lStrings, lStrings, 0), (eConnectionState pCS, cTrace.cContext pC) => { });
-                    cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 1, 0, cTrace.cContext.Null);
+                    cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 1, 0, cTrace.cContext.None);
                     //cSelectedMailbox lSelectedMailbox2 = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 2222, 0, cTrace.cContext.Null);
 
 

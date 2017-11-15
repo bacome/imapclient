@@ -57,7 +57,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the path of the parent mailbox. Will be null if there is no parent mailbox.
+        /// Gets the path of the parent mailbox. Will be <see langword="null"/> if there is no parent mailbox.
         /// </summary>
         public string ParentPath
         {

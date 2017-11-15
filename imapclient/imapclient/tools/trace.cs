@@ -31,7 +31,7 @@ namespace work.bacome.trace
     /// <item>The assembly is compiled without the "TRACE" conditional attribute.</item>
     /// <item>There aren't any listeners attached to the <see cref="TraceSource"/> when the instance is created.</item>
     /// <item>The <see cref="TraceSource"/> isn't configured to emit critical messages when the instance is created.</item>
-    /// <item>The <see cref="cContext.Null"/> context is used.</item>
+    /// <item>The <see cref="cContext.None"/> context is used.</item>
     /// </list>
     /// </para>
     /// <para>Root-contexts have a name and a number. The name is programmer assigned, the number is internally assigned and is unique.</para>
@@ -105,7 +105,7 @@ namespace work.bacome.trace
         /// <returns></returns>
         public cContext NewRoot(string pInstanceName, bool pContextTraceDelay = false)
         {
-            if (mTraceSource == null) return cContext.Null;
+            if (mTraceSource == null) return cContext.None;
             return new cContext.cRoot(this, pInstanceName, pContextTraceDelay);
         }
 
@@ -118,7 +118,7 @@ namespace work.bacome.trace
         public abstract class cContext
         {
             /**<summary>A tracing context that does not create contexts or emit messages. Used to suppress tracing.</summary>*/
-            public readonly static cContext Null = new cNull();
+            public readonly static cContext None = new cNone();
 
             /// <summary>
             /// Returns a new root-context tied (in name only) to the root-context of this instance.
@@ -355,16 +355,16 @@ namespace work.bacome.trace
             /// <param name="pTraceEventType"></param>
             /// <param name="pMessage"></param>
             /// <param name="e"></param>
-            /// <returns>Always returns false.</returns>
+            /// <returns>Always returns <see langword="false"/>.</returns>
             /// <remarks>
             /// Designed for use in a conditional catch clause to trace the exception as it 'flies by': e.g.
             /// <code>catch (Exception e) when (lContext.TraceException(e)) { }</code>.
             /// </remarks>
             public bool TraceException(TraceEventType pTraceEventType, string pMessage, Exception e) { TraceEvent(pTraceEventType, "{0}\n{1}", pMessage, e); return false; }
 
-            private class cNull : cContext
+            private class cNone : cContext
             {
-                public cNull() { }
+                public cNone() { }
 
                 public override cContext NewRoot(string pInstanceName, bool pContextTraceDelay) => this;
 

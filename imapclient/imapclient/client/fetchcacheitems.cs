@@ -43,12 +43,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Ensures that the specified items are cached for a set of messages.
+        /// Ensures that the specified items are cached in the internal message cache for the specified messages.
         /// </summary>
         /// <param name="pMessages"></param>
         /// <param name="pItems"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <returns>A list of messages where the cache does NOT contain the requested items (i.e. where something went wrong).</returns>
+        /// <returns>A list of messages where something went wrong and the cache was not populated.</returns>
         public List<cMessage> Fetch(IEnumerable<cMessage> pMessages, cCacheItems pItems, cCacheItemFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(Fetch), 3);
@@ -97,12 +97,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Asynchronously ensures that the specified items are cached for a set of messages.
+        /// Asynchronously ensures that the specified items are cached in the internal message cache for the specified messages.
         /// </summary>
         /// <param name="pMessages"></param>
         /// <param name="pItems"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
-        /// <returns>A list of messages where the cache does NOT contain the requested items (i.e. where something went wrong).</returns>
+        /// <returns>A list of messages where something went wrong and the cache was not populated.</returns>
         public async Task<List<cMessage>> FetchAsync(IEnumerable<cMessage> pMessages, cCacheItems pItems, cCacheItemFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(FetchAsync), 3);

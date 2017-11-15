@@ -28,16 +28,15 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// <para>Store flags for a set of messages.</para>
-        /// <para>The mailbox that the messages are in must be selected.</para>
+        /// Stores flags for a set of messages. The mailbox that the messages are in must be selected.
         /// </summary>
-        /// <param name="pMessages">The set of messages.</param>
+        /// <param name="pMessages"></param>
         /// <param name="pOperation">The type of store operation.</param>
-        /// <param name="pFlags">The flags to store.</param>
+        /// <param name="pFlags"></param>
         /// <param name="pIfUnchangedSinceModSeq">
-        /// <para>The modseq to use in the unchangedsince clause of a conditional store (RFC 7162).</para>
-        /// <para>Can only be specified if the mailbox supports RFC 7162.</para>
-        /// <para>If the message has been modified since the specified modseq the server should fail the update.</para>
+        /// The modseq to use in the UNCHANGEDSINCE clause of a conditional store (see RFC 7162).
+        /// Can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero.
+        /// Individual messages should have their stores failed by the server if they have been modified since the specified modseq.
         /// </param>
         /// <returns>Feedback on the success (or otherwise) of the store.</returns>
         public cStoreFeedback Store(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
@@ -65,7 +64,18 @@ namespace work.bacome.imapclient
             return lFeedback;
         }
 
-        /**<summary>The async version of <see cref="Store(IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)"/>.</summary>*/
+        /// <summary>
+        /// Asynchronously stores flags for a set of messages. The mailbox that the messages are in must be selected.
+        /// </summary>
+        /// <param name="pMessages"></param>
+        /// <param name="pOperation">The type of store operation.</param>
+        /// <param name="pFlags"></param>
+        /// <param name="pIfUnchangedSinceModSeq">
+        /// The modseq to use in the UNCHANGEDSINCE clause of a conditional store (see RFC 7162).
+        /// Can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero.
+        /// Individual messages should have their stores failed by the server if they have been modified since the specified modseq.
+        /// </param>
+        /// <returns>Feedback on the success (or otherwise) of the store.</returns>
         public async Task<cStoreFeedback> StoreAsync(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 3);

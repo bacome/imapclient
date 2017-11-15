@@ -75,27 +75,27 @@ namespace work.bacome.imapclient
         public string MD5 => Part.ExtensionData?.MD5;
 
         /// <summary>
-        /// Gets the suggested filename of the attachment if provided. May be null.
+        /// Gets the suggested filename of the attachment if provided. May be <see langword="null"/>.
         /// </summary>
         public string FileName => Part.Disposition?.FileName;
 
         /// <summary>
-        /// Gets the creation date of the attachment if provided. May be null.
+        /// Gets the creation date of the attachment if provided. May be <see langword="null"/>.
         /// </summary>
         public DateTime? CreationDate => Part.Disposition?.CreationDate;
 
         /// <summary>
-        /// Gets the modification date of the attachment if provided. May be null.
+        /// Gets the modification date of the attachment if provided. May be <see langword="null"/>.
         /// </summary>
         public DateTime? ModificationDate => Part.Disposition?.ModificationDate;
 
         /// <summary>
-        /// Gets the last read date of the attachment if provided. May be null.
+        /// Gets the last read date of the attachment if provided. May be <see langword="null"/>.
         /// </summary>
         public DateTime? ReadDate => Part.Disposition?.ReadDate;
 
         /// <summary>
-        /// Gets the approximate size in bytes of the attachment if provided. May be null.
+        /// Gets the approximate size in bytes of the attachment if provided. May be <see langword="null"/>.
         /// </summary>
         public int? ApproximateFileSizeInBytes => Part.Disposition?.Size;
 

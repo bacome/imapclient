@@ -7,8 +7,9 @@ using work.bacome.trace;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of credentials to use during <see cref="cIMAPClient.Connect"/>. See <see cref="cIMAPClient.Credentials"/>.
+    /// A set of credentials to use during <see cref="cIMAPClient.Connect"/>.
     /// </summary>
+    /// <seealso cref="cIMAPClient.Credentials"/>
     public class cCredentials
     {
         /// <summary>
@@ -17,7 +18,7 @@ namespace work.bacome.imapclient
         public readonly eAccountType Type;
 
         /// <summary>
-        /// The userid for the credentials. May be null for <see cref="eAccountType.anonymous"/> and <see cref="eAccountType.unknown"/>; must not be null otherwise.
+        /// The userid for the credentials. May be <see langword="null"/> for <see cref="eAccountType.anonymous"/> and <see cref="eAccountType.unknown"/>; must not be <see langword="null"/> otherwise.
         /// </summary>
         public readonly string UserId;
 

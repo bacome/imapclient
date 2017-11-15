@@ -42,8 +42,8 @@ namespace work.bacome.async
         /// <summary>
         /// Returns the first task to complete from the set of passed tasks OR throws if the instance times-out or is cancelled.
         /// </summary>
-        /// <param name="pTask">A task, can't be null.</param>
-        /// <param name="pTasks">A set of tasks, any or all can be null.</param>
+        /// <param name="pTask">A task, can't be <see langword="null"/>.</param>
+        /// <param name="pTasks">A set of tasks, any or all can be <see langword="null"/>.</param>
         /// <returns>The task that completed.</returns>
         /// <remarks>
         /// If the task that completes did so because it failed (timed-out, was cancelled, or threw) then this method throws.
@@ -71,7 +71,7 @@ namespace work.bacome.async
         /// Returns a task that completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates timeout or cancellation.
         /// </summary>
         /// <param name="pMC">Controls the execution of the method.</param>
-        /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be null.</param>
+        /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be <see langword="null"/>.</param>
         /// <returns></returns>
         /// <remarks>
         /// If any of the passed tasks fail (timed-out, were cancelled, or threw) then this method throws.
@@ -83,7 +83,7 @@ namespace work.bacome.async
         /// Returns a task that completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates timeout or cancellation.
         /// </summary>
         /// <param name="pMC">Controls the execution of the method.</param>
-        /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be null.</param>
+        /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be <see langword="null"/>.</param>
         /// <returns></returns>
         /// <remarks>
         /// If any of the passed tasks fail (timed-out, were cancelled, or threw) then this method throws.

@@ -5,51 +5,74 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    /** <summary>Items that can be sorted by.</summary> */
-    public enum eSortItem { received, cc, sent, from, size, subject, to, displayfrom, displayto }
+    /// <summary>
+    /// Items that messages can be sorted by.
+    /// </summary>
+    /// <seealso cref="cSortItem"/>
+    public enum eSortItem
+    {
+        /**<summary>The IMAP INTERNALDATE of the message.</summary>*/
+        received,
+        /**<summary>The group-name or local-part of the first CC address.</summary>*/
+        cc,
+        /**<summary>The UTC sent date of the message.</summary>*/
+        sent,
+        /**<summary>The group-name or local-part of the first 'from' address.</summary>*/
+        from,
+        /**<summary>The size of the message in bytes.</summary>*/
+        size,
+        /**<summary>The base subject. The base subject is defined RFC 5256 and is the subject with the RE: FW: etc artifacts removed.</summary>*/
+        subject,
+        /**<summary>The group-name or local-part of the first 'to' address.</summary>*/
+        to,
+        /**<summary>The display-name of the first 'from' address. Defined in RFC 5957.</summary>*/
+        displayfrom,
+        /**<summary>The display-name of the first 'to' address. Defined in RFC 5957.</summary>*/
+        displayto
+    }
 
     /// <summary>
-    /// <para>An item to sort messages by.</para>
-    /// <para>Use the static instances that are members of the class to improve readability of your sort specification.</para>
+    /// Represents an item in a message sort specification.
     /// </summary>
+    /// <seealso cref="cSort"/>
     public class cSortItem
     {
-        /** <summary>Ascending by message internal date.</summary> */
+        /** <summary>Ascending by <see cref="eSortItem.received"/>.</summary> */
         public static readonly cSortItem Received = new cSortItem(eSortItem.received, false);
-        /** <summary>Ascending by the first address in the message CC.</summary> */
+        /** <summary>Ascending by <see cref="eSortItem.cc"/>.</summary> */
         public static readonly cSortItem CC = new cSortItem(eSortItem.cc, false);
-        /** <summary>Ascending by the message sent date.</summary> */
+        /** <summary>Ascending by <see cref="eSortItem.sent"/>.</summary> */
         public static readonly cSortItem Sent = new cSortItem(eSortItem.sent, false);
-        /** <summary>Ascending by the first address in the message 'from'.</summary> */
+        /** <summary>Ascending by <see cref="eSortItem.from"/>.</summary> */
         public static readonly cSortItem From = new cSortItem(eSortItem.from, false);
-        /** <summary>Ascending by the message size.</summary> */
+        /** <summary>Ascending by <see cref="eSortItem.size"/>.</summary> */
         public static readonly cSortItem Size = new cSortItem(eSortItem.size, false);
-        /** <summary>Ascending by the message subject.</summary> */
+        /** <summary>Ascending by <see cref="eSortItem.subject"/>.</summary> */
         public static readonly cSortItem Subject = new cSortItem(eSortItem.subject, false);
-        /** <summary>Ascending by the first address in the message 'to'.</summary> */
+        /** <summary>Ascending by <see cref="eSortItem.to"/>.</summary> */
         public static readonly cSortItem To = new cSortItem(eSortItem.to, false);
-        /** <summary>Ascending by the display version (see RFC 5957) of the first address in the message 'from'.</summary> */
+        /** <summary>Ascending by <see cref="eSortItem.displayfrom"/>.</summary> */
         public static readonly cSortItem DisplayFrom = new cSortItem(eSortItem.displayfrom, false);
-        /** <summary>Ascending by the display version (see RFC 5957) of the first address in the message 'to'.</summary> */
+        /** <summary>Ascending by <see cref="eSortItem.displayto"/>.</summary> */
         public static readonly cSortItem DisplayTo = new cSortItem(eSortItem.displayto, false);
 
-        /** <summary>Descending by message internal date.</summary> */
+        /** <summary>Descending by <see cref="eSortItem.received"/>.</summary> */
         public static readonly cSortItem ReceivedDesc = new cSortItem(eSortItem.received, true);
-        /** <summary>Descending by the first address in the message CC.</summary> */
+        /** <summary>Descending by <see cref="eSortItem.cc"/>.</summary> */
         public static readonly cSortItem CCDesc = new cSortItem(eSortItem.cc, true);
-        /** <summary>Descending by the message sent date.</summary> */
+        /** <summary>Descending by <see cref="eSortItem.sent"/>.</summary> */
         public static readonly cSortItem SentDesc = new cSortItem(eSortItem.sent, true);
-        /** <summary>Descending by the first address in the message 'from'.</summary> */
+        /** <summary>Descending by <see cref="eSortItem.from"/>.</summary> */
         public static readonly cSortItem FromDesc = new cSortItem(eSortItem.from, true);
-        /** <summary>Descending by the message size.</summary> */
+        /** <summary>Descending by <see cref="eSortItem.size"/>.</summary> */
         public static readonly cSortItem SizeDesc = new cSortItem(eSortItem.size, true);
-        /** <summary>Descending by the message subject.</summary> */
+        /** <summary>Descending by <see cref="eSortItem.subject"/>.</summary> */
         public static readonly cSortItem SubjectDesc = new cSortItem(eSortItem.subject, true);
-        /** <summary>Descending by the first address in the message 'to'.</summary> */
+        /** <summary>Descending by <see cref="eSortItem.to"/>.</summary> */
         public static readonly cSortItem ToDesc = new cSortItem(eSortItem.to, true);
-        /** <summary>Descending by the display version (see RFC 5957) of the first address in the message 'from'.</summary> */
+        /** <summary>Descending by <see cref="eSortItem.displayfrom"/>.</summary> */
         public static readonly cSortItem DisplayFromDesc = new cSortItem(eSortItem.displayfrom, true);
-        /** <summary>Descending by the display version (see RFC 5957) of the first address in the message 'to'.</summary> */
+        /** <summary>Descending by <see cref="eSortItem.displayto"/>.</summary> */
         public static readonly cSortItem DisplayToDesc = new cSortItem(eSortItem.displayto, true);
 
         /// <summary>
@@ -58,15 +81,20 @@ namespace work.bacome.imapclient
         public readonly eSortItem Item;
 
         /// <summary>
-        /// If sorting is to be done client-side this is the message cache attribute that is required.
+        /// The internal message cache attribute that is required if the sorting is done client-side.
         /// </summary>
         public readonly fCacheAttributes Attribute;
 
         /// <summary>
-        /// Indicates descending sort.
+        /// Indicates a descending sort.
         /// </summary>
         public readonly bool Desc;
 
+        /// <summary>
+        /// Initialises a new instance.
+        /// </summary>
+        /// <param name="pItem"></param>
+        /// <param name="pDesc">Indicates a descending sort.</param>
         public cSortItem(eSortItem pItem, bool pDesc)
         {
             Item = pItem;
@@ -102,16 +130,40 @@ namespace work.bacome.imapclient
             Desc = pDesc;
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString() => $"{nameof(cSortItem)}({Item},{Attribute},{Desc})";
     }
 
     /// <summary>
-    /// Defines a sort order for message lists.
+    /// Represents a message sort specification.
     /// </summary>
+    /// <remarks>
+    /// You can use the following <see langword="static"/> instances of <see cref="cSortItem"/> when creating new sort specifications;
+    /// <list type="bullet">
+    /// <item><see cref="cSortItem.Received"/></item>
+    /// <item><see cref="cSortItem.CC"/></item>
+    /// <item><see cref="cSortItem.Sent"/></item>
+    /// <item><see cref="cSortItem.From"/></item>
+    /// <item><see cref="cSortItem.Size"/></item>
+    /// <item><see cref="cSortItem.Subject"/></item>
+    /// <item><see cref="cSortItem.To"/></item>
+    /// <item><see cref="cSortItem.DisplayFrom"/></item>
+    /// <item><see cref="cSortItem.DisplayTo"/></item>
+    /// <item><see cref="cSortItem.ReceivedDesc"/></item>
+    /// <item><see cref="cSortItem.CCDesc"/></item>
+    /// <item><see cref="cSortItem.SentDesc"/></item>
+    /// <item><see cref="cSortItem.FromDesc"/></item>
+    /// <item><see cref="cSortItem.SizeDesc"/></item>
+    /// <item><see cref="cSortItem.SubjectDesc"/></item>
+    /// <item><see cref="cSortItem.ToDesc"/></item>
+    /// <item><see cref="cSortItem.DisplayFromDesc"/></item>
+    /// <item><see cref="cSortItem.DisplayToDesc"/></item>
+    /// </list>
+    /// </remarks>
     public class cSort : IComparer<iMessageHandle>, IComparer<cMessage>
     {
         /// <summary>
-        /// An instance representing that no sorting is required.
+        /// Specifies that no sorting is required.
         /// </summary>
         public static readonly cSort None = new cSort("none");
 
@@ -122,7 +174,7 @@ namespace work.bacome.imapclient
         private readonly string mName;
 
         /// <summary>
-        /// A collection of the items in this sort.
+        /// The items in this sort specification.
         /// </summary>
         public readonly ReadOnlyCollection<cSortItem> Items;
 
@@ -132,6 +184,10 @@ namespace work.bacome.imapclient
             Items = null;
         }
 
+        /// <summary>
+        /// Initialises a new instance.
+        /// </summary>
+        /// <param name="pItems"></param>
         public cSort(IEnumerable<cSortItem> pItems)
         {
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -150,6 +206,10 @@ namespace work.bacome.imapclient
             Items = new ReadOnlyCollection<cSortItem>(lItems);
         }
 
+        /// <summary>
+        /// Initialises a new instance.
+        /// </summary>
+        /// <param name="pItems"></param>
         public cSort(params cSortItem[] pItems)
         {
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -162,12 +222,17 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Compares two message handles according to the sort definition.
-        /// If the attributes required for the comparision are not in the message cache the results are undefined.
+        /// Compares the attributes already in the internal message for two messages according to this message sort specification.
         /// </summary>
         /// <param name="pX"></param>
         /// <param name="pY"></param>
         /// <returns></returns>
+        /// <remarks>
+        /// If the attributes required for the comparision are not already in the internal message cache the result may be misleading.
+        /// </remarks>
+        /// <seealso cref="Attributes"/>
+        /// <seealso cref="iMessageHandle.Attributes"/>
+        /// <seealso cref="cMailbox.Messages(IEnumerable{iMessageHandle}, cCacheItems, cCacheItemFetchConfiguration)"/>
         public int Compare(iMessageHandle pX, iMessageHandle pY)
         {
             if (Items == null) throw new InvalidOperationException();
@@ -249,12 +314,14 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Compares two messages according to the sort definition.
-        /// If the attributes required for the comparision are not in the message cache the attributes are fetched.
+        /// Compares two messages according to this message sort specification.
         /// </summary>
         /// <param name="pX"></param>
         /// <param name="pY"></param>
         /// <returns></returns>
+        /// <remarks>
+        /// If the attributes required for the comparision are not already in the internal message cache they will be fetched from the server.
+        /// </remarks>
         public int Compare(cMessage pX, cMessage pY)
         {
             if (Items == null) throw new InvalidOperationException();
@@ -274,22 +341,22 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Returns the set of message attributes required by this sort and whether SORT=DISPLAY (RFC 5957) support is required for the server to do the sort.
+        /// Gets the requirements for this sort to be done client-side and server-side.
         /// </summary>
-        /// <param name="rDisplay">Returns true if SORT=DISPLAY (RFC 5957) support is required for the server to do the sort.</param>
-        /// <returns>The set of message attributes required by this sort.</returns>
-        public fCacheAttributes Attributes(out bool rDisplay)
+        /// <param name="rSortDisplay">Gets set to <see langword="true"/> if <see cref="cCapabilities.SortDisplay"/> must be in use for the server to do the sort.</param>
+        /// <returns>The set of message attributes required for the comparison implied by this sort to be done client-side.</returns>
+        public fCacheAttributes Attributes(out bool rSortDisplay)
         {
             if (Items == null) throw new InvalidOperationException();
 
-            rDisplay = false;
+            rSortDisplay = false;
 
             fCacheAttributes lAttributes = 0;
 
             foreach (var lItem in Items)
             {
                 lAttributes |= lItem.Attribute;
-                if (lItem.Item == eSortItem.displayfrom || lItem.Item == eSortItem.displayto) rDisplay = true;
+                if (lItem.Item == eSortItem.displayfrom || lItem.Item == eSortItem.displayto) rSortDisplay = true;
             }
 
             return lAttributes;
@@ -334,6 +401,7 @@ namespace work.bacome.imapclient
             return pX.CompareTo(pY);
         }
 
+        /**<summary>Returns a string that represents the instance.</summary>*/
         public override string ToString()
         {
             if (mName != null) return $"{nameof(cSort)}({mName})";

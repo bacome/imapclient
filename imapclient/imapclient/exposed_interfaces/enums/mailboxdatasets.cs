@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
     /// </list>
     /// </para>
     /// <para>
-    /// <see cref="lsub"/> data affects the following <see cref="cMailbox"/> properties; <see cref="cMailbox.IsSubscribed"/>
+    /// <see cref="lsub"/> data always affects <see cref="cMailbox.IsSubscribed"/>. 
     /// </para>
     /// <para>
     /// <see cref="status"/> data affects the following <see cref="cMailbox"/> properties;

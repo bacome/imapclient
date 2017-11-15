@@ -7,41 +7,42 @@ namespace work.bacome.imapclient
     /// </summary>
     public class cEnvelope
     {
-        /** <summary>The message sent date. May be null.</summary> */
+        /** <summary>The message sent date. May be <see langword="null"/>.</summary> */
         public readonly DateTime? Sent;
 
-        /** <summary>The message subject. May be null.</summary> */
+        /** <summary>The message subject. May be <see langword="null"/>.</summary> */
         public readonly cCulturedString Subject;
 
         /// <summary>
-        /// The base subject as defined in RFC 5256.
-        /// (i.e. with the RE: FWD: etc stripped off.)
-        /// May be null.
+        /// The message base subject. May be <see langword="null"/>.
         /// </summary>
+        /// <remarks>
+        /// The base subject is defined RFC 5256 and is the subject with the RE: FW: etc artifacts removed.
+        /// </remarks>
         public readonly string BaseSubject;
 
-        /** <summary>The message 'from' address(s). May be null.</summary> */
+        /** <summary>The message 'from' address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses From;
 
-        /** <summary>The message sender address(s). May be null.</summary> */
+        /** <summary>The message sender address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses Sender;
 
-        /** <summary>The message repy-to address(s). May be null.</summary> */
+        /** <summary>The message repy-to address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses ReplyTo;
 
-        /** <summary>The message 'to' address(s). May be null.</summary> */
+        /** <summary>The message 'to' address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses To;
 
-        /** <summary>The message CC address(s). May be null.</summary> */
+        /** <summary>The message CC address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses CC;
 
-        /** <summary>The message BCC address(s). May be null.</summary> */
+        /** <summary>The message BCC address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses BCC;
 
-        /** <summary>The normalised (delimiters, quoting, comments and white space removed) in-reply-to message-ids. May be null.</summary> */
+        /** <summary>The normalised (delimiters, quoting, comments and white space removed) in-reply-to message-ids. May be <see langword="null"/>.</summary> */
         public readonly cHeaderFieldMsgIds InReplyTo;
 
-        /** <summary>The normalised (delimiters, quoting, comments and white space removed) message-id of the message. May be null.</summary> */
+        /** <summary>The normalised (delimiters, quoting, comments and white space removed) message-id of the message. May be <see langword="null"/>.</summary> */
         public readonly cHeaderFieldMsgId MessageId;
 
         internal cEnvelope(DateTime? pSent, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cHeaderFieldMsgIds pInReplyTo, cHeaderFieldMsgId pMessageId)

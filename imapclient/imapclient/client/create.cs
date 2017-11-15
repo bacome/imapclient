@@ -21,7 +21,12 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        /**<summary>The async version of <see cref="Create(cMailboxName, bool)"/>.</summary>*/
+        /// <summary>
+        /// Ansynchronously creates a new mailbox on the connected server.
+        /// </summary>
+        /// <param name="pMailboxName">The mailbox name to use.</param>
+        /// <param name="pAsFutureParent">Indicate to the IMAP server that you intend to create child mailboxes in the new mailbox.</param>
+        /// <returns></returns>
         public Task<cMailbox> CreateAsync(cMailboxName pMailboxName, bool pAsFutureParent)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(CreateAsync));

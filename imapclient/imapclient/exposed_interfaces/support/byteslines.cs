@@ -20,7 +20,7 @@ namespace work.bacome.imapclient.support
     /// <summary>
     /// Represents a response received from a server.
     /// </summary>
-    /// <seealso cref="cNetworkReceiveEventArgs.Lines"/>
+    /// <seealso cref="cNetworkReceiveEventArgs"/>
     public class cBytesLines : ReadOnlyCollection<cBytesLine>
     {
         internal cBytesLines(IList<cBytesLine> pBytesLines) : base(pBytesLines) { }

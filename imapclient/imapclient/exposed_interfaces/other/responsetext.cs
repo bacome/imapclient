@@ -5,7 +5,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// The type of IMAP response text.
     /// </summary>
-    /// <seealso cref="cResponseTextEventArgs.TextType"/>
+    /// <seealso cref="cResponseTextEventArgs"/>
     public enum eResponseTextType
     {
         /**<summary>Response text associated with an IMAP greeting.</summary>*/
@@ -31,8 +31,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The text code associated with IMAP response text. See <see cref="cResponseText.Code"/>.
+    /// The text code associated with IMAP response text.
     /// </summary>
+    /// <seealso cref="cResponseText"/>
     public enum eResponseTextCode
     {
         /**<summary>There was no code.</summary>*/
@@ -101,12 +102,12 @@ namespace work.bacome.imapclient
     /// <summary>
     /// IMAP response text.
     /// </summary>
-    /// <seealso cref="cResponseTextEventArgs.Text"/>
-    /// <seealso cref="cUnsuccessfulCompletionException.ResponseText"/>
-    /// <seealso cref="cConnectByeException.ResponseText"/>
-    /// <seealso cref="cHomeServerReferralException.ResponseText"/>
-    /// <seealso cref="cCredentialsException.ResponseText"/>
-    /// <seealso cref="cCommandResult.ResponseText"/>
+    /// <seealso cref="cResponseTextEventArgs"/>
+    /// <seealso cref="cUnsuccessfulCompletionException"/>
+    /// <seealso cref="cConnectByeException"/>
+    /// <seealso cref="cHomeServerReferralException"/>
+    /// <seealso cref="cCredentialsException"/>
+    /// <seealso cref="cCommandResult"/>
     public class cResponseText
     {
         /// <summary>
@@ -122,12 +123,12 @@ namespace work.bacome.imapclient
         public readonly cStrings Strings; // for badcharset, referrals
 
         /// <summary>
-        /// If the <see cref="Code"/> is <see cref="eResponseTextCode.unknown"/> this is the text of the code, otherwise null.
+        /// If the <see cref="Code"/> is <see cref="eResponseTextCode.unknown"/> this is the text of the code, otherwise <see langword="null"/>.
         /// </summary>
         public readonly string UnknownCodeAtom;
 
         /// <summary>
-        /// If the <see cref="Code"/> is <see cref="eResponseTextCode.unknown"/> this is the text following the code, otherwise null. (May also be null if there was no text.)
+        /// If the <see cref="Code"/> is <see cref="eResponseTextCode.unknown"/> this is the text following the code, otherwise <see langword="null"/>. (May also be <see langword="null"/> if there was no text.)
         /// </summary>
         public readonly string UnknownCodeText;
 

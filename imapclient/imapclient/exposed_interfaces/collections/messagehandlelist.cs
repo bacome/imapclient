@@ -8,8 +8,6 @@ namespace work.bacome.imapclient
     /// <summary>
     /// A list of messages in the internal message cache.
     /// </summary>
-    /// <seealso cref="cMailbox.SetUnseenCount"/>
-    /// <seealso cref="cMessageDeliveryEventArgs.Handles"/>
     public class cMessageHandleList : List<iMessageHandle>
     {
         internal cMessageHandleList() { }

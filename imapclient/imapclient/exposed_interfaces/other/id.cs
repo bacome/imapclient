@@ -289,7 +289,7 @@ namespace work.bacome.imapclient
 
         /**<summary>Gets the number of field/ value pairs in the dictionary.</summary>*/
         public int Count => mDictionary.Count;
-        /**<summary>Always returns false.</summary>*/
+        /**<summary>Always returns <see langword="false"/>.</summary>*/
         public bool IsReadOnly => false;
 
         /**<summary>Gets the values that are in the dictionary.</summary>*/

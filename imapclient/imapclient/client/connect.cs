@@ -56,14 +56,14 @@ namespace work.bacome.imapclient
         ///   The client was able to try credentials from <see cref="Credentials"/>, but they didn't work.
         ///   If the server explicitly rejected the credentials using one of the 
         ///   <see cref="eResponseTextCode.authenticationfailed"/>, <see cref="eResponseTextCode.authorizationfailed"/> or <see cref="eResponseTextCode.expired"/> codes,
-        ///   then the <see cref="cCredentialsException.ResponseText"/> will contain the details (otherwise the <see cref="cCredentialsException.ResponseText"/> will be null).
+        ///   then the <see cref="cCredentialsException.ResponseText"/> will contain the details (otherwise the <see cref="cCredentialsException.ResponseText"/> will be <see langword="null"/>).
         ///   </description>
         /// </item>
         /// <item>
         ///   <term><see cref="cAuthenticationMechanismsException"/></term>
         ///   <description>
         ///   The client was not able to try any credentials from <see cref="Credentials"/>. 
-        ///   If the TLS state was to blame for this then <see cref="cAuthenticationMechanismsException.TLSIssue"/> will be set to true.
+        ///   If the TLS state was to blame for this then <see cref="cAuthenticationMechanismsException.TLSIssue"/> will be set to <see langword="true"/>.
         ///   </description>
         /// </item>
         /// <item>
@@ -83,7 +83,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Connects to the <see cref="Server"/> using the <see cref="Credentials"/>. 
+        /// Ansynchronously connects to the <see cref="Server"/> using the <see cref="Credentials"/>. 
         /// Can only be called when the instance <see cref="IsUnconnected"/>.
         /// Will throw if an authenticated IMAP connection cannot be established.
         /// </summary>

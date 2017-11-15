@@ -31,9 +31,9 @@ namespace work.bacome.imapclient.support
         uint? Size { get; }
         /**<summary>Gets the UID of the message if it is cached.</summary>*/
         cUID UID { get; }
-        /**<summary>Gets the set of header fields that are cached for the message, may be null if none have been cached.</summary>*/
+        /**<summary>Gets the set of header fields that are cached for the message, may be <see langword="null"/> if none have been cached.</summary>*/
         cHeaderFields HeaderFields { get; }
-        /**<summary>Gets the binary part sizes that are cached for the message, may be null if none have been cached.</summary>*/
+        /**<summary>Gets the binary part sizes that are cached for the message, may be <see langword="null"/> if none have been cached.</summary>*/
         cBinarySizes BinarySizes { get; }
 
         /// <summary>

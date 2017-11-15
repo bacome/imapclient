@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
         public string Prefix => NamespaceName.Prefix;
 
         /// <summary>
-        /// Gets the namespace hierarchy delimiter. May be null if there is no hierarchy.
+        /// Gets the namespace hierarchy delimiter. May be <see langword="null"/> if there is no hierarchy.
         /// </summary>
         public char? Delimiter => NamespaceName.Delimiter;
 
@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets the subscribed mailboxes in the namespace. Note that mailboxes that do not currently exist may be returned.
         /// </summary>
-        /// <param name="pDescend">If true all subscribed mailboxes in the namespace are returned, if false only mailboxes at the top level of hierarchy are returned.</param>
+        /// <param name="pDescend">If <see langword="true"/> all subscribed mailboxes in the namespace are returned, if <see langword="false"/> only mailboxes at the top level of hierarchy are returned.</param>
         /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
         /// <returns></returns>
         public List<cMailbox> Subscribed(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0) => Client.Subscribed(NamespaceName, pDescend, pDataSets);
@@ -56,7 +56,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Asynchronously gets the subscribed mailboxes in the namespace. Note that mailboxes that do not currently exist may be returned.
         /// </summary>
-        /// <param name="pDescend">If true all subscribed mailboxes in the namespace are returned, if false only mailboxes at the top level of hierarchy are returned.</param>
+        /// <param name="pDescend">If <see langword="true"/> all subscribed mailboxes in the namespace are returned, if <see langword="false"/> only mailboxes at the top level of hierarchy are returned.</param>
         /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
         /// <returns></returns>
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(NamespaceName, pDescend, pDataSets);

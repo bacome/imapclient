@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// Represents a set of characters that are valid in a parsing context. Each static member defines a different set of characters. Intended for internal use.
+    /// Represents a set of characters that are valid in a parsing context. Each <see langword="static"/> member defines a different set of characters. Intended for internal use.
     /// </summary>
     public abstract class cCharset
     {

@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cIMAPClient.FetchCacheItemsConfiguration"/>
     /// <seealso cref="cIMAPClient.FetchBodyReadConfiguration"/>
     /// <seealso cref="cIMAPClient.FetchBodyWriteConfiguration"/>
-    /// <seealso cref="cBodyFetchConfiguration.Write"/>
+    /// <seealso cref="cBodyFetchConfiguration"/>
     public class cBatchSizerConfiguration
     {
         /**<summary>The minimum batch size.</summary>*/

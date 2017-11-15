@@ -1,9 +1,10 @@
 ﻿using System;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents a text part of an IMAP message section (see <see cref="cSection"/>).
+    /// The text part of an IMAP message section (see <see cref="cSection"/>).
     /// </summary>
     public enum eSectionTextPart
     {
@@ -47,7 +48,7 @@ namespace work.bacome.imapclient
         public static readonly cSection Text = new cSection(null, eSectionTextPart.text);
 
         /// <summary>
-        /// The IMAP section-part (a dot separated set of integers) that this instance represents. May be null if the instance represents the top level part.
+        /// The IMAP section-part (a dot separated set of integers) that this instance represents. May be <see langword="null"/> if the instance represents the top level part.
         /// </summary>
         public readonly string Part;
 
@@ -64,7 +65,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Initialises a new instance so it represents an entire part.
         /// </summary>
-        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or null for the top level part.</param>
+        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or <see langword="null"/> for the top level part.</param>
         public cSection(string pPart)
         {
             if (pPart != null && !ZValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
@@ -76,8 +77,8 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Initialises a new instance so it represents a whole text part.
         /// </summary>
-        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or null for the top level part.</param>
-        /// <param name="pTextPart">Must be <see cref="eSectionTextPart.all"/>, <see cref="eSectionTextPart.header"/>, <see cref="eSectionTextPart.text"/> or if <paramref name="pPart"/> is not null, <see cref="eSectionTextPart.mime"/>.</param>
+        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or <see langword="null"/> for the top level part.</param>
+        /// <param name="pTextPart">Must be <see cref="eSectionTextPart.all"/>, <see cref="eSectionTextPart.header"/>, <see cref="eSectionTextPart.text"/> or if <paramref name="pPart"/> is not <see langword="null"/>, <see cref="eSectionTextPart.mime"/>.</param>
         public cSection(string pPart, eSectionTextPart pTextPart)
         {
             if (pPart != null && !ZValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
@@ -91,9 +92,9 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Initialises a new instance so it represents a sub-part of the <see cref="eSectionTextPart.header"/>.
         /// </summary>
-        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or null for the message headers.</param>
+        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or <see langword="null"/> for the message headers.</param>
         /// <param name="pNames"></param>
-        /// <param name="pNot">True to represent all headers except <paramref name="pNames"/>, false to represent only the headers in <paramref name="pNames"/>.</param>
+        /// <param name="pNot"><see langword="true"/> to represent all headers except <paramref name="pNames"/>, <see langword="false"/> to represent only the headers in <paramref name="pNames"/>.</param>
         public cSection(string pPart, cHeaderFieldNames pNames, bool pNot = false)
         {
             if (pPart != null && !ZValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
@@ -120,17 +121,10 @@ namespace work.bacome.imapclient
             return lCursor.Position.AtEnd;
         }
 
-        /// <summary>
-        /// Determines whether this instance and the specified object are the same.
-        /// </summary>
-        /// <param name="pObject"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public override bool Equals(object pObject) => this == pObject as cSection;
 
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -144,15 +138,10 @@ namespace work.bacome.imapclient
             }
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cSection)}({Part},{TextPart},{Names})";
 
-        /// <summary>
-        /// Determines whether two instances are the same.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Op_Equal(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator ==(cSection pA, cSection pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -161,12 +150,7 @@ namespace work.bacome.imapclient
             return (pA.Part == pB.Part && pA.TextPart == pB.TextPart && pA.Names == pB.Names);
         }
 
-        /// <summary>
-        /// Determines whether two instances are different.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Op_NotEqual(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator !=(cSection pA, cSection pB) => !(pA == pB);
     }
 }

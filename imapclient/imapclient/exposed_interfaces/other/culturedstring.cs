@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
     public class cCulturedString
     {
         /// <summary>
-        /// The parts of the string. May be null.
+        /// The parts of the string. May be <see langword="null"/>.
         /// </summary>
         public readonly ReadOnlyCollection<cCulturedStringPart> Parts;
 
@@ -145,7 +145,7 @@ namespace work.bacome.imapclient
         public readonly string String;
 
         /// <summary>
-        /// Optional language of the text. May be null.
+        /// Optional language of the text. May be <see langword="null"/>.
         /// </summary>
         public readonly string LanguageTag;
 

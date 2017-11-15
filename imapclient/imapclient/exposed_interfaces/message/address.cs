@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents an email address. May be an individual address (<see cref="cEmailAddress"/>) or a group address (<see cref="cGroupAddress"/>).
+    /// Represents an email address.
     /// </summary>
     /// <seealso cref="cAddresses"/>
     public abstract class cAddress
@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only collection of addresses.
+    /// A read-only collection of email addresses.
     /// </summary>
     /// <seealso cref="cMessage.From"/>
     /// <seealso cref="cMessage.Sender"/>
@@ -36,12 +36,12 @@ namespace work.bacome.imapclient
     public class cAddresses : ReadOnlyCollection<cAddress>
     {
         /// <summary>
-        /// The RFC 5256 sort string for the set of addresses.
+        /// The RFC 5256 sort string for the addresses.
         /// </summary>
         public readonly string SortString;
 
         /// <summary>
-        /// The RFC 5957 display sort string for the set of addresses.
+        /// The RFC 5957 display sort string for the addresses.
         /// </summary>
         public readonly string DisplaySortString;
 

@@ -196,14 +196,14 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines if the collection has been populated with all header fields of the name specified (case insensitive). True does not mean that there are header fields of the specified name in the collection.
+        /// Determines if the collection has been populated with all header fields of the name specified (case insensitive). <see langword="true"/> does not mean that there are header fields of the specified name in the collection.
         /// </summary>
         /// <param name="pName"></param>
         /// <returns></returns>
         public bool Contains(string pName) => mNot != mNames.Contains(pName);
 
         /// <summary>
-        /// Determines if the collection has been populated with all header fields of all the names specified (case insensitive). True does not mean that there are any header fields of the specified names in the collection.
+        /// Determines if the collection has been populated with all header fields of all the names specified (case insensitive). <see langword="true"/> does not mean that there are any header fields of the specified names in the collection.
         /// </summary>
         /// <param name="pNames"></param>
         /// <returns></returns>
@@ -215,7 +215,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines if the collection has not been populated with any header fields of the names specified (case insensitive). False does not mean that there are any header fields of the specified names in the collection.
+        /// Determines if the collection has not been populated with any header fields of the names specified (case insensitive). <see langword="false"/> does not mean that there are any header fields of the specified names in the collection.
         /// </summary>
         /// <param name="pNames"></param>
         /// <returns></returns>
@@ -238,10 +238,10 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Returns one header field of the name specified, or null if there are no header fields of that name in the collection (case insensitive). Throws if the collection has not been populated with header fields of the specified name.
+        /// Returns one header field of the name specified, or <see langword="null"/> if there are no header fields of that name in the collection (case insensitive). Throws if the collection has not been populated with header fields of the specified name.
         /// </summary>
         /// <param name="pName">The header field name.</param>
-        /// <returns>A header field instance with the name specified or null.</returns>
+        /// <returns>A header field instance with the name specified or <see langword="null"/>.</returns>
         public cHeaderField FirstNamed(string pName)
         {
             if (!Contains(pName)) throw new InvalidOperationException();
@@ -252,7 +252,7 @@ namespace work.bacome.imapclient
         /// Returns all header fields of the name specified, or an empty set if there are no header fields of that name in the collection (case insensitive). Throws if the collection has not been populated with header fields of the specified name.
         /// </summary>
         /// <param name="pName">The header field name.</param>
-        /// <returns>A header field instance with the name specified or null.</returns>
+        /// <returns>A header field instance with the name specified or <see langword="null"/>.</returns>
         public IEnumerable<cHeaderField> AllNamed(string pName)
         {
             if (!Contains(pName)) throw new InvalidOperationException();
@@ -260,19 +260,19 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Returns the normalised message-ids from the references header field, or null. Throws if the collection has not been populated with the references header field.
+        /// Returns the normalised message-ids from the references header field, or <see langword="null"/>. Throws if the collection has not been populated with the references header field.
         /// </summary>
         /// <remarks>
         /// Normalised message-ids have the delimiters, quoting, comments and white space removed.
-        /// Returns null if there was no references header field or if the references header field could not be parsed.
+        /// Returns <see langword="null"/> if there was no references header field or if the references header field could not be parsed.
         /// </remarks>
         public cStrings References => (FirstNamed(kHeaderFieldName.References) as cHeaderFieldMsgIds)?.MsgIds;
 
         /// <summary>
-        /// Returns the importance value from the importance header field, or null. Throws if the collection has not been populated with the importance header field.
+        /// Returns the importance value from the importance header field, or <see langword="null"/>. Throws if the collection has not been populated with the importance header field.
         /// </summary>
         /// <remarks>
-        /// Returns null if there was no importance header field or if the importance header field could not be parsed.
+        /// Returns <see langword="null"/> if there was no importance header field or if the importance header field could not be parsed.
         /// </remarks>
         public eImportance? Importance => (FirstNamed(kHeaderFieldName.Importance) as cHeaderFieldImportance)?.Importance;
 

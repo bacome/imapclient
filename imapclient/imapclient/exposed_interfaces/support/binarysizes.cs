@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// A mapping from a message part to a size in bytes for message parts that can be fetched using the BINARY (RFC 3516) command.
+    /// A mapping from a message part that can be fetched using the BINARY (RFC 3516) command to the decoded size in bytes of that part.
     /// </summary>
     /// <remarks>
     /// Using the <see cref="cMessage.FetchSizeInBytes(cSinglePartBody)"/> or <see cref="cAttachment.SaveSizeInBytes"/> methods may create values in this map.

@@ -59,7 +59,7 @@ namespace work.bacome.imapclient
         unseencount = 1 << 7,
 
         /// <summary>
-        /// The backing data for <see cref="cMailbox.HighestModSeq"/>. Note that the server or the mailbox may not support CONDSTORE (RFC 7162) so the value may not actually be requested.
+        /// The backing data for <see cref="cMailbox.HighestModSeq"/>. Note that the server and/ or the mailbox may not support CONDSTORE (RFC 7162) so the value may not actually be requested.
         /// </summary>
         highestmodseq = 1 << 8,
 

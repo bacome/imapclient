@@ -1,10 +1,15 @@
 ﻿using System;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
     /// A set of IMAP message attributes that can be cached in the internal message cache.
     /// </summary>
+    /// <seealso cref="cCacheItems"/>
+    /// <seealso cref="cSort.Attributes(out bool)"/>
+    /// <seealso cref="cSortItem"/>
+    /// <seealso cref="iMessageHandle.Attributes"/>
     [Flags]
     public enum fCacheAttributes
     {

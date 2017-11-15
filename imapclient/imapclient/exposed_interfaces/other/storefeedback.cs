@@ -221,33 +221,33 @@ namespace work.bacome.imapclient
     /// </list>
     /// </para>
     /// <para>Generally <see cref="ExpungedCount"/> + <see cref="NotReflectsOperationCount"/> is the number of definite non-updates.</para>
-    /// <para>Generally <see cref="NotReflectsOperationCount"/> > 0 indicates that a <see cref="cIMAPClient.Poll"/> may be worth trying to get any pending updates (which should convert all the notreflects to expunged or reflects).</para>
+    /// <para>Generally <see cref="NotReflectsOperationCount"/> > 0 indicates that a <see cref="cIMAPClient.Poll"/> may be worth trying to get any pending updates from the server (which should convert all the notreflects to expunged or reflects).</para>
     /// <para>Note that after a <see cref="cIMAPClient.Poll"/> you should get the summary again using <see cref="cStoreFeedback.Summary"/> or <see cref="cUIDStoreFeedback.Summary"/></para>
-    /// <para><see cref="UnknownCount"/> > 0 indicates that a blind update was done so there isn't enough information to say if the store happened or not.</para>
+    /// <para><see cref="UnknownCount"/> > 0 indicates that a blind store was done so there isn't enough information to say if the store happened or not.</para>
     /// </remarks>
     public struct sStoreFeedbackSummary
     {
-        /**<summary>The count where a an IMAP FETCH was received during the command execution and no IMAP MODIFIED response was received (=> _likely_ to have been updated by the command).</summary>*/
+        /**<summary>The count where an IMAP FETCH for the message was received during the command execution and the message wasn't mentioned in the RFC 7162 MODIFIED response (=> the message was _likely_ to have been updated by the store).</summary>*/
         public int UpdatedCount;
 
-        /**<summary>The count where an IMAP MODIFIED response was received (=> _NOT_ updated by the command).</summary>*/
+        /**<summary>The count where the message was mentioned in the RFC 7162 MODIFIED response (=> _NOT_ updated by the store).</summary>*/
         public int WasNotUnchangedSinceCount;
 
         /**<summary>The count where the message cache indicates that the message is expunged.</summary>*/
         public int ExpungedCount;
 
-        /**<summary>The count where the internal message item isn't known (e.g. from a <see cref="cMailbox.UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>) or the internal message cache item does not contain the flags.</summary>*/
+        /**<summary>The count where the internal message cache item isn't known or the internal message cache item does not contain the flags.</summary>*/
         public int UnknownCount;
 
-        /**<summary>The count where the flags in the internal message cache reflect the update.</summary>*/
+        /**<summary>The count where the flags in the internal message cache reflect the store operation.</summary>*/
         public int ReflectsOperationCount;
 
-        /**<summary>The count where the flags in the internal message cache do not reflect the update.</summary>*/
+        /**<summary>The count where the flags in the internal message cache do not reflect the store operation.</summary>*/
         public int NotReflectsOperationCount;
 
-        /**<summary>Gets the count of messages that were likely to have been updated.</summary>*/
+        /**<summary>Gets the count of messages that were likely to have been updated by the store.</summary>*/
         public int LikelyOKCount => UpdatedCount + ReflectsOperationCount;
-        /**<summary>Gets the count of messages that most likely were NOT updated.</summary>*/
+        /**<summary>Gets the count of messages that most likely were NOT updated by the store.</summary>*/
         public int LikelyFailedCount => ExpungedCount + NotReflectsOperationCount;
         /**<summary>Gets the count of messages for which doing a <see cref="cIMAPClient.Poll"/> may increase our knowledge of what happened.</summary>*/
         public bool LikelyWorthPolling => NotReflectsOperationCount > 0;
@@ -264,7 +264,7 @@ namespace work.bacome.imapclient
     {
         /**<summary>The UID that this feedback relates to.</summary>*/
         public readonly cUID UID;
-        /**<summary>The internal message cache item that this feedback relates to, if known. May be null.</summary>*/
+        /**<summary>The internal message cache item that this feedback relates to, if known. May be <see langword="null"/>.</summary>*/
         public iMessageHandle Handle = null; 
 
         internal cUIDStoreFeedbackItem(cUID pUID)

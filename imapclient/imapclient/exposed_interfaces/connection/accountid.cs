@@ -3,10 +3,10 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The type of account.
+    /// The type of an IMAP account.
     /// </summary>
-    /// <seealso cref="cCredentials.Type"/>
-    /// <seealso cref="cAccountId.Type"/>
+    /// <seealso cref="cCredentials"/>
+    /// <seealso cref="cAccountId"/>
     public enum eAccountType
     {
         /** <summary>The library has no idea about the type of the account.</summary>"*/
@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
         public readonly eAccountType Type;
 
         /// <summary>
-        /// The account's userid, if any. May be null.
+        /// The account's userid, if any. May be <see langword="null"/>.
         /// </summary>
         public readonly string UserId;
 

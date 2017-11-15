@@ -7,7 +7,7 @@ namespace work.bacome.imapclient.support
     /// <summary>
     /// A read-only collection of bytes.
     /// </summary>
-    /// <seealso cref="cNetworkSendEventArgs.Buffers"/>
+    /// <seealso cref="cNetworkSendEventArgs"/>
     public class cBytes : ReadOnlyCollection<byte>
     {
         internal cBytes(IList<byte> pBytes) : base(pBytes) { }

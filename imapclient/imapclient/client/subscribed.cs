@@ -10,13 +10,27 @@ namespace work.bacome.imapclient
     public partial class cIMAPClient
     {
         /// <summary>
-        /// List subscribed mailboxes using an IMAP wildcard search.
+        /// Gets a list subscribed mailboxes using an IMAP wildcard search.
         /// </summary>
-        /// <param name="pListMailbox">The search string including IMAP wildcards.</param>
-        /// <param name="pDelimiter">The mailbox name hierarchy delimiter.</param>
-        /// <param name="pHasSubscribedChildren">Include in the list mailboxes that are not themselves subscribed but that have subscribed children.</param>
+        /// <param name="pListMailbox">The search string possibly including IMAP wildcards.</param>
+        /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
+        /// <param name="pHasSubscribedChildren">Specifies if mailboxes that are not themselves subscribed, but that have subscribed children, are included in the returned list.</param>
         /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes.</param>
-        /// <returns>A list of mailboxes.</returns>
+        /// <returns></returns>
+        /// <remarks>
+        /// <para>
+        /// The IMAP wildcards are;
+        /// <list type="bullet">
+        /// <item><token>*</token><description>Matches zero or more characters</description></item>
+        /// <item><token>%</token><description>Matches zero or more characters but not the hierarchy delimiter</description></item>
+        /// </list>
+        /// </para>
+        /// <para>
+        /// The <paramref name="pDelimiter"/> is used in preparing the <paramref name="pListMailbox"/> for sending to the server.
+        /// It should be correctly specified.
+        /// The value specified does not affect what characters are matched by the % wildcard.
+        /// </para>
+        /// </remarks>
         public List<cMailbox> Subscribed(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
@@ -25,7 +39,28 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        /**<summary>The async version of <see cref="Subscribed(string, char?, bool, fMailboxCacheDataSets)"/>.</summary>*/
+        /// <summary>
+        /// Asynchronously gets a list subscribed mailboxes using an IMAP wildcard search.
+        /// </summary>
+        /// <param name="pListMailbox">The search string possibly including IMAP wildcards.</param>
+        /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
+        /// <param name="pHasSubscribedChildren">Specifies if mailboxes that are not themselves subscribed, but that have subscribed children, are included in the returned list.</param>
+        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes.</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// <para>
+        /// The IMAP wildcards are;
+        /// <list type="bullet">
+        /// <item><token>*</token><description>Matches zero or more characters</description></item>
+        /// <item><token>%</token><description>Matches zero or more characters but not the hierarchy delimiter</description></item>
+        /// </list>
+        /// </para>
+        /// <para>
+        /// The <paramref name="pDelimiter"/> is used in preparing the <paramref name="pListMailbox"/> for sending to the server.
+        /// It should be correctly specified.
+        /// The value specified does not affect what characters are matched by the % wildcard.
+        /// </para>
+        /// </remarks>
         public Task<List<cMailbox>> SubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));

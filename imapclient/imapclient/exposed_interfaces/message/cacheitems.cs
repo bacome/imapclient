@@ -3,8 +3,9 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of items that can be cached in the internal message cache. Note that the class has three implicit conversions.
+    /// A set of items that can be cached in the internal message cache.
     /// </summary>
+    /// <seealso cref="cIMAPClient.DefaultCacheItems"/>
     /// <seealso cref="cMessage.Fetch(cCacheItems)"/>
     /// <seealso cref="cMailbox.Message(cUID, cCacheItems)"/>
     /// <seealso cref="cMailbox.Messages(cFilter, cSort, cCacheItems, cMessageFetchConfiguration)"/>
@@ -31,7 +32,7 @@ namespace work.bacome.imapclient
         /// Initialises a new instance with the specified attributes and header field names.
         /// </summary>
         /// <param name="pAttributes"></param>
-        /// <param name="pNames">Can't be null, may be empty.</param>
+        /// <param name="pNames">Can't be <see langword="null"/>, may be empty.</param>
         public cCacheItems(fCacheAttributes pAttributes, cHeaderFieldNames pNames)
         {
             Attributes = pAttributes;

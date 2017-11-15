@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
         {
             if (string.IsNullOrEmpty(pURI)) throw new ArgumentOutOfRangeException(nameof(pURI));
             var lCursor = new cBytesCursor(pURI);
-            if (!cURIParts.Process(lCursor, out mParts, cTrace.cContext.Null) || !lCursor.Position.AtEnd) throw new ArgumentOutOfRangeException(nameof(pURI));
+            if (!cURIParts.Process(lCursor, out mParts, cTrace.cContext.None) || !lCursor.Position.AtEnd) throw new ArgumentOutOfRangeException(nameof(pURI));
 
             OriginalString = pURI;
             mURLParts = ZGetURLParts(pURI);
@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
         private cURLParts ZGetURLParts(string pURL)
         {
             var lCursor = new cBytesCursor(pURL);
-            if (!cURLParts.Process(lCursor, out var lParts, cTrace.cContext.Null) || !lCursor.Position.AtEnd) return null;
+            if (!cURLParts.Process(lCursor, out var lParts, cTrace.cContext.None) || !lCursor.Position.AtEnd) return null;
             return lParts;
         }
 
@@ -96,7 +96,7 @@ namespace work.bacome.imapclient
             if (string.IsNullOrWhiteSpace(pURI)) { rURI = null; return false; }
 
             var lCursor = new cBytesCursor(pURI);
-            if (!cURIParts.Process(lCursor, out var lParts, cTrace.cContext.Null) || !lCursor.Position.AtEnd) { rURI = null; return false; };
+            if (!cURIParts.Process(lCursor, out var lParts, cTrace.cContext.None) || !lCursor.Position.AtEnd) { rURI = null; return false; };
 
             rURI = new cURI(pURI, lParts);
             return true;

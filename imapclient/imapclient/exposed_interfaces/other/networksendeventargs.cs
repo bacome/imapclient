@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     public class cNetworkSendEventArgs : EventArgs
     {
         /// <summary>
-        /// The number of bytes sent (null if this can't be disclosed).
+        /// The number of bytes sent (<see langword="null"/> if this can't be disclosed).
         /// </summary>
         public readonly int? Bytes;
 

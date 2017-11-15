@@ -15,10 +15,10 @@ namespace work.bacome.imapclient
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(_Tests));
             cBytesCursor._Tests(lContext);
-            cModifiedUTF7._Tests(cTrace.cContext.Null);
-            cBase64._Tests(cTrace.cContext.Null);
-            cSession._Tests(cTrace.cContext.Null);
-            cCredentials._Tests(cTrace.cContext.Null);
+            cModifiedUTF7._Tests(cTrace.cContext.None);
+            cBase64._Tests(cTrace.cContext.None);
+            cSession._Tests(cTrace.cContext.None);
+            cCredentials._Tests(cTrace.cContext.None);
             cURI._Tests(lContext);
             cURLParts._Tests(lContext);
             cURIParts._Tests(lContext);

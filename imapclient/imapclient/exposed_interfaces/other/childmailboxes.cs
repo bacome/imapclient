@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     public interface iMailboxParent
     {
         /// <summary>
-        /// Gets the hierarchy delimiter. May be null if there is no hierarchy.
+        /// Gets the hierarchy delimiter. May be <see langword="null"/> if there is no hierarchy.
         /// </summary>
         char? Delimiter { get; }
 
@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets the subscribed mailboxes. Note that mailboxes that do not currently exist may be returned.
         /// </summary>
-        /// <param name="pDescend">If true all descendants are returned (not just children, but also grandchildren ...).</param>
+        /// <param name="pDescend">If <see langword="true"/> all descendants are returned (not just children, but also grandchildren ...).</param>
         /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
         /// <returns></returns>
         List<cMailbox> Subscribed(bool pDescend, fMailboxCacheDataSets pDataSets = 0);
@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Asynchronously gets the subscribed mailboxes. Note that mailboxes that do not currently exist may be returned.
         /// </summary>
-        /// <param name="pDescend">If true all descendants are returned (not just children, but also grandchildren ...).</param>
+        /// <param name="pDescend">If <see langword="true"/> all descendants are returned (not just children, but also grandchildren ...).</param>
         /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
         /// <returns></returns>
         Task<List<cMailbox>> SubscribedAsync(bool pDescend, fMailboxCacheDataSets pDataSets = 0);

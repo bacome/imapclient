@@ -35,16 +35,6 @@ namespace work.bacome.imapclient
             TLSRequirement = pTLSRequirement;
         }
 
-        // TODO: remove this xml
-
-        /// <summary>
-        /// <para>IMAP LOGIN only allows ASCII userids and passwords, so this may fail.</para>
-        /// </summary>
-        /// <param name="pUserId"></param>
-        /// <param name="pPassword"></param>
-        /// <param name="pTLSRequirement"></param>
-        /// <param name="rLogin"></param>
-        /// <returns></returns>
         internal static bool TryConstruct(string pUserId, string pPassword, eTLSRequirement pTLSRequirement, out cLogin rLogin)
         {
             if (string.IsNullOrEmpty(pUserId) || string.IsNullOrEmpty(pPassword)) { rLogin = null; return false; }

@@ -386,27 +386,27 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// The suggested filename if provided. May be null.
+        /// The suggested filename if provided. May be <see langword="null"/>.
         /// </summary>
         public string FileName => Parameters?.First("filename")?.StringValue;
 
         /// <summary>
-        /// The creation date if provided. May be null.
+        /// The creation date if provided. May be <see langword="null"/>.
         /// </summary>
         public DateTime? CreationDate => Parameters?.First("creation-date")?.DateTimeValue;
 
         /// <summary>
-        /// The modification date if provided. May be null.
+        /// The modification date if provided. May be <see langword="null"/>.
         /// </summary>
         public DateTime? ModificationDate => Parameters?.First("modification-date")?.DateTimeValue;
 
         /// <summary>
-        /// The last read date if provided. May be null.
+        /// The last read date if provided. May be <see langword="null"/>.
         /// </summary>
         public DateTime? ReadDate => Parameters?.First("read-date")?.DateTimeValue;
 
         /// <summary>
-        /// The approximate size in bytes if provided. May be null.
+        /// The approximate size in bytes if provided. May be <see langword="null"/>.
         /// </summary>
         public int? Size
         {
@@ -624,7 +624,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// Parse the un-decoded value as a UInt.
-        /// If the value is not a valid UInt, returns null.
+        /// If the value is not a valid UInt, returns <see langword="null"/>.
         /// </summary>
         public uint? UIntValue
         {
@@ -638,7 +638,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// Parse the un-decoded value as an RFC 822 date and time.
-        /// If the value is not a valid RFC 822 date and time, returns null.
+        /// If the value is not a valid RFC 822 date and time, returns <see langword="null"/>.
         /// </summary>
         public DateTime? DateTimeValue
         {
@@ -664,7 +664,7 @@ namespace work.bacome.imapclient
         /// Returns the first parameter with the specified attribute name.
         /// </summary>
         /// <param name="pName">The attribute name.</param>
-        /// <returns>The parameter if there is at least one with a matching name, otherwise null.</returns>
+        /// <returns>The parameter if there is at least one with a matching name, otherwise <see langword="null"/>.</returns>
         public cBodyStructureParameter First(string pName) => this.FirstOrDefault(p => p.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
 
         public override string ToString()

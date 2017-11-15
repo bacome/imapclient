@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
         public readonly string Prefix;
 
         /// <summary>
-        /// The namespace hierarchy delimiter. May be null if there is no hierarchy.
+        /// The namespace hierarchy delimiter. May be <see langword="null"/> if there is no hierarchy.
         /// </summary>
         public readonly char? Delimiter;
 

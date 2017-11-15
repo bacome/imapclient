@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents a filter that can be passed to the server to filter the set of messages in a mailbox.
     /// Only the messages that 'pass through' the filter are returned to the client.
-    /// Use the static members and operators of this class to create and combine filters. 
+    /// Use the <see langword="static"/> members and operators of this class to create and combine filters. 
     /// </summary>
     public abstract class cFilter
     {
@@ -192,13 +192,13 @@ namespace work.bacome.imapclient
     }
 
     // suppress the warnings about not implementing == properly: here == is being used as an expression builder
-    #pragma warning disable 660
-    #pragma warning disable 661
+#pragma warning disable 660
+#pragma warning disable 661
 
     /// <summary>
     /// Specifies an offset from a specific message or from the first message in the mailbox or from the last message in the mailbox.
-    /// Use <see cref="cMessage.MSNOffset(int)"/> or the static members <see cref="cFilter.First"/> or <see cref="cFilter.Last"/> to generate instances of this class.
-    /// Use instances of this class with the <see cref="cFilter.MSN"/> static member to generate message sequence number filters.
+    /// Use <see cref="cMessage.MSNOffset(int)"/> or the <see langword="static"/> members <see cref="cFilter.First"/> or <see cref="cFilter.Last"/> to generate instances of this class.
+    /// Use instances of this class with the <see cref="cFilter.MSN"/> <see langword="static"/> member to generate message sequence number filters.
     /// </summary>
     public class cFilterMSNOffset
     {
@@ -226,7 +226,7 @@ namespace work.bacome.imapclient
 
     /// <summary>
     /// Represents either the first message in the mailbox or the last message in the mailbox.
-    /// Use the <see cref="cFilter.First"/> and <see cref="cFilter.Last"/> static instances of this class to generate offsets to use with the static <see cref="cFilter.MSN"/> to generate message sequence number filters.
+    /// Use the <see cref="cFilter.First"/> and <see cref="cFilter.Last"/> <see langword="static"/> instances of this class to generate offsets to use with the <see langword="static"/> <see cref="cFilter.MSN"/> to generate message sequence number filters.
     /// </summary>
     public class cFilterEnd
     {
@@ -247,7 +247,7 @@ namespace work.bacome.imapclient
 
     /// <summary>
     /// The operators defined on this class generate message sequence number filters.
-    /// Use the <see cref="cFilter.MSN"/> static instance of this class to do this.
+    /// Use the <see cref="cFilter.MSN"/> <see langword="static"/> instance of this class to do this.
     /// </summary>
     public class cFilterMSN
     {
@@ -351,7 +351,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The operators defined on this class generate message UID filters. Use the <see cref="cFilter.UID"/> static instance of this class to do this.
+    /// The operators defined on this class generate message UID filters. Use the <see cref="cFilter.UID"/> <see langword="static"/> instance of this class to do this.
     /// </summary>
     public class cFilterUID
     {
@@ -433,7 +433,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Use the <see cref="Contains(string)"/> method on the following static instances of this class to generate a message content filters;
+    /// Use the <see cref="Contains(string)"/> method on the following <see langword="static"/> instances of this class to generate a message content filters;
     /// <list type="bullet">
     /// <item><see cref="cFilter.BCC"/></item>
     /// <item><see cref="cFilter.Body"/></item>
@@ -459,7 +459,7 @@ namespace work.bacome.imapclient
 
     /// <summary>
     /// The operators defined on this class generate message date filters.
-    /// Use the static instances of this class, <see cref="cFilter.Received"/> and <see cref="cFilter.Sent"/>, to do this.
+    /// Use the <see langword="static"/> instances of this class, <see cref="cFilter.Received"/> and <see cref="cFilter.Sent"/>, to do this.
     /// </summary>
     public class cFilterDate
     {
@@ -519,7 +519,7 @@ namespace work.bacome.imapclient
 
     /// <summary>
     /// The operators defined on this class generate message size filters.
-    /// Use the <see cref="cFilter.Size"/> static instance of this class to do this.
+    /// Use the <see cref="cFilter.Size"/> <see langword="static"/> instance of this class to do this.
     /// </summary>
     public class cFilterSize
     {
@@ -560,7 +560,7 @@ namespace work.bacome.imapclient
 
     /// <summary>
     /// The operators defined on this class generate message importance filters.
-    /// Use the <see cref="cFilter.Importance"/> static instance of this class to do this.
+    /// Use the <see cref="cFilter.Importance"/> <see langword="static"/> instance of this class to do this.
     /// </summary>
     public class cFilterImportance
     {

@@ -7,12 +7,29 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /// <summary>
+        /// Disconnects gracefully from the connected server.
+        /// Can only be called when the instance <see cref="IsConnected"/>.
+        /// </summary>
+        /// <remarks>
+        /// Long running operations that are in progress will fail.
+        /// (The gracefully refers to the IMAP protocol.)
+        /// </remarks>
         public void Disconnect()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Disconnect));
             mSynchroniser.Wait(ZDisconnectAsync(lContext), lContext);
         }
 
+        /// <summary>
+        /// Disconnects gracefully and asynchronously from the connected server.
+        /// Can only be called when the instance <see cref="IsConnected"/>.
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// Long running operations that are in progress will fail.
+        /// (The gracefully refers to the IMAP protocol.)
+        /// </remarks>
         public Task DisconnectAsync()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(DisconnectAsync));
