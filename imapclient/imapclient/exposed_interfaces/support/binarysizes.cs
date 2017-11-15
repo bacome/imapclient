@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient.support
 {
@@ -19,7 +20,7 @@ namespace work.bacome.imapclient.support
 
         internal cBinarySizes(IDictionary<string, uint> pDictionary) : base(pDictionary) { }
 
-        /**<summary>Returns a string that represents the map.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cBinarySizes));

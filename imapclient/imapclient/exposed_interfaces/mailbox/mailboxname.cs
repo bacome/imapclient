@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -10,18 +11,25 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents an IMAP mailbox name.
     /// </summary>
+    /// <remarks>
+    /// IMAP mailbox names have few grammatical restrictions, but may not include the null character.
+    /// IMAP hierarchy delimitiers have few grammatical restrictions, but must be ASCII, and not NUL, CR or LF.
+    /// </remarks>
+    /// <seealso cref="cIMAPClient.Create(cMailboxName, bool)"/>
+    /// <seealso cref="cIMAPClient.Mailbox(cMailboxName)"/>
+    /// <seealso cref="iMailboxHandle.MailboxName"/>
     public class cMailboxName : IComparable<cMailboxName>, IEquatable<cMailboxName>
     {
         internal const string InboxString = "INBOX";
         internal static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
 
         /// <summary>
-        /// <para>The mailbox name including the full hierarchy.</para>
+        /// The mailbox path including the full hierarchy.
         /// </summary>
         public readonly string Path;
 
         /// <summary>
-        /// <para>The hierarchy delimiter used in <see cref="Path"/>.</para>
+        /// The hierarchy delimiter used in this mailbox name. May be <see langword="null"/> if the server has no hierarchy in its names.
         /// </summary>
         public readonly char? Delimiter;
 
@@ -32,7 +40,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises an new instance. May throw if the parameters provided are not valid IMAP values.
+        /// Initialises a new instance. Will throw if the parameters provided are not valid IMAP values.
         /// </summary>
         /// <param name="pPath"></param>
         /// <param name="pDelimiter"></param>
@@ -89,11 +97,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool IsInbox => ReferenceEquals(Path, InboxString);
 
-        /// <summary>
-        /// Compares this instance with the specified <see cref="cMailboxName"/> object.
-        /// </summary>
-        /// <param name="pOther"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo"/>
         public int CompareTo(cMailboxName pOther)
         {
             if (pOther == null) return 1;
@@ -115,24 +119,13 @@ namespace work.bacome.imapclient
             return Delimiter.Value.CompareTo(pOther.Delimiter.Value);
         }
 
-        /// <summary>
-        /// Determines whether this instance and the specified object have the same value.
-        /// </summary>
-        /// <param name="pOther"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
         public bool Equals(cMailboxName pOther) => this == pOther;
 
-        /// <summary>
-        /// Determines whether this instance and the specified object have the same value.
-        /// </summary>
-        /// <param name="pObject"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
         public override bool Equals(object pObject) => this == pObject as cMailboxName;
 
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -144,15 +137,10 @@ namespace work.bacome.imapclient
             }
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cMailboxName)}({Path},{Delimiter})";
 
-        /// <summary>
-        /// Determines whether two instances have the same value.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cMailboxName pA, cMailboxName pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -161,12 +149,7 @@ namespace work.bacome.imapclient
             return pA.Path == pB.Path && pA.Delimiter == pB.Delimiter;
         }
 
-        /// <summary>
-        /// Determines whether two instances have different values.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cMailboxName pA, cMailboxName pB) => !(pA == pB);
 
         internal static bool TryConstruct(string pPath, char? pDelimiter, out cMailboxName rResult)

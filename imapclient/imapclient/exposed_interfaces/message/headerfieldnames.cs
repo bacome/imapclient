@@ -24,14 +24,14 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A unique read-only header field name collection. Header field names are case insensitive.
+    /// Represents a unique read-only header-field-name collection. Header field names are case insensitive.
     /// </summary>
     /// <remarks>
     /// Header field names have a limited grammar - see RFC 5322. 
     /// (Header field names must only include <see cref="cCharset.FText"/> characters.)
     /// </remarks>
     /// <seealso cref="cSection"/>
-    /// <seealso cref="cCacheItems"/>
+    /// <seealso cref="cMessageCacheItems"/>
     /// <seealso cref="cHeaderFields"/>
     public class cHeaderFieldNames : IReadOnlyCollection<string>
     {
@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
         private cHeaderFieldNames() => mNames = new cHeaderFieldNameList();
 
         /// <summary>
-        /// Initalises a new instance with a duplicate free copy of the specified names. May throw if the specified names aren't valid header field names.
+        /// Initalises a new instance with a duplicate free copy of the specified names. Will throw if the specified names aren't valid header field names.
         /// </summary>
         /// <param name="pNames"></param>
         public cHeaderFieldNames(params string[] pNames) => mNames = new cHeaderFieldNameList(pNames);
@@ -185,7 +185,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initalises a new instance with a duplicate free copy of the specified names. May throw if the specified names aren't valid header field names.
+        /// Initalises a new instance with a duplicate free copy of the specified names. Will throw if the specified names aren't valid header field names.
         /// </summary>
         /// <param name="pNames"></param>
         public cHeaderFieldNameList(params string[] pNames)
@@ -201,7 +201,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initalises a new instance with a duplicate free copy of the specified names. May throw if the specified names aren't valid header field names.
+        /// Initalises a new instance with a duplicate free copy of the specified names. Will throw if the specified names aren't valid header field names.
         /// </summary>
         /// <param name="pNames"></param>
         public cHeaderFieldNameList(IEnumerable<string> pNames)

@@ -83,7 +83,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// The internal message cache attribute that is required if the sorting is done client-side.
         /// </summary>
-        public readonly fCacheAttributes Attribute;
+        public readonly fMessageCacheAttributes Attribute;
 
         /// <summary>
         /// Indicates a descending sort.
@@ -103,7 +103,7 @@ namespace work.bacome.imapclient
             {
                 case eSortItem.received:
 
-                    Attribute = fCacheAttributes.received;
+                    Attribute = fMessageCacheAttributes.received;
                     break;
 
                 case eSortItem.cc:
@@ -114,12 +114,12 @@ namespace work.bacome.imapclient
                 case eSortItem.displayfrom:
                 case eSortItem.displayto:
 
-                    Attribute = fCacheAttributes.envelope;
+                    Attribute = fMessageCacheAttributes.envelope;
                     break;
 
                 case eSortItem.size:
 
-                    Attribute = fCacheAttributes.size;
+                    Attribute = fMessageCacheAttributes.size;
                     break;
 
                 default:
@@ -232,7 +232,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         /// <seealso cref="Attributes"/>
         /// <seealso cref="iMessageHandle.Attributes"/>
-        /// <seealso cref="cMailbox.Messages(IEnumerable{iMessageHandle}, cCacheItems, cCacheItemFetchConfiguration)"/>
+        /// <seealso cref="cMailbox.Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
         public int Compare(iMessageHandle pX, iMessageHandle pY)
         {
             if (Items == null) throw new InvalidOperationException();
@@ -334,7 +334,7 @@ namespace work.bacome.imapclient
 
             if (pY == null) return 1;
 
-            cCacheItems lItems = Attributes(out _);
+            cMessageCacheItems lItems = Attributes(out _);
             pX.Fetch(lItems);
             pY.Fetch(lItems);
             return Compare(pX.Handle, pY.Handle);
@@ -345,13 +345,13 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="rSortDisplay">Gets set to <see langword="true"/> if <see cref="cCapabilities.SortDisplay"/> must be in use for the server to do the sort.</param>
         /// <returns>The set of message attributes required for the comparison implied by this sort to be done client-side.</returns>
-        public fCacheAttributes Attributes(out bool rSortDisplay)
+        public fMessageCacheAttributes Attributes(out bool rSortDisplay)
         {
             if (Items == null) throw new InvalidOperationException();
 
             rSortDisplay = false;
 
-            fCacheAttributes lAttributes = 0;
+            fMessageCacheAttributes lAttributes = 0;
 
             foreach (var lItem in Items)
             {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using work.bacome.apidocumentation;
 using work.bacome.trace;
 
 namespace work.bacome.async
@@ -132,7 +133,7 @@ namespace work.bacome.async
             mDisposed = true;
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cExclusiveAccess)}({mName},{mInstance},{mBlocks})";
 
         /// <summary>
@@ -167,7 +168,7 @@ namespace work.bacome.async
                 mDisposed = true;
             }
 
-            /**<summary>Returns a string that represents the instance.</summary>*/
+            /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
             public override string ToString() => $"{nameof(cBlock)}({mName},{mInstance})";
         }
 
@@ -203,7 +204,7 @@ namespace work.bacome.async
                 mDisposed = true;
             }
 
-            /**<summary>Returns a string that represents the instance.</summary>*/
+            /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
             public override string ToString() => $"{nameof(cToken)}({mName},{mInstance})";
         }
     }

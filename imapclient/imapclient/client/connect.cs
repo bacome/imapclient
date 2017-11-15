@@ -88,9 +88,7 @@ namespace work.bacome.imapclient
         /// Will throw if an authenticated IMAP connection cannot be established.
         /// </summary>
         /// <returns></returns>
-        /// <remarks>
-        /// Please see <see cref="Connect"/> for details.
-        /// </remarks>
+        /// <inheritdoc cref="Connect" select="remarks"/>
         public Task ConnectAsync()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConnectAsync));
@@ -128,7 +126,7 @@ namespace work.bacome.imapclient
             // initialise the SASLs
             foreach (var lSASL in lCredentials.SASLs) lSASL.LastAuthentication = null;
 
-            mSession = new cSession(mSynchroniser, mIgnoreCapabilities, mMailboxCacheData, mNetworkWriteConfiguration, mIdleConfiguration, mFetchCacheItemsConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
+            mSession = new cSession(mSynchroniser, mIgnoreCapabilities, mMailboxCacheDataItems, mNetworkWriteConfiguration, mIdleConfiguration, mFetchCacheItemsConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
             if (lSessionReplaced)

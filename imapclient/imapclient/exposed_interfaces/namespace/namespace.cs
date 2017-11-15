@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -86,7 +87,7 @@ namespace work.bacome.imapclient
             return lMailboxName;
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cMailbox)}({NamespaceName})";
     }
 }

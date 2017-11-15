@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    fCacheAttributes lAttributes = 0;
+                    fMessageCacheAttributes lAttributes = 0;
                     cFetchableFlags lFlags = null;
                     cEnvelope lEnvelope = null;
                     DateTime? lReceived = null;
@@ -62,22 +62,22 @@ namespace work.bacome.imapclient
 
                     while (true)
                     {
-                        fCacheAttributes lAttribute;
+                        fMessageCacheAttributes lAttribute;
                         bool lOK;
 
                         if (pCursor.SkipBytes(kFlagsSpace))
                         {
-                            lAttribute = fCacheAttributes.flags;
+                            lAttribute = fMessageCacheAttributes.flags;
                             lOK = pCursor.GetFlags(out var lRawFlags) && cFetchableFlags.TryConstruct(lRawFlags, out lFlags);
                         }
                         else if (pCursor.SkipBytes(kEnvelopeSpace))
                         {
-                            lAttribute = fCacheAttributes.envelope;
+                            lAttribute = fMessageCacheAttributes.envelope;
                             lOK = ZProcessEnvelope(pCursor, out lEnvelope);
                         }
                         else if (pCursor.SkipBytes(kInternalDateSpace))
                         {
-                            lAttribute = fCacheAttributes.received;
+                            lAttribute = fMessageCacheAttributes.received;
                             lOK = pCursor.GetDateTime(out var lDateTime);
                             if (lOK) lReceived = lDateTime;
                         }
@@ -100,18 +100,18 @@ namespace work.bacome.imapclient
                         }
                         else if (pCursor.SkipBytes(kRFC822SizeSpace))
                         {
-                            lAttribute = fCacheAttributes.size;
+                            lAttribute = fMessageCacheAttributes.size;
                             lOK = pCursor.GetNumber(out _, out var lNumber);
                             if (lOK) lSize = lNumber;
                         }
                         else if (pCursor.SkipBytes(kBodySpace))
                         {
-                            lAttribute = fCacheAttributes.body;
+                            lAttribute = fMessageCacheAttributes.body;
                             lOK = ZProcessBodyStructure(pCursor, cSection.Text, false, out lBody);
                         }
                         else if (pCursor.SkipBytes(kBodyStructureSpace))
                         {
-                            lAttribute = fCacheAttributes.bodystructure;
+                            lAttribute = fMessageCacheAttributes.bodystructure;
                             lOK = ZProcessBodyStructure(pCursor, cSection.Text, true, out lBodyStructure);
                         }
                         else if (pCursor.SkipBytes(kBodyLBracket))
@@ -150,7 +150,7 @@ namespace work.bacome.imapclient
                         }
                         else if (pCursor.SkipBytes(kUIDSpace))
                         {
-                            lAttribute = fCacheAttributes.uid;
+                            lAttribute = fMessageCacheAttributes.uid;
                             lOK = pCursor.GetNZNumber(out _, out var lNumber);
                             if (lOK) lUID = lNumber;
                         }
@@ -168,7 +168,7 @@ namespace work.bacome.imapclient
                         }
                         else if (pCursor.SkipBytes(kModSeqSpaceLParen))
                         {
-                            lAttribute = fCacheAttributes.modseq;
+                            lAttribute = fMessageCacheAttributes.modseq;
                             lOK = pCursor.GetNumber(out var lTemp) && pCursor.SkipByte(cASCII.RPAREN);
                             if (lOK) lModSeq = lTemp;
                         }

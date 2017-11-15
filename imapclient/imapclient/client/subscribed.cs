@@ -16,21 +16,7 @@ namespace work.bacome.imapclient
         /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
         /// <param name="pHasSubscribedChildren">Specifies if mailboxes that are not themselves subscribed, but that have subscribed children, are included in the returned list.</param>
         /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes.</param>
-        /// <returns></returns>
-        /// <remarks>
-        /// <para>
-        /// The IMAP wildcards are;
-        /// <list type="bullet">
-        /// <item><token>*</token><description>Matches zero or more characters</description></item>
-        /// <item><token>%</token><description>Matches zero or more characters but not the hierarchy delimiter</description></item>
-        /// </list>
-        /// </para>
-        /// <para>
-        /// The <paramref name="pDelimiter"/> is used in preparing the <paramref name="pListMailbox"/> for sending to the server.
-        /// It should be correctly specified.
-        /// The value specified does not affect what characters are matched by the % wildcard.
-        /// </para>
-        /// </remarks>
+        /// <inheritdoc cref="Mailboxes(string, char?, fMailboxCacheDataSets)" select="returns|remarks"/>
         public List<cMailbox> Subscribed(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
@@ -46,21 +32,7 @@ namespace work.bacome.imapclient
         /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
         /// <param name="pHasSubscribedChildren">Specifies if mailboxes that are not themselves subscribed, but that have subscribed children, are included in the returned list.</param>
         /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes.</param>
-        /// <returns></returns>
-        /// <remarks>
-        /// <para>
-        /// The IMAP wildcards are;
-        /// <list type="bullet">
-        /// <item><token>*</token><description>Matches zero or more characters</description></item>
-        /// <item><token>%</token><description>Matches zero or more characters but not the hierarchy delimiter</description></item>
-        /// </list>
-        /// </para>
-        /// <para>
-        /// The <paramref name="pDelimiter"/> is used in preparing the <paramref name="pListMailbox"/> for sending to the server.
-        /// It should be correctly specified.
-        /// The value specified does not affect what characters are matched by the % wildcard.
-        /// </para>
-        /// </remarks>
+        /// <inheritdoc cref="Mailboxes(string, char?, fMailboxCacheDataSets)" select="returns|remarks"/>
         public Task<List<cMailbox>> SubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));

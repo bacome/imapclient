@@ -3,12 +3,14 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The TLS requirement for the components of <see cref="cCredentials"/> to be used during <see cref="cIMAPClient.Connect"/>.
+    /// A TLS requirement.
     /// </summary>
+    /// <seealso cref="cIMAPClient.SetPlainCredentials(string, string, eTLSRequirement, bool)"/>
+    /// <seealso cref="cIMAPClient.SetAnonymousCredentials(string, eTLSRequirement, bool)"/>
     /// <seealso cref="cLogin"/>
-    /// <seealso cref="cSASL"/>
-    /// <seealso cref="cSASLAnonymous"/>
     /// <seealso cref="cSASLPlain"/>
+    /// <seealso cref="cSASLAnonymous"/>
+    /// <seealso cref="cSASL"/>
     public enum eTLSRequirement
     {
         /** <summary>Don't care whether TLS is active or not.</summary> */

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Linq;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of capabilities that the library understands in some way.
+    /// Represents a set of capabilities that the library understands in some way.
     /// </summary>
     /// <seealso cref="cCapabilities"/>
     /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
@@ -69,7 +70,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A set of capabilities.
+    /// Contains IMAP capabilities.
     /// </summary>
     /// <remarks>
     /// The properties of this class reflect the flags set in <see cref="EffectiveCapabilities"/>.
@@ -78,12 +79,12 @@ namespace work.bacome.imapclient
     public class cCapabilities
     {
         /// <summary>
-        /// The capabilities as presented by the server.
+        /// The capabilities advertised by the server.
         /// </summary>
         public readonly cStrings Capabilities;
 
         /// <summary>
-        /// The authentication mechanisms as presented by the server.
+        /// The authentication mechanisms advertised by the server.
         /// </summary>
         public readonly cStrings AuthenticationMechanisms;
 
@@ -132,58 +133,58 @@ namespace work.bacome.imapclient
             EffectiveCapabilities = lCapabilities & ~pIgnoreCapabilities;
         }
 
-        /**<summary>Indicates if IMAP LOGIN is disabled.</summary>*/
+        /**<summary>Indicates if IMAP LOGIN is in use.</summary>*/
         public bool LoginDisabled => (EffectiveCapabilities & fCapabilities.logindisabled) != 0;
-        /**<summary>Indicates if IMAP STARTTLS can be used.</summary>*/
+        /**<summary>Indicates if IMAP STARTTLS is in use.</summary>*/
         public bool StartTLS => (EffectiveCapabilities & fCapabilities.starttls) != 0;
-        /**<summary>Indicates if RFC 2177 IDLE can be used.</summary>*/
+        /**<summary>Indicates if RFC 2177 IDLE is in use.</summary>*/
         public bool Idle => (EffectiveCapabilities & fCapabilities.idle) != 0;
-        /**<summary>Indicates if RFC 7888 LITERAL+ can be used.</summary>*/
+        /**<summary>Indicates if RFC 7888 LITERAL+ is in use.</summary>*/
         public bool LiteralPlus => (EffectiveCapabilities & fCapabilities.literalplus) != 0;
-        /**<summary>Indicates if RFC 7888 LITERAL- can be used.</summary>*/
+        /**<summary>Indicates if RFC 7888 LITERAL- is in use.</summary>*/
         public bool LiteralMinus => (EffectiveCapabilities & fCapabilities.literalminus) != 0;
-        /**<summary>Indicates if RFC 5161 ENABLE can be used.</summary>*/
+        /**<summary>Indicates if RFC 5161 ENABLE is in use.</summary>*/
         public bool Enable => (EffectiveCapabilities & fCapabilities.enable) != 0;
-        /**<summary>Indicates if RFC 6855 UTF8=ACCEPT can be used.</summary>*/
+        /**<summary>Indicates if RFC 6855 UTF8=ACCEPT is in use.</summary>*/
         public bool UTF8Accept => (EffectiveCapabilities & fCapabilities.utf8accept) != 0;
-        /**<summary>Indicates if RFC 6855 UTF8=ONLY can be used.</summary>*/
+        /**<summary>Indicates if RFC 6855 UTF8=ONLY is in use.</summary>*/
         public bool UTF8Only => (EffectiveCapabilities & fCapabilities.utf8only) != 0;
-        /**<summary>Indicates if RFC 5258 LIST extensions can be used.</summary>*/
+        /**<summary>Indicates if RFC 5258 LIST extensions is in use.</summary>*/
         public bool ListExtended => (EffectiveCapabilities & fCapabilities.listextended) != 0;
-        /**<summary>Indicates if RFC 3348 Child mailboxes can be used.</summary>*/
+        /**<summary>Indicates if RFC 3348 Child mailboxes is in use.</summary>*/
         public bool Children => (EffectiveCapabilities & fCapabilities.children) != 0;
-        /**<summary>Indicates if RFC 4959 SASL initial client response can be used.</summary>*/
+        /**<summary>Indicates if RFC 4959 SASL initial client response is in use.</summary>*/
         public bool SASL_IR => (EffectiveCapabilities & fCapabilities.sasl_ir) != 0;
-        /**<summary>Indicates if RFC 2221 Login referrals can be used.</summary>*/
+        /**<summary>Indicates if RFC 2221 Login referrals is in use.</summary>*/
         public bool LoginReferrals => (EffectiveCapabilities & fCapabilities.loginreferrals) != 0;
-        /**<summary>Indicates if RFC 2193 Mailbox referrals can be used.</summary>*/
+        /**<summary>Indicates if RFC 2193 Mailbox referrals is in use.</summary>*/
         public bool MailboxReferrals => (EffectiveCapabilities & fCapabilities.mailboxreferrals) != 0;
-        /**<summary>Indicates if RFC 2971 Id can be used.</summary>*/
+        /**<summary>Indicates if RFC 2971 Id is in use.</summary>*/
         public bool Id => (EffectiveCapabilities & fCapabilities.id) != 0;
-        /**<summary>Indicates if RFC 3516 Binary content can be used.</summary>*/
+        /**<summary>Indicates if RFC 3516 Binary content is in use.</summary>*/
         public bool Binary => (EffectiveCapabilities & fCapabilities.binary) != 0;
-        /**<summary>Indicates if RFC 2342 Namespaces can be used.</summary>*/
+        /**<summary>Indicates if RFC 2342 Namespaces is in use.</summary>*/
         public bool Namespace => (EffectiveCapabilities & fCapabilities.namespaces) != 0;
-        /**<summary>Indicates if RFC 5819 STATUS information in LIST can be used.</summary>*/
+        /**<summary>Indicates if RFC 5819 STATUS information in LIST is in use.</summary>*/
         public bool ListStatus => (EffectiveCapabilities & fCapabilities.liststatus) != 0;
-        /**<summary>Indicates if RFC 6154 Special use can be used.</summary>*/
+        /**<summary>Indicates if RFC 6154 Special use is in use.</summary>*/
         public bool SpecialUse => (EffectiveCapabilities & fCapabilities.specialuse) != 0;
-        /**<summary>Indicates if RFC 4731 ESEARCH can be used.</summary>*/
+        /**<summary>Indicates if RFC 4731 ESEARCH is in use.</summary>*/
         public bool ESearch => (EffectiveCapabilities & fCapabilities.esearch) != 0;
-        /**<summary>Indicates if RFC 5256 SORT can be used.</summary>*/
+        /**<summary>Indicates if RFC 5256 SORT is in use.</summary>*/
         public bool Sort => (EffectiveCapabilities & fCapabilities.sort) != 0;
-        /**<summary>Indicates if RFC 5256 SORT=DISPLAY can be used.</summary>*/
+        /**<summary>Indicates if RFC 5256 SORT=DISPLAY is in use.</summary>*/
         public bool SortDisplay => (EffectiveCapabilities & fCapabilities.sortdisplay) != 0;
-        /**<summary>Indicates if RFC 5267 ESORT can be used.</summary>*/
+        /**<summary>Indicates if RFC 5267 ESORT is in use.</summary>*/
         public bool ESort => (EffectiveCapabilities & fCapabilities.esort) != 0;
         //public bool ThreadOrderedSubject => (EffectiveCapabilities & fCapabilities.threadorderedsubject) != 0;
         //public bool ThreadReferences => (EffectiveCapabilities & fCapabilities.threadreferences) != 0;
-        /**<summary>Indicates if RFC 7162 CONDSTORE can be used.</summary>*/
+        /**<summary>Indicates if RFC 7162 CONDSTORE is in use.</summary>*/
         public bool CondStore => (EffectiveCapabilities & fCapabilities.condstore) != 0;
-        /**<summary>Indicates if RFC 7162 QRESYNC can be used.</summary>*/
+        /**<summary>Indicates if RFC 7162 QRESYNC is in use.</summary>*/
         public bool QResync => (EffectiveCapabilities & fCapabilities.qresync) != 0;
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cCapabilities)}({Capabilities},{AuthenticationMechanisms},{EffectiveCapabilities})";
     }
 }

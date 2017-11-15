@@ -56,7 +56,7 @@
     <Compile Include="client\uidstore.cs" />
     <Compile Include="exposed_interfaces\enums\mailboxdatasets.cs" />
     <Compile Include="exposed_interfaces\enums\storeoperation.cs" />
-    <Compile Include="exposed_interfaces\message\cacheattributes.cs" />
+    <Compile Include="exposed_interfaces\message\messagecacheattributes.cs" />
     <Compile Include="exposed_interfaces\message\headerfieldnames.cs" />
     <Compile Include="exposed_interfaces\message\headerfields.cs" />
     <Compile Include="exposed_interfaces\message\importance.cs" />
@@ -84,7 +84,7 @@
     <Compile Include="exposed_interfaces\connection\tlsrequirement.cs" />
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
-    <Compile Include="exposed_interfaces\enums\mailboxcachedata.cs" />
+    <Compile Include="exposed_interfaces\enums\mailboxcachedataitems.cs" />
     <Compile Include="exposed_interfaces\other\callbackexceptioneventargs.cs" />
     <Compile Include="exposed_interfaces\other\networkreceiveeventargs.cs" />
     <Compile Include="exposed_interfaces\other\networksendeventargs.cs" />
@@ -182,7 +182,7 @@
     <Compile Include="exposed_interfaces\message\message.cs" />
     <Compile Include="exposed_interfaces\message\messageflags.cs" />
     <Compile Include="exposed_interfaces\support\messagehandle.cs" />
-    <Compile Include="exposed_interfaces\message\cacheitems.cs" />
+    <Compile Include="exposed_interfaces\message\messagecacheitems.cs" />
     <Compile Include="exposed_interfaces\message\messagepropertychangedeventargs.cs" />
     <Compile Include="exposed_interfaces\message\section.cs" />
     <Compile Include="exposed_interfaces\message\sort.cs" />

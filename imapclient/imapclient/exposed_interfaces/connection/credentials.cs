@@ -7,7 +7,7 @@ using work.bacome.trace;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of credentials to use during <see cref="cIMAPClient.Connect"/>.
+    /// Contains a set of credentials that can be used during <see cref="cIMAPClient.Connect"/>.
     /// </summary>
     /// <seealso cref="cIMAPClient.Credentials"/>
     public class cCredentials
@@ -18,8 +18,11 @@ namespace work.bacome.imapclient
         public readonly eAccountType Type;
 
         /// <summary>
-        /// The userid for the credentials. May be <see langword="null"/> for <see cref="eAccountType.anonymous"/> and <see cref="eAccountType.unknown"/>; must not be <see langword="null"/> otherwise.
+        /// The userid for the credentials. May be <see langword="null"/>.
         /// </summary>
+        /// <remarks>
+        /// Will be <see langword="null"/> for <see cref="eAccountType.anonymous"/> and <see cref="eAccountType.unknown"/>, will not be <see langword="null"/> otherwise.
+        /// </remarks>
         public readonly string UserId;
 
         /// <summary>
@@ -28,13 +31,11 @@ namespace work.bacome.imapclient
         public readonly cLogin Login;
 
         /// <summary>
-        /// Whether all the contained SASL authentication mechanisms should be tried regardless of whether they are advertised by the server or not.
+        /// Indicates whether all the contained SASL authentication mechanisms will be tried regardless of whether they are advertised by the server or not.
         /// </summary>
+        /// <seealso cref="cCapabilities.AuthenticationMechanisms"/>
         public readonly bool TryAllSASLs;
 
-        /// <summary>
-        /// The set of SASL objects to try when authenticating.
-        /// </summary>
         protected readonly List<cSASL> mSASLs = new List<cSASL>();
 
         private cCredentials(eAccountType pType, cLogin pLogin, bool pTryAllSASLs = false)
@@ -56,22 +57,27 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// The set of SASL objects to try when authenticating.
+        /// The set of SASL objects that can used used during <see cref="cIMAPClient.Connect"/>.
         /// </summary>
         public ReadOnlyCollection<cSASL> SASLs => mSASLs.AsReadOnly();
 
         /// <summary>
-        /// An empty set of credentials. Useful for testing, getting the <see cref="cIMAPClient.Capabilities"/> the server offers without connecting and for pre-authorised connections.
+        /// An empty set of credentials. 
         /// </summary>
+        /// <remarks>
+        /// Useful for testing.
+        /// Useful for getting the <see cref="cIMAPClient.Capabilities"/> the server offers without connecting.
+        /// Useful for pre-authorised connections.
+        /// </remarks>
         public static readonly cCredentials None = new cCredentials(eAccountType.unknown, null);
 
         /// <summary>
-        /// Returns an anonymous set of credentials to use during <see cref="cIMAPClient.Connect"/>. See <see cref="cIMAPClient.Credentials"/>.
+        /// Returns a new set of anonymous credentials.
         /// </summary>
         /// <param name="pTrace">The trace information to use (should be a valid email address).</param>
         /// <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
         /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try IMAP AUTHENTICATE ANONYMOUS even if it isn't advertised.</param>
-        /// <returns>Anonymous credentials.</returns>
+        /// <returns></returns>
         public static cCredentials Anonymous(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false)
         {
             if (string.IsNullOrEmpty(pTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
@@ -86,13 +92,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Returns a plain set of credentials to use during <see cref="cIMAPClient.Connect"/>. See <see cref="cIMAPClient.Credentials"/>.
+        /// Returns a new set of plain credentials.
         /// </summary>
         /// <param name="pUserId"></param>
         /// <param name="pPassword"></param>
         /// <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
         /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try IMAP AUTHENTICATE PLAIN even if it isn't advertised.</param>
-        /// <returns>Plain credentials.</returns>
+        /// <returns></returns>
         public static cCredentials Plain(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false)
         {
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));

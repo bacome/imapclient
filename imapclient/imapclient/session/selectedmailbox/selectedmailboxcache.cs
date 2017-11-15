@@ -263,7 +263,7 @@ namespace work.bacome.imapclient
 
                     bool lSetMailboxStatus = false;
 
-                    if ((lAttributesSet & fCacheAttributes.flags) != 0)
+                    if ((lAttributesSet & fMessageCacheAttributes.flags) != 0)
                     {
                         if (pFetch.Flags.Contains(kMessageFlagName.Seen))
                         {
@@ -298,7 +298,7 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    if ((lAttributesSet & fCacheAttributes.uid) != 0 && lFetchedItem.UID != null)
+                    if ((lAttributesSet & fMessageCacheAttributes.uid) != 0 && lFetchedItem.UID != null)
                     {
                         mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
 

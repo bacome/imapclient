@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Sets of data that can be requested about a mailbox. The exact data items requested depend on the value of <see cref="cIMAPClient.MailboxCacheData"/>.
+    /// Represents sets of data that can be requested about a mailbox. The exact data items requested depend on the value of <see cref="cIMAPClient.MailboxCacheDataItems"/>.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -20,13 +20,13 @@ namespace work.bacome.imapclient
     ///   </list>
     /// </item>
     /// <item>
-    /// If requesting <see cref="fMailboxCacheData.children"/>;
+    /// If requesting <see cref="fMailboxCacheDataItems.children"/>;
     ///   <list type="bullet">
     ///   <item><see cref="cMailbox.HasChildren"/></item>
     ///   </list>
     /// </item>
     /// <item>
-    /// If requesting <see cref="fMailboxCacheData.specialuse"/>;
+    /// If requesting <see cref="fMailboxCacheDataItems.specialuse"/>;
     ///   <list type="bullet">
     ///   <item><see cref="cMailbox.ContainsAll"/></item>
     ///   <item><see cref="cMailbox.IsArchive"/></item>
@@ -45,12 +45,12 @@ namespace work.bacome.imapclient
     /// <para>
     /// <see cref="status"/> data affects the following <see cref="cMailbox"/> properties;
     /// <list type="bullet">
-    /// <item>If requesting <see cref="fMailboxCacheData.messagecount"/>: <see cref="cMailbox.MessageCount"/></item>
-    /// <item>If requesting <see cref="fMailboxCacheData.recentcount"/>: <see cref="cMailbox.RecentCount"/></item>
-    /// <item>If requesting <see cref="fMailboxCacheData.uidnext"/>: <see cref="cMailbox.UIDNext"/></item>
-    /// <item>If requesting <see cref="fMailboxCacheData.uidvalidity"/>: <see cref="cMailbox.UIDValidity"/></item>
-    /// <item>If requesting <see cref="fMailboxCacheData.unseencount"/>: <see cref="cMailbox.UnseenCount"/></item>
-    /// <item>If requesting <see cref="fMailboxCacheData.highestmodseq"/>: <see cref="cMailbox.HighestModSeq"/></item>
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.messagecount"/>: <see cref="cMailbox.MessageCount"/></item>
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.recentcount"/>: <see cref="cMailbox.RecentCount"/></item>
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.uidnext"/>: <see cref="cMailbox.UIDNext"/></item>
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.uidvalidity"/>: <see cref="cMailbox.UIDValidity"/></item>
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.unseencount"/>: <see cref="cMailbox.UnseenCount"/></item>
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.highestmodseq"/>: <see cref="cMailbox.HighestModSeq"/></item>
     /// </list>
     /// </para>
     /// </remarks>

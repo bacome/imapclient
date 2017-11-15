@@ -55,6 +55,20 @@ namespace work.bacome.apidocumentation
         /// <returns></returns>
         public bool Inequality(cAPIDocumentationTemplate pA, cAPIDocumentationTemplate pB) { return false; }
 
+        /// <summary>
+        /// Gets one item.
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public string this[int i] => null;
+
+        /// <summary>
+        /// Compares this instance with the specified object.
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
+        public int CompareTo(object pOther) => 0;
+
         /**<summary>Gets the number of items in the set.</summary>*/
         public int Count => 0;
 
@@ -87,7 +101,7 @@ namespace work.bacome.apidocumentation
     /// A ... collection.
     /// A ... list.
     /// </summary>
-    /// <inheritdoc cref="cAPIDocumentationTemplate" select="remarks"/>
+    /// <inheritdoc cref="cAPIDocumentationTemplate" select="returns|remarks"/>
     internal class cAPIDocumentationExample2
     {
         /**<summary>An apidocumentation that represents ...</summary>*/
@@ -125,13 +139,16 @@ namespace work.bacome.apidocumentation
         /// <inheritdoc cref="cAPIDocumentationTemplate.cAPIDocumentationTemplate"/>
         public cAPIDocumentationExample2() { }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo"/>
+        public int CompareTo(object pOther) => 0;
+
         /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => 0;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator GetEnumerator() => null;
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
         public override bool Equals(object pObject)
         {
             return base.Equals(pObject);
@@ -149,10 +166,10 @@ namespace work.bacome.apidocumentation
             return base.ToString();
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cAPIDocumentationExample2 pA, cAPIDocumentationExample2 pB) { return false; }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cAPIDocumentationExample2 pA, cAPIDocumentationExample2 pB) { return false; }
     }
 }

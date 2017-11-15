@@ -6,9 +6,9 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Contains an operation specific timeout, cancellation token and progress-increment callback. Intended for use when doing large message cache population operations.
     /// </summary>
-    /// <seealso cref="cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{cMessage}, cCacheItems, cCacheItemFetchConfiguration)"/>
-    /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cCacheItems, cCacheItemFetchConfiguration)"/>
-    /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{support.iMessageHandle}, cCacheItems, cCacheItemFetchConfiguration)"/>
+    /// <seealso cref="cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{cMessage}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{support.iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
     public class cCacheItemFetchConfiguration
     {
         /**<summary>The timeout for the operation. May be <see cref="Timeout.Infinite"/>.</summary>*/
@@ -114,7 +114,7 @@ namespace work.bacome.imapclient
     /// Use this when the number of messages returned from a filter may be large.
     /// The progress-setcount callback should be used to initialise a progress bar so that the progress-increment callbacks give accurate operation progress feedback.
     /// </remarks>
-    /// <seealso cref="cMailbox.Messages(cFilter, cSort, cCacheItems, cMessageFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
     public class cMessageFetchConfiguration : cCacheItemFetchConfiguration
     {
         /// <summary>

@@ -1,9 +1,10 @@
 ﻿using System;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// IMAP message envelope data.
+    /// Contains IMAP message envelope data.
     /// </summary>
     public class cEnvelope
     {
@@ -60,7 +61,7 @@ namespace work.bacome.imapclient
             MessageId = pMessageId;
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cEnvelope)}({Sent},{Subject},{BaseSubject},{From},{Sender},{ReplyTo},{To},{CC},{BCC},{InReplyTo},{MessageId})";
     }
 }

@@ -26,10 +26,7 @@ namespace work.bacome.imapclient
         /// Can only be called when the instance <see cref="IsConnected"/>.
         /// </summary>
         /// <returns></returns>
-        /// <remarks>
-        /// Long running operations that are in progress will fail.
-        /// (The gracefully refers to the IMAP protocol.)
-        /// </remarks>
+        /// <inheritdoc cref="Disconnect" select="remarks"/>
         public Task DisconnectAsync()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(DisconnectAsync));

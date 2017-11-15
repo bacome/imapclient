@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -18,7 +19,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Describes an IMAP account.
+    /// Represents an IMAP account.
     /// </summary>
     /// <seealso cref="cIMAPClient.ConnectedAccountId"/>
     public class cAccountId
@@ -29,8 +30,11 @@ namespace work.bacome.imapclient
         public readonly string Host;
 
         /// <summary> 
-        /// The account type. If the connection was IMAP PREAUTHed then this will be <see cref="eAccountType.unknown"/>.
+        /// The account type.
         /// </summary>
+        /// <remarks>
+        /// If the connection was IMAP PREAUTHed then this will be <see cref="eAccountType.unknown"/>.
+        /// </remarks>
         public readonly eAccountType Type;
 
         /// <summary>
@@ -76,17 +80,10 @@ namespace work.bacome.imapclient
             UserId = pUserId;
         }
 
-        /// <summary>
-        /// Determines whether this instance and the specified object have the same values.
-        /// </summary>
-        /// <param name="pObject"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public override bool Equals(object pObject) => this == pObject as cAccountId;
 
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -98,15 +95,10 @@ namespace work.bacome.imapclient
             }
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cAccountId)}({Host},{Type},{UserId})";
 
-        /// <summary>
-        /// Determines whether two instances have the same values.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator ==(cAccountId pA, cAccountId pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -115,12 +107,7 @@ namespace work.bacome.imapclient
             return (pA.Host == pB.Host && pA.Type == pB.Type && pA.UserId == pB.UserId);
         }
 
-        /// <summary>
-        /// Determines whether two instances have different values.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator !=(cAccountId pA, cAccountId pB) => !(pA == pB);
     }
 }

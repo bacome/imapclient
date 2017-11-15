@@ -114,24 +114,24 @@ namespace work.bacome.imapclient
                 public void BeginList(eListBracketing pBracketing, cCommandPart pListName = null) => mParts.BeginList(pBracketing, pListName);
                 public void EndList() => mParts.EndList();
 
-                public void Add(cCacheItems pItems, bool pNoModSeq)
+                public void Add(cMessageCacheItems pItems, bool pNoModSeq)
                 {
                     if (mEmitted) throw new InvalidOperationException();
 
-                    fCacheAttributes lAttributes = pItems.Attributes;
-                    if ((lAttributes & (fCacheAttributes.flags | fCacheAttributes.modseq)) != 0) lAttributes |= fCacheAttributes.flags | fCacheAttributes.modseq;
-                    if (pNoModSeq) lAttributes = lAttributes & ~fCacheAttributes.modseq;
+                    fMessageCacheAttributes lAttributes = pItems.Attributes;
+                    if ((lAttributes & (fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq)) != 0) lAttributes |= fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq;
+                    if (pNoModSeq) lAttributes = lAttributes & ~fMessageCacheAttributes.modseq;
 
                     mParts.BeginList(eListBracketing.ifmorethanone);
 
-                    if ((lAttributes & fCacheAttributes.flags) != 0) mParts.Add(kCommandPartFlags);
-                    if ((lAttributes & fCacheAttributes.envelope) != 0) mParts.Add(kCommandPartEnvelope);
-                    if ((lAttributes & fCacheAttributes.received) != 0) mParts.Add(kCommandPartInternalDate);
-                    if ((lAttributes & fCacheAttributes.size) != 0) mParts.Add(kCommandPartrfc822size);
-                    if ((lAttributes & fCacheAttributes.body) != 0) mParts.Add(kCommandPartBody);
-                    if ((lAttributes & fCacheAttributes.bodystructure) != 0) mParts.Add(kCommandPartBodyStructure);
-                    if ((lAttributes & fCacheAttributes.uid) != 0) mParts.Add(kCommandPartUID);
-                    if ((lAttributes & fCacheAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
+                    if ((lAttributes & fMessageCacheAttributes.flags) != 0) mParts.Add(kCommandPartFlags);
+                    if ((lAttributes & fMessageCacheAttributes.envelope) != 0) mParts.Add(kCommandPartEnvelope);
+                    if ((lAttributes & fMessageCacheAttributes.received) != 0) mParts.Add(kCommandPartInternalDate);
+                    if ((lAttributes & fMessageCacheAttributes.size) != 0) mParts.Add(kCommandPartrfc822size);
+                    if ((lAttributes & fMessageCacheAttributes.body) != 0) mParts.Add(kCommandPartBody);
+                    if ((lAttributes & fMessageCacheAttributes.bodystructure) != 0) mParts.Add(kCommandPartBodyStructure);
+                    if ((lAttributes & fMessageCacheAttributes.uid) != 0) mParts.Add(kCommandPartUID);
+                    if ((lAttributes & fMessageCacheAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
 
                     if (pItems.Names.Count > 0)
                     {
@@ -143,17 +143,17 @@ namespace work.bacome.imapclient
                     mParts.EndList();
                 }
 
-                public void AddStatusAttributes(fMailboxCacheData pAttributes)
+                public void AddStatusAttributes(fMailboxCacheDataItems pAttributes)
                 {
                     if (mEmitted) throw new InvalidOperationException();
 
                     mParts.BeginList(eListBracketing.bracketed);
-                    if ((pAttributes & fMailboxCacheData.messagecount) != 0) mParts.Add(kCommandPartMessages);
-                    if ((pAttributes & fMailboxCacheData.recentcount) != 0) mParts.Add(kCommandPartRecent);
-                    if ((pAttributes & fMailboxCacheData.uidnext) != 0) mParts.Add(kCommandPartUIDNext);
-                    if ((pAttributes & fMailboxCacheData.uidvalidity) != 0) mParts.Add(kCommandPartUIDValidity);
-                    if ((pAttributes & fMailboxCacheData.unseencount) != 0) mParts.Add(kCommandPartUnseen);
-                    if ((pAttributes & fMailboxCacheData.highestmodseq) != 0) mParts.Add(kCommandPartHighestModSeq);
+                    if ((pAttributes & fMailboxCacheDataItems.messagecount) != 0) mParts.Add(kCommandPartMessages);
+                    if ((pAttributes & fMailboxCacheDataItems.recentcount) != 0) mParts.Add(kCommandPartRecent);
+                    if ((pAttributes & fMailboxCacheDataItems.uidnext) != 0) mParts.Add(kCommandPartUIDNext);
+                    if ((pAttributes & fMailboxCacheDataItems.uidvalidity) != 0) mParts.Add(kCommandPartUIDValidity);
+                    if ((pAttributes & fMailboxCacheDataItems.unseencount) != 0) mParts.Add(kCommandPartUnseen);
+                    if ((pAttributes & fMailboxCacheDataItems.highestmodseq) != 0) mParts.Add(kCommandPartHighestModSeq);
                     mParts.EndList();
                 }
 

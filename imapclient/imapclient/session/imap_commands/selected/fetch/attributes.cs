@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pHandles, cCacheItems pItems, cTrace.cContext pParentContext)
+            private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pHandles, cMessageCacheItems pItems, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchCacheItemsAsync), pMC, pHandles, pItems);
 

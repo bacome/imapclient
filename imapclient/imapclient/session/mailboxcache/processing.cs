@@ -98,7 +98,7 @@ namespace work.bacome.imapclient
 
                     if (mCapabilities.ListExtended)
                     {
-                        if ((mMailboxCacheData & fMailboxCacheData.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, (pListMailbox.Flags & fListFlags.subscribed) != 0), lContext);
+                        if ((mMailboxCacheDataItems & fMailboxCacheDataItems.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, (pListMailbox.Flags & fListFlags.subscribed) != 0), lContext);
                         else if ((pListMailbox.Flags & fListFlags.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, true), lContext);
                     }
                 }

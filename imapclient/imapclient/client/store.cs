@@ -33,12 +33,13 @@ namespace work.bacome.imapclient
         /// <param name="pMessages"></param>
         /// <param name="pOperation">The type of store operation.</param>
         /// <param name="pFlags"></param>
-        /// <param name="pIfUnchangedSinceModSeq">
-        /// The modseq to use in the UNCHANGEDSINCE clause of a conditional store (see RFC 7162).
-        /// Can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero.
-        /// Individual messages should have their stores failed by the server if they have been modified since the specified modseq.
-        /// </param>
+        /// <param name="pIfUnchangedSinceModSeq"></param>
         /// <returns>Feedback on the success (or otherwise) of the store.</returns>
+        /// <remarks>
+        /// The <paramref name="pIfUnchangedSinceModSeq"/> can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero. 
+        /// (i.e. <see cref="cCapabilities.CondStore"/> is in use and the mailbox supports the persistent storage of mod-sequences.)
+        /// If a message has been modified since the specified value then the server will fail the store for that message.
+        /// </remarks>
         public cStoreFeedback Store(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Store), 3);
@@ -70,12 +71,8 @@ namespace work.bacome.imapclient
         /// <param name="pMessages"></param>
         /// <param name="pOperation">The type of store operation.</param>
         /// <param name="pFlags"></param>
-        /// <param name="pIfUnchangedSinceModSeq">
-        /// The modseq to use in the UNCHANGEDSINCE clause of a conditional store (see RFC 7162).
-        /// Can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero.
-        /// Individual messages should have their stores failed by the server if they have been modified since the specified modseq.
-        /// </param>
-        /// <returns>Feedback on the success (or otherwise) of the store.</returns>
+        /// <param name="pIfUnchangedSinceModSeq"></param>
+        /// <inheritdoc cref="Store(IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)" select="returns|remarks"/>
         public async Task<cStoreFeedback> StoreAsync(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 3);

@@ -1,10 +1,12 @@
 ﻿using System;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// An IMAP server to use during <see cref="cIMAPClient.Connect"/>. See <see cref="cIMAPClient.Server"/>.
+    /// Represents an IMAP server.
     /// </summary>
+    /// <seealso cref="cIMAPClient.Server"/>
     public class cServer
     {
         /**<summary>The host name.</summary>*/
@@ -27,7 +29,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance with the port set to 143 if <paramref name="pSSL"/> is <see langword="false"/>, otherwise set to 993.
+        /// Initialises a new instance with the port set to 143 if <paramref name="pSSL"/> is <see langword="false"/>, otherwise the port is set to 993.
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pSSL">Indicates if TLS should be established immediately upon TCP connect.</param>
@@ -54,7 +56,7 @@ namespace work.bacome.imapclient
             SSL = pSSL;
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cServer)}({Host}:{Port},{nameof(SSL)}={SSL})";
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -21,18 +22,18 @@ namespace work.bacome.imapclient
     /// <summary>
     /// A read-only collection of email addresses.
     /// </summary>
-    /// <seealso cref="cMessage.From"/>
-    /// <seealso cref="cMessage.Sender"/>
-    /// <seealso cref="cMessage.ReplyTo"/>
-    /// <seealso cref="cMessage.To"/>
-    /// <seealso cref="cMessage.CC"/>
     /// <seealso cref="cMessage.BCC"/>
-    /// <seealso cref="cEnvelope.From"/>
-    /// <seealso cref="cEnvelope.Sender"/>
-    /// <seealso cref="cEnvelope.ReplyTo"/>
-    /// <seealso cref="cEnvelope.To"/>
-    /// <seealso cref="cEnvelope.CC"/>
+    /// <seealso cref="cMessage.CC"/>
+    /// <seealso cref="cMessage.From"/>
+    /// <seealso cref="cMessage.ReplyTo"/>
+    /// <seealso cref="cMessage.Sender"/>
+    /// <seealso cref="cMessage.To"/>
     /// <seealso cref="cEnvelope.BCC"/>
+    /// <seealso cref="cEnvelope.CC"/>
+    /// <seealso cref="cEnvelope.From"/>
+    /// <seealso cref="cEnvelope.ReplyTo"/>
+    /// <seealso cref="cEnvelope.Sender"/>
+    /// <seealso cref="cEnvelope.To"/>
     public class cAddresses : ReadOnlyCollection<cAddress>
     {
         /// <summary>
@@ -51,7 +52,7 @@ namespace work.bacome.imapclient
             DisplaySortString = pDisplaySortString ?? throw new ArgumentNullException(nameof(pDisplaySortString));
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cAddresses));
@@ -75,8 +76,10 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// The display version of the address (local-part@domain-name), with any punycode (RFC 3492) domain-name decoded.
-        /// Note: this currently contains the same value as the <see cref="Address"/>.
         /// </summary>
+        /// <remarks>
+        /// Note: this currently contains the same value as the <see cref="Address"/>.
+        /// </remarks>
         public readonly string DisplayAddress; // host name should be converted from punycode (rfc 3492) [currently not implemented] // TODO
 
         internal cEmailAddress(cCulturedString pDisplayName, string pAddress, string pDisplayAddress) : base(pDisplayName)
@@ -85,7 +88,7 @@ namespace work.bacome.imapclient
             DisplayAddress = pDisplayAddress;
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cEmailAddress)}({DisplayName},{Address},{DisplayAddress})";
     }
 
@@ -105,7 +108,7 @@ namespace work.bacome.imapclient
             Addresses = new ReadOnlyCollection<cEmailAddress>(pAddresses);
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cGroupAddress));

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A list of messages in the internal message cache.
+    /// Represents a list of messages in the internal message cache.
     /// </summary>
     public class cMessageHandleList : List<iMessageHandle>
     {
@@ -15,7 +16,7 @@ namespace work.bacome.imapclient
 
         internal void SortByCacheSequence() => Sort(ZCompareCacheSequence);
 
-        /**<summary>Returns a string that represents the list.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cMessageHandleList));

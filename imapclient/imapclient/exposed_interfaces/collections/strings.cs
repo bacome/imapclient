@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -10,7 +11,7 @@ namespace work.bacome.imapclient
     public class cStrings : ReadOnlyCollection<string>
     {
         /// <summary>
-        /// Makes a read-only wrapper around the specified list.
+        /// Initialises a new instance with the specified list.
         /// </summary>
         /// <param name="pStrings"></param>
         public cStrings(IList<string> pStrings) : base(pStrings) { }
@@ -22,10 +23,7 @@ namespace work.bacome.imapclient
         /// <returns></returns>
         public override bool Equals(object pObject) => this == pObject as cStrings;
 
-        /// <summary>
-        /// Returns the hash code for this collection.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -36,7 +34,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cStrings));

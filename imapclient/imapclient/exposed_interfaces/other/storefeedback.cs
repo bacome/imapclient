@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -94,7 +95,7 @@ namespace work.bacome.imapclient
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cStoreFeedbackItem)}({Handle},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
     }
 
@@ -166,7 +167,7 @@ namespace work.bacome.imapclient
         internal bool AllHaveUID => mItems.TrueForAll(i => i.Handle.UID != null);
 
         /// <summary>
-        /// Gets a summary of the feedback. Note that this may return a different value after a <see cref="cIMAPClient.Poll"/>.
+        /// Gets a summary of the feedback. May return a different value after a <see cref="cIMAPClient.Poll"/> .
         /// </summary>
         /// <returns></returns>
         public sStoreFeedbackSummary Summary()
@@ -177,18 +178,20 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets one item of feedback.
+        /// Gets one item.
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>
         public cStoreFeedbackItem this[int i] => mItems[i];
-        /**<summary>Gets the number of items of feedback in the instance.</summary>*/
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mItems.Count;
-        /**<summary>Returns an enumerator that iterates through the items of feedback.</summary>*/
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator<cStoreFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cStoreFeedback));
@@ -252,7 +255,7 @@ namespace work.bacome.imapclient
         /**<summary>Gets the count of messages for which doing a <see cref="cIMAPClient.Poll"/> may increase our knowledge of what happened.</summary>*/
         public bool LikelyWorthPolling => NotReflectsOperationCount > 0;
 
-        /**<summary>Returns a string that represents the summary.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(sStoreFeedbackSummary)}(Updated:{UpdatedCount}, WasNotUnchangedSince:{WasNotUnchangedSinceCount}, Expunged:{ExpungedCount}, Unknown:{UnknownCount}, Reflects:{ReflectsOperationCount}, NotReflects:{NotReflectsOperationCount})";
     }
 
@@ -272,7 +275,7 @@ namespace work.bacome.imapclient
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cUIDStoreFeedbackItem)}({UID},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
     }
 
@@ -318,10 +321,7 @@ namespace work.bacome.imapclient
             mFlags = pFlags;
         }
 
-        /// <summary>
-        /// Gets a summary of the feedback. Note that this may return a different value after a <see cref="cIMAPClient.Poll"/> .
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc cref="cStoreFeedback.Summary" select="summary|returns|remarks"/>
         public sStoreFeedbackSummary Summary()
         {
             sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();
@@ -330,18 +330,20 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets one item of feedback.
+        /// Gets one item.
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>
         public cUIDStoreFeedbackItem this[int i] => mItems[i];
-        /**<summary>Gets the number of items of feedback in the instance.</summary>*/
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mItems.Count;
-        /**<summary>Returns an enumerator that iterates through the items of feedback.</summary>*/
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator<cUIDStoreFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUIDStoreFeedback));

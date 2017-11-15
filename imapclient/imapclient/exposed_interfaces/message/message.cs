@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -17,21 +18,21 @@ namespace work.bacome.imapclient
     /// Re-selecting a mailbox will not bring the message instances back to life.
     /// Instances are only valid whilst the containing mailbox has the same UIDValidity.
     /// </remarks>
-    /// <seealso cref="cMailbox.Message(cUID, cCacheItems)"/>
-    /// <seealso cref="cMailbox.Messages(cFilter, cSort, cCacheItems, cMessageFetchConfiguration)"/>
-    /// <seealso cref="cMailbox.Messages(IEnumerable{cUID}, cCacheItems, cCacheItemFetchConfiguration)"/>
-    /// <seealso cref="cMailbox.Messages(IEnumerable{iMessageHandle}, cCacheItems, cCacheItemFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.Message(cUID, cMessageCacheItems)"/>
+    /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.Messages(IEnumerable{cUID}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
     public class cMessage
     {
-        private static readonly cCacheItems kEnvelope = fCacheAttributes.envelope;
-        private static readonly cCacheItems kFlags = fCacheAttributes.flags;
-        private static readonly cCacheItems kReceived = fCacheAttributes.received;
-        private static readonly cCacheItems kSize = fCacheAttributes.size;
-        private static readonly cCacheItems kUID = fCacheAttributes.uid;
-        private static readonly cCacheItems kModSeq = fCacheAttributes.modseq;
-        private static readonly cCacheItems kBodyStructure = fCacheAttributes.bodystructure;
-        private static readonly cCacheItems kReferences = cHeaderFieldNames.References;
-        private static readonly cCacheItems kImportance = cHeaderFieldNames.Importance;
+        private static readonly cMessageCacheItems kEnvelope = fMessageCacheAttributes.envelope;
+        private static readonly cMessageCacheItems kFlags = fMessageCacheAttributes.flags;
+        private static readonly cMessageCacheItems kReceived = fMessageCacheAttributes.received;
+        private static readonly cMessageCacheItems kSize = fMessageCacheAttributes.size;
+        private static readonly cMessageCacheItems kUID = fMessageCacheAttributes.uid;
+        private static readonly cMessageCacheItems kModSeq = fMessageCacheAttributes.modseq;
+        private static readonly cMessageCacheItems kBodyStructure = fMessageCacheAttributes.bodystructure;
+        private static readonly cMessageCacheItems kReferences = cHeaderFieldNames.References;
+        private static readonly cMessageCacheItems kImportance = cHeaderFieldNames.Importance;
 
         private PropertyChangedEventHandler mPropertyChanged;
         private object mPropertyChangedLock = new object();
@@ -94,7 +95,7 @@ namespace work.bacome.imapclient
         /// Gets the IMAP envelope data of the message.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public cEnvelope Envelope
         {
@@ -110,7 +111,7 @@ namespace work.bacome.imapclient
         /// May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public DateTime? Sent
         {
@@ -126,7 +127,7 @@ namespace work.bacome.imapclient
         /// May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public cCulturedString Subject
         {
@@ -143,7 +144,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// The base subject is defined RFC 5256 and is the subject with the RE: FW: etc artifacts removed.
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public string BaseSubject
         {
@@ -159,7 +160,7 @@ namespace work.bacome.imapclient
         /// May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public cAddresses From
         {
@@ -175,7 +176,7 @@ namespace work.bacome.imapclient
         /// May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public cAddresses Sender
         {
@@ -191,7 +192,7 @@ namespace work.bacome.imapclient
         /// May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public cAddresses ReplyTo
         {
@@ -207,7 +208,7 @@ namespace work.bacome.imapclient
         /// May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public cAddresses To
         {
@@ -223,7 +224,7 @@ namespace work.bacome.imapclient
         /// May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public cAddresses CC
         {
@@ -239,7 +240,7 @@ namespace work.bacome.imapclient
         /// May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public cAddresses BCC
         {
@@ -256,7 +257,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// Normalised message-ids have the delimiters, quoting, comments and white space removed.
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public cStrings InReplyTo
         {
@@ -273,7 +274,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// Normalised message-ids have the delimiters, quoting, comments and white space removed.
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> data of the message, it will be fetched from the server.
         /// </remarks>
         public string MessageId
         {
@@ -288,7 +289,7 @@ namespace work.bacome.imapclient
         /// Gets the flags set for the message.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.flags"/> of the message, they will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public cFetchableFlags Flags
         {
@@ -300,20 +301,20 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines if the <see cref="Flags"/> contain the <see cref="kMessageFlagName.Answered"/> flag.
+        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlagName.Answered"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.flags"/> of the message, they will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Answered => ZFlagsContain(kMessageFlagName.Answered);
-        /**<summary>Adds the <see cref="kMessageFlagName.Answered"/> flag to the message's flags.</summary>*/
+        /**<summary>Adds <see cref="kMessageFlagName.Answered"/> to the message's flags.</summary>*/
         public void SetAnswered() { ZFlagSet(cStorableFlags.Answered, true); }
 
         /// <summary>
         /// Gets and sets the <see cref="kMessageFlagName.Flagged"/> flag of the message.
         /// </summary>
         /// <remarks>
-        /// When getting the value, if the internal message cache does not contain the <see cref="fCacheAttributes.flags"/> of the message, they will be fetched from the server.
+        /// When getting the value, if the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Flagged
         {
@@ -325,7 +326,7 @@ namespace work.bacome.imapclient
         /// Gets and sets the <see cref="kMessageFlagName.Deleted"/> flag of the message.
         /// </summary>
         /// <remarks>
-        /// When getting the value, if the internal message cache does not contain the <see cref="fCacheAttributes.flags"/> of the message, they will be fetched from the server.
+        /// When getting the value, if the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Deleted
         {
@@ -337,7 +338,7 @@ namespace work.bacome.imapclient
         /// Gets and sets the <see cref="kMessageFlagName.Seen"/> flag of the message.
         /// </summary>
         /// <remarks>
-        /// When getting the value, if the internal message cache does not contain the <see cref="fCacheAttributes.flags"/> of the message, they will be fetched from the server.
+        /// When getting the value, if the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Seen
         {
@@ -349,7 +350,7 @@ namespace work.bacome.imapclient
         /// Gets and sets the <see cref="kMessageFlagName.Draft"/> flag of the message.
         /// </summary>
         /// <remarks>
-        /// When getting the value, if the internal message cache does not contain the <see cref="fCacheAttributes.flags"/> of the message, they will be fetched from the server.
+        /// When getting the value, if the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Draft
         {
@@ -358,10 +359,10 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines if the <see cref="Flags"/> contain the <see cref="kMessageFlagName.Recent"/> flag.
+        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlagName.Recent"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.flags"/> of the message, they will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Recent => ZFlagsContain(kMessageFlagName.Recent);
 
@@ -370,30 +371,30 @@ namespace work.bacome.imapclient
         //public void SetMDNSent() { ZFlagSet(cSettableFlags.MDNSent, true); }
 
         /// <summary>
-        /// Determines if the <see cref="Flags"/> contain the <see cref="kMessageFlagName.Forwarded"/> flag.
+        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlagName.Forwarded"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.flags"/> of the message, they will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Forwarded => ZFlagsContain(kMessageFlagName.Forwarded);
         /**<summary>Adds the <see cref="kMessageFlagName.Forwarded"/> flag to the message's flags.</summary>*/
         public void SetForwarded() { ZFlagSet(cStorableFlags.Forwarded, true); }
 
         /// <summary>
-        /// Determines if the <see cref="Flags"/> contain the <see cref="kMessageFlagName.SubmitPending"/> flag.
+        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlagName.SubmitPending"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.flags"/> of the message, they will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool SubmitPending => ZFlagsContain(kMessageFlagName.SubmitPending);
         /**<summary>Adds the <see cref="kMessageFlagName.SubmitPending"/> flag to the message's flags.</summary>*/
         public void SetSubmitPending() { ZFlagSet(cStorableFlags.SubmitPending, true); }
 
         /// <summary>
-        /// Determines if the <see cref="Flags"/> contain the <see cref="kMessageFlagName.Submitted"/> flag.
+        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlagName.Submitted"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.flags"/> of the message, they will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Submitted  => ZFlagsContain(kMessageFlagName.Submitted);
 
@@ -415,7 +416,7 @@ namespace work.bacome.imapclient
         /// Gets the IMAP INTERNALDATE of the message.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.received"/> date of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.received"/> date of the message, it will be fetched from the server.
         /// </remarks>
         public DateTime Received
         {
@@ -430,7 +431,7 @@ namespace work.bacome.imapclient
         /// Gets the size of the entire message in bytes.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.size"/> of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.size"/> of the message, it will be fetched from the server.
         /// </remarks>
         public int Size
         {
@@ -442,11 +443,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the IMAP UID of the message.
-        /// May be <see langword="null"/> if the server does not support unique identifiers.
+        /// Gets the IMAP UID of the message. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.uid"/> of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.uid"/> of the message, it will be fetched from the server.
+        /// May be <see langword="null"/> if the mailbox does not support unique identifiers.
         /// </remarks>
         public cUID UID
         {
@@ -458,11 +459,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the modification sequence number of the message.
-        /// Will be 0 if the mailbox does not support CONDSTORE.
+        /// Gets the modification sequence number of the message. May be zero.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.modseq"/> for the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.modseq"/> for the message, it will be fetched from the server.
+        /// Will be zero if <see cref="cCapabilities.CondStore"/> is not in use or if the mailbox does not support the persistent storage of mod-sequences.
         /// </remarks>
         public ulong ModSeq
         {
@@ -477,7 +478,7 @@ namespace work.bacome.imapclient
         /// Gets the IMAP BODYSTRUCTURE of the message.
         /// </summary>
         /// <remarks>
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.bodystructure"/> of the message, it will be fetched from the server.
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.bodystructure"/> of the message, it will be fetched from the server.
         /// </remarks>
         public cBodyPart BodyStructure
         {
@@ -489,13 +490,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the list of message attachments.
-        /// The list may be empty.
+        /// Gets the list of message attachments. The list may be empty.
         /// </summary>
         /// <remarks>
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.bodystructure"/> of the message, it will be fetched from the server.
         /// The library defines an attachment as a message part with a disposition of ‘attachment’.
         /// If there are alternate versions of an attachment only one of the alternates is included in the list (the first one).
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.bodystructure"/> of the message, it will be fetched from the server.
         /// </remarks>
         public List<cAttachment> Attachments
         {
@@ -530,13 +530,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the size in bytes of the plain text parts of the message.
-        /// May be zero.
+        /// Gets the size in bytes of the plain text parts of the message. May be zero.
         /// </summary>
         /// <remarks>
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.bodystructure"/> of the message, it will be fetched from the server.
         /// The library defines plain text parts as parts with a MIME type of text/plain and without a disposition of 'attachment'.
         /// If there are alternate versions of a part only one of the alternates is used in calculating the size (the first one).
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.bodystructure"/> of the message, it will be fetched from the server.
         /// </remarks>
         public int PlainTextSizeInBytes
         {
@@ -576,13 +575,12 @@ namespace work.bacome.imapclient
 
 
         /// <summary>
-        /// Gets the normalised message-ids from the references header field.
-        /// May be <see langword="null"/>.
+        /// Gets the normalised message-ids from the references header field. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
+        /// If the internal message cache does not contain the <see cref="kHeaderFieldName.References"/> header field of the message, it will be fetched from the server.
         /// Normalised message-ids have the delimiters, quoting, comments and white space removed.
         /// May be <see langword="null"/> if there is no references header field or if the references header field can not be parsed by the library.
-        /// If the internal message cache does not contain the <see cref="kHeaderFieldName.References"/> header field of the message, it will be fetched from the server.
         /// </remarks>
         public cStrings References
         {
@@ -594,12 +592,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the importance value from the importance header field.
-        /// May be <see langword="null"/>.
+        /// Gets the importance value from the importance header field. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// May be <see langword="null"/> if there is no importance header field or if the importance header field can not be parsed by the library.
         /// If the internal message cache does not contain the <see cref="kHeaderFieldName.Importance"/> header field of the message, it will be fetched from the server.
+        /// May be <see langword="null"/> if there is no importance header field or if the importance header field can not be parsed by the library.
         /// </remarks>
         public eImportance? Importance
         {
@@ -612,54 +609,42 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// Ensures that the internal message cache contains the specified items for this message instance.
-        /// The missing items will be fetched from the server.
         /// </summary>
-        /// <param name="pItems">
-        /// The items required in the cache.
-        /// Note that <see cref="cCacheItems"/> has implicit conversions from other types including <see cref="fMessageProperties"/> (so you can use values of those types as parameters to this method).
-        /// </param>
+        /// <param name="pItems"></param>
         /// <returns>
         /// <see langword="true"/> if the fetch populated the cache with the requested items, <see langword="false"/> otherwise.
         /// <see langword="false"/> indicates that the message is expunged.
         /// </returns>
-        public bool Fetch(cCacheItems pItems) => Client.Fetch(Handle, pItems);
+        /// <remarks>
+        /// The missing items will be fetched from the server.
+        /// Note that <see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fMessageProperties"/> (so you can use values of those types as parameters to this method).
+        /// </remarks>
+        public bool Fetch(cMessageCacheItems pItems) => Client.Fetch(Handle, pItems);
 
         /// <summary>
         /// Ansynchronously ensures that the internal message cache contains the specified items for this message instance.
-        /// The missing items will be fetched from the server.
         /// </summary>
-        /// <param name="pItems">
-        /// The items required in the cache.
-        /// Note that <see cref="cCacheItems"/> has implicit conversions from other types including <see cref="fMessageProperties"/> (so you can use values of those types as parameters to this method).
-        /// </param>
-        /// <returns>
-        /// <see langword="true"/> if the fetch populated the cache with the requested items, <see langword="false"/> otherwise.
-        /// <see langword="false"/> indicates that the message is expunged.
-        /// </returns>
-        public Task<bool> FetchAsync(cCacheItems pItems) => Client.FetchAsync(Handle, pItems);
+        /// <param name="pItems"></param>
+        /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
+        public Task<bool> FetchAsync(cMessageCacheItems pItems) => Client.FetchAsync(Handle, pItems);
 
         /// <summary>
-        /// Gets the fetch size in bytes of a <see cref="cSinglePartBody"/> part of this message. This may be smaller than the <see cref="cSinglePartBody.SizeInBytes"/>.
+        /// Gets the fetch size in bytes of a <see cref="cSinglePartBody"/> part of this message.
         /// </summary>
         /// <param name="pPart"></param>
         /// <returns></returns>
         /// <remarks>
-        /// This may be smaller than the <see cref="cSinglePartBody.SizeInBytes"/> if the part needs decoding (see <see cref="cSinglePartBody.DecodingRequired"/>) and the server supports <see cref="cCapabilities.Binary"/>.
+        /// This may be smaller than the <see cref="cSinglePartBody.SizeInBytes"/> if the part needs decoding (see <see cref="cSinglePartBody.DecodingRequired"/>) and <see cref="cCapabilities.Binary"/> is in use.
         /// The size may have to be fetched from the server. 
         /// Once fetched the size will be cached in the internal message cache.
         /// </remarks>
         public int FetchSizeInBytes(cSinglePartBody pPart) => Client.FetchSizeInBytes(Handle, pPart);
 
         /// <summary>
-        /// Asynchronously gets the fetch size in bytes of a <see cref="cSinglePartBody"/> part of this message. This may be smaller than the <see cref="cSinglePartBody.SizeInBytes"/>.
+        /// Asynchronously gets the fetch size in bytes of a <see cref="cSinglePartBody"/> part of this message.
         /// </summary>
         /// <param name="pPart"></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// This may be smaller than the <see cref="cSinglePartBody.SizeInBytes"/> if the part needs decoding (see <see cref="cSinglePartBody.DecodingRequired"/>) and the server supports <see cref="cCapabilities.Binary"/>.
-        /// The size may have to be fetched from the server. 
-        /// Once fetched the size will be cached in the internal message cache.
-        /// </remarks>
+        /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
         public Task<int> FetchSizeInBytesAsync(cSinglePartBody pPart) => Client.FetchSizeInBytesAsync(Handle, pPart);
 
         /// <summary>
@@ -674,9 +659,9 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <returns></returns>
         /// <remarks>
+        /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.bodystructure"/> of the message, it will be fetched from the server.
         /// The library defines plain text parts as parts with a MIME type of text/plain and without a disposition of 'attachment'.
         /// If there are alternate versions of a part only one of the alternates is used in generating the plain text (the first one).
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.bodystructure"/> of the message, it will be fetched from the server.
         /// </remarks>
         public string PlainText()
         {
@@ -689,12 +674,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Ansynchronously fetches the message's plain text parts from the server, decoding if required, and concatenates them yielding the returned value.
         /// </summary>
-        /// <returns></returns>
-        /// <remarks>
-        /// The library defines plain text parts as parts with a MIME type of text/plain and without a disposition of 'attachment'.
-        /// If there are alternate versions of a part only one of the alternates is used in generating the plain text (the first one).
-        /// If the internal message cache does not contain the <see cref="fCacheAttributes.bodystructure"/> of the message, it will be fetched from the server.
-        /// </remarks>
+        /// <inheritdoc cref="PlainText" select="returns|remarks"/>
         public async Task<string> PlainTextAsync()
         {
             if (!await Client.FetchAsync(Handle, kBodyStructure).ConfigureAwait(false)) throw new InvalidOperationException();
@@ -727,7 +707,7 @@ namespace work.bacome.imapclient
         /// Asynchronously fetches the specified message part from the server, decoding if required, and returns the data in a string.
         /// </summary>
         /// <param name="pPart"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="Fetch(cTextBodyPart)" select="returns|remarks"/>
         public async Task<string> FetchAsync(cTextBodyPart pPart)
         {
             using (var lStream = new MemoryStream())
@@ -756,7 +736,7 @@ namespace work.bacome.imapclient
         /// Asynchronously fetches the specified message section from the server as text (without any decoding) and attempts to return the data as a string.
         /// </summary>
         /// <param name="pSection"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="FetchAsync(cSection)" select="returns|remarks"/>
         public async Task<string> FetchAsync(cSection pSection)
         {
             using (var lStream = new MemoryStream())
@@ -786,48 +766,45 @@ namespace work.bacome.imapclient
         /// <param name="pStream"></param>
         /// <param name="pConfiguration">An operation specific timeout, cancellation token, progress callback and write size controller.</param>
         /// <returns></returns>
-        /// <remarks>
-        /// Any decoding required may be done client-side or server-side.
-        /// To calculate the number of bytes that have to be fetched, use the <see cref="FetchSizeInBytes(cSinglePartBody)"/> method. 
-        /// (This is useful if you are intending to display a progress bar.)
-        /// </remarks>
+        /// <inheritdoc cref="Fetch(cSinglePartBody, Stream, cBodyFetchConfiguration)" select="remarks"/>
         public Task FetchAsync(cSinglePartBody pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
 
         /// <summary>
         /// Fetches the specified message section from the server and writes the section data into the provided stream.
         /// </summary>
         /// <param name="pSection"></param>
-        /// <param name="pDecoding">
-        /// Specifies the decoding that should be applied to the fetched data.
-        /// If the connected server supports <see cref="cCapabilities.Binary"/> and the entire part (<see cref="eSectionTextPart.all"/>) is being fetched then unless this is <see cref="eDecodingRequired.none"/> the server will do the decoding that it determines is required.
-        /// </param>
+        /// <param name="pDecoding"></param>
         /// <param name="pStream"></param>
         /// <param name="pConfiguration">An operation specific timeout, cancellation token, progress callback and write size controller.</param>
+        /// <remarks>
+        /// If <see cref="cCapabilities.Binary"/> is in use and the entire part (<see cref="eSectionTextPart.all"/>) is being fetched then unless <paramref name="pDecoding"/> is <see cref="eDecodingRequired.none"/> the server will do the decoding that it determines is required
+        /// (i.e. the decoding specified is ignored).
+        /// </remarks>
         public void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.Fetch(Handle, pSection, pDecoding, pStream, pConfiguration);
 
         /// <summary>
         /// Asynchronously fetches the specified message section from the server and writes the section data into the provided stream.
         /// </summary>
         /// <param name="pSection"></param>
-        /// <param name="pDecoding">
-        /// Specifies the decoding that should be applied to the fetched data.
-        /// If the connected server supports <see cref="cCapabilities.Binary"/> and the entire part (<see cref="eSectionTextPart.all"/>) is being fetched then unless this is <see cref="eDecodingRequired.none"/> the server will do the decoding that it determines is required.
-        /// </param>
+        /// <param name="pDecoding"></param>
         /// <param name="pStream"></param>
         /// <param name="pConfiguration">An operation specific timeout, cancellation token, progress callback and write size controller.</param>
         /// <returns></returns>
+        /// <inheritdoc cref="Fetch(cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)" select="remarks"/>
         public Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, pSection, pDecoding, pStream, pConfiguration);
 
         /// <summary>
-        /// Stores flags for the message. This method will throw if it detects that the store is likely to have failed.
+        /// Stores flags for the message. 
         /// </summary>
         /// <param name="pOperation">The type of store operation.</param>
         /// <param name="pFlags"></param>
-        /// <param name="pIfUnchangedSinceModSeq">
-        /// The modseq to use in the UNCHANGEDSINCE clause of a conditional store (see RFC 7162).
-        /// Can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero.
-        /// If the message has been modified since the specified modseq the server should fail the store.
-        /// </param>
+        /// <param name="pIfUnchangedSinceModSeq"></param>
+        /// <remarks>
+        /// The <paramref name="pIfUnchangedSinceModSeq"/> can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero. 
+        /// (i.e. <see cref="cCapabilities.CondStore"/> is in use and the mailbox supports the persistent storage of mod-sequences.)
+        /// If the message has been modified since the specified value then the server will fail the store.
+        /// This method will throw if it detects that the store is likely to have failed.
+        /// </remarks>
         public void Store(eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
             var lFeedback = Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
@@ -835,16 +812,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Asynchronously stores flags for the message. This method will throw if it detects that the store is likely to have failed.
+        /// Asynchronously stores flags for the message.
         /// </summary>
         /// <param name="pOperation">The type of store operation.</param>
         /// <param name="pFlags"></param>
-        /// <param name="pIfUnchangedSinceModSeq">
-        /// The modseq to use in the UNCHANGEDSINCE clause of a conditional store (see RFC 7162).
-        /// Can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero.
-        /// If the message has been modified since the specified modseq the server should fail the store.
-        /// </param>
+        /// <param name="pIfUnchangedSinceModSeq"></param>
         /// <returns></returns>
+        /// <inheritdoc cref="Store(eStoreOperation, cStorableFlags, ulong?)" select="remarks"/>
         public async Task StoreAsync(eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
             var lFeedback = await Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
@@ -855,11 +829,11 @@ namespace work.bacome.imapclient
         /// Copies the message to the specified mailbox.
         /// </summary>
         /// <param name="pDestination"></param>
-        /// <returns>If the server provides an RFC 4315 UIDCOPY response the UID of the message in the destination mailbox, otherwise <see langword="null"/>.</returns>
+        /// <returns>If the server provides an RFC 4315 UIDCOPY response, the UID of the message in the destination mailbox, otherwise <see langword="null"/>.</returns>
         public cUID Copy(cMailbox pDestination)
         {
             var lFeedback = Client.Copy(Handle, pDestination.Handle);
-            if (lFeedback?.Count == 1) return lFeedback[0].Destination;
+            if (lFeedback?.Count == 1) return lFeedback[0].CreatedUID;
             return null;
         }
 
@@ -867,11 +841,11 @@ namespace work.bacome.imapclient
         /// Asynchronously copies the message to the specified mailbox.
         /// </summary>
         /// <param name="pDestination"></param>
-        /// <returns>If the server provides an RFC 4315 UIDCOPY response the UID of the message in the destination mailbox, otherwise <see langword="null"/>.</returns>
+        /// <inheritdoc cref="Copy(cMailbox)" select="returns|remarks"/>
         public async Task<cUID> CopyAsync(cMailbox pDestination)
         {
             var lFeedback = await Client.CopyAsync(Handle, pDestination.Handle).ConfigureAwait(false);
-            if (lFeedback?.Count == 1) return lFeedback[0].Destination;
+            if (lFeedback?.Count == 1) return lFeedback[0].CreatedUID;
             return null;
         }
 
@@ -883,7 +857,7 @@ namespace work.bacome.imapclient
             ;?; // TODO
         } */
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cMessage)}({Handle})"; // ,{Indent} // re-instate if threading is ever done
     }
 }

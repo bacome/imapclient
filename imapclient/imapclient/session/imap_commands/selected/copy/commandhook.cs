@@ -28,17 +28,17 @@ namespace work.bacome.imapclient
                             !pCursor.SkipByte(cASCII.SPACE) ||
                             !pCursor.GetSequenceSet(out var lSourceUIDSet) ||
                             !pCursor.SkipByte(cASCII.SPACE) ||
-                            !pCursor.GetSequenceSet(out var lDestinationUIDSet) ||
+                            !pCursor.GetSequenceSet(out var lCreatedUIDSet) ||
                             !pCursor.SkipBytes(cBytesCursor.RBracketSpace) ||
                             !cUIntList.TryConstruct(lSourceUIDSet, -1, false, out var lSourceUIDs) ||
-                            !cUIntList.TryConstruct(lDestinationUIDSet, -1, false, out var lDestinationUIDs) ||
-                            lSourceUIDs.Count != lDestinationUIDs.Count)
+                            !cUIntList.TryConstruct(lCreatedUIDSet, -1, false, out var lCreatedUIDs) ||
+                            lSourceUIDs.Count != lCreatedUIDs.Count)
                         {
                             lContext.TraceWarning("likely malformed copyuid response");
                             return false;
                         }
 
-                        Feedback = new cCopyFeedback(mSourceUIDValidity, lSourceUIDs, lDestinationUIDValidity, lDestinationUIDs);
+                        Feedback = new cCopyFeedback(mSourceUIDValidity, lSourceUIDs, lDestinationUIDValidity, lCreatedUIDs);
                         return true;
                     }
 

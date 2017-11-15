@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -14,7 +15,7 @@ namespace work.bacome.imapclient
         public readonly cIMAPClient Client;
         /**<summary>The message cache item that this instance is attached to.</summary>*/
         public readonly iMessageHandle Handle;
-        /**<summary>The message body part that this attachment refers to.</summary>*/
+        /**<summary>The message body-part that this attachment refers to.</summary>*/
         public readonly cSinglePartBody Part;
 
         internal cAttachment(cIMAPClient pClient, iMessageHandle pHandle, cSinglePartBody pPart)
@@ -40,17 +41,17 @@ namespace work.bacome.imapclient
         public string SubType => Part.SubType;
 
         /// <summary>
-        /// Gets the MIME type parameters of the attachment.
+        /// Gets the MIME type parameters of the attachment. May be <see langword="null"/>.
         /// </summary>
         public cBodyStructureParameters Parameters => Part.Parameters;
 
         /// <summary>
-        /// Gets the MIME content-id of the attachment.
+        /// Gets the MIME content-id of the attachment. May be <see langword="null"/>.
         /// </summary>
         public string ContentId => Part.ContentId;
 
         /// <summary>
-        /// Gets the MIME content description of the attachment.
+        /// Gets the MIME content description of the attachment. May be <see langword="null"/>.
         /// </summary>
         public cCulturedString Description => Part.Description;
 
@@ -70,62 +71,55 @@ namespace work.bacome.imapclient
         public int PartSizeInBytes => (int)Part.SizeInBytes;
 
         /// <summary>
-        /// Gets the MD5 value of the attachment.
+        /// Gets the MD5 value of the attachment. May be <see langword="null"/>.
         /// </summary>
         public string MD5 => Part.ExtensionData?.MD5;
 
         /// <summary>
-        /// Gets the suggested filename of the attachment if provided. May be <see langword="null"/>.
+        /// Gets the suggested filename of the attachment. May be <see langword="null"/>.
         /// </summary>
         public string FileName => Part.Disposition?.FileName;
 
         /// <summary>
-        /// Gets the creation date of the attachment if provided. May be <see langword="null"/>.
+        /// Gets the creation date of the attachment. May be <see langword="null"/>.
         /// </summary>
         public DateTime? CreationDate => Part.Disposition?.CreationDate;
 
         /// <summary>
-        /// Gets the modification date of the attachment if provided. May be <see langword="null"/>.
+        /// Gets the modification date of the attachment. May be <see langword="null"/>.
         /// </summary>
         public DateTime? ModificationDate => Part.Disposition?.ModificationDate;
 
         /// <summary>
-        /// Gets the last read date of the attachment if provided. May be <see langword="null"/>.
+        /// Gets the last read date of the attachment. May be <see langword="null"/>.
         /// </summary>
         public DateTime? ReadDate => Part.Disposition?.ReadDate;
 
         /// <summary>
-        /// Gets the approximate size in bytes of the attachment if provided. May be <see langword="null"/>.
+        /// Gets the approximate size in bytes of the attachment. May be <see langword="null"/>.
         /// </summary>
         public int? ApproximateFileSizeInBytes => Part.Disposition?.Size;
 
         /// <summary>
-        /// Gets the language(s) of the attachment if provided.
+        /// Gets the language(s) of the attachment. May be <see langword="null"/>.
         /// </summary>
         public cStrings Languages => Part.ExtensionData?.Languages;
 
         /// <summary>
-        /// Gets the number of bytes that will have to come over the network to save this attachment.
-        /// This may be smaller than the <see cref="PartSizeInBytes"/>.
+        /// Gets the number of bytes that will have to come over the network from the IMAP server to save this attachment.
         /// </summary>
         /// <returns></returns>
         /// <remarks>
-        /// This may be smaller than the <see cref="PartSizeInBytes"/> if the part needs decoding (see <see cref="DecodingRequired"/>) and the server supports <see cref="cCapabilities.Binary"/>.
+        /// This may be smaller than the <see cref="PartSizeInBytes"/> if the part needs decoding (see <see cref="DecodingRequired"/>) and <see cref="cCapabilities.Binary"/> is in use.
         /// The size may have to be fetched from the server. 
         /// Once fetched the size will be cached in the internal message cache.
         /// </remarks>
         public int SaveSizeInBytes() => Client.FetchSizeInBytes(Handle, Part);
 
         /// <summary>
-        /// Asynchronously gets the number of bytes that will have to come over the network to save this attachment.
-        /// This may be smaller than the <see cref="PartSizeInBytes"/>.
+        /// Asynchronously gets the number of bytes that will have to come over the network from the IMAP server to save this attachment
         /// </summary>
-        /// <returns></returns>
-        /// <remarks>
-        /// This may be smaller than the <see cref="PartSizeInBytes"/> if the part needs decoding (see <see cref="DecodingRequired"/>) and the server supports <see cref="cCapabilities.Binary"/>.
-        /// The size may have to be fetched from the server. 
-        /// Once fetched the size will be cached in the internal message cache.
-        /// </remarks>
+        /// <inheritdoc cref="SaveSizeInBytes" select="returns|remarks"/>
         public Task<int> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(Handle, Part);
 
         /// <summary>
@@ -163,7 +157,7 @@ namespace work.bacome.imapclient
             if (Part.Disposition?.ReadDate != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDate.Value);
         }
 
-        // debugging
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cAttachment)}({Handle},{Part.Section})";
     }
 }

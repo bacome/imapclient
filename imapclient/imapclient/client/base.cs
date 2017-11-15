@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
     /// <para>
     /// To connect to an IMAP server use the <see cref="Connect"/> method.
     /// Before calling <see cref="Connect"/> set the <see cref="Server"/> and <see cref="Credentials"/> properties at a minimum.
-    /// Also consider setting the <see cref="MailboxCacheData"/> property.
+    /// Also consider setting the <see cref="MailboxCacheDataItems"/> property.
     /// </para>
     /// <para>Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
     /// </remarks>
@@ -123,7 +123,7 @@ namespace work.bacome.imapclient
         private cServer mServer = null;
         private cCredentials mCredentials = null;
         private bool mMailboxReferrals = false;
-        private fMailboxCacheData mMailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount;
+        private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.unseencount;
         private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
         private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
@@ -530,21 +530,21 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets and sets the set of optional mailbox attributes that are requested from the server.
+        /// Gets and sets the set of optional mailbox data items that are requested from the server.
         /// </summary>
         /// <remarks>
-        /// The default value is <see cref="fMailboxCacheData.messagecount"/> | <see cref="fMailboxCacheData.unseencount"/>.
+        /// The default value is <see cref="fMailboxCacheDataItems.messagecount"/> | <see cref="fMailboxCacheDataItems.unseencount"/>.
         /// Can only be set while <see cref="IsUnconnected"/>.
         /// </remarks>
-        public fMailboxCacheData MailboxCacheData
+        public fMailboxCacheDataItems MailboxCacheDataItems
         {
-            get => mMailboxCacheData;
+            get => mMailboxCacheDataItems;
 
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 if (!IsUnconnected) throw new InvalidOperationException();
-                mMailboxCacheData = value;
+                mMailboxCacheDataItems = value;
             }
         }
 
@@ -614,10 +614,10 @@ namespace work.bacome.imapclient
         /// Limits the number of messages per batch when requesting cache-items from the server. Measured in number of messages.
         /// The default value is min=1 message, max=1000 messages, maxtime=10s, initial=1 message.
         /// </remarks>
-        /// <seealso cref="Fetch(System.Collections.Generic.IEnumerable{cMessage}, cCacheItems, cCacheItemFetchConfiguration)"/>
-        /// <seealso cref="cMailbox.Messages(cFilter, cSort, cCacheItems, cMessageFetchConfiguration)"/>
-        /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cCacheItems, cCacheItemFetchConfiguration)"/>
-        /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{iMessageHandle}, cCacheItems, cCacheItemFetchConfiguration)"/>
+        /// <seealso cref="Fetch(System.Collections.Generic.IEnumerable{cMessage}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
+        /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
+        /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
+        /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
         public cBatchSizerConfiguration FetchCacheItemsConfiguration
         {
             get => mFetchCacheItemsConfiguration;

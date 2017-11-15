@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
+using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents a string that includes language information as per RFC 2231.
+    /// Represents a string that may include language information as per RFC 2231.
     /// </summary>
     /// <seealso cref="cAddress.DisplayName"/>
     /// <seealso cref="cEnvelope.Subject"/>
@@ -135,7 +136,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents part of a string that includes language information as per RFC 2231.
+    /// Represents part of a string that may include language information as per RFC 2231.
     /// </summary>
     public class cCulturedStringPart
     {
@@ -145,7 +146,7 @@ namespace work.bacome.imapclient
         public readonly string String;
 
         /// <summary>
-        /// Optional language of the text. May be <see langword="null"/>.
+        /// The optional language of the text. May be <see langword="null"/>.
         /// </summary>
         public readonly string LanguageTag;
 
@@ -155,7 +156,7 @@ namespace work.bacome.imapclient
             LanguageTag = pLanguageTag;
         }
 
-        /**<summary>Returns a string that represents the part (including any language information).</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cCulturedStringPart)}({String},{LanguageTag})";
     }
 }

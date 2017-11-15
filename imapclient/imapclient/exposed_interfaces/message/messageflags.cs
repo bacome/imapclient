@@ -174,7 +174,7 @@ namespace work.bacome.imapclient
         //public static readonly cSettableFlags MDNSent = new cSettableFlags(kMessageFlagName.MDNSent);
 
         /// <summary>
-        /// Initialises a new instance with a duplicate free copy of the specified flags. May throw if the specified flags aren't valid storable flags.
+        /// Initialises a new instance with a duplicate free copy of the specified flags. Will throw if the specified flags aren't valid storable flags.
         /// </summary>
         /// <param name="pFlags"></param>
         public cStorableFlags(params string[] pFlags) : base(new cStorableFlagList(pFlags)) { }
@@ -210,7 +210,7 @@ namespace work.bacome.imapclient
         // immutable (for passing in and out)
 
         /// <summary>
-        /// Initialises a new instance with a duplicate free copy of the specified flags. May throw if the specified flags aren't valid fetchable flags.
+        /// Initialises a new instance with a duplicate free copy of the specified flags. Will throw if the specified flags aren't valid fetchable flags.
         /// </summary>
         /// <param name="pFlags"></param>
         public cFetchableFlags(params string[] pFlags) : base(new cFetchableFlagList(pFlags)) { }
@@ -334,6 +334,7 @@ namespace work.bacome.imapclient
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mFlags.Count;
+
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator<string> GetEnumerator() => mFlags.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mFlags.GetEnumerator();

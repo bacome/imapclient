@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of enableable IMAP extensions.
+    /// Represents a set of enableable IMAP extensions.
     /// </summary>
     /// <seealso cref="cIMAPClient.EnabledExtensions"/>
     [Flags]
@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         /**<summary>A constant representing no extensions.</summary>*/
         none = 0,
-        /**<summary>RFC 6855.</summary>*/
+        /**<summary><see cref="cCapabilities.UTF8Accept"/>, <see cref="cCapabilities.UTF8Only"/></summary>*/
         utf8 = 1,
         /**<summary>A mask representing all extensions.</summary>*/
         all = 0b1
