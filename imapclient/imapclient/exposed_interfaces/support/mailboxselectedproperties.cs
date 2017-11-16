@@ -1,10 +1,15 @@
 ﻿using System;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient.support
 {
+    /// <summary>
+    /// An object in the internal message cache that contains a subset of the data held about a mailbox.
+    /// </summary>
+    /// <seealso cref="iMailboxHandle"/>
     public class cMailboxSelectedProperties
     {
-        public static readonly cMailboxSelectedProperties NeverBeenSelected = new cMailboxSelectedProperties();
+        internal static readonly cMailboxSelectedProperties NeverBeenSelected = new cMailboxSelectedProperties();
 
         private bool mBeenSelected;
         private bool mBeenSelectedForUpdate;
@@ -90,14 +95,15 @@ namespace work.bacome.imapclient.support
             mMessageFlags = pSelectedProperties.mMessageFlags;
         }
 
-        public bool HasBeenSelected => mBeenSelected;
-        public bool HasBeenSelectedForUpdate => mBeenSelectedForUpdate;
-        public bool HasBeenSelectedReadOnly => mBeenSelectedReadOnly;
-        public bool? UIDNotSticky => mUIDNotSticky;
-        public cFetchableFlags MessageFlags => mMessageFlags;
-        public cMessageFlags ForUpdatePermanentFlags => (cMessageFlags)mForUpdatePermanentFlags ?? mMessageFlags;
-        public cMessageFlags ReadOnlyPermanentFlags => (cMessageFlags)mReadOnlyPermanentFlags ?? mMessageFlags;
+        internal bool HasBeenSelected => mBeenSelected;
+        internal bool HasBeenSelectedForUpdate => mBeenSelectedForUpdate;
+        internal bool HasBeenSelectedReadOnly => mBeenSelectedReadOnly;
+        internal bool? UIDNotSticky => mUIDNotSticky;
+        internal cFetchableFlags MessageFlags => mMessageFlags;
+        internal cMessageFlags ForUpdatePermanentFlags => (cMessageFlags)mForUpdatePermanentFlags ?? mMessageFlags;
+        internal cMessageFlags ReadOnlyPermanentFlags => (cMessageFlags)mReadOnlyPermanentFlags ?? mMessageFlags;
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cMailboxSelectedProperties)}({mBeenSelected},{mBeenSelectedForUpdate},{mBeenSelectedReadOnly},{mUIDNotSticky},{mMessageFlags},{mForUpdatePermanentFlags},{mReadOnlyPermanentFlags})";
 
         internal static fMailboxProperties Differences(cMailboxSelectedProperties pOld, cMailboxSelectedProperties pNew)

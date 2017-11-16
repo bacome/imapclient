@@ -6,9 +6,10 @@ using work.bacome.trace;
 namespace work.bacome.async
 {
     /// <summary>
-    /// Instances manage a sequence of tasks that complete after a specified length of time.
+    /// Generates a sequence of 'countdown' tasks.
     /// </summary>
     /// <remarks>
+    /// Each task runs for the same length of time (set when the instance is created). Only one task can be running at a time.
     /// Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
     /// </remarks>
     public sealed class cCountdownTimer : IDisposable
@@ -19,9 +20,9 @@ namespace work.bacome.async
         private Task mTask;
 
         /// <summary>
-        /// Initialises a new instance with a timeout and <see cref="System.Threading.CancellationToken"/>. The first countdown commences immediately.
+        /// Initialises a new instance. The first 'countdown' starts immediately.
         /// </summary>
-        /// <param name="pTimeout">The duration of each successive countdown task.</param>
+        /// <param name="pTimeout">The duration of each successive 'countdown' task, in milliseconds.</param>
         /// <param name="pParentContext">Context for trace messages.</param>
         public cCountdownTimer(int pTimeout, cTrace.cContext pParentContext)
         {
@@ -31,7 +32,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Gets the currently running countdown task.
+        /// Gets the currently running 'countdown' task.
         /// </summary>
         /// <returns></returns>
         public Task GetAwaitCountdownTask()
@@ -41,9 +42,12 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Starts a new countdown task. Cannot be called if there is a countdown already running.
+        /// Starts a new 'countdown' task. 
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
+        /// <remarks>
+        /// If the current 'countdown' is still running, this method will throw.
+        /// </remarks>
         public void Restart(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cCountdownTimer), nameof(Restart));

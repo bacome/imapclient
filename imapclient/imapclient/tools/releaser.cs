@@ -5,23 +5,23 @@ using work.bacome.trace;
 
 namespace work.bacome.async
 {
-    /// <summary>Instances coordinate tasks (one worker task and many work creating tasks) using internal coordinating tasks.</summary>
+    /// <summary>Coordinate tasks (one worker task and many work creating tasks) using internal coordinating tasks.</summary>
     /// <remarks>
     /// <para>The worker task should;
     /// <list type="number">
-    /// <item>Call the <see cref="Reset(cTrace.cContext)"/> method to indicate that it is about to start working.</item>
-    /// <item>Check for and do all the work available.</item>
+    /// <item>Call <see cref="Reset(cTrace.cContext)"/> to indicate that it is about to start working.</item>
+    /// <item>Look for and do all the work available.</item>
     /// <item><see langword="await"/> on the task returned by <see cref="GetAwaitReleaseTask(cTrace.cContext)"/>.</item>
     /// </list>
     /// </para>
     /// <para>The work creating tasks should;
     /// <list type="number">
-    /// <item>Queue items of work.</item>
-    /// <item>Call the <see cref="Release(cTrace.cContext)"/> method.</item>
+    /// <item>Create item(s) of work.</item>
+    /// <item>Call <see cref="Release(cTrace.cContext)"/>.</item>
     /// </list>
     /// </para>
     /// <para>Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
-    /// <para>Also note that before disposing an instance the <see cref="System.Threading.CancellationToken"/> provided to the constructor must be cancelled, otherwise the dispose may never complete.</para>
+    /// <note type="note">Before disposing an instance the <see cref="System.Threading.CancellationToken"/> provided to its constructor must be cancelled, otherwise the dispose may never complete.</note>
     /// </remarks>
     public sealed class cReleaser : IDisposable
     {
@@ -35,12 +35,13 @@ namespace work.bacome.async
         private Task mTask = null;
 
         /// <summary>
-        /// <para>Initialises a new instance with a name and a <see cref="CancellationToken"/>.</para>
+        /// Initialises a new instance.
         /// </summary>
         /// <param name="pName">A name to use when tracing.</param>
-        /// <param name="pCancellationToken">A cancellation token to use on the coordinating tasks.</param>
+        /// <param name="pCancellationToken">A cancellation token to use on the coordinating tasks, may not be <see cref="System.Threading.CancellationToken.None"/>, must be capable of being cancelled.</param>
         public cReleaser(string pName, CancellationToken pCancellationToken)
         {
+            if (!pCancellationToken.CanBeCanceled) throw new ArgumentOutOfRangeException(nameof(pCancellationToken));
             mName = pName;
             mInstance = Interlocked.Increment(ref mInstanceSource);
             mCancellationToken = pCancellationToken;
@@ -113,6 +114,12 @@ namespace work.bacome.async
             mTask = null;
         }
 
+        /// <summary>
+        /// Releases all resources used by the instance.
+        /// </summary>
+        /// <remarks>
+        /// <note type="note">Before disposing an instance the <see cref="System.Threading.CancellationToken"/> provided to its constructor must be cancelled, otherwise the dispose may never complete.</note>
+        /// </remarks>
         public void Dispose()
         {
             if (mDisposed) return;

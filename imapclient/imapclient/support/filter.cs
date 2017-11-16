@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
 
     internal class cFilterMSNRelativity : cFilter
     {
-        internal readonly iMessageHandle Handle;
+        public readonly iMessageHandle Handle;
         public readonly eFilterEnd? End;
         public readonly int Offset;
         public readonly eFilterHandleRelativity Relativity;

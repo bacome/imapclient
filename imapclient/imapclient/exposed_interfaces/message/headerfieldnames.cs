@@ -3,13 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains named message header field name constants.
+    /// Contains named header-field-name constants.
     /// </summary>
     public static class kHeaderFieldName
     {
@@ -24,7 +25,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents a unique read-only header-field-name collection. Header field names are case insensitive.
+    /// A unique read-only header-field-name collection. Header field names are case insensitive.
     /// </summary>
     /// <remarks>
     /// Header field names have a limited grammar - see RFC 5322. 
@@ -37,11 +38,11 @@ namespace work.bacome.imapclient
     {
         // immutable (for passing in and out)
 
-        /** <summary>An empty header field name collection.</summary>*/
+        /** <summary>An empty header-field-name collection.</summary>*/
         public static readonly cHeaderFieldNames None = new cHeaderFieldNames();
-        /** <summary>A header field name collection containing only <see cref="kHeaderFieldName.References"/>.</summary>*/
+        /** <summary>A header-field-name collection containing only <see cref="kHeaderFieldName.References"/>.</summary>*/
         public static readonly cHeaderFieldNames References = new cHeaderFieldNames(kHeaderFieldName.References);
-        /** <summary>A header field name collection containing only <see cref="kHeaderFieldName.Importance"/>.</summary>*/
+        /** <summary>A header-field-name collection containing only <see cref="kHeaderFieldName.Importance"/>.</summary>*/
         public static readonly cHeaderFieldNames Importance = new cHeaderFieldNames(kHeaderFieldName.Importance);
 
         private readonly cHeaderFieldNameList mNames;
@@ -52,6 +53,7 @@ namespace work.bacome.imapclient
         /// Initalises a new instance with a duplicate free copy of the specified names. Will throw if the specified names aren't valid header field names.
         /// </summary>
         /// <param name="pNames"></param>
+        /// <inheritdoc cref="cHeaderFieldNames" select="remarks"/>
         public cHeaderFieldNames(params string[] pNames) => mNames = new cHeaderFieldNameList(pNames);
 
         /// <inheritdoc cref="cHeaderFieldNames(string[])"/>
@@ -83,54 +85,42 @@ namespace work.bacome.imapclient
         public bool Contains(IEnumerable<string> pNames) => mNames.Contains(pNames);
 
         /// <summary>
-        /// Returns the set union of this and the specified collection (case insensitive).
+        /// Returns the set-union of this and the specified collection (case insensitive).
         /// </summary>
         /// <param name="pOther"></param>
         /// <returns></returns>
         public cHeaderFieldNames Union(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Union(pOther.mNames), true);
 
         /// <summary>
-        /// Returns the set intersection of this and the specified collection (case insensitive).
+        /// Returns the set-intersection of this and the specified collection (case insensitive).
         /// </summary>
         /// <param name="pOther"></param>
         /// <returns></returns>
         public cHeaderFieldNames Intersect(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Intersect(pOther.mNames), true);
 
         /// <summary>
-        /// Returns the set difference of this and the specified collection (case insensitive).
+        /// Returns the set-difference of this and the specified collection (case insensitive).
         /// </summary>
         /// <param name="pOther"></param>
         /// <returns></returns>
         public cHeaderFieldNames Except(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Except(pOther.mNames), true);
 
-        /**<summary>Gets the number of names in the collection.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mNames.Count;
-        /**<summary>Returns an enumerator that iterates through the collection.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator<string> GetEnumerator() => mNames.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        /**<summary>Returns a string that represents the collection.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => mNames.ToString();
 
-        /// <summary>
-        /// Determines whether this instance and the specified object have the same names (case insensitive).
-        /// </summary>
-        /// <param name="pObject"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
         public override bool Equals(object pObject) => this == pObject as cHeaderFieldNames;
 
-        /// <summary>
-        /// Returns the hash code for this collection.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode() => mNames.GetHashCode();
 
-        /// <summary>
-        /// Determines whether two instances contain the same names.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cHeaderFieldNames pA, cHeaderFieldNames pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -139,12 +129,7 @@ namespace work.bacome.imapclient
             return pA.mNames == pB.mNames;
         }
 
-        /// <summary>
-        /// Determines whether two instances do not contain the same names.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cHeaderFieldNames pA, cHeaderFieldNames pB) => !(pA == pB);
 
         /// <summary>

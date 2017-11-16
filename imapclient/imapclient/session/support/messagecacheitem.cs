@@ -96,17 +96,17 @@ namespace work.bacome.imapclient
 
                     fMessageProperties LMessageProperty(string pFlag)
                     {
-                        if (pFlag.Equals(kMessageFlagName.Answered, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.answered;
-                        if (pFlag.Equals(kMessageFlagName.Flagged, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.flagged;
-                        if (pFlag.Equals(kMessageFlagName.Deleted, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.deleted;
-                        if (pFlag.Equals(kMessageFlagName.Seen, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.seen;
-                        if (pFlag.Equals(kMessageFlagName.Draft, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.draft;
-                        if (pFlag.Equals(kMessageFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.recent;
+                        if (pFlag.Equals(kMessageFlag.Answered, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.answered;
+                        if (pFlag.Equals(kMessageFlag.Flagged, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.flagged;
+                        if (pFlag.Equals(kMessageFlag.Deleted, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.deleted;
+                        if (pFlag.Equals(kMessageFlag.Seen, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.seen;
+                        if (pFlag.Equals(kMessageFlag.Draft, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.draft;
+                        if (pFlag.Equals(kMessageFlag.Recent, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.recent;
                         // see comments elsewhere as to why this is commented out
                         //if (pFlag.Equals(kMessageFlagName.MDNSent, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.mdnsent;
-                        if (pFlag.Equals(kMessageFlagName.Forwarded, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.forwarded;
-                        if (pFlag.Equals(kMessageFlagName.SubmitPending, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.submitpending;
-                        if (pFlag.Equals(kMessageFlagName.Submitted, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.submitted;
+                        if (pFlag.Equals(kMessageFlag.Forwarded, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.forwarded;
+                        if (pFlag.Equals(kMessageFlag.SubmitPending, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.submitpending;
+                        if (pFlag.Equals(kMessageFlag.Submitted, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.submitted;
                         return 0;
                     }
                 }

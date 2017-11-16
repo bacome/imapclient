@@ -12,8 +12,8 @@ namespace work.bacome.async
     /// <remarks>
     /// <para>The granting of exclusive access is done by issuing a token object. To release the exclusive access the token object must be disposed.</para>
     /// <para>The issuing of token objects may be blocked by the previous issue of block objects. Several block objects can be on issue at the same time. Blocks are released by disposing the block objects.</para>
-    /// <para>Block objects will not be issued while a token object is issued. Token objects will not be issued while block objects are issued (nor while a token object is issued).</para>
-    /// <para>Instance sequence numbers (specified in the constructor) can be used by external code to ensure that the program's locks are being taken in a consistent order (to avoid deadlocks).</para>
+    /// <para>Block objects will not be issued while a token object is on issue. Token objects will not be issued while block objects are on issue (nor will they be issued while a token object is on issue).</para>
+    /// <para>Instance sequence numbers (specified in the constructor) can be used by external code to ensure that the program's token objects are being issued in a consistent order (to avoid deadlocks).</para>
     /// <para>Each instance of this class is allocated a unique instance number internally that is used in <see cref="cTrace"/> messages to aid debugging.</para>
     /// <para>Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
     /// </remarks>
@@ -22,7 +22,7 @@ namespace work.bacome.async
         private static int mInstanceSource = 7;
 
         /// <summary>
-        /// Raised when exclusive access is released.
+        /// Raised when exclusive access is released by the disposal of a token object.
         /// </summary>
         public event Action<cTrace.cContext> Released;
 
@@ -37,10 +37,10 @@ namespace work.bacome.async
         private cToken mToken = null;
 
         /// <summary>
-        /// Initialises a new instance with a name and sequence number.
+        /// Initialises a new instance.
         /// </summary>
         /// <param name="pName">The instance name to include in trace messages written by the instance.</param>
-        /// <param name="pSequence">The sequence number to give the instance. Sequence numbers can be used by external code to ensure that the program's locks are being taken in a consistent order (to avoid deadlocks).</param>
+        /// <param name="pSequence">The sequence number to give the instance. Sequence numbers can be used by external code to ensure that the program's token objects are being issued in a consistent order (to avoid deadlocks).</param>
         public cExclusiveAccess(string pName, int pSequence)
         {
             mName = pName;
@@ -72,7 +72,7 @@ namespace work.bacome.async
         /// <summary>
         /// May return a disposable object that represents a block on the issue of exclusive access.
         /// This method will return a block if the exclusive access is not currently granted, otherwise it will return <see langword="null"/>.
-        /// Dispose the returned object to release the block.
+        /// Dispose the returned object (if any) to release the block.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         /// <returns></returns>
@@ -137,8 +137,11 @@ namespace work.bacome.async
         public override string ToString() => $"{nameof(cExclusiveAccess)}({mName},{mInstance},{mBlocks})";
 
         /// <summary>
-        /// Instances represent a block on the issue of excusive access from a <see cref="cExclusiveAccess"/>. Dispose the instance to release the block.
+        /// Represents a block on the issue of excusive access from a <see cref="cExclusiveAccess"/>.
         /// </summary>
+        /// <remarks>
+        /// Dispose the instance to release the block.
+        /// </remarks>
         public sealed class cBlock : IDisposable
         {
             private bool mDisposed = false;
@@ -173,8 +176,11 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Instances represent a grant of exclusive access from a <see cref="cExclusiveAccess"/>. Dispose the instance to release the exclusive access.
+        /// Represents a grant of exclusive access from a <see cref="cExclusiveAccess"/>.
         /// </summary>
+        /// <remarks>
+        /// Dispose the instance to release the exclusive access.
+        /// </remarks>
         public sealed class cToken : IDisposable
         {
             private bool mDisposed = false;

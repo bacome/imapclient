@@ -295,7 +295,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cSinglePartBody.ExtensionData"/>
     public class cSinglePartExtensionData : cBodyPartExtensionData
     {
-        /**The MD5 value of the body-part. May be <see langword="null"/>.*/
+        /**<summary>The MD5 value of the body-part. May be <see langword="null"/>.</summary>*/
         public readonly string MD5;
 
         internal cSinglePartExtensionData(string pMD5, cBodyPartDisposition pDisposition, cStrings pLanguages, string pLocation, cBodyPartExtensionValues pExtensions) : base(pDisposition, pLanguages, pLocation, pExtensions)

@@ -10,9 +10,9 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains named message flag name contants.
+    /// Contains named message-flag contants.
     /// </summary>
-    public static class kMessageFlagName
+    public static class kMessageFlag
     {
         /**<summary>\*</summary>*/
         public const string CreateNewIsPossible = @"\*";
@@ -67,11 +67,13 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents a unique read-only message flag collection. Message flags are case insensitive.
+    /// Represetns a unique read-only message-flag collection. Message flags are case insensitive.
     /// </summary>
     /// <remarks>
-    /// <see cref="kMessageFlagName.Recent"/> is not a storable flag.
-    /// <see cref="kMessageFlagName.CreateNewIsPossible"/> is not a storable flag.
+    /// Message flags have a limited grammer - see RFC 3501.
+    /// (Generally user-defined message-flags must only  include <see cref="cCharset.Atom"/> characters.)
+    /// <see cref="kMessageFlag.Recent"/> is not a storable flag.
+    /// <see cref="kMessageFlag.CreateNewIsPossible"/> is not a storable flag.
     /// </remarks>
     /// <seealso cref="cMailbox.ForUpdatePermanentFlags"/>
     /// <seealso cref="cMailbox.ReadOnlyPermanentFlags"/>
@@ -130,8 +132,8 @@ namespace work.bacome.imapclient
     /// Represents a unique read-only storable message flag collection. Message flags are case insensitive.
     /// </summary>
     /// <remarks>
-    /// <see cref="kMessageFlagName.Recent"/> is not a storable flag.
-    /// <see cref="kMessageFlagName.CreateNewIsPossible"/> is not a storable flag.
+    /// <see cref="kMessageFlag.Recent"/> is not a storable flag.
+    /// <see cref="kMessageFlag.CreateNewIsPossible"/> is not a storable flag.
     /// Message flag names have a limited grammar - see RFC 3501.
     /// (Generally, non-system flags must only include <see cref="cCharset.Atom"/> characters).
     /// </remarks>
@@ -146,29 +148,29 @@ namespace work.bacome.imapclient
         /** <summary>An empty storable flag collection.</summary> */
         public static readonly cStorableFlags None = new cStorableFlags();
 
-        /** <summary>A storable flag collection containing only <see cref="kMessageFlagName.Answered"/>.</summary> */
-        public static readonly cStorableFlags Answered = new cStorableFlags(kMessageFlagName.Answered);
+        /** <summary>A storable flag collection containing only <see cref="kMessageFlag.Answered"/>.</summary> */
+        public static readonly cStorableFlags Answered = new cStorableFlags(kMessageFlag.Answered);
 
-        /** <summary>A storable flag collection containing only <see cref="kMessageFlagName.Flagged"/>.</summary> */
-        public static readonly cStorableFlags Flagged = new cStorableFlags(kMessageFlagName.Flagged);
+        /** <summary>A storable flag collection containing only <see cref="kMessageFlag.Flagged"/>.</summary> */
+        public static readonly cStorableFlags Flagged = new cStorableFlags(kMessageFlag.Flagged);
 
-        /** <summary>A storable flag collection containing only <see cref="kMessageFlagName.Deleted"/>.</summary> */
-        public static readonly cStorableFlags Deleted = new cStorableFlags(kMessageFlagName.Deleted);
+        /** <summary>A storable flag collection containing only <see cref="kMessageFlag.Deleted"/>.</summary> */
+        public static readonly cStorableFlags Deleted = new cStorableFlags(kMessageFlag.Deleted);
 
-        /** <summary>A storable flag collection containing only <see cref="kMessageFlagName.Seen"/>.</summary> */
-        public static readonly cStorableFlags Seen = new cStorableFlags(kMessageFlagName.Seen);
+        /** <summary>A storable flag collection containing only <see cref="kMessageFlag.Seen"/>.</summary> */
+        public static readonly cStorableFlags Seen = new cStorableFlags(kMessageFlag.Seen);
 
-        /** <summary>A storable flag collection containing only <see cref="kMessageFlagName.Draft"/>.</summary> */
-        public static readonly cStorableFlags Draft = new cStorableFlags(kMessageFlagName.Draft);
+        /** <summary>A storable flag collection containing only <see cref="kMessageFlag.Draft"/>.</summary> */
+        public static readonly cStorableFlags Draft = new cStorableFlags(kMessageFlag.Draft);
 
-        /** <summary>A storable flag collection containing only <see cref="kMessageFlagName.Forwarded"/>.</summary> */
-        public static readonly cStorableFlags Forwarded = new cStorableFlags(kMessageFlagName.Forwarded);
+        /** <summary>A storable flag collection containing only <see cref="kMessageFlag.Forwarded"/>.</summary> */
+        public static readonly cStorableFlags Forwarded = new cStorableFlags(kMessageFlag.Forwarded);
 
-        /** <summary>A storable flag collection containing only <see cref="kMessageFlagName.SubmitPending"/>.</summary> */
-        public static readonly cStorableFlags SubmitPending = new cStorableFlags(kMessageFlagName.SubmitPending);
+        /** <summary>A storable flag collection containing only <see cref="kMessageFlag.SubmitPending"/>.</summary> */
+        public static readonly cStorableFlags SubmitPending = new cStorableFlags(kMessageFlag.SubmitPending);
 
-        /** <summary>A storable flag collection containing only <see cref="kMessageFlagName.Submitted"/>.</summary> */
-        public static readonly cStorableFlags Submitted = new cStorableFlags(kMessageFlagName.Submitted);
+        /** <summary>A storable flag collection containing only <see cref="kMessageFlag.Submitted"/>.</summary> */
+        public static readonly cStorableFlags Submitted = new cStorableFlags(kMessageFlag.Submitted);
 
         // see comments elsewhere as to why this is commented out
         //public static readonly cSettableFlags MDNSent = new cSettableFlags(kMessageFlagName.MDNSent);
@@ -199,7 +201,7 @@ namespace work.bacome.imapclient
     /// Represents a unique read-only fetchable message flag collection. Message flags are case insensitive.
     /// </summary>
     /// <remarks>
-    /// <see cref="kMessageFlagName.CreateNewIsPossible"/> is not a fetchable flag.
+    /// <see cref="kMessageFlag.CreateNewIsPossible"/> is not a fetchable flag.
     /// Message flag names have a limited grammar - see RFC 3501.
     /// (Generally, non-system flags must only include <see cref="cCharset.Atom"/> characters).
     /// </remarks>
@@ -378,7 +380,7 @@ namespace work.bacome.imapclient
             if (pFlag == null) return false;
             if (pFlag.Length == 0) return false;
 
-            if (pFlag.Equals(kMessageFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) return false;
+            if (pFlag.Equals(kMessageFlag.Recent, StringComparison.InvariantCultureIgnoreCase)) return false;
 
             string lFlag;
             if (pFlag[0] == '\\') lFlag = pFlag.Remove(0, 1);
@@ -403,8 +405,8 @@ namespace work.bacome.imapclient
 
             lFlags.Add("a");
             lFlags.Add("b");
-            lFlags.Add(kMessageFlagName.Answered, kMessageFlagName.Deleted);
-            lFlags.Add(kMessageFlagName.Answered, kMessageFlagName.Deleted, kMessageFlagName.Forwarded);
+            lFlags.Add(kMessageFlag.Answered, kMessageFlag.Deleted);
+            lFlags.Add(kMessageFlag.Answered, kMessageFlag.Deleted, kMessageFlag.Forwarded);
             lFlags.Add(@"\answereD");
             lFlags.Add(@"\ansWereD", "A", @"\deleteD");
 
@@ -414,16 +416,16 @@ namespace work.bacome.imapclient
             if (!lFailed) throw new cTestsException($"{nameof(cStorableFlagList)}.1");
 
             lFailed = false;
-            try { lFlags.Add(kMessageFlagName.Answered, kMessageFlagName.Deleted, kMessageFlagName.Draft, kMessageFlagName.Recent); }
+            try { lFlags.Add(kMessageFlag.Answered, kMessageFlag.Deleted, kMessageFlag.Draft, kMessageFlag.Recent); }
             catch { lFailed = true; }
             if (!lFailed) throw new cTestsException($"{nameof(cStorableFlagList)}.1");
 
             if (lFlags.Count != 5) throw new cTestsException($"{nameof(cStorableFlagList)}.2");
-            if (!lFlags.Contains("A") || !lFlags.Contains("B") || !lFlags.Contains(@"\aNswereD") || lFlags.Contains(kMessageFlagName.Draft) || !lFlags.Contains("$forwarded")) throw new cTestsException($"{nameof(cStorableFlagList)}.3");
+            if (!lFlags.Contains("A") || !lFlags.Contains("B") || !lFlags.Contains(@"\aNswereD") || lFlags.Contains(kMessageFlag.Draft) || !lFlags.Contains("$forwarded")) throw new cTestsException($"{nameof(cStorableFlagList)}.3");
 
-            cStorableFlags lF1 = new cStorableFlags("a", "A", "b", @"\answered", "\\deleted", kMessageFlagName.Forwarded);
-            cFetchableFlags lF2 = new cFetchableFlags("a", "A", "b", @"\answered", "\\deleted", kMessageFlagName.Recent);
-            cStorableFlags lF3 = new cStorableFlags("a", "b", "\\deleted", kMessageFlagName.Forwarded);
+            cStorableFlags lF1 = new cStorableFlags("a", "A", "b", @"\answered", "\\deleted", kMessageFlag.Forwarded);
+            cFetchableFlags lF2 = new cFetchableFlags("a", "A", "b", @"\answered", "\\deleted", kMessageFlag.Recent);
+            cStorableFlags lF3 = new cStorableFlags("a", "b", "\\deleted", kMessageFlag.Forwarded);
 
             if (!lFlags.Contains(lF1) || lFlags.Contains(lF2) || !lFlags.Contains(lF3)) throw new cTestsException($"{nameof(cStorableFlagList)}.4");
 

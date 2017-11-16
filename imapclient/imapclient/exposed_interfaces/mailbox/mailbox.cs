@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
 
         /**<summary>The client that this instance was created by.</summary>*/
         public readonly cIMAPClient Client;
-        /**<summary>The internal mailbox cache item that this instance is attached to.</summary>*/
+        /**<summary>The internal mailbox handle that this instance is attached to.</summary>*/
         public readonly iMailboxHandle Handle;
 
         internal cMailbox(cIMAPClient pClient, iMailboxHandle pHandle)
@@ -425,7 +425,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the number of messages in the mailbox.
+        /// Gets the number of recent messages in the mailbox.
         /// May be <see langword="null"/>.
         /// This property always has an up-to-date value when the mailbox is selected.
         /// </summary>
@@ -540,7 +540,7 @@ namespace work.bacome.imapclient
         /// Indicates how inaccurate the <see cref="UnseenCount"/> is.
         /// </summary>
         /// <remarks>
-        /// This is the number of messages for which the library is unsure of the value of the <see cref="kMessageFlagName.Seen"/> flag.
+        /// This is the number of messages for which the library is unsure of the value of the <see cref="kMessageFlag.Seen"/> flag.
         /// </remarks>
         public int UnseenUnknownCount
         {
@@ -553,13 +553,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the modification sequence number for the mailbox (see RFC 7162).
+        /// Gets the highest modification sequence number for the mailbox (see RFC 7162).
         /// May be <see langword="null"/> or zero.
         /// When the mailbox is selected this property will always have a value.
         /// </summary>
         /// <remarks>
         /// <para><see langword="null"/> indicates that <see cref="fMailboxCacheDataItems.highestmodseq"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.</para>
-        /// <para>Zero indicates that <see cref="cCapabilities.CondStore"/> cannot be used or the mailbox associated with this instance does not support modification sequence numbers.</para>
+        /// <para>Zero indicates that <see cref="cCapabilities.CondStore"/> is not in use or that the mailbox does not support the persistent storage of mod-sequences.</para>
         /// </remarks>
         public ulong? HighestModSeq
         {
@@ -821,14 +821,14 @@ namespace work.bacome.imapclient
         public Task SelectAsync(bool pForUpdate = false) => Client.SelectAsync(Handle, pForUpdate);
 
         /// <summary>
-        /// Expunges messages marked with the <see cref="kMessageFlagName.Deleted"/> flag from the mailbox. The mailbox must be selected.
+        /// Expunges messages marked with the <see cref="kMessageFlag.Deleted"/> flag from the mailbox. The mailbox must be selected.
         /// </summary>
         /// <param name="pAndUnselect">Indicates if the mailbox should also be un-selected.</param>
         /// <remarks>
         /// Setting <paramref name="pAndUnselect"/> to <see langword="true"/> also un-selects the mailbox; this reduces the amount of network activity associated with the expunge.
         /// </remarks>
         /// <seealso cref="cMessage.Deleted"/>
-        /// <seealso cref="kMessageFlagName.Deleted"/>
+        /// <seealso cref="kMessageFlag.Deleted"/>
         /// <seealso cref="cMessage.Store(eStoreOperation, cStorableFlags, ulong?)"/>,
         /// <seealso cref="UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>,
         /// <seealso cref="UIDStore(IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>,
@@ -836,13 +836,13 @@ namespace work.bacome.imapclient
         public void Expunge(bool pAndUnselect = false) => Client.Expunge(Handle, pAndUnselect);
 
         /// <summary>
-        /// Asynchronously expunges messages marked with the <see cref="kMessageFlagName.Deleted"/> flag from the mailbox. The mailbox must be selected.
+        /// Asynchronously expunges messages marked with the <see cref="kMessageFlag.Deleted"/> flag from the mailbox. The mailbox must be selected.
         /// </summary>
         /// <param name="pAndUnselect">Indicates if the mailbox should also be un-selected.</param>
         /// <returns></returns>
         /// <inheritdoc cref="Expunge(bool)" select="remarks"/>
         /// <seealso cref="cMessage.Deleted"/>
-        /// <seealso cref="kMessageFlagName.Deleted"/>
+        /// <seealso cref="kMessageFlag.Deleted"/>
         /// <seealso cref="cMessage.StoreAsync(eStoreOperation, cStorableFlags, ulong?)"/>,
         /// <seealso cref="UIDStoreAsync(cUID, eStoreOperation, cStorableFlags, ulong?)"/>,
         /// <seealso cref="UIDStoreAsync(IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>,
@@ -905,7 +905,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Initialises the value of <see cref="UnseenCount"/>. The mailbox must be selected.
         /// </summary>
-        /// <returns>A list of internal message cache items for messages in the mailbox that do NOT have the <see cref="kMessageFlagName.Seen"/> flag.</returns>
+        /// <returns>A list of internal message cache items for messages in the mailbox that do NOT have the <see cref="kMessageFlag.Seen"/> flag.</returns>
         /// <remarks>
         /// See <see cref="UnseenCount"/> to understand why and when you might want to do this. 
         /// </remarks>

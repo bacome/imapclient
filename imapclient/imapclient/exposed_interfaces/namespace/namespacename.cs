@@ -1,11 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
     /// Represents an IMAP namespace name.
     /// </summary>
+    /// <remarks>
+    /// IMAP namespace names have few grammatical restrictions, but may not include the null character.
+    /// IMAP hierarchy delimitiers have few grammatical restrictions, but must be ASCII, and not NUL, CR or LF.
+    /// Be careful to correctly specify the hierarchy delimitier, it is used in preparing the namespace name for sending to the server.
+    /// </remarks>
+    /// <seealso cref="cNamespace"/>
+    /// <seealso cref="cNamespaces"/>
     public class cNamespaceName
     {
         // to extend with LANGUAGE translations
@@ -26,6 +34,12 @@ namespace work.bacome.imapclient
             Delimiter = pDelimiter;
         }
 
+        /// <summary>
+        /// Initialises a new instance. Will throw if the parameters provided are not valid.
+        /// </summary>
+        /// <param name="pPrefix">The name prefix of the namespace. May be the empty string, may not be <see langword="null"/></param>
+        /// <param name="pDelimiter">The namespace hierarchy delimiter. May be <see langword="null"/> if there is no hierarchy.</param>
+        /// <inheritdoc cref="cNamespaceName" select="remarks"/>
         public cNamespaceName(string pPrefix, char? pDelimiter)
         {
             if (pPrefix == null) throw new ArgumentNullException(nameof(pPrefix));
@@ -62,6 +76,7 @@ namespace work.bacome.imapclient
             return TryConstruct(lPrefix, lDelimiter, out rResult);
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cNamespaceName)}({Prefix},{Delimiter})";
     }
 }

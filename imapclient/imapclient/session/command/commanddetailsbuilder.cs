@@ -306,12 +306,12 @@ namespace work.bacome.imapclient
 
                             foreach (var lFlag in lFlagsContain.Flags)
                             {
-                                if (lFlag.Equals(kMessageFlagName.Answered, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartAnswered);
-                                else if (lFlag.Equals(kMessageFlagName.Flagged, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartFlagged);
-                                else if (lFlag.Equals(kMessageFlagName.Deleted, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartDeleted);
-                                else if (lFlag.Equals(kMessageFlagName.Seen, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartSeen);
-                                else if (lFlag.Equals(kMessageFlagName.Draft, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartDraft);
-                                else if (lFlag.Equals(kMessageFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartRecent);
+                                if (lFlag.Equals(kMessageFlag.Answered, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartAnswered);
+                                else if (lFlag.Equals(kMessageFlag.Flagged, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartFlagged);
+                                else if (lFlag.Equals(kMessageFlag.Deleted, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartDeleted);
+                                else if (lFlag.Equals(kMessageFlag.Seen, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartSeen);
+                                else if (lFlag.Equals(kMessageFlag.Draft, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartDraft);
+                                else if (lFlag.Equals(kMessageFlag.Recent, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartRecent);
                                 else lParts.Add(kCommandPartKeywordSpace, new cTextCommandPart(lFlag));
                             }
 
@@ -419,12 +419,12 @@ namespace work.bacome.imapclient
 
                                 foreach (var lFlag in lFlagsUncontain.Flags)
                                 {
-                                    if (lFlag.Equals(kMessageFlagName.Answered, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnanswered);
-                                    else if (lFlag.Equals(kMessageFlagName.Flagged, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnflagged);
-                                    else if (lFlag.Equals(kMessageFlagName.Deleted, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUndeleted);
-                                    else if (lFlag.Equals(kMessageFlagName.Seen, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnseen);
-                                    else if (lFlag.Equals(kMessageFlagName.Draft, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUndraft);
-                                    else if (lFlag.Equals(kMessageFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartOld);
+                                    if (lFlag.Equals(kMessageFlag.Answered, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnanswered);
+                                    else if (lFlag.Equals(kMessageFlag.Flagged, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnflagged);
+                                    else if (lFlag.Equals(kMessageFlag.Deleted, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUndeleted);
+                                    else if (lFlag.Equals(kMessageFlag.Seen, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnseen);
+                                    else if (lFlag.Equals(kMessageFlag.Draft, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUndraft);
+                                    else if (lFlag.Equals(kMessageFlag.Recent, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartOld);
                                     else lParts.Add(kCommandPartUnkeywordSpace, new cTextCommandPart(lFlag));
                                 }
 
@@ -682,8 +682,8 @@ namespace work.bacome.imapclient
 
                     cFetchableFlagList lFFlags = new cFetchableFlagList();
 
-                    lFFlags.Add(kMessageFlagName.Draft);
-                    lFFlags.Add(kMessageFlagName.Recent);
+                    lFFlags.Add(kMessageFlag.Draft);
+                    lFFlags.Add(kMessageFlag.Recent);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Answered & cFilter.Flagged | cFilter.FlagsContain(lFFlags), lSelectedMailbox, false, false, null) != "OR (ANSWERED FLAGGED) (DRAFT RECENT)") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.3", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Answered & cFilter.Flagged & cFilter.FlagsContain(lFFlags), lSelectedMailbox, false, false, null) != "ANSWERED FLAGGED DRAFT RECENT") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.4", lContext);
 
@@ -699,7 +699,7 @@ namespace work.bacome.imapclient
                     if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("imap client"), lSelectedMailbox, false, false, null) != "SUBJECT \"imap client\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Body.Contains("imap"), lSelectedMailbox, false, false, null) != "BODY imap") throw new cTestsException("ZMessageFilterCommandPartsTests Body.1", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(!cFilter.To.Contains("bacome") & !cFilter.FlagsContain(kMessageFlagName.Recent), lSelectedMailbox, false, false, null) != "NOT TO bacome OLD") throw new cTestsException("ZMessageFilterCommandPartsTests And.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(!cFilter.To.Contains("bacome") & !cFilter.FlagsContain(kMessageFlag.Recent), lSelectedMailbox, false, false, null) != "NOT TO bacome OLD") throw new cTestsException("ZMessageFilterCommandPartsTests And.1", lContext);
 
                     bool lFailed;
 

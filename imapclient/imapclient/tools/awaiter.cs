@@ -10,7 +10,8 @@ namespace work.bacome.async
     /// Provides services for waiting on a number of tasks with timeout and/or cancellation.
     /// </summary>
     /// <remarks>
-    /// Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
+    /// If a timeout is specified then it runs from when the instance is created.
+    /// This class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
     /// </remarks>
     public sealed class cAwaiter : IDisposable
     {
@@ -20,9 +21,10 @@ namespace work.bacome.async
         private readonly Task mTask;
 
         /// <summary>
-        /// Initialises a new instance with a <see cref="cMethodControl"/>. If a timeout is specified then it runs from when the instance is created.
+        /// Initialises a new instance. 
         /// </summary>
-        /// <param name="pMC">The timeout and cancellation to use.</param>
+        /// <param name="pMC"></param>
+        /// <remarks>If a timeout is specified then it runs from when the instance is created.</remarks>
         public cAwaiter(cMethodControl pMC)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pMC.CancellationToken);
@@ -30,9 +32,9 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Initialises a new instance with a <see cref="CancellationToken"/> but no timeout.
+        /// Initialises a new instance with no timeout.
         /// </summary>
-        /// <param name="pCancellationToken">The cancellation token to use.</param>
+        /// <param name="pCancellationToken"></param>
         public cAwaiter(CancellationToken pCancellationToken)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pCancellationToken);
@@ -70,25 +72,16 @@ namespace work.bacome.async
         /// <summary>
         /// Returns a task that completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates timeout or cancellation.
         /// </summary>
-        /// <param name="pMC">Controls the execution of the method.</param>
+        /// <param name="pMC"></param>
         /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be <see langword="null"/>.</param>
         /// <returns></returns>
         /// <remarks>
-        /// If any of the passed tasks fail (timed-out, were cancelled, or threw) then this method throws.
+        /// If any of the passed tasks fail (times-out, was cancelled, or throws) then this method throws.
         /// If the <see cref="cMethodControl"/> indicates timeout or cancellation before all the tasks complete then this method throws.
         /// </remarks>
         public static Task AwaitAll(cMethodControl pMC, params Task[] pTasks) => ZAwaitAll(pMC, pTasks);
 
-        /// <summary>
-        /// Returns a task that completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates timeout or cancellation.
-        /// </summary>
-        /// <param name="pMC">Controls the execution of the method.</param>
-        /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be <see langword="null"/>.</param>
-        /// <returns></returns>
-        /// <remarks>
-        /// If any of the passed tasks fail (timed-out, were cancelled, or threw) then this method throws.
-        /// If the <see cref="cMethodControl"/> indicates timeout or cancellation before all the tasks complete then this method throws.
-        /// </remarks>
+        /// <inheritdoc cref="AwaitAll(cMethodControl, Task[])"/>
         public static Task AwaitAll(cMethodControl pMC, IEnumerable<Task> pTasks) => ZAwaitAll(pMC, pTasks);
 
         private static async Task ZAwaitAll(cMethodControl pMC, IEnumerable<Task> pTasks)

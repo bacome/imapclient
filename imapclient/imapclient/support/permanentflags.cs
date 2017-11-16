@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
             if (pFlag == null) return false;
             if (pFlag.Length == 0) return false;
 
-            if (pFlag == kMessageFlagName.CreateNewIsPossible) return true;
+            if (pFlag == kMessageFlag.CreateNewIsPossible) return true;
 
             string lFlag;
             if (pFlag[0] == '\\') lFlag = pFlag.Remove(0, 1);

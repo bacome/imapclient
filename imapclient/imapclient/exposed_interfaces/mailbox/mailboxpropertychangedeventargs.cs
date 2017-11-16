@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cIMAPClient.MailboxPropertyChanged"/>
     public class cMailboxPropertyChangedEventArgs : PropertyChangedEventArgs
     {
-        /**<summary>The internal mailbox cache item that changed.</summary>*/
+        /**<summary>The internal mailbox handle of the mailbox that changed.</summary>*/
         public readonly iMailboxHandle Handle;
 
         internal cMailboxPropertyChangedEventArgs(iMailboxHandle pHandle, string pPropertyName) : base(pPropertyName)

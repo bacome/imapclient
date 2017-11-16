@@ -1,11 +1,15 @@
 ﻿using System;
 using work.bacome.apidocumentation;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
     /// Contains IMAP message envelope data.
     /// </summary>
+    /// <seealso cref="cMessage.Envelope"/>
+    /// <seealso cref="cMessageBodyPart.Envelope"/>
+    /// <seealso cref="iMessageHandle.Envelope"/>
     public class cEnvelope
     {
         /** <summary>The message sent date. May be <see langword="null"/>.</summary> */

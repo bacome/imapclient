@@ -1,39 +1,41 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.async
 {
     /// <summary>
-    /// Instances represent controls on the execution of an asynchronous method. Instances have a timeout and a <see cref="CancellationToken"/>. 
+    /// Represents controls on the execution of asynchronous methods. 
     /// </summary>
     /// <remarks>
     /// Any timeout runs from when the instance is created; each time the value of the <see cref="Timeout"/> property is retrieved only the time remaining is returned. 
-    /// So if the method being controlled has many internal async calls, the timeout applies to the total time of all the internal calls.
-    /// Infinite timeouts are supported (use <see cref="System.Threading.Timeout.Infinite"/> for the timeout).
+    /// This means that if the method being controlled has many internal async calls, the timeout applies to the total time of all the internal calls.
     /// </remarks>
     public class cMethodControl
     {
         private readonly long mTimeout;
         private readonly Stopwatch mStopwatch;
-        private readonly CancellationToken mCancellationToken;
+        /**<summary>The cancellation token being used.</summary>*/
+        public readonly CancellationToken CancellationToken;
 
         /// <summary>
-        /// Initialises a new instance with a timeout and a <see cref="CancellationToken"/>. 
+        /// Initialises a new instance. 
         /// </summary>
-        /// <param name="pTimeout">The timeout to use (use <see cref="System.Threading.Timeout.Infinite"/> for no timeout).</param>
-        /// <param name="pCancellationToken">The cancellation token to use (use <see cref="System.Threading.CancellationToken.None"/> for no cancellation).</param>
+        /// <param name="pTimeout">The timeout to use in milliseconds (or <see cref="System.Threading.Timeout.Infinite"/> for no timeout).</param>
+        /// <param name="pCancellationToken">The cancellation token to use (or <see cref="System.Threading.CancellationToken.None"/> for no cancellation).</param>
+        /// <inheritdoc cref="cMethodControl" select="remarks"/>
         public cMethodControl(int pTimeout, CancellationToken pCancellationToken)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             mTimeout = pTimeout;
             if (mTimeout == -1) mStopwatch = null;
             else mStopwatch = Stopwatch.StartNew();
-            mCancellationToken = pCancellationToken;
+            CancellationToken = pCancellationToken;
         }
 
         /// <summary>
-        /// The amount of time remaining (or <see cref="System.Threading.Timeout.Infinite"/> if there is no timeout for this instance).
+        /// Gets the amount of time remaining (or <see cref="System.Threading.Timeout.Infinite"/> if there is no timeout for this instance).
         /// </summary>
         public int Timeout
         {
@@ -46,15 +48,11 @@ namespace work.bacome.async
             }
         }
 
-        /// <summary>
-        /// The <see cref="System.Threading.CancellationToken"/> being used.
-        /// </summary>
-        public CancellationToken CancellationToken => mCancellationToken;
-
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString()
         {
-            if (mStopwatch == null) return $"{nameof(cMethodControl)}({mCancellationToken.IsCancellationRequested}/{mCancellationToken.CanBeCanceled})";
-            return $"{nameof(cMethodControl)}({mStopwatch.ElapsedMilliseconds}/{mTimeout},{mCancellationToken.IsCancellationRequested}/{mCancellationToken.CanBeCanceled})";
+            if (mStopwatch == null) return $"{nameof(cMethodControl)}({CancellationToken.IsCancellationRequested}/{CancellationToken.CanBeCanceled})";
+            return $"{nameof(cMethodControl)}({mStopwatch.ElapsedMilliseconds}/{mTimeout},{CancellationToken.IsCancellationRequested}/{CancellationToken.CanBeCanceled})";
         }
     }
 }

@@ -79,7 +79,7 @@ namespace work.bacome.apidocumentation
     /// <summary>
     /// Contains ...
     /// </summary>
-    public static class cAPIDocumentationExample1
+    internal static class cAPIDocumentationExample1
     {
         /**<summary>fred</summary>*/
         public const string Constant = "fred";

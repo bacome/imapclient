@@ -39,6 +39,7 @@ namespace work.bacome.imapclient
 
         /**<summary>The client that this instance was created by.</summary>*/
         public readonly cIMAPClient Client;
+        ;?;
         /**<summary>The internal message cache item that this instance is attached to.</summary>*/
         public readonly iMessageHandle Handle;
 
@@ -301,102 +302,102 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlagName.Answered"/>.
+        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlag.Answered"/>.
         /// </summary>
         /// <remarks>
         /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
-        public bool Answered => ZFlagsContain(kMessageFlagName.Answered);
-        /**<summary>Adds <see cref="kMessageFlagName.Answered"/> to the message's flags.</summary>*/
+        public bool Answered => ZFlagsContain(kMessageFlag.Answered);
+        /**<summary>Adds <see cref="kMessageFlag.Answered"/> to the message's flags.</summary>*/
         public void SetAnswered() { ZFlagSet(cStorableFlags.Answered, true); }
 
         /// <summary>
-        /// Gets and sets the <see cref="kMessageFlagName.Flagged"/> flag of the message.
+        /// Gets and sets the <see cref="kMessageFlag.Flagged"/> flag of the message.
         /// </summary>
         /// <remarks>
         /// When getting the value, if the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Flagged
         {
-            get => ZFlagsContain(kMessageFlagName.Flagged);
+            get => ZFlagsContain(kMessageFlag.Flagged);
             set => ZFlagSet(cStorableFlags.Flagged, value);
         }
 
         /// <summary>
-        /// Gets and sets the <see cref="kMessageFlagName.Deleted"/> flag of the message.
+        /// Gets and sets the <see cref="kMessageFlag.Deleted"/> flag of the message.
         /// </summary>
         /// <remarks>
         /// When getting the value, if the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Deleted
         {
-            get => ZFlagsContain(kMessageFlagName.Deleted);
+            get => ZFlagsContain(kMessageFlag.Deleted);
             set => ZFlagSet(cStorableFlags.Deleted, value);
         }
 
         /// <summary>
-        /// Gets and sets the <see cref="kMessageFlagName.Seen"/> flag of the message.
+        /// Gets and sets the <see cref="kMessageFlag.Seen"/> flag of the message.
         /// </summary>
         /// <remarks>
         /// When getting the value, if the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Seen
         {
-            get => ZFlagsContain(kMessageFlagName.Seen);
+            get => ZFlagsContain(kMessageFlag.Seen);
             set => ZFlagSet(cStorableFlags.Seen, value);
         }
 
         /// <summary>
-        /// Gets and sets the <see cref="kMessageFlagName.Draft"/> flag of the message.
+        /// Gets and sets the <see cref="kMessageFlag.Draft"/> flag of the message.
         /// </summary>
         /// <remarks>
         /// When getting the value, if the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
         public bool Draft
         {
-            get => ZFlagsContain(kMessageFlagName.Draft);
+            get => ZFlagsContain(kMessageFlag.Draft);
             set => ZFlagSet(cStorableFlags.Draft, value);
         }
 
         /// <summary>
-        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlagName.Recent"/>.
+        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlag.Recent"/>.
         /// </summary>
         /// <remarks>
         /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
-        public bool Recent => ZFlagsContain(kMessageFlagName.Recent);
+        public bool Recent => ZFlagsContain(kMessageFlag.Recent);
 
         // see comments elsewhere to see why these are commented out
         //public bool MDNSent => ZFlagsContain(kMessageFlagName.MDNSent);
         //public void SetMDNSent() { ZFlagSet(cSettableFlags.MDNSent, true); }
 
         /// <summary>
-        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlagName.Forwarded"/>.
+        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlag.Forwarded"/>.
         /// </summary>
         /// <remarks>
         /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
-        public bool Forwarded => ZFlagsContain(kMessageFlagName.Forwarded);
-        /**<summary>Adds the <see cref="kMessageFlagName.Forwarded"/> flag to the message's flags.</summary>*/
+        public bool Forwarded => ZFlagsContain(kMessageFlag.Forwarded);
+        /**<summary>Adds the <see cref="kMessageFlag.Forwarded"/> flag to the message's flags.</summary>*/
         public void SetForwarded() { ZFlagSet(cStorableFlags.Forwarded, true); }
 
         /// <summary>
-        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlagName.SubmitPending"/>.
+        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlag.SubmitPending"/>.
         /// </summary>
         /// <remarks>
         /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
-        public bool SubmitPending => ZFlagsContain(kMessageFlagName.SubmitPending);
-        /**<summary>Adds the <see cref="kMessageFlagName.SubmitPending"/> flag to the message's flags.</summary>*/
+        public bool SubmitPending => ZFlagsContain(kMessageFlag.SubmitPending);
+        /**<summary>Adds the <see cref="kMessageFlag.SubmitPending"/> flag to the message's flags.</summary>*/
         public void SetSubmitPending() { ZFlagSet(cStorableFlags.SubmitPending, true); }
 
         /// <summary>
-        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlagName.Submitted"/>.
+        /// Determines if <see cref="Flags"/> contains <see cref="kMessageFlag.Submitted"/>.
         /// </summary>
         /// <remarks>
         /// If the internal message cache does not contain the <see cref="fMessageCacheAttributes.flags"/> of the message, they will be fetched from the server.
         /// </remarks>
-        public bool Submitted  => ZFlagsContain(kMessageFlagName.Submitted);
+        public bool Submitted  => ZFlagsContain(kMessageFlag.Submitted);
 
         private bool ZFlagsContain(string pFlag)
         {
@@ -736,7 +737,7 @@ namespace work.bacome.imapclient
         /// Asynchronously fetches the specified message section from the server as text (without any decoding) and attempts to return the data as a string.
         /// </summary>
         /// <param name="pSection"></param>
-        /// <inheritdoc cref="FetchAsync(cSection)" select="returns|remarks"/>
+        /// <inheritdoc cref="Fetch(cSection)" select="returns|remarks"/>
         public async Task<string> FetchAsync(cSection pSection)
         {
             using (var lStream = new MemoryStream())

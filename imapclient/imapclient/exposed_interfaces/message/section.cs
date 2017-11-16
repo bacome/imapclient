@@ -141,7 +141,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cSection)}({Part},{TextPart},{Names})";
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Op_Equal(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cSection pA, cSection pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -150,7 +150,7 @@ namespace work.bacome.imapclient
             return (pA.Part == pB.Part && pA.TextPart == pB.TextPart && pA.Names == pB.Names);
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Op_NotEqual(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cSection pA, cSection pB) => !(pA == pB);
     }
 }

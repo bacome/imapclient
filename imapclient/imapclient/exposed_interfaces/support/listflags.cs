@@ -1,10 +1,12 @@
 ﻿using System;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// A set of IMAP mailbox flags.
+    /// An object in the internal message cache that contains a subset of the data held about a mailbox.
     /// </summary>
+    /// <seealso cref="iMailboxHandle"/>
     public class cListFlags
     {
         internal readonly int Sequence;
@@ -51,7 +53,7 @@ namespace work.bacome.imapclient.support
         internal bool ContainsSent => (Flags & fListFlags.sent) != 0;
         internal bool ContainsTrash => (Flags & fListFlags.trash) != 0;
 
-        /**<summary>Returns a string that represents the set.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cListFlags)}({Sequence},{Flags})";
 
         internal static fMailboxProperties Differences(cListFlags pOld, cListFlags pNew)

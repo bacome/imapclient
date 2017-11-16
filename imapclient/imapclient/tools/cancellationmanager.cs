@@ -5,9 +5,14 @@ using work.bacome.trace;
 namespace work.bacome.async
 {
     /// <summary>
-    /// Instances manage sets of asynchronous operations that are attached to a common internal <see cref="CancellationTokenSource"/>. 
+    /// Provides services for managing sets of <see langword="async"/> operations. 
     /// </summary>
     /// <remarks>
+    /// Instances manage a series of internal <see cref="CancellationTokenSource"/> instances.
+    /// Each time the internal <see cref="CancellationTokenSource"/> is cancelled (by using <see cref="Cancel(cTrace.cContext)"/>) a new <see cref="CancellationTokenSource"/> is allocated.
+    /// Access to a <see cref="CancellationToken"/> attached to the current <see cref="CancellationTokenSource"/> is gained by calling <see cref="GetToken(cTrace.cContext)"/>.
+    /// The objects issued by <see cref="GetToken(cTrace.cContext)"/> should be disposed when the <see langword="async"/> operation(s) being controlled by the contained <see cref="CancellationToken"/> finish
+    /// to allow the <see cref="cCancellationManager"/> to manage the internal <see cref="CancellationTokenSource"/> instances better and to keep the <see cref="Count"/> property up to date.
     /// Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
     /// </remarks>
     public sealed class cCancellationManager : IDisposable
@@ -30,7 +35,7 @@ namespace work.bacome.async
         /// <summary>
         /// Initialises a new instance specifying a callback to be used when the <see cref="Count"/> property changes.
         /// </summary>
-        /// <param name="pCountChanged">The callback to be used when the <see cref="Count"/> property changes.</param>
+        /// <param name="pCountChanged"></param>
         public cCancellationManager(Action<cTrace.cContext> pCountChanged)
         {
             mCountChanged = pCountChanged;
@@ -38,14 +43,15 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Gets a disposable object containing a <see cref="CancellationToken"/> that is attached to the current <see cref="CancellationTokenSource"/>. Increments <see cref="Count"/>.
+        /// Issues a disposable token object containing a <see cref="CancellationToken"/> that is attached to the current internal <see cref="CancellationTokenSource"/>.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         /// <returns></returns>
         /// <remarks>
-        /// Getting the token object increments <see cref="Count"/>.
-        /// Dispose the returned object when the operation being controlled by the contained <see cref="CancellationToken"/> completes.
-        /// Disposing the token object decrements <see cref="Count"/>.
+        /// Issuing the token object increments <see cref="Count"/>.
+        /// Use the <see cref="CancellationToken"/> wrapped by the token object to control <see langword="async"/> operation(s).
+        /// Dispose the token object when the operation(s) complete.
+        /// Disposing the token object 'returns' the token and decrements <see cref="Count"/>.
         /// </remarks>
         public cToken GetToken(cTrace.cContext pParentContext)
         {
@@ -60,7 +66,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Gets the number of operations attached to the current <see cref="CancellationTokenSource"/>.
+        /// Gets the number of token objects currently issued.
         /// </summary>
         public int Count
         {
@@ -80,7 +86,9 @@ namespace work.bacome.async
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         /// <remarks>
-        /// Calling this method also causes the allocation of a new internal <see cref="CancellationTokenSource"/> so a new set of operations can be started immediately.
+        /// If there are no token objects issued when this method is called, the method does nothing.
+        /// If there are token objects issued, the internal <see cref="CancellationTokenSource"/> is cancelled and 
+        /// a new internal <see cref="CancellationTokenSource"/> is allocated. A new set of operations can be started immediately.
         /// </remarks>
         public void Cancel(cTrace.cContext pParentContext)
         {
@@ -164,19 +172,19 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Contains a <see cref="System.Threading.CancellationToken"/> attached to the <see cref="CancellationTokenSource"/> of a <see cref="cCancellationManager"/> instance.
-        /// Dispose instances of this class when the operation being controlled by the contained <see cref="System.Threading.CancellationToken"/> completes.
+        /// Contains a <see cref="System.Threading.CancellationToken"/> attached to the internal <see cref="CancellationTokenSource"/> of a <see cref="cCancellationManager"/>.
         /// </summary>
         /// <remarks>
-        /// Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
-        /// Disposing the instances decrements <see cref="cCancellationManager.Count"/>.
+        /// Use the contained <see cref="System.Threading.CancellationToken"/> to control <see langword="async"/> operation(s).
+        /// Dispose instances of this class when the operation(s) being controlled complete.
+        /// Disposing the instances decrements <see cref="Count"/>.
         /// </remarks>
         public sealed class cToken : IDisposable
         {
             private bool mDisposed = false;
 
             /// <summary>
-            /// The cancellation token to use in the controlled operation.
+            /// The cancellation token to use to control the target <see langword="async"/> operation.
             /// </summary>
             public readonly CancellationToken CancellationToken;
 

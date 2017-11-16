@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents a filter that can be passed to the server to filter the set of messages in a mailbox.
+    /// Represents a filter that can be passed to the server to restrict the set of messages returned to the client.
+    /// </summary>
+    /// <remarks>
     /// Only the messages that 'pass through' the filter are returned to the client.
     /// Use the <see langword="static"/> members and operators of this class to create and combine filters. 
-    /// </summary>
+    /// </remarks>
+    /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
     public abstract class cFilter
     {
         /** <summary>A filter that passes all messages through.</summary>*/
@@ -17,37 +20,36 @@ namespace work.bacome.imapclient
 
         /** <summary>Use this member to generate message sequence number filters.</summary>*/
         public static readonly cFilterMSN MSN = new cFilterMSN();
+        /** <summary>Represents the first message in a mailbox.</summary>*/
+        public static readonly cFilterEnd First = new cFilterEnd(eFilterEnd.first);
+        /** <summary>Represents the last message in a mailbox.</summary>*/
+        public static readonly cFilterEnd Last = new cFilterEnd(eFilterEnd.last);
 
         /** <summary>Use this member to generate UID filters.</summary>*/
         public static readonly cFilterUID UID = new cFilterUID();
 
-        /** <summary>Use this member to help generate message sequence number filters.</summary>*/
-        public static readonly cFilterEnd First = new cFilterEnd(eFilterEnd.first);
-        /** <summary>Use this member to help generate message sequence number filters.</summary>*/
-        public static readonly cFilterEnd Last = new cFilterEnd(eFilterEnd.last);
-
         /** <summary>A filter that passes only answered messages through.</summary>*/
-        public static readonly cFilter Answered = new cFilterFlagsContain(kMessageFlagName.Answered);
+        public static readonly cFilter Answered = new cFilterFlagsContain(kMessageFlag.Answered);
         /** <summary>A filter that passes only flagged messages through.</summary>*/
-        public static readonly cFilter Flagged = new cFilterFlagsContain(kMessageFlagName.Flagged);
+        public static readonly cFilter Flagged = new cFilterFlagsContain(kMessageFlag.Flagged);
         /** <summary>A filter that passes only deleted messages through.</summary>*/
-        public static readonly cFilter Deleted = new cFilterFlagsContain(kMessageFlagName.Deleted);
+        public static readonly cFilter Deleted = new cFilterFlagsContain(kMessageFlag.Deleted);
         /** <summary>A filter that passes only seen messages through.</summary>*/
-        public static readonly cFilter Seen = new cFilterFlagsContain(kMessageFlagName.Seen);
+        public static readonly cFilter Seen = new cFilterFlagsContain(kMessageFlag.Seen);
         /** <summary>A filter that passes only draft messages through.</summary>*/
-        public static readonly cFilter Draft = new cFilterFlagsContain(kMessageFlagName.Draft);
+        public static readonly cFilter Draft = new cFilterFlagsContain(kMessageFlag.Draft);
         /** <summary>A filter that passes only recent messages through.</summary>*/
-        public static readonly cFilter Recent = new cFilterFlagsContain(kMessageFlagName.Recent);
+        public static readonly cFilter Recent = new cFilterFlagsContain(kMessageFlag.Recent);
 
         // see comments elsewhere for why this is commented out: note: when re-instating it a "MDNRequested" filter should also be added
         //public static readonly cFilter MDNSent = new cFilterFlagsContain(kMessageFlagName.MDNSent);
 
         /** <summary>A filter that passes only forwarded messages through.</summary>*/
-        public static readonly cFilter Forwarded = new cFilterFlagsContain(kMessageFlagName.Forwarded);
+        public static readonly cFilter Forwarded = new cFilterFlagsContain(kMessageFlag.Forwarded);
         /** <summary>A filter that passes only submitpending messages through.</summary>*/
-        public static readonly cFilter SubmitPending = new cFilterFlagsContain(kMessageFlagName.SubmitPending);
+        public static readonly cFilter SubmitPending = new cFilterFlagsContain(kMessageFlag.SubmitPending);
         /** <summary>A filter that passes only submitted messages through.</summary>*/
-        public static readonly cFilter Submitted = new cFilterFlagsContain(kMessageFlagName.Submitted);
+        public static readonly cFilter Submitted = new cFilterFlagsContain(kMessageFlag.Submitted);
 
         /** <summary>Use this member to generate filters on the content of the message's BCC data.</summary>*/
         public static readonly cFilterPart BCC = new cFilterPart(eFilterPart.bcc);
@@ -108,29 +110,29 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Returns a filter that passes through only messages with the specified flags.
         /// </summary>
-        /// <param name="pFlags">The flags that the message should have set.</param>
+        /// <param name="pFlags"></param>
         /// <returns></returns>
         public static cFilter FlagsContain(params string[] pFlags) => new cFilterFlagsContain(pFlags);
 
         /// <summary>
         /// Returns a filter that passes through only messages with the specified flags.
         /// </summary>
-        /// <param name="pFlags">The flags that the message should have set.</param>
+        /// <param name="pFlags"></param>
         /// <returns></returns>
         public static cFilter FlagsContain(cFetchableFlags pFlags) => new cFilterFlagsContain(pFlags);
 
         /// <summary>
         /// Returns a filter that passes through messages with the specified content in the specified header field.
         /// </summary>
-        /// <param name="pHeaderField">The header field name. (Header field names are case insensitive.)</param>
+        /// <param name="pHeaderField">Header field names are case insensitive.</param>
         /// <param name="pContains"></param>
         /// <returns></returns>
         public static cFilter HeaderFieldContains(string pHeaderField, string pContains) => new cFilterHeaderFieldContains(pHeaderField, pContains);
 
         /// <summary>
-        /// Returns a filter that passes through messages with the specified header field.
+        /// Returns a filter that passes through messages that have the specified header field.
         /// </summary>
-        /// <param name="pHeaderField">The header field name. (Header field names are case insensitive.)</param>
+        /// <param name="pHeaderField">Header field names are case insensitive.</param>
         /// <returns></returns>
         public static cFilter HasHeaderField(string pHeaderField) => new cFilterHeaderFieldContains(pHeaderField, string.Empty);
 
@@ -196,10 +198,12 @@ namespace work.bacome.imapclient
 #pragma warning disable 661
 
     /// <summary>
-    /// Specifies an offset from a specific message or from the first message in the mailbox or from the last message in the mailbox.
-    /// Use <see cref="cMessage.MSNOffset(int)"/> or the <see langword="static"/> members <see cref="cFilter.First"/> or <see cref="cFilter.Last"/> to generate instances of this class.
-    /// Use instances of this class with the <see cref="cFilter.MSN"/> <see langword="static"/> member to generate message sequence number filters.
+    /// Represents an offset from a specific message or from the ends of a mailbox.
     /// </summary>
+    /// <remarks>
+    /// Use <see cref="cMessage.MSNOffset(int)"/>, <see cref="cFilter.First"/> or <see cref="cFilter.Last"/> to generate instances of this class.
+    /// Use instances of this class with <see cref="cFilter.MSN"/> to generate message sequence number filters.
+    /// </remarks>
     public class cFilterMSNOffset
     {
         internal readonly iMessageHandle Handle;
@@ -220,14 +224,15 @@ namespace work.bacome.imapclient
             Offset = pOffset;
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
         public override string ToString() => $"{nameof(cFilterMSNOffset)}({Handle},{End},{Offset})";
     }
 
     /// <summary>
-    /// Represents either the first message in the mailbox or the last message in the mailbox.
-    /// Use the <see cref="cFilter.First"/> and <see cref="cFilter.Last"/> <see langword="static"/> instances of this class to generate offsets to use with the <see langword="static"/> <see cref="cFilter.MSN"/> to generate message sequence number filters.
+    /// Represents either end of the mailbox.
     /// </summary>
+    /// <seealso cref="cFilter.First"/>
+    /// <seealso cref="cFilter.Last"/>
     public class cFilterEnd
     {
         internal readonly eFilterEnd End;
@@ -246,9 +251,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The operators defined on this class generate message sequence number filters.
-    /// Use the <see cref="cFilter.MSN"/> <see langword="static"/> instance of this class to do this.
+    /// Contains operators that generate message sequence number filters.
     /// </summary>
+    /// <seealso cref="cFilter.MSN"/>
     public class cFilterMSN
     {
         internal cFilterMSN() { }
@@ -257,7 +262,7 @@ namespace work.bacome.imapclient
         /// Returns a filter that passes through messages with a sequence number less than the sequence number of the specified message.
         /// </summary>
         /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
-        /// <param name="pMessage">The message to get the sequence number from.</param>
+        /// <param name="pMessage"></param>
         /// <returns></returns>
         public static cFilter operator <(cFilterMSN pFilterMSN, cMessage pMessage)
         {
@@ -269,7 +274,7 @@ namespace work.bacome.imapclient
         /// Returns a filter that passes through messages with a sequence number greater than the sequence number of the specified message.
         /// </summary>
         /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
-        /// <param name="pMessage">The message to get the sequence number from.</param>
+        /// <param name="pMessage"></param>
         /// <returns></returns>
         public static cFilter operator >(cFilterMSN pFilterMSN, cMessage pMessage)
         {
@@ -278,10 +283,10 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Returns a filter that passes through messages with a sequence number less than the specified sequence number offset.
+        /// Returns a filter that passes through messages with a sequence number less than the specified offset.
         /// </summary>
         /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
-        /// <param name="pOffset">The sequence number offset.</param>
+        /// <param name="pOffset"></param>
         /// <returns></returns>
         public static cFilter operator <(cFilterMSN pFilterMSN, cFilterMSNOffset pOffset)
         {
@@ -290,10 +295,10 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Returns a filter that passes through messages with a sequence number greater than the specified sequence number offset.
+        /// Returns a filter that passes through messages with a sequence number greater than the specified offset.
         /// </summary>
         /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
-        /// <param name="pOffset">The sequence number offset.</param>
+        /// <param name="pOffset"></param>
         /// <returns></returns>
         public static cFilter operator >(cFilterMSN pFilterMSN, cFilterMSNOffset pOffset)
         {
@@ -305,7 +310,7 @@ namespace work.bacome.imapclient
         /// Returns a filter that passes through messages with a sequence number less than or equal to the sequence number of the specified message.
         /// </summary>
         /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
-        /// <param name="pMessage">The message to get the sequence number from.</param>
+        /// <param name="pMessage"></param>
         /// <returns></returns>
         public static cFilter operator <=(cFilterMSN pFilterMSN, cMessage pMessage)
         {
@@ -317,7 +322,7 @@ namespace work.bacome.imapclient
         /// Returns a filter that passes through messages with a sequence number greater than or equal to the sequence number of the specified message.
         /// </summary>
         /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
-        /// <param name="pMessage">The message to get the sequence number from.</param>
+        /// <param name="pMessage"></param>
         /// <returns></returns>
         public static cFilter operator >=(cFilterMSN pFilterMSN, cMessage pMessage)
         {
@@ -326,7 +331,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Returns a filter that passes through messages with a sequence number less than or equal to the specified sequence number offset.
+        /// Returns a filter that passes through messages with a sequence number less than or equal to the specified offset.
         /// </summary>
         /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
         /// <param name="pOffset"></param>
@@ -338,7 +343,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Returns a filter that passes through messages with a sequence number greater than or equal to the specified sequence number offset.
+        /// Returns a filter that passes through messages with a sequence number greater than or equal to the specified offset.
         /// </summary>
         /// <param name="pFilterMSN"><see cref="cFilter.MSN"/></param>
         /// <param name="pOffset"></param>
@@ -351,8 +356,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The operators defined on this class generate message UID filters. Use the <see cref="cFilter.UID"/> <see langword="static"/> instance of this class to do this.
+    /// Contains operators that generate message UID filters.
     /// </summary>
+    /// <seealso cref="cFilter.UID"/>
     public class cFilterUID
     {
         internal cFilterUID() { }
@@ -433,24 +439,22 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Use the <see cref="Contains(string)"/> method on the following <see langword="static"/> instances of this class to generate a message content filters;
-    /// <list type="bullet">
-    /// <item><see cref="cFilter.BCC"/></item>
-    /// <item><see cref="cFilter.Body"/></item>
-    /// <item><see cref="cFilter.CC"/></item>
-    /// <item><see cref="cFilter.From"/></item>
-    /// <item><see cref="cFilter.Subject"/></item>
-    /// <item><see cref="cFilter.Text"/></item>
-    /// <item><see cref="cFilter.To"/></item>
-    /// </list>
+    /// Contains a method that generates message content filters.
     /// </summary>
+    /// <seealso cref="cFilter.BCC"/>
+    /// <seealso cref="cFilter.Body"/>
+    /// <seealso cref="cFilter.CC"/>
+    /// <seealso cref="cFilter.From"/>
+    /// <seealso cref="cFilter.Subject"/>
+    /// <seealso cref="cFilter.Text"/>
+    /// <seealso cref="cFilter.To"/>
     public class cFilterPart
     {
         private readonly eFilterPart Part;
         internal cFilterPart(eFilterPart pPart) { Part = pPart; }
     
         /// <summary>
-        /// Generates an object that represents a filter on message content.
+        /// Generates a filter on message content.
         /// </summary>
         /// <param name="pContains"></param>
         /// <returns></returns>
@@ -458,9 +462,10 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The operators defined on this class generate message date filters.
-    /// Use the <see langword="static"/> instances of this class, <see cref="cFilter.Received"/> and <see cref="cFilter.Sent"/>, to do this.
+    /// Contains operators that generate message date filters.
     /// </summary>
+    /// <seealso cref="cFilter.Received"/>
+    /// <seealso cref="cFilter.Sent"/>
     public class cFilterDate
     {
         private readonly eFilterDate Date;
@@ -518,9 +523,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The operators defined on this class generate message size filters.
-    /// Use the <see cref="cFilter.Size"/> <see langword="static"/> instance of this class to do this.
+    /// Contains operators that generate message size filters.
     /// </summary>
+    /// <seealso cref="cFilter.Size"/>
     public class cFilterSize
     {
         internal cFilterSize() { }
@@ -559,9 +564,9 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The operators defined on this class generate message importance filters.
-    /// Use the <see cref="cFilter.Importance"/> <see langword="static"/> instance of this class to do this.
+    /// Contains operators that generate message importance filters.
     /// </summary>
+    /// <seealso cref="cFilter.Importance"/>
     public class cFilterImportance
     {
         internal cFilterImportance() { }

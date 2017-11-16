@@ -72,7 +72,7 @@ namespace work.bacome.imapclient
 
                 case eStoreOperation.replace:
 
-                    if (pHandle.Flags.SymmetricDifference(pFlags, kMessageFlagName.Recent).Count() == 0) pSummary.ReflectsOperationCount++;
+                    if (pHandle.Flags.SymmetricDifference(pFlags, kMessageFlag.Recent).Count() == 0) pSummary.ReflectsOperationCount++;
                     else pSummary.NotReflectsOperationCount++;
                     return;
             }

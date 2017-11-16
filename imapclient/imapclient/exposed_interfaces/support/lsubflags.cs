@@ -2,12 +2,16 @@
 
 namespace work.bacome.imapclient.support
 {
+    /// <summary>
+    /// An object in the internal message cache that contains a subset of the data held about a mailbox.
+    /// </summary>
+    /// <seealso cref="iMailboxHandle"/>
     public class cLSubFlags
     {
-        public readonly int Sequence;
-        public readonly bool Subscribed;
+        internal readonly int Sequence;
+        internal readonly bool Subscribed;
 
-        public cLSubFlags(int pSequence, bool pSubscribed)
+        internal cLSubFlags(int pSequence, bool pSubscribed)
         {
             Sequence = pSequence;
             Subscribed = pSubscribed;

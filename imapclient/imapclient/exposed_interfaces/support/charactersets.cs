@@ -644,39 +644,65 @@ namespace work.bacome.imapclient.support
 
         // instances
 
-        /**<summary>A-Z, a-z</summary>*/
+        /**<summary>A-Z, a-z.</summary>*/
         public static readonly cCharset Alpha = new cAlpha();
-        /**<summary>0-9</summary>*/
+        /**<summary>0-9.</summary>*/
         public static readonly cCharset Digit = new cDigit();
-        /**<summary>A-Z, 0-9, a-z</summary>*/
+        /**<summary>A-Z, 0-9, a-z.</summary>*/
         public static readonly cCharset AlphaNumeric = new cAlphaNumeric();
-        /**<summary>RFC 3986 scheme</summary>*/
+        /**<summary>RFC 3986 scheme.</summary>*/
         public static readonly cCharset Scheme = new cScheme();
+        /**<summary>RFC 3986 userinfo.</summary>*/
         public static readonly cCharset UserInfo = new cUserInfo();
+        /**<summary>RFC 3501 atom.</summary>*/
         public static readonly cCharset Atom = new cAtom();
+        /**<summary>RFC 3501 astring.</summary>*/
         public static readonly cCharset AString = new cAString();
+        /**<summary>RFC 3501 response text.</summary>*/
         public static readonly cCharset TextNotRBRACKET = new cTextNotRBRACKET();
+        /**<summary>RFC 3501 list-mailbox.</summary>*/
         public static readonly cCharset ListMailbox = new cListMailbox();
+        /**<summary>RFC 5092 achar.</summary>*/
         public static readonly cCharset AChar = new cAChar();
+        /**<summary>RFC 5092 bchar.</summary>*/
         public static readonly cCharset BChar = new cBChar();
+        /**<summary>RFC 3986 segment.</summary>*/
         public static readonly cCharset PathSegment = new cPathSegment();
+        /**<summary>RFC 3986 segment-nz-nc.</summary>*/
         public static readonly cCharset PathSegmentNoColon = new cPathSegmentNoColon();
+        /**<summary>RFC 3986 various path components (= PathSegment + '/').</summary>*/
         public static readonly cCharset Path = new cPath();
+        /**<summary>RFC 3986 query and fragment.</summary>*/
         public static readonly cCharset AfterPath = new cAfterPath();
+        /**<summary>RFC 3986 reg-name.</summary>*/
         public static readonly cCharset RegName = new cRegName();
+        /**<summary>RFC 3986 contents of IP-literal.</summary>*/
         public static readonly cCharset IPLiteral = new cIPLiteral();
+        /**<summary>RFC 5092 uauth-mechanism.</summary>*/
         public static readonly cCharset UAuthMechanism = new cUAuthMechanism();
+        /**<summary>A-F, 0-9, a-f.</summary>*/
         public static readonly cCharset Hexidecimal = new cHexidecimal();
+        /**<summary>RFC 2978 mime-charset-chars.</summary>*/
         public static readonly cCharset CharsetName = new cCharsetName();
+        /**<summary>RFC 2231 charset.</summary>*/
         public static readonly cCharset CharsetNameDash = new cCharsetNameDash();
+        /**<summary>Contains all characters.</summary>*/
         public static readonly cCharset All = new cAll();
+        /**<summary>A-Z, 0-9, a-z, +/=.</summary>*/
         public static readonly cCharset Base64 = new cBase64();
+        /**<summary>RFC 2047 Quoted-Printable.</summary>*/
         public static readonly cCharset QEncoding = new cQEncoding();
+        /**<summary>RFC 6532 ctext.</summary>*/
         public static readonly cCharset CText = new cCText();
+        /**<summary>RFC 6532 atext.</summary>*/
         public static readonly cCharset AText = new cAText();
+        /**<summary>RFC 6532 qtext.</summary>*/
         public static readonly cCharset QText = new cQText();
+        /**<summary>RFC 6532 dtext.</summary>*/
         public static readonly cCharset DText = new cDText();
+        /**<summary>RFC 5322 ftext.</summary>*/
         public static readonly cCharset FText = new cFText();
+        /**<summary>RFC 6749 VSCHAR.</summary>*/
         public static readonly cCharset VSChar = new cVSChar();
     }
 }

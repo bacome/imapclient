@@ -2,18 +2,19 @@
 
 namespace work.bacome.imapclient.support
 {
+    ;?; // see also
     /// <summary>
-    /// Represents a message in the internal message cache.
+    /// Uniquely identifies a message in an internal message cache.
     /// </summary>
     public interface iMessageHandle
     {
-        /**<summary>Gets the cache that this instance belongs to.</summary>*/
+        /**<summary>Gets an object that represents the internal message cache that this handle belongs to.</summary>*/
         iMessageCache Cache { get; }
-        /**<summary>Gets the sequence in the cache of this instance.</summary>*/
+        /**<summary>Gets the sequence in the cache of this handle.</summary>*/
         int CacheSequence { get; }
-        /**<summary>Indicates if the server has informed the client that the referenced message has been expunged.</summary>*/
+        /**<summary>Indicates if the message referred to by the handle exists on the server.</summary>*/
         bool Expunged { get; }
-        /**<summary>Gets the message attributes that the cache currently contains for this instance.</summary>*/
+        /**<summary>Gets the message attributes that the cache currently contains for this handle.</summary>*/
         fMessageCacheAttributes Attributes { get; }
 
         /// <summary>
@@ -49,21 +50,21 @@ namespace work.bacome.imapclient.support
         cBinarySizes BinarySizes { get; }
 
         /// <summary>
-        /// Determines if all the specified items are cached for this instance.
+        /// Determines if all the specified items are cached for this handle.
         /// </summary>
         /// <param name="pItems"></param>
         /// <returns></returns>
         bool Contains(cMessageCacheItems pItems);
 
         /// <summary>
-        /// Determines if none of the specified items are cached for this instance.
+        /// Determines if none of the specified items are cached for this handle.
         /// </summary>
         /// <param name="pItems"></param>
         /// <returns></returns>
         bool ContainsNone(cMessageCacheItems pItems);
 
         /// <summary>
-        /// Returns those items from the specified items that are not cached for this instance.
+        /// Returns those items from the specified items that are not cached for this handle.
         /// </summary>
         /// <param name="pItems"></param>
         /// <returns></returns>

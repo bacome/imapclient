@@ -2,18 +2,22 @@
 
 namespace work.bacome.imapclient.support
 {
+    /// <summary>
+    /// An object in the internal message cache that contains a subset of the data held about a mailbox.
+    /// </summary>
+    /// <seealso cref="iMailboxHandle"/>
     public class cMailboxStatus
     {
-        public readonly int MessageCount;
-        public readonly int RecentCount;
-        public readonly uint UIDNext;
-        public readonly int UIDNextUnknownCount; // the number of messages in the mailbox for which we don't know the UID (indicates the inaccuracy of UIDNext)
-        public readonly uint UIDValidity;
-        public readonly int UnseenCount;
-        public readonly int UnseenUnknownCount; // the number of messages in the mailbox for which we don't know the unseen (indicates the inaccuracy of Unseen)
-        public readonly ulong HighestModSeq;
+        internal readonly int MessageCount;
+        internal readonly int RecentCount;
+        internal readonly uint UIDNext;
+        internal readonly int UIDNextUnknownCount; // the number of messages in the mailbox for which we don't know the UID (indicates the inaccuracy of UIDNext)
+        internal readonly uint UIDValidity;
+        internal readonly int UnseenCount;
+        internal readonly int UnseenUnknownCount; // the number of messages in the mailbox for which we don't know the unseen (indicates the inaccuracy of Unseen)
+        internal readonly ulong HighestModSeq;
 
-        public cMailboxStatus(uint pMessages, uint pRecent, uint pUIDNext, uint pUIDValidity, uint pUnseen, ulong pHighestModSeq)
+        internal cMailboxStatus(uint pMessages, uint pRecent, uint pUIDNext, uint pUIDValidity, uint pUnseen, ulong pHighestModSeq)
         {
             MessageCount = (int)pMessages;
             RecentCount = (int)pRecent;
@@ -25,7 +29,7 @@ namespace work.bacome.imapclient.support
             HighestModSeq = pHighestModSeq;
         }
 
-        public cMailboxStatus(int pMessageCount, int pRecentCount, uint pUIDNext, int pUIDNextUnknownCount, uint pUIDValidity, int pUnseenCount, int pUnseenUnknownCount, ulong pHighestModSeq)
+        internal cMailboxStatus(int pMessageCount, int pRecentCount, uint pUIDNext, int pUIDNextUnknownCount, uint pUIDValidity, int pUnseenCount, int pUnseenUnknownCount, ulong pHighestModSeq)
         {
             MessageCount = pMessageCount;
             RecentCount = pRecentCount;
