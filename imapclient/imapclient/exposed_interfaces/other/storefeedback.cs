@@ -87,7 +87,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cStoreFeedback"/>
     public class cStoreFeedbackItem : cStoreFeedbackItemBase
     {
-        /**<summary>The internal message cache item that this feedback relates to.</summary>*/
+        /**<summary>The message that the feedback relates to.</summary>*/
         public readonly iMessageHandle Handle;
 
         internal cStoreFeedbackItem(iMessageHandle pHandle)
@@ -225,9 +225,11 @@ namespace work.bacome.imapclient
     /// </para>
     /// <para>Generally <see cref="ExpungedCount"/> + <see cref="NotReflectsOperationCount"/> is the number of definite non-updates.</para>
     /// <para>Generally <see cref="NotReflectsOperationCount"/> > 0 indicates that a <see cref="cIMAPClient.Poll"/> may be worth trying to get any pending updates from the server (which should convert all the notreflects to expunged or reflects).</para>
-    /// <para>Note that after a <see cref="cIMAPClient.Poll"/> you should get the summary again using <see cref="cStoreFeedback.Summary"/> or <see cref="cUIDStoreFeedback.Summary"/></para>
-    /// <para><see cref="UnknownCount"/> > 0 indicates that a blind store was done so there isn't enough information to say if the store happened or not.</para>
+    /// <note type="note">After a <see cref="cIMAPClient.Poll"/> you should get the summary again to see the effect of any updates sent by the server.</note>
+    /// <para>Generally <see cref="UnknownCount"/> > 0 indicates that a blind store was done so there isn't enough information to say whether the store happened or not.</para>
     /// </remarks>
+    /// <seealso cref="cStoreFeedback.Summary"/>
+    /// <seealso cref="cUIDStoreFeedback.Summary"/>
     public struct sStoreFeedbackSummary
     {
         /**<summary>The count where an IMAP FETCH for the message was received during the command execution and the message wasn't mentioned in the RFC 7162 MODIFIED response (=> the message was _likely_ to have been updated by the store).</summary>*/
@@ -236,16 +238,16 @@ namespace work.bacome.imapclient
         /**<summary>The count where the message was mentioned in the RFC 7162 MODIFIED response (=> _NOT_ updated by the store).</summary>*/
         public int WasNotUnchangedSinceCount;
 
-        /**<summary>The count where the message cache indicates that the message is expunged.</summary>*/
+        /**<summary>The count where the message cache indicates that the message has been expunged.</summary>*/
         public int ExpungedCount;
 
-        /**<summary>The count where the internal message cache item isn't known or the internal message cache item does not contain the flags.</summary>*/
+        /**<summary>The count where the entry in the message cache for the message can't be found or it can be found but it doesn't contain the flags for the message.</summary>*/
         public int UnknownCount;
 
-        /**<summary>The count where the flags in the internal message cache reflect the store operation.</summary>*/
+        /**<summary>The count where the flags in the message cache reflect the store operation.</summary>*/
         public int ReflectsOperationCount;
 
-        /**<summary>The count where the flags in the internal message cache do not reflect the store operation.</summary>*/
+        /**<summary>The count where the flags in the message cache do not reflect the store operation.</summary>*/
         public int NotReflectsOperationCount;
 
         /**<summary>Gets the count of messages that were likely to have been updated by the store.</summary>*/
@@ -267,7 +269,7 @@ namespace work.bacome.imapclient
     {
         /**<summary>The UID that this feedback relates to.</summary>*/
         public readonly cUID UID;
-        /**<summary>The internal message cache item that this feedback relates to, if known. May be <see langword="null"/>.</summary>*/
+        /**<summary>The message that this feedback relates to, if known. May be <see langword="null"/>.</summary>*/
         public iMessageHandle Handle = null; 
 
         internal cUIDStoreFeedbackItem(cUID pUID)

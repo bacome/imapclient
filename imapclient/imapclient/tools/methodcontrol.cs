@@ -6,11 +6,11 @@ using work.bacome.apidocumentation;
 namespace work.bacome.async
 {
     /// <summary>
-    /// Represents controls on the execution of asynchronous methods. 
+    /// Represents <see langword="async"/> method controls. 
     /// </summary>
     /// <remarks>
-    /// Any timeout runs from when the instance is created; each time the value of the <see cref="Timeout"/> property is retrieved only the time remaining is returned. 
-    /// This means that if the method being controlled has many internal async calls, the timeout applies to the total time of all the internal calls.
+    /// Any timeout specified runs from when the instance is created; each time the value of <see cref="Timeout"/> is retrieved only the time remaining is returned. 
+    /// This means that if the method being controlled makes <see langword="async"/> calls, the timeout can be applied to the total time that the method takes.
     /// </remarks>
     public class cMethodControl
     {

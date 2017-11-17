@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Ensures that the specified items are cached in the internal message cache for the specified messages.
+        /// Ensures that the specified items are cached for the specified messages.
         /// </summary>
         /// <param name="pMessages"></param>
         /// <param name="pItems"></param>
@@ -97,7 +97,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Asynchronously ensures that the specified items are cached in the internal message cache for the specified messages.
+        /// Asynchronously ensures that the specified items are cached for the specified messages.
         /// </summary>
         /// <param name="pMessages"></param>
         /// <param name="pItems"></param>

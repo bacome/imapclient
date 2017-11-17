@@ -8,13 +8,13 @@ namespace work.bacome.imapclient.support
     /// <seealso cref="cIMAPClient.SelectedMailboxDetails"/>
     public interface iSelectedMailboxDetails
     {
-        /**<summary>Gets the internal mailbox handle of the mailbox that the details are for.</summary>*/
+        /**<summary>Gets the mailbox that the details are for.</summary>*/
         iMailboxHandle Handle { get; }
         /**<summary>Indicates if the mailbox is selected for update.</summary>*/
         bool SelectedForUpdate { get; }
         /**<summary>Indicates if the mailbox can be modified.</summary>*/
         bool AccessReadOnly { get; }
-        /**<summary>Gets an object that represents the internal message cache for this mailbox.</summary>*/
+        /**<summary>Gets the message cache of this mailbox.</summary>*/
         iMessageCache Cache { get; }
     }
 }

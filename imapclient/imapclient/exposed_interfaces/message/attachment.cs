@@ -7,15 +7,15 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Provides an API that allows interaction with an IMAP attachment.
+    /// Represents a message attachment.
     /// </summary>
     public class cAttachment
     {
         /**<summary>The client that this instance was created by.</summary>*/
         public readonly cIMAPClient Client;
-        /**<summary>The message cache item that this instance is attached to.</summary>*/
+        /**<summary>The message that the attachment belongs to.</summary>*/
         public readonly iMessageHandle Handle;
-        /**<summary>The message body-part that this attachment refers to.</summary>*/
+        /**<summary>The body-part of the attachment.</summary>*/
         public readonly cSinglePartBody Part;
 
         internal cAttachment(cIMAPClient pClient, iMessageHandle pHandle, cSinglePartBody pPart)
@@ -110,9 +110,8 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <returns></returns>
         /// <remarks>
-        /// This may be smaller than the <see cref="PartSizeInBytes"/> if the part needs decoding (see <see cref="DecodingRequired"/>) and <see cref="cCapabilities.Binary"/> is in use.
-        /// The size may have to be fetched from the server. 
-        /// Once fetched the size will be cached in the internal message cache.
+        /// This may be smaller than <see cref="PartSizeInBytes"/> if <see cref="DecodingRequired"/>) isn't <see cref="eDecodingRequired.none"/> and <see cref="cCapabilities.Binary"/> is in use.
+        /// The size may have to be fetched from the server, but once fetched it will be cached.
         /// </remarks>
         public int SaveSizeInBytes() => Client.FetchSizeInBytes(Handle, Part);
 

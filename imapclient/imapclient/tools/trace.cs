@@ -50,7 +50,7 @@ namespace work.bacome.trace
     /// <item>The <see cref="cContext.None"/> context is used as a root.</item>
     /// </list>
     /// </para>
-    /// <para>Root-contexts have a name and a number. The name is programmer assigned, the number is internally assigned and is unique within the program.</para>
+    /// <para>Root-contexts have a name and a number. The name is programmer assigned, the number is assigned by the class and is unique within the program.</para>
     /// <para>Trace messages are indented by a number of spaces that equals the context stack depth.</para>
     /// <para>Trace messages are written in a tab delimited form, the tab delimited columns contain;
     /// <list type="number">

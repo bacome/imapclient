@@ -7,7 +7,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents a list of messages in the internal message cache.
+    /// A list of messages.
     /// </summary>
     public class cMessageHandleList : List<iMessageHandle>
     {
@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
 
         internal void SortByCacheSequence() => Sort(ZCompareCacheSequence);
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cMessageHandleList));

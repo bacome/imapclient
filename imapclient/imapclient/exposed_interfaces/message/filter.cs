@@ -66,7 +66,7 @@ namespace work.bacome.imapclient
         /** <summary>Use this member to generate filters on the content of the message's 'to' data.</summary>*/
         public static readonly cFilterPart To = new cFilterPart(eFilterPart.to);
 
-        /** <summary>Use this member to generate filters on the message's internal date.</summary>*/
+        /** <summary>Use this member to generate filters on the message's received date.</summary>*/
         public static readonly cFilterDate Received = new cFilterDate(eFilterDate.arrival);
         /** <summary>Use this member to generate filters on the message's sent date.</summary>*/
         public static readonly cFilterDate Sent = new cFilterDate(eFilterDate.sent);

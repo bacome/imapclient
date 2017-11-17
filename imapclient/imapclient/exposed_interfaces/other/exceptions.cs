@@ -323,7 +323,7 @@ namespace work.bacome.imapclient
     public class cFilterMSNException : cIMAPException
     {
         /// <summary>
-        /// The message handle that couldn't be resolved to a message sequence number.
+        /// The message that couldn't be resolved to a message sequence number.
         /// </summary>
         public readonly iMessageHandle Handle;
 

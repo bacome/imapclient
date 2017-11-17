@@ -4,16 +4,17 @@ using work.bacome.trace;
 
 namespace work.bacome.async
 {
+    ;?;
     /// <summary>
     /// Provides services for managing sets of <see langword="async"/> operations. 
     /// </summary>
     /// <remarks>
-    /// Instances manage a series of internal <see cref="CancellationTokenSource"/> instances.
-    /// Each time the internal <see cref="CancellationTokenSource"/> is cancelled (by using <see cref="Cancel(cTrace.cContext)"/>) a new <see cref="CancellationTokenSource"/> is allocated.
-    /// Access to a <see cref="CancellationToken"/> attached to the current <see cref="CancellationTokenSource"/> is gained by calling <see cref="GetToken(cTrace.cContext)"/>.
-    /// The objects issued by <see cref="GetToken(cTrace.cContext)"/> should be disposed when the <see langword="async"/> operation(s) being controlled by the contained <see cref="CancellationToken"/> finish
+    /// Instances manage a series of <see cref="CancellationTokenSource"/> instances.
+    /// 
+    /// Access to the <see cref="CancellationToken"/> of the <see cref="CancellationTokenSource"/> is gained by using <see cref="GetToken(cTrace.cContext)"/> which returns the token wrapped in a disposable object.
+    /// The objects returned by <see cref="GetToken(cTrace.cContext)"/> must be disposed when the <see langword="async"/> operation(s) being controlled by the contained <see cref="CancellationToken"/> finish
     /// to allow the <see cref="cCancellationManager"/> to manage the internal <see cref="CancellationTokenSource"/> instances better and to keep the <see cref="Count"/> property up to date.
-    /// Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
+    /// This class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
     /// </remarks>
     public sealed class cCancellationManager : IDisposable
     {
@@ -43,7 +44,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Issues a disposable token object containing a <see cref="CancellationToken"/> that is attached to the current internal <see cref="CancellationTokenSource"/>.
+        /// Issues a disposable token object containing a <see cref="CancellationToken"/>.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         /// <returns></returns>

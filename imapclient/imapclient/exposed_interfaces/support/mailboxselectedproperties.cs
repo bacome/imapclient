@@ -4,7 +4,7 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// An object in the internal message cache that contains a subset of the data held about a mailbox.
+    /// Contains some mailbox data.
     /// </summary>
     /// <seealso cref="iMailboxHandle"/>
     public class cMailboxSelectedProperties

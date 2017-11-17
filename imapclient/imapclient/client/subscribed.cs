@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
         /// <param name="pListMailbox">The search string possibly including IMAP wildcards.</param>
         /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
         /// <param name="pHasSubscribedChildren">Specifies if mailboxes that are not themselves subscribed, but that have subscribed children, are included in the returned list.</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <inheritdoc cref="Mailboxes(string, char?, fMailboxCacheDataSets)" select="returns|remarks"/>
         public List<cMailbox> Subscribed(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
         /// <param name="pListMailbox">The search string possibly including IMAP wildcards.</param>
         /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
         /// <param name="pHasSubscribedChildren">Specifies if mailboxes that are not themselves subscribed, but that have subscribed children, are included in the returned list.</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <inheritdoc cref="Mailboxes(string, char?, fMailboxCacheDataSets)" select="returns|remarks"/>
         public Task<List<cMailbox>> SubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {

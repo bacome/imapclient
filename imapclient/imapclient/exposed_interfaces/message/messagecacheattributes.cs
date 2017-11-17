@@ -4,7 +4,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of IMAP message attributes that can be cached in the internal message cache.
+    /// A set of IMAP message attributes that can be cached.
     /// </summary>
     /// <seealso cref="cMessageCacheItems"/>
     /// <seealso cref="cSort.Attributes(out bool)"/>

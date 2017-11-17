@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cIMAPClient.MessagePropertyChanged"/>
     public class cMessagePropertyChangedEventArgs : PropertyChangedEventArgs
     {
-        /**<summary>The internal message cache item that changed.</summary>*/
+        /**<summary>The message that changed.</summary>*/
         public readonly iMessageHandle Handle;
 
         internal cMessagePropertyChangedEventArgs(iMessageHandle pHandle, string pPropertyName) : base(pPropertyName)

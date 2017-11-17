@@ -3,35 +3,35 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The type of IMAP response text.
+    /// The type of response text.
     /// </summary>
     /// <seealso cref="cResponseTextEventArgs"/>
     public enum eResponseTextType
     {
-        /**<summary>Response text associated with an IMAP greeting.</summary>*/
+        /**<summary>Associated with a greeting.</summary>*/
         greeting,
-        /**<summary>Response text associated with an IMAP command continuation request.</summary>*/
+        /**<summary>Associated with a command continuation request.</summary>*/
         continuerequest,
-        /**<summary>Response text associated with an IMAP BYE.</summary>*/
+        /**<summary>Associated with a BYE.</summary>*/
         bye,
-        /**<summary>IMAP information text.</summary>*/
+        /**<summary>Information.</summary>*/
         information,
-        /**<summary>IMAP warning text.</summary>*/
+        /**<summary>Warning.</summary>*/
         warning,
-        /**<summary>IMAP error text.</summary>*/
+        /**<summary>Error.</summary>*/
         error,
-        /**<summary>Response text associated with an IMAP command success notification.</summary>*/
+        /**<summary>Associated with command success.</summary>*/
         success,
-        /**<summary>Response text associated with an IMAP command failure notification.</summary>*/
+        /**<summary>Associated with command failure.</summary>*/
         failure,
-        /**<summary>Response text associated with an IMAP authentication cancellation notification.</summary>*/
+        /**<summary>Associated with authentication cancellation.</summary>*/
         authenticationcancelled,
-        /**<summary>Response text associated with an IMAP command protocol error notification.</summary>*/
+        /**<summary>Associated with a protocol error.</summary>*/
         protocolerror
     }
 
     /// <summary>
-    /// The text code associated with IMAP response text.
+    /// The response text code.
     /// </summary>
     /// <seealso cref="cResponseText"/>
     public enum eResponseTextCode

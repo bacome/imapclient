@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
         private cSort mDefaultSort = cSort.None;
 
         /// <summary>
-        /// Gets and sets the cache items that are fetched by default when message lists are generated.
+        /// Gets and sets the items that are cached by default when message lists are generated.
         /// </summary>
         /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
         /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{support.iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
@@ -19,8 +19,9 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets and sets the sort that is used by default when message lists are generated using <see cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>.
+        /// Gets and sets the default message sort order.
         /// </summary>
+        /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
         public cSort DefaultSort
         {
             get => mDefaultSort;

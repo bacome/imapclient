@@ -3,9 +3,10 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents sets of data that can be requested about a mailbox. The exact data items requested depend on the value of <see cref="cIMAPClient.MailboxCacheDataItems"/>.
+    /// Represents sets of data that can be requested about a mailbox. 
     /// </summary>
     /// <remarks>
+    /// The exact data items requested depend on the value of <see cref="cIMAPClient.MailboxCacheDataItems"/>.
     /// <para>
     /// <see cref="list"/> data affects the following <see cref="cMailbox"/> properties;
     /// <list type="bullet">
@@ -56,8 +57,8 @@ namespace work.bacome.imapclient
     /// </remarks>
     /// <seealso cref="cIMAPClient.Mailboxes(string, char?, fMailboxCacheDataSets)"/>
     /// <seealso cref="cIMAPClient.Subscribed(string, char?, bool, fMailboxCacheDataSets)"/>
-    /// <seealso cref="iMailboxParent.Mailboxes(fMailboxCacheDataSets)"/>
-    /// <seealso cref="iMailboxParent.Subscribed(bool, fMailboxCacheDataSets)"/>
+    /// <seealso cref="iMailboxContainer.Mailboxes(fMailboxCacheDataSets)"/>
+    /// <seealso cref="iMailboxContainer.Subscribed(bool, fMailboxCacheDataSets)"/>
     /// <seealso cref="cNamespace.Mailboxes(fMailboxCacheDataSets)"/>
     /// <seealso cref="cNamespace.Subscribed(bool, fMailboxCacheDataSets)"/>
     /// <seealso cref="cMailbox.Mailboxes(fMailboxCacheDataSets)"/>

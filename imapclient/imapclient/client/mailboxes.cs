@@ -14,20 +14,20 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pListMailbox">The search string possibly including IMAP wildcards.</param>
         /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
         /// <remarks>
         /// <para>
         /// The IMAP wildcards are;
         /// <list type="bullet">
-        /// <item><token>*</token><description>Matches zero or more characters</description></item>
-        /// <item><token>%</token><description>Matches zero or more characters but not the hierarchy delimiter</description></item>
+        /// <item><token>*</token><description>Matches zero or more characters.</description></item>
+        /// <item><token>%</token><description>Matches zero or more characters but not the hierarchy delimiter.</description></item>
         /// </list>
         /// </para>
         /// <para>
-        /// The <paramref name="pDelimiter"/> is used in preparing the <paramref name="pListMailbox"/> for sending to the server.
+        /// <paramref name="pDelimiter"/> is used in preparing <paramref name="pListMailbox"/> for sending to the server.
         /// It should be correctly specified.
-        /// The value specified does not affect what characters are matched by the % wildcard.
+        /// The value specified does not affect what character is not matched by the % wildcard.
         /// </para>
         /// </remarks>
         public List<cMailbox> Mailboxes(string pListMailbox, char? pDelimiter, fMailboxCacheDataSets pDataSets)
@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pListMailbox">The search string possibly including IMAP wildcards.</param>
         /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <inheritdoc cref="Mailboxes(string, char?, fMailboxCacheDataSets)" select="returns|remarks"/>
         public Task<List<cMailbox>> MailboxesAsync(string pListMailbox, char? pDelimiter, fMailboxCacheDataSets pDataSets)
         {

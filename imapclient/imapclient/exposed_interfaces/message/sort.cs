@@ -6,7 +6,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Items that messages can be sorted by.
+    /// The items that messages can be sorted by.
     /// </summary>
     /// <seealso cref="cSortItem"/>
     public enum eSortItem
@@ -81,7 +81,7 @@ namespace work.bacome.imapclient
         public readonly eSortItem Item;
 
         /// <summary>
-        /// The internal message cache attribute that is required if the sorting is done client-side.
+        /// The attribute that is required if the sorting is done client-side.
         /// </summary>
         public readonly fMessageCacheAttributes Attribute;
 
@@ -222,13 +222,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Compares the attributes already in the internal message for two messages according to this message sort specification.
+        /// Compares two messages using the message sort specification.
         /// </summary>
         /// <param name="pX"></param>
         /// <param name="pY"></param>
         /// <returns></returns>
         /// <remarks>
-        /// If the attributes required for the comparision are not already in the internal message cache the result may be misleading.
+        /// If the attributes required for the comparision are not already in the message cache the result may be misleading.
         /// </remarks>
         /// <seealso cref="Attributes"/>
         /// <seealso cref="iMessageHandle.Attributes"/>
@@ -320,7 +320,7 @@ namespace work.bacome.imapclient
         /// <param name="pY"></param>
         /// <returns></returns>
         /// <remarks>
-        /// If the attributes required for the comparision are not already in the internal message cache they will be fetched from the server.
+        /// If the attributes required for the comparision are not already in the message cache they will be fetched from the server.
         /// </remarks>
         public int Compare(cMessage pX, cMessage pY)
         {

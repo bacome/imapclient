@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cMailbox.MessageDelivery"/>
     public class cMessageDeliveryEventArgs : EventArgs
     {
-        /**<summary>The internal message cache items that were delivered.</summary>*/
+        /**<summary>The messages that were delivered.</summary>*/
         public readonly cMessageHandleList Handles;
         internal cMessageDeliveryEventArgs(cMessageHandleList pHandles) { Handles = pHandles; }
         /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cIMAPClient.MailboxMessageDelivery"/>
     public class cMailboxMessageDeliveryEventArgs : cMessageDeliveryEventArgs
     {
-        /**<summary>The internal mailbox handle of the mailbox that the messages were delivered to.</summary>*/
+        /**<summary>The mailbox that the messages were delivered to.</summary>*/
         public readonly iMailboxHandle Handle;
 
         internal cMailboxMessageDeliveryEventArgs(iMailboxHandle pHandle, cMessageHandleList pHandles) : base(pHandles)

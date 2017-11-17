@@ -10,7 +10,7 @@ namespace work.bacome.async
     /// </summary>
     /// <remarks>
     /// Each task runs for the same length of time (set when the instance is created). Only one task can be running at a time.
-    /// Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
+    /// This class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
     /// </remarks>
     public sealed class cCountdownTimer : IDisposable
     {

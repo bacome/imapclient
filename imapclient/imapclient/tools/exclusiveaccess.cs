@@ -14,8 +14,8 @@ namespace work.bacome.async
     /// <para>The issuing of token objects may be blocked by the previous issue of block objects. Several block objects can be on issue at the same time. Blocks are released by disposing the block objects.</para>
     /// <para>Block objects will not be issued while a token object is on issue. Token objects will not be issued while block objects are on issue (nor will they be issued while a token object is on issue).</para>
     /// <para>Instance sequence numbers (specified in the constructor) can be used by external code to ensure that the program's token objects are being issued in a consistent order (to avoid deadlocks).</para>
-    /// <para>Each instance of this class is allocated a unique instance number internally that is used in <see cref="cTrace"/> messages to aid debugging.</para>
-    /// <para>Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+    /// <para>Each instance of this class is allocated a unique instance number that is used in <see cref="cTrace"/> messages to aid debugging.</para>
+    /// <para>This class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
     /// </remarks>
     public sealed class cExclusiveAccess : IDisposable
     {

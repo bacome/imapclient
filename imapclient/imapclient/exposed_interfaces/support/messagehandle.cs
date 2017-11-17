@@ -4,17 +4,17 @@ namespace work.bacome.imapclient.support
 {
     ;?; // see also
     /// <summary>
-    /// Uniquely identifies a message in an internal message cache.
+    /// Represents an IMAP message.
     /// </summary>
     public interface iMessageHandle
     {
-        /**<summary>Gets an object that represents the internal message cache that this handle belongs to.</summary>*/
+        /**<summary>Gets the message cache that this instance belongs to.</summary>*/
         iMessageCache Cache { get; }
-        /**<summary>Gets the sequence in the cache of this handle.</summary>*/
+        /**<summary>Gets the sequence in the cache of this instance.</summary>*/
         int CacheSequence { get; }
-        /**<summary>Indicates if the message referred to by the handle exists on the server.</summary>*/
+        /**<summary>Indicates if the message represented by this instance exists on the server.</summary>*/
         bool Expunged { get; }
-        /**<summary>Gets the message attributes that the cache currently contains for this handle.</summary>*/
+        /**<summary>Gets the attributes that the cache currently contains for this message.</summary>*/
         fMessageCacheAttributes Attributes { get; }
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace work.bacome.imapclient.support
         /// </summary>
         /// <remarks>
         /// The BODY data is the same as the BODYSTRUCTURE data but is missing the 'extension data'.
-        /// In particular the following elements (and properties that derive from them) will be null;
+        /// In particular the following elements (and the properties that derive from them) will be null;
         /// <list type="bullet">
         /// <item><see cref="cMultiPartBody.ExtensionData"/></item>
         /// <item><see cref="cSinglePartBody.ExtensionData"/></item>

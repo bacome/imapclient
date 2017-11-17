@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
     /// Provides an API that allows interaction with an IMAP namespace.
     /// </summary>
     /// <seealso cref="cIMAPClient.Namespaces"/>
-    public class cNamespace : iMailboxParent
+    public class cNamespace : iMailboxContainer
     {
         /**<summary>The client that this instance was created by.</summary>*/
         public readonly cIMAPClient Client;
@@ -35,31 +35,36 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets the mailboxes at the top level of hierarchy in the namespace.
         /// </summary>
-        /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
         public List<cMailbox> Mailboxes(fMailboxCacheDataSets pDataSets = 0) => Client.Mailboxes(NamespaceName, pDataSets);
 
         /// <summary>
         /// Asynchronously gets the mailboxes at the top level of hierarchy in the namespace.
         /// </summary>
-        /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
         public Task<List<cMailbox>> MailboxesAsync(fMailboxCacheDataSets pDataSets = 0) => Client.MailboxesAsync(NamespaceName, pDataSets);
 
         /// <summary>
-        /// Gets the subscribed mailboxes in the namespace. Note that mailboxes that do not currently exist may be returned.
+        /// Gets the subscribed mailboxes in the namespace. 
         /// </summary>
         /// <param name="pDescend">If <see langword="true"/> all subscribed mailboxes in the namespace are returned, if <see langword="false"/> only mailboxes at the top level of hierarchy are returned.</param>
-        /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
+        /// <remarks>
+        /// Mailboxes that do not exist may be returned.
+        /// Subscribed mailboxes and levels in the mailbox hierarchy do not necessarily exist as mailboxes on the server.
+        /// </remarks>
         public List<cMailbox> Subscribed(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0) => Client.Subscribed(NamespaceName, pDescend, pDataSets);
 
         /// <summary>
-        /// Asynchronously gets the subscribed mailboxes in the namespace. Note that mailboxes that do not currently exist may be returned.
+        /// Asynchronously gets the subscribed mailboxes in the namespace.
         /// </summary>
         /// <param name="pDescend">If <see langword="true"/> all subscribed mailboxes in the namespace are returned, if <see langword="false"/> only mailboxes at the top level of hierarchy are returned.</param>
-        /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
+        /// <inheritdoc cref="Subscribed(bool, fMailboxCacheDataSets)" select="returns|remarks"/>
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(NamespaceName, pDescend, pDataSets);
 
         /// <summary>

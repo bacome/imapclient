@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents an instance that has child mailboxes.
+    /// Represents an mailbox container.
     /// </summary>
     /// <seealso cref="cNamespace"/>
     /// <seealso cref="cMailbox"/>
-    public interface iMailboxParent
+    public interface iMailboxContainer
     {
         /// <summary>
         /// Gets the hierarchy delimiter. May be <see langword="null"/> if there is no hierarchy.
@@ -17,37 +17,42 @@ namespace work.bacome.imapclient
         char? Delimiter { get; }
 
         /// <summary>
-        /// Gets the mailboxes at the top level of hierarchy.
+        /// Gets the contained mailboxes.
         /// </summary>
-        /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
         List<cMailbox> Mailboxes(fMailboxCacheDataSets pDataSets = 0);
 
         /// <summary>
-        /// Asynchronously gets the mailboxes at the top level of hierarchy.
+        /// Asynchronously gets the contained mailboxes.
         /// </summary>
-        /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
         Task<List<cMailbox>> MailboxesAsync(fMailboxCacheDataSets pDataSets = 0);
 
         /// <summary>
-        /// Gets the subscribed mailboxes. Note that mailboxes that do not currently exist may be returned.
+        /// Gets the contained subscribed mailboxes.
         /// </summary>
-        /// <param name="pDescend">If <see langword="true"/> all descendants are returned (not just children, but also grandchildren ...).</param>
-        /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
+        /// <param name="pDescend">If <see langword="true"/> all .</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
+        /// <remarks>
+        /// Mailboxes that do not exist may be returned.
+        /// Subscribed mailboxes and levels in the mailbox hierarchy do not necessarily exist as mailboxes on the server.
+        /// </remarks>
         List<cMailbox> Subscribed(bool pDescend, fMailboxCacheDataSets pDataSets = 0);
 
         /// <summary>
-        /// Asynchronously gets the subscribed mailboxes. Note that mailboxes that do not currently exist may be returned.
+        /// Asynchronously gets the contained subscribed mailboxes.
         /// </summary>
         /// <param name="pDescend">If <see langword="true"/> all descendants are returned (not just children, but also grandchildren ...).</param>
-        /// <param name="pDataSets">The sets of data to request when getting the mailboxes.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
         /// <returns></returns>
+        /// <inheritdoc cref="Subscribed(bool, fMailboxCacheDataSets)" select="returns|remarks"/>
         Task<List<cMailbox>> SubscribedAsync(bool pDescend, fMailboxCacheDataSets pDataSets = 0);
 
         /// <summary>
-        /// Creates a child mailbox.
+        /// Creates a mailbox in the container.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
         /// <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
@@ -55,7 +60,7 @@ namespace work.bacome.imapclient
         cMailbox CreateChild(string pName, bool pAsFutureParent);
 
         /// <summary>
-        /// Asynchronously creates a child mailbox.
+        /// Asynchronously creates a mailbox in the container.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
         /// <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>

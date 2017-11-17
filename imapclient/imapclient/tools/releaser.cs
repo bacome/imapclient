@@ -5,7 +5,7 @@ using work.bacome.trace;
 
 namespace work.bacome.async
 {
-    /// <summary>Coordinate tasks (one worker task and many work creating tasks) using internal coordinating tasks.</summary>
+    /// <summary>Coordinate tasks (one worker task and many work creating tasks) using coordinating tasks.</summary>
     /// <remarks>
     /// <para>The worker task should;
     /// <list type="number">
@@ -20,7 +20,7 @@ namespace work.bacome.async
     /// <item>Call <see cref="Release(cTrace.cContext)"/>.</item>
     /// </list>
     /// </para>
-    /// <para>Note that this class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+    /// <para>This class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
     /// <note type="note">Before disposing an instance the <see cref="System.Threading.CancellationToken"/> provided to its constructor must be cancelled, otherwise the dispose may never complete.</note>
     /// </remarks>
     public sealed class cReleaser : IDisposable
@@ -61,7 +61,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Gets the current internal coordinating task.
+        /// Gets the current coordinating task.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         /// <returns></returns>
@@ -73,7 +73,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Completes the current internal coordinating task.
+        /// Completes the current coordinating task.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         public void Release(cTrace.cContext pParentContext)
@@ -102,7 +102,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Disposes the current internal coordinating task if it is complete, allowing a new internal coordinating task to be started.
+        /// Disposes the current coordinating task if it is complete, allowing a new coordinating task to be started.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         public void Reset(cTrace.cContext pParentContext)

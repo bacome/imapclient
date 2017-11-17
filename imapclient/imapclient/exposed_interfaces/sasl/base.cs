@@ -28,8 +28,8 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// If authentication is successful the library will use the <see cref="cSASLAuthentication.GetSecurity"/> method to get an object that implements any security layer negotiated as part of the authentication.
         /// <see cref="cSASLAuthentication.GetSecurity"/> must return null if no security layer was negotiated.
-        /// The <see cref="cSASLAuthentication"/> object will be disposed by the library once authentication is complete (upon either of success or failure).
-        /// Any <see cref="cSASLSecurity"/> object obtained will be disposed by the library when the underlying network connection closes.
+        /// The <see cref="cSASLAuthentication"/> object will be disposed once authentication is complete (upon either of success or failure).
+        /// Any <see cref="cSASLSecurity"/> object obtained will be disposed when the underlying network connection closes.
         /// </remarks>
         public abstract cSASLAuthentication GetAuthentication();
 
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// This will return <see langword="null"/> if the mechanism was not attempted.
         /// This property exists for mechanisms that have out of band error reporting (e.g. XOAUTH2) and provides a way for the out of band errors to be passed back to external code.
-        /// Note that the object returned (if any) will almost certainly have been disposed.
+        /// <note type="note">Any object returned will almost certainly have been disposed.</note>
         /// </remarks>
         public cSASLAuthentication LastAuthentication { get; internal set; }
     }
@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
     /// </summary>
     /// <remarks>
     /// This class, along with <see cref="cSASL"/> and <see cref="cSASLSecurity"/>, can be used as base classes for externally implemented SASL mechanisms.
-    /// Instances will be disposed by the library once authentication is complete (upon either successful or unsuccessful authentication).
+    /// Instances will be disposed once authentication is complete (upon either successful or unsuccessful authentication).
     /// </remarks>
     public abstract class cSASLAuthentication : IDisposable
     {
@@ -92,7 +92,7 @@ namespace work.bacome.imapclient
     /// </summary>
     /// <remarks>
     /// This class, along with <see cref="cSASL"/> and <see cref="cSASLAuthentication"/>, can be used as base classes for externally implemented SASL mechanisms.
-    /// Instances will be disposed by the library when the connection closes.
+    /// Instances will be disposed when the connection closes.
     /// </remarks>
     public abstract class cSASLSecurity : IDisposable
     {
@@ -103,7 +103,7 @@ namespace work.bacome.imapclient
         /// <returns>A buffer of decoded data or <see langword="null"/> if decoding cannot be completed until more input arrives.</returns>
         /// <remarks>
         /// Input buffers of encoded bytes are delivered to this method as they arrive.
-        /// Any bytes that cannot be decoded due to there being an 'uneven number' of bytes must be buffered internally.
+        /// Any bytes that cannot be decoded due to there being an 'uneven number' of bytes must be buffered.
         /// If there is a decoding error then this method must throw: this will immediately terminate the connection to the server.
         /// </remarks>
         public abstract byte[] Decode(byte[] pBuffer);

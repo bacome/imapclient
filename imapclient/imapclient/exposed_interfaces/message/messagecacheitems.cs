@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of items that can be cached in the internal message cache.
+    /// A set of items that can be cached in a message cache.
     /// </summary>
     /// <seealso cref="cIMAPClient.DefaultMessageCacheItems"/>
     /// <seealso cref="cMessage.Fetch(cMessageCacheItems)"/>
@@ -19,17 +19,17 @@ namespace work.bacome.imapclient
         public static readonly cMessageCacheItems None = new cMessageCacheItems(0, cHeaderFieldNames.None);
 
         /// <summary>
-        /// A set of IMAP message attributes to cache.
+        /// The set of IMAP message attributes to cache.
         /// </summary>
         public readonly fMessageCacheAttributes Attributes;
 
         /// <summary>
-        /// A collection of header field names to cache.
+        /// The collection of header field names to cache.
         /// </summary>
         public readonly cHeaderFieldNames Names;
 
         /// <summary>
-        /// Initialises a new instance with the specified attributes and header field names.
+        /// Initialises a new instance.
         /// </summary>
         /// <param name="pAttributes"></param>
         /// <param name="pNames">Can't be <see langword="null"/>, may be empty.</param>
@@ -40,9 +40,9 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance with the attributes and header field names required for the specified properties of <see cref="cMessage"/>.
+        /// Initialises a new instance.
         /// </summary>
-        /// <param name="pProperties"></param>
+        /// <param name="pProperties">The message properties to cache the backing data for.</param>
         public cMessageCacheItems(fMessageProperties pProperties)
         {
             Attributes = 0;
@@ -65,10 +65,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates if the set is empty.
+        /// Indicates whether the set is empty.
         /// </summary>
         public bool IsNone => Attributes == 0 && Names.Count == 0;
 
+        ;?;
         /// <summary>
         /// Determines whether this instance and the specified object have the same values.
         /// </summary>
@@ -76,6 +77,7 @@ namespace work.bacome.imapclient
         /// <returns></returns>
         public override bool Equals(object pObject) => this == pObject as cMessageCacheItems;
 
+        ;?;
         /// <summary>
         /// Returns the hash code for this set.
         /// </summary>
@@ -91,6 +93,7 @@ namespace work.bacome.imapclient
             }
         }
 
+        ;?;
         /**<summary>Returns a string that represents the set.</summary>*/
         public override string ToString() => $"{nameof(cMessageCacheItems)}({Attributes},{Names})";
 

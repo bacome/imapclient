@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
     /// Before calling <see cref="Connect"/> set the <see cref="Server"/> and <see cref="Credentials"/> properties at a minimum.
     /// Also consider setting the <see cref="MailboxCacheDataItems"/> property.
     /// </para>
-    /// <para>Note that the class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
+    /// <para>This class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
     /// </remarks>
     public sealed partial class cIMAPClient : IDisposable // sealed so the disposable implementation is simpler
     {
@@ -229,7 +229,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Fired when the server notifies the client of a property value change that affects a mailbox.
+        /// Fired when the server notifies the client of a change that could affect a property value of a <see cref="cMailbox"/> instance.
         /// </summary>
         /// <remarks>
         /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
@@ -255,7 +255,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Fired when the server notifies the client of a property value change that affects a message.
+        /// Fired when the server notifies the client of a change that could affect a property value of a <see cref="cMessage"/> instance.
         /// </summary>
         /// <remarks>
         /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
@@ -509,7 +509,7 @@ namespace work.bacome.imapclient
         /// The default value is <see langword="false"/>.
         /// Can only be set while <see cref="IsUnconnected"/>.
         /// If this is set to <see langword="false"/> the instance will not return remote mailboxes in mailbox lists.
-        /// Handling mailbox referrals means handling the exceptions that may be raised by the library when accessing remote mailboxes.
+        /// Handling mailbox referrals means handling the exceptions that may be raised when accessing remote mailboxes.
         /// See RFC 2193 for details.
         /// </remarks>
         /// <seealso cref="cUnsuccessfulCompletionException"/>
