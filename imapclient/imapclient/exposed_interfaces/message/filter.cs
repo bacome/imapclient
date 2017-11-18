@@ -194,8 +194,8 @@ namespace work.bacome.imapclient
     }
 
     // suppress the warnings about not implementing == properly: here == is being used as an expression builder
-#pragma warning disable 660
-#pragma warning disable 661
+    #pragma warning disable 660
+    #pragma warning disable 661
 
     /// <summary>
     /// Represents an offset from a specific message or from the ends of a mailbox.
@@ -224,12 +224,12 @@ namespace work.bacome.imapclient
             Offset = pOffset;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cFilterMSNOffset)}({Handle},{End},{Offset})";
     }
 
     /// <summary>
-    /// Represents either end of the mailbox.
+    /// Represents an end of the mailbox.
     /// </summary>
     /// <seealso cref="cFilter.First"/>
     /// <seealso cref="cFilter.Last"/>
@@ -246,7 +246,7 @@ namespace work.bacome.imapclient
         /// <returns></returns>
         public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(End, pOffset);
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cFilterEnd)}({End})";
     }
 

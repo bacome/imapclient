@@ -6,7 +6,7 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Provides an API that allows interaction with an IMAP namespace.
+    /// Represents an IMAP namespace.
     /// </summary>
     /// <seealso cref="cIMAPClient.Namespaces"/>
     public class cNamespace : iMailboxContainer
@@ -28,8 +28,11 @@ namespace work.bacome.imapclient
         public string Prefix => NamespaceName.Prefix;
 
         /// <summary>
-        /// Gets the namespace hierarchy delimiter. May be <see langword="null"/> if there is no hierarchy.
+        /// Gets the hierarchy delimiter of the namespace. May be <see langword="null"/>. 
         /// </summary>
+        /// <remarks>
+        /// Will be <see langword="null"/> if the server has no hierarchy in its names.
+        /// </remarks>
         public char? Delimiter => NamespaceName.Delimiter;
 
         /// <summary>

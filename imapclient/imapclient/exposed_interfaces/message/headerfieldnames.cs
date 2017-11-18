@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
         public cHeaderFieldNames(IEnumerable<string> pNames) => mNames = new cHeaderFieldNameList(pNames);
 
         /// <summary>
-        /// Initialises a new instance with a copy of the specified names.
+        /// Initialises a new instance with a copy of the specified list.
         /// </summary>
         /// <param name="pNames"></param>
         public cHeaderFieldNames(cHeaderFieldNameList pNames) => mNames = new cHeaderFieldNameList(pNames);
@@ -68,7 +68,7 @@ namespace work.bacome.imapclient
         private cHeaderFieldNames(cHeaderFieldNameList pNames, bool pWrap) => mNames = pNames; // wraps
 
         /// <summary>
-        /// Determines whether the collection contains the name (case insensitive).
+        /// Determines whether the collection contains the specifed name (case insensitive).
         /// </summary>
         /// <param name="pName"></param>
         /// <returns></returns>
@@ -85,21 +85,21 @@ namespace work.bacome.imapclient
         public bool Contains(IEnumerable<string> pNames) => mNames.Contains(pNames);
 
         /// <summary>
-        /// Returns the set-union of this and the specified collection (case insensitive).
+        /// Returns the set-union of this and the specified collection of names (case insensitive).
         /// </summary>
         /// <param name="pOther"></param>
         /// <returns></returns>
         public cHeaderFieldNames Union(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Union(pOther.mNames), true);
 
         /// <summary>
-        /// Returns the set-intersection of this and the specified collection (case insensitive).
+        /// Returns the set-intersection of this and the specified collection of names (case insensitive).
         /// </summary>
         /// <param name="pOther"></param>
         /// <returns></returns>
         public cHeaderFieldNames Intersect(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Intersect(pOther.mNames), true);
 
         /// <summary>
-        /// Returns the set-difference of this and the specified collection (case insensitive).
+        /// Returns the set-difference of this and the specified collection of names (case insensitive).
         /// </summary>
         /// <param name="pOther"></param>
         /// <returns></returns>
@@ -111,10 +111,10 @@ namespace work.bacome.imapclient
         public IEnumerator<string> GetEnumerator() => mNames.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => mNames.ToString();
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
+        /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cHeaderFieldNames;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
@@ -133,7 +133,7 @@ namespace work.bacome.imapclient
         public static bool operator !=(cHeaderFieldNames pA, cHeaderFieldNames pB) => !(pA == pB);
 
         /// <summary>
-        /// Returns a new instance containing a copy of the specified names.
+        /// Returns a new instance containing a copy of the specified list.
         /// </summary>
         /// <param name="pNames"></param>
         public static implicit operator cHeaderFieldNames(cHeaderFieldNameList pNames) => new cHeaderFieldNames(pNames);
@@ -149,10 +149,8 @@ namespace work.bacome.imapclient
     /// <summary>
     /// A unique header field name list. Header field names are case insensitive.
     /// </summary>
-    /// <remarks>
-    /// Header field names have a limited grammar - see RFC 5322. 
-    /// (Header field names must only include <see cref="cCharset.FText"/> characters.)
-    /// </remarks>
+    /// <inheritdoc cref="cHeaderFieldNames" select="remarks"/>
+    /// <seealso cref="cHeaderFieldNames"/>
     public class cHeaderFieldNameList : IReadOnlyCollection<string>
     {
         // implements case insensitivity
@@ -169,10 +167,7 @@ namespace work.bacome.imapclient
             mNames = new List<string>();
         }
 
-        /// <summary>
-        /// Initalises a new instance with a duplicate free copy of the specified names. Will throw if the specified names aren't valid header field names.
-        /// </summary>
-        /// <param name="pNames"></param>
+        /// <inheritdoc cref="cHeaderFieldNames(string[])"/>
         public cHeaderFieldNameList(params string[] pNames)
         {
             if (pNames == null)
@@ -185,10 +180,7 @@ namespace work.bacome.imapclient
             mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
-        /// <summary>
-        /// Initalises a new instance with a duplicate free copy of the specified names. Will throw if the specified names aren't valid header field names.
-        /// </summary>
-        /// <param name="pNames"></param>
+        /// <inheritdoc cref="cHeaderFieldNames(string[])"/>
         public cHeaderFieldNameList(IEnumerable<string> pNames)
         {
             if (pNames == null) throw new ArgumentNullException(nameof(pNames));
@@ -196,10 +188,7 @@ namespace work.bacome.imapclient
             mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
-        /// <summary>
-        /// Initialises a new instance with a copy of the specified names.
-        /// </summary>
-        /// <param name="pNames"></param>
+        /// <inheritdoc cref="cHeaderFieldNames(cHeaderFieldNameList)"/>
         public cHeaderFieldNameList(cHeaderFieldNameList pNames)
         {
             if (pNames == null) throw new ArgumentNullException(nameof(pNames));
@@ -213,14 +202,14 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines whether the list contains the name (case insensitive).
+        /// Determines whether the list contains the specified name (case insensitive).
         /// </summary>
         /// <param name="pName"></param>
         /// <returns></returns>
         public bool Contains(string pName) => mNames.Contains(pName, StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
-        /// Determines whether the list contains all the names (case insensitive).
+        /// Determines whether the list contains all the specified names (case insensitive).
         /// </summary>
         /// <param name="pNames"></param>
         /// <returns></returns>
@@ -236,7 +225,10 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        /** <summary>Adds the name to the list if it isn't already there (case insensitive).</summary>*/
+        /// <summary>
+        /// Adds the specified name to the list if it isn't already there (case insensitive).
+        /// </summary>
+        /// <param name="pName"></param>
         public void Add(string pName)
         {
             if (pName == null) throw new ArgumentNullException(nameof(pName));
@@ -244,9 +236,13 @@ namespace work.bacome.imapclient
             if (!Contains(pName)) mNames.Add(pName);
         }
 
-        /** <summary>Adds each name if it isn't already in the list (case insensitive).</summary>*/
+        /// <summary>
+        /// Adds each specified name to the list if it isn't already there (case insensitive).
+        /// </summary>
+        /// <param name="pNames"></param>
         public void Add(params string[] pNames) => ZAdd(pNames);
-        /** <summary>Adds each name if it isn't already in the list (case insensitive).</summary>*/
+
+        /// <inheritdoc cref="Add(string[])"/>
         public void Add(IEnumerable<string> pNames) => ZAdd(pNames);
 
         private void ZAdd(IEnumerable<string> pNames)
@@ -256,11 +252,19 @@ namespace work.bacome.imapclient
             foreach (var lName in pNames) if (!Contains(lName)) mNames.Add(lName);
         }
 
-        /** <summary>Removes the name from the list (case insensitive).</summary>*/
+        /// <summary>
+        /// Removes the specified name from the list if it is there (case insensitive).
+        /// </summary>
+        /// <param name="pName"></param>
         public void Remove(string pName) => mNames.RemoveAll(n => n.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
-        /** <summary>Removes the names from the list (case insensitive).</summary>*/
+
+        /// <summary>
+        /// Removes each specified name from the list if it is there (case insensitive).
+        /// </summary>
+        /// <param name="pNames"></param>
         public void Remove(params string[] pNames) => ZRemove(pNames);
-        /** <summary>Removes the names from the list (case insensitive).</summary>*/
+
+        /// <inheritdoc cref="Remove(string[])"/>
         public void Remove(IEnumerable<string> pNames) => ZRemove(pNames);
 
         private void ZRemove(IEnumerable<string> pNames)
@@ -269,20 +273,35 @@ namespace work.bacome.imapclient
             foreach (var lName in pNames) Remove(lName);
         }
 
-        /** <summary>Returns the set union of this and the specified list (case insensitive).</summary>*/
+        /// <summary>
+        /// Returns the set-union of this and the specified list of names (case insensitive).
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
         public cHeaderFieldNameList Union(cHeaderFieldNameList pOther) => new cHeaderFieldNameList(mNames.Union(pOther.mNames, StringComparer.InvariantCultureIgnoreCase), true);
-        /** <summary>Returns the set intersection of this and the specified list (case insensitive).</summary>*/
+
+        /// <summary>
+        /// Returns the set-intersection of this and the specified list of names (case insensitive).
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
         public cHeaderFieldNameList Intersect(cHeaderFieldNameList pOther) => new cHeaderFieldNameList(mNames.Intersect(pOther.mNames, StringComparer.InvariantCultureIgnoreCase), true);
-        /** <summary>Returns the set difference of this and the specified list (case insensitive).</summary>*/
+
+        /// <summary>
+        /// Returns the set-difference of this and the specified list of names (case insensitive).
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
         public cHeaderFieldNameList Except(cHeaderFieldNameList pOther) => new cHeaderFieldNameList(mNames.Except(pOther.mNames, StringComparer.InvariantCultureIgnoreCase), true);
 
-        /**<summary>Gets the number of names in the list.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mNames.Count;
-        /**<summary>Returns an enumerator that iterates through the list.</summary>*/
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator<string> GetEnumerator() => mNames.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mNames.GetEnumerator();
 
-        /**<summary>Returns a string that represents the list.</summary>*/
+        /// <inheritdoc />
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cHeaderFieldNameList));
@@ -297,10 +316,7 @@ namespace work.bacome.imapclient
         /// <returns></returns>
         public override bool Equals(object pObject) => this == pObject as cHeaderFieldNameList;
 
-        /// <summary>
-        /// Returns the hash code for this list.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -312,7 +328,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines whether two instances contain the same names.
+        /// Determines whether two instances contain the same names (case insensitive).
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>
@@ -328,7 +344,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines whether two instances do not contain the same names.
+        /// Determines whether two instances do not contain the same names (case insensitive).
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>

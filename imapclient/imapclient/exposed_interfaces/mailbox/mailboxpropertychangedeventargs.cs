@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -19,7 +18,7 @@ namespace work.bacome.imapclient
             Handle = pHandle;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cMailboxPropertyChangedEventArgs)}({Handle},{PropertyName})";
     }
 }

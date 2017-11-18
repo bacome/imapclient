@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
     /// </summary>
     /// <remarks>
     /// In the <see cref="disconnected"/> state some <see cref="cIMAPClient"/> properties retain their values from when the instance was connecting/ was connected.
-    /// For example the <see cref="cIMAPClient.Capabilities"/> property may have a value in this state, whereas it definitely won't have one in the <see cref="notconnected"/> state.
+    /// For example <see cref="cIMAPClient.Capabilities"/> may have a value in this state, whereas it definitely won't have one in the <see cref="notconnected"/> state.
     /// </remarks>
     /// <seealso cref="cIMAPClient.ConnectionState"/>
     public enum eConnectionState
@@ -44,9 +44,9 @@ namespace work.bacome.imapclient
     /// An instance may connect many times, possibly to different IMAP servers, but can only have one active connection at a time.
     /// </para>
     /// <para>
-    /// To connect to an IMAP server use the <see cref="Connect"/> method.
-    /// Before calling <see cref="Connect"/> set the <see cref="Server"/> and <see cref="Credentials"/> properties at a minimum.
-    /// Also consider setting the <see cref="MailboxCacheDataItems"/> property.
+    /// To connect to an IMAP server use <see cref="Connect"/>.
+    /// Before calling <see cref="Connect"/> set <see cref="Server"/> and <see cref="Credentials"/> at a minimum.
+    /// Also consider setting <see cref="MailboxCacheDataItems"/>.
     /// </para>
     /// <para>This class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.</para>
     /// </remarks>
@@ -322,14 +322,14 @@ namespace work.bacome.imapclient
         public eConnectionState ConnectionState => mSession?.ConnectionState ?? eConnectionState.notconnected;
 
         /// <summary>
-        /// Indicates if the instance is currently unconnected.
+        /// Indicates whether the instance is currently unconnected.
         /// </summary>
         /// <seealso cref="IsConnected"/>
         /// <seealso cref="ConnectionState"/>
         public bool IsUnconnected => mSession == null || mSession.IsUnconnected;
 
         /// <summary>
-        /// Indicates if the instance is currently connected.
+        /// Indicates whether the instance is currently connected.
         /// </summary>
         /// <seealso cref="IsUnconnected"/>
         /// <seealso cref="ConnectionState"/>
@@ -424,7 +424,7 @@ namespace work.bacome.imapclient
         /// Sets <see cref="Server"/>, defaulting the port to 143 (no SSL) or 993 otherwise.
         /// </summary>
         /// <param name="pHost"></param>
-        /// <param name="pSSL">Indicates if TLS should be established immediately upon TCP connect (see <see cref="Connect"/>).</param>
+        /// <param name="pSSL">Indicates whether TLS should be established immediately upon TCP connect (see <see cref="Connect"/>).</param>
         /// <remarks>
         /// Can only be called while <see cref="IsUnconnected"/>.
         /// </remarks>
@@ -435,7 +435,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pPort"></param>
-        /// <param name="pSSL">Indicates if TLS should be established immediately upon TCP connect (see <see cref="Connect"/>).</param>
+        /// <param name="pSSL">Indicates whether TLS should be established immediately upon TCP connect (see <see cref="Connect"/>).</param>
         /// <remarks>
         /// Can only be called while <see cref="IsUnconnected"/>.
         /// </remarks>
@@ -509,7 +509,7 @@ namespace work.bacome.imapclient
         /// The default value is <see langword="false"/>.
         /// Can only be set while <see cref="IsUnconnected"/>.
         /// If this is set to <see langword="false"/> the instance will not return remote mailboxes in mailbox lists.
-        /// Handling mailbox referrals means handling the exceptions that may be raised when accessing remote mailboxes.
+        /// Handling mailbox referrals means handling the exceptions that could be raised when accessing remote mailboxes.
         /// See RFC 2193 for details.
         /// </remarks>
         /// <seealso cref="cUnsuccessfulCompletionException"/>
@@ -533,7 +533,7 @@ namespace work.bacome.imapclient
         /// Gets and sets the set of optional mailbox data items that are requested from the server.
         /// </summary>
         /// <remarks>
-        /// The default value is <see cref="fMailboxCacheDataItems.messagecount"/> | <see cref="fMailboxCacheDataItems.unseencount"/>.
+        /// The default value is <see cref="fMailboxCacheDataItems.messagecount"/> and <see cref="fMailboxCacheDataItems.unseencount"/>.
         /// Can only be set while <see cref="IsUnconnected"/>.
         /// </remarks>
         public fMailboxCacheDataItems MailboxCacheDataItems
@@ -573,7 +573,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// For details of the idling process, see <see cref="cIdleConfiguration"/>.
         /// Set to <see langword="null"/> to prevent the instance from idling.
-        /// The default value is not <see langword="null"/> with the default configuration (see <see cref="cIdleConfiguration"/> for the values).
+        /// The default value is a default instance of <see cref="cIdleConfiguration"/>.
         /// </remarks>
         public cIdleConfiguration IdleConfiguration
         {
@@ -635,7 +635,7 @@ namespace work.bacome.imapclient
         /// Gets and sets the fetch-body-read batch-size configuration. You might want to limit this to increase the speed with which you can cancel the fetch.
         /// </summary>
         /// <remarks>
-        /// Limits the size of the section parts when requesting body sections from the server. Measured in bytes.
+        /// Limits the size of the partial fetches used when getting body sections from the server. Measured in bytes.
         /// The default value is min=1000b, max=1000000b, maxtime=10s, initial=1000b.
         /// </remarks>
         /// <seealso cref="cMessage.Fetch(cSection)"/>
@@ -681,10 +681,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets and sets the encoding to use when <see cref="fEnableableExtensions.utf8"/> is not enabled. The default value is <see cref="Encoding.UTF8"/>.
+        /// Gets and sets the encoding to use when <see cref="fEnableableExtensions.utf8"/> is not enabled.
         /// </summary>
         /// <remarks>
-        /// Only affects filtering by character data - see <see cref="cFilter"/>.
+        /// The default value is <see cref="Encoding.UTF8"/>.
+        /// Only affects filtering by message content - see <see cref="cFilterPart"/>.
         /// </remarks>
         public Encoding Encoding
         {
@@ -705,8 +706,8 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// If <see cref="cCapabilities.Id"/> is in use, these details are sent to the server during <see cref="Connect"/>.
-        /// If <see cref="fEnableableExtensions.utf8"/> has been enabled and <see cref="ClientIdUTF8"/> is not <see langword="null"/>, then <see cref="ClientIdUTF8"/> will be used in preference to this property.
-        /// The default details in this property are those of the library.
+        /// If <see cref="fEnableableExtensions.utf8"/> has been enabled and <see cref="ClientIdUTF8"/> is not <see langword="null"/>, then <see cref="ClientIdUTF8"/> will be used in preference to the value of this property.
+        /// The default value is details about the library.
         /// Set this and <see cref="ClientIdUTF8"/> to <see langword="null"/> to send nothing to the server.
         /// </remarks>
         public cClientId ClientId

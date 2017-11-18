@@ -6,9 +6,9 @@ namespace work.bacome.imapclient
     /// A type of a store operation.
     /// </summary>
     /// <seealso cref="cMessage.Store(eStoreOperation, cStorableFlags, ulong?)"/>
+    /// <seealso cref="cIMAPClient.Store(System.Collections.Generic.IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)"/>
     /// <seealso cref="cMailbox.UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>
     /// <seealso cref="cMailbox.UIDStore(System.Collections.Generic.IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>
-    /// <seealso cref="cIMAPClient.Store(System.Collections.Generic.IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)"/>
     public enum eStoreOperation
     {
         /** <summary>Add flags to the flags already set.</summary> */

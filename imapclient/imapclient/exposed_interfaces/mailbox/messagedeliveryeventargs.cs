@@ -1,5 +1,4 @@
 ﻿using System;
-using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -13,7 +12,7 @@ namespace work.bacome.imapclient
         /**<summary>The messages that were delivered.</summary>*/
         public readonly cMessageHandleList Handles;
         internal cMessageDeliveryEventArgs(cMessageHandleList pHandles) { Handles = pHandles; }
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cMessageDeliveryEventArgs)}({Handles})";
     }
 
@@ -31,7 +30,7 @@ namespace work.bacome.imapclient
             Handle = pHandle;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cMailboxMessageDeliveryEventArgs)}({Handle},{Handles})";
     }
 }

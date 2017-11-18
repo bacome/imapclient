@@ -88,14 +88,14 @@ namespace work.bacome.imapclient.support
         // what must be overridden
 
         /// <summary>
-        /// Determines if the specified byte is contained in the set of characters.
+        /// Determines whether the specified byte is contained in the set of characters.
         /// </summary>
         /// <param name="pByte"></param>
         /// <returns></returns>
         public abstract bool Contains(byte pByte);
 
         /// <summary>
-        /// Determines if the specified char is contained in the set of characters.
+        /// Determines whether the specified char is contained in the set of characters.
         /// </summary>
         /// <param name="pChar"></param>
         /// <returns></returns>

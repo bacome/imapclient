@@ -16,8 +16,8 @@ namespace work.bacome.imapclient
     /// IMAP hierarchy delimitiers have few grammatical restrictions, but must be ASCII, and not NUL, CR or LF.
     /// Be careful to correctly specify the hierarchy delimitier, it is used in preparing the mailbox name for sending to the server.
     /// </remarks>
-    /// <seealso cref="cIMAPClient.Create(cMailboxName, bool)"/>
     /// <seealso cref="cIMAPClient.Mailbox(cMailboxName)"/>
+    /// <seealso cref="cIMAPClient.Create(cMailboxName, bool)"/>
     /// <seealso cref="iMailboxHandle.MailboxName"/>
     public class cMailboxName : IComparable<cMailboxName>, IEquatable<cMailboxName>
     {
@@ -30,8 +30,11 @@ namespace work.bacome.imapclient
         public readonly string Path;
 
         /// <summary>
-        /// The hierarchy delimiter used in this mailbox name. May be <see langword="null"/> if the server has no hierarchy in its names.
+        /// The hierarchy delimiter used in this mailbox name. May be <see langword="null"/>. 
         /// </summary>
+        /// <remarks>
+        /// Will be <see langword="null"/> if the server has no hierarchy in its names.
+        /// </remarks>
         public readonly char? Delimiter;
 
         private cMailboxName(string pPath, char? pDelimiter, bool pValid)
@@ -95,7 +98,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines if this instance's path is 'INBOX'.
+        /// Indicates whether this is 'INBOX'.
         /// </summary>
         public bool IsInbox => ReferenceEquals(Path, InboxString);
 
@@ -124,7 +127,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
         public bool Equals(cMailboxName pOther) => this == pOther;
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
+        /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cMailboxName;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
@@ -139,7 +142,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cMailboxName)}({Path},{Delimiter})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>

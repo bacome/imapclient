@@ -6,7 +6,7 @@ using work.bacome.trace;
 namespace work.bacome.async
 {
     /// <summary>
-    /// Generates a sequence of 'countdown' tasks.
+    /// Provides a sequence of countdown timer tasks.
     /// </summary>
     /// <remarks>
     /// Each task runs for the same length of time (set when the instance is created). Only one task can be running at a time.
@@ -20,9 +20,9 @@ namespace work.bacome.async
         private Task mTask;
 
         /// <summary>
-        /// Initialises a new instance. The first 'countdown' starts immediately.
+        /// Initialises a new instance. The first countdown starts immediately.
         /// </summary>
-        /// <param name="pTimeout">The duration of each successive 'countdown' task, in milliseconds.</param>
+        /// <param name="pTimeout">The duration of each successive countdown, in milliseconds.</param>
         /// <param name="pParentContext">Context for trace messages.</param>
         public cCountdownTimer(int pTimeout, cTrace.cContext pParentContext)
         {
@@ -32,7 +32,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Gets the currently running 'countdown' task.
+        /// Gets the currently running countdown.
         /// </summary>
         /// <returns></returns>
         public Task GetAwaitCountdownTask()
@@ -42,11 +42,11 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Starts a new 'countdown' task. 
+        /// Starts a new countdown. 
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         /// <remarks>
-        /// If the current 'countdown' is still running, this method will throw.
+        /// If the current countdown is still running, this method will throw.
         /// </remarks>
         public void Restart(cTrace.cContext pParentContext)
         {

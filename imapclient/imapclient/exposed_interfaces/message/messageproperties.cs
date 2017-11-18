@@ -5,6 +5,16 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Specifies a set of <see cref="cMessage"/> properties.
     /// </summary>
+    /// <remarks>
+    /// The <see cref="cMessageCacheItems"/> class defines an implicit conversion from this type, so you can use values of this type in places that take a <see cref="cMessageCacheItems"/>.
+    /// </remarks>
+    /// <seealso cref="cMessageCacheItems"/>
+    /// <seealso cref="cIMAPClient.DefaultMessageCacheItems"/>
+    /// <seealso cref="cMessage.Fetch(cMessageCacheItems)"/>
+    /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.Message(cUID, cMessageCacheItems)"/>
+    /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
+    /// <seealso cref="cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{cMessage}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
     [Flags]
     public enum fMessageProperties
     {

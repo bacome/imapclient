@@ -29,10 +29,10 @@ namespace work.bacome.imapclient
         /** <summary>The message 'from' address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses From;
 
-        /** <summary>The message sender address(s). May be <see langword="null"/>.</summary> */
+        /** <summary>The message 'sender' address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses Sender;
 
-        /** <summary>The message repy-to address(s). May be <see langword="null"/>.</summary> */
+        /** <summary>The message 'reply-to' address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses ReplyTo;
 
         /** <summary>The message 'to' address(s). May be <see langword="null"/>.</summary> */
@@ -44,10 +44,10 @@ namespace work.bacome.imapclient
         /** <summary>The message BCC address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses BCC;
 
-        /** <summary>The normalised (delimiters, quoting, comments and white space removed) in-reply-to message-ids. May be <see langword="null"/>.</summary> */
+        /** <summary>The normalised (delimiters, quoting, comments and white space removed) 'in-reply-to' message-ids. May be <see langword="null"/>.</summary> */
         public readonly cHeaderFieldMsgIds InReplyTo;
 
-        /** <summary>The normalised (delimiters, quoting, comments and white space removed) message-id of the message. May be <see langword="null"/>.</summary> */
+        /** <summary>The normalised (delimiters, quoting, comments and white space removed) 'message-id' of the message. May be <see langword="null"/>.</summary> */
         public readonly cHeaderFieldMsgId MessageId;
 
         internal cEnvelope(DateTime? pSent, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cHeaderFieldMsgIds pInReplyTo, cHeaderFieldMsgId pMessageId)
@@ -65,7 +65,7 @@ namespace work.bacome.imapclient
             MessageId = pMessageId;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cEnvelope)}({Sent},{Subject},{BaseSubject},{From},{Sender},{ReplyTo},{To},{CC},{BCC},{InReplyTo},{MessageId})";
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -52,7 +51,7 @@ namespace work.bacome.imapclient
             DisplaySortString = pDisplaySortString ?? throw new ArgumentNullException(nameof(pDisplaySortString));
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cAddresses));
@@ -88,7 +87,7 @@ namespace work.bacome.imapclient
             DisplayAddress = pDisplayAddress;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cEmailAddress)}({DisplayName},{Address},{DisplayAddress})";
     }
 
@@ -108,7 +107,7 @@ namespace work.bacome.imapclient
             Addresses = new ReadOnlyCollection<cEmailAddress>(pAddresses);
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cGroupAddress));

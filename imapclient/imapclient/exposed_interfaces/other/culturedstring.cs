@@ -146,7 +146,7 @@ namespace work.bacome.imapclient
         public readonly string String;
 
         /// <summary>
-        /// The optional language of the text. May be <see langword="null"/>.
+        /// The language of the text. May be <see langword="null"/>.
         /// </summary>
         public readonly string LanguageTag;
 

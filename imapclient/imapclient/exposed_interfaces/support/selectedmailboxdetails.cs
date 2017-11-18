@@ -10,9 +10,9 @@ namespace work.bacome.imapclient.support
     {
         /**<summary>Gets the mailbox that the details are for.</summary>*/
         iMailboxHandle Handle { get; }
-        /**<summary>Indicates if the mailbox is selected for update.</summary>*/
+        /**<summary>Indicates whether the mailbox is selected for update.</summary>*/
         bool SelectedForUpdate { get; }
-        /**<summary>Indicates if the mailbox can be modified.</summary>*/
+        /**<summary>Indicates whether the mailbox can be modified.</summary>*/
         bool AccessReadOnly { get; }
         /**<summary>Gets the message cache of this mailbox.</summary>*/
         iMessageCache Cache { get; }

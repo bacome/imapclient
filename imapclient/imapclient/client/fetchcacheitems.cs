@@ -49,6 +49,9 @@ namespace work.bacome.imapclient
         /// <param name="pItems"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <returns>A list of messages where something went wrong and the cache was not populated.</returns>
+        /// <remarks>
+        /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fMessageProperties"/>. This means that you can use values of those types as parameters to this method.</note>
+        /// </remarks>
         public List<cMessage> Fetch(IEnumerable<cMessage> pMessages, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(Fetch), 3);

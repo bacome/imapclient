@@ -78,7 +78,7 @@ namespace work.bacome.imapclient
         /// Initialises a new instance with a timeout and write-size configuration. Intended for use with synchronous APIs.
         /// </summary>
         /// <param name="pTimeout">May be <see cref="Timeout.Infinite"/>.</param>
-        /// <param name="pWrite">If <see langword="null"/> then the default <see cref="cIMAPClient.FetchBodyWriteConfiguration"/> will be used.</param>
+        /// <param name="pWrite">If <see langword="null"/> then <see cref="cIMAPClient.FetchBodyWriteConfiguration"/> will be used.</param>
         public cBodyFetchConfiguration(int pTimeout, cBatchSizerConfiguration pWrite = null)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
@@ -93,7 +93,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pCancellationToken">May be <see cref="CancellationToken.None"/>.</param>
         /// <param name="pIncrement">May be <see langword="null"/>.</param>
-        /// <param name="pWrite">If <see langword="null"/> then the default <see cref="cIMAPClient.FetchBodyWriteConfiguration"/> will be used.</param>
+        /// <param name="pWrite">If <see langword="null"/> then <see cref="cIMAPClient.FetchBodyWriteConfiguration"/> will be used.</param>
         /// <remarks>
         /// If <see cref="cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, then the callback is invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
         /// If an exception is raised in the callback the <see cref="cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.

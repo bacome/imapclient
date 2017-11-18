@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// Represents an IMAP mailbox.
+    /// Represents an IMAP mailbox uniquely within a mailbox cache.
     /// </summary>
     /// <seealso cref="cMailbox.Handle"/>
     /// <seealso cref="iSelectedMailboxDetails"/>
@@ -16,7 +16,7 @@ namespace work.bacome.imapclient.support
         object Cache { get; }
         /**<summary>Gets the name of the mailbox.</summary>*/
         cMailboxName MailboxName { get; }
-        /**<summary>Indicates if the mailbox exists on the server.</summary>*/
+        /**<summary>Indicates whether the mailbox exists on the server.</summary>*/
         bool? Exists { get; }
         /**<summary>Gets an object that contains a subset of the data held about the mailbox, may be <see langword="null"/>.</summary>*/
         cListFlags ListFlags { get; }

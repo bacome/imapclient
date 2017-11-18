@@ -24,8 +24,11 @@ namespace work.bacome.imapclient
         public readonly string Prefix;
 
         /// <summary>
-        /// The namespace hierarchy delimiter. May be <see langword="null"/> if there is no hierarchy.
+        /// The namespace hierarchy delimiter. May be <see langword="null"/>. 
         /// </summary>
+        /// <remarks>
+        /// Will be <see langword="null"/> if the server has no hierarchy in its names.
+        /// </remarks>
         public readonly char? Delimiter;
 
         private cNamespaceName(string pPrefix, char? pDelimiter, bool pValid)
@@ -38,7 +41,7 @@ namespace work.bacome.imapclient
         /// Initialises a new instance. Will throw if the parameters provided are not valid.
         /// </summary>
         /// <param name="pPrefix">The name prefix of the namespace. May be the empty string, may not be <see langword="null"/></param>
-        /// <param name="pDelimiter">The namespace hierarchy delimiter. May be <see langword="null"/> if there is no hierarchy.</param>
+        /// <param name="pDelimiter">The namespace hierarchy delimiter. <see langword="null"/> if the server has no hierarchy in its names.</param>
         /// <inheritdoc cref="cNamespaceName" select="remarks"/>
         public cNamespaceName(string pPrefix, char? pDelimiter)
         {

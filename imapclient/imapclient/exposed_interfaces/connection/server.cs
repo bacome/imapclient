@@ -13,13 +13,16 @@ namespace work.bacome.imapclient
         public readonly string Host;
         /**<summary>The port number.</summary>*/
         public readonly int Port;
-        /**<summary>Indicates if TLS should be established immediately upon TCP connect.</summary>*/
+        /**<summary>Indicates whether TLS should be established immediately upon TCP connect.</summary>*/
         public readonly bool SSL;
 
         /// <summary>
-        /// Initialises a new instance with the port set to 143 and SSL set to <see langword="false"/>.
+        /// Initialises a new instance.
         /// </summary>
         /// <param name="pHost"></param>
+        /// <remarks>
+        /// The port is set to 143 and SSL set to <see langword="false"/>.
+        /// </remarks>
         public cServer(string pHost)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
@@ -29,10 +32,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance with the port set to 143 if <paramref name="pSSL"/> is <see langword="false"/>, otherwise the port is set to 993.
+        /// Initialises a new instance.
         /// </summary>
         /// <param name="pHost"></param>
-        /// <param name="pSSL">Indicates if TLS should be established immediately upon TCP connect.</param>
+        /// <param name="pSSL">Indicates whether TLS should be established immediately upon TCP connect.</param>
+        /// <remarks>
+        /// The port set to 143 if <paramref name="pSSL"/> is <see langword="false"/>, otherwise the port is set to 993.
+        /// </remarks>
         public cServer(string pHost, bool pSSL)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
@@ -46,7 +52,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pPort"></param>
-        /// <param name="pSSL">Indicates if TLS should be established immediately upon TCP connect.</param>
+        /// <param name="pSSL">Indicates whether TLS should be established immediately upon TCP connect.</param>
         public cServer(string pHost, int pPort, bool pSSL)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
@@ -56,7 +62,7 @@ namespace work.bacome.imapclient
             SSL = pSSL;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cServer)}({Host}:{Port},{nameof(SSL)}={SSL})";
     }
 }

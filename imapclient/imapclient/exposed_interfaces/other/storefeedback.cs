@@ -15,12 +15,12 @@ namespace work.bacome.imapclient
     public abstract class cStoreFeedbackItemBase
     {
         /// <summary>
-        /// Indicates if a fetch response containing the flags was received for the message during the store operation.
+        /// Indicates whether a fetch response containing the flags was received for the message during the store operation.
         /// </summary>
         public bool ReceivedFlagsUpdate = false;
 
         /// <summary>
-        /// Indicates if the message was mentioned in the RFC 7162 MODIFIED response code of the store operation.
+        /// Indicates whether the message was mentioned in the RFC 7162 MODIFIED response code of the store operation.
         /// </summary>
         public bool WasNotUnchangedSince = false;
 
@@ -223,7 +223,7 @@ namespace work.bacome.imapclient
     /// <item><see cref="NotReflectsOperationCount"/></item>
     /// </list>
     /// </para>
-    /// <para>Generally <see cref="ExpungedCount"/> + <see cref="NotReflectsOperationCount"/> is the number of definite non-updates.</para>
+    /// <para>Generally <see cref="WasNotUnchangedSinceCount"/> + <see cref="ExpungedCount"/> + <see cref="NotReflectsOperationCount"/> is the number of definite non-updates.</para>
     /// <para>Generally <see cref="NotReflectsOperationCount"/> > 0 indicates that a <see cref="cIMAPClient.Poll"/> may be worth trying to get any pending updates from the server (which should convert all the notreflects to expunged or reflects).</para>
     /// <note type="note">After a <see cref="cIMAPClient.Poll"/> you should get the summary again to see the effect of any updates sent by the server.</note>
     /// <para>Generally <see cref="UnknownCount"/> > 0 indicates that a blind store was done so there isn't enough information to say whether the store happened or not.</para>
@@ -253,7 +253,7 @@ namespace work.bacome.imapclient
         /**<summary>Gets the count of messages that were likely to have been updated by the store.</summary>*/
         public int LikelyOKCount => UpdatedCount + ReflectsOperationCount;
         /**<summary>Gets the count of messages that most likely were NOT updated by the store.</summary>*/
-        public int LikelyFailedCount => ExpungedCount + NotReflectsOperationCount;
+        public int LikelyFailedCount => WasNotUnchangedSinceCount + ExpungedCount + NotReflectsOperationCount;
         /**<summary>Gets the count of messages for which doing a <see cref="cIMAPClient.Poll"/> may increase our knowledge of what happened.</summary>*/
         public bool LikelyWorthPolling => NotReflectsOperationCount > 0;
 

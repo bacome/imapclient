@@ -16,11 +16,7 @@ namespace work.bacome.imapclient
         /// <param name="pStrings"></param>
         public cStrings(IList<string> pStrings) : base(pStrings) { }
 
-        /// <summary>
-        /// Determines whether this instance and the specified object contain the same strings in the same order.
-        /// </summary>
-        /// <param name="pObject"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cStrings;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
@@ -34,7 +30,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cStrings));

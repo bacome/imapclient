@@ -27,20 +27,20 @@ namespace work.bacome.imapclient
         /// <para>
         /// After authentication, depending on what the <see cref="Capabilities"/> allow;
         /// <list type="bullet">
-        /// <item><see cref="fEnableableExtensions.utf8"/> is enabled (see <see cref="cCapabilities.UTF8Accept"/>, <see cref="cCapabilities.UTF8Only"/>); this sets the <see cref="EnabledExtensions"/> property.</item>
-        /// <item>ID (RFC 2971) information is exchanged with the server; this sends the <see cref="ClientId"/> (or <see cref="ClientIdUTF8"/>) and sets the <see cref="ServerId"/> property.</item>
-        /// <item>Namespace (RFC 2342) information is retrieved from the server; this sets the <see cref="Namespaces"/> property.</item>
-        /// <item>A special syntax IMAP LIST command is used to discover the hierarchy delimiter and one personal namespace may be generated using it (setting the <see cref="Namespaces"/> property).</item>
+        /// <item><see cref="fEnableableExtensions.utf8"/> is enabled (see <see cref="cCapabilities.UTF8Accept"/> and <see cref="cCapabilities.UTF8Only"/>); this sets <see cref="EnabledExtensions"/>.</item>
+        /// <item>ID (RFC 2971) information is exchanged with the server; this sends <see cref="ClientId"/> (or <see cref="ClientIdUTF8"/>) and sets <see cref="ServerId"/>.</item>
+        /// <item>Namespace (RFC 2342) information is retrieved from the server; this sets <see cref="Namespaces"/>.</item>
+        /// <item>A special syntax IMAP LIST command is used to discover the hierarchy delimiter and one personal namespace may be generated using it; this sets <see cref="Namespaces"/>.</item>
         /// </list>
         /// </para>
         /// <para>
         /// Normally only one of Namespace and LIST are used during connect, but under some strange circumstances both may be required.
         /// (The specific case is when the personal namespaces retrieved from the server do not contain the INBOX.)
-        /// Once the <see cref="Namespaces"/> are known the <see cref="Inbox"/> property is set.
+        /// Once <see cref="Namespaces"/> is known <see cref="Inbox"/> is set.
         /// </para>
         /// <para>
         /// At the end of a successful connect the <see cref="ConnectionState"/> will be <see cref="eConnectionState.notselected"/>,
-        /// at the end of a failed connect the <see cref="ConnectionState"/> will be <see cref="eConnectionState.disconnected"/> and this method will throw.
+        /// at the end of a failed connect <see cref="ConnectionState"/> will be <see cref="eConnectionState.disconnected"/> and this method will throw.
         /// </para>
         /// <para>Some of the exceptions that might be thrown and why;
         /// <list type="bullet">

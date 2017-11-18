@@ -10,7 +10,7 @@ namespace work.bacome.async
     /// </summary>
     /// <remarks>
     /// Any timeout specified runs from when the instance is created; each time the value of <see cref="Timeout"/> is retrieved only the time remaining is returned. 
-    /// This means that if the method being controlled makes <see langword="async"/> calls, the timeout can be applied to the total time that the method takes.
+    /// This means that if the method being controlled itself makes <see langword="async"/> calls, the timeout can be applied to the total time that the method takes.
     /// </remarks>
     public class cMethodControl
     {

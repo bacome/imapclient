@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <returns></returns>
         /// <remarks>
-        /// If authentication is successful the library will use the <see cref="cSASLAuthentication.GetSecurity"/> method to get an object that implements any security layer negotiated as part of the authentication.
+        /// If authentication is successful the library will use <see cref="cSASLAuthentication.GetSecurity"/> to get an object that implements any security layer negotiated as part of the authentication.
         /// <see cref="cSASLAuthentication.GetSecurity"/> must return null if no security layer was negotiated.
         /// The <see cref="cSASLAuthentication"/> object will be disposed once authentication is complete (upon either of success or failure).
         /// Any <see cref="cSASLSecurity"/> object obtained will be disposed when the underlying network connection closes.

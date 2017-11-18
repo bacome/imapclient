@@ -254,7 +254,11 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Initialises a new instance as an empty or a default dictionary. A default dictionary contains details about the library.
         /// </summary>
-        /// <param name="pDefault">Indicates if a default or an empty dictionary should be constructed.</param>
+        /// <param name="pDefault">Indicates whether a default dictionary should be constructed.</param>
+        /// <remarks>
+        /// A default dictionary contains details about the library.
+        /// A non-default dictionary is empty.
+        /// </remarks>
         public cIdDictionary(bool pDefault = true)
         {
             if (pDefault)
@@ -430,7 +434,7 @@ namespace work.bacome.imapclient
         public string Date => ZGetValue(kIdFieldName.Date);
 
         /// <summary>
-        /// Sets the <see cref="Date"/>. This method converts the supplied date to RFC 3501 date format.
+        /// Sets <see cref="Date"/>. This method converts the supplied date to RFC 3501 date format.
         /// </summary>
         /// <param name="pDate"></param>
         public void SetDate(DateTime pDate) => mDictionary[kIdFieldName.Date] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(pDate).Bytes);

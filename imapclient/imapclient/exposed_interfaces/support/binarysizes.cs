@@ -6,10 +6,10 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// A mapping from a message part that can be fetched using the BINARY (RFC 3516) command to the decoded size in bytes of that part.
+    /// A mapping from a message body-part that can be fetched using the BINARY (RFC 3516) command to the decoded size in bytes of that body-part.
     /// </summary>
     /// <remarks>
-    /// Using the <see cref="cMessage.FetchSizeInBytes(cSinglePartBody)"/> or <see cref="cAttachment.SaveSizeInBytes"/> methods may create values in this map.
+    /// Using <see cref="cMessage.FetchSizeInBytes(cSinglePartBody)"/> or <see cref="cAttachment.SaveSizeInBytes"/> may create values in this map.
     /// </remarks>
     /// <seealso cref="iMessageHandle.BinarySizes"/>
     public class cBinarySizes : ReadOnlyDictionary<string, uint>

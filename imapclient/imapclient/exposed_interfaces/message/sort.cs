@@ -13,9 +13,9 @@ namespace work.bacome.imapclient
     {
         /**<summary>The IMAP INTERNALDATE of the message.</summary>*/
         received,
-        /**<summary>The group-name or local-part of the first CC address.</summary>*/
+        /**<summary>The group-name or local-part of the first 'CC' address.</summary>*/
         cc,
-        /**<summary>The UTC sent date of the message.</summary>*/
+        /**<summary>The UTC normalised sent date of the message.</summary>*/
         sent,
         /**<summary>The group-name or local-part of the first 'from' address.</summary>*/
         from,
@@ -81,7 +81,7 @@ namespace work.bacome.imapclient
         public readonly eSortItem Item;
 
         /// <summary>
-        /// The attribute that is required if the sorting is done client-side.
+        /// The attribute that is required if the sorting is to be done client-side.
         /// </summary>
         public readonly fMessageCacheAttributes Attribute;
 
@@ -130,7 +130,7 @@ namespace work.bacome.imapclient
             Desc = pDesc;
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cSortItem)}({Item},{Attribute},{Desc})";
     }
 
@@ -138,28 +138,30 @@ namespace work.bacome.imapclient
     /// Represents a message sort specification.
     /// </summary>
     /// <remarks>
-    /// You can use the following <see langword="static"/> instances of <see cref="cSortItem"/> when creating new sort specifications;
+    /// You can use the following <see langword="static"/> instances of <see cref="cSortItem"/> when creating message sort specifications;
     /// <list type="bullet">
-    /// <item><see cref="cSortItem.Received"/></item>
     /// <item><see cref="cSortItem.CC"/></item>
-    /// <item><see cref="cSortItem.Sent"/></item>
+    /// <item><see cref="cSortItem.DisplayFrom"/></item>
+    /// <item><see cref="cSortItem.DisplayTo"/></item>
     /// <item><see cref="cSortItem.From"/></item>
+    /// <item><see cref="cSortItem.Received"/></item>
+    /// <item><see cref="cSortItem.Sent"/></item>
     /// <item><see cref="cSortItem.Size"/></item>
     /// <item><see cref="cSortItem.Subject"/></item>
     /// <item><see cref="cSortItem.To"/></item>
-    /// <item><see cref="cSortItem.DisplayFrom"/></item>
-    /// <item><see cref="cSortItem.DisplayTo"/></item>
-    /// <item><see cref="cSortItem.ReceivedDesc"/></item>
     /// <item><see cref="cSortItem.CCDesc"/></item>
-    /// <item><see cref="cSortItem.SentDesc"/></item>
+    /// <item><see cref="cSortItem.DisplayFromDesc"/></item>
+    /// <item><see cref="cSortItem.DisplayToDesc"/></item>
     /// <item><see cref="cSortItem.FromDesc"/></item>
+    /// <item><see cref="cSortItem.ReceivedDesc"/></item>
+    /// <item><see cref="cSortItem.SentDesc"/></item>
     /// <item><see cref="cSortItem.SizeDesc"/></item>
     /// <item><see cref="cSortItem.SubjectDesc"/></item>
     /// <item><see cref="cSortItem.ToDesc"/></item>
-    /// <item><see cref="cSortItem.DisplayFromDesc"/></item>
-    /// <item><see cref="cSortItem.DisplayToDesc"/></item>
     /// </list>
     /// </remarks>
+    /// <seealso cref="cIMAPClient.DefaultSort"/>
+    /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
     public class cSort : IComparer<iMessageHandle>, IComparer<cMessage>
     {
         /// <summary>
@@ -188,6 +190,18 @@ namespace work.bacome.imapclient
         /// Initialises a new instance.
         /// </summary>
         /// <param name="pItems"></param>
+        public cSort(params cSortItem[] pItems)
+        {
+            if (pItems == null) throw new ArgumentNullException(nameof(pItems));
+            if (pItems.Length == 0) throw new ArgumentOutOfRangeException(nameof(pItems));
+
+            foreach (var lItem in pItems) if (lItem == null) throw new ArgumentOutOfRangeException(nameof(pItems));
+
+            mName = null;
+            Items = new ReadOnlyCollection<cSortItem>(pItems);
+        }
+
+        /// <inheritdoc cref="cSort(cSortItem[])"/>
         public cSort(IEnumerable<cSortItem> pItems)
         {
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -207,28 +221,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance.
-        /// </summary>
-        /// <param name="pItems"></param>
-        public cSort(params cSortItem[] pItems)
-        {
-            if (pItems == null) throw new ArgumentNullException(nameof(pItems));
-            if (pItems.Length == 0) throw new ArgumentOutOfRangeException(nameof(pItems));
-
-            foreach (var lItem in pItems) if (lItem == null) throw new ArgumentOutOfRangeException(nameof(pItems));
-
-            mName = null;
-            Items = new ReadOnlyCollection<cSortItem>(pItems);
-        }
-
-        /// <summary>
-        /// Compares two messages using the message sort specification.
+        /// Compares two messages using a comparision implied by the value of this instance.
         /// </summary>
         /// <param name="pX"></param>
         /// <param name="pY"></param>
         /// <returns></returns>
         /// <remarks>
-        /// If the attributes required for the comparision are not already in the message cache the result may be misleading.
+        /// If the attributes required for the comparision are not in the message cache the result may be misleading.
         /// </remarks>
         /// <seealso cref="Attributes"/>
         /// <seealso cref="iMessageHandle.Attributes"/>
@@ -314,13 +313,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Compares two messages according to this message sort specification.
+        /// Compares two messages using a comparision implied by the value of this instance.
         /// </summary>
         /// <param name="pX"></param>
         /// <param name="pY"></param>
         /// <returns></returns>
         /// <remarks>
-        /// If the attributes required for the comparision are not already in the message cache they will be fetched from the server.
+        /// If the attributes required for the comparision are not in the message cache they will be fetched from the server.
         /// </remarks>
         public int Compare(cMessage pX, cMessage pY)
         {
@@ -344,7 +343,7 @@ namespace work.bacome.imapclient
         /// Gets the requirements for this sort to be done client-side and server-side.
         /// </summary>
         /// <param name="rSortDisplay">Gets set to <see langword="true"/> if <see cref="cCapabilities.SortDisplay"/> must be in use for the server to do the sort.</param>
-        /// <returns>The set of message attributes required for the comparison implied by this sort to be done client-side.</returns>
+        /// <returns>The set of message attributes required for the comparison implied by the value of this instance.</returns>
         public fMessageCacheAttributes Attributes(out bool rSortDisplay)
         {
             if (Items == null) throw new InvalidOperationException();
@@ -401,7 +400,7 @@ namespace work.bacome.imapclient
             return pX.CompareTo(pY);
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc />
         public override string ToString()
         {
             if (mName != null) return $"{nameof(cSort)}({mName})";

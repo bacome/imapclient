@@ -6,7 +6,7 @@ namespace work.bacome.imapclient
     /// Contains parameters to use with the IMAP LOGIN command.
     /// </summary>
     /// <remarks>
-    /// IMAP userids and passwords are limited to ASCII.
+    /// IMAP userids and passwords are limited to ASCII and may not include the null character.
     /// </remarks>
     /// <seealso cref="cCredentials.Login"/>
     public class cLogin
@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance. Will throw if the specified <paramref name="pUserId"/> or <paramref name="pPassword"/> are not valid for use with IMAP.
+        /// Initialises a new instance. Will throw if the parameters provided are not valid.
         /// </summary>
         /// <param name="pUserId"></param>
         /// <param name="pPassword"></param>

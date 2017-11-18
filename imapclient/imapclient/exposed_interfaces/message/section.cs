@@ -4,26 +4,26 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The text part of an IMAP message section (see <see cref="cSection"/>).
+    /// The text-part of an IMAP body-part (see <see cref="cSection"/>).
     /// </summary>
     public enum eSectionTextPart
     {
-        /** <sumary>The entire section.</sumary> */
+        /** <sumary>The entire body-part.</sumary> */
         all,
 
-        /** <sumary>The entire header part of the section.</sumary> */
+        /** <sumary>The entire header text-part of the body-part.</sumary> */
         header,
 
-        /** <sumary>Specified headers from the header part of the section.</sumary> */
+        /** <sumary>Specified headers from the header text-part of the body-part.</sumary> */
         headerfields,
 
-        /** <sumary>All headers other than the specified headers from the header part of the section.</sumary> */
+        /** <sumary>All headers other than the specified headers from the header text-part of the body-part.</sumary> */
         headerfieldsnot,
 
-        /** <sumary>The entire text part of the section.</sumary> */
+        /** <sumary>The entire text text-part of the body-part.</sumary> */
         text,
 
-        /** <sumary>The mime headers of the section.</sumary> */
+        /** <sumary>The mime headers of the body-part.</sumary> */
         mime
     }
 
@@ -38,34 +38,47 @@ namespace work.bacome.imapclient
         public static readonly cSection All = new cSection(null);
 
         /// <summary>
-        /// A section that represents the entire header fields part of a message.
+        /// A section that represents the entire header-part of a message.
         /// </summary>
         public static readonly cSection Header = new cSection(null, eSectionTextPart.header);
 
         /// <summary>
-        /// A section that represents the entire text part of a message.
+        /// A section that represents the entire text-part of a message.
         /// </summary>
         public static readonly cSection Text = new cSection(null, eSectionTextPart.text);
 
         /// <summary>
-        /// The IMAP section-part (a dot separated set of integers) that this instance represents. May be <see langword="null"/> if the instance represents the top level part.
+        /// The body-part of the section. May be <see langword="null"/>.
         /// </summary>
+        /// <remarks>
+        /// A dot separated list of integers denoting a message body-part or <see langword="null"/> which indicates the 'top-level' body-part.
+        /// </remarks>
         public readonly string Part;
 
         /// <summary>
-        /// The text part that this instance represents.
+        /// The text-part of the section.
         /// </summary>
+        /// <remarks>
+        /// Will not be <see cref="eSectionTextPart.mime"/> if <see cref="Part"/> is <see langword="null"/>.
+        /// </remarks>
         public readonly eSectionTextPart TextPart;
 
         /// <summary>
-        /// The header fields included (<see cref="TextPart"/> = <see cref="eSectionTextPart.headerfields"/>) or excluded (<see cref="TextPart"/> = <see cref="eSectionTextPart.headerfieldsnot"/>) by this instance.
+        /// The header field subset of the section. May be <see langword="null"/>.
         /// </summary>
+        /// <remarks>
+        /// Will not be <see langword="null"/> or empty if <see cref="TextPart"/> is <see cref="eSectionTextPart.headerfields"/> or <see cref="eSectionTextPart.headerfieldsnot"/>.
+        /// Will be null otherwise.
+        /// </remarks>
         public readonly cHeaderFieldNames Names;
 
         /// <summary>
-        /// Initialises a new instance so it represents an entire part.
+        /// Initialises a new instance so it represents an entire body-part.
         /// </summary>
-        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or <see langword="null"/> for the top level part.</param>
+        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or <see langword="null"/> for the 'top-level' body-part.</param>
+        /// <remarks>
+        /// <see cref="TextPart"/> is set to <see cref="eSectionTextPart.all"/>, <see cref="Names"/> to <see langword="null"/>.
+        /// </remarks>
         public cSection(string pPart)
         {
             if (pPart != null && !ZValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
@@ -75,10 +88,10 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance so it represents a whole text part.
+        /// Initialises a new instance so it represents a whole text-part.
         /// </summary>
-        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or <see langword="null"/> for the top level part.</param>
-        /// <param name="pTextPart">Must be <see cref="eSectionTextPart.all"/>, <see cref="eSectionTextPart.header"/>, <see cref="eSectionTextPart.text"/> or if <paramref name="pPart"/> is not <see langword="null"/>, <see cref="eSectionTextPart.mime"/>.</param>
+        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or <see langword="null"/> for the 'top-level' body-part.</param>
+        /// <param name="pTextPart">May be <see cref="eSectionTextPart.all"/>, <see cref="eSectionTextPart.header"/>, <see cref="eSectionTextPart.text"/> or <see cref="eSectionTextPart.mime"/> (<see cref="eSectionTextPart.mime"/> only if <paramref name="pPart"/> is not <see langword="null"/>).</param>
         public cSection(string pPart, eSectionTextPart pTextPart)
         {
             if (pPart != null && !ZValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
@@ -90,11 +103,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance so it represents a sub-part of the <see cref="eSectionTextPart.header"/>.
+        /// Initialises a new instance so it represents a subset of <see cref="eSectionTextPart.header"/>.
         /// </summary>
-        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or <see langword="null"/> for the message headers.</param>
-        /// <param name="pNames"></param>
-        /// <param name="pNot"><see langword="true"/> to represent all headers except <paramref name="pNames"/>, <see langword="false"/> to represent only the headers in <paramref name="pNames"/>.</param>
+        /// <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or <see langword="null"/> for the 'top-level' body-part.</param>
+        /// <param name="pNames">Must not be <see langword="null"/> and must not be empty.</param>
+        /// <param name="pNot"><see langword="true"/> to represent all header fields except <paramref name="pNames"/>, <see langword="false"/> to represent only the header fields in <paramref name="pNames"/>.</param>
         public cSection(string pPart, cHeaderFieldNames pNames, bool pNot = false)
         {
             if (pPart != null && !ZValidPart(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
@@ -121,7 +134,7 @@ namespace work.bacome.imapclient
             return lCursor.Position.AtEnd;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cSection;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
@@ -138,7 +151,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cSection)}({Part},{TextPart},{Names})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>

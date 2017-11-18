@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -9,6 +8,7 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents a message attachment.
     /// </summary>
+    /// <seealso cref="cMessage.Attachments"/>
     public class cAttachment
     {
         /**<summary>The client that this instance was created by.</summary>*/
@@ -156,7 +156,7 @@ namespace work.bacome.imapclient
             if (Part.Disposition?.ReadDate != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDate.Value);
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cAttachment)}({Handle},{Part.Section})";
     }
 }

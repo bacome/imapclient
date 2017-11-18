@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -7,8 +8,8 @@ namespace work.bacome.imapclient
     /// </summary>
     /// <seealso cref="cIMAPClient.DefaultMessageCacheItems"/>
     /// <seealso cref="cMessage.Fetch(cMessageCacheItems)"/>
-    /// <seealso cref="cMailbox.Message(cUID, cMessageCacheItems)"/>
     /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.Message(cUID, cMessageCacheItems)"/>
     /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
     /// <seealso cref="cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{cMessage}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
     public class cMessageCacheItems
@@ -69,19 +70,10 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool IsNone => Attributes == 0 && Names.Count == 0;
 
-        ;?;
-        /// <summary>
-        /// Determines whether this instance and the specified object have the same values.
-        /// </summary>
-        /// <param name="pObject"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override bool Equals(object pObject) => this == pObject as cMessageCacheItems;
 
-        ;?;
-        /// <summary>
-        /// Returns the hash code for this set.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -93,16 +85,10 @@ namespace work.bacome.imapclient
             }
         }
 
-        ;?;
-        /**<summary>Returns a string that represents the set.</summary>*/
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(cMessageCacheItems)}({Attributes},{Names})";
 
-        /// <summary>
-        /// Determines whether two instances have the same values.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cMessageCacheItems pA, cMessageCacheItems pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -111,28 +97,23 @@ namespace work.bacome.imapclient
             return pA.Attributes == pB.Attributes && pA.Names == pB.Names;
         }
 
-        /// <summary>
-        /// Determines whether two instances have different values.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cMessageCacheItems pA, cMessageCacheItems pB) => !(pA == pB);
 
         /// <summary>
-        /// Implicit conversion. See <see cref="cMessageCacheItems(fMessageCacheAttributes, cHeaderFieldNames)"/>.
+        /// Implicit conversion.
         /// </summary>
         /// <param name="pAttributes"></param>
         public static implicit operator cMessageCacheItems(fMessageCacheAttributes pAttributes) => new cMessageCacheItems(pAttributes, cHeaderFieldNames.None);
 
         /// <summary>
-        /// Implicit conversion. See <see cref="cMessageCacheItems(fMessageCacheAttributes, cHeaderFieldNames)"/>.
+        /// Implicit conversion.
         /// </summary>
         /// <param name="pNames"></param>
         public static implicit operator cMessageCacheItems(cHeaderFieldNames pNames) => new cMessageCacheItems(0, pNames);
 
         /// <summary>
-        /// Implicit conversion. See <see cref="cMessageCacheItems(fMessageProperties)"/>.
+        /// Implicit conversion.
         /// </summary>
         /// <param name="pProperties"></param>
         public static implicit operator cMessageCacheItems(fMessageProperties pProperties) => new cMessageCacheItems(pProperties);

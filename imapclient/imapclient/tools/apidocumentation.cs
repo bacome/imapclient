@@ -15,31 +15,6 @@ namespace work.bacome.apidocumentation
         public cAPIDocumentationTemplate() { }
 
         /// <summary>
-        /// Determines whether this instance and the specified object are the same.
-        /// </summary>
-        /// <param name="pObject"></param>
-        /// <returns></returns>
-        public override bool Equals(object pObject)
-        {
-            return base.Equals(pObject);
-        }
-
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        /// <returns></returns>
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
-        /**<summary>Returns a string that represents the instance.</summary>*/
-        public override string ToString()
-        {
-            return base.ToString();
-        }
-
-        /// <summary>
         /// Determines whether two instances are the same.
         /// </summary>
         /// <param name="pA"></param>
@@ -72,8 +47,30 @@ namespace work.bacome.apidocumentation
         /**<summary>Gets the number of items in the set.</summary>*/
         public int Count => 0;
 
-        /**<summary>Returns an enumerator that iterates through the items in the set.</summary>*/
+        /// <summary>
+        /// Returns an enumerator that iterates through the items in the set.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator GetEnumerator() => null;
+
+        /// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="pObject"></param>
+        /// <returns></returns>
+        public override bool Equals(object pObject)
+        {
+            return base.Equals(pObject);
+        }
     }
 
     /// <summary>
@@ -125,7 +122,7 @@ namespace work.bacome.apidocumentation
         public bool Contains(string pName) { return false; }
 
         /// <summary>
-        /// Returns ...
+        /// Returns | Indicates whether ...
         /// </summary>
         /// <returns></returns>
         public string AMethod() { return string.Empty; }
@@ -148,10 +145,16 @@ namespace work.bacome.apidocumentation
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator GetEnumerator() => null;
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
+        /// <inheritdoc />
         public override bool Equals(object pObject)
         {
             return base.Equals(pObject);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cAPIDocumentationExample2 pObject)
+        {
+            return false;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
@@ -160,7 +163,7 @@ namespace work.bacome.apidocumentation
             return base.GetHashCode();
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString()
         {
             return base.ToString();

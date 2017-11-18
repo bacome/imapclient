@@ -5,7 +5,9 @@ using work.bacome.trace;
 
 namespace work.bacome.async
 {
-    /// <summary>Coordinate tasks (one worker task and many work creating tasks) using coordinating tasks.</summary>
+    /// <summary>
+    /// Provides services for coordinating one worker task and many work creating tasks using coordinating tasks.
+    /// </summary>
     /// <remarks>
     /// <para>The worker task should;
     /// <list type="number">
@@ -90,7 +92,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Determines if the current coordinating task is complete.
+        /// Indicates whether the current coordinating task is complete.
         /// </summary>
         /// <param name="pParentContext">Context for trace messages.</param>
         /// <returns></returns>

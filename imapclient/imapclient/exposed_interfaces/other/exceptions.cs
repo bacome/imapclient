@@ -214,7 +214,7 @@ namespace work.bacome.imapclient
     public class cAuthenticationMechanismsException : cIMAPException
     {
         /// <summary>
-        /// Indicates if the problem might be fixed by using TLS.
+        /// Indicates whether the problem might be fixed by using TLS.
         /// </summary>
         public readonly bool TLSIssue;
 

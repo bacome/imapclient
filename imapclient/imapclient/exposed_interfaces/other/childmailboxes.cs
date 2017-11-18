@@ -12,8 +12,11 @@ namespace work.bacome.imapclient
     public interface iMailboxContainer
     {
         /// <summary>
-        /// Gets the hierarchy delimiter. May be <see langword="null"/> if there is no hierarchy.
+        /// Gets the hierarchy delimiter. May be <see langword="null"/>. 
         /// </summary>
+        /// <remarks>
+        /// Will be <see langword="null"/> if the server has no hierarchy in its names.
+        /// </remarks>
         char? Delimiter { get; }
 
         /// <summary>

@@ -55,23 +55,23 @@ namespace work.bacome.imapclient
     /// </list>
     /// </para>
     /// </remarks>
-    /// <seealso cref="cIMAPClient.Mailboxes(string, char?, fMailboxCacheDataSets)"/>
-    /// <seealso cref="cIMAPClient.Subscribed(string, char?, bool, fMailboxCacheDataSets)"/>
-    /// <seealso cref="iMailboxContainer.Mailboxes(fMailboxCacheDataSets)"/>
-    /// <seealso cref="iMailboxContainer.Subscribed(bool, fMailboxCacheDataSets)"/>
     /// <seealso cref="cNamespace.Mailboxes(fMailboxCacheDataSets)"/>
     /// <seealso cref="cNamespace.Subscribed(bool, fMailboxCacheDataSets)"/>
     /// <seealso cref="cMailbox.Mailboxes(fMailboxCacheDataSets)"/>
     /// <seealso cref="cMailbox.Subscribed(bool, fMailboxCacheDataSets)"/>
     /// <seealso cref="cMailbox.Fetch(fMailboxCacheDataSets)"/>
+    /// <seealso cref="iMailboxContainer.Mailboxes(fMailboxCacheDataSets)"/>
+    /// <seealso cref="iMailboxContainer.Subscribed(bool, fMailboxCacheDataSets)"/>
+    /// <seealso cref="cIMAPClient.Mailboxes(string, char?, fMailboxCacheDataSets)"/>
+    /// <seealso cref="cIMAPClient.Subscribed(string, char?, bool, fMailboxCacheDataSets)"/>
     [Flags]
     public enum fMailboxCacheDataSets
     {
-        /**<summary>Data returned by the IMAP LIST command.</summary>*/
+        /**<summary>The data returned by the IMAP LIST command.</summary>*/
         list = 1 << 0,
-        /**<summary>Data returned by the IMAP LSUB command.</summary>*/
+        /**<summary>The data returned by the IMAP LSUB command.</summary>*/
         lsub = 1 << 1,
-        /**<summary>Data returned by the IMAP STATUS command.</summary>*/
+        /**<summary>The data returned by the IMAP STATUS command.</summary>*/
         status = 1 << 2
     }
 }

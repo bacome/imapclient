@@ -6,8 +6,8 @@ namespace work.bacome.imapclient
     /// <summary>
     /// The type of an IMAP account.
     /// </summary>
-    /// <seealso cref="cCredentials"/>
     /// <seealso cref="cAccountId"/>
+    /// <seealso cref="cCredentials"/>
     public enum eAccountType
     {
         /** <summary>The library has no idea about the type of the account.</summary>"*/
@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
         public readonly eAccountType Type;
 
         /// <summary>
-        /// The account's userid, if any. May be <see langword="null"/>.
+        /// The account's userid. May be <see langword="null"/>.
         /// </summary>
         public readonly string UserId;
 
@@ -80,7 +80,7 @@ namespace work.bacome.imapclient
             UserId = pUserId;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cAccountId;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
@@ -95,7 +95,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cAccountId)}({Host},{Type},{UserId})";
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>

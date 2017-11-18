@@ -59,13 +59,13 @@ namespace work.bacome.imapclient
         public string TokenMechanism => mParts.TokenMechanism;
         public string Token => mParts.Token;
 
-        /**<summary>Determines if the URL requires that anonymous authentication be used.</summary>*/
+        /**<summary>Indicates whether the URL requires that anonymous authentication be used.</summary>*/
         public bool MustUseAnonymous => mParts.MustUseAnonymous;
-        /**<summary>Determines if the URL is a valid home server referral.</summary>*/
+        /**<summary>Indicates whether the URL is a valid home server referral.</summary>*/
         public bool IsHomeServerReferral => mParts.IsHomeServerReferral;
-        /**<summary>Determines if the URL is a valid mailbox referral.</summary>*/
+        /**<summary>Indicates whether the URL is a valid mailbox referral.</summary>*/
         public bool IsMailboxReferral => mParts.IsMailboxReferral;
-        /**<summary>Determines if the URL is a valid mailbox search URL.</summary>*/
+        /**<summary>Indicates whether the URL is a valid mailbox search URL.</summary>*/
         public bool IsMailboxSearch => mParts.IsMailboxSearch;
         public bool IsMessageReference => mParts.IsMessageReference;
         public bool IsPartial => mParts.IsPartial;
