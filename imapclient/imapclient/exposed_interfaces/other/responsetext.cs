@@ -9,15 +9,25 @@ namespace work.bacome.imapclient
     /// <seealso cref="cResponseTextEventArgs"/>
     public enum eResponseTextContext
     {
+        /**<summary>As part of an IMAP greeting.</summary>*/
         greeting,
+        /**<summary>As part of an IMAP continuation request.</summary>*/
         continuerequest,
+        /**<summary>As part of an IMAP bye.</summary>*/
         bye,
+        /**<summary>As part of an IMAP '* OK'.</summary>*/
         information,
+        /**<summary>As part of an IMAP '* NO'.</summary>*/
         warning,
+        /**<summary>As part of an IMAP '* BAD'.</summary>*/
         error,
+        /**<summary>As part of an IMAP command success.</summary>*/
         success,
+        /**<summary>As part of an IMAP command failure.</summary>*/
         failure,
+        /**<summary>As part of IMAP authentication cancellation.</summary>*/
         authenticationcancelled,
+        /**<summary>As part of an IMAP protocol error command termination.</summary>*/
         protocolerror
     }
 

@@ -339,10 +339,7 @@ namespace work.bacome.imapclient
         }
     }
 
-    /// <summary>
-    /// Thrown when an internal test fails.
-    /// </summary>
-    public class cTestsException : Exception
+    internal class cTestsException : Exception
     {
         internal cTestsException() { }
         internal cTestsException(string pMessage) : base(pMessage) { }

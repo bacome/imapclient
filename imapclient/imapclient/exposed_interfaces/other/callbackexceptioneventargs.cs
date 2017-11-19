@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Carries exceptions raised by external code in callbacks and event handlers.
+    /// Carries exceptions raised in callbacks and event handlers by external code.
     /// </summary>
     /// <seealso cref="cIMAPClient.CallbackException"/>
     public class cCallbackExceptionEventArgs : EventArgs

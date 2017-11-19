@@ -103,13 +103,13 @@ namespace testharness2
         {
             Text = "imapclient testharness - filter - " + mInstanceName;
 
-            mPartsBindingList.Add(new cPartsRowData(eFilterPart.bcc));
-            mPartsBindingList.Add(new cPartsRowData(eFilterPart.body));
-            mPartsBindingList.Add(new cPartsRowData(eFilterPart.cc));
-            mPartsBindingList.Add(new cPartsRowData(eFilterPart.from));
-            mPartsBindingList.Add(new cPartsRowData(eFilterPart.subject));
-            mPartsBindingList.Add(new cPartsRowData(eFilterPart.text));
-            mPartsBindingList.Add(new cPartsRowData(eFilterPart.to));
+            mPartsBindingList.Add(new cPartsRowData(cFilter.BCC));
+            mPartsBindingList.Add(new cPartsRowData(cFilter.Body));
+            mPartsBindingList.Add(new cPartsRowData(cFilter.CC));
+            mPartsBindingList.Add(new cPartsRowData(cFilter.From));
+            mPartsBindingList.Add(new cPartsRowData(cFilter.Subject));
+            mPartsBindingList.Add(new cPartsRowData(cFilter.Text));
+            mPartsBindingList.Add(new cPartsRowData(cFilter.To));
 
             ZGridsInitialise();
         }
@@ -312,12 +312,12 @@ namespace testharness2
         {
             private string mContains = null;
 
-            public cPartsRowData(eFilterPart pPart)
+            public cPartsRowData(cFilterPart pPart)
             {
                 Part = pPart;
             }
 
-            public eFilterPart Part { get; private set; }
+            public cFilterPart Part { get; private set; }
 
             public string Contains
             {
@@ -330,7 +330,7 @@ namespace testharness2
                 }
             }
 
-            public cFilterPartContains FilterPartContains => new cFilterPartContains(Part, Contains);
+            public cFilter FilterPartContains => Part.Contains(Contains);
         }
 
         private class cHeadersRowData
@@ -373,7 +373,7 @@ namespace testharness2
 
             public bool IsValid => ErrorText == null;
 
-            public cFilterHeaderFieldContains FilterHeaderFieldContains => new cFilterHeaderFieldContains(Header, Contains ?? "");
+            public cFilter FilterHeaderFieldContains => cFilter.HeaderFieldContains(Header, Contains ?? "");
         }
     }
 }

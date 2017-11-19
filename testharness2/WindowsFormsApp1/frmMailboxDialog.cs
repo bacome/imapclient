@@ -159,7 +159,7 @@ namespace testharness2
 
             public readonly cNamespace Namespace;
             public readonly cMailbox Mailbox;
-            public readonly iMailboxParent ChildMailboxes;
+            public readonly iMailboxContainer ChildMailboxes;
             public readonly bool CanSelect;
             public readonly TreeNode PleaseWait;
 
