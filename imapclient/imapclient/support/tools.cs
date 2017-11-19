@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
     {
         public static string ASCIIBytesToString(IList<byte> pBytes)
         {
-            if (pBytes.Count == 0) return string.Empty;
+            if (pBytes == null || pBytes.Count == 0) return string.Empty;
             char[] lChars = new char[pBytes.Count];
             for (int i = 0; i < pBytes.Count; i++) lChars[i] = (char)pBytes[i];
             return new string(lChars);
@@ -16,6 +16,7 @@ namespace work.bacome.imapclient
 
         public static string ASCIIBytesToString(char pPrefix, IList<byte> pBytes)
         {
+            if (pBytes == null) return new string(pPrefix, 1);
             char[] lChars = new char[pBytes.Count + 1];
             lChars[0] = pPrefix;
             for (int i = 0, j = 1; i < pBytes.Count; i++, j++) lChars[j] = (char)pBytes[i];
@@ -24,7 +25,7 @@ namespace work.bacome.imapclient
 
         public static string UTF8BytesToString(IList<byte> pBytes)
         {
-            if (pBytes.Count == 0) return string.Empty;
+            if (pBytes == null || pBytes.Count == 0) return string.Empty;
             byte[] lBytes = new byte[pBytes.Count];
             for (int i = 0; i < pBytes.Count; i++) lBytes[i] = pBytes[i];
             return new string(Encoding.UTF8.GetChars(lBytes));
@@ -32,6 +33,8 @@ namespace work.bacome.imapclient
 
         public static string BytesToLoggableString(IList<byte> pBytes)
         {
+            if (pBytes == null) return string.Empty;
+
             StringBuilder lBuilder = new StringBuilder();
 
             foreach (byte lByte in pBytes)
@@ -45,6 +48,8 @@ namespace work.bacome.imapclient
 
         public static string BytesToLoggableString(string pNameOfClass, IList<byte> pBytes, int pMaxLength)
         {
+            if (pBytes == null) return pNameOfClass + "()";
+
             StringBuilder lBuilder = new StringBuilder($"{pNameOfClass}(");
 
             foreach (byte lByte in pBytes)

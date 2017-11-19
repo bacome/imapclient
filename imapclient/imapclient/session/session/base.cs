@@ -174,9 +174,9 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetHomeServerReferral), pResponseText);
 
-                if (pResponseText.Code != eResponseTextCode.referral || pResponseText.Strings == null || pResponseText.Strings.Count != 1) return false;
+                if (pResponseText.Code != eResponseTextCode.referral || pResponseText.Arguments == null || pResponseText.Arguments.Count != 1) return false;
 
-                if (cURL.TryParse(pResponseText.Strings[0], out var lReferral) && lReferral.IsHomeServerReferral)
+                if (cURL.TryParse(pResponseText.Arguments[0], out var lReferral) && lReferral.IsHomeServerReferral)
                 {
                     _HomeServerReferral = lReferral;
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.HomeServerReferral), lContext);

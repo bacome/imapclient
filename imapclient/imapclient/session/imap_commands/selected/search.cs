@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
 
                     // special cases
                     if (ReferenceEquals(pFilter, cFilter.All)) return new cMessageHandleList(lSelectedMailbox.Cache);
-                    if (ReferenceEquals(pFilter, cFilter.False)) return new cMessageHandleList();
+                    if (ReferenceEquals(pFilter, cFilter.None)) return new cMessageHandleList();
 
                     lBuilder.Add(await mSearchExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // search commands must be single threaded (so we can tell which result is which)
                     if (pFilter.ContainsMessageHandles) lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe

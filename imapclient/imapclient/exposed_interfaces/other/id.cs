@@ -3,37 +3,38 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// An ID (RFC 2971) field/ value dictionary.
+    /// Represents an ID (RFC 2971) field/ value dictionary.
     /// </summary>
     /// <seealso cref="cId"/>
     /// <seealso cref="cIdDictionary"/>
     public interface iId : IReadOnlyDictionary<string, string>
     {
-        /**<summary>Gets the name of the program.</summary>*/
+        /**<summary>Gets the name of the program or <see langword="null"/> if it isn't specified.</summary>*/
         string Name { get; }
-        /**<summary>Gets the version number of the program.</summary>*/
+        /**<summary>Gets the version number of the program or <see langword="null"/> if it isn't specified.</summary>*/
         string Version { get; }
-        /**<summary>Gets the name of the operating system.</summary>*/
+        /**<summary>Gets the name of the operating system or <see langword="null"/> if it isn't specified.</summary>*/
         string OS { get; }
-        /**<summary>Gets the version of the operating system.</summary>*/
+        /**<summary>Gets the version of the operating system or <see langword="null"/> if it isn't specified.</summary>*/
         string OSVersion { get; }
-        /**<summary>Gets the vendor of the client/server.</summary>*/
+        /**<summary>Gets the vendor of the client/server or <see langword="null"/> if it isn't specified.</summary>*/
         string Vendor { get; }
-        /**<summary>Gets the URL to contact for support.</summary>*/
+        /**<summary>Gets the URL to contact for support or <see langword="null"/> if it isn't specified.</summary>*/
         string SupportURL { get; }
-        /**<summary>Gets the postal address of contact/vendor.</summary>*/
+        /**<summary>Gets the postal address of contact/vendor or <see langword="null"/> if it isn't specified.</summary>*/
         string Address { get; }
-        /**<summary>Gets the date program was released.</summary>*/
+        /**<summary>Gets the date program was released or <see langword="null"/> if it isn't specified.</summary>*/
         string Date { get; }
-        /**<summary>Gets the command used to start the program.</summary>*/
+        /**<summary>Gets the command used to start the program or <see langword="null"/> if it isn't specified.</summary>*/
         string Command { get; }
-        /**<summary>Gets the arguments supplied on the command line, if any.</summary>*/
+        /**<summary>Gets the arguments supplied on the command line or <see langword="null"/> if it isn't specified.</summary>*/
         string Arguments { get; }
-        /**<summary>Gets the description of the environment.</summary>*/
+        /**<summary>Gets the description of the environment or <see langword="null"/> if it isn't specified.</summary>*/
         string Environment { get; }
     }
 
@@ -67,7 +68,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only ID (RFC 2971) field/ value dictionary.
+    /// A read-only ID (RFC 2971) field/ value dictionary. Field names are case insensitive.
     /// </summary>
     /// <seealso cref="cIMAPClient.ServerId"/>
     public class cId : iId
@@ -78,7 +79,7 @@ namespace work.bacome.imapclient
         protected readonly ReadOnlyDictionary<string, string> mDictionary;
 
         /// <summary>
-        /// Initialise a new instance, copying the values from the supplied field/ value dictionary. Field names are case insensitive.
+        /// Initialises a new instance, copying the specified dictionary.
         /// </summary>
         /// <param name="pDictionary"></param>
         public cId(IDictionary<string, string> pDictionary)
@@ -86,7 +87,7 @@ namespace work.bacome.imapclient
             mDictionary = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(pDictionary, StringComparer.InvariantCultureIgnoreCase));
         }
 
-        /**<summary>Gets the number of field/ value pairs in the dictionary.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mDictionary.Count;
 
         /**<summary>Gets the values that are in the dictionary.</summary>*/
@@ -95,26 +96,26 @@ namespace work.bacome.imapclient
         public IEnumerable<string> Keys => mDictionary.Keys;
 
         /// <summary>
-        /// Determines whether the dictionary contains a field (field names are case insensitive).
+        /// Determines whether the dictionary contains the specified field (case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <returns></returns>
         public bool ContainsKey(string pKey) => mDictionary.ContainsKey(pKey);
 
         /// <summary>
-        /// Retrieves the field value (field names are case insensitive).
+        /// Gets the specified field's value (case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <param name="rValue"></param>
         /// <returns></returns>
         public bool TryGetValue(string pKey, out string rValue) => mDictionary.TryGetValue(pKey, out rValue);
 
-        /**<summary>Returns an enumerator that iterates through the field/ values.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => mDictionary.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mDictionary.GetEnumerator();
 
         /// <summary>
-        /// Retrieves the field value (field names are case insensitive).
+        /// Gets the specified field's value (case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <returns></returns>
@@ -126,30 +127,30 @@ namespace work.bacome.imapclient
             return null;
         }
 
-        /**<summary>Gets the name of the program.</summary>*/
+        /**<summary>Gets the name of the program or <see langword="null"/> if it isn't specified.</summary>*/
         public string Name => ZGetValue(kIdFieldName.Name);
-        /**<summary>Gets the version number of the program.</summary>*/
+        /**<summary>Gets the version number of the program or <see langword="null"/> if it isn't specified.</summary>*/
         public string Version => ZGetValue(kIdFieldName.Version);
-        /**<summary>Gets the name of the operating system.</summary>*/
+        /**<summary>Gets the name of the operating system or <see langword="null"/> if it isn't specified.</summary>*/
         public string OS => ZGetValue(kIdFieldName.OS);
-        /**<summary>Gets the version of the operating system.</summary>*/
+        /**<summary>Gets the version of the operating system or <see langword="null"/> if it isn't specified.</summary>*/
         public string OSVersion => ZGetValue(kIdFieldName.OSVersion);
-        /**<summary>Gets the vendor of the client/server.</summary>*/
+        /**<summary>Gets the vendor of the client/server or <see langword="null"/> if it isn't specified.</summary>*/
         public string Vendor => ZGetValue(kIdFieldName.Vendor);
-        /**<summary>Gets the URL to contact for support.</summary>*/
+        /**<summary>Gets the URL to contact for support or <see langword="null"/> if it isn't specified.</summary>*/
         public string SupportURL => ZGetValue(kIdFieldName.SupportURL);
-        /**<summary>Gets the postal address of contact/vendor.</summary>*/
+        /**<summary>Gets the postal address of contact/vendor or <see langword="null"/> if it isn't specified.</summary>*/
         public string Address => ZGetValue(kIdFieldName.Address);
-        /**<summary>Gets the date program was released.</summary>*/
+        /**<summary>Gets the date program was released or <see langword="null"/> if it isn't specified.</summary>*/
         public string Date => ZGetValue(kIdFieldName.Date);
-        /**<summary>Gets the command used to start the program.</summary>*/
+        /**<summary>Gets the command used to start the program or <see langword="null"/> if it isn't specified.</summary>*/
         public string Command => ZGetValue(kIdFieldName.Command);
-        /**<summary>Gets the arguments supplied on the command line, if any.</summary>*/
+        /**<summary>Gets the arguments supplied on the command line or <see langword="null"/> if it isn't specified.</summary>*/
         public string Arguments => ZGetValue(kIdFieldName.Arguments);
-        /**<summary>Gets the description of environment.</summary>*/
+        /**<summary>Gets the description of environment or <see langword="null"/> if it isn't specified.</summary>*/
         public string Environment => ZGetValue(kIdFieldName.Environment);
 
-        /**<summary>Returns a string that represents the dictionary.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cId));
@@ -159,10 +160,10 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only ID (RFC 2971) field/ value dictionary. This class enforces the limits of RFC 2971.
+    /// A read-only ID (RFC 2971) field/ value dictionary. Field names are case insensitive.
     /// </summary>
     /// <remarks>
-    /// <para>The limits of RFC 2971 are;</para>
+    /// This class enforces the limits of RFC 2971;
     /// <list type="bullet">
     /// <item>Field names no longer than 30 bytes.</item>
     /// <item>Values no longer than 1024 bytes.</item>
@@ -173,9 +174,10 @@ namespace work.bacome.imapclient
     public class cClientIdUTF8 : cId
     {
         /// <summary>
-        /// Initialise a new instance, copying the values from the supplied field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
+        /// Initialises a new instance, copying the specified dictionary. 
         /// </summary>
         /// <param name="pDictionary"></param>
+        /// <inheritdoc cref="cClientIdUTF8" select="remarks"/>
         public cClientIdUTF8(IDictionary<string, string> pDictionary) : base(pDictionary)
         {
             if (pDictionary.Count > 30) throw new ArgumentOutOfRangeException(nameof(pDictionary));
@@ -194,31 +196,19 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Implicit conversion. See <see cref="cClientIdUTF8(IDictionary{string, string})"/>.
+        /// Returns a new instance, copying the specified dictionary.
         /// </summary>
         /// <param name="pDictionary"></param>
         /// <returns></returns>
+        /// <inheritdoc cref="cClientIdUTF8" select="remarks"/>
         public static implicit operator cClientIdUTF8(cIdDictionary pDictionary) => new cClientIdUTF8(pDictionary);
     }
 
-    /// <summary>
-    /// A read-only ID (RFC 2971) field/ value dictionary. This class enforces the limits of RFC 2971.
-    /// </summary>
-    /// <remarks>
-    /// <para>The limits of RFC 2971 are;</para>
-    /// <list type="bullet">
-    /// <item>Field names no longer than 30 bytes.</item>
-    /// <item>Values no longer than 1024 bytes.</item>
-    /// <item>No more than 30 field/ value pairs.</item>
-    /// </list>
-    /// </remarks>
+    /// <inheritdoc cref="cClientIdUTF8" select="summary|remarks"/>
     /// <seealso cref="cIMAPClient.ClientId"/>
     public class cClientId : cClientIdUTF8
     {
-        /// <summary>
-        /// Initialise a new instance, copying the values from the supplied field/ value dictionary. Field names are case insensitive. RFC 2971 limits are enforced by the constructor: it will throw if there are violations.
-        /// </summary>
-        /// <param name="pDictionary"></param>
+        /// <inheritdoc cref="cClientIdUTF8(IDictionary{string, string})"/>
         public cClientId(IDictionary<string, string> pDictionary) : base(pDictionary)
         {
             foreach (var lEntry in pDictionary)
@@ -235,10 +225,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Implicit conversion. See <see cref="cClientId(IDictionary{string, string})"/>.
+        /// Returns a new instance, copying the specified dictionary.
         /// </summary>
         /// <param name="pDictionary"></param>
         /// <returns></returns>
+        /// <inheritdoc cref="cClientIdUTF8" select="remarks"/>
         public static implicit operator cClientId(cIdDictionary pDictionary) => new cClientId(pDictionary);
     }
 
@@ -252,12 +243,11 @@ namespace work.bacome.imapclient
         private readonly Dictionary<string, string> mDictionary = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
-        /// Initialises a new instance as an empty or a default dictionary. A default dictionary contains details about the library.
+        /// Initialises a new instance, empty or with default values.
         /// </summary>
-        /// <param name="pDefault">Indicates whether a default dictionary should be constructed.</param>
+        /// <param name="pDefault">Indicates whether the instance should be initialised with default values.</param>
         /// <remarks>
         /// A default dictionary contains details about the library.
-        /// A non-default dictionary is empty.
         /// </remarks>
         public cIdDictionary(bool pDefault = true)
         {
@@ -291,9 +281,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        /**<summary>Gets the number of field/ value pairs in the dictionary.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mDictionary.Count;
-        /**<summary>Always returns <see langword="false"/>.</summary>*/
+        /**<summary>Gets the value <see langword="false"/>.</summary>*/
         public bool IsReadOnly => false;
 
         /**<summary>Gets the values that are in the dictionary.</summary>*/
@@ -304,14 +294,14 @@ namespace work.bacome.imapclient
         IEnumerable<string> IReadOnlyDictionary<string, string>.Keys => mDictionary.Keys;
 
         /// <summary>
-        /// Determines whether the dictionary contains a field (field names are case insensitive).
+        /// Determines whether the dictionary contains the specified field (case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <returns></returns>
         public bool ContainsKey(string pKey) => mDictionary.ContainsKey(pKey);
 
         /// <summary>
-        /// Retrieves the field value (field names are case insensitive).
+        /// Gets the specifed field's value (case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <param name="rValue"></param>
@@ -319,34 +309,34 @@ namespace work.bacome.imapclient
         public bool TryGetValue(string pKey, out string rValue) => mDictionary.TryGetValue(pKey, out rValue);
 
         /// <summary>
-        /// Adds the specified field/ value to the dictionary (field names are case insensitive).
+        /// Adds the specified field (case insensitive) and value to the dictionary.
         /// </summary>
         /// <param name="pKey"></param>
         /// <param name="pValue"></param>
         public void Add(string pKey, string pValue) => mDictionary.Add(pKey, pValue);
 
         /// <summary>
-        /// Removes the field from the dictionary (field names are case insensitive).
+        /// Removes the specified field from the dictionary (case insensitive).
         /// </summary>
         /// <param name="pKey"></param>
         /// <returns></returns>
         public bool Remove(string pKey) => mDictionary.Remove(pKey);
 
         /// <summary>
-        /// Determines whether the dictionary contains a field/ value pair (field names are case insensitive).
+        /// Determines whether the dictionary contains the specified field/ value pair.
         /// </summary>
         /// <param name="pEntry"></param>
         /// <returns></returns>
         public bool Contains(KeyValuePair<string, string> pEntry) => ((ICollection<KeyValuePair<string, string>>)mDictionary).Contains(pEntry);
 
         /// <summary>
-        /// Adds the specified field/ value to the dictionary (field names are case insensitive).
+        /// Adds the specified field (case insensitive) and value to the dictionary.
         /// </summary>
         /// <param name="pEntry"></param>
         public void Add(KeyValuePair<string, string> pEntry) => mDictionary.Add(pEntry.Key, pEntry.Value);
 
         /// <summary>
-        /// Removes the field/ value pair from the dictionary (field names are case insensitive).
+        /// Removes the specified field/ value pair from the dictionary.
         /// </summary>
         /// <param name="pEntry"></param>
         /// <returns></returns>
@@ -358,17 +348,21 @@ namespace work.bacome.imapclient
         public void Clear() => mDictionary.Clear();
 
         /// <summary>
-        /// Copies the field/ value pairs to an array.
+        /// Copies the field/ value pairs in the dictionary to an array.
         /// </summary>
         /// <param name="pArray"></param>
         /// <param name="pIndex"></param>
         public void CopyTo(KeyValuePair<string, string>[] pArray, int pIndex) => ((ICollection<KeyValuePair<string, string>>)mDictionary).CopyTo(pArray, pIndex);
 
-        /**<summary>Returns an enumerator that iterates through the field/ values.</summary>*/
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => mDictionary.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mDictionary.GetEnumerator();
 
-        /**<summary>Retrieves the field value (field names are case insensitive).</summary>*/
+        /// <summary>
+        /// Gets the specifed field's value (case insensitive).
+        /// </summary>
+        /// <param name="pKey"></param>
+        /// <returns></returns>
         public string this[string pKey]
         {
             get => mDictionary[pKey];
@@ -381,56 +375,56 @@ namespace work.bacome.imapclient
             return null;
         }
 
-        /**<summary>Gets and sets the name of the program.</summary>*/
+        /**<summary>Gets (<see langword="null"/> if it isn't specified) and sets the name of the program.</summary>*/
         public string Name
         {
             get => ZGetValue(kIdFieldName.Name);
             set => mDictionary[kIdFieldName.Name] = value;
         }
 
-        /**<summary>Gets and sets the version number of the program.</summary>*/
+        /**<summary>Gets (<see langword="null"/> if it isn't specified) and sets the version number of the program.</summary>*/
         public string Version
         {
             get => ZGetValue(kIdFieldName.Version);
             set => mDictionary[kIdFieldName.Version] = value;
         }
 
-        /**<summary>Gets and sets the name of the operating system.</summary>*/
+        /**<summary>Gets (<see langword="null"/> if it isn't specified) and sets the name of the operating system.</summary>*/
         public string OS
         {
             get => ZGetValue(kIdFieldName.OS);
             set => mDictionary[kIdFieldName.OS] = value;
         }
 
-        /**<summary>Gets and sets the version of the operating system.</summary>*/
+        /**<summary>Gets (<see langword="null"/> if it isn't specified) and sets the version of the operating system.</summary>*/
         public string OSVersion
         {
             get => ZGetValue(kIdFieldName.OSVersion);
             set => mDictionary[kIdFieldName.OSVersion] = value;
         }
 
-        /**<summary>Gets and sets the vendor of the client/server.</summary>*/
+        /**<summary>Gets (<see langword="null"/> if it isn't specified) and sets the vendor of the client/server.</summary>*/
         public string Vendor
         {
             get => ZGetValue(kIdFieldName.Vendor);
             set => mDictionary[kIdFieldName.Vendor] = value;
         }
 
-        /**<summary>Gets and sets the URL to contact for support.</summary>*/
+        /**<summary>Gets (<see langword="null"/> if it isn't specified) and sets the URL to contact for support.</summary>*/
         public string SupportURL
         {
             get => ZGetValue(kIdFieldName.SupportURL);
             set => mDictionary[kIdFieldName.SupportURL] = value;
         }
 
-        /**<summary>Gets and sets the postal address of contact/vendor.</summary>*/
+        /**<summary>Gets (<see langword="null"/> if it isn't specified) and sets the postal address of contact/vendor.</summary>*/
         public string Address
         {
             get => ZGetValue(kIdFieldName.Address);
             set => mDictionary[kIdFieldName.Address] = value;
         }
 
-        /**<summary>Gets the date program was released.</summary>*/
+        /**<summary>Gets the date program was released or <see langword="null"/> if it isn't specified.</summary>*/
         public string Date => ZGetValue(kIdFieldName.Date);
 
         /// <summary>
@@ -439,28 +433,28 @@ namespace work.bacome.imapclient
         /// <param name="pDate"></param>
         public void SetDate(DateTime pDate) => mDictionary[kIdFieldName.Date] = cTools.UTF8BytesToString(cCommandPartFactory.AsDate(pDate).Bytes);
 
-        /**<summary>Gets and sets the command used to start the program.</summary>*/
+        /**<summary>Gets (<see langword="null"/> if it isn't specified) and sets the command used to start the program.</summary>*/
         public string Command
         {
             get => ZGetValue(kIdFieldName.Command);
             set => mDictionary[kIdFieldName.Command] = value;
         }
 
-        /**<summary>Gets and sets the arguments supplied on the command line, if any.</summary>*/
+        /**<summary>Gets (<see langword="null"/> if it isn't specified) and sets the arguments supplied on the command line, if any.</summary>*/
         public string Arguments
         {
             get => ZGetValue(kIdFieldName.Arguments);
             set => mDictionary[kIdFieldName.Arguments] = value;
         }
 
-        /**<summary>Gets and sets the description of the environment.</summary>*/
+        /**<summary>Gets (<see langword="null"/> if it isn't specified) and sets the description of the environment.</summary>*/
         public string Environment
         {
             get => ZGetValue(kIdFieldName.Environment);
             set => mDictionary[kIdFieldName.Environment] = value;
         }
 
-        /**<summary>Returns a string that represents the dictionary.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cIdDictionary));

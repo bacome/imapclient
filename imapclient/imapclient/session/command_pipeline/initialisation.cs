@@ -45,7 +45,7 @@ namespace work.bacome.imapclient
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpaceOKSpace))
                                 {
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greeting, lCursor, lHook, lContext);
                                     lContext.TraceVerbose("got ok: {0}", lResponseText);
 
                                     mState = eState.connected;
@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpacePreAuthSpace))
                                 {
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greeting, lCursor, lHook, lContext);
                                     lContext.TraceVerbose("got preauth: {0}", lResponseText);
 
                                     mState = eState.connected;
@@ -65,7 +65,7 @@ namespace work.bacome.imapclient
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpaceBYESpace))
                                 {
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greeting, lCursor, lHook, lContext);
                                     lContext.TraceError("got bye: {0}", lResponseText);
 
                                     if (lHook.Capabilities != null) lContext.TraceError("received capability on a bye greeting");

@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
         {
             private class cCommandHookStore : cCommandHook
             {
-                private static readonly cBytes kModifiedSpace = new cBytes("MODIFIED ");
+                private static readonly cBytes kModified = new cBytes("MODIFIED");
 
                 private readonly cStoreFeedbackCollector mFeedbackCollector;
                 private readonly cUIDStoreFeedback mUIDStoreFeedback;
@@ -43,33 +43,36 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public override bool ProcessTextCode(eResponseTextType pTextType, cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookStore), nameof(ProcessTextCode), pTextType);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookStore), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
 
-                    if (pTextType == eResponseTextType.success || pTextType == eResponseTextType.failure)
+                    if (pTextContext == eResponseTextContext.success || pTextContext == eResponseTextContext.failure)
                     {
-                        if (pCursor.SkipBytes(kModifiedSpace))
+                        if (pCode.Equals(kModified))
                         {
-                            if (pCursor.GetSequenceSet(out var lSequenceSet) && pCursor.SkipBytes(cBytesCursor.RBracketSpace) && cUIntList.TryConstruct(lSequenceSet, mSelectedMailbox.Cache.Count, true, out var lUInts))
+                            if (pArguments != null)
                             {
-                                foreach (var lUInt in lUInts)
-                                {
-                                    if (!mFeedbackCollector.WasNotUnchangedSince(lUInt))
-                                    {
-                                        lContext.TraceWarning("likely malformed modified response: message number not recognised: ", lUInt);
-                                        return false;
-                                    }
-                                }
+                                cBytesCursor lCursor = new cBytesCursor(pArguments);
 
-                                return true;
+                                if (lCursor.GetSequenceSet(out var lSequenceSet) && lCursor.Position.AtEnd && cUIntList.TryConstruct(lSequenceSet, mSelectedMailbox.Cache.Count, true, out var lUInts))
+                                {
+                                    foreach (var lUInt in lUInts)
+                                    {
+                                        if (!mFeedbackCollector.WasNotUnchangedSince(lUInt))
+                                        {
+                                            lContext.TraceWarning("likely malformed modified response: message number not recognised: ", lUInt);
+                                            return;
+                                        }
+                                    }
+
+                                    return;
+                                }
                             }
 
                             lContext.TraceWarning("likely malformed modified response");
                         }
                     }
-
-                    return false;
                 }
 
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)

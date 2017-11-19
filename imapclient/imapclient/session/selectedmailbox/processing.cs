@@ -25,21 +25,21 @@ namespace work.bacome.imapclient
 
                 public eProcessDataResult ProcessData(cBytesCursor pCursor, cTrace.cContext pParentContext) => mCache.ProcessData(pCursor, pParentContext);
 
-                public bool ProcessTextCode(eResponseTextType pTextType, cResponseData pData, cTrace.cContext pParentContext)
+                public void ProcessTextCode(eResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(ProcessTextCode), pTextType, pData);
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailbox), nameof(ProcessTextCode), pTextContext, pData);
 
                     switch (pData)
                     {
                         case cResponseDataPermanentFlags lPermanentFlags:
 
                             mMailboxCacheItem.SetPermanentFlags(mSelectedForUpdate, lPermanentFlags.Flags, lContext);
-                            return true;
+                            return;
 
                         case cResponseDataUIDValidity lUIDValidity:
 
                             mCache = new cSelectedMailboxCache(mCache, lUIDValidity.UIDValidity, lContext);
-                            return true;
+                            return;
 
                         case cResponseDataAccess lAccess:
 
@@ -49,10 +49,10 @@ namespace work.bacome.imapclient
                                 mSynchroniser.InvokeMailboxPropertiesChanged(mMailboxCacheItem, fMailboxProperties.isaccessreadonly, lContext);
                             }
 
-                            return true;
+                            return;
                     }
 
-                    return mCache.ProcessTextCode(pTextType, pData, lContext);
+                    mCache.ProcessTextCode(pTextContext, pData, lContext);
                 }
             }
 
@@ -99,26 +99,11 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public bool ProcessTextCode(eResponseTextType pTextType, cResponseData pData, cTrace.cContext pParentContext)
+                public void ProcessTextCode(eResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ProcessTextCode), pTextType, pData);
-
-                    if (pData is cResponseDataUIDNext lUIDNext)
-                    {
-                        ZUIDNext(lUIDNext.UIDNext, lContext);
-                        return true;
-                    }
-
-                    if (pTextType == eResponseTextType.success)
-                    {
-                        if (pData is cResponseDataHighestModSeq lHighestModSeq)
-                        {
-                            ZHighestModSeq(lHighestModSeq.HighestModSeq, lContext);
-                            return true;
-                        }
-                    }
-
-                    return false;
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ProcessTextCode), pTextContext, pData);
+                    if (pData is cResponseDataUIDNext lUIDNext) ZUIDNext(lUIDNext.UIDNext, lContext);
+                    else if (pTextContext == eResponseTextContext.success && pData is cResponseDataHighestModSeq lHighestModSeq) ZHighestModSeq(lHighestModSeq.HighestModSeq, lContext);
                 }
             }
         }

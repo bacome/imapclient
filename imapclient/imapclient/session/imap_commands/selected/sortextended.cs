@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, pFilter.UIDValidity);
 
                     // special case
-                    if (ReferenceEquals(pFilter, cFilter.False)) return new cMessageHandleList();
+                    if (ReferenceEquals(pFilter, cFilter.None)) return new cMessageHandleList();
 
                     if (pFilter.ContainsMessageHandles) lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 

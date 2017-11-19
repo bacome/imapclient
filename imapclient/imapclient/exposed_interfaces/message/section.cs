@@ -4,8 +4,9 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The text-part of an IMAP body-part (see <see cref="cSection"/>).
+    /// The text-part of an IMAP body-part.
     /// </summary>
+    /// <seealso cref="cSection"/>
     public enum eSectionTextPart
     {
         /** <sumary>The entire body-part.</sumary> */
@@ -30,6 +31,10 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents a section of an IMAP message.
     /// </summary>
+    /// <seealso cref="cBodyPart.Section"/>
+    /// <seealso cref="cMessage.Fetch(cSection)"/>
+    /// <seealso cref="cMessage.Fetch(cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.UIDFetch(cUID, cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
     public class cSection
     {
         /// <summary>

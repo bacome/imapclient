@@ -15,7 +15,6 @@ namespace work.bacome.imapclient
         public static readonly cBytes RBracketSpace = new cBytes("] ");
         public static readonly cBytes SpaceLParen = new cBytes(" (");
         public static readonly cBytes RParenSpace = new cBytes(") ");
-        public static readonly cBytes RParenRBracketSpace = new cBytes(")] ");
 
         private cBytesLines mLines;
         public sPosition Position;

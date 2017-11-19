@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
         {
             private class cCommandHookCopy : cCommandHook
             {
-                private static readonly cBytes kCopyUIDSpace = new cBytes("COPYUID ");
+                private static readonly cBytes kCopyUID = new cBytes("COPYUID");
 
                 private uint mSourceUIDValidity;
 
@@ -18,31 +18,33 @@ namespace work.bacome.imapclient
 
                 public cCopyFeedback Feedback { get; private set; } = null;
 
-                public override bool ProcessTextCode(eResponseTextType pTextType, cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookCopy), nameof(ProcessTextCode), pTextType);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookCopy), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
 
-                    if (pTextType == eResponseTextType.success && pCursor.SkipBytes(kCopyUIDSpace))
+                    if (pTextContext == eResponseTextContext.success && pCode.Equals(kCopyUID))
                     {
-                        if (!pCursor.GetNZNumber(out _, out var lDestinationUIDValidity) ||
-                            !pCursor.SkipByte(cASCII.SPACE) ||
-                            !pCursor.GetSequenceSet(out var lSourceUIDSet) ||
-                            !pCursor.SkipByte(cASCII.SPACE) ||
-                            !pCursor.GetSequenceSet(out var lCreatedUIDSet) ||
-                            !pCursor.SkipBytes(cBytesCursor.RBracketSpace) ||
-                            !cUIntList.TryConstruct(lSourceUIDSet, -1, false, out var lSourceUIDs) ||
-                            !cUIntList.TryConstruct(lCreatedUIDSet, -1, false, out var lCreatedUIDs) ||
-                            lSourceUIDs.Count != lCreatedUIDs.Count)
+                        if (pArguments != null)
                         {
-                            lContext.TraceWarning("likely malformed copyuid response");
-                            return false;
+                            cBytesCursor lCursor = new cBytesCursor(pArguments);
+
+                            if (lCursor.GetNZNumber(out _, out var lDestinationUIDValidity) &&
+                                lCursor.SkipByte(cASCII.SPACE) &&
+                                lCursor.GetSequenceSet(out var lSourceUIDSet) &&
+                                lCursor.SkipByte(cASCII.SPACE) &&
+                                lCursor.GetSequenceSet(out var lCreatedUIDSet) &&
+                                lCursor.Position.AtEnd &&
+                                cUIntList.TryConstruct(lSourceUIDSet, -1, false, out var lSourceUIDs) &&
+                                cUIntList.TryConstruct(lCreatedUIDSet, -1, false, out var lCreatedUIDs) &&
+                                lSourceUIDs.Count == lCreatedUIDs.Count)
+                            {
+                                Feedback = new cCopyFeedback(mSourceUIDValidity, lSourceUIDs, lDestinationUIDValidity, lCreatedUIDs);
+                                return;
+                            }
                         }
 
-                        Feedback = new cCopyFeedback(mSourceUIDValidity, lSourceUIDs, lDestinationUIDValidity, lCreatedUIDs);
-                        return true;
+                        lContext.TraceWarning("likely malformed copyuid response");
                     }
-
-                    return false;
                 }
             }
         }

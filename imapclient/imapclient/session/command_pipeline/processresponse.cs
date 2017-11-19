@@ -27,21 +27,21 @@ namespace work.bacome.imapclient
                     if (pCursor.SkipBytes(kProcessResponseOKSpace))
                     {
                         lContext.TraceVerbose("got information");
-                        mResponseTextProcessor.Process(eResponseTextType.information, pCursor, mActiveCommands, lContext);
+                        mResponseTextProcessor.Process(eResponseTextContext.information, pCursor, mActiveCommands, lContext);
                         return true;
                     }
 
                     if (pCursor.SkipBytes(kProcessResponseNoSpace))
                     {
                         lContext.TraceVerbose("got a warning");
-                        mResponseTextProcessor.Process(eResponseTextType.warning, pCursor, mActiveCommands, lContext);
+                        mResponseTextProcessor.Process(eResponseTextContext.warning, pCursor, mActiveCommands, lContext);
                         return true;
                     }
 
                     if (pCursor.SkipBytes(kProcessResponseBadSpace))
                     {
                         lContext.TraceVerbose("got a protocol error");
-                        mResponseTextProcessor.Process(eResponseTextType.protocolerror, pCursor, mActiveCommands, lContext);
+                        mResponseTextProcessor.Process(eResponseTextContext.protocolerror, pCursor, mActiveCommands, lContext);
                         return true;
                     }
 
@@ -51,7 +51,7 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceVerbose("got a bye");
 
-                        cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.bye, pCursor, null, lContext);
+                        cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.bye, pCursor, null, lContext);
                         cResponseDataBye lData = new cResponseDataBye(lResponseText);
 
                         foreach (var lCommand in mActiveCommands) ZProcessDataResponseWorker(ref lResult, lCommand.Hook.ProcessData(lData, lContext), lContext);
@@ -136,23 +136,23 @@ namespace work.bacome.imapclient
                     }
 
                     eCommandResultType lResultType;
-                    eResponseTextType lTextType;
+                    eResponseTextContext lTextContext;
 
                     if (pCursor.SkipBytes(kProcessResponseOKSpace))
                     {
                         lResultType = eCommandResultType.ok;
-                        lTextType = eResponseTextType.success;
+                        lTextContext = eResponseTextContext.success;
                     }
                     else if (pCursor.SkipBytes(kProcessResponseNoSpace))
                     {
                         lResultType = eCommandResultType.no;
-                        lTextType = eResponseTextType.failure;
+                        lTextContext = eResponseTextContext.failure;
                     }
                     else if (pCursor.SkipBytes(kProcessResponseBadSpace))
                     {
                         lResultType = eCommandResultType.bad;
-                        if (pIsAuthentication) lTextType = eResponseTextType.authenticationcancelled;
-                        else lTextType = eResponseTextType.error;
+                        if (pIsAuthentication) lTextContext = eResponseTextContext.authenticationcancelled;
+                        else lTextContext = eResponseTextContext.error;
                     }
                     else
                     {
@@ -161,7 +161,7 @@ namespace work.bacome.imapclient
                         return null;
                     }
 
-                    var lResult = new cCommandResult(lResultType, mResponseTextProcessor.Process(lTextType, pCursor, pTextCodeProcessor, lContext));
+                    var lResult = new cCommandResult(lResultType, mResponseTextProcessor.Process(lTextContext, pCursor, pTextCodeProcessor, lContext));
 
                     if (mMailboxCache != null) mMailboxCache.CommandCompletion(lContext);
 

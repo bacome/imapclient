@@ -1,5 +1,4 @@
 ﻿using System;
-using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -17,7 +16,7 @@ namespace work.bacome.imapclient
 
             private interface iResponseTextCodeParser
             {
-                bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext);
+                bool Process(cByteList pCode, cByteList pArguments, out cResponseData rResponseData, cTrace.cContext pParentContext);
             }
         }
     }

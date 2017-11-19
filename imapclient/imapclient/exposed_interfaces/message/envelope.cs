@@ -38,10 +38,10 @@ namespace work.bacome.imapclient
         /** <summary>The message 'to' address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses To;
 
-        /** <summary>The message CC address(s). May be <see langword="null"/>.</summary> */
+        /** <summary>The message 'CC' address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses CC;
 
-        /** <summary>The message BCC address(s). May be <see langword="null"/>.</summary> */
+        /** <summary>The message 'BCC' address(s). May be <see langword="null"/>.</summary> */
         public readonly cAddresses BCC;
 
         /** <summary>The normalised (delimiters, quoting, comments and white space removed) 'in-reply-to' message-ids. May be <see langword="null"/>.</summary> */

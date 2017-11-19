@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
         /// <para>
         /// TLS is established if possible before authentication is attempted.
         /// TLS will be established immediately upon TCP connect if the <see cref="Server"/> specifies <see cref="cServer.SSL"/>,
-        /// otherwise the library will use the IMAP STARTTLS command if both the server and client support it (see <see cref="cCapabilities.StartTLS"/> and <see cref="IgnoreCapabilities"/>).
+        /// otherwise the library will use the IMAP STARTTLS command if <see cref="cCapabilities.StartTLS"/> is in use.
         /// </para>
         /// <para>
         /// During the authentication part of connecting the <see cref="Capabilities"/> will be set (most likely more than once).
@@ -70,7 +70,7 @@ namespace work.bacome.imapclient
         ///   <term><see cref="cHomeServerReferralException"/></term>
         ///   <description>
         ///   While connecting the server either refused to connect or refused to authenticate and suggested that we try a different server instead
-        ///   (see <see cref="cHomeServerReferralException.ResponseText"/> and the contained <see cref="cResponseText.Strings"/>).
+        ///   (see <see cref="cHomeServerReferralException.ResponseText"/> and the contained <see cref="cResponseText.Arguments"/>).
         ///   </description>
         /// </item>
         /// </list>

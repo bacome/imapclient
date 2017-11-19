@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
         from,
         /**<summary>The size of the message in bytes.</summary>*/
         size,
-        /**<summary>The base subject. The base subject is defined RFC 5256 and is the subject with the RE: FW: etc artifacts removed.</summary>*/
+        /**<summary>The base subject. The base subject is defined in RFC 5256 and is the subject with the RE: FW: etc artifacts removed.</summary>*/
         subject,
         /**<summary>The group-name or local-part of the first 'to' address.</summary>*/
         to,
@@ -37,42 +37,42 @@ namespace work.bacome.imapclient
     /// <seealso cref="cSort"/>
     public class cSortItem
     {
-        /** <summary>Ascending by <see cref="eSortItem.received"/>.</summary> */
+        /** <summary>Sort ascending by <see cref="eSortItem.received"/>.</summary> */
         public static readonly cSortItem Received = new cSortItem(eSortItem.received, false);
-        /** <summary>Ascending by <see cref="eSortItem.cc"/>.</summary> */
+        /** <summary>Sort ascending by <see cref="eSortItem.cc"/>.</summary> */
         public static readonly cSortItem CC = new cSortItem(eSortItem.cc, false);
-        /** <summary>Ascending by <see cref="eSortItem.sent"/>.</summary> */
+        /** <summary>Sort ascending by <see cref="eSortItem.sent"/>.</summary> */
         public static readonly cSortItem Sent = new cSortItem(eSortItem.sent, false);
-        /** <summary>Ascending by <see cref="eSortItem.from"/>.</summary> */
+        /** <summary>Sort ascending by <see cref="eSortItem.from"/>.</summary> */
         public static readonly cSortItem From = new cSortItem(eSortItem.from, false);
-        /** <summary>Ascending by <see cref="eSortItem.size"/>.</summary> */
+        /** <summary>Sort ascending by <see cref="eSortItem.size"/>.</summary> */
         public static readonly cSortItem Size = new cSortItem(eSortItem.size, false);
-        /** <summary>Ascending by <see cref="eSortItem.subject"/>.</summary> */
+        /** <summary>Sort ascending by <see cref="eSortItem.subject"/>.</summary> */
         public static readonly cSortItem Subject = new cSortItem(eSortItem.subject, false);
-        /** <summary>Ascending by <see cref="eSortItem.to"/>.</summary> */
+        /** <summary>Sort ascending by <see cref="eSortItem.to"/>.</summary> */
         public static readonly cSortItem To = new cSortItem(eSortItem.to, false);
-        /** <summary>Ascending by <see cref="eSortItem.displayfrom"/>.</summary> */
+        /** <summary>Sort ascending by <see cref="eSortItem.displayfrom"/>.</summary> */
         public static readonly cSortItem DisplayFrom = new cSortItem(eSortItem.displayfrom, false);
-        /** <summary>Ascending by <see cref="eSortItem.displayto"/>.</summary> */
+        /** <summary>Sort ascending by <see cref="eSortItem.displayto"/>.</summary> */
         public static readonly cSortItem DisplayTo = new cSortItem(eSortItem.displayto, false);
 
-        /** <summary>Descending by <see cref="eSortItem.received"/>.</summary> */
+        /** <summary>Sort descending by <see cref="eSortItem.received"/>.</summary> */
         public static readonly cSortItem ReceivedDesc = new cSortItem(eSortItem.received, true);
-        /** <summary>Descending by <see cref="eSortItem.cc"/>.</summary> */
+        /** <summary>Sort descending by <see cref="eSortItem.cc"/>.</summary> */
         public static readonly cSortItem CCDesc = new cSortItem(eSortItem.cc, true);
-        /** <summary>Descending by <see cref="eSortItem.sent"/>.</summary> */
+        /** <summary>Sort descending by <see cref="eSortItem.sent"/>.</summary> */
         public static readonly cSortItem SentDesc = new cSortItem(eSortItem.sent, true);
-        /** <summary>Descending by <see cref="eSortItem.from"/>.</summary> */
+        /** <summary>Sort descending by <see cref="eSortItem.from"/>.</summary> */
         public static readonly cSortItem FromDesc = new cSortItem(eSortItem.from, true);
-        /** <summary>Descending by <see cref="eSortItem.size"/>.</summary> */
+        /** <summary>Sort descending by <see cref="eSortItem.size"/>.</summary> */
         public static readonly cSortItem SizeDesc = new cSortItem(eSortItem.size, true);
-        /** <summary>Descending by <see cref="eSortItem.subject"/>.</summary> */
+        /** <summary>Sort descending by <see cref="eSortItem.subject"/>.</summary> */
         public static readonly cSortItem SubjectDesc = new cSortItem(eSortItem.subject, true);
-        /** <summary>Descending by <see cref="eSortItem.to"/>.</summary> */
+        /** <summary>Sort descending by <see cref="eSortItem.to"/>.</summary> */
         public static readonly cSortItem ToDesc = new cSortItem(eSortItem.to, true);
-        /** <summary>Descending by <see cref="eSortItem.displayfrom"/>.</summary> */
+        /** <summary>Sort descending by <see cref="eSortItem.displayfrom"/>.</summary> */
         public static readonly cSortItem DisplayFromDesc = new cSortItem(eSortItem.displayfrom, true);
-        /** <summary>Descending by <see cref="eSortItem.displayto"/>.</summary> */
+        /** <summary>Sort descending by <see cref="eSortItem.displayto"/>.</summary> */
         public static readonly cSortItem DisplayToDesc = new cSortItem(eSortItem.displayto, true);
 
         /// <summary>
@@ -135,30 +135,14 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents a message sort specification.
+    /// Represents a message sort order.
     /// </summary>
     /// <remarks>
-    /// You can use the following <see langword="static"/> instances of <see cref="cSortItem"/> when creating message sort specifications;
-    /// <list type="bullet">
-    /// <item><see cref="cSortItem.CC"/></item>
-    /// <item><see cref="cSortItem.DisplayFrom"/></item>
-    /// <item><see cref="cSortItem.DisplayTo"/></item>
-    /// <item><see cref="cSortItem.From"/></item>
-    /// <item><see cref="cSortItem.Received"/></item>
-    /// <item><see cref="cSortItem.Sent"/></item>
-    /// <item><see cref="cSortItem.Size"/></item>
-    /// <item><see cref="cSortItem.Subject"/></item>
-    /// <item><see cref="cSortItem.To"/></item>
-    /// <item><see cref="cSortItem.CCDesc"/></item>
-    /// <item><see cref="cSortItem.DisplayFromDesc"/></item>
-    /// <item><see cref="cSortItem.DisplayToDesc"/></item>
-    /// <item><see cref="cSortItem.FromDesc"/></item>
-    /// <item><see cref="cSortItem.ReceivedDesc"/></item>
-    /// <item><see cref="cSortItem.SentDesc"/></item>
-    /// <item><see cref="cSortItem.SizeDesc"/></item>
-    /// <item><see cref="cSortItem.SubjectDesc"/></item>
-    /// <item><see cref="cSortItem.ToDesc"/></item>
-    /// </list>
+    /// You can use the <see langword="static"/> instances of <see cref="cSortItem"/> when creating message sort orders.
+    /// For example;
+    /// <code>
+    /// var lSort = new cSort(cSortItem.Subject, cSortItem.Sent);
+    /// </code>
     /// </remarks>
     /// <seealso cref="cIMAPClient.DefaultSort"/>
     /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
@@ -221,7 +205,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Compares two messages using a comparision implied by the value of this instance.
+        /// Compares two messages using the comparision implied by the value of this instance.
         /// </summary>
         /// <param name="pX"></param>
         /// <param name="pY"></param>
@@ -313,7 +297,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Compares two messages using a comparision implied by the value of this instance.
+        /// Compares two messages using the comparision implied by the value of this instance.
         /// </summary>
         /// <param name="pX"></param>
         /// <param name="pY"></param>
@@ -340,7 +324,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the requirements for this sort to be done client-side and server-side.
+        /// Gets the client-side and server-side requirements for this sort order.
         /// </summary>
         /// <param name="rSortDisplay">Gets set to <see langword="true"/> if <see cref="cCapabilities.SortDisplay"/> must be in use for the server to do the sort.</param>
         /// <returns>The set of message attributes required for the comparison implied by the value of this instance.</returns>

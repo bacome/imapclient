@@ -94,6 +94,9 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
+
+        // ......................................................................................................................... when changing the version here also change it in the assemblyinfo
+
         /**<summary>The version number of the library. Used in the default <see cref="ClientId"/> value.</summary>*/
         public static Version Version = new Version(0, 4);
 
@@ -137,7 +140,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Initialises a new instance.
         /// </summary>
-        /// <param name="pInstanceName">The tracing instance name to use. See <see cref="cTrace"/>.</param>
+        /// <param name="pInstanceName">The instance name to use for the instance's <see cref="cTrace"/> root-context.</param>
         public cIMAPClient(string pInstanceName = TraceSourceName)
         {
             mInstanceName = pInstanceName;
@@ -514,7 +517,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         /// <seealso cref="cUnsuccessfulCompletionException"/>
         /// <seealso cref="cUnsuccessfulCompletionException.ResponseText"/>
-        /// <seealso cref="cResponseText.Strings"/>
+        /// <seealso cref="cResponseText.Arguments"/>
         /// <seealso cref="cURL"/>
         /// <seealso cref="cURI"/>
         public bool MailboxReferrals
@@ -572,7 +575,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// For details of the idling process, see <see cref="cIdleConfiguration"/>.
-        /// Set to <see langword="null"/> to prevent the instance from idling.
+        /// Set this property to <see langword="null"/> to prevent the instance from idling.
         /// The default value is a default instance of <see cref="cIdleConfiguration"/>.
         /// </remarks>
         public cIdleConfiguration IdleConfiguration
@@ -685,7 +688,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// The default value is <see cref="Encoding.UTF8"/>.
-        /// Only affects filtering by message content - see <see cref="cFilterPart"/>.
+        /// Only used when filtering by message content - see <see cref="cFilterPart"/> and <see cref="cFilter.HeaderFieldContains(string, string)"/>.
         /// </remarks>
         public Encoding Encoding
         {

@@ -10,12 +10,12 @@ namespace work.bacome.imapclient
         {
             private class cResponseTextCodeParserSelect : iResponseTextCodeParser
             {
-                private static readonly cBytes kPermanentFlagsSpace = new cBytes("PERMANENTFLAGS ");
-                private static readonly cBytes kUIDNextSpace = new cBytes("UIDNEXT ");
-                private static readonly cBytes kUIDValiditySpace = new cBytes("UIDVALIDITY ");
-                private static readonly cBytes kHighestModSeqSpace = new cBytes("HIGHESTMODSEQ ");
-                private static readonly cBytes kReadWriteRBracketSpace = new cBytes("READ-WRITE] ");
-                private static readonly cBytes kReadOnlyRBracketSpace = new cBytes("READ-ONLY] ");
+                private static readonly cBytes kPermanentFlags = new cBytes("PERMANENTFLAGS");
+                private static readonly cBytes kUIDNext = new cBytes("UIDNEXT");
+                private static readonly cBytes kUIDValidity = new cBytes("UIDVALIDITY");
+                private static readonly cBytes kHighestModSeq = new cBytes("HIGHESTMODSEQ");
+                private static readonly cBytes kReadWrite = new cBytes("READ-WRITE");
+                private static readonly cBytes kReadOnly = new cBytes("READ-ONLY");
 
                 private cCapabilities mCapabilities;
 
@@ -24,16 +24,21 @@ namespace work.bacome.imapclient
                     mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
                 }
 
-                public bool Process(cBytesCursor pCursor, out cResponseData rResponseData, cTrace.cContext pParentContext)
+                public bool Process(cByteList pCode, cByteList pArguments, out cResponseData rResponseData, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cResponseTextCodeParserSelect), nameof(Process));
-
-                    if (pCursor.SkipBytes(kPermanentFlagsSpace))
+                    
+                    if (pCode.Equals(kPermanentFlags))
                     {
-                        if (pCursor.GetFlags(out var lRawFlags) && pCursor.SkipBytes(cBytesCursor.RBracketSpace) && cPermanentFlags.TryConstruct(lRawFlags, out var lFlags))
+                        if (pArguments != null)
                         {
-                            rResponseData = new cResponseDataPermanentFlags(lFlags);
-                            return true;
+                            cBytesCursor lCursor = new cBytesCursor(pArguments);
+
+                            if (lCursor.GetFlags(out var lRawFlags) && lCursor.Position.AtEnd && cPermanentFlags.TryConstruct(lRawFlags, out var lFlags))
+                            {
+                                rResponseData = new cResponseDataPermanentFlags(lFlags);
+                                return true;
+                            }
                         }
 
                         lContext.TraceWarning("likely malformed permanentflags");
@@ -42,12 +47,17 @@ namespace work.bacome.imapclient
                         return false;
                     }
 
-                    if (pCursor.SkipBytes(kUIDNextSpace))
+                    if (pCode.Equals(kUIDNext))
                     {
-                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                        if (pArguments != null)
                         {
-                            rResponseData = new cResponseDataUIDNext(lNumber);
-                            return true;
+                            cBytesCursor lCursor = new cBytesCursor(pArguments);
+
+                            if (lCursor.GetNZNumber(out _, out var lNumber) && lCursor.Position.AtEnd)
+                            {
+                                rResponseData = new cResponseDataUIDNext(lNumber);
+                                return true;
+                            }
                         }
 
                         lContext.TraceWarning("likely malformed uidnext");
@@ -56,12 +66,17 @@ namespace work.bacome.imapclient
                         return false;
                     }
 
-                    if (pCursor.SkipBytes(kUIDValiditySpace))
+                    if (pCode.Equals(kUIDValidity))
                     {
-                        if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                        if (pArguments != null)
                         {
-                            rResponseData = new cResponseDataUIDValidity(lNumber);
-                            return true;
+                            cBytesCursor lCursor = new cBytesCursor(pArguments);
+
+                            if (lCursor.GetNZNumber(out _, out var lNumber) && lCursor.Position.AtEnd)
+                            {
+                                rResponseData = new cResponseDataUIDValidity(lNumber);
+                                return true;
+                            }
                         }
 
                         lContext.TraceWarning("likely malformed uidvalidity");
@@ -72,12 +87,17 @@ namespace work.bacome.imapclient
 
                     if (mCapabilities.CondStore)
                     {
-                        if (pCursor.SkipBytes(kHighestModSeqSpace))
+                        if (pCode.Equals(kHighestModSeq))
                         {
-                            if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                            if (pArguments != null)
                             {
-                                rResponseData = new cResponseDataHighestModSeq(lNumber);
-                                return true;
+                                cBytesCursor lCursor = new cBytesCursor(pArguments);
+
+                                if (lCursor.GetNZNumber(out _, out var lNumber) && lCursor.Position.AtEnd)
+                                {
+                                    rResponseData = new cResponseDataHighestModSeq(lNumber);
+                                    return true;
+                                }
                             }
 
                             lContext.TraceWarning("likely malformed highestmodseq");
@@ -87,13 +107,13 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    if (pCursor.SkipBytes(kReadWriteRBracketSpace))
+                    if (pCode.Equals(kReadWrite) && pArguments == null)
                     {
                         rResponseData = new cResponseDataAccess(false);
                         return true;
                     }
 
-                    if (pCursor.SkipBytes(kReadOnlyRBracketSpace))
+                    if (pCode.Equals(kReadOnly) && pArguments == null)
                     {
                         rResponseData = new cResponseDataAccess(true);
                         return true;

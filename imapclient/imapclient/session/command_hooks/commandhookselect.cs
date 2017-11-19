@@ -10,10 +10,10 @@ namespace work.bacome.imapclient
         {
             private class cCommandHookSelect : cCommandHook
             {
-                private static readonly cBytes kClosedRBracketSpace = new cBytes("CLOSED] ");
-                private static readonly cBytes kUnseenSpace = new cBytes("UNSEEN ");
-                private static readonly cBytes kNoModSeqRBracketSpace = new cBytes("NOMODSEQ] ");
-                private static readonly cBytes kUIDNotStickyRBracketSpace = new cBytes("UIDNOTSTICKY] ");
+                private const string kClosed = "CLOSED";
+                private const string kUnseenSpace = "UNSEEN";
+                private const string kNoModSeq = "NOMODSEQ";
+                private const string kUIDNotSticky = "UIDNOTSTICKY";
 
                 private readonly cMailboxCache mMailboxCache;
                 private readonly cCapabilities mCapabilities;
@@ -71,90 +71,54 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public override bool ProcessTextCode(eResponseTextType pTextType, cResponseData pData, cTrace.cContext pParentContext)
+                public override void ProcessTextCode(eResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode), pTextType, pData);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode), pTextContext, pData);
 
-                    if (mMailboxCache.SelectedMailboxDetails != null) return false;
+                    if (mMailboxCache.SelectedMailboxDetails != null) return;
 
-                    if (pTextType == eResponseTextType.information)
+                    if (pTextContext == eResponseTextContext.information)
                     {
                         switch (pData)
                         {
                             case cResponseDataPermanentFlags lFlags:
 
                                 mPermanentFlags = lFlags.Flags;
-                                return true;
+                                return;
 
                             case cResponseDataUIDNext lUIDNext:
 
                                 mUIDNext = lUIDNext.UIDNext;
-                                return true;
+                                return;
 
                             case cResponseDataUIDValidity lUIDValidity:
 
                                 mUIDValidity = lUIDValidity.UIDValidity;
-                                return true;
+                                return;
 
                             case cResponseDataHighestModSeq lHighestModSeq:
 
                                 mHighestModSeq = lHighestModSeq.HighestModSeq;
-                                return true;
+                                return;
                         }
                     }
-                    else if (pTextType == eResponseTextType.success)
-                    {
-                        if (pData is cResponseDataAccess lAccess)
-                        {
-                            mAccessReadOnly = lAccess.ReadOnly;
-                            return true;
-                        }
-                    }
-
-                    return false;
+                    else if (pTextContext == eResponseTextContext.success && pData is cResponseDataAccess lAccess) mAccessReadOnly = lAccess.ReadOnly;
                 }
 
-                public override bool ProcessTextCode(eResponseTextType pTextType, cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode), pTextType);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
 
                     if (mMailboxCache.SelectedMailboxDetails == null)
                     {
-                        if (pTextType == eResponseTextType.information)
-                        {
-                            if (pCursor.SkipBytes(kUnseenSpace))
-                            {
-                                if (pCursor.GetNZNumber(out _, out var lNumber) && pCursor.SkipBytes(cBytesCursor.RBracketSpace)) return true;
-                                lContext.TraceWarning("likely malformed unseen response");
-                                return false;
-                            }
-
-                            if (pCursor.SkipBytes(kNoModSeqRBracketSpace))
-                            {
-                                mHighestModSeq = 0;
-                                return true;
-                            }
-                        }
-                        else if (pTextType == eResponseTextType.warning)
-                        {
-                            if (pCursor.SkipBytes(kUIDNotStickyRBracketSpace))
-                            {
-                                mUIDNotSticky = true;
-                                return true;
-                            }
-                        }
+                        if (pTextContext == eResponseTextContext.information && pCode.Equals(kNoModSeq) && pArguments == null) mHighestModSeq = 0;
+                        else if (pTextContext == eResponseTextContext.warning && pCode.Equals(kUIDNotSticky) && pArguments == null) mUIDNotSticky = true;
                     }
                     else
                     {
                         // the spec (rfc 7162) doesn't specify where this comes - although the only example is of an untagged OK
-                        if (pCursor.SkipBytes(kClosedRBracketSpace))
-                        {
-                            mMailboxCache.Unselect(lContext);
-                            return true;
-                        }
+                        if (pCode.Equals(kClosed) && pArguments == null) mMailboxCache.Unselect(lContext);
                     }
-
-                    return false;
                 }
 
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)

@@ -1,37 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The type of response text.
+    /// The context in which the response text was received.
     /// </summary>
     /// <seealso cref="cResponseTextEventArgs"/>
-    public enum eResponseTextType
+    public enum eResponseTextContext
     {
-        /**<summary>Associated with a greeting.</summary>*/
         greeting,
-        /**<summary>Associated with a command continuation request.</summary>*/
         continuerequest,
-        /**<summary>Associated with a BYE.</summary>*/
         bye,
-        /**<summary>Information.</summary>*/
         information,
-        /**<summary>Warning.</summary>*/
         warning,
-        /**<summary>Error.</summary>*/
         error,
-        /**<summary>Associated with command success.</summary>*/
         success,
-        /**<summary>Associated with command failure.</summary>*/
         failure,
-        /**<summary>Associated with authentication cancellation.</summary>*/
         authenticationcancelled,
-        /**<summary>Associated with a protocol error.</summary>*/
         protocolerror
     }
 
     /// <summary>
-    /// The response text code.
+    /// The code associated with the response text.
     /// </summary>
     /// <seealso cref="cResponseText"/>
     public enum eResponseTextCode
@@ -100,7 +91,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// IMAP response text.
+    /// Contains IMAP response text.
     /// </summary>
     /// <seealso cref="cResponseTextEventArgs"/>
     /// <seealso cref="cUnsuccessfulCompletionException"/>
@@ -111,26 +102,28 @@ namespace work.bacome.imapclient
     public class cResponseText
     {
         /// <summary>
-        /// The code associated with the response text. If this is <see cref="eResponseTextCode.unknown"/> then the text of the code is in <see cref="UnknownCodeAtom"/>.
+        /// The response-code code associated with the response text in text form, may be <see langword="null"/>.
+        /// </summary>
+        public readonly string CodeText;
+
+        /// <summary>
+        /// The response-code arguments associated with the response text in text form, may be <see langword="null"/>.
+        /// </summary>
+        public readonly string ArgumentsText;
+
+        /// <summary>
+        /// The response-code code associated with the response text in code form.
         /// </summary>
         public readonly eResponseTextCode Code;
 
         /// <summary>
-        /// The data associated with the <see cref="Code"/>. 
-        /// If the code is <see cref="eResponseTextCode.badcharset"/> this may contain a list of valid charsets.
-        /// If the code is <see cref="eResponseTextCode.referral"/> this should contain the URI(s).
+        /// The response-code arguments associated with the response text in list form, may be <see langword="null"/>.
         /// </summary>
-        public readonly cStrings Strings; // for badcharset, referrals
-
-        /// <summary>
-        /// If the <see cref="Code"/> is <see cref="eResponseTextCode.unknown"/> this is the text of the code, otherwise <see langword="null"/>.
-        /// </summary>
-        public readonly string UnknownCodeAtom;
-
-        /// <summary>
-        /// If the <see cref="Code"/> is <see cref="eResponseTextCode.unknown"/> this is the text following the code, otherwise <see langword="null"/>. (May also be <see langword="null"/> if there was no text.)
-        /// </summary>
-        public readonly string UnknownCodeText;
+        /// <remarks>
+        /// If  <see cref="Code"/> is <see cref="eResponseTextCode.badcharset"/> this may contain a list of valid charsets.
+        /// If  <see cref="Code"/> is <see cref="eResponseTextCode.referral"/> this should contain the URI(s).
+        /// </remarks>
+        public readonly cStrings Arguments; // for badcharset, referrals
 
         /// <summary>
         /// The response text.
@@ -139,78 +132,64 @@ namespace work.bacome.imapclient
 
         internal cResponseText(string pText)
         {
+            CodeText = null;
+            ArgumentsText = null;
             Code = eResponseTextCode.none;
-            Strings = null;
-            UnknownCodeAtom = null;
-            UnknownCodeText = null;
+            Arguments = null;
             Text = pText;
         }
 
-        internal cResponseText(eResponseTextCode pCode, string pText)
+        internal cResponseText(IList<byte> pCodeText, eResponseTextCode pCode, string pText)
         {
+            CodeText = cTools.ASCIIBytesToString(pCodeText);
+            ArgumentsText = null;
             Code = pCode;
-            Strings = null;
-            UnknownCodeAtom = null;
-            UnknownCodeText = null;
+            Arguments = null;
             Text = pText;
         }
 
-        internal cResponseText(eResponseTextCode pCode, cStrings pStrings, string pText)
+        internal cResponseText(IList<byte> pCodeText, IList<byte> pArgumentsText, eResponseTextCode pCode, cStrings pArguments, string pText)
         {
+            CodeText = cTools.ASCIIBytesToString(pCodeText);
+            ArgumentsText = cTools.UTF8BytesToString(pArgumentsText);
             Code = pCode;
-            Strings = pStrings;
-            UnknownCodeAtom = null;
-            UnknownCodeText = null;
+            Arguments = pArguments;
             Text = pText;
         }
 
-        internal cResponseText(string pUnknownCodeAtom, string pUnknownCodeText, string pText)
-        {
-            Code = eResponseTextCode.unknown;
-            Strings = null;
-            UnknownCodeAtom = pUnknownCodeAtom;
-            UnknownCodeText = pUnknownCodeText;
-            Text = pText;
-        }
-
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cResponseText));
-            lBuilder.Append(Code);
-            if (Strings != null) lBuilder.Append(Strings);
-            if (UnknownCodeAtom != null) lBuilder.Append(UnknownCodeAtom);
-            if (UnknownCodeText != null) lBuilder.Append(UnknownCodeText);
+            lBuilder.Append(CodeText);
+            lBuilder.Append(ArgumentsText);
             lBuilder.Append(Text);
             return lBuilder.ToString();
         }
     }
 
     /// <summary>
-    /// See <see cref="cIMAPClient.ResponseText"/>.
+    /// Carries IMAP response text.
     /// </summary>
     public class cResponseTextEventArgs : EventArgs
     {
         /// <summary>
-        /// The response text type. This indicates the situation in which the response text was received
+        /// The context in which the response text was received.
         /// </summary>
-        public readonly eResponseTextType TextType;
+        public readonly eResponseTextContext Context;
 
         /// <summary>
         /// The response text.
         /// </summary>
         public readonly cResponseText Text;
 
-        internal cResponseTextEventArgs(eResponseTextType pTextType, cResponseText pText)
+        internal cResponseTextEventArgs(eResponseTextContext pContext, cResponseText pText)
         {
-            TextType = pTextType;
+            Context = pContext;
             Text = pText;
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
-        public override string ToString()
-        {
-            return $"{nameof(cResponseTextEventArgs)}({TextType},{Text})";
-        }
+        /// <inheritdoc/>
+        public override string ToString() => $"{nameof(cResponseTextEventArgs)}({Context},{Text})";
     }
 }

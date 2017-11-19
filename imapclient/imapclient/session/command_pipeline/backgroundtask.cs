@@ -141,7 +141,7 @@ namespace work.bacome.imapclient
                         if (lCurrentCommand.IsAuthentication) await ZProcessChallengeAsync(lCursor, lContext).ConfigureAwait(false);
                         else
                         {
-                            mResponseTextProcessor.Process(eResponseTextType.continuerequest, lCursor, lCurrentCommand.Hook, lContext);
+                            mResponseTextProcessor.Process(eResponseTextContext.continuerequest, lCursor, lCurrentCommand.Hook, lContext);
                             lCurrentCommand.WaitingForContinuationRequest = false;
                         }
 
