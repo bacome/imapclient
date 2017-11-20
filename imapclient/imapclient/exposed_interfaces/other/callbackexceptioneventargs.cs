@@ -3,13 +3,13 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Carries exceptions raised in callbacks and event handlers by external code.
+    /// Carries exceptions raised by external code.
     /// </summary>
     /// <seealso cref="cIMAPClient.CallbackException"/>
     public class cCallbackExceptionEventArgs : EventArgs
     {
         /// <summary>
-        /// The exception raised by external code.
+        /// The exception raised.
         /// </summary>
         public readonly Exception Exception;
 
@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
             Exception = pException;
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             return $"{nameof(cCallbackExceptionEventArgs)}({Exception})";

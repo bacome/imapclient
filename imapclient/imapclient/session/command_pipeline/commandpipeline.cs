@@ -119,7 +119,7 @@ namespace work.bacome.imapclient
                     if (mState < eState.connected)
                     {
                         pCommandDetails.Disposables?.Dispose();
-                        throw new InvalidOperationException();
+                        throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
                     }
 
                     cCommand lCommand;

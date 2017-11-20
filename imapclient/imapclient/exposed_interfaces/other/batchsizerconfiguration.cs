@@ -6,10 +6,10 @@ namespace work.bacome.imapclient
     /// Contains parameters to control batch sizes in long running operations.
     /// </summary>
     /// <seealso cref="cIMAPClient.NetworkWriteConfiguration"/>
-    /// <seealso cref="cIMAPClient.AppendStreamReadConfiguration"/>
     /// <seealso cref="cIMAPClient.FetchCacheItemsConfiguration"/>
     /// <seealso cref="cIMAPClient.FetchBodyReadConfiguration"/>
     /// <seealso cref="cIMAPClient.FetchBodyWriteConfiguration"/>
+    /// <seealso cref="cIMAPClient.AppendStreamReadConfiguration"/>
     /// <seealso cref="cBodyFetchConfiguration"/>
     public class cBatchSizerConfiguration
     {
@@ -42,7 +42,7 @@ namespace work.bacome.imapclient
             Initial = pInitial;
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(cBatchSizerConfiguration)}({Min},{Max},{MaxTime},{Initial})";
     }
 }

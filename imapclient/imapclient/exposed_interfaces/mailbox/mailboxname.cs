@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
     /// <remarks>
     /// IMAP mailbox names have few grammatical restrictions, but may not include the null character.
     /// IMAP hierarchy delimitiers have few grammatical restrictions, but must be ASCII, and not NUL, CR or LF.
-    /// Be careful to correctly specify the hierarchy delimitier, it is used in preparing the mailbox name for sending to the server.
+    /// Be careful to correctly specify the hierarchy delimiter, it is used in preparing the mailbox name for sending to the server.
     /// </remarks>
     /// <seealso cref="cIMAPClient.Mailbox(cMailboxName)"/>
     /// <seealso cref="cIMAPClient.Create(cMailboxName, bool)"/>
@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
         }
     
         /// <summary>
-        /// Initialises a new instance. Will throw if the parameters provided are not valid.
+        /// Initialises a new instance with the specified path and hierarchy delimiter. Will throw if the parameters provided are not valid.
         /// </summary>
         /// <param name="pPath"></param>
         /// <param name="pDelimiter"></param>

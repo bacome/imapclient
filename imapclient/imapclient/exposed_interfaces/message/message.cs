@@ -24,6 +24,8 @@ namespace work.bacome.imapclient
     /// <seealso cref="cSort"/>
     public class cMessage
     {
+        private enum eOperationType { fetch, store }
+
         private static readonly cMessageCacheItems kEnvelope = fMessageCacheAttributes.envelope;
         private static readonly cMessageCacheItems kFlags = fMessageCacheAttributes.flags;
         private static readonly cMessageCacheItems kReceived = fMessageCacheAttributes.received;
@@ -90,6 +92,26 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool Expunged => Handle.Expunged;
 
+        private void ZThrowFailure(eOperationType pType)
+        {
+            if (Handle.Expunged) throw new cMessageExpungedException(Handle);
+
+            switch (pType)
+            {
+                case eOperationType.fetch:
+
+                    throw new cUnexpectedServerActionException("fetch data not returned");
+
+                case eOperationType.store:
+
+                    throw new cSingleMessageStoreException();
+
+                default:
+
+                    throw new cInternalErrorException();
+            }
+        }
+
         /// <summary>
         /// Gets the IMAP envelope data of the message.
         /// </summary>
@@ -100,7 +122,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope;
             }
         }
@@ -113,7 +135,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope.Sent;
             }
         }
@@ -126,7 +148,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope.Subject;
             }
         }
@@ -142,7 +164,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope.BaseSubject;
             }
         }
@@ -155,7 +177,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope.From;
             }
         }
@@ -168,7 +190,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope.Sender;
             }
         }
@@ -181,7 +203,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope.ReplyTo;
             }
         }
@@ -194,7 +216,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope.To;
             }
         }
@@ -207,7 +229,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope.CC;
             }
         }
@@ -220,7 +242,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope.BCC;
             }
         }
@@ -236,7 +258,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope.InReplyTo?.MsgIds;
             }
         }
@@ -249,7 +271,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Envelope.MessageId?.MsgId;
             }
         }
@@ -264,7 +286,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kFlags)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kFlags)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Flags;
             }
         }
@@ -371,7 +393,7 @@ namespace work.bacome.imapclient
 
         private bool ZFlagsContain(string pFlag)
         {
-            if (!Client.Fetch(Handle, kFlags)) throw new InvalidOperationException();
+            if (!Client.Fetch(Handle, kFlags)) ZThrowFailure(eOperationType.fetch);
             return Handle.Flags.Contains(pFlag);
         }
 
@@ -380,7 +402,7 @@ namespace work.bacome.imapclient
             cStoreFeedback lFeedback;
             if (pValue) lFeedback = Client.Store(Handle, eStoreOperation.add, pFlags, null);
             else lFeedback = Client.Store(Handle, eStoreOperation.remove, pFlags, null);
-            if (lFeedback.Summary().LikelyFailedCount != 0) throw new InvalidOperationException(); 
+            if (lFeedback.Summary().LikelyFailedCount != 0) ZThrowFailure(eOperationType.store); 
         }
 
         /// <summary>
@@ -393,7 +415,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kReceived)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kReceived)) ZThrowFailure(eOperationType.fetch);
                 return Handle.Received.Value;
             }
         }
@@ -408,7 +430,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kSize)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kSize)) ZThrowFailure(eOperationType.fetch);
                 return (int)Handle.Size.Value;
             }
         }
@@ -424,7 +446,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kUID)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kUID)) ZThrowFailure(eOperationType.fetch);
                 return Handle.UID;
             }
         }
@@ -440,7 +462,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kModSeq)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kModSeq)) ZThrowFailure(eOperationType.fetch);
                 return Handle.ModSeq.Value;
             }
         }
@@ -455,7 +477,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kBodyStructure)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
                 return Handle.BodyStructure;
             }
         }
@@ -472,7 +494,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kBodyStructure)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
                 return ZAttachmentParts(Handle.BodyStructure);
             }
         }
@@ -512,7 +534,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kBodyStructure)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
                 int lSize = 0;
                 foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lSize += (int)lPart.SizeInBytes;
                 return lSize;
@@ -557,7 +579,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kReferences)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kReferences)) ZThrowFailure(eOperationType.fetch);
                 return Handle.HeaderFields.References;
             }
         }
@@ -573,7 +595,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kImportance)) throw new InvalidOperationException();
+                if (!Client.Fetch(Handle, kImportance)) ZThrowFailure(eOperationType.fetch);
                 return Handle.HeaderFields.Importance;
             }
         }
@@ -618,7 +640,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public int FetchSizeInBytes(cSinglePartBody pPart)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException();
+            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
             if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             return Client.FetchSizeInBytes(Handle, pPart);
         }
@@ -630,7 +652,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
         public Task<int> FetchSizeInBytesAsync(cSinglePartBody pPart)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException();
+            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
             if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             return Client.FetchSizeInBytesAsync(Handle, pPart);
         }
@@ -655,7 +677,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public string PlainText()
         {
-            if (!Client.Fetch(Handle, kBodyStructure)) throw new InvalidOperationException();
+            if (!Client.Fetch(Handle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
             StringBuilder lBuilder = new StringBuilder();
             foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lBuilder.Append(Fetch(lPart));
             return lBuilder.ToString();
@@ -667,7 +689,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="PlainText" select="returns|remarks"/>
         public async Task<string> PlainTextAsync()
         {
-            if (!await Client.FetchAsync(Handle, kBodyStructure).ConfigureAwait(false)) throw new InvalidOperationException();
+            if (!await Client.FetchAsync(Handle, kBodyStructure).ConfigureAwait(false)) ZThrowFailure(eOperationType.fetch);
 
             List<Task<string>> lTasks = new List<Task<string>>();
             foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lTasks.Add(FetchAsync(lPart));
@@ -689,7 +711,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public string Fetch(cTextBodyPart pPart)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException();
+            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
             if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
 
             using (var lStream = new MemoryStream())
@@ -707,7 +729,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Fetch(cTextBodyPart)" select="returns|remarks"/>
         public async Task<string> FetchAsync(cTextBodyPart pPart)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException();
+            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
             if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
 
             using (var lStream = new MemoryStream())
@@ -763,7 +785,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public void Fetch(cSinglePartBody pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException();
+            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
             if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             Client.Fetch(Handle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
         }
@@ -778,7 +800,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Fetch(cSinglePartBody, Stream, cBodyFetchConfiguration)" select="remarks"/>
         public Task FetchAsync(cSinglePartBody pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException();
+            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
             if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
             return Client.FetchAsync(Handle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
         }
@@ -822,7 +844,7 @@ namespace work.bacome.imapclient
         public void Store(eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
             var lFeedback = Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
-            if (lFeedback.Summary().LikelyFailedCount != 0) throw new InvalidOperationException(); 
+            if (lFeedback.Summary().LikelyFailedCount != 0) ZThrowFailure(eOperationType.store);
         }
 
         /// <summary>
@@ -836,7 +858,7 @@ namespace work.bacome.imapclient
         public async Task StoreAsync(eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
             var lFeedback = await Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
-            if (lFeedback.Summary().LikelyFailedCount != 0) throw new InvalidOperationException(); 
+            if (lFeedback.Summary().LikelyFailedCount != 0) ZThrowFailure(eOperationType.store); 
         }
 
         /// <summary>

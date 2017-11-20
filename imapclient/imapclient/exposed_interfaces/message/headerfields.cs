@@ -260,7 +260,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public cHeaderField FirstNamed(string pName)
         {
-            if (!Contains(pName)) throw new InvalidOperationException();
+            if (!Contains(pName)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotPopulatedWithData);
             return this.FirstOrDefault(f => f.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
         }
 
@@ -274,7 +274,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public IEnumerable<cHeaderField> AllNamed(string pName)
         {
-            if (!Contains(pName)) throw new InvalidOperationException();
+            if (!Contains(pName)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotPopulatedWithData);
             return from f in this where f.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase) select f;
         }
 

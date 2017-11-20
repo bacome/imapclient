@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pHandle, pBinary, pSection, pOrigin, pLength);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pSection == null) throw new ArgumentNullException(nameof(pSection));
@@ -37,7 +37,12 @@ namespace work.bacome.imapclient
 
                     // resolve the MSN
                     uint lMSN = lSelectedMailbox.GetMSN(pHandle);
-                    if (lMSN == 0) throw new InvalidOperationException(); // likely expunged
+
+                    if (lMSN == 0)
+                    {
+                        if (pHandle.Expunged) throw new cMessageExpungedException(pHandle);
+                        throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    }
 
                     // build command
 

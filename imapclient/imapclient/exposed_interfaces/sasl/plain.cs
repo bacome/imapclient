@@ -63,7 +63,7 @@ namespace work.bacome.imapclient
 
             public override IList<byte> GetResponse(IList<byte> pChallenge)
             {
-                if (mDone) throw new InvalidOperationException("already challenged");
+                if (mDone) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyChallenged);
                 mDone = true;
 
                 if (pChallenge != null && pChallenge.Count != 0) throw new ArgumentOutOfRangeException("non zero length challenge");

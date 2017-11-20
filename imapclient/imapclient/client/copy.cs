@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
             if (pSourceHandles == null) throw new ArgumentNullException(nameof(pSourceHandles));
             if (pDestinationHandle == null) throw new ArgumentNullException(nameof(pDestinationHandle));

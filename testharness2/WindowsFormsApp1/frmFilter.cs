@@ -89,10 +89,13 @@ namespace testharness2
 
             if (lTerms.Count == 0) return null;
 
-            cFilter lResult;
+            cFilter lResult = null;
 
-            if (lTerms.Count == 1) lResult = lTerms[0];
-            else lResult = new cFilterAnd(lTerms);
+            foreach (var lTerm in lTerms)
+            {
+                if (lResult == null) lResult = lTerm;
+                else lResult = lResult & lTerm;
+            }
 
             if (chkInvert.Checked) lResult = !lResult;
 
@@ -103,13 +106,13 @@ namespace testharness2
         {
             Text = "imapclient testharness - filter - " + mInstanceName;
 
-            mPartsBindingList.Add(new cPartsRowData(cFilter.BCC));
-            mPartsBindingList.Add(new cPartsRowData(cFilter.Body));
-            mPartsBindingList.Add(new cPartsRowData(cFilter.CC));
-            mPartsBindingList.Add(new cPartsRowData(cFilter.From));
-            mPartsBindingList.Add(new cPartsRowData(cFilter.Subject));
-            mPartsBindingList.Add(new cPartsRowData(cFilter.Text));
-            mPartsBindingList.Add(new cPartsRowData(cFilter.To));
+            mPartsBindingList.Add(new cPartsRowData("BCC", cFilter.BCC));
+            mPartsBindingList.Add(new cPartsRowData("Body", cFilter.Body));
+            mPartsBindingList.Add(new cPartsRowData("CC", cFilter.CC));
+            mPartsBindingList.Add(new cPartsRowData("From", cFilter.From));
+            mPartsBindingList.Add(new cPartsRowData("Subject", cFilter.Subject));
+            mPartsBindingList.Add(new cPartsRowData("Text", cFilter.Text));
+            mPartsBindingList.Add(new cPartsRowData("To", cFilter.To));
 
             ZGridsInitialise();
         }
@@ -310,14 +313,18 @@ namespace testharness2
 
         private class cPartsRowData
         {
+            private readonly string mPart;
+            private readonly cFilterPart mFilter;
+
             private string mContains = null;
 
-            public cPartsRowData(cFilterPart pPart)
+            public cPartsRowData(string pPart, cFilterPart pFilter)
             {
-                Part = pPart;
+                mPart = pPart;
+                mFilter = pFilter;
             }
 
-            public cFilterPart Part { get; private set; }
+            public string Part => mPart;
 
             public string Contains
             {
@@ -330,7 +337,7 @@ namespace testharness2
                 }
             }
 
-            public cFilter FilterPartContains => Part.Contains(Contains);
+            public cFilter FilterPartContains => mFilter.Contains(mContains);
         }
 
         private class cHeadersRowData

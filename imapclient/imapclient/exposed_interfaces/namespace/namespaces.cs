@@ -5,16 +5,16 @@ using System.Collections.ObjectModel;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A collection of <see cref="cNamespace"/> instances.
+    /// A read-only collection of <see cref="cNamespace"/>.
     /// </summary>
     /// <seealso cref="cIMAPClient.Namespaces"/>
     public class cNamespaces
     {
-        /**<summary>The personal <see cref="cNamespace"/> instances.</summary>*/
+        /**<summary>The personal <see cref="cNamespace"/> instances in the collection.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> Personal;
-        /**<summary>The 'other user' <see cref="cNamespace"/> instances.</summary>*/
+        /**<summary>The 'other user' <see cref="cNamespace"/> instances in the collection.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> OtherUsers;
-        /**<summary>The shared <see cref="cNamespace"/> instances.</summary>*/
+        /**<summary>The shared <see cref="cNamespace"/> instances in the collection.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> Shared;
 
         internal cNamespaces(cIMAPClient pClient, IList<cNamespaceName> pPersonal, IList<cNamespaceName> pOtherUsers, IList<cNamespaceName> pShared)

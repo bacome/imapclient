@@ -4,6 +4,28 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    internal static class kInvalidOperationExceptionMessage
+    {
+        public const string AlreadyChallenged = "already challenged";
+        public const string NotPopulatedWithData = "not populated with data";
+        public const string NotUnconnected = "not unconnected";
+        public const string NotConnected = "not connected";
+        public const string NoMailboxHierarchy = "no mailbox hierarchy";
+        public const string NotUnauthenticated = "not unauthenticated";
+        public const string AlreadyEnabled = "already enabled";
+        public const string AlreadyEmitted = "already emitted";
+        public const string AlreadySet = "already set";
+        public const string NotSelectedForUpdate = "not selected for update";
+        public const string NotSelected = "not selected";
+        public const string CondStoreNotInUse = "condstore not in use";
+        public const string AlreadyConnected = "already connected";
+        public const string NotEnabled = "not enabled";
+        public const string NotAuthenticated = "not authenticated";
+        public const string MailboxNotSelected = "mailbox not selected";
+        public const string NotConnecting = "not connecting";
+        public const string BodyStructureHasNotBeenFetched = "bodystructure has not been fetched";
+    }
+
     /// <summary>
     /// The abstract base class for all of the library's custom exceptions.
     /// </summary>
@@ -37,7 +59,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cUnsuccessfulCompletionException), pResponseText);
         }
 
-        /**<summary>Returns a string that represents the exception.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUnsuccessfulCompletionException));
@@ -49,7 +71,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown on a 'NO' or 'BAD' command response. (Thrown on a 'NO' only when the 'NO' is an unexpected possibility.)
+    /// Thrown on a 'NO' or 'BAD' command response. (Only thrown on a 'NO' when the 'NO' is an unexpected possibility.)
     /// </summary>
     public class cProtocolErrorException : cIMAPException
     {
@@ -71,7 +93,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cProtocolErrorException), pCommandResult);
         }
 
-        /**<summary>Returns a string that represents the exception.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cProtocolErrorException));
@@ -93,13 +115,18 @@ namespace work.bacome.imapclient
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
+        internal cUnexpectedServerActionException(string pMessage) : base(pMessage)
+        {
+            TryIgnoring = 0;
+        }
+
         internal cUnexpectedServerActionException(fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
         {
             TryIgnoring = pTryIgnoring;
             pContext.TraceError("{0}: {1}", nameof(cUnexpectedServerActionException), pMessage);
         }
 
-        /**<summary>Returns a string that represents the exception.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUnexpectedServerActionException));
@@ -137,7 +164,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cConnectByeException), pResponseText);
         }
 
-        /**<summary>Returns a string that represents the exception.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cConnectByeException));
@@ -148,7 +175,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when the server rejects connection but suggests that we try a different server.
+    /// Thrown when the server rejects connection but suggests trying a different server.
     /// </summary>
     /// <seealso cref="cIMAPClient.Connect"/>
     public class cHomeServerReferralException : cIMAPException
@@ -164,7 +191,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cHomeServerReferralException), pResponseText);
         }
 
-        /**<summary>Returns a string that represents the exception.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cHomeServerReferralException));
@@ -197,7 +224,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cCredentialsException), pResponseText);
         }
 
-        /**<summary>Returns a string that represents the exception.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cCredentialsException));
@@ -208,7 +235,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown to indicate that the inability to connect is related to the lack of usable authentication mechanisms offered by the server.
+    /// Thrown to indicate that the inability to connect is related to a lack of usable authentication mechanisms.
     /// </summary>
     /// <seealso cref="cIMAPClient.Connect"/>
     public class cAuthenticationMechanismsException : cIMAPException
@@ -224,7 +251,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cAuthenticationMechanismsException), pTLSIssue);
         }
 
-        /**<summary>Returns a string that represents the exception.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cAuthenticationMechanismsException));
@@ -235,7 +262,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown to indicate that a server initiated unilateral 'BYE' occurred.
+    /// Thrown to indicate that the server unilaterally disconnected.
     /// </summary>
     public class cUnilateralByeException : cIMAPException
     {
@@ -250,7 +277,7 @@ namespace work.bacome.imapclient
             pContext.TraceError("{0}: {1}", nameof(cUnilateralByeException), pResponseText);
         }
 
-        /**<summary>Returns a string that represents the exception.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUnilateralByeException));
@@ -299,7 +326,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when the UIDValidity changed while doing something that depended on it not changing.
+    /// Thrown when the UIDValidity of the selected mailbox changed while the library was doing something that depended on it not changing.
     /// </summary>
     public class cUIDValidityChangedException : cIMAPException
     {
@@ -317,26 +344,34 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when a message sequence number couldn't be determined when building a message filter. Probably due to the message being expunged.
+    /// Thrown when a message is accessed after it has been expunged.
     /// </summary>
-    /// <seealso cref="cFilterMSN"/>
-    public class cFilterMSNException : cIMAPException
+    public class cMessageExpungedException : cIMAPException
     {
         /// <summary>
-        /// The message that couldn't be resolved to a message sequence number.
+        /// The message.
         /// </summary>
         public readonly iMessageHandle Handle;
 
-        internal cFilterMSNException(iMessageHandle pHandle) { Handle = pHandle; }
+        internal cMessageExpungedException(iMessageHandle pHandle) { Handle = pHandle; }
 
-        /**<summary>Returns a string that represents the exception.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cFilterMSNException));
+            var lBuilder = new cListBuilder(nameof(cMessageExpungedException));
             lBuilder.Append(Handle);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
         }
+    }
+
+
+    /// <summary>
+    /// Thrown when a single message store operation fails.
+    /// </summary>
+    public class cSingleMessageStoreException : cIMAPException
+    {
+        internal cSingleMessageStoreException() { }
     }
 
     internal class cTestsException : Exception

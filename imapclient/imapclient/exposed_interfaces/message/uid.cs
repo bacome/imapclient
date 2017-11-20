@@ -1,10 +1,24 @@
 ﻿using System;
+using work.bacome.apidocumentation;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
     /// An IMAP message UID
     /// </summary>
+    /// <seealso cref="cMessage.UID"/>
+    /// <seealso cref="cMessage.Copy(cMailbox)"/>
+    /// <seealso cref="cFilter.UID"/>
+    /// <seealso cref="iMessageHandle.UID"/>
+    /// <seealso cref="cMailbox.Copy(System.Collections.Generic.IEnumerable{cMessage})"/>
+    /// <seealso cref="cMailbox.Message(cUID, cMessageCacheItems)"/>
+    /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.UIDFetch(cUID, cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.UIDCopy(cUID, cMailbox)"/>
+    /// <seealso cref="cMailbox.UIDCopy(System.Collections.Generic.IEnumerable{cUID}, cMailbox)"/>
+    /// <seealso cref="cMailbox.UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>
+    /// <seealso cref="cMailbox.UIDStore(System.Collections.Generic.IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>
     public class cUID : IComparable<cUID>, IEquatable<cUID>
     {
         /**<summary>The UIDValidity.</summary>*/
@@ -13,7 +27,7 @@ namespace work.bacome.imapclient
         public readonly uint UID;
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance with the specified UIDValidity and UID.
         /// </summary>
         /// <param name="pUIDValidity"></param>
         /// <param name="pUID"></param>
@@ -25,11 +39,7 @@ namespace work.bacome.imapclient
             UID = pUID;
         }
 
-        /// <summary>
-        /// Compares this instance with the specified <see cref="cUID"/> object.
-        /// </summary>
-        /// <param name="pOther"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo(object)"/>
         public int CompareTo(cUID pOther)
         {
             if (pOther == null) return 1;
@@ -38,24 +48,13 @@ namespace work.bacome.imapclient
             return lCompareTo;
         }
 
-        /// <summary>
-        /// Determines whether this instance and the specified object have the same value.
-        /// </summary>
-        /// <param name="pOther"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cUID pOther) => this == pOther;
 
-        /// <summary>
-        /// Determines whether this instance and the specified object have the same value.
-        /// </summary>
-        /// <param name="pObject"></param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public override bool Equals(object pObject) => this == pObject as cUID;
 
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -67,15 +66,10 @@ namespace work.bacome.imapclient
             }
         }
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(cUID)}({UIDValidity},{UID})";
 
-        /// <summary>
-        /// Determines whether two instances have the same value.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cUID pA, cUID pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -84,12 +78,7 @@ namespace work.bacome.imapclient
             return (pA.UIDValidity == pB.UIDValidity && pA.UID == pB.UID);
         }
 
-        /// <summary>
-        /// Determines whether two instances have different values.
-        /// </summary>
-        /// <param name="pA"></param>
-        /// <param name="pB"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cUID pA, cUID pB) => !(pA == pB);
     }
 }

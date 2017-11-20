@@ -1,5 +1,4 @@
 ﻿using System;
-using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient

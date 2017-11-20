@@ -39,8 +39,8 @@ namespace work.bacome.imapclient
     {
         /**<summary>There was no code.</summary>*/
         none,
-        /**<summary>There was a code, but it wasn't recognised.</summary>*/
-        unknown,
+        /**<summary>There was a code, but it wasn't one in this enumeration.</summary>*/
+        other,
 
         // rfc 3501
 
@@ -112,7 +112,7 @@ namespace work.bacome.imapclient
     public class cResponseText
     {
         /// <summary>
-        /// The response-code code associated with the response text in text form, may be <see langword="null"/>.
+        /// The response-code associated with the response text in text form, may be <see langword="null"/>.
         /// </summary>
         public readonly string CodeText;
 
@@ -122,7 +122,7 @@ namespace work.bacome.imapclient
         public readonly string ArgumentsText;
 
         /// <summary>
-        /// The response-code code associated with the response text in code form.
+        /// The response-code associated with the response text in code form.
         /// </summary>
         public readonly eResponseTextCode Code;
 

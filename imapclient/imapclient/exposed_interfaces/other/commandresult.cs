@@ -8,27 +8,27 @@ namespace work.bacome.imapclient
     /// <seealso cref="cCommandResult"/>
     public enum eCommandResultType
     {
-        /**<summary>OK</summary>*/
+        /**<summary>Successful completion.</summary>*/
         ok,
-        /**<summary>NO</summary>*/
+        /**<summary>Unsuccessful completion.</summary>*/
         no,
-        /**<summary>BAD</summary>*/
+        /**<summary>Protocol error.</summary>*/
         bad
     }
 
     /// <summary>
-    /// Represents the result of an IMAP command.
+    /// Contains data relating to the result of an IMAP command.
     /// </summary>
     /// <seealso cref="cProtocolErrorException"/>
     public class cCommandResult
     {
         /// <summary>
-        /// The IMAP command result type.
+        /// The result type.
         /// </summary>
         public readonly eCommandResultType ResultType;
 
         /// <summary>
-        /// The IMAP response text associated with the command result.
+        /// The response text.
         /// </summary>
         public readonly cResponseText ResponseText;
 
@@ -38,7 +38,7 @@ namespace work.bacome.imapclient
             ResponseText = pResponseText;
         }
 
-        /**<summary>Returns a string that represents the result.</summary>*/
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(cCommandResult)}({ResultType},{ResponseText})";
     }
 }

@@ -116,7 +116,7 @@ namespace work.bacome.imapclient
 
                 public void Add(cMessageCacheItems pItems, bool pNoModSeq)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
                     fMessageCacheAttributes lAttributes = pItems.Attributes;
                     if ((lAttributes & (fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq)) != 0) lAttributes |= fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq;
@@ -145,7 +145,7 @@ namespace work.bacome.imapclient
 
                 public void AddStatusAttributes(fMailboxCacheDataItems pAttributes)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
                     mParts.BeginList(eListBracketing.bracketed);
                     if ((pAttributes & fMailboxCacheDataItems.messagecount) != 0) mParts.Add(kCommandPartMessages);
@@ -159,7 +159,7 @@ namespace work.bacome.imapclient
 
                 public void Add(cFilter pFilter, cSelectedMailbox pSelectedMailbox, bool pCharsetMandatory, cCommandPartFactory pFactory)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
                     if (pFilter == null) throw new ArgumentNullException(nameof(pFilter));
                     if (pSelectedMailbox == null) throw new ArgumentNullException(nameof(pSelectedMailbox));
@@ -227,7 +227,12 @@ namespace work.bacome.imapclient
                             else
                             {
                                 lMSN = pSelectedMailbox.GetMSN(lRelativity.Handle);
-                                if (lMSN == 0) throw new cFilterMSNException(lRelativity.Handle); // may have been expunged
+
+                                if (lMSN == 0)
+                                {
+                                    if (lRelativity.Handle.Expunged) throw new cMessageExpungedException(lRelativity.Handle);
+                                    else throw new ArgumentOutOfRangeException(nameof(pFilter));
+                                }
                             }
 
                             lMSN = lMSN + lRelativity.Offset;
@@ -446,7 +451,7 @@ namespace work.bacome.imapclient
 
                 public void Add(cSort pSort)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
                     if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
@@ -514,7 +519,7 @@ namespace work.bacome.imapclient
 
                 public void Add(cSection pSection, uint pOrigin, uint pLength)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
                     if (pSection.Part != null)
                     {
@@ -574,7 +579,7 @@ namespace work.bacome.imapclient
 
                 public void Add(eStoreOperation pOperation, cStorableFlags pFlags)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
                     switch (pOperation)
                     {
@@ -605,39 +610,39 @@ namespace work.bacome.imapclient
 
                 public void Add(cExclusiveAccess.cToken pToken)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
                     mDisposables.Add(pToken);
                 }
 
                 public void Add(cExclusiveAccess.cBlock pBlock)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
                     mDisposables.Add(pBlock);
                 }
 
                 public void Add(cSASLAuthentication pSASLAuthentication)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
                     mDisposables.Add(pSASLAuthentication);
                 }
 
                 public void AddUIDValidity(uint pUIDValidity)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
                     if (mUIDValidity == null) mUIDValidity = pUIDValidity;
                     if (pUIDValidity != mUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
                 }
 
                 public void Add(cCommandHook pHook)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
-                    if (mHook != null) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
+                    if (mHook != null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadySet);
                     mHook = pHook ?? throw new ArgumentNullException(nameof(pHook));
                 }
 
                 public sCommandDetails EmitCommandDetails()
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
                     mEmitted = true;
                     return new sCommandDetails(Tag, mParts.Parts, mDisposables, mUIDValidity, mHook ?? cCommandHook.DoNothing);
                 }

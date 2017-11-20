@@ -69,7 +69,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetEnabled));
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.authenticated) throw new InvalidOperationException("must be authenticated");
+                if (_ConnectionState != eConnectionState.authenticated) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotAuthenticated);
 
                 bool lUTF8Enabled = (EnabledExtensions & fEnableableExtensions.utf8) != 0;
 
@@ -101,7 +101,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetInitialised));
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.enabled) throw new InvalidOperationException("must be enabled");
+                if (_ConnectionState != eConnectionState.enabled) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotEnabled);
 
                 ZSetState(eConnectionState.notselected, lContext);
             }
@@ -191,7 +191,7 @@ namespace work.bacome.imapclient
             private void ZSetConnectedAccountId(cAccountId pAccountId, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetConnectedAccountId), pAccountId);
-                if (_ConnectedAccountId != null) throw new InvalidOperationException(); // can only be set once
+                if (_ConnectedAccountId != null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyConnected); // can only be set once
                 _ConnectedAccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId));
                 ZSetState(eConnectionState.authenticated, lContext);
                 mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.ConnectedAccountId), lContext);
@@ -205,7 +205,7 @@ namespace work.bacome.imapclient
 
             public iMailboxHandle GetMailboxHandle(cMailboxName pMailboxName)
             {
-                if (mMailboxCache == null) throw new InvalidOperationException();
+                if (mMailboxCache == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotEnabled);
                 return mMailboxCache.GetHandle(pMailboxName);
             }
 

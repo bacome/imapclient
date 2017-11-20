@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
     {
         /**<summary>The client that this instance was created by.</summary>*/
         public readonly cIMAPClient Client;
-        /**<summary>The namespace name.</summary>*/
+        /**<summary>The namespace's name.</summary>*/
         public readonly cNamespaceName NamespaceName;
 
         internal cNamespace(cIMAPClient pClient, cNamespaceName pNamespaceName)
@@ -23,12 +23,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the name prefix of the namespace. May be the empty string.
+        /// Gets the name prefix of the namespace. May be <see cref="String.Empty"/>.
         /// </summary>
         public string Prefix => NamespaceName.Prefix;
 
         /// <summary>
-        /// Gets the hierarchy delimiter of the namespace. May be <see langword="null"/>. 
+        /// Gets the hierarchy delimiter used in the namespace. May be <see langword="null"/>. 
         /// </summary>
         /// <remarks>
         /// Will be <see langword="null"/> if the server has no hierarchy in its names.
@@ -71,7 +71,7 @@ namespace work.bacome.imapclient
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(NamespaceName, pDescend, pDataSets);
 
         /// <summary>
-        /// Creates a mailbox at the top level of this namespace.
+        /// Creates a mailbox at the top level of hierarchy in the namespace.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
         /// <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
@@ -79,7 +79,7 @@ namespace work.bacome.imapclient
         public cMailbox CreateChild(string pName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pName), pAsFutureParent);
 
         /// <summary>
-        /// Asynchronously creates a mailbox at the top level of this namespace.
+        /// Asynchronously creates a mailbox at the top level of hierarchy in the namespace.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
         /// <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
@@ -88,14 +88,14 @@ namespace work.bacome.imapclient
 
         private cMailboxName ZCreateChild(string pName)
         {
-            if (NamespaceName.Delimiter == null) throw new InvalidOperationException();
+            if (NamespaceName.Delimiter == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NoMailboxHierarchy);
             if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
             if (pName.IndexOf(NamespaceName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
             if (!cMailboxName.TryConstruct(NamespaceName.Prefix + pName, NamespaceName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
             return lMailboxName;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(cMailbox)}({NamespaceName})";
     }
 }

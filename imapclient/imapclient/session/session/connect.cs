@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
 
-                if (_ConnectionState != eConnectionState.notconnected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.notconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 ZSetState(eConnectionState.connecting, lContext);
 
                 sGreeting lGreeting;

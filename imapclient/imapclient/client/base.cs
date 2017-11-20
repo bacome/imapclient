@@ -386,7 +386,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 if ((value & fCapabilities.logindisabled) != 0) throw new ArgumentOutOfRangeException();
                 mIgnoreCapabilities = value;
             }
@@ -409,7 +409,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mServer = value;
             }
         }
@@ -461,7 +461,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mCredentials = value;
             }
         }
@@ -527,7 +527,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mMailboxReferrals = value;
             }
         }
@@ -546,7 +546,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mMailboxCacheDataItems = value;
             }
         }
@@ -565,7 +565,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mNetworkWriteConfiguration = value ?? throw new ArgumentNullException();
             }
         }
@@ -688,8 +688,15 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// The default value is <see cref="Encoding.UTF8"/>.
-        /// Only used when filtering by message content - see <see cref="cFilterPart"/> and <see cref="cFilter.HeaderFieldContains(string, string)"/>.
+        /// Only used when filtering by message content.
+        /// If the connected server does not support the encoding it will reject filters that use it and the library will throw <see cref="cUnsuccessfulCompletionException"/> with <see cref="eResponseTextCode.badcharset"/>.
         /// </remarks>
+        /// <seealso cref="cFilterPart"/>
+        /// <seealso cref="cFilter.HeaderFieldContains(string, string)"/>
+        /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
+        /// <seealso cref="cUnsuccessfulCompletionException.ResponseText"/>
+        /// <seealso cref="cResponseText.Code"/>
+        /// <seealso cref="cResponseText.Arguments"/>
         public Encoding Encoding
         {
             get => mEncoding;
@@ -720,7 +727,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mClientId = value;
             }
         }
@@ -740,7 +747,7 @@ namespace work.bacome.imapclient
             set
             {
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!IsUnconnected) throw new InvalidOperationException();
+                if (!IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mClientIdUTF8 = value;
             }
         }
@@ -812,7 +819,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 

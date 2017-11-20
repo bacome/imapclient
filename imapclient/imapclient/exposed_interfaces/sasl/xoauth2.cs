@@ -63,7 +63,7 @@ namespace work.bacome.imapclient
 
                     default:
 
-                        throw new InvalidOperationException("already challenged and error received");
+                        throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyChallenged);
                 }
             }
 

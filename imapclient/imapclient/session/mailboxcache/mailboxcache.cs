@@ -73,7 +73,7 @@ namespace work.bacome.imapclient
                 public cSelectedMailbox CheckIsSelectedMailbox(iMailboxHandle pHandle, uint? pUIDValidity)
                 {
                     if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-                    if (mSelectedMailbox == null || !ReferenceEquals(pHandle, mSelectedMailbox.Handle)) throw new InvalidOperationException();
+                    if (mSelectedMailbox == null || !ReferenceEquals(pHandle, mSelectedMailbox.Handle)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
                     if (pUIDValidity != null && pUIDValidity != mSelectedMailbox.Cache.UIDValidity) throw new cUIDValidityChangedException();
                     return mSelectedMailbox;
                 }
@@ -81,7 +81,7 @@ namespace work.bacome.imapclient
                 public cSelectedMailbox CheckInSelectedMailbox(iMessageHandle pHandle)
                 {
                     if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-                    if (mSelectedMailbox == null || !ReferenceEquals(pHandle.Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException();
+                    if (mSelectedMailbox == null || !ReferenceEquals(pHandle.Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
                     return mSelectedMailbox;
                 }
 
@@ -89,7 +89,7 @@ namespace work.bacome.imapclient
                 {
                     if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
                     if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
-                    if (mSelectedMailbox == null || !ReferenceEquals(pHandles[0].Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException();
+                    if (mSelectedMailbox == null || !ReferenceEquals(pHandles[0].Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
                     return mSelectedMailbox;
                 }
 
@@ -97,7 +97,7 @@ namespace work.bacome.imapclient
                 {
                     if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
                     if (pFeedback.Count == 0) throw new ArgumentOutOfRangeException(nameof(pFeedback));
-                    if (mSelectedMailbox == null || !ReferenceEquals(pFeedback[0].Handle.Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException();
+                    if (mSelectedMailbox == null || !ReferenceEquals(pFeedback[0].Handle.Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
                     return mSelectedMailbox;
                 }
 

@@ -63,7 +63,7 @@ namespace work.bacome.imapclient
                     public void Enable(cMailboxCache pMailboxCache, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cResponseTextProcessor), nameof(Enable));
-                        if (mMailboxCache != null) throw new InvalidOperationException();
+                        if (mMailboxCache != null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEnabled);
                         mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     }
 

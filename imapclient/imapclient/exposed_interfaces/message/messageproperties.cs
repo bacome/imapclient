@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Specifies a set of <see cref="cMessage"/> properties.
+    /// Represents a set of <see cref="cMessage"/> properties.
     /// </summary>
     /// <remarks>
     /// The <see cref="cMessageCacheItems"/> class defines an implicit conversion from this type, so you can use values of this type in places that take a <see cref="cMessageCacheItems"/>.

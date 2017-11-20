@@ -23,12 +23,12 @@ namespace work.bacome.imapclient
             CreatedUID = pCreatedUID;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(cCopyFeedbackItem)}({SourceUID},{CreatedUID})";
     }
 
     /// <summary>
-    /// Contains feedback on copy operations.
+    /// Contains feedback on a copy operation.
     /// </summary>
     /// <seealso cref="cMailbox.Copy(IEnumerable{cMessage})"/>
     /// <seealso cref="cMailbox.UIDCopy(IEnumerable{cUID}, cMailbox)"/>
@@ -45,8 +45,9 @@ namespace work.bacome.imapclient
                         new cUID(pDestinationUIDValidity, pCreatedUIDs[i])));
         }
 
+        ;?;
         /// <summary>
-        /// Gets one item.
+        /// Gets one item of feedback.
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>

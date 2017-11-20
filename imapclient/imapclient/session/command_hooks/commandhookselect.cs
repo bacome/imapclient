@@ -10,10 +10,9 @@ namespace work.bacome.imapclient
         {
             private class cCommandHookSelect : cCommandHook
             {
-                private const string kClosed = "CLOSED";
-                private const string kUnseenSpace = "UNSEEN";
-                private const string kNoModSeq = "NOMODSEQ";
-                private const string kUIDNotSticky = "UIDNOTSTICKY";
+                private static readonly cBytes kClosed = new cBytes("CLOSED");
+                private static readonly cBytes kNoModSeq = new cBytes("NOMODSEQ");
+                private static readonly cBytes kUIDNotSticky = new cBytes("UIDNOTSTICKY");
 
                 private readonly cMailboxCache mMailboxCache;
                 private readonly cCapabilities mCapabilities;

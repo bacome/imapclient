@@ -15,13 +15,21 @@ namespace work.bacome.imapclient
     /// <seealso cref="cAttachment.TypeCode"/>"/>
     public enum eBodyPartTypeCode
     {
+        /**<summary>The type was not recognised by the library.</summary>*/
         unknown,
+        /**<summary>Text.</summary>*/
         text,
+        /**<summary>Image data.</summary>*/
         image,
+        /**<summary>Audio data.</summary>*/
         audio,
+        /**<summary>Video data.</summary>*/
         video,
+        /**<summary>Some other kind of data.</summary>*/
         application,
+        /**<summary>Multiple entities of independent data types.</summary>*/
         multipart,
+        /**<summary>An encapsulated message.</summary>*/
         message
     }
 
@@ -31,8 +39,11 @@ namespace work.bacome.imapclient
     /// <seealso cref="cBodyPartDisposition.TypeCode"/>
     public enum eDispositionTypeCode
     {
+        /**<summary>The type was not recognised by the library.</summary>*/
         unknown,
+        /**<summary>Inline.</summary>*/
         inline,
+        /**<summary>Attachment.</summary>*/
         attachment
     }
 
@@ -42,8 +53,11 @@ namespace work.bacome.imapclient
     /// <seealso cref="cTextBodyPart.SubTypeCode"/>
     public enum eTextBodyPartSubTypeCode
     {
+        /**<summary>The subtype was not recognised by the library.</summary>*/
         unknown,
+        /**<summary>Plain text.</summary>*/
         plain,
+        /**<summary>HTML.</summary>*/
         html
     }
 
@@ -53,48 +67,33 @@ namespace work.bacome.imapclient
     /// <seealso cref="cMultiPartBody.SubTypeCode"/>
     public enum eMultiPartBodySubTypeCode
     {
+        /**<summary>The subtype was not recognised by the library.</summary>*/
         unknown,
+        /**<summary>Independent parts in a particular order.</summary>*/
         mixed,
+        /**<summary>Independent parts in a particular order.</summary>*/
         digest,
+        /**<summary>Alternative versions of the same information.</summary>*/
         alternative,
+        /**<summary>Inter-related parts (RFC 2387).</summary>*/
         related
     }
 
-    /// <summary>
-    /// Contains named MIME type constants.
-    /// </summary>
-    public static class kMimeType
+    internal static class kMimeType
     {
-        /**<summary>Multipart</summary>*/
         public const string Multipart = "Multipart";
-        /**<summary>Message</summary>*/
         public const string Message = "Message";
-        /**<summary>Text</summary>*/
         public const string Text = "Text";
     }
 
-    /// <summary>
-    /// Contains named MIME subtype constants.
-    /// </summary>
-    public static class kMimeSubType
+    internal static class kMimeSubType
     {
-        /**<summary>RFC822</summary>*/
         public const string RFC822 = "RFC822";
     }
 
     /// <summary>
     /// Represents a message body-part.
     /// </summary>
-    /// <remarks>
-    /// <para>Will be one of;
-    /// <list type="bullet">
-    /// <item><see cref="cMultiPartBody"/></item>
-    /// <item><see cref="cSinglePartBody"/></item>
-    /// <item><see cref="cMessageBodyPart"/></item>
-    /// <item><see cref="cTextBodyPart"/></item>
-    /// </list>
-    /// </para>
-    /// </remarks>
     /// <seealso cref="cMessage.BodyStructure"/>
     /// <seealso cref="iMessageHandle.Body"/>
     /// <seealso cref="iMessageHandle.BodyStructure"/>
@@ -114,7 +113,7 @@ namespace work.bacome.imapclient
         public readonly string SubType;
 
         /// <summary>
-        /// The IMAP section identifier of the body-part.
+        /// The IMAP section specification of the body-part.
         /// </summary>
         public readonly cSection Section;
 
@@ -155,7 +154,7 @@ namespace work.bacome.imapclient
         public abstract string Location { get; }
 
         /// <summary>
-        /// Gets any additional extension data for the body-part. May be <see langword="null"/>.
+        /// Gets any additional extension-data for the body-part. May be <see langword="null"/>.
         /// </summary>
         public abstract cBodyPartExtensionValues ExtensionValues { get; }
 
@@ -311,7 +310,7 @@ namespace work.bacome.imapclient
     /// Represents a multipart message body-part.
     /// </summary>
     /// <remarks>
-    /// The following elements of this class will be <see langword="null"/> when populated with IMAP BODY data rather than IMAP BODYSTRUCTURE data;
+    /// The following elements of instances will be <see langword="null"/> when populated with IMAP BODY data rather than IMAP BODYSTRUCTURE data;
     /// <list type="bullet">
     /// <item><see cref="ExtensionData"/></item>
     /// <item><see cref="Parameters"/></item>
@@ -448,7 +447,7 @@ namespace work.bacome.imapclient
     /// Represents a single-part message body-part.
     /// </summary>
     /// <remarks>
-    /// The following elements of this class will be <see langword="null"/> when populated with IMAP BODY data rather than IMAP BODYSTRUCTURE data;
+    /// The following elements of instances will be <see langword="null"/> when populated with IMAP BODY data rather than IMAP BODYSTRUCTURE data;
     /// <list type="bullet">
     /// <item><see cref="Disposition"/></item>
     /// <item><see cref="ExtensionData"/></item>
@@ -540,7 +539,7 @@ namespace work.bacome.imapclient
     /// Represents a message body-part that contains a message.
     /// </summary>
     /// <remarks>
-    /// The <see cref="BodyStructure"/> element of this class will be <see langword="null"/> when populated with IMAP BODY data rather than IMAP BODYSTRUCTURE data.
+    /// The <see cref="BodyStructure"/> element of instances will be <see langword="null"/> when populated with IMAP BODY data rather than IMAP BODYSTRUCTURE data.
     /// Instances populated with BODY data are only available via <see cref="iMessageHandle.Body"/>.
     /// </remarks>
     public class cMessageBodyPart : cSinglePartBody

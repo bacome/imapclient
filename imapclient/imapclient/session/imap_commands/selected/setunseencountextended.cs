@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetUnseenCountExtendedAsync), pMC, pHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
                 using (var lBuilder = new cCommandDetailsBuilder())

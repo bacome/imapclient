@@ -36,7 +36,13 @@ namespace work.bacome.imapclient
                     foreach (var lHandle in pSourceHandles)
                     {
                         var lMSN = lSelectedMailbox.GetMSN(lHandle);
-                        if (lMSN == 0) throw new InvalidOperationException();
+
+                        if (lMSN == 0)
+                        {
+                            if (lHandle.Expunged) throw new cMessageExpungedException(lHandle);
+                            else throw new ArgumentOutOfRangeException(nameof(pSourceHandles));
+                        }
+
                         lMSNs.Add(lMSN);
                     }
 

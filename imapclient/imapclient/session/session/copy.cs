@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(CopyAsync), pMC, pSourceHandles, pDestinationHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
                 if (pSourceHandles == null) throw new ArgumentNullException(nameof(pSourceHandles));
                 if (pDestinationHandle == null) throw new ArgumentNullException(nameof(pDestinationHandle));
@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDCopyAsync), pMC, pSourceHandle, pSourceUIDs, pDestinationHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
                 if (pSourceHandle == null) throw new ArgumentNullException(nameof(pSourceHandle));
                 if (pSourceUIDs == null) throw new ArgumentNullException(nameof(pSourceUIDs));

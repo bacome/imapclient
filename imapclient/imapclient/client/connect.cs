@@ -112,7 +112,7 @@ namespace work.bacome.imapclient
             if (mSession == null) lSessionReplaced = false;
             else
             {
-                if (!mSession.IsUnconnected) throw new InvalidOperationException("must be unconnected");
+                if (!mSession.IsUnconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                 mSession.Dispose();
 
                 lSessionReplaced = true;

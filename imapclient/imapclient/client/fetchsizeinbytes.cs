@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pPart == null) throw new ArgumentNullException(nameof(pPart));
@@ -49,7 +49,8 @@ namespace work.bacome.imapclient
 
                 if (pHandle.BinarySizes.TryGetValue(pPart.Section.Part, out lSizeInBytes)) return (int)lSizeInBytes;
 
-                throw new InvalidOperationException(); // probably expunged
+                if (pHandle.Expunged) throw new cMessageExpungedException(pHandle);
+                else throw new cUnexpectedServerActionException("fetch data not returned");
             }
 
             return (int)pPart.SizeInBytes;

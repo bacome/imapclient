@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
         public readonly bool SSL;
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance with the specified host.
         /// </summary>
         /// <param name="pHost"></param>
         /// <remarks>
@@ -32,7 +32,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance with the specified host and SSL setting.
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pSSL">Indicates whether TLS should be established immediately upon TCP connect.</param>
@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance with the specified host, port and SSL setting.
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pPort"></param>

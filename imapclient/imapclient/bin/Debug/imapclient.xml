@@ -591,8 +591,15 @@
             </summary>
             <remarks>
             The default value is <see cref="P:System.Text.Encoding.UTF8"/>.
-            Only used when filtering by message content - see <see cref="T:work.bacome.imapclient.cFilterPart"/> and <see cref="M:work.bacome.imapclient.cFilter.HeaderFieldContains(System.String,System.String)"/>.
+            Only used when filtering by message content.
+            If the connected server does not support the encoding it will reject filters that use it and the library will throw <see cref="T:work.bacome.imapclient.cUnsuccessfulCompletionException"/> with <see cref="F:work.bacome.imapclient.eResponseTextCode.badcharset"/>.
             </remarks>
+            <seealso cref="T:work.bacome.imapclient.cFilterPart"/>
+            <seealso cref="M:work.bacome.imapclient.cFilter.HeaderFieldContains(System.String,System.String)"/>
+            <seealso cref="M:work.bacome.imapclient.cMailbox.Messages(work.bacome.imapclient.cFilter,work.bacome.imapclient.cSort,work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cMessageFetchConfiguration)"/>
+            <seealso cref="F:work.bacome.imapclient.cUnsuccessfulCompletionException.ResponseText"/>
+            <seealso cref="F:work.bacome.imapclient.cResponseText.Code"/>
+            <seealso cref="F:work.bacome.imapclient.cResponseText.Arguments"/>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.ClientId">
             <summary>
@@ -1019,7 +1026,7 @@
         </member>
         <member name="T:work.bacome.imapclient.eStoreOperation">
             <summary>
-            A type of a store operation.
+            The store operation type.
             </summary>
             <seealso cref="M:work.bacome.imapclient.cMessage.Store(work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cStorableFlags,System.Nullable{System.UInt64})"/>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.Store(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cMessage},work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cStorableFlags,System.Nullable{System.UInt64})"/>
@@ -2009,7 +2016,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cServer.#ctor(System.String)">
             <summary>
-            Initialises a new instance.
+            Initialises a new instance with the specified host.
             </summary>
             <param name="pHost"></param>
             <remarks>
@@ -2018,7 +2025,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cServer.#ctor(System.String,System.Boolean)">
             <summary>
-            Initialises a new instance.
+            Initialises a new instance with the specified host and SSL setting.
             </summary>
             <param name="pHost"></param>
             <param name="pSSL">Indicates whether TLS should be established immediately upon TCP connect.</param>
@@ -2028,7 +2035,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cServer.#ctor(System.String,System.Int32,System.Boolean)">
             <summary>
-            Initialises a new instance.
+            Initialises a new instance with the specified host, port and SSL setting.
             </summary>
             <param name="pHost"></param>
             <param name="pPort"></param>
@@ -2039,7 +2046,7 @@
         </member>
         <member name="T:work.bacome.imapclient.eTLSRequirement">
             <summary>
-            A TLS requirement.
+            The TLS requirement.
             </summary>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetPlainCredentials(System.String,System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)"/>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetAnonymousCredentials(System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)"/>
@@ -2160,7 +2167,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cCallbackExceptionEventArgs">
             <summary>
-            Carries exceptions raised by external code in callbacks and event handlers.
+            Carries exceptions raised in callbacks and event handlers by external code.
             </summary>
             <seealso cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/>
         </member>
@@ -2527,7 +2534,7 @@
             <seealso cref="T:work.bacome.imapclient.cSort"/>
             <seealso cref="T:work.bacome.imapclient.support.iMessageCache"/>
             <seealso cref="T:work.bacome.imapclient.cMessagePropertyChangedEventArgs"/>
-            <seealso cref="T:work.bacome.imapclient.cFilterMSNException"/>
+            <seealso cref="!:cFilterMSNException"/>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.Cache">
             <summary>Gets the message cache that this instance belongs to.</summary>
@@ -3560,7 +3567,7 @@
         </member>
         <member name="T:work.bacome.imapclient.fMessageProperties">
             <summary>
-            Specifies a set of <see cref="T:work.bacome.imapclient.cMessage"/> properties.
+            Represents a set of <see cref="T:work.bacome.imapclient.cMessage"/> properties.
             </summary>
             <remarks>
             The <see cref="T:work.bacome.imapclient.cMessageCacheItems"/> class defines an implicit conversion from this type, so you can use values of this type in places that take a <see cref="T:work.bacome.imapclient.cMessageCacheItems"/>.
@@ -3580,7 +3587,7 @@
             <remarks>
             IMAP mailbox names have few grammatical restrictions, but may not include the null character.
             IMAP hierarchy delimitiers have few grammatical restrictions, but must be ASCII, and not NUL, CR or LF.
-            Be careful to correctly specify the hierarchy delimitier, it is used in preparing the mailbox name for sending to the server.
+            Be careful to correctly specify the hierarchy delimiter, it is used in preparing the mailbox name for sending to the server.
             </remarks>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.Mailbox(work.bacome.imapclient.cMailboxName)"/>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.Create(work.bacome.imapclient.cMailboxName,System.Boolean)"/>
@@ -3601,7 +3608,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cMailboxName.#ctor(System.String,System.Nullable{System.Char})">
             <summary>
-            Initialises a new instance. Will throw if the parameters provided are not valid.
+            Initialises a new instance with the specified path and hierarchy delimiter. Will throw if the parameters provided are not valid.
             </summary>
             <param name="pPath"></param>
             <param name="pDelimiter"></param>
@@ -3910,42 +3917,10 @@
             </summary>
             <seealso cref="F:work.bacome.imapclient.cMultiPartBody.SubTypeCode"/>
         </member>
-        <member name="T:work.bacome.imapclient.kMimeType">
-            <summary>
-            Contains named MIME type constants.
-            </summary>
-        </member>
-        <member name="F:work.bacome.imapclient.kMimeType.Multipart">
-            <summary>Multipart</summary>
-        </member>
-        <member name="F:work.bacome.imapclient.kMimeType.Message">
-            <summary>Message</summary>
-        </member>
-        <member name="F:work.bacome.imapclient.kMimeType.Text">
-            <summary>Text</summary>
-        </member>
-        <member name="T:work.bacome.imapclient.kMimeSubType">
-            <summary>
-            Contains named MIME subtype constants.
-            </summary>
-        </member>
-        <member name="F:work.bacome.imapclient.kMimeSubType.RFC822">
-            <summary>RFC822</summary>
-        </member>
         <member name="T:work.bacome.imapclient.cBodyPart">
             <summary>
             Represents a message body-part.
             </summary>
-            <remarks>
-            <para>Will be one of;
-            <list type="bullet">
-            <item><see cref="T:work.bacome.imapclient.cMultiPartBody"/></item>
-            <item><see cref="T:work.bacome.imapclient.cSinglePartBody"/></item>
-            <item><see cref="T:work.bacome.imapclient.cMessageBodyPart"/></item>
-            <item><see cref="T:work.bacome.imapclient.cTextBodyPart"/></item>
-            </list>
-            </para>
-            </remarks>
             <seealso cref="P:work.bacome.imapclient.cMessage.BodyStructure"/>
             <seealso cref="P:work.bacome.imapclient.support.iMessageHandle.Body"/>
             <seealso cref="P:work.bacome.imapclient.support.iMessageHandle.BodyStructure"/>
@@ -5774,7 +5749,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cSection">
             <summary>
-            Represents a section of an IMAP message.
+            Represents an IMAP message section specification.
             </summary>
             <seealso cref="F:work.bacome.imapclient.cBodyPart.Section"/>
             <seealso cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection)"/>
@@ -5783,30 +5758,30 @@
         </member>
         <member name="F:work.bacome.imapclient.cSection.All">
             <summary>
-            A section that represents the entire message.
+            A section specification for the entire message.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cSection.Header">
             <summary>
-            A section that represents the entire header-part of a message.
+            A section specification for the entire header-part of the message.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cSection.Text">
             <summary>
-            A section that represents the entire text-part of a message.
+            A section specification for the entire text-part of the message.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cSection.Part">
             <summary>
-            The body-part of the section. May be <see langword="null"/>.
+            The body-part of the section specification. May be <see langword="null"/>.
             </summary>
             <remarks>
-            A dot separated list of integers denoting a message body-part or <see langword="null"/> which indicates the 'top-level' body-part.
+            A dot separated list of integers denoting the message body-part or <see langword="null"/> which indicates the 'top-level' body-part.
             </remarks>
         </member>
         <member name="F:work.bacome.imapclient.cSection.TextPart">
             <summary>
-            The text-part of the section.
+            The text-part of the section specification.
             </summary>
             <remarks>
             Will not be <see cref="F:work.bacome.imapclient.eSectionTextPart.mime"/> if <see cref="F:work.bacome.imapclient.cSection.Part"/> is <see langword="null"/>.
@@ -5814,16 +5789,16 @@
         </member>
         <member name="F:work.bacome.imapclient.cSection.Names">
             <summary>
-            The header field subset of the section. May be <see langword="null"/>.
+            The header field subset of the section specification. May be <see langword="null"/>.
             </summary>
             <remarks>
-            Will not be <see langword="null"/> or empty if <see cref="F:work.bacome.imapclient.cSection.TextPart"/> is <see cref="F:work.bacome.imapclient.eSectionTextPart.headerfields"/> or <see cref="F:work.bacome.imapclient.eSectionTextPart.headerfieldsnot"/>.
+            Will not be <see langword="null"/> nor empty if <see cref="F:work.bacome.imapclient.cSection.TextPart"/> is <see cref="F:work.bacome.imapclient.eSectionTextPart.headerfields"/> or <see cref="F:work.bacome.imapclient.eSectionTextPart.headerfieldsnot"/>.
             Will be null otherwise.
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cSection.#ctor(System.String)">
             <summary>
-            Initialises a new instance so it represents an entire body-part.
+            Initialises a new instance so that it represents an entire body-part.
             </summary>
             <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or <see langword="null"/> for the 'top-level' body-part.</param>
             <remarks>
@@ -5832,7 +5807,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cSection.#ctor(System.String,work.bacome.imapclient.eSectionTextPart)">
             <summary>
-            Initialises a new instance so it represents a whole text-part.
+            Initialises a new instance so that it represents a whole text-part.
             </summary>
             <param name="pPart">Must be a valid IMAP section-part (a dot separated set of integers) or <see langword="null"/> for the 'top-level' body-part.</param>
             <param name="pTextPart">May be <see cref="F:work.bacome.imapclient.eSectionTextPart.all"/>, <see cref="F:work.bacome.imapclient.eSectionTextPart.header"/>, <see cref="F:work.bacome.imapclient.eSectionTextPart.text"/> or <see cref="F:work.bacome.imapclient.eSectionTextPart.mime"/> (<see cref="F:work.bacome.imapclient.eSectionTextPart.mime"/> only if <paramref name="pPart"/> is not <see langword="null"/>).</param>
@@ -6004,7 +5979,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cSort.#ctor(work.bacome.imapclient.cSortItem[])">
             <summary>
-            Initialises a new instance.
+            Initialises a new instance with the specified items.
             </summary>
             <param name="pItems"></param>
         </member>
@@ -6187,17 +6162,12 @@
             <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cNamespace.ToString">
-            <inheritdoc cref="!:cAPIDocumentationTemplate.ToString"/>
+            <inheritdoc/>
         </member>
         <member name="T:work.bacome.imapclient.cNamespaceName">
             <summary>
             Represents an IMAP namespace name.
             </summary>
-            <remarks>
-            IMAP namespace names have few grammatical restrictions, but may not include the null character.
-            IMAP hierarchy delimitiers have few grammatical restrictions, but must be ASCII, and not NUL, CR or LF.
-            Be careful to correctly specify the hierarchy delimitier, it is used in preparing the namespace name for sending to the server.
-            </remarks>
             <seealso cref="T:work.bacome.imapclient.cNamespace"/>
             <seealso cref="T:work.bacome.imapclient.cNamespaces"/>
         </member>
@@ -6214,16 +6184,8 @@
             Will be <see langword="null"/> if the server has no hierarchy in its names.
             </remarks>
         </member>
-        <member name="M:work.bacome.imapclient.cNamespaceName.#ctor(System.String,System.Nullable{System.Char})">
-            <summary>
-            Initialises a new instance. Will throw if the parameters provided are not valid.
-            </summary>
-            <param name="pPrefix">The name prefix of the namespace. May be the empty string, may not be <see langword="null"/></param>
-            <param name="pDelimiter">The namespace hierarchy delimiter. <see langword="null"/> if the server has no hierarchy in its names.</param>
-            <inheritdoc cref="T:work.bacome.imapclient.cNamespaceName" select="remarks"/>
-        </member>
         <member name="M:work.bacome.imapclient.cNamespaceName.ToString">
-            <inheritdoc cref="!:cAPIDocumentationTemplate.ToString"/>
+            <inheritdoc/>
         </member>
         <member name="T:work.bacome.imapclient.cNamespaces">
             <summary>
@@ -6341,11 +6303,11 @@
             <seealso cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>
         </member>
         <member name="M:work.bacome.imapclient.cUnsuccessfulCompletionException.ToString">
-            <summary>Returns a string that represents the exception.</summary>
+            <inheritdoc/>
         </member>
         <member name="T:work.bacome.imapclient.cProtocolErrorException">
             <summary>
-            Thrown on a 'NO' or 'BAD' command response. (Thrown on a 'NO' only when the 'NO' is an unexpected possibility.)
+            Thrown on a 'NO' or 'BAD' command response. (Only thrown on a 'NO' when the 'NO' is an unexpected possibility.)
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cProtocolErrorException.CommandResult">
@@ -6360,7 +6322,7 @@
             <seealso cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>
         </member>
         <member name="M:work.bacome.imapclient.cProtocolErrorException.ToString">
-            <summary>Returns a string that represents the exception.</summary>
+            <inheritdoc/>
         </member>
         <member name="T:work.bacome.imapclient.cUnexpectedServerActionException">
             <summary>
@@ -6374,7 +6336,7 @@
             <seealso cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>
         </member>
         <member name="M:work.bacome.imapclient.cUnexpectedServerActionException.ToString">
-            <summary>Returns a string that represents the exception.</summary>
+            <inheritdoc/>
         </member>
         <member name="T:work.bacome.imapclient.cInternalErrorException">
             <summary>
@@ -6393,11 +6355,11 @@
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cConnectByeException.ToString">
-            <summary>Returns a string that represents the exception.</summary>
+            <inheritdoc/>
         </member>
         <member name="T:work.bacome.imapclient.cHomeServerReferralException">
             <summary>
-            Thrown when the server rejects connection but suggests that we try a different server.
+            Thrown when the server rejects connection but suggests trying a different server.
             </summary>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>
         </member>
@@ -6407,7 +6369,7 @@
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cHomeServerReferralException.ToString">
-            <summary>Returns a string that represents the exception.</summary>
+            <inheritdoc/>
         </member>
         <member name="T:work.bacome.imapclient.cCredentialsException">
             <summary>
@@ -6421,11 +6383,11 @@
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cCredentialsException.ToString">
-            <summary>Returns a string that represents the exception.</summary>
+            <inheritdoc/>
         </member>
         <member name="T:work.bacome.imapclient.cAuthenticationMechanismsException">
             <summary>
-            Thrown to indicate that the inability to connect is related to the lack of usable authentication mechanisms offered by the server.
+            Thrown to indicate that the inability to connect is related to a lack of usable authentication mechanisms.
             </summary>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>
         </member>
@@ -6435,11 +6397,11 @@
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cAuthenticationMechanismsException.ToString">
-            <summary>Returns a string that represents the exception.</summary>
+            <inheritdoc/>
         </member>
         <member name="T:work.bacome.imapclient.cUnilateralByeException">
             <summary>
-            Thrown to indicate that a server initiated unilateral 'BYE' occurred.
+            Thrown to indicate that the server unilaterally disconnected.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cUnilateralByeException.ResponseText">
@@ -6448,7 +6410,7 @@
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cUnilateralByeException.ToString">
-            <summary>Returns a string that represents the exception.</summary>
+            <inheritdoc/>
         </member>
         <member name="T:work.bacome.imapclient.cSASLSecurityException">
             <summary>
@@ -6472,7 +6434,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cUIDValidityChangedException">
             <summary>
-            Thrown when the UIDValidity changed while doing something that depended on it not changing.
+            Thrown when the UIDValidity of the selected mailbox changed while the library was doing something that depended on it not changing.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cContentTransferDecodingException">
@@ -6480,23 +6442,22 @@
             Thrown when the content-transfer-encoding can't be handled.
             </summary>
         </member>
-        <member name="T:work.bacome.imapclient.cFilterMSNException">
+        <member name="T:work.bacome.imapclient.cMessageExpungedException">
             <summary>
-            Thrown when a message sequence number couldn't be determined when building a message filter. Probably due to the message being expunged.
-            </summary>
-            <seealso cref="T:work.bacome.imapclient.cFilterMSN"/>
-        </member>
-        <member name="F:work.bacome.imapclient.cFilterMSNException.Handle">
-            <summary>
-            The message that couldn't be resolved to a message sequence number.
+            Thrown when a message is accessed after it has been expunged.
             </summary>
         </member>
-        <member name="M:work.bacome.imapclient.cFilterMSNException.ToString">
-            <summary>Returns a string that represents the exception.</summary>
-        </member>
-        <member name="T:work.bacome.imapclient.cTestsException">
+        <member name="F:work.bacome.imapclient.cMessageExpungedException.Handle">
             <summary>
-            Thrown when an internal test fails.
+            The message.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cMessageExpungedException.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:work.bacome.imapclient.cSingleMessageStoreException">
+            <summary>
+            Thrown when a single message store operation fails.
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cBatchSizerConfiguration">
@@ -6933,6 +6894,36 @@
             The context in which the response text was received.
             </summary>
             <seealso cref="T:work.bacome.imapclient.cResponseTextEventArgs"/>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.greeting">
+            <summary>As part of an IMAP greeting.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.continuerequest">
+            <summary>As part of an IMAP continuation request.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.bye">
+            <summary>As part of an IMAP bye.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.information">
+            <summary>As part of an IMAP '* OK'.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.warning">
+            <summary>As part of an IMAP '* NO'.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.error">
+            <summary>As part of an IMAP '* BAD'.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.success">
+            <summary>As part of an IMAP command success.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.failure">
+            <summary>As part of an IMAP command failure.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.authenticationcancelled">
+            <summary>As part of IMAP authentication cancellation.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.protocolerror">
+            <summary>As part of an IMAP protocol error command termination.</summary>
         </member>
         <member name="T:work.bacome.imapclient.eResponseTextCode">
             <summary>

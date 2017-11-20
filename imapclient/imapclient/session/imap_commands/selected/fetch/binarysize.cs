@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBinarySizeAsync), pMC, pHandle, pPart);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pPart == null) throw new ArgumentNullException(nameof(pPart));
 
@@ -35,7 +35,12 @@ namespace work.bacome.imapclient
 
                     // resolve the MSN
                     uint lMSN = lSelectedMailbox.GetMSN(pHandle);
-                    if (lMSN == 0) throw new InvalidOperationException(); // likely expunged
+
+                    if (lMSN == 0)
+                    {
+                        if (pHandle.Expunged) throw new cMessageExpungedException(pHandle);
+                        else throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    }
 
                     // build command
                     lBuilder.Add(kFetchCommandPartFetchSpace, new cTextCommandPart(lMSN), kFetchCommandPartSpaceBinarySizeLBracket, lPart, cCommandPart.RBracket);
@@ -60,7 +65,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBinarySizeAsync), pMC, pHandle, pUID, pPart);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pUID == null) throw new ArgumentNullException(nameof(pUID));
                 if (pPart == null) throw new ArgumentNullException(nameof(pPart));

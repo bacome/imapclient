@@ -56,12 +56,12 @@ namespace work.bacome.imapclient
         public cCulturedString Description => Part.Description;
 
         /// <summary>
-        /// Gets the MIME content transfer encoding of the attachment in text form.
+        /// Gets the MIME content-transfer-encoding of the attachment in text form.
         /// </summary>
         public string ContentTransferEncoding => Part.ContentTransferEncoding;
 
         /// <summary>
-        /// Gets the MIME content transfer encoding of the attachment in code form.
+        /// Gets the MIME content-transfer-encoding of the attachment in code form.
         /// </summary>
         public eDecodingRequired DecodingRequired => Part.DecodingRequired;
 
@@ -96,7 +96,7 @@ namespace work.bacome.imapclient
         public DateTime? ReadDate => Part.Disposition?.ReadDate;
 
         /// <summary>
-        /// Gets the approximate size in bytes of the attachment. May be <see langword="null"/>.
+        /// Gets the approximate size of the attachment in bytes. May be <see langword="null"/>.
         /// </summary>
         public int? ApproximateFileSizeInBytes => Part.Disposition?.Size;
 
@@ -106,7 +106,7 @@ namespace work.bacome.imapclient
         public cStrings Languages => Part.ExtensionData?.Languages;
 
         /// <summary>
-        /// Gets the number of bytes that will have to come over the network from the IMAP server to save this attachment.
+        /// Gets the number of bytes that will have to come over the network from the server to save this attachment.
         /// </summary>
         /// <returns></returns>
         /// <remarks>
@@ -116,7 +116,7 @@ namespace work.bacome.imapclient
         public int SaveSizeInBytes() => Client.FetchSizeInBytes(Handle, Part);
 
         /// <summary>
-        /// Asynchronously gets the number of bytes that will have to come over the network from the IMAP server to save this attachment
+        /// Asynchronously gets the number of bytes that will have to come over the network from the server to save this attachment
         /// </summary>
         /// <inheritdoc cref="SaveSizeInBytes" select="returns|remarks"/>
         public Task<int> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(Handle, Part);

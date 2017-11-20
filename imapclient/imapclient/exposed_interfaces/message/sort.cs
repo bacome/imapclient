@@ -171,7 +171,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance with the specified items.
         /// </summary>
         /// <param name="pItems"></param>
         public cSort(params cSortItem[] pItems)
@@ -218,8 +218,6 @@ namespace work.bacome.imapclient
         /// <seealso cref="cMailbox.Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
         public int Compare(iMessageHandle pX, iMessageHandle pY)
         {
-            if (Items == null) throw new InvalidOperationException();
-
             if (pX == null)
             {
                 if (pY == null) return 0;
@@ -228,68 +226,71 @@ namespace work.bacome.imapclient
 
             if (pY == null) return 1;
 
-            foreach (var lItem in Items)
+            if (Items != null)
             {
-                int lCompareTo;
-
-                switch (lItem.Item)
+                foreach (var lItem in Items)
                 {
-                    case eSortItem.received:
+                    int lCompareTo;
 
-                        lCompareTo = ZCompareTo(pX.Received, pY.Received);
-                        break;
+                    switch (lItem.Item)
+                    {
+                        case eSortItem.received:
 
-                    case eSortItem.cc:
+                            lCompareTo = ZCompareTo(pX.Received, pY.Received);
+                            break;
 
-                        lCompareTo = ZCompareTo(pX.Envelope?.CC?.SortString, pY.Envelope?.CC?.SortString);
-                        break;
+                        case eSortItem.cc:
 
-                    case eSortItem.sent:
+                            lCompareTo = ZCompareTo(pX.Envelope?.CC?.SortString, pY.Envelope?.CC?.SortString);
+                            break;
 
-                        // rfc 5256 says to use the internal date if the sent date is null
-                        lCompareTo = ZCompareTo(pX.Envelope?.Sent ?? pX.Received, pY.Envelope?.Sent ?? pY.Received);
-                        break;
+                        case eSortItem.sent:
 
-                    case eSortItem.from:
+                            // rfc 5256 says to use the internal date if the sent date is null
+                            lCompareTo = ZCompareTo(pX.Envelope?.Sent ?? pX.Received, pY.Envelope?.Sent ?? pY.Received);
+                            break;
 
-                        lCompareTo = ZCompareTo(pX.Envelope?.From?.SortString, pY.Envelope?.From?.SortString);
-                        break;
+                        case eSortItem.from:
 
-                    case eSortItem.size:
+                            lCompareTo = ZCompareTo(pX.Envelope?.From?.SortString, pY.Envelope?.From?.SortString);
+                            break;
 
-                        lCompareTo = ZCompareTo(pX.Size, pY.Size);
-                        break;
+                        case eSortItem.size:
 
-                    case eSortItem.subject:
+                            lCompareTo = ZCompareTo(pX.Size, pY.Size);
+                            break;
 
-                        lCompareTo = ZCompareTo(pX.Envelope?.BaseSubject, pY.Envelope?.BaseSubject);
-                        break;
+                        case eSortItem.subject:
 
-                    case eSortItem.to:
+                            lCompareTo = ZCompareTo(pX.Envelope?.BaseSubject, pY.Envelope?.BaseSubject);
+                            break;
 
-                        lCompareTo = ZCompareTo(pX.Envelope?.To?.SortString, pY.Envelope?.To?.SortString);
-                        break;
+                        case eSortItem.to:
 
-                    case eSortItem.displayfrom:
+                            lCompareTo = ZCompareTo(pX.Envelope?.To?.SortString, pY.Envelope?.To?.SortString);
+                            break;
 
-                        lCompareTo = ZCompareTo(pX.Envelope?.From?.DisplaySortString, pY.Envelope?.From?.DisplaySortString);
-                        break;
+                        case eSortItem.displayfrom:
 
-                    case eSortItem.displayto:
+                            lCompareTo = ZCompareTo(pX.Envelope?.From?.DisplaySortString, pY.Envelope?.From?.DisplaySortString);
+                            break;
 
-                        lCompareTo = ZCompareTo(pX.Envelope?.To?.DisplaySortString, pY.Envelope?.To?.DisplaySortString);
-                        break;
+                        case eSortItem.displayto:
 
-                    default:
+                            lCompareTo = ZCompareTo(pX.Envelope?.To?.DisplaySortString, pY.Envelope?.To?.DisplaySortString);
+                            break;
 
-                        lCompareTo = 0;
-                        break;
-                }
+                        default:
 
-                if (lCompareTo != 0)
-                {
-                    if (lItem.Desc) return -lCompareTo;
-                    else return lCompareTo;
+                            lCompareTo = 0;
+                            break;
+                    }
+
+                    if (lCompareTo != 0)
+                    {
+                        if (lItem.Desc) return -lCompareTo;
+                        else return lCompareTo;
+                    }
                 }
             }
 
@@ -307,8 +308,6 @@ namespace work.bacome.imapclient
         /// </remarks>
         public int Compare(cMessage pX, cMessage pY)
         {
-            if (Items == null) throw new InvalidOperationException();
-
             if (pX == null)
             {
                 if (pY == null) return 0;
@@ -330,16 +329,17 @@ namespace work.bacome.imapclient
         /// <returns>The set of message attributes required for the comparison implied by the value of this instance.</returns>
         public fMessageCacheAttributes Attributes(out bool rSortDisplay)
         {
-            if (Items == null) throw new InvalidOperationException();
-
             rSortDisplay = false;
 
             fMessageCacheAttributes lAttributes = 0;
 
-            foreach (var lItem in Items)
+            if (Items != null)
             {
-                lAttributes |= lItem.Attribute;
-                if (lItem.Item == eSortItem.displayfrom || lItem.Item == eSortItem.displayto) rSortDisplay = true;
+                foreach (var lItem in Items)
+                {
+                    lAttributes |= lItem.Attribute;
+                    if (lItem.Item == eSortItem.displayfrom || lItem.Item == eSortItem.displayto) rSortDisplay = true;
+                }
             }
 
             return lAttributes;

@@ -725,7 +725,7 @@ namespace work.bacome.imapclient
 
         private cMailboxName ZCreateChild(string pName)
         {
-            if (Handle.MailboxName.Delimiter == null) throw new InvalidOperationException();
+            if (Handle.MailboxName.Delimiter == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NoMailboxHierarchy);
             if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
             if (pName.IndexOf(Handle.MailboxName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
             if (!cMailboxName.TryConstruct(Handle.MailboxName.Path + Handle.MailboxName.Delimiter.Value + pName, Handle.MailboxName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));

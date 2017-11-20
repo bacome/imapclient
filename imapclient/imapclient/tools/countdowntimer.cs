@@ -52,7 +52,7 @@ namespace work.bacome.async
         {
             var lContext = pParentContext.NewMethod(nameof(cCountdownTimer), nameof(Restart));
             if (mDisposed) throw new ObjectDisposedException(nameof(cCountdownTimer));
-            if (mTask == null || !mTask.IsCompleted) throw new InvalidOperationException();
+            if (mTask == null || !mTask.IsCompleted) throw new InvalidOperationException("current countdown not complete");
             mTask.Dispose();
             mTask = Task.Delay(mTimeout, mCancellationTokenSource.Token);
         }
