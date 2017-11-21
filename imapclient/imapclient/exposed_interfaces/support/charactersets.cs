@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// Represents a set of characters that are valid in a parsing context. Each <see langword="static"/> member defines a different set of characters. Intended for internal use.
+    /// Represents a set of characters that are valid in a parsing context. Intended for internal use.
     /// </summary>
     public abstract class cCharset
     {
@@ -644,65 +644,65 @@ namespace work.bacome.imapclient.support
 
         // instances
 
-        /**<summary>A-Z, a-z.</summary>*/
+        /**<summary>Represents the characters A-Z and a-z.</summary>*/
         public static readonly cCharset Alpha = new cAlpha();
-        /**<summary>0-9.</summary>*/
+        /**<summary>Represents the characters 0-9.</summary>*/
         public static readonly cCharset Digit = new cDigit();
-        /**<summary>A-Z, 0-9, a-z.</summary>*/
+        /**<summary>Represents the characters A-Z, 0-9 and a-z.</summary>*/
         public static readonly cCharset AlphaNumeric = new cAlphaNumeric();
-        /**<summary>RFC 3986 scheme.</summary>*/
+        /**<summary>Represents the characters used in RFC 3986 'scheme'.</summary>*/
         public static readonly cCharset Scheme = new cScheme();
-        /**<summary>RFC 3986 userinfo.</summary>*/
+        /**<summary>Represents the characters used in RFC 3986 'userinfo'.</summary>*/
         public static readonly cCharset UserInfo = new cUserInfo();
-        /**<summary>RFC 3501 atom.</summary>*/
+        /**<summary>Represents the characters used in RFC 3501 'atom'.</summary>*/
         public static readonly cCharset Atom = new cAtom();
-        /**<summary>RFC 3501 astring.</summary>*/
+        /**<summary>Represents the characters used in RFC 3501 'astring'.</summary>*/
         public static readonly cCharset AString = new cAString();
-        /**<summary>RFC 3501 response text.</summary>*/
+        /**<summary>Represents the characters used in RFC 3501 response text.</summary>*/
         public static readonly cCharset TextNotRBRACKET = new cTextNotRBRACKET();
-        /**<summary>RFC 3501 list-mailbox.</summary>*/
+        /**<summary>Represents the characters used in RFC 3501 'list-mailbox'.</summary>*/
         public static readonly cCharset ListMailbox = new cListMailbox();
-        /**<summary>RFC 5092 achar.</summary>*/
+        /**<summary>Represents the characters used in RFC 5092 'achar'.</summary>*/
         public static readonly cCharset AChar = new cAChar();
-        /**<summary>RFC 5092 bchar.</summary>*/
+        /**<summary>Represents the characters used in RFC 5092 'bchar'.</summary>*/
         public static readonly cCharset BChar = new cBChar();
-        /**<summary>RFC 3986 segment.</summary>*/
+        /**<summary>Represents the characters used in RFC 3986 'segment'.</summary>*/
         public static readonly cCharset PathSegment = new cPathSegment();
-        /**<summary>RFC 3986 segment-nz-nc.</summary>*/
+        /**<summary>Represents the characters used in RFC 3986 'segment-nz-nc'.</summary>*/
         public static readonly cCharset PathSegmentNoColon = new cPathSegmentNoColon();
-        /**<summary>RFC 3986 various path components (= PathSegment + '/').</summary>*/
+        /**<summary>Represents the characters used in various RFC 3986 path components (= PathSegment + '/').</summary>*/
         public static readonly cCharset Path = new cPath();
-        /**<summary>RFC 3986 query and fragment.</summary>*/
+        /**<summary>Represents the characters used in RFC 3986 'query' and 'fragment'.</summary>*/
         public static readonly cCharset AfterPath = new cAfterPath();
-        /**<summary>RFC 3986 reg-name.</summary>*/
+        /**<summary>Represents the characters used in RFC 3986 'reg-name'.</summary>*/
         public static readonly cCharset RegName = new cRegName();
-        /**<summary>RFC 3986 contents of IP-literal.</summary>*/
+        /**<summary>Represents the characters used in the RFC 3986 'IP-literal'.</summary>*/
         public static readonly cCharset IPLiteral = new cIPLiteral();
-        /**<summary>RFC 5092 uauth-mechanism.</summary>*/
+        /**<summary>Represents the characters used in RFC 5092 'uauth-mechanism'.</summary>*/
         public static readonly cCharset UAuthMechanism = new cUAuthMechanism();
-        /**<summary>A-F, 0-9, a-f.</summary>*/
+        /**<summary>Represents the characters A-F, 0-9 and a-f.</summary>*/
         public static readonly cCharset Hexidecimal = new cHexidecimal();
-        /**<summary>RFC 2978 mime-charset-chars.</summary>*/
+        /**<summary>Represents the characters used in RFC 2978 'mime-charset-chars'.</summary>*/
         public static readonly cCharset CharsetName = new cCharsetName();
-        /**<summary>RFC 2231 charset.</summary>*/
+        /**<summary>Represents the characters used in RFC 2231 'charset'.</summary>*/
         public static readonly cCharset CharsetNameDash = new cCharsetNameDash();
-        /**<summary>Contains all characters.</summary>*/
+        /**<summary>Represents a character set that contains all characters.</summary>*/
         public static readonly cCharset All = new cAll();
-        /**<summary>A-Z, 0-9, a-z, +/=.</summary>*/
+        /**<summary>Represents the characters A-Z, 0-9, a-z, +/=.</summary>*/
         public static readonly cCharset Base64 = new cBase64();
-        /**<summary>RFC 2047 Quoted-Printable.</summary>*/
+        /**<summary>Represents the characters used in RFC 2047 Quoted-Printable.</summary>*/
         public static readonly cCharset QEncoding = new cQEncoding();
-        /**<summary>RFC 6532 ctext.</summary>*/
+        /**<summary>Represents the characters used in RFC 6532 'ctext'.</summary>*/
         public static readonly cCharset CText = new cCText();
-        /**<summary>RFC 6532 atext.</summary>*/
+        /**<summary>Represents the characters used in RFC 6532 'atext'.</summary>*/
         public static readonly cCharset AText = new cAText();
-        /**<summary>RFC 6532 qtext.</summary>*/
+        /**<summary>Represents the characters used in RFC 6532 'qtext'.</summary>*/
         public static readonly cCharset QText = new cQText();
-        /**<summary>RFC 6532 dtext.</summary>*/
+        /**<summary>Represents the characters used in RFC 6532 'dtext'.</summary>*/
         public static readonly cCharset DText = new cDText();
-        /**<summary>RFC 5322 ftext.</summary>*/
+        /**<summary>Represents the characters used in RFC 5322 'ftext'.</summary>*/
         public static readonly cCharset FText = new cFText();
-        /**<summary>RFC 6749 VSCHAR.</summary>*/
+        /**<summary>Represents the characters used in RFC 6749 'VSCHAR'.</summary>*/
         public static readonly cCharset VSChar = new cVSChar();
     }
 }

@@ -3,10 +3,10 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains parameters to use with the IMAP LOGIN command.
+    /// Contains parameters for use with the IMAP LOGIN command.
     /// </summary>
     /// <remarks>
-    /// IMAP userids and passwords are limited to ASCII and may not include the null character.
+    /// The IMAP LOGIN command limits userids and passwords to ASCII characters excluding the NUL character.
     /// </remarks>
     /// <seealso cref="cCredentials.Login"/>
     public class cLogin
@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
         public readonly string UserId;
         /**<summary>The password to use.</summary>*/
         public readonly string Password;
-        /**<summary>The TLS requirement for the IMAP LOGIN command to be used with this userid and password.</summary>*/
+        /**<summary>The TLS requirement for the userid and password to be used.</summary>*/
         public readonly eTLSRequirement TLSRequirement;
 
         private cLogin(string pUserId, string pPassword, eTLSRequirement pTLSRequirement, bool pValidated)
@@ -26,11 +26,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance. Will throw if the parameters provided are not valid.
+        /// Initialises a new instance with the specified userid, password and TLS requirement. Will throw if the userid and password specified can't be used with IMAP LOGIN.
         /// </summary>
         /// <param name="pUserId"></param>
         /// <param name="pPassword"></param>
-        /// <param name="pTLSRequirement">The TLS requirement for the IMAP LOGIN command to be used with the specified userid and password.</param>
+        /// <param name="pTLSRequirement">The TLS requirement for the userid and password to be used.</param>
         /// <inheritdoc cref="cLogin" select="remarks"/>
         public cLogin(string pUserId, string pPassword, eTLSRequirement pTLSRequirement)
         {

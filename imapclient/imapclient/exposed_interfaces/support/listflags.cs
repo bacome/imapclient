@@ -1,5 +1,4 @@
 ﻿using System;
-using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient.support
 {
@@ -53,7 +52,7 @@ namespace work.bacome.imapclient.support
         internal bool ContainsSent => (Flags & fListFlags.sent) != 0;
         internal bool ContainsTrash => (Flags & fListFlags.trash) != 0;
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cListFlags)}({Sequence},{Flags})";
 
         internal static fMailboxProperties Differences(cListFlags pOld, cListFlags pNew)

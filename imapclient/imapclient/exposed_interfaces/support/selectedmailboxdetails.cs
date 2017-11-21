@@ -14,7 +14,7 @@ namespace work.bacome.imapclient.support
         bool SelectedForUpdate { get; }
         /**<summary>Indicates whether the mailbox can be modified.</summary>*/
         bool AccessReadOnly { get; }
-        /**<summary>Gets the message cache of this mailbox.</summary>*/
+        /**<summary>Gets the message cache of the mailbox.</summary>*/
         iMessageCache Cache { get; }
     }
 }

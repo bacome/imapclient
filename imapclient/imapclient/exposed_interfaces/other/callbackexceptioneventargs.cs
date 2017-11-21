@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
     public class cCallbackExceptionEventArgs : EventArgs
     {
         /// <summary>
-        /// The exception raised.
+        /// The exception that was raised.
         /// </summary>
         public readonly Exception Exception;
 

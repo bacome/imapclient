@@ -14,6 +14,7 @@ namespace work.bacome.apidocumentation
         /// </summary>
         public cAPIDocumentationTemplate() { }
 
+
         /// <summary>
         /// Determines whether two instances are the same.
         /// </summary>
@@ -35,7 +36,7 @@ namespace work.bacome.apidocumentation
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>
-        public string this[int i] => null;
+        public string Indexer(int i) => null;
 
         /// <summary>
         /// Compares this instance with the specified object.
@@ -54,7 +55,7 @@ namespace work.bacome.apidocumentation
         public IEnumerator GetEnumerator() => null;
 
         /// <summary>
-        /// Returns the hash code for this instance.
+        /// Returns the hash code for the instance.
         /// </summary>
         /// <returns>A hash code for the current object.</returns>
         public override int GetHashCode()
@@ -136,6 +137,17 @@ namespace work.bacome.apidocumentation
         /// <inheritdoc cref="cAPIDocumentationTemplate.cAPIDocumentationTemplate"/>
         public cAPIDocumentationExample2() { }
 
+
+
+
+
+
+
+
+
+
+
+
         /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo"/>
         public int CompareTo(object pOther) => 0;
 
@@ -145,11 +157,27 @@ namespace work.bacome.apidocumentation
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator GetEnumerator() => null;
 
-        /// <inheritdoc />
-        public override bool Equals(object pObject)
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
         {
-            return base.Equals(pObject);
+            return base.GetHashCode();
         }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
+        public string this[int i] => null;
+
+
+
+
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
+        public static bool operator ==(cAPIDocumentationExample2 pA, cAPIDocumentationExample2 pB) { return false; }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
+        public static bool operator !=(cAPIDocumentationExample2 pA, cAPIDocumentationExample2 pB) { return false; }
+
+
+        // for when equals isn't an override
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cAPIDocumentationExample2 pObject)
@@ -157,10 +185,17 @@ namespace work.bacome.apidocumentation
             return false;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
-        public override int GetHashCode()
+
+
+
+
+
+        // just use the ones defined by object ....
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject)
         {
-            return base.GetHashCode();
+            return base.Equals(pObject);
         }
 
         /// <inheritdoc />
@@ -168,11 +203,5 @@ namespace work.bacome.apidocumentation
         {
             return base.ToString();
         }
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
-        public static bool operator ==(cAPIDocumentationExample2 pA, cAPIDocumentationExample2 pB) { return false; }
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
-        public static bool operator !=(cAPIDocumentationExample2 pA, cAPIDocumentationExample2 pB) { return false; }
     }
 }

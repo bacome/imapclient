@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     /// Represents an IMAP mailbox name.
     /// </summary>
     /// <remarks>
-    /// IMAP mailbox names have few grammatical restrictions, but may not include the null character.
+    /// IMAP mailbox names have few grammatical restrictions, but may not include the NUL character.
     /// IMAP hierarchy delimitiers have few grammatical restrictions, but must be ASCII, and not NUL, CR or LF.
     /// Be careful to correctly specify the hierarchy delimiter, it is used in preparing the mailbox name for sending to the server.
     /// </remarks>

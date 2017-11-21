@@ -133,7 +133,7 @@ namespace work.bacome.async
             mDisposed = true;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cExclusiveAccess)}({mName},{mInstance},{mBlocks})";
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace work.bacome.async
                 mDisposed = true;
             }
 
-            /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+            /// <inheritdoc />
             public override string ToString() => $"{nameof(cBlock)}({mName},{mInstance})";
         }
 
@@ -212,7 +212,7 @@ namespace work.bacome.async
                 mDisposed = true;
             }
 
-            /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+            /// <inheritdoc/>
             public override string ToString() => $"{nameof(cToken)}({mName},{mInstance})";
         }
     }

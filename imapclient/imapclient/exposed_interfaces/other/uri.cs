@@ -5,19 +5,19 @@ using work.bacome.trace;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents a parsed URI.
+    /// Represents a parsed URI. See RFC 3986 and RFC 6874 for terminology.
     /// </summary>
     public class cURI
     {
         // rfc 3986, 6874
 
-        /**<summary>The string that the instance was constructed from.</summary>*/
+        /**<summary>The URI in string form.</summary>*/
         public readonly string OriginalString;
         private readonly cURIParts mParts;
         private readonly cURLParts mURLParts;
 
         /// <summary>
-        /// Initialises a new instance. Will throw if the string is not a valid URI.
+        /// Initialises a new instance from the specified string. Will throw if the string cannot be parsed.
         /// </summary>
         /// <param name="pURI"></param>
         public cURI(string pURI)
@@ -44,39 +44,69 @@ namespace work.bacome.imapclient
             return lParts;
         }
 
+        /**<summary>Gets the scheme part of the URI. May be <see langword="null"/>.</summary>*/
         public string Scheme => mParts.Scheme;
+        /**<summary>Gets the decoded userinfo part of the URI. May be <see langword="null"/>.</summary>*/
         public string UserInfo => mParts.UserInfo;
+        /**<summary>Gets the <see cref="cURL.UserId"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public string UserId => mURLParts?.UserId;
+        /**<summary>Gets the <see cref="cURL.MechanismName"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public string MechanismName => mURLParts?.MechanismName;
+        /**<summary>Gets the host part of the URI. May be <see langword="null"/>.</summary>*/
         public string Host => mParts.Host;
+        /**<summary>Gets the port part of the URI. May be <see langword="null"/>.</summary>*/
         public string PortString => mParts.Port;
+        /**<summary>Gets the <see cref="cURL.Port"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public int? Port => mURLParts?.Port;
+        /**<summary>Gets the decoded path part of the URI. May be <see langword="null"/>.</summary>*/
         public string Path => mParts.Path;
+        /**<summary>Gets the <see cref="cURL.MailboxPath"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public string MailboxPath => mURLParts?.MailboxPath;
+        /**<summary>Gets the <see cref="cURL.UIDValidity"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public uint? UIDValidity => mURLParts?.UIDValidity;
+        /**<summary>Gets the <see cref="cURL.UID"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public uint? UID => mURLParts?.UID;
+        /**<summary>Gets the <see cref="cURL.Section"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public string Section => mURLParts?.Section;
+        /**<summary>Gets the <see cref="cURL.PartialOffset"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public uint? PartialOffset => mURLParts?.PartialOffset;
+        /**<summary>Gets the <see cref="cURL.PartialLength"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public uint? PartialLength => mURLParts?.PartialLength;
+        /**<summary>Gets the <see cref="cURL.Expire"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public DateTime? Expire => mURLParts?.Expire;
+        /**<summary>Gets the <see cref="cURL.Application"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public string Application => mURLParts?.Application;
+        /**<summary>Gets the <see cref="cURL.AccessUserId"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public string AccessUserId => mURLParts?.AccessUserId;
+        /**<summary>Gets the <see cref="cURL.TokenMechanism"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public string TokenMechanism => mURLParts?.TokenMechanism;
+        /**<summary>Gets the <see cref="cURL.Token"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public string Token => mURLParts?.Token;
+        /**<summary>Gets the decoded query part of the URI. May be <see langword="null"/>.</summary>*/
         public string Query => mParts.Query;
+        /**<summary>Gets the <see cref="cURL.Search"/> if the URI is a valid IMAP URL. May be <see langword="null"/>.</summary>*/
         public string Search => mURLParts?.Search;
+        /**<summary>Gets the decoded fragment part of the URI. May be <see langword="null"/>.</summary>*/
         public string Fragment => mParts.Fragment;
 
+        /**<summary>Indicates whether the URI is an IMAP URL that requires that anonymous authentication be used.</summary>*/
         public bool MustUseAnonymous => mURLParts != null && mURLParts.MustUseAnonymous;
+        /**<summary>Indicates whether the URI is an IMAP URL that is a valid home server referral.</summary>*/
         public bool IsHomeServerReferral => mURLParts != null && mURLParts.IsHomeServerReferral;
+        /**<summary>Indicates whether the URI is an IMAP URL that is a valid mailbox referral.</summary>*/
         public bool IsMailboxReferral => mURLParts != null && mURLParts.IsMailboxReferral;
+        /**<summary>Indicates whether the URI is an IMAP URL that is a valid mailbox search URL.</summary>*/
         public bool IsMailboxSearch => mURLParts != null && mURLParts.IsMailboxSearch;
+        /**<summary>Indicates whether the URI is an IMAP URL that is a valid message reference URL.</summary>*/
         public bool IsMessageReference => mURLParts != null && mURLParts.IsMessageReference;
+        /**<summary>Indicates whether the URI is an IMAP URL that refers to part of a message.</summary>*/
         public bool IsPartial => mURLParts != null && mURLParts.IsPartial;
+        /**<summary>Indicates whether the URI is an IMAP URL that is suitable for use with RFC 4467 GENURLAUTH.</summary>*/
         public bool IsAuthorisable => mURLParts != null && mURLParts.IsAuthorisable;
+        /**<summary>Indicates whether the URI is an IMAP URL that is authorized.</summary>*/
         public bool IsAuthorised => mURLParts != null && mURLParts.IsAuthorised;
 
-        /**<summary>Returns a string that represents the instance.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cURI));
@@ -86,7 +116,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Tries to parse a string into a URI.
+        /// Tries to parse a string as a URI.
         /// </summary>
         /// <param name="pURI"></param>
         /// <param name="rURI"></param>

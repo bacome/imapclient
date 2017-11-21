@@ -4,19 +4,19 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents data received from a server.
+    /// Carries a response received from a server.
     /// </summary>
     /// <seealso cref="cIMAPClient.NetworkReceive"/>
     public class cNetworkReceiveEventArgs : EventArgs
     {
         /// <summary>
-        /// The data received.
+        /// The response that was received.
         /// </summary>
         public readonly cBytesLines Lines;
 
         internal cNetworkReceiveEventArgs(cBytesLines pLines) { Lines = pLines; }
 
-        /**<summary>Returns a string that represents the data received.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cNetworkReceiveEventArgs));

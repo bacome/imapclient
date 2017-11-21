@@ -5,6 +5,12 @@ using System.Text;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Contains parameters for use with the IMAP AUTHENTICATE ANONYMOUS command.
+    /// </summary>
+    /// <remarks>
+    /// RFC 4505 specifies that the trace information must be a valid email address or 1 to 255 characters of text not including '@'.
+    /// </remarks>
     public class cSASLAnonymous : cSASL
     {
         // rfc4505
@@ -20,6 +26,12 @@ namespace work.bacome.imapclient
             mTLSRequirement = pTLSRequirement;
         }
 
+        /// <summary>
+        /// Initialises a new instance with the specified trace information and TLS requirement. Will throw if the trace information isn't valid.
+        /// </summary>
+        /// <param name="pTrace"></param>
+        /// <param name="pTLSRequirement"></param>
+        /// <inheritdoc cref="cSASLAnonymous" select="remarks"/>
         public cSASLAnonymous(string pTrace, eTLSRequirement pTLSRequirement)
         {
             if (!ZIsValid(pTrace)) throw new ArgumentOutOfRangeException(nameof(pTrace));
@@ -41,7 +53,7 @@ namespace work.bacome.imapclient
 
         private static bool ZIsValid(string pTrace)
         {
-            if (string.IsNullOrWhiteSpace(pTrace)) return false;
+            if (string.IsNullOrEmpty(pTrace)) return false;
 
             if (pTrace.IndexOf('@') == -1) return pTrace.Length < 256;
 
@@ -56,8 +68,15 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// Gets the value "ANONYMOUS"
+        /// </summary>
         public override string MechanismName => kName;
+
+        /// <inheritdoc/>
         public override eTLSRequirement TLSRequirement => mTLSRequirement;
+
+        /// <inheritdoc cref="cSASL.GetAuthentication" select="summary"/>
         public override cSASLAuthentication GetAuthentication() => new cAuth(mTrace);
 
         private class cAuth : cSASLAuthentication

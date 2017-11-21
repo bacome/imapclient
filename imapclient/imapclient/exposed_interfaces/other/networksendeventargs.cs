@@ -6,7 +6,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents data sent to the server.
+    /// Carries data sent to a server.
     /// </summary>
     /// <seealso cref="cIMAPClient.NetworkSend"/>
     public class cNetworkSendEventArgs : EventArgs
@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
             Buffers = new List<cBytes>(pBuffers).AsReadOnly();
         }
 
-        /**<summary>Returns a string that represents the data sent.</summary>*/
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cNetworkSendEventArgs));

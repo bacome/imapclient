@@ -548,7 +548,7 @@ namespace work.bacome.imapclient
             public int MessagePropertyChangedSubscriptionCount;
             /**<summary>The count of subscriptions to the <see cref="CallbackException"/> event.</summary>*/
             public int CallbackExceptionSubscriptionCount;
-            /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+            /// <inheritdoc/>
             public override string ToString() => $"{nameof(PropertyChanged)}:{PropertyChangedSubscriptionCount} {nameof(ResponseText)}:{ResponseTextSubscriptionCount} {nameof(NetworkReceive)}:{NetworkReceiveSubscriptionCount} {nameof(NetworkSend)}:{NetworkSendSubscriptionCount} {nameof(MailboxPropertyChanged)}:{MailboxPropertyChangedSubscriptionCount} {nameof(MailboxMessageDelivery)}:{MailboxMessageDeliverySubscriptionCount} {nameof(MessagePropertyChanged)}:{MessagePropertyChangedSubscriptionCount} {nameof(CallbackException)}:{CallbackExceptionSubscriptionCount}";
         }
     }

@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cMessage.Attachments"/>
     public class cAttachment
     {
-        /**<summary>The client that this instance was created by.</summary>*/
+        /**<summary>The client that the instance was created by.</summary>*/
         public readonly cIMAPClient Client;
         /**<summary>The message that the attachment belongs to.</summary>*/
         public readonly iMessageHandle Handle;
@@ -106,7 +106,7 @@ namespace work.bacome.imapclient
         public cStrings Languages => Part.ExtensionData?.Languages;
 
         /// <summary>
-        /// Gets the number of bytes that will have to come over the network from the server to save this attachment.
+        /// Gets the number of bytes that will have to come over the network from the server to save the attachment.
         /// </summary>
         /// <returns></returns>
         /// <remarks>
@@ -116,7 +116,7 @@ namespace work.bacome.imapclient
         public int SaveSizeInBytes() => Client.FetchSizeInBytes(Handle, Part);
 
         /// <summary>
-        /// Asynchronously gets the number of bytes that will have to come over the network from the server to save this attachment
+        /// Asynchronously gets the number of bytes that will have to come over the network from the server to save the attachment
         /// </summary>
         /// <inheritdoc cref="SaveSizeInBytes" select="returns|remarks"/>
         public Task<int> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(Handle, Part);

@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The type of IMAP command result.
+    /// Represents the type of an IMAP command result.
     /// </summary>
     /// <seealso cref="cCommandResult"/>
     public enum eCommandResultType
@@ -23,12 +23,12 @@ namespace work.bacome.imapclient
     public class cCommandResult
     {
         /// <summary>
-        /// The result type.
+        /// The type of the result.
         /// </summary>
         public readonly eCommandResultType ResultType;
 
         /// <summary>
-        /// The response text.
+        /// The response text associated with the result.
         /// </summary>
         public readonly cResponseText ResponseText;
 

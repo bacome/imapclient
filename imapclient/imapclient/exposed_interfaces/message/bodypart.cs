@@ -9,7 +9,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The RFC 2045 MIME type of a message body-part.
+    /// Represents the RFC 2045 MIME type of a message body-part.
     /// </summary>
     /// <seealso cref="cBodyPart.TypeCode"/>
     /// <seealso cref="cAttachment.TypeCode"/>"/>
@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The RFC 2183 disposition type of a message body-part.
+    /// Represents the RFC 2183 disposition type of a message body-part.
     /// </summary>
     /// <seealso cref="cBodyPartDisposition.TypeCode"/>
     public enum eDispositionTypeCode
@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The RFC 2045 MIME subtype of a text message body-part.
+    /// Represents the RFC 2045 MIME subtype of a text message body-part.
     /// </summary>
     /// <seealso cref="cTextBodyPart.SubTypeCode"/>
     public enum eTextBodyPartSubTypeCode
@@ -62,7 +62,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The RFC 2045 MIME subtype of a multipart message body-part.
+    /// Represents the RFC 2045 MIME subtype of a multipart message body-part.
     /// </summary>
     /// <seealso cref="cMultiPartBody.SubTypeCode"/>
     public enum eMultiPartBodySubTypeCode

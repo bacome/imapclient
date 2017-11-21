@@ -9,7 +9,7 @@ using work.bacome.trace;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The state of an IMAP connection.
+    /// Represents the connection state of an IMAP client instance.
     /// </summary>
     /// <remarks>
     /// In the <see cref="disconnected"/> state some <see cref="cIMAPClient"/> properties retain their values from when the instance was connecting/ was connected.
@@ -41,10 +41,10 @@ namespace work.bacome.imapclient
     /// </summary>
     /// <remarks>
     /// <para>
-    /// An instance may connect many times, possibly to different IMAP servers, but can only have one active connection at a time.
+    /// An instance may connect many times, possibly to different servers, but it can only be connected to one server at a time.
     /// </para>
     /// <para>
-    /// To connect to an IMAP server use <see cref="Connect"/>.
+    /// To connect to a server use <see cref="Connect"/>.
     /// Before calling <see cref="Connect"/> set <see cref="Server"/> and <see cref="Credentials"/> at a minimum.
     /// Also consider setting <see cref="MailboxCacheDataItems"/>.
     /// </para>
@@ -97,10 +97,10 @@ namespace work.bacome.imapclient
 
         // ......................................................................................................................... when changing the version here also change it in the assemblyinfo
 
-        /**<summary>The version number of the library. Used in the default <see cref="ClientId"/> value.</summary>*/
+        /**<summary>The version number of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
         public static Version Version = new Version(0, 4);
 
-        /**<summary>The release date of the library. Used in the default <see cref="ClientId"/> value.</summary>*/
+        /**<summary>The release date of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
         public static DateTime ReleaseDate = new DateTime(2017, 11, 14);
 
         /**<summary>The trace source name used when tracing. See <see cref="cTrace"/>.</summary>*/
@@ -480,25 +480,27 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Sets <see cref="Credentials"/> to anonymous credentials. 
         /// </summary>
-        /// <param name="pTrace">The trace information sent to the server.</param>
-        /// <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
-        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Try the SASL ANONYMOUS mechanism even if it isn't advertised by the server.</param>
+        /// <param name="pTrace">The trace information to be sent to the server.</param>
+        /// <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
+        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if not advertised.</param>
         /// <remarks>
         /// Can only be called while <see cref="IsUnconnected"/>.
-        /// May fall back to IMAP LOGIN if SASL ANONYMOUS isn't available.
+        /// The credentials may fall back to IMAP LOGIN if SASL ANONYMOUS isn't available.
+        /// This method will throw if <paramref name="pTrace"/> can be used in neither <see cref="cLogin.Password"/> nor <see cref="cSASLAnonymous"/>.
         /// </remarks>
         public void SetAnonymousCredentials(string pTrace, eTLSRequirement pTLSRequirement = eTLSRequirement.indifferent, bool pTryAuthenticateEvenIfAnonymousIsntAdvertised = false) => Credentials = cCredentials.Anonymous(pTrace, pTLSRequirement, pTryAuthenticateEvenIfAnonymousIsntAdvertised);
 
         /// <summary>
         /// Sets <see cref="Credentials"/> to plain credentials.
         /// </summary>
-        /// <param name="pUserId">The userid to use.</param>
-        /// <param name="pPassword">The password to use.</param>
-        /// <param name="pTLSRequirement">The TLS requirement for these credentials to be used.</param>
-        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Try the SASL PLAIN mechanism even if it isn't advertised by the server.</param>
+        /// <param name="pUserId"></param>
+        /// <param name="pPassword"></param>
+        /// <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
+        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if not advertised.</param>
         /// <remarks>
-        ///  Can only be called while <see cref="IsUnconnected"/>.
-        ///  May fall back to IMAP LOGIN if SASL PLAIN isn't available.
+        /// Can only be called while <see cref="IsUnconnected"/>.
+        /// The credentials may fall back to IMAP LOGIN if SASL PLAIN isn't available.
+        /// This method will throw if the userid and password can be used in neither <see cref="cLogin"/> nor <see cref="cSASLPlain"/>.
         /// </remarks>
         public void SetPlainCredentials(string pUserId, string pPassword, eTLSRequirement pTLSRequirement = eTLSRequirement.required, bool pTryAuthenticateEvenIfPlainIsntAdvertised = false) => Credentials = cCredentials.Plain(pUserId, pPassword, pTLSRequirement, pTryAuthenticateEvenIfPlainIsntAdvertised);
 

@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Fired when the server notifies the client of a change that affects a property value of this instance.
+        /// Fired when the server notifies the client of a change that affects a property value of the instance.
         /// </summary>
         /// <remarks>
         /// If <see cref="cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
@@ -452,7 +452,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the modification sequence number of the message. May be zero.
+        /// Gets the mod-sequence number of the message. May be zero.
         /// </summary>
         /// <remarks>
         /// If the message cache does not contain the <see cref="fMessageCacheAttributes.modseq"/> of the message, it will be fetched from the server.
@@ -601,7 +601,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Ensures that the message cache contains the specified items for this message.
+        /// Ensures that the message cache contains the specified items for the message.
         /// </summary>
         /// <param name="pItems"></param>
         /// <returns>
@@ -615,7 +615,7 @@ namespace work.bacome.imapclient
         public bool Fetch(cMessageCacheItems pItems) => Client.Fetch(Handle, pItems);
 
         /// <summary>
-        /// Ansynchronously ensures that the message cache contains the specified items for this message.
+        /// Ansynchronously ensures that the message cache contains the specified items for the message.
         /// </summary>
         /// <param name="pItems"></param>
         /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
@@ -660,7 +660,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Returns a message sequence number offset for use in message filtering. See <see cref="cFilter.MSN"/>.
         /// </summary>
-        /// <param name="pOffset">The offset from this message's sequence number.</param>
+        /// <param name="pOffset">The offset required from the message's sequence number.</param>
         /// <returns></returns>
         public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(Handle, pOffset);
 

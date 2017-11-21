@@ -4,7 +4,7 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The type of an IMAP account.
+    /// Represents the type of an IMAP account.
     /// </summary>
     /// <seealso cref="cAccountId"/>
     /// <seealso cref="cCredentials"/>
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
         public readonly string Host;
 
         /// <summary> 
-        /// The account type.
+        /// The type of the account.
         /// </summary>
         /// <remarks>
         /// If the connection was IMAP PREAUTHed then this will be <see cref="eAccountType.unknown"/>.

@@ -4,7 +4,7 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A set of items that can be cached in a message cache.
+    /// Represents set of items that can be cached in a message cache.
     /// </summary>
     /// <seealso cref="cIMAPClient.DefaultMessageCacheItems"/>
     /// <seealso cref="cMessage.Fetch(cMessageCacheItems)"/>
@@ -20,17 +20,17 @@ namespace work.bacome.imapclient
         public static readonly cMessageCacheItems None = new cMessageCacheItems(0, cHeaderFieldNames.None);
 
         /// <summary>
-        /// The set of IMAP message attributes to cache.
+        /// The IMAP message attributes to cache.
         /// </summary>
         public readonly fMessageCacheAttributes Attributes;
 
         /// <summary>
-        /// The collection of header field names to cache.
+        /// The header field names to cache.
         /// </summary>
         public readonly cHeaderFieldNames Names;
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance using the specified IMAP message attributes and header field names.
         /// </summary>
         /// <param name="pAttributes"></param>
         /// <param name="pNames">Can't be <see langword="null"/>, may be empty.</param>
@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance using the specified <see cref="cMessage"/> properties.
         /// </summary>
         /// <param name="pProperties">The message properties to cache the backing data for.</param>
         public cMessageCacheItems(fMessageProperties pProperties)
@@ -101,19 +101,19 @@ namespace work.bacome.imapclient
         public static bool operator !=(cMessageCacheItems pA, cMessageCacheItems pB) => !(pA == pB);
 
         /// <summary>
-        /// Implicit conversion.
+        /// Returns a new instance initialised with the specified IMAP message attributes.
         /// </summary>
         /// <param name="pAttributes"></param>
         public static implicit operator cMessageCacheItems(fMessageCacheAttributes pAttributes) => new cMessageCacheItems(pAttributes, cHeaderFieldNames.None);
 
         /// <summary>
-        /// Implicit conversion.
+        /// Returns a new instance initialised with the specified header field names.
         /// </summary>
         /// <param name="pNames"></param>
         public static implicit operator cMessageCacheItems(cHeaderFieldNames pNames) => new cMessageCacheItems(0, pNames);
 
         /// <summary>
-        /// Implicit conversion.
+        /// Returns a new instance initialised with the specified <see cref="cMessage"/> properties.
         /// </summary>
         /// <param name="pProperties"></param>
         public static implicit operator cMessageCacheItems(fMessageProperties pProperties) => new cMessageCacheItems(pProperties);

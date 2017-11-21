@@ -41,6 +41,7 @@ namespace work.bacome.imapclient.support
             HighestModSeq = pHighestModSeq;
         }
 
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cMailboxStatus)}({MessageCount},{RecentCount},{UIDNext},{UIDNextUnknownCount},{UIDValidity},{UnseenCount},{UnseenUnknownCount},{HighestModSeq})";
 
         internal static fMailboxProperties Differences(cMailboxStatus pOld, cMailboxStatus pNew)

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The context in which the response text was received.
+    /// Represents the context in which response text was received.
     /// </summary>
     /// <seealso cref="cResponseTextEventArgs"/>
     public enum eResponseTextContext
@@ -30,21 +30,22 @@ namespace work.bacome.imapclient
         /**<summary>As part of an IMAP protocol error command termination.</summary>*/
         protocolerror
     }
-
+    
     /// <summary>
-    /// The code associated with the response text.
+    /// Represents the code associated with response text.
     /// </summary>
     /// <seealso cref="cResponseText"/>
     public enum eResponseTextCode
     {
         /**<summary>There was no code.</summary>*/
         none,
-        /**<summary>There was a code, but it wasn't one in this enumeration.</summary>*/
+
+        /**<summary>There was a code, but there isn't a <see cref="eResponseTextCode"/> value for it.</summary>*/
         other,
 
         // rfc 3501
 
-        /**<summary>RFC 3501 ALERT: the text is an alert.</summary>*/
+        /**<summary>RFC 3501 ALERT.</summary>*/
         alert,
         /**<summary>RFC 3501 BADCHARSET.</summary>*/
         badcharset,
@@ -103,6 +104,10 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Contains IMAP response text.
     /// </summary>
+    /// <remarks>
+    /// If <see cref="Code"/> is <see cref="eResponseTextCode.badcharset"/> <see cref="Arguments"/> may contain a list of supported character sets.
+    /// If <see cref="Code"/> is <see cref="eResponseTextCode.referral"/> <see cref="Arguments"/> should contain URI(s).
+    /// </remarks>
     /// <seealso cref="cResponseTextEventArgs"/>
     /// <seealso cref="cUnsuccessfulCompletionException"/>
     /// <seealso cref="cConnectByeException"/>
@@ -112,27 +117,25 @@ namespace work.bacome.imapclient
     public class cResponseText
     {
         /// <summary>
-        /// The response-code associated with the response text in text form, may be <see langword="null"/>.
+        /// The response code associated with the response text in text form, may be <see langword="null"/>.
         /// </summary>
         public readonly string CodeText;
 
         /// <summary>
-        /// The response-code arguments associated with the response text in text form, may be <see langword="null"/>.
+        /// The response code arguments associated with the response text in text form, may be <see langword="null"/>.
         /// </summary>
         public readonly string ArgumentsText;
 
         /// <summary>
-        /// The response-code associated with the response text in code form.
+        /// The response code associated with the response text in code form.
         /// </summary>
+        /// <inheritdoc cref="cResponseText" select="remarks"/>
         public readonly eResponseTextCode Code;
 
         /// <summary>
-        /// The response-code arguments associated with the response text in list form, may be <see langword="null"/>.
+        /// The response code arguments associated with the response text in list form, may be <see langword="null"/>.
         /// </summary>
-        /// <remarks>
-        /// If  <see cref="Code"/> is <see cref="eResponseTextCode.badcharset"/> this may contain a list of valid charsets.
-        /// If  <see cref="Code"/> is <see cref="eResponseTextCode.referral"/> this should contain the URI(s).
-        /// </remarks>
+        /// <inheritdoc cref="cResponseText" select="remarks"/>
         public readonly cStrings Arguments; // for badcharset, referrals
 
         /// <summary>

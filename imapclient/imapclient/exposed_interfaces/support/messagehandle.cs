@@ -16,16 +16,16 @@ namespace work.bacome.imapclient.support
     /// <seealso cref="cSort"/>
     /// <seealso cref="iMessageCache"/>
     /// <seealso cref="cMessagePropertyChangedEventArgs"/>
-    /// <seealso cref="cFilterMSNException"/>
+    /// <seealso cref="cMessageExpungedException"/>
     public interface iMessageHandle
     {
-        /**<summary>Gets the message cache that this instance belongs to.</summary>*/
+        /**<summary>Gets the message cache that the instance belongs to.</summary>*/
         iMessageCache Cache { get; }
-        /**<summary>Gets the sequence in the <see cref="Cache"/> of this message.</summary>*/
+        /**<summary>Gets the sequence in the <see cref="Cache"/> of the message.</summary>*/
         int CacheSequence { get; }
         /**<summary>Indicates whether the message exists on the server.</summary>*/
         bool Expunged { get; }
-        /**<summary>Gets the attributes that the cache currently contains for this message.</summary>*/
+        /**<summary>Gets the attributes that the message cache currently contains for the message.</summary>*/
         fMessageCacheAttributes Attributes { get; }
 
         /// <summary>
@@ -75,21 +75,21 @@ namespace work.bacome.imapclient.support
         cBinarySizes BinarySizes { get; }
 
         /// <summary>
-        /// Determines whether all the specified items are cached for this message.
+        /// Determines whether all the specified items are cached for the message.
         /// </summary>
         /// <param name="pItems"></param>
         /// <returns></returns>
         bool Contains(cMessageCacheItems pItems);
 
         /// <summary>
-        /// Determines whether none of the specified items are cached for this message.
+        /// Determines whether none of the specified items are cached for the message.
         /// </summary>
         /// <param name="pItems"></param>
         /// <returns></returns>
         bool ContainsNone(cMessageCacheItems pItems);
 
         /// <summary>
-        /// Returns those items from the specified items that are not cached for this message.
+        /// Returns those items from the specified items that are not cached for the message.
         /// </summary>
         /// <param name="pItems"></param>
         /// <returns></returns>

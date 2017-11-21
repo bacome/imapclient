@@ -4,11 +4,10 @@ using System.Collections.Generic;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents a SASL (RFC 4422) authentication mechanism.
+    /// Represents an object that can participate in the <see cref="cIMAPClient"/> SASL (RFC 4422) mechanism.
     /// </summary>
-    /// <remarks>
-    /// This class, along with <see cref="cSASLAuthentication"/> and <see cref="cSASLSecurity"/>, can be used as base classes for externally implemented SASL mechanisms.
-    /// </remarks>
+    /// <seealso cref="cSASLAuthentication"/>
+    /// <seealso cref="cSASLSecurity"/>
     public abstract class cSASL
     {
         /// <summary>
@@ -17,12 +16,12 @@ namespace work.bacome.imapclient
         public abstract string MechanismName { get; }
 
         /// <summary>
-        /// Gets the TSL requirement for the IMAP AUTHENTICATE command to be used with the details contained in this instance.
+        /// Gets the TSL requirement for the contained details to be used.
         /// </summary>
         public abstract eTLSRequirement TLSRequirement { get; }
 
         /// <summary>
-        /// Returns an object that can participate in the IMAP AUTHENTICATION process.
+        /// Returns an object that can participate in the <see cref="cIMAPClient"/> authentication process.
         /// </summary>
         /// <returns></returns>
         /// <remarks>
@@ -45,12 +44,13 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents a SASL authentication negotiator.
+    /// Represents an object that can participate in the <see cref="cIMAPClient"/> SASL (RFC 4422) authentication process.
     /// </summary>
     /// <remarks>
-    /// This class, along with <see cref="cSASL"/> and <see cref="cSASLSecurity"/>, can be used as base classes for externally implemented SASL mechanisms.
-    /// Instances will be disposed once authentication is complete (upon either successful or unsuccessful authentication).
+    /// Instances will be disposed once authentication is complete (upon either of success or failure).
     /// </remarks>
+    /// <seealso cref="cSASL"/>
+    /// <seealso cref="cSASLSecurity"/>
     public abstract class cSASLAuthentication : IDisposable
     {
         /// <summary>
@@ -61,7 +61,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <para>
         /// The library passes the BASE64 decoded challenge to this method and BASE64 encodes the returned response before sending it to the server.
-        /// If the authentication exchange should be cancelled this method should return <see langword="null"/>; the library will then gracefully cancel the exchange with the server.
+        /// If the authentication exchange should be cancelled then this method should return <see langword="null"/>; the library will then gracefully cancel the exchange with the server.
         /// </para>
         /// <para>
         /// If <see cref="cCapabilities.SASL_IR"/> is in use then the first challenge passed to this method will be <see langword="null"/>. 
@@ -72,7 +72,7 @@ namespace work.bacome.imapclient
         public abstract IList<byte> GetResponse(IList<byte> pChallenge);
 
         /// <summary>
-        /// Gets an object that implements a SASL security layer.
+        /// Returns an object that can participate in the <see cref="cIMAPClient"/> SASL security layer process.
         /// </summary>
         /// <returns></returns>
         /// <remarks>
@@ -88,12 +88,13 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents a SASL security layer.
+    /// Represents an object that can participate in the <see cref="cIMAPClient"/> SASL (RFC 4422) security layer process.
     /// </summary>
     /// <remarks>
-    /// This class, along with <see cref="cSASL"/> and <see cref="cSASLAuthentication"/>, can be used as base classes for externally implemented SASL mechanisms.
     /// Instances will be disposed when the connection closes.
     /// </remarks>
+    /// <seealso cref="cSASL"/>
+    /// <seealso cref="cSASLAuthentication"/>
     public abstract class cSASLSecurity : IDisposable
     {
         /// <summary>
@@ -103,7 +104,7 @@ namespace work.bacome.imapclient
         /// <returns>A buffer of decoded data or <see langword="null"/> if decoding cannot be completed until more input arrives.</returns>
         /// <remarks>
         /// Input buffers of encoded bytes are delivered to this method as they arrive.
-        /// Any bytes that cannot be decoded due to there being an 'uneven number' of bytes must be buffered.
+        /// Any bytes that cannot be decoded due to there being an 'uneven' number of bytes must be buffered.
         /// If there is a decoding error then this method must throw: this will immediately terminate the connection to the server.
         /// </remarks>
         public abstract byte[] Decode(byte[] pBuffer);
@@ -111,10 +112,10 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Encodes client data for sending to the server.
         /// </summary>
-        /// <param name="pBuffer">The un-encoded data to be sent</param>
+        /// <param name="pBuffer">The un-encoded data to be sent.</param>
         /// <returns>The encoded data to be sent.</returns>
         /// <remarks>
-        /// If there is a problem encoding the data this method should return <see langword="null"/> (or it may throw).
+        /// If there is a problem encoding the data this method should return <see langword="null"/> (or it may throw), this will immediately terminate the connection to the server.
         /// </remarks>
         public abstract byte[] Encode(byte[] pBuffer);
 

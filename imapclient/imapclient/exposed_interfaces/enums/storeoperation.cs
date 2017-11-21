@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The store operation type.
+    /// Represents a store operation type.
     /// </summary>
     /// <seealso cref="cMessage.Store(eStoreOperation, cStorableFlags, ulong?)"/>
     /// <seealso cref="cIMAPClient.Store(System.Collections.Generic.IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)"/>

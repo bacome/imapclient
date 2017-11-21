@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace work.bacome.imapclient.support
+namespace work.bacome.imapclient
 {
-    public class cUIntList : List<uint>
+    internal class cUIntList : List<uint>
     {
         public cUIntList() : base() { }
         public cUIntList(IEnumerable<uint> pUInts) : base(pUInts) { }

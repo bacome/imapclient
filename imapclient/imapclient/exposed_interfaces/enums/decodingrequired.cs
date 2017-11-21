@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The decoding required for message data.
+    /// Represents the decoding required for message data.
     /// </summary>
     /// <seealso cref="cAttachment.DecodingRequired"/>
     /// <seealso cref="cMessage.Fetch(cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>

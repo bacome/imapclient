@@ -3,9 +3,21 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace work.bacome.imapclient.support
+namespace work.bacome.imapclient
 {
-    public class cSequenceSet : ReadOnlyCollection<cSequenceSetItem>
+    internal class cSequenceSets : List<cSequenceSet>
+    {
+        public cSequenceSets() { }
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cSequenceSets));
+            foreach (var lItem in this) lBuilder.Append(lItem);
+            return lBuilder.ToString();
+        }
+    }
+
+    internal class cSequenceSet : ReadOnlyCollection<cSequenceSetItem>
     {
         public cSequenceSet(IList<cSequenceSetItem> pItems) : base(pItems) { }
 
@@ -85,7 +97,7 @@ namespace work.bacome.imapclient.support
         }
     }
 
-    public abstract class cSequenceSetItem
+    internal abstract class cSequenceSetItem
     {
         public static readonly cSequenceSetRangePart Asterisk = new cAsterisk();
 
@@ -104,12 +116,12 @@ namespace work.bacome.imapclient.support
         }
     }
 
-    public abstract class cSequenceSetRangePart : cSequenceSetItem
+    internal abstract class cSequenceSetRangePart : cSequenceSetItem
     {
         public abstract int CompareTo(cSequenceSetRangePart pOther);
     }
 
-    public class cSequenceSetNumber : cSequenceSetRangePart
+    internal class cSequenceSetNumber : cSequenceSetRangePart
     {
         public readonly uint Number;
 
@@ -129,7 +141,7 @@ namespace work.bacome.imapclient.support
         public override string ToString() => $"{nameof(cSequenceSetNumber)}({Number})";
     }
 
-    public class cSequenceSetRange : cSequenceSetItem
+    internal class cSequenceSetRange : cSequenceSetItem
     {
         public readonly cSequenceSetRangePart From;
         public readonly cSequenceSetRangePart To;

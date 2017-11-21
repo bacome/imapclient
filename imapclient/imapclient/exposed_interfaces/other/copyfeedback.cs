@@ -2,12 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using work.bacome.apidocumentation;
-using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains feedback on one message in a copy operation.
+    /// Contains feedback on one message in a copy operation, extracted from the RFC 4315 UIDCOPY response.
     /// </summary>
     /// <seealso cref="cCopyFeedback"/>
     public class cCopyFeedbackItem
@@ -28,7 +27,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains feedback on a copy operation.
+    /// Contains feedback on a copy operation based on the RFC 4315 UIDCOPY response.
     /// </summary>
     /// <seealso cref="cMailbox.Copy(IEnumerable{cMessage})"/>
     /// <seealso cref="cMailbox.UIDCopy(IEnumerable{cUID}, cMailbox)"/>
@@ -45,12 +44,7 @@ namespace work.bacome.imapclient
                         new cUID(pDestinationUIDValidity, pCreatedUIDs[i])));
         }
 
-        ;?;
-        /// <summary>
-        /// Gets one item of feedback.
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
         public cCopyFeedbackItem this[int i] => mItems[i];
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
@@ -60,7 +54,7 @@ namespace work.bacome.imapclient
         public IEnumerator<cCopyFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cCopyFeedback));

@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The message importance.
+    /// Represents the message's importance.
     /// </summary>
     /// <seealso cref="cMessage.Importance"/>
     /// <seealso cref="cFilterImportance"/>
@@ -11,8 +11,11 @@ namespace work.bacome.imapclient
     /// <seealso cref="cHeaderFieldImportance"/>
     public enum eImportance
     {
+        /**<summary>Low importance.</summary>*/
         low,
+        /**<summary>Normal importance.</summary>*/
         normal,
+        /**<summary>High importance.</summary>*/
         high
     }
 }

@@ -8,13 +8,13 @@ namespace work.bacome.imapclient
     /// <remarks>
     /// <para>Idling refers to the process of inviting the server to send unprompted (unprompted by external code) updates to the client with the aim of keeping the client in synch with the server.</para>
     /// <para>A <see cref="cIMAPClient"/> instance can only idle while it <see cref="cIMAPClient.IsConnected"/>.</para>
-    /// <para>Idling starts after the configured length of quiet time on the underlying IMAP protocol connection has passed (see <see cref="StartDelay"/>).</para>
+    /// <para>Idling starts after the configured length of quiet time on the underlying connection has passed (see <see cref="StartDelay"/>).</para>
     /// <para>
     /// If <see cref="cCapabilities.Idle"/> is in use then the RFC 2177 IDLE command is used.
     /// The IDLE command has to be restarted periodically to avoid the connection being closed due to inactivity - RFC 2177 recommends at least once every 29 minutes (see <see cref="IdleRestartInterval"/>).
     /// </para>
     /// <para>
-    /// If <see cref="cCapabilities.Idle"/> is not in use then the library drops back to a periodic poll of the server using IMAP CHECK and/ or NOOP (see <see cref="PollInterval"/>).
+    /// If <see cref="cCapabilities.Idle"/> is not in use then the library does a periodic poll of the server using IMAP CHECK and/ or NOOP (see <see cref="PollInterval"/>).
     /// </para>
     /// <para>
     /// The default values are;
@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
         public readonly int PollInterval;
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance with the specified delay, restart and poll intervals.
         /// </summary>
         /// <param name="pStartDelay">The length of the quiet time that must pass before idling starts, in milliseconds.</param>
         /// <param name="pIdleRestartInterval">The interval between RFC 2177 IDLE commands, in milliseconds.</param>
@@ -52,7 +52,7 @@ namespace work.bacome.imapclient
             PollInterval = pPollInterval;
         }
 
-        /**<summary>Returns a string that represents the configuration.</summary>*/
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(cIdleConfiguration)}({StartDelay},{IdleRestartInterval},{PollInterval})";
     }
 }

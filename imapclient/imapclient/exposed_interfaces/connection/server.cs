@@ -1,27 +1,26 @@
 ﻿using System;
-using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents an IMAP server.
+    /// Represents an IMAP service.
     /// </summary>
     /// <seealso cref="cIMAPClient.Server"/>
     public class cServer
     {
-        /**<summary>The host name.</summary>*/
+        /**<summary>The host name of the server.</summary>*/
         public readonly string Host;
-        /**<summary>The port number.</summary>*/
+        /**<summary>The port number of the service.</summary>*/
         public readonly int Port;
-        /**<summary>Indicates whether TLS should be established immediately upon TCP connect.</summary>*/
+        /**<summary>Indicates whether the service requires that TLS be established immediately upon TCP connect.</summary>*/
         public readonly bool SSL;
 
         /// <summary>
-        /// Initialises a new instance with the specified host.
+        /// Initialises a new instance with the specified host name.
         /// </summary>
         /// <param name="pHost"></param>
         /// <remarks>
-        /// The port is set to 143 and SSL set to <see langword="false"/>.
+        /// The port number is set to 143 and SSL set to <see langword="false"/>.
         /// </remarks>
         public cServer(string pHost)
         {
@@ -32,12 +31,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance with the specified host and SSL setting.
+        /// Initialises a new instance with the specified host name and SSL setting.
         /// </summary>
         /// <param name="pHost"></param>
-        /// <param name="pSSL">Indicates whether TLS should be established immediately upon TCP connect.</param>
+        /// <param name="pSSL">Indicates whether the service requires that TLS be established immediately upon TCP connect.</param>
         /// <remarks>
-        /// The port set to 143 if <paramref name="pSSL"/> is <see langword="false"/>, otherwise the port is set to 993.
+        /// The port number is set to 143 if <paramref name="pSSL"/> is <see langword="false"/>, otherwise the port number is set to 993.
         /// </remarks>
         public cServer(string pHost, bool pSSL)
         {
@@ -48,11 +47,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises a new instance with the specified host, port and SSL setting.
+        /// Initialises a new instance with the specified host name, port number and SSL setting.
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pPort"></param>
-        /// <param name="pSSL">Indicates whether TLS should be established immediately upon TCP connect.</param>
+        /// <param name="pSSL">Indicates whether the service requires that TLS be established immediately upon TCP connect.</param>
         public cServer(string pHost, int pPort, bool pSSL)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));

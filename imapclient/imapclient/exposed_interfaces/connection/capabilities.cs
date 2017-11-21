@@ -5,7 +5,7 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents a set of capabilities that the library understands in some way.
+    /// Represents a set of IMAP capabilities.
     /// </summary>
     /// <seealso cref="cCapabilities"/>
     /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
@@ -70,10 +70,10 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains IMAP capabilities.
+    /// A read-only collection of IMAP capabilities.
     /// </summary>
     /// <remarks>
-    /// The properties of this class reflect the flags set in <see cref="EffectiveCapabilities"/>.
+    /// The properties of this class reflect the value of <see cref="EffectiveCapabilities"/>.
     /// </remarks>
     /// <seealso cref="cIMAPClient.Capabilities"/>
     public class cCapabilities
@@ -89,7 +89,7 @@ namespace work.bacome.imapclient
         public readonly cStrings AuthenticationMechanisms;
 
         /// <summary>
-        /// The set of server capabilities that are in use.
+        /// The set of capabilities that are in use.
         /// </summary>
         /// <remarks>
         /// This value reflects the recognised elements of <see cref="Capabilities"/> less the <see cref="cIMAPClient.IgnoreCapabilities"/>.

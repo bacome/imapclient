@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines whether two instances contain different strings or have then in a different order.
+        /// Determines whether two instances contain different strings or have them in a different order.
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>

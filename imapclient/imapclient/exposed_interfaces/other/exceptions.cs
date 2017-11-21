@@ -6,23 +6,26 @@ namespace work.bacome.imapclient
 {
     internal static class kInvalidOperationExceptionMessage
     {
-        public const string AlreadyChallenged = "already challenged";
-        public const string NotPopulatedWithData = "not populated with data";
-        public const string NotUnconnected = "not unconnected";
-        public const string NotConnected = "not connected";
-        public const string NoMailboxHierarchy = "no mailbox hierarchy";
-        public const string NotUnauthenticated = "not unauthenticated";
+        public const string AlreadyConnected = "already connected";
         public const string AlreadyEnabled = "already enabled";
+        public const string AlreadyChallenged = "already challenged";
         public const string AlreadyEmitted = "already emitted";
         public const string AlreadySet = "already set";
-        public const string NotSelectedForUpdate = "not selected for update";
-        public const string NotSelected = "not selected";
-        public const string CondStoreNotInUse = "condstore not in use";
-        public const string AlreadyConnected = "already connected";
-        public const string NotEnabled = "not enabled";
-        public const string NotAuthenticated = "not authenticated";
-        public const string MailboxNotSelected = "mailbox not selected";
+
+        public const string NotUnconnected = "not unconnected";
         public const string NotConnecting = "not connecting";
+        public const string NotConnected = "not connected";
+        public const string NotUnauthenticated = "not unauthenticated";
+        public const string NotAuthenticated = "not authenticated";
+        public const string NotEnabled = "not enabled";
+        public const string NotSelected = "not selected";
+        public const string NotSelectedForUpdate = "not selected for update";
+        public const string MailboxNotSelected = "mailbox not selected";
+
+        public const string NotPopulatedWithData = "not populated with data";
+
+        public const string NoMailboxHierarchy = "no mailbox hierarchy";
+        public const string CondStoreNotInUse = "condstore not in use";
         public const string BodyStructureHasNotBeenFetched = "bodystructure has not been fetched";
     }
 
@@ -148,7 +151,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when the server said bye at connect.
+    /// Thrown when the server says 'BYE' at connect.
     /// </summary>
     /// <seealso cref="cIMAPClient.Connect"/>
     public class cConnectByeException : cIMAPException
@@ -182,6 +185,7 @@ namespace work.bacome.imapclient
     {
         /// <summary>
         /// The response text associated with the rejection.
+        /// The home server referral will be in <see cref="cResponseText.Arguments"/>.
         /// </summary>
         public readonly cResponseText ResponseText;
 
@@ -208,7 +212,7 @@ namespace work.bacome.imapclient
     public class cCredentialsException : cIMAPException
     {
         /// <summary>
-        /// Has a value if there was an explicit rejection of the credetials by the server.
+        /// The response text if the server explicitly rejects the credentials by using <see cref="eResponseTextCode.authenticationfailed"/>, <see cref="eResponseTextCode.authorizationfailed"/> or <see cref="eResponseTextCode.expired"/>, otherwise <see langword="null"/>.
         /// </summary>
         public readonly cResponseText ResponseText;
 
@@ -267,7 +271,7 @@ namespace work.bacome.imapclient
     public class cUnilateralByeException : cIMAPException
     {
         /// <summary>
-        /// The response text associated with the 'BYE'.
+        /// The response text associated with the server's 'BYE'.
         /// </summary>
         public readonly cResponseText ResponseText;
 
@@ -288,7 +292,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when the installed SASL security layer encoding or decoding fails.
+    /// Thrown when the installed SASL security layer fails to encode or decode.
     /// </summary>
     public class cSASLSecurityException : cIMAPException
     {
@@ -335,8 +339,11 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when the content-transfer-encoding can't be handled.
+    /// Thrown when the required content-transfer-decoding can't be done client-side.
     /// </summary>
+    /// <remarks>
+    /// Will be thrown either due to an error in the decoder or due to the library not having a suitable decoder to use.
+    /// </remarks>
     public class cContentTransferDecodingException : cIMAPException
     {
         internal cContentTransferDecodingException(cTrace.cContext pContext) => pContext.TraceError(nameof(cContentTransferDecodingException));
@@ -344,12 +351,12 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when a message is accessed after it has been expunged.
+    /// Thrown when the message's sequence number or server-side message data is required after the message has been expunged.
     /// </summary>
     public class cMessageExpungedException : cIMAPException
     {
         /// <summary>
-        /// The message.
+        /// The message involved.
         /// </summary>
         public readonly iMessageHandle Handle;
 

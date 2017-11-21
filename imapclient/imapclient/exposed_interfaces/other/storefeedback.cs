@@ -8,14 +8,14 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Base class for feedback on one message in a store operation.
+    /// Represents feedback on one message in a store operation.
     /// </summary>
     /// <seealso cref="cStoreFeedbackItem"/>
     /// <seealso cref="cUIDStoreFeedbackItem"/>
     public abstract class cStoreFeedbackItemBase
     {
         /// <summary>
-        /// Indicates whether a fetch response containing the flags was received for the message during the store operation.
+        /// Indicates whether an IMAP FETCH response containing the flags was received for the message during the store operation.
         /// </summary>
         public bool ReceivedFlagsUpdate = false;
 
@@ -95,7 +95,7 @@ namespace work.bacome.imapclient
             Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(cStoreFeedbackItem)}({Handle},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
     }
 
@@ -167,7 +167,7 @@ namespace work.bacome.imapclient
         internal bool AllHaveUID => mItems.TrueForAll(i => i.Handle.UID != null);
 
         /// <summary>
-        /// Gets a summary of the feedback. May return a different value after a <see cref="cIMAPClient.Poll"/> .
+        /// Gets a summary of the feedback. May return a different value after a <see cref="cIMAPClient.Poll"/>.
         /// </summary>
         /// <returns></returns>
         public sStoreFeedbackSummary Summary()
@@ -177,11 +177,7 @@ namespace work.bacome.imapclient
             return lSummary;
         }
 
-        /// <summary>
-        /// Gets one item.
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
         public cStoreFeedbackItem this[int i] => mItems[i];
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
@@ -191,7 +187,7 @@ namespace work.bacome.imapclient
         public IEnumerator<cStoreFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cStoreFeedback));
@@ -210,7 +206,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains a summary of feeback on a store operation.
+    /// Contains a summary of store operation feeback.
     /// </summary>
     /// <remarks>
     /// <para>Each message counts towards ONE of;
@@ -232,16 +228,16 @@ namespace work.bacome.imapclient
     /// <seealso cref="cUIDStoreFeedback.Summary"/>
     public struct sStoreFeedbackSummary
     {
-        /**<summary>The count where an IMAP FETCH for the message was received during the command execution and the message wasn't mentioned in the RFC 7162 MODIFIED response (=> the message was _likely_ to have been updated by the store).</summary>*/
+        /**<summary>The count where an IMAP FETCH for the message was received during the store operation AND the message wasn't mentioned in the RFC 7162 MODIFIED response code of the store operation (=> the message was _likely_ to have been updated by the store).</summary>*/
         public int UpdatedCount;
 
-        /**<summary>The count where the message was mentioned in the RFC 7162 MODIFIED response (=> _NOT_ updated by the store).</summary>*/
+        /**<summary>The count where the message was mentioned in the RFC 7162 MODIFIED response code of the store operation (=> _NOT_ updated by the store).</summary>*/
         public int WasNotUnchangedSinceCount;
 
         /**<summary>The count where the message cache indicates that the message has been expunged.</summary>*/
         public int ExpungedCount;
 
-        /**<summary>The count where the entry in the message cache for the message can't be found or it can be found but it doesn't contain the flags for the message.</summary>*/
+        /**<summary>The count where the entry in the message cache for the message can't be found, or where it can be found but it doesn't contain the flags for the message.</summary>*/
         public int UnknownCount;
 
         /**<summary>The count where the flags in the message cache reflect the store operation.</summary>*/
@@ -257,7 +253,7 @@ namespace work.bacome.imapclient
         /**<summary>Gets the count of messages for which doing a <see cref="cIMAPClient.Poll"/> may increase our knowledge of what happened.</summary>*/
         public bool LikelyWorthPolling => NotReflectsOperationCount > 0;
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(sStoreFeedbackSummary)}(Updated:{UpdatedCount}, WasNotUnchangedSince:{WasNotUnchangedSinceCount}, Expunged:{ExpungedCount}, Unknown:{UnknownCount}, Reflects:{ReflectsOperationCount}, NotReflects:{NotReflectsOperationCount})";
     }
 
@@ -267,9 +263,9 @@ namespace work.bacome.imapclient
     /// <seealso cref="cUIDStoreFeedback"/>
     public class cUIDStoreFeedbackItem : cStoreFeedbackItemBase
     {
-        /**<summary>The UID that this feedback relates to.</summary>*/
+        /**<summary>The UID that the feedback relates to.</summary>*/
         public readonly cUID UID;
-        /**<summary>The message that this feedback relates to, if known. May be <see langword="null"/>.</summary>*/
+        /**<summary>The message that the feedback relates to. May be <see langword="null"/>.</summary>*/
         public iMessageHandle Handle = null; 
 
         internal cUIDStoreFeedbackItem(cUID pUID)
@@ -277,7 +273,7 @@ namespace work.bacome.imapclient
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cUIDStoreFeedbackItem)}({UID},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
     }
 
@@ -331,11 +327,7 @@ namespace work.bacome.imapclient
             return lSummary;
         }
 
-        /// <summary>
-        /// Gets one item.
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns></returns>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
         public cUIDStoreFeedbackItem this[int i] => mItems[i];
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
@@ -345,7 +337,7 @@ namespace work.bacome.imapclient
         public IEnumerator<cUIDStoreFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUIDStoreFeedback));

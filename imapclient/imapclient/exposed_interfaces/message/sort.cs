@@ -6,7 +6,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The items that messages can be sorted by.
+    /// Represents an item that messages can be sorted by.
     /// </summary>
     /// <seealso cref="cSortItem"/>
     public enum eSortItem
@@ -91,7 +91,7 @@ namespace work.bacome.imapclient
         public readonly bool Desc;
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance with the specified item and sort direction.
         /// </summary>
         /// <param name="pItem"></param>
         /// <param name="pDesc">Indicates a descending sort.</param>

@@ -216,8 +216,7 @@
     <Compile Include="exposed_interfaces\support\bytes.cs" />
     <Compile Include="exposed_interfaces\support\byteslines.cs" />
     <Compile Include="support\byteslist.cs" />
-    <Compile Include="support\sequencesets.cs" />
-    <Compile Include="exposed_interfaces\support\uintlist.cs" />
+    <Compile Include="support\uintlist.cs" />
     <Compile Include="support\base64.cs" />
     <Compile Include="support\modifiedutf7.cs" />
     <Compile Include="exposed_interfaces\support\charactersets.cs" />
@@ -227,7 +226,7 @@
     <Compile Include="support\tools.cs" />
     <Compile Include="support\commandpart.cs" />
     <Compile Include="support\extendedvalue.cs" />
-    <Compile Include="exposed_interfaces\support\sequenceset.cs" />
+    <Compile Include="support\sequenceset.cs" />
     <Compile Include="exposed_interfaces\other\uri.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="session\command\commandhook.cs" />

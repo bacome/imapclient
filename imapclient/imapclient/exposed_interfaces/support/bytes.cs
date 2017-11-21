@@ -25,7 +25,7 @@ namespace work.bacome.imapclient.support
             return lBytes;
         }
 
-        /**<summary>Returns a string that represents the collection.</summary>*/
+        /// <inheritdoc/>
         public override string ToString() => cTools.BytesToLoggableString(nameof(cBytes), this, 1000);
 
         internal string ToString(int pMaxLength) => cTools.BytesToLoggableString(nameof(cBytes), this, pMaxLength);

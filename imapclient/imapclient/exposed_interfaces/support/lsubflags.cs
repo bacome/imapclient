@@ -17,6 +17,7 @@ namespace work.bacome.imapclient.support
             Subscribed = pSubscribed;
         }
 
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cLSubFlags)}({Sequence},{Subscribed})";
 
         internal static fMailboxProperties Differences(cLSubFlags pOld, cLSubFlags pNew)

@@ -6,21 +6,18 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// A mapping from a message body-part that can be fetched using the BINARY (RFC 3516) command to the decoded size in bytes of that body-part.
+    /// A read-only mapping from a message body-part that can be fetched using the BINARY (RFC 3516) command to the decoded size in bytes of that body-part.
     /// </summary>
-    /// <remarks>
-    /// Using <see cref="cMessage.FetchSizeInBytes(cSinglePartBody)"/> or <see cref="cAttachment.SaveSizeInBytes"/> may create values in this map.
-    /// </remarks>
+    /// <seealso cref="cAttachment.SaveSizeInBytes"/>
+    /// <seealso cref="cMessage.FetchSizeInBytes(cSinglePartBody)"/>
     /// <seealso cref="iMessageHandle.BinarySizes"/>
     public class cBinarySizes : ReadOnlyDictionary<string, uint>
     {
-        // wrapper: for passing out
-
         internal static readonly cBinarySizes None = new cBinarySizes(new Dictionary<string, uint>());
 
         internal cBinarySizes(IDictionary<string, uint> pDictionary) : base(pDictionary) { }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cBinarySizes));
@@ -29,7 +26,7 @@ namespace work.bacome.imapclient.support
         }
 
         /// <summary>
-        /// Combine two maps.
+        /// Combines two maps.
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>

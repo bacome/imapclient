@@ -398,7 +398,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates whether this mailbox is subscribed-to or not.
+        /// Indicates whether the mailbox is subscribed-to or not.
         /// </summary>
         public bool IsSubscribed
         {
@@ -553,7 +553,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the highest modification sequence number (see RFC 7162) for the mailbox. May be <see langword="null"/> or zero.
+        /// Gets the highest mod-sequence number (see RFC 7162) for the mailbox. May be <see langword="null"/> or zero.
         /// </summary>
         /// <remarks>
         /// <para>When the mailbox is selected this property will always have a value but zero indicates that <see cref="cCapabilities.CondStore"/> is not in use or that the mailbox does not support the persistent storage of mod-sequences.</para>
@@ -966,13 +966,13 @@ namespace work.bacome.imapclient
         public Task<List<cMessage>> MessagesAsync(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration = null) => Client.MessagesAsync(Handle, pUIDs, pItems, pConfiguration);
 
         /// <summary>
-        /// Refreshes the cached data for this mailbox.
+        /// Refreshes the cached data for the mailbox.
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache.</param>
         public void Fetch(fMailboxCacheDataSets pDataSets) => Client.Fetch(Handle, pDataSets);
 
         /// <summary>
-        /// Asynchronously refreshes the cached data for this mailbox.
+        /// Asynchronously refreshes the cached data for the mailbox.
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache.</param>
         /// <returns></returns>
@@ -980,7 +980,7 @@ namespace work.bacome.imapclient
         public Task FetchAsync(fMailboxCacheDataSets pDataSets) => Client.FetchAsync(Handle, pDataSets);
 
         /// <summary>
-        /// Copies a set of messages to the mailbox represented by this instance.
+        /// Copies a set of messages to the mailbox represented by the instance.
         /// </summary>
         /// <param name="pMessages"></param>
         /// <returns>If the server provides an RFC 4315 UIDCOPY response an object containing the pairs of UIDs involved in the copy, otherwise <see langword="null"/>.</returns>
@@ -990,7 +990,7 @@ namespace work.bacome.imapclient
         public cCopyFeedback Copy(IEnumerable<cMessage> pMessages) => Client.Copy(cMessageHandleList.FromMessages(pMessages), Handle);
 
         /// <summary>
-        /// Asynchronously copies a set of messages to the mailbox represented by this instance.
+        /// Asynchronously copies a set of messages to the mailbox represented by the instance.
         /// </summary>
         /// <param name="pMessages"></param>
         /// <inheritdoc cref="Copy(IEnumerable{cMessage})" select="returns|remarks"/>
@@ -1069,7 +1069,7 @@ namespace work.bacome.imapclient
         public Task<cUIDStoreFeedback> UIDStoreAsync(IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null) => Client.UIDStoreAsync(Handle, pUIDs, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
         /// <summary>
-        /// Copies a message in this mailbox to another mailbox. This mailbox must be selected.
+        /// Copies a message in this mailbox to another mailbox. The mailbox must be selected.
         /// </summary>
         /// <param name="pUID"></param>
         /// <param name="pDestination"></param>

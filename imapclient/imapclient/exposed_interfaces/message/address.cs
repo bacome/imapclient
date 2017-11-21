@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     public abstract class cAddress
     {
         /// <summary>
-        /// The display name for this address.
+        /// The display name for the address.
         /// </summary>
         public readonly cCulturedString DisplayName;
 
@@ -36,12 +36,12 @@ namespace work.bacome.imapclient
     public class cAddresses : ReadOnlyCollection<cAddress>
     {
         /// <summary>
-        /// The RFC 5256 sort string for the addresses.
+        /// The RFC 5256 sort string for the collection of addresses.
         /// </summary>
         public readonly string SortString;
 
         /// <summary>
-        /// The RFC 5957 display sort string for the addresses.
+        /// The RFC 5957 display sort string for the collection of addresses.
         /// </summary>
         public readonly string DisplaySortString;
 
@@ -69,15 +69,15 @@ namespace work.bacome.imapclient
     public class cEmailAddress : cAddress
     {
         /// <summary>
-        /// The raw address (local-part@domain-name), with an un-decoded domain-name.
+        /// The raw form of the address (local-part@domain-name), with an un-decoded domain-name.
         /// </summary>
         public readonly string Address;
 
         /// <summary>
-        /// The display version of the address (local-part@domain-name), with any punycode (RFC 3492) domain-name decoded.
+        /// The display form of the address (local-part@domain-name), with any punycode (RFC 3492) domain-name decoded.
         /// </summary>
         /// <remarks>
-        /// Note: this currently contains the same value as the <see cref="Address"/>.
+        /// <note type="note">Punycode decoding is not currently implemented so this contains the same value as <see cref="Address"/>.</note>
         /// </remarks>
         public readonly string DisplayAddress; // host name should be converted from punycode (rfc 3492) [currently not implemented] // TODO
 

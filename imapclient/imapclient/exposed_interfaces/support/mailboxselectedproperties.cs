@@ -1,5 +1,4 @@
 ﻿using System;
-using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient.support
 {
@@ -103,7 +102,7 @@ namespace work.bacome.imapclient.support
         internal cMessageFlags ForUpdatePermanentFlags => (cMessageFlags)mForUpdatePermanentFlags ?? mMessageFlags;
         internal cMessageFlags ReadOnlyPermanentFlags => (cMessageFlags)mReadOnlyPermanentFlags ?? mMessageFlags;
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cMailboxSelectedProperties)}({mBeenSelected},{mBeenSelectedForUpdate},{mBeenSelectedReadOnly},{mUIDNotSticky},{mMessageFlags},{mForUpdatePermanentFlags},{mReadOnlyPermanentFlags})";
 
         internal static fMailboxProperties Differences(cMailboxSelectedProperties pOld, cMailboxSelectedProperties pNew)

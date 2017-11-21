@@ -110,7 +110,7 @@ namespace work.bacome.imapclient
                                     else if (lCodeBytes.Equals(kUnknownCTE)) lCode = eResponseTextCode.unknowncte;
                                     else
                                     {
-                                        lCode = eResponseTextCode.unknown;
+                                        lCode = eResponseTextCode.other;
                                         ZProcess(pTextContext, lCodeBytes, null, pTextCodeProcessor, lContext);
                                     }
 
@@ -133,7 +133,7 @@ namespace work.bacome.imapclient
                                     }
                                     else
                                     {
-                                        lCode = eResponseTextCode.unknown;
+                                        lCode = eResponseTextCode.other;
                                         lArguments = null;
                                         ZProcess(pTextContext, lCodeBytes, lArgumentsBytes, pTextCodeProcessor, lContext);
                                     }

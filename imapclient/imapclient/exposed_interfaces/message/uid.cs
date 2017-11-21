@@ -5,7 +5,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// An IMAP message UID
+    /// Represents an IMAP message UID
     /// </summary>
     /// <seealso cref="cMessage.UID"/>
     /// <seealso cref="cMessage.Copy(cMailbox)"/>
@@ -21,9 +21,9 @@ namespace work.bacome.imapclient
     /// <seealso cref="cMailbox.UIDStore(System.Collections.Generic.IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>
     public class cUID : IComparable<cUID>, IEquatable<cUID>
     {
-        /**<summary>The UIDValidity.</summary>*/
+        /**<summary>The UIDValidity of the instance.</summary>*/
         public readonly uint UIDValidity;
-        /**<summary>The UID.</summary>*/
+        /**<summary>The UID of the instance.</summary>*/
         public readonly uint UID;
 
         /// <summary>

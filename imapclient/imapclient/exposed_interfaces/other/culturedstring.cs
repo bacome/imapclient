@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
-using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -12,11 +11,11 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents a string that may include language information as per RFC 2231.
     /// </summary>
-    /// <seealso cref="cAddress.DisplayName"/>
-    /// <seealso cref="cEnvelope.Subject"/>
     /// <seealso cref="cMessage.Subject"/>
-    /// <seealso cref="cSinglePartBody.Description"/>
+    /// <seealso cref="cAddress.DisplayName"/>
     /// <seealso cref="cAttachment.Description"/>
+    /// <seealso cref="cEnvelope.Subject"/>
+    /// <seealso cref="cSinglePartBody.Description"/>
     public class cCulturedString
     {
         /// <summary>
@@ -95,7 +94,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Implicit conversion to a string. The string will be sans the language information. 
+        /// Returns the string data sans the language information. 
         /// </summary>
         /// <param name="pString"></param>
         public static implicit operator string(cCulturedString pString) => pString?.ToString();
@@ -138,15 +137,16 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents part of a string that may include language information as per RFC 2231.
     /// </summary>
+    /// <seealso cref="cCulturedString"/>
     public class cCulturedStringPart
     {
         /// <summary>
-        /// The decoded text.
+        /// The decoded text of the part.
         /// </summary>
         public readonly string String;
 
         /// <summary>
-        /// The language of the text. May be <see langword="null"/>.
+        /// The language of the part. May be <see langword="null"/>.
         /// </summary>
         public readonly string LanguageTag;
 
@@ -156,7 +156,7 @@ namespace work.bacome.imapclient
             LanguageTag = pLanguageTag;
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.ToString"/>
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(cCulturedStringPart)}({String},{LanguageTag})";
     }
 }
