@@ -3,53 +3,124 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Contains named header-field-name constants.
+    /// </summary>
     public static class kHeaderFieldName
     {
+        /**<summary>In-Reply-To</summary>*/
         public const string InReplyTo = "In-Reply-To";
+        /**<summary>Message-Id</summary>*/
         public const string MessageId = "Message-Id";
+        /**<summary>References</summary>*/
         public const string References = "References";
+        /**<summary>Importance</summary>*/
         public const string Importance = "Importance";
     }
 
+    /// <summary>
+    /// A unique read-only header-field-name collection. Header field names are case insensitive.
+    /// </summary>
+    /// <remarks>
+    /// Header field names have a limited grammar - see RFC 5322. 
+    /// (Header field names must only include <see cref="cCharset.FText"/> characters.)
+    /// </remarks>
+    /// <seealso cref="cSection"/>
+    /// <seealso cref="cMessageCacheItems"/>
+    /// <seealso cref="cHeaderFields"/>
     public class cHeaderFieldNames : IReadOnlyCollection<string>
     {
         // immutable (for passing in and out)
 
+        /** <summary>An empty header-field-name collection.</summary>*/
         public static readonly cHeaderFieldNames None = new cHeaderFieldNames();
+        /** <summary>A header-field-name collection containing only <see cref="kHeaderFieldName.References"/>.</summary>*/
         public static readonly cHeaderFieldNames References = new cHeaderFieldNames(kHeaderFieldName.References);
+        /** <summary>A header-field-name collection containing only <see cref="kHeaderFieldName.Importance"/>.</summary>*/
         public static readonly cHeaderFieldNames Importance = new cHeaderFieldNames(kHeaderFieldName.Importance);
 
         private readonly cHeaderFieldNameList mNames;
 
         private cHeaderFieldNames() => mNames = new cHeaderFieldNameList();
-        public cHeaderFieldNames(params string[] pNames) => mNames = new cHeaderFieldNameList(pNames); // validates, duplicates, removes duplicates
-        public cHeaderFieldNames(IEnumerable<string> pNames) => mNames = new cHeaderFieldNameList(pNames); // validates, duplicates, removes duplicates
-        public cHeaderFieldNames(cHeaderFieldNameList pNames) => mNames = new cHeaderFieldNameList(pNames); // duplicates
+
+        /// <summary>
+        /// Initalises a new instance with a duplicate free copy of the specified names. Will throw if the specified names aren't valid header field names.
+        /// </summary>
+        /// <param name="pNames"></param>
+        /// <inheritdoc cref="cHeaderFieldNames" select="remarks"/>
+        public cHeaderFieldNames(params string[] pNames) => mNames = new cHeaderFieldNameList(pNames);
+
+        /// <inheritdoc cref="cHeaderFieldNames(string[])"/>
+        public cHeaderFieldNames(IEnumerable<string> pNames) => mNames = new cHeaderFieldNameList(pNames);
+
+        /// <summary>
+        /// Initialises a new instance with a copy of the specified list.
+        /// </summary>
+        /// <param name="pNames"></param>
+        public cHeaderFieldNames(cHeaderFieldNameList pNames) => mNames = new cHeaderFieldNameList(pNames);
+
         private cHeaderFieldNames(cHeaderFieldNameList pNames, bool pWrap) => mNames = pNames; // wraps
 
+        /// <summary>
+        /// Determines whether the collection contains the specifed name (case insensitive).
+        /// </summary>
+        /// <param name="pName"></param>
+        /// <returns></returns>
         public bool Contains(string pName) => mNames.Contains(pName);
+
+        /// <summary>
+        /// Determines whether the collection contains all the specified names (case insensitive).
+        /// </summary>
+        /// <param name="pNames"></param>
+        /// <returns></returns>
         public bool Contains(params string[] pNames) => mNames.Contains(pNames);
+
+        /// <inheritdoc cref="Contains(string[])"/>
         public bool Contains(IEnumerable<string> pNames) => mNames.Contains(pNames);
 
+        /// <summary>
+        /// Returns the set-union of this and the specified collection of names (case insensitive).
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
         public cHeaderFieldNames Union(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Union(pOther.mNames), true);
+
+        /// <summary>
+        /// Returns the set-intersection of this and the specified collection of names (case insensitive).
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
         public cHeaderFieldNames Intersect(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Intersect(pOther.mNames), true);
+
+        /// <summary>
+        /// Returns the set-difference of this and the specified collection of names (case insensitive).
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
         public cHeaderFieldNames Except(cHeaderFieldNames pOther) => new cHeaderFieldNames(mNames.Except(pOther.mNames), true);
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mNames.Count;
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator<string> GetEnumerator() => mNames.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        /// <inheritdoc />
         public override string ToString() => mNames.ToString();
 
+        /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cHeaderFieldNames;
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode() => mNames.GetHashCode();
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cHeaderFieldNames pA, cHeaderFieldNames pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -58,11 +129,16 @@ namespace work.bacome.imapclient
             return pA.mNames == pB.mNames;
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cHeaderFieldNames pA, cHeaderFieldNames pB) => !(pA == pB);
 
+        /// <summary>
+        /// Returns a new instance containing a copy of the specified list.
+        /// </summary>
+        /// <param name="pNames"></param>
         public static implicit operator cHeaderFieldNames(cHeaderFieldNameList pNames) => new cHeaderFieldNames(pNames);
 
-        public static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNames rNames)
+        internal static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNames rNames)
         {
             if (!cHeaderFieldNameList.TryConstruct(pNames, out var lNames)) { rNames = null; return false; }
             rNames = new cHeaderFieldNames(lNames, true);
@@ -70,6 +146,11 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// A unique header field name list. Header field names are case insensitive.
+    /// </summary>
+    /// <inheritdoc cref="cHeaderFieldNames" select="remarks"/>
+    /// <seealso cref="cHeaderFieldNames"/>
     public class cHeaderFieldNameList : IReadOnlyCollection<string>
     {
         // implements case insensitivity
@@ -78,12 +159,16 @@ namespace work.bacome.imapclient
 
         private readonly List<string> mNames;
 
+        /// <summary>
+        /// Initialises a new empty instance.
+        /// </summary>
         public cHeaderFieldNameList()
         {
             mNames = new List<string>();
         }
 
-        public cHeaderFieldNameList(params string[] pNames) // validates, duplicates, removes duplicates
+        /// <inheritdoc cref="cHeaderFieldNames(string[])"/>
+        public cHeaderFieldNameList(params string[] pNames)
         {
             if (pNames == null)
             {
@@ -95,14 +180,16 @@ namespace work.bacome.imapclient
             mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
-        public cHeaderFieldNameList(IEnumerable<string> pNames) // validates, duplicates, removes duplicates
+        /// <inheritdoc cref="cHeaderFieldNames(string[])"/>
+        public cHeaderFieldNameList(IEnumerable<string> pNames)
         {
             if (pNames == null) throw new ArgumentNullException(nameof(pNames));
             foreach (var lName in pNames) if (!ZIsValidName(lName)) throw new ArgumentOutOfRangeException(nameof(pNames));
             mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
-        public cHeaderFieldNameList(cHeaderFieldNameList pNames) // duplicates
+        /// <inheritdoc cref="cHeaderFieldNames(cHeaderFieldNameList)"/>
+        public cHeaderFieldNameList(cHeaderFieldNameList pNames)
         {
             if (pNames == null) throw new ArgumentNullException(nameof(pNames));
             mNames = new List<string>(pNames.mNames);
@@ -114,9 +201,21 @@ namespace work.bacome.imapclient
             else mNames = new List<string>(pNames.Distinct(StringComparer.InvariantCultureIgnoreCase));
         }
 
+        /// <summary>
+        /// Determines whether the list contains the specified name (case insensitive).
+        /// </summary>
+        /// <param name="pName"></param>
+        /// <returns></returns>
         public bool Contains(string pName) => mNames.Contains(pName, StringComparer.InvariantCultureIgnoreCase);
 
+        /// <summary>
+        /// Determines whether the list contains all the specified names (case insensitive).
+        /// </summary>
+        /// <param name="pNames"></param>
+        /// <returns></returns>
         public bool Contains(params string[] pNames) => ZContains(pNames);
+
+        /// <inheritdoc cref="Contains(string[])"/>
         public bool Contains(IEnumerable<string> pNames) => ZContains(pNames);
 
         private bool ZContains(IEnumerable<string> pNames)
@@ -126,6 +225,10 @@ namespace work.bacome.imapclient
             return true;
         }
 
+        /// <summary>
+        /// Adds the specified name to the list if it isn't already there (case insensitive).
+        /// </summary>
+        /// <param name="pName"></param>
         public void Add(string pName)
         {
             if (pName == null) throw new ArgumentNullException(nameof(pName));
@@ -133,7 +236,13 @@ namespace work.bacome.imapclient
             if (!Contains(pName)) mNames.Add(pName);
         }
 
+        /// <summary>
+        /// Adds each specified name to the list if it isn't already there (case insensitive).
+        /// </summary>
+        /// <param name="pNames"></param>
         public void Add(params string[] pNames) => ZAdd(pNames);
+
+        /// <inheritdoc cref="Add(string[])"/>
         public void Add(IEnumerable<string> pNames) => ZAdd(pNames);
 
         private void ZAdd(IEnumerable<string> pNames)
@@ -143,9 +252,19 @@ namespace work.bacome.imapclient
             foreach (var lName in pNames) if (!Contains(lName)) mNames.Add(lName);
         }
 
+        /// <summary>
+        /// Removes the specified name from the list if it is there (case insensitive).
+        /// </summary>
+        /// <param name="pName"></param>
         public void Remove(string pName) => mNames.RemoveAll(n => n.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
 
+        /// <summary>
+        /// Removes each specified name from the list if it is there (case insensitive).
+        /// </summary>
+        /// <param name="pNames"></param>
         public void Remove(params string[] pNames) => ZRemove(pNames);
+
+        /// <inheritdoc cref="Remove(string[])"/>
         public void Remove(IEnumerable<string> pNames) => ZRemove(pNames);
 
         private void ZRemove(IEnumerable<string> pNames)
@@ -154,14 +273,35 @@ namespace work.bacome.imapclient
             foreach (var lName in pNames) Remove(lName);
         }
 
+        /// <summary>
+        /// Returns the set-union of this and the specified list of names (case insensitive).
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
         public cHeaderFieldNameList Union(cHeaderFieldNameList pOther) => new cHeaderFieldNameList(mNames.Union(pOther.mNames, StringComparer.InvariantCultureIgnoreCase), true);
+
+        /// <summary>
+        /// Returns the set-intersection of this and the specified list of names (case insensitive).
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
         public cHeaderFieldNameList Intersect(cHeaderFieldNameList pOther) => new cHeaderFieldNameList(mNames.Intersect(pOther.mNames, StringComparer.InvariantCultureIgnoreCase), true);
+
+        /// <summary>
+        /// Returns the set-difference of this and the specified list of names (case insensitive).
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
         public cHeaderFieldNameList Except(cHeaderFieldNameList pOther) => new cHeaderFieldNameList(mNames.Except(pOther.mNames, StringComparer.InvariantCultureIgnoreCase), true);
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mNames.Count;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator<string> GetEnumerator() => mNames.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mNames.GetEnumerator();
 
+        /// <inheritdoc />
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cHeaderFieldNameList));
@@ -169,8 +309,14 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
+        /// <summary>
+        /// Determines whether this instance and the specified object contain the same names (case insensitive).
+        /// </summary>
+        /// <param name="pObject"></param>
+        /// <returns></returns>
         public override bool Equals(object pObject) => this == pObject as cHeaderFieldNameList;
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -181,6 +327,12 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// Determines whether two instances contain the same names (case insensitive).
+        /// </summary>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator ==(cHeaderFieldNameList pA, cHeaderFieldNameList pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -191,6 +343,12 @@ namespace work.bacome.imapclient
             return true;
         }
 
+        /// <summary>
+        /// Determines whether two instances do not contain the same names (case insensitive).
+        /// </summary>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator !=(cHeaderFieldNameList pA, cHeaderFieldNameList pB) => !(pA == pB);
 
         private static bool ZIsValidName(string pName)
@@ -201,7 +359,7 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        public static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNameList rNames)
+        internal static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNameList rNames)
         {
             if (pNames == null) { rNames = null; return false; }
             foreach (var lName in pNames) if (!ZIsValidName(lName)) { rNames = null; return false; }
@@ -218,7 +376,7 @@ namespace work.bacome.imapclient
 
 
         [Conditional("DEBUG")]
-        public static void _Tests(cTrace.cContext pParentContext)
+        internal static void _Tests(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cHeaderFieldNameList), nameof(_Tests));
 

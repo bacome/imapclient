@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(CapabilityAsync), pMC);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.notauthenticated && _ConnectionState != eConnectionState.authenticated) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.notauthenticated && _ConnectionState != eConnectionState.authenticated) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnecting);
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {

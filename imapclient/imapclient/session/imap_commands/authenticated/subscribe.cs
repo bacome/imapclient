@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SubscribeAsync), pMC, pHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
                 var lItem = mMailboxCache.CheckHandle(pHandle);
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UnsubscribeAsync), pMC, pHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
                 var lItem = mMailboxCache.CheckHandle(pHandle);

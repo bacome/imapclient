@@ -8,14 +8,14 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void Subscribe(iMailboxHandle pHandle)
+        internal void Subscribe(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribe));
             var lTask = ZSubscribeAsync(pHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task SubscribeAsync(iMailboxHandle pHandle)
+        internal Task SubscribeAsync(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribeAsync));
             return ZSubscribeAsync(pHandle, lContext);
@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 
@@ -39,14 +39,14 @@ namespace work.bacome.imapclient
             }
         }
 
-        public void Unsubscribe(iMailboxHandle pHandle)
+        internal void Unsubscribe(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Unsubscribe));
             var lTask = ZUnsubscribeAsync(pHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task UnsubscribeAsync(iMailboxHandle pHandle)
+        internal Task UnsubscribeAsync(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UnsubscribeAsync));
             return ZUnsubscribeAsync(pHandle, lContext);
@@ -59,7 +59,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 

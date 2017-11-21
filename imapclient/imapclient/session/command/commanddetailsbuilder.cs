@@ -114,24 +114,24 @@ namespace work.bacome.imapclient
                 public void BeginList(eListBracketing pBracketing, cCommandPart pListName = null) => mParts.BeginList(pBracketing, pListName);
                 public void EndList() => mParts.EndList();
 
-                public void Add(cCacheItems pItems, bool pNoModSeq)
+                public void Add(cMessageCacheItems pItems, bool pNoModSeq)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
-                    fCacheAttributes lAttributes = pItems.Attributes;
-                    if ((lAttributes & (fCacheAttributes.flags | fCacheAttributes.modseq)) != 0) lAttributes |= fCacheAttributes.flags | fCacheAttributes.modseq;
-                    if (pNoModSeq) lAttributes = lAttributes & ~fCacheAttributes.modseq;
+                    fMessageCacheAttributes lAttributes = pItems.Attributes;
+                    if ((lAttributes & (fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq)) != 0) lAttributes |= fMessageCacheAttributes.flags | fMessageCacheAttributes.modseq;
+                    if (pNoModSeq) lAttributes = lAttributes & ~fMessageCacheAttributes.modseq;
 
                     mParts.BeginList(eListBracketing.ifmorethanone);
 
-                    if ((lAttributes & fCacheAttributes.flags) != 0) mParts.Add(kCommandPartFlags);
-                    if ((lAttributes & fCacheAttributes.envelope) != 0) mParts.Add(kCommandPartEnvelope);
-                    if ((lAttributes & fCacheAttributes.received) != 0) mParts.Add(kCommandPartInternalDate);
-                    if ((lAttributes & fCacheAttributes.size) != 0) mParts.Add(kCommandPartrfc822size);
-                    if ((lAttributes & fCacheAttributes.body) != 0) mParts.Add(kCommandPartBody);
-                    if ((lAttributes & fCacheAttributes.bodystructure) != 0) mParts.Add(kCommandPartBodyStructure);
-                    if ((lAttributes & fCacheAttributes.uid) != 0) mParts.Add(kCommandPartUID);
-                    if ((lAttributes & fCacheAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
+                    if ((lAttributes & fMessageCacheAttributes.flags) != 0) mParts.Add(kCommandPartFlags);
+                    if ((lAttributes & fMessageCacheAttributes.envelope) != 0) mParts.Add(kCommandPartEnvelope);
+                    if ((lAttributes & fMessageCacheAttributes.received) != 0) mParts.Add(kCommandPartInternalDate);
+                    if ((lAttributes & fMessageCacheAttributes.size) != 0) mParts.Add(kCommandPartrfc822size);
+                    if ((lAttributes & fMessageCacheAttributes.body) != 0) mParts.Add(kCommandPartBody);
+                    if ((lAttributes & fMessageCacheAttributes.bodystructure) != 0) mParts.Add(kCommandPartBodyStructure);
+                    if ((lAttributes & fMessageCacheAttributes.uid) != 0) mParts.Add(kCommandPartUID);
+                    if ((lAttributes & fMessageCacheAttributes.modseq) != 0) mParts.Add(kCommandPartModSeq);
 
                     if (pItems.Names.Count > 0)
                     {
@@ -143,23 +143,23 @@ namespace work.bacome.imapclient
                     mParts.EndList();
                 }
 
-                public void AddStatusAttributes(fMailboxCacheData pAttributes)
+                public void AddStatusAttributes(fMailboxCacheDataItems pAttributes)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
                     mParts.BeginList(eListBracketing.bracketed);
-                    if ((pAttributes & fMailboxCacheData.messagecount) != 0) mParts.Add(kCommandPartMessages);
-                    if ((pAttributes & fMailboxCacheData.recentcount) != 0) mParts.Add(kCommandPartRecent);
-                    if ((pAttributes & fMailboxCacheData.uidnext) != 0) mParts.Add(kCommandPartUIDNext);
-                    if ((pAttributes & fMailboxCacheData.uidvalidity) != 0) mParts.Add(kCommandPartUIDValidity);
-                    if ((pAttributes & fMailboxCacheData.unseencount) != 0) mParts.Add(kCommandPartUnseen);
-                    if ((pAttributes & fMailboxCacheData.highestmodseq) != 0) mParts.Add(kCommandPartHighestModSeq);
+                    if ((pAttributes & fMailboxCacheDataItems.messagecount) != 0) mParts.Add(kCommandPartMessages);
+                    if ((pAttributes & fMailboxCacheDataItems.recentcount) != 0) mParts.Add(kCommandPartRecent);
+                    if ((pAttributes & fMailboxCacheDataItems.uidnext) != 0) mParts.Add(kCommandPartUIDNext);
+                    if ((pAttributes & fMailboxCacheDataItems.uidvalidity) != 0) mParts.Add(kCommandPartUIDValidity);
+                    if ((pAttributes & fMailboxCacheDataItems.unseencount) != 0) mParts.Add(kCommandPartUnseen);
+                    if ((pAttributes & fMailboxCacheDataItems.highestmodseq) != 0) mParts.Add(kCommandPartHighestModSeq);
                     mParts.EndList();
                 }
 
                 public void Add(cFilter pFilter, cSelectedMailbox pSelectedMailbox, bool pCharsetMandatory, cCommandPartFactory pFactory)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
                     if (pFilter == null) throw new ArgumentNullException(nameof(pFilter));
                     if (pSelectedMailbox == null) throw new ArgumentNullException(nameof(pSelectedMailbox));
@@ -227,7 +227,12 @@ namespace work.bacome.imapclient
                             else
                             {
                                 lMSN = pSelectedMailbox.GetMSN(lRelativity.Handle);
-                                if (lMSN == 0) throw new cFilterMSNException(lRelativity.Handle); // may have been expunged
+
+                                if (lMSN == 0)
+                                {
+                                    if (lRelativity.Handle.Expunged) throw new cMessageExpungedException(lRelativity.Handle);
+                                    else throw new ArgumentOutOfRangeException(nameof(pFilter));
+                                }
                             }
 
                             lMSN = lMSN + lRelativity.Offset;
@@ -306,12 +311,12 @@ namespace work.bacome.imapclient
 
                             foreach (var lFlag in lFlagsContain.Flags)
                             {
-                                if (lFlag.Equals(kMessageFlagName.Answered, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartAnswered);
-                                else if (lFlag.Equals(kMessageFlagName.Flagged, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartFlagged);
-                                else if (lFlag.Equals(kMessageFlagName.Deleted, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartDeleted);
-                                else if (lFlag.Equals(kMessageFlagName.Seen, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartSeen);
-                                else if (lFlag.Equals(kMessageFlagName.Draft, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartDraft);
-                                else if (lFlag.Equals(kMessageFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartRecent);
+                                if (lFlag.Equals(kMessageFlag.Answered, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartAnswered);
+                                else if (lFlag.Equals(kMessageFlag.Flagged, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartFlagged);
+                                else if (lFlag.Equals(kMessageFlag.Deleted, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartDeleted);
+                                else if (lFlag.Equals(kMessageFlag.Seen, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartSeen);
+                                else if (lFlag.Equals(kMessageFlag.Draft, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartDraft);
+                                else if (lFlag.Equals(kMessageFlag.Recent, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartRecent);
                                 else lParts.Add(kCommandPartKeywordSpace, new cTextCommandPart(lFlag));
                             }
 
@@ -419,12 +424,12 @@ namespace work.bacome.imapclient
 
                                 foreach (var lFlag in lFlagsUncontain.Flags)
                                 {
-                                    if (lFlag.Equals(kMessageFlagName.Answered, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnanswered);
-                                    else if (lFlag.Equals(kMessageFlagName.Flagged, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnflagged);
-                                    else if (lFlag.Equals(kMessageFlagName.Deleted, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUndeleted);
-                                    else if (lFlag.Equals(kMessageFlagName.Seen, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnseen);
-                                    else if (lFlag.Equals(kMessageFlagName.Draft, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUndraft);
-                                    else if (lFlag.Equals(kMessageFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartOld);
+                                    if (lFlag.Equals(kMessageFlag.Answered, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnanswered);
+                                    else if (lFlag.Equals(kMessageFlag.Flagged, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnflagged);
+                                    else if (lFlag.Equals(kMessageFlag.Deleted, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUndeleted);
+                                    else if (lFlag.Equals(kMessageFlag.Seen, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUnseen);
+                                    else if (lFlag.Equals(kMessageFlag.Draft, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartUndraft);
+                                    else if (lFlag.Equals(kMessageFlag.Recent, StringComparison.InvariantCultureIgnoreCase)) lParts.Add(kCommandPartOld);
                                     else lParts.Add(kCommandPartUnkeywordSpace, new cTextCommandPart(lFlag));
                                 }
 
@@ -446,7 +451,7 @@ namespace work.bacome.imapclient
 
                 public void Add(cSort pSort)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
                     if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
@@ -514,7 +519,7 @@ namespace work.bacome.imapclient
 
                 public void Add(cSection pSection, uint pOrigin, uint pLength)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
                     if (pSection.Part != null)
                     {
@@ -572,9 +577,9 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public void Add(eStoreOperation pOperation, cSettableFlags pFlags)
+                public void Add(eStoreOperation pOperation, cStorableFlags pFlags)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
 
                     switch (pOperation)
                     {
@@ -605,39 +610,39 @@ namespace work.bacome.imapclient
 
                 public void Add(cExclusiveAccess.cToken pToken)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
                     mDisposables.Add(pToken);
                 }
 
                 public void Add(cExclusiveAccess.cBlock pBlock)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
                     mDisposables.Add(pBlock);
                 }
 
                 public void Add(cSASLAuthentication pSASLAuthentication)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
                     mDisposables.Add(pSASLAuthentication);
                 }
 
                 public void AddUIDValidity(uint pUIDValidity)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
                     if (mUIDValidity == null) mUIDValidity = pUIDValidity;
                     if (pUIDValidity != mUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
                 }
 
                 public void Add(cCommandHook pHook)
                 {
-                    if (mEmitted) throw new InvalidOperationException();
-                    if (mHook != null) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
+                    if (mHook != null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadySet);
                     mHook = pHook ?? throw new ArgumentNullException(nameof(pHook));
                 }
 
                 public sCommandDetails EmitCommandDetails()
                 {
-                    if (mEmitted) throw new InvalidOperationException();
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
                     mEmitted = true;
                     return new sCommandDetails(Tag, mParts.Parts, mDisposables, mUIDValidity, mHook ?? cCommandHook.DoNothing);
                 }
@@ -655,10 +660,10 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandDetailsBuilder), nameof(_Tests));
 
-                    cCallbackSynchroniser lES = new cCallbackSynchroniser(new object(), cTrace.cContext.Null);
+                    cCallbackSynchroniser lES = new cCallbackSynchroniser(new object(), cTrace.cContext.None);
                     cStrings lStrings = new cStrings(new List<string>());
                     cMailboxCache lMC = new cMailboxCache(lES, 0, cCommandPartFactory.Validation, new cCapabilities(lStrings, lStrings, 0), (eConnectionState pCS, cTrace.cContext pC) => { });
-                    cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 1, 0, cTrace.cContext.Null);
+                    cSelectedMailbox lSelectedMailbox = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 1, 0, cTrace.cContext.None);
                     //cSelectedMailbox lSelectedMailbox2 = new cSelectedMailbox(lES, new cMailboxCacheItem(lES, lMC, "fred"), false, true, 10, 5, 1111, 2222, 0, cTrace.cContext.Null);
 
 
@@ -682,8 +687,8 @@ namespace work.bacome.imapclient
 
                     cFetchableFlagList lFFlags = new cFetchableFlagList();
 
-                    lFFlags.Add(kMessageFlagName.Draft);
-                    lFFlags.Add(kMessageFlagName.Recent);
+                    lFFlags.Add(kMessageFlag.Draft);
+                    lFFlags.Add(kMessageFlag.Recent);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Answered & cFilter.Flagged | cFilter.FlagsContain(lFFlags), lSelectedMailbox, false, false, null) != "OR (ANSWERED FLAGGED) (DRAFT RECENT)") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.3", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Answered & cFilter.Flagged & cFilter.FlagsContain(lFFlags), lSelectedMailbox, false, false, null) != "ANSWERED FLAGGED DRAFT RECENT") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.4", lContext);
 
@@ -699,7 +704,7 @@ namespace work.bacome.imapclient
                     if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("imap client"), lSelectedMailbox, false, false, null) != "SUBJECT \"imap client\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Body.Contains("imap"), lSelectedMailbox, false, false, null) != "BODY imap") throw new cTestsException("ZMessageFilterCommandPartsTests Body.1", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(!cFilter.To.Contains("bacome") & !cFilter.FlagsContain(kMessageFlagName.Recent), lSelectedMailbox, false, false, null) != "NOT TO bacome OLD") throw new cTestsException("ZMessageFilterCommandPartsTests And.1", lContext);
+                    if (LMessageFilterCommandPartsTestsString(!cFilter.To.Contains("bacome") & !cFilter.FlagsContain(kMessageFlag.Recent), lSelectedMailbox, false, false, null) != "NOT TO bacome OLD") throw new cTestsException("ZMessageFilterCommandPartsTests And.1", lContext);
 
                     bool lFailed;
 

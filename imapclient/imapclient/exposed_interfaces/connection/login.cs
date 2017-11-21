@@ -1,19 +1,21 @@
 ﻿using System;
-using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Parameters to use with the LOGIN command
+    /// Contains parameters for use with the IMAP LOGIN command.
     /// </summary>
+    /// <remarks>
+    /// The IMAP LOGIN command limits userids and passwords to ASCII characters excluding the NUL character.
+    /// </remarks>
+    /// <seealso cref="cCredentials.Login"/>
     public class cLogin
     {
+        /**<summary>The userid to use.</summary>*/
         public readonly string UserId;
+        /**<summary>The password to use.</summary>*/
         public readonly string Password;
-
-        /// <summary>
-        /// The TLS requirement for LOGIN to be used with this userid and password
-        /// </summary>
+        /**<summary>The TLS requirement for the userid and password to be used.</summary>*/
         public readonly eTLSRequirement TLSRequirement;
 
         private cLogin(string pUserId, string pPassword, eTLSRequirement pTLSRequirement, bool pValidated)
@@ -23,6 +25,13 @@ namespace work.bacome.imapclient
             TLSRequirement = pTLSRequirement;
         }
 
+        /// <summary>
+        /// Initialises a new instance with the specified userid, password and TLS requirement. Will throw if the userid and password specified can't be used with IMAP LOGIN.
+        /// </summary>
+        /// <param name="pUserId"></param>
+        /// <param name="pPassword"></param>
+        /// <param name="pTLSRequirement">The TLS requirement for the userid and password to be used.</param>
+        /// <inheritdoc cref="cLogin" select="remarks"/>
         public cLogin(string pUserId, string pPassword, eTLSRequirement pTLSRequirement)
         {
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
@@ -36,16 +45,7 @@ namespace work.bacome.imapclient
             TLSRequirement = pTLSRequirement;
         }
 
-        /// <summary>
-        /// Tries to create a cLogin instance.
-        /// LOGIN only allows ASCII userids and passwords, so this may fail.
-        /// </summary>
-        /// <param name="pUserId"></param>
-        /// <param name="pPassword"></param>
-        /// <param name="pTLSRequirement"></param>
-        /// <param name="rLogin"></param>
-        /// <returns></returns>
-        public static bool TryConstruct(string pUserId, string pPassword, eTLSRequirement pTLSRequirement, out cLogin rLogin)
+        internal static bool TryConstruct(string pUserId, string pPassword, eTLSRequirement pTLSRequirement, out cLogin rLogin)
         {
             if (string.IsNullOrEmpty(pUserId) || string.IsNullOrEmpty(pPassword)) { rLogin = null; return false; }
 

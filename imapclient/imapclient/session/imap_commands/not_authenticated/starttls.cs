@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using work.bacome.async;
-using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -17,8 +16,8 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StartTLSAsync), pMC);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.notauthenticated) throw new InvalidOperationException("must be not authenticated");
-                if (mPipeline.TLSInstalled) throw new InvalidOperationException("tls already installed");
+                if (_ConnectionState != eConnectionState.notauthenticated) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnauthenticated);
+                if (mPipeline.TLSInstalled) throw new InvalidOperationException();
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {

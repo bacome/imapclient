@@ -1,52 +1,64 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using work.bacome.imapclient.support;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Contains feedback on one message in a copy operation, extracted from the RFC 4315 UIDCOPY response.
+    /// </summary>
+    /// <seealso cref="cCopyFeedback"/>
     public class cCopyFeedbackItem
     {
-        public readonly cUID Source;
-        public readonly cUID Destination;
+        /**<summary>The UID of the source message.</summary>*/
+        public readonly cUID SourceUID;
+        /**<summary>The UID of the newly created message.</summary>*/
+        public readonly cUID CreatedUID;
 
-        public cCopyFeedbackItem(cUID pSource, cUID pDestination)
+        internal cCopyFeedbackItem(cUID pSourceUID, cUID pCreatedUID)
         {
-            Source = pSource;
-            Destination = pDestination;
+            SourceUID = pSourceUID;
+            CreatedUID = pCreatedUID;
         }
 
-        public override string ToString() => $"{nameof(cCopyFeedbackItem)}({Source},{Destination})";
+        /// <inheritdoc/>
+        public override string ToString() => $"{nameof(cCopyFeedbackItem)}({SourceUID},{CreatedUID})";
     }
 
     /// <summary>
-    /// Returned from copy operations if the server supports the UIDCOPY response code of rfc 4315
+    /// Contains feedback on a copy operation based on the RFC 4315 UIDCOPY response.
     /// </summary>
-    /// <remarks>
-    /// Contains pairs of UIDs of messages involved in the copy.
-    /// </remarks>
+    /// <seealso cref="cMailbox.Copy(IEnumerable{cMessage})"/>
+    /// <seealso cref="cMailbox.UIDCopy(IEnumerable{cUID}, cMailbox)"/>
     public class cCopyFeedback : IReadOnlyList<cCopyFeedbackItem>
     {
         private List<cCopyFeedbackItem> mItems = new List<cCopyFeedbackItem>();
 
-        public cCopyFeedback(uint pSourceUIDValidity, cUIntList pSourceUIDs, uint pDestinationUIDValidity, cUIntList pDestinationUIDs)
+        internal cCopyFeedback(uint pSourceUIDValidity, cUIntList pSourceUIDs, uint pDestinationUIDValidity, cUIntList pCreatedUIDs)
         {
             for (int i = 0; i < pSourceUIDs.Count; i++)
                 mItems.Add(
                     new cCopyFeedbackItem(
                         new cUID(pSourceUIDValidity, pSourceUIDs[i]),
-                        new cUID(pDestinationUIDValidity, pDestinationUIDs[i])));
+                        new cUID(pDestinationUIDValidity, pCreatedUIDs[i])));
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
         public cCopyFeedbackItem this[int i] => mItems[i];
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mItems.Count;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator<cCopyFeedbackItem> GetEnumerator() => mItems.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mItems.GetEnumerator();
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cCopyFeedback));
-            foreach (var lItem in mItems) lBuilder.Append($"{lItem.Source}->{lItem.Destination}");
+            foreach (var lItem in mItems) lBuilder.Append($"{lItem.SourceUID}->{lItem.CreatedUID}");
             return lBuilder.ToString();
         }
     }

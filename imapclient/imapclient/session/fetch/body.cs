@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pMC, pHandle, pSection, pDecoding);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
                 mMailboxCache.CheckInSelectedMailbox(pHandle); // to be repeated inside the select lock
 
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBodyAsync), pMC, pHandle, pUID, pSection, pDecoding);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
                 mMailboxCache.CheckIsSelectedMailbox(pHandle, pUID.UIDValidity); // to be repeated inside the select lock
 

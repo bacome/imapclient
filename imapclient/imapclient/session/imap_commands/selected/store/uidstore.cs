@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
@@ -14,7 +12,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kUIDStoreCommandPartUIDStoreSpace = new cTextCommandPart("UID STORE ");
 
-            private async Task ZUIDStoreAsync(cMethodControl pMC, iMailboxHandle pHandle, uint pUIDValidity, cStoreFeedbackCollector pFeedbackCollector, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cUIDStoreFeedback pFeedback, cTrace.cContext pParentContext)
+            private async Task ZUIDStoreAsync(cMethodControl pMC, iMailboxHandle pHandle, uint pUIDValidity, cStoreFeedbackCollector pFeedbackCollector, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cUIDStoreFeedback pFeedback, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZStoreAsync), pMC, pHandle, pUIDValidity, pFeedbackCollector, pOperation, pFlags, pIfUnchangedSinceModSeq, pFeedback);
 
@@ -25,7 +23,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
                     cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, pUIDValidity);
-                    if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException();
+                    if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelectedForUpdate);
 
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 

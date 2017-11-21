@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kStoreCommandPartStoreSpace = new cTextCommandPart("STORE ");
 
-            private async Task ZStoreAsync(cMethodControl pMC, cStoreFeedback pFeedback, eStoreOperation pOperation, cSettableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
+            private async Task ZStoreAsync(cMethodControl pMC, cStoreFeedback pFeedback, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZStoreAsync), pMC, pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
                     cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pFeedback);
-                    if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException();
+                    if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelectedForUpdate);
 
                     lBuilder.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
                     lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe

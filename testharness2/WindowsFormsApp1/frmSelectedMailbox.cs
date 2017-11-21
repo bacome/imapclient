@@ -53,7 +53,6 @@ namespace testharness2
             var lTemplate = new DataGridViewTextBoxCell();
 
             dgvMessages.AutoGenerateColumns = false;
-            dgvMessages.Columns.Add(LColumn(nameof(cGridRowData.Indent)));
             dgvMessages.Columns.Add(LColumn(nameof(cGridRowData.Seen)));
             dgvMessages.Columns.Add(LColumn(nameof(cGridRowData.Deleted)));
             dgvMessages.Columns.Add(LColumn(nameof(cGridRowData.Expunged)));
@@ -152,9 +151,9 @@ namespace testharness2
                     lProgress = new frmProgress("loading new messages", e.Handles.Count);
                     Program.Centre(lProgress, this);
                     lProgress.Show();
-                    cPropertyFetchConfiguration lConfiguration = new cPropertyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
+                    var lConfiguration = new cCacheItemFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
                     ZMessagesLoadingAdd(lProgress); // so it can be cancelled from code
-                    lMessages = await mSelectedMailbox.MessagesAsync(e.Handles, mClient.DefaultCacheItems, lConfiguration);
+                    lMessages = await mSelectedMailbox.MessagesAsync(e.Handles, null, lConfiguration);
                 }
                 else lMessages = await mSelectedMailbox.MessagesAsync(e.Handles);
             }
@@ -304,14 +303,14 @@ namespace testharness2
                 if (mSelectedMailbox.MessageCount > mMaxMessages)
                 {
                     // first get the messages, sorted, but don't get the requested properties yet (as this would be wasteful)
-                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, cCacheItems.None, lConfiguration);
+                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, cMessageCacheItems.None, lConfiguration);
                     if (IsDisposed || lQueryMessagesAsyncEntryNumber != mQueryMessagesAsyncEntryNumber) return;
 
                     // remove any excess messages (the filter may have removed enough or the mailbox may have changed in the meantime)
                     if (lMessages.Count > mMaxMessages) lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
 
-                    // get any missing properties
-                    await mClient.FetchAsync(lMessages, mClient.DefaultCacheItems, lConfiguration);
+                    // get any missing properties: using the same configuration is a bit of a hack as the count will not be right (TODO: fix it)
+                    await mClient.FetchAsync(lMessages, null, lConfiguration);
                 }
                 else if (mFilter != null || mOverrideSort != null || lConfiguration != null) lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
                 else lMessages = await mSelectedMailbox.MessagesAsync(); // show that getting the full set of messages in a mailbox is trivial if no restrictions are required and the defaults are set correctly
@@ -345,7 +344,7 @@ namespace testharness2
             // initialise unseen count
             if (mSelectedMailbox.UnseenUnknownCount > 0 && mTrackUnseen)
             {
-                try { await mSelectedMailbox.SetUnseenAsync(); }
+                try { await mSelectedMailbox.SetUnseenCountAsync(); }
                 catch (Exception ex)
                 {
                     if (!IsDisposed) MessageBox.Show(this, $"an error occurred while setting unseen: {ex}");
@@ -569,7 +568,7 @@ namespace testharness2
             var lMessages = new List<cMessage>(from cGridRowData lItem in lBindingSource select lItem.Message);
 
             eStoreOperation lOperation;
-            cSettableFlags lFlags;
+            cStorableFlags lFlags;
             ulong? lIfUnchangedSinceModSeq;
 
             using (frmStoreDialog lStoreDialog = new frmStoreDialog())
@@ -682,8 +681,6 @@ namespace testharness2
                 add => Message.PropertyChanged += value;
                 remove => Message.PropertyChanged -= value;
             }
-
-            public int Indent => Message.Indent;
 
             public bool? Seen
             {

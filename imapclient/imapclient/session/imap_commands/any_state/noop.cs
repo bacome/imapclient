@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using work.bacome.async;
-using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -17,7 +16,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(NoOpAsync), pMC);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState < eConnectionState.notauthenticated || _ConnectionState > eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState < eConnectionState.notauthenticated || _ConnectionState > eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {

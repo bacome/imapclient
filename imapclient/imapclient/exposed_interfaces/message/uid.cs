@@ -1,12 +1,36 @@
 ﻿using System;
+using work.bacome.apidocumentation;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Represents an IMAP message UID
+    /// </summary>
+    /// <seealso cref="cMessage.UID"/>
+    /// <seealso cref="cMessage.Copy(cMailbox)"/>
+    /// <seealso cref="cFilter.UID"/>
+    /// <seealso cref="iMessageHandle.UID"/>
+    /// <seealso cref="cMailbox.Copy(System.Collections.Generic.IEnumerable{cMessage})"/>
+    /// <seealso cref="cMailbox.Message(cUID, cMessageCacheItems)"/>
+    /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.UIDFetch(cUID, cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
+    /// <seealso cref="cMailbox.UIDCopy(cUID, cMailbox)"/>
+    /// <seealso cref="cMailbox.UIDCopy(System.Collections.Generic.IEnumerable{cUID}, cMailbox)"/>
+    /// <seealso cref="cMailbox.UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>
+    /// <seealso cref="cMailbox.UIDStore(System.Collections.Generic.IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>
     public class cUID : IComparable<cUID>, IEquatable<cUID>
     {
+        /**<summary>The UIDValidity of the instance.</summary>*/
         public readonly uint UIDValidity;
+        /**<summary>The UID of the instance.</summary>*/
         public readonly uint UID;
 
+        /// <summary>
+        /// Initialises a new instance with the specified UIDValidity and UID.
+        /// </summary>
+        /// <param name="pUIDValidity"></param>
+        /// <param name="pUID"></param>
         public cUID(uint pUIDValidity, uint pUID)
         {
             if (pUIDValidity == 0) throw new ArgumentOutOfRangeException(nameof(pUIDValidity));
@@ -15,6 +39,7 @@ namespace work.bacome.imapclient
             UID = pUID;
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo(object)"/>
         public int CompareTo(cUID pOther)
         {
             if (pOther == null) return 1;
@@ -23,10 +48,13 @@ namespace work.bacome.imapclient
             return lCompareTo;
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
         public bool Equals(cUID pOther) => this == pOther;
 
+        /// <inheritdoc/>
         public override bool Equals(object pObject) => this == pObject as cUID;
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -38,8 +66,10 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(cUID)}({UIDValidity},{UID})";
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cUID pA, cUID pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -48,6 +78,7 @@ namespace work.bacome.imapclient
             return (pA.UIDValidity == pB.UIDValidity && pA.UID == pB.UID);
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cUID pA, cUID pB) => !(pA == pB);
     }
 }

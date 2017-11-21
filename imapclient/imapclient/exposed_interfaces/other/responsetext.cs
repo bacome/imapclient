@@ -1,132 +1,208 @@
 ﻿using System;
-using work.bacome.imapclient.support;
+using System.Collections.Generic;
 
 namespace work.bacome.imapclient
 {
-    public enum eResponseTextType
+    /// <summary>
+    /// Represents the context in which response text was received.
+    /// </summary>
+    /// <seealso cref="cResponseTextEventArgs"/>
+    public enum eResponseTextContext
     {
-        greeting, continuerequest, bye,
-        information, warning, error,
-        success, failure, authenticationcancelled, protocolerror
+        /**<summary>As part of an IMAP greeting.</summary>*/
+        greeting,
+        /**<summary>As part of an IMAP continuation request.</summary>*/
+        continuerequest,
+        /**<summary>As part of an IMAP bye.</summary>*/
+        bye,
+        /**<summary>As part of an IMAP '* OK'.</summary>*/
+        information,
+        /**<summary>As part of an IMAP '* NO'.</summary>*/
+        warning,
+        /**<summary>As part of an IMAP '* BAD'.</summary>*/
+        error,
+        /**<summary>As part of an IMAP command success.</summary>*/
+        success,
+        /**<summary>As part of an IMAP command failure.</summary>*/
+        failure,
+        /**<summary>As part of IMAP authentication cancellation.</summary>*/
+        authenticationcancelled,
+        /**<summary>As part of an IMAP protocol error command termination.</summary>*/
+        protocolerror
     }
-
+    
+    /// <summary>
+    /// Represents the code associated with response text.
+    /// </summary>
+    /// <seealso cref="cResponseText"/>
     public enum eResponseTextCode
     {
-        none, unknown,
-        alert, badcharset, parse, trycreate, // rfc 3501
-        unavailable, authenticationfailed, authorizationfailed, expired, privacyrequired, contactadmin, noperm, inuse, expungeissued, corruption, serverbug, clientbug, cannot, limit, overquota, alreadyexists, nonexistent, // rfc 5530
-        referral, // rfc 2193
-        useattr, // rfc 6154
-        unknowncte // rfc 3516
+        /**<summary>There was no code.</summary>*/
+        none,
+
+        /**<summary>There was a code, but there isn't a <see cref="eResponseTextCode"/> value for it.</summary>*/
+        other,
+
+        // rfc 3501
+
+        /**<summary>RFC 3501 ALERT.</summary>*/
+        alert,
+        /**<summary>RFC 3501 BADCHARSET.</summary>*/
+        badcharset,
+        /**<summary>RFC 3501 PARSE: there was an error parsing a message.</summary>*/
+        parse,
+        /**<summary>RFC 3501 TRYCREATE: try creating the mailbox.</summary>*/
+        trycreate,
+
+        // rfc 5530
+
+        /**<summary>RFC 5530 UNAVAILABLE.</summary>*/
+        unavailable,
+        /**<summary>RFC 5530 AUTHENTICATIONFAILED.</summary>*/
+        authenticationfailed,
+        /**<summary>RFC 5530 AUTHORIZATIONFAILED.</summary>*/
+        authorizationfailed,
+        /**<summary>RFC 5530 EXPIRED.</summary>*/
+        expired,
+        /**<summary>RFC 5530 PRIVACYREQUIRED.</summary>*/
+        privacyrequired,
+        /**<summary>RFC 5530 CONTACTADMIN.</summary>*/
+        contactadmin,
+        /**<summary>RFC 5530 NOPERM.</summary>*/
+        noperm,
+        /**<summary>RFC 5530 INUSE.</summary>*/
+        inuse,
+        /**<summary>RFC 5530 EXPUNGEISSUED.</summary>*/
+        expungeissued,
+        /**<summary>RFC 5530 CORRUPTION.</summary>*/
+        corruption,
+        /**<summary>RFC 5530 SERVERBUG.</summary>*/
+        serverbug,
+        /**<summary>RFC 5530 CLIENTBUG.</summary>*/
+        clientbug,
+        /**<summary>RFC 5530 CANNOT.</summary>*/
+        cannot,
+        /**<summary>RFC 5530 LIMIT.</summary>*/
+        limit,
+        /**<summary>RFC 5530 OVERQUOTA.</summary>*/
+        overquota,
+        /**<summary>RFC 5530 ALREADYEXISTS.</summary>*/
+        alreadyexists,
+        /**<summary>RFC 5530 NONEXISTENT.</summary>*/
+        nonexistent,
+
+        /**<summary>RFC 2193 REFERRAL.</summary>*/
+        referral, 
+
+        /**<summary>RFC 6154 USEATTR.</summary>*/
+        useattr, 
+
+        /**<summary>RFC 3516 UNKNOWNCTE: the server can't decode the content.</summary>*/
+        unknowncte
     }
 
+    /// <summary>
+    /// Contains IMAP response text.
+    /// </summary>
+    /// <remarks>
+    /// If <see cref="Code"/> is <see cref="eResponseTextCode.badcharset"/> <see cref="Arguments"/> may contain a list of supported character sets.
+    /// If <see cref="Code"/> is <see cref="eResponseTextCode.referral"/> <see cref="Arguments"/> should contain URI(s).
+    /// </remarks>
+    /// <seealso cref="cResponseTextEventArgs"/>
+    /// <seealso cref="cUnsuccessfulCompletionException"/>
+    /// <seealso cref="cConnectByeException"/>
+    /// <seealso cref="cHomeServerReferralException"/>
+    /// <seealso cref="cCredentialsException"/>
+    /// <seealso cref="cCommandResult"/>
     public class cResponseText
     {
         /// <summary>
-        /// The IMAP response text code associated with the response text
+        /// The response code associated with the response text in text form, may be <see langword="null"/>.
         /// </summary>
-        /// <remarks>
-        /// If there was no code 'none' is used. 
-        /// If there was a code but it wasn't recognised then 'unknown' is used here and the text of the code is stored in UnknownCodeAtom.
-        /// </remarks>
+        public readonly string CodeText;
+
+        /// <summary>
+        /// The response code arguments associated with the response text in text form, may be <see langword="null"/>.
+        /// </summary>
+        public readonly string ArgumentsText;
+
+        /// <summary>
+        /// The response code associated with the response text in code form.
+        /// </summary>
+        /// <inheritdoc cref="cResponseText" select="remarks"/>
         public readonly eResponseTextCode Code;
 
         /// <summary>
-        /// Data associated with the response text code
+        /// The response code arguments associated with the response text in list form, may be <see langword="null"/>.
         /// </summary>
-        /// <remarks>
-        /// For badcharset it may contain the list of valid charsets.
-        /// For referral it should contain the URL(s).
-        /// </remarks>
-        public readonly cStrings Strings; // for badcharset, referrals
+        /// <inheritdoc cref="cResponseText" select="remarks"/>
+        public readonly cStrings Arguments; // for badcharset, referrals
 
         /// <summary>
-        /// If the response text code was unrecognised the text of the code is made available here
-        /// </summary>
-        public readonly string UnknownCodeAtom;
-
-        /// <summary>
-        /// If the unrecognised response text code had text following it the text is made available here
-        /// </summary>
-        public readonly string UnknownCodeText;
-
-        /// <summary>
-        /// The response text
+        /// The response text.
         /// </summary>
         public readonly string Text;
 
-        public cResponseText(string pText)
+        internal cResponseText(string pText)
         {
+            CodeText = null;
+            ArgumentsText = null;
             Code = eResponseTextCode.none;
-            Strings = null;
-            UnknownCodeAtom = null;
-            UnknownCodeText = null;
+            Arguments = null;
             Text = pText;
         }
 
-        public cResponseText(eResponseTextCode pCode, string pText)
+        internal cResponseText(IList<byte> pCodeText, eResponseTextCode pCode, string pText)
         {
+            CodeText = cTools.ASCIIBytesToString(pCodeText);
+            ArgumentsText = null;
             Code = pCode;
-            Strings = null;
-            UnknownCodeAtom = null;
-            UnknownCodeText = null;
+            Arguments = null;
             Text = pText;
         }
 
-        public cResponseText(eResponseTextCode pCode, cStrings pStrings, string pText)
+        internal cResponseText(IList<byte> pCodeText, IList<byte> pArgumentsText, eResponseTextCode pCode, cStrings pArguments, string pText)
         {
+            CodeText = cTools.ASCIIBytesToString(pCodeText);
+            ArgumentsText = cTools.UTF8BytesToString(pArgumentsText);
             Code = pCode;
-            Strings = pStrings;
-            UnknownCodeAtom = null;
-            UnknownCodeText = null;
+            Arguments = pArguments;
             Text = pText;
         }
 
-        public cResponseText(string pUnknownCodeAtom, string pUnknownCodeText, string pText)
-        {
-            Code = eResponseTextCode.unknown;
-            Strings = null;
-            UnknownCodeAtom = pUnknownCodeAtom;
-            UnknownCodeText = pUnknownCodeText;
-            Text = pText;
-        }
-
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cResponseText));
-            lBuilder.Append(Code);
-            if (Strings != null) lBuilder.Append(Strings);
-            if (UnknownCodeAtom != null) lBuilder.Append(UnknownCodeAtom);
-            if (UnknownCodeText != null) lBuilder.Append(UnknownCodeText);
+            lBuilder.Append(CodeText);
+            lBuilder.Append(ArgumentsText);
             lBuilder.Append(Text);
             return lBuilder.ToString();
         }
     }
 
+    /// <summary>
+    /// Carries IMAP response text.
+    /// </summary>
     public class cResponseTextEventArgs : EventArgs
     {
         /// <summary>
-        /// The response text type
+        /// The context in which the response text was received.
         /// </summary>
-        /// <remarks>
-        /// Indicates the situation in which the response text was received
-        /// </remarks>
-        public readonly eResponseTextType TextType;
+        public readonly eResponseTextContext Context;
 
         /// <summary>
-        /// The response text
+        /// The response text.
         /// </summary>
         public readonly cResponseText Text;
 
-        public cResponseTextEventArgs(eResponseTextType pTextType, cResponseText pText)
+        internal cResponseTextEventArgs(eResponseTextContext pContext, cResponseText pText)
         {
-            TextType = pTextType;
+            Context = pContext;
             Text = pText;
         }
 
-        public override string ToString()
-        {
-            return $"{nameof(cResponseTextEventArgs)}({TextType},{Text})";
-        }
+        /// <inheritdoc/>
+        public override string ToString() => $"{nameof(cResponseTextEventArgs)}({Context},{Text})";
     }
 }

@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public cMailbox Rename(iMailboxHandle pHandle, cMailboxName pMailboxName)
+        internal cMailbox Rename(iMailboxHandle pHandle, cMailboxName pMailboxName)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Rename));
             var lTask = ZRenameAsync(pHandle, pMailboxName, lContext);
@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<cMailbox> RenameAsync(iMailboxHandle pHandle, cMailboxName pMailboxName)
+        internal Task<cMailbox> RenameAsync(iMailboxHandle pHandle, cMailboxName pMailboxName)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(RenameAsync));
             return ZRenameAsync(pHandle, pMailboxName, lContext);
@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));

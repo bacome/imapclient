@@ -8,11 +8,22 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Represents a string that may include language information as per RFC 2231.
+    /// </summary>
+    /// <seealso cref="cMessage.Subject"/>
+    /// <seealso cref="cAddress.DisplayName"/>
+    /// <seealso cref="cAttachment.Description"/>
+    /// <seealso cref="cEnvelope.Subject"/>
+    /// <seealso cref="cSinglePartBody.Description"/>
     public class cCulturedString
     {
-        public readonly ReadOnlyCollection<cCulturedStringPart> Parts; // may be null, shouldn't be empty
+        /// <summary>
+        /// The parts of the string. May be <see langword="null"/>.
+        /// </summary>
+        public readonly ReadOnlyCollection<cCulturedStringPart> Parts;
 
-        public cCulturedString(IList<byte> pBytes)
+        internal cCulturedString(IList<byte> pBytes)
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
 
@@ -64,7 +75,7 @@ namespace work.bacome.imapclient
             Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
         }
 
-        public cCulturedString(string pString)
+        internal cCulturedString(string pString)
         {
             if (pString == null) throw new ArgumentNullException(nameof(pString));
             List<cCulturedStringPart> lParts = new List<cCulturedStringPart>();
@@ -72,6 +83,7 @@ namespace work.bacome.imapclient
             Parts = new ReadOnlyCollection<cCulturedStringPart>(lParts);
         }
 
+        /**<summary>Returns the string data sans the language information.</summary>*/
         public override string ToString()
         {
             if (Parts == null) return string.Empty;
@@ -81,10 +93,14 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
+        /// <summary>
+        /// Returns the string data sans the language information. 
+        /// </summary>
+        /// <param name="pString"></param>
         public static implicit operator string(cCulturedString pString) => pString?.ToString();
 
         [Conditional("DEBUG")]
-        public static void _Tests(cTrace.cContext pParentContext)
+        internal static void _Tests(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cCulturedString), nameof(_Tests));
 
@@ -118,17 +134,29 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// Represents part of a string that may include language information as per RFC 2231.
+    /// </summary>
+    /// <seealso cref="cCulturedString"/>
     public class cCulturedStringPart
     {
+        /// <summary>
+        /// The decoded text of the part.
+        /// </summary>
         public readonly string String;
-        public readonly string LanguageTag; // may be null
 
-        public cCulturedStringPart(string pString, string pLanguageTag)
+        /// <summary>
+        /// The language of the part. May be <see langword="null"/>.
+        /// </summary>
+        public readonly string LanguageTag;
+
+        internal cCulturedStringPart(string pString, string pLanguageTag)
         {
             String = pString ?? throw new ArgumentNullException(nameof(pString));
             LanguageTag = pLanguageTag;
         }
 
+        /// <inheritdoc/>
         public override string ToString() => $"{nameof(cCulturedStringPart)}({String},{LanguageTag})";
     }
 }

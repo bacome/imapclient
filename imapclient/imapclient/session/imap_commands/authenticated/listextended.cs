@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
                 // caller needs to determine if list status is supported
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
                 if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
                 if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
@@ -69,9 +69,9 @@ namespace work.bacome.imapclient
 
                     lBuilder.BeginList(eListBracketing.ifany, kListExtendedCommandPartReturnSpace);
 
-                    if ((mMailboxCacheData & fMailboxCacheData.subscribed) != 0) lBuilder.Add(kListExtendedCommandPartSubscribed);
-                    if ((mMailboxCacheData & fMailboxCacheData.children) != 0) lBuilder.Add(kListExtendedCommandPartChildren);
-                    if ((mMailboxCacheData & fMailboxCacheData.specialuse) != 0 && mCapabilities.SpecialUse) lBuilder.Add(kListExtendedCommandPartSpecialUse);
+                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.subscribed) != 0) lBuilder.Add(kListExtendedCommandPartSubscribed);
+                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.children) != 0) lBuilder.Add(kListExtendedCommandPartChildren);
+                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.specialuse) != 0 && mCapabilities.SpecialUse) lBuilder.Add(kListExtendedCommandPartSpecialUse);
 
                     if (pStatus)
                     {
@@ -95,7 +95,7 @@ namespace work.bacome.imapclient
 
                     fCapabilities lTryIgnoring = 0;
 
-                    if ((mMailboxCacheData & fMailboxCacheData.specialuse) != 0 && mCapabilities.SpecialUse) lTryIgnoring |= fCapabilities.specialuse;
+                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.specialuse) != 0 && mCapabilities.SpecialUse) lTryIgnoring |= fCapabilities.specialuse;
                     if (pStatus) lTryIgnoring |= fCapabilities.liststatus;
                     if (lTryIgnoring == 0) lTryIgnoring |= fCapabilities.listextended;
 

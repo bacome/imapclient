@@ -3,17 +3,21 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The store operation type
+    /// Represents a store operation type.
     /// </summary>
+    /// <seealso cref="cMessage.Store(eStoreOperation, cStorableFlags, ulong?)"/>
+    /// <seealso cref="cIMAPClient.Store(System.Collections.Generic.IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)"/>
+    /// <seealso cref="cMailbox.UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>
+    /// <seealso cref="cMailbox.UIDStore(System.Collections.Generic.IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>
     public enum eStoreOperation
     {
-        /** <summary>add flags to the flags already set</summary> */
+        /** <summary>Add flags to the flags already set.</summary> */
         add,
 
-        /** <summary>remove flags from the flags already set</summary> */
+        /** <summary>Remove flags from the flags already set.</summary> */
         remove,
 
-        /** <summary>replace the flags</summary> */
+        /** <summary>Replace the flags.</summary> */
         replace
     }
 }

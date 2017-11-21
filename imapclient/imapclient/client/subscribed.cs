@@ -10,13 +10,13 @@ namespace work.bacome.imapclient
     public partial class cIMAPClient
     {
         /// <summary>
-        /// List subscribed mailboxes using an IMAP wildcard search
+        /// Gets a list subscribed mailboxes using an IMAP wildcard search.
         /// </summary>
-        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
-        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
-        /// <param name="pHasSubscribedChildren">Include in the list mailboxes that are not themselves subscribed but that have subscribed children</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
-        /// <returns>A list of mailboxes</returns>
+        /// <param name="pListMailbox">The search string possibly including IMAP wildcards.</param>
+        /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
+        /// <param name="pHasSubscribedChildren">Specifies if mailboxes that are not themselves subscribed, but that have subscribed children, are included in the returned list.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
+        /// <inheritdoc cref="Mailboxes(string, char?, fMailboxCacheDataSets)" select="returns|remarks"/>
         public List<cMailbox> Subscribed(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
@@ -26,13 +26,13 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// List subscribed mailboxes using an IMAP wildcard search
+        /// Asynchronously gets a list subscribed mailboxes using an IMAP wildcard search.
         /// </summary>
-        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
-        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
-        /// <param name="pHasSubscribedChildren">Include in the list mailboxes that are not themselves subscribed but that have subscribed children</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
-        /// <returns>A list of mailboxes</returns>
+        /// <param name="pListMailbox">The search string possibly including IMAP wildcards.</param>
+        /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
+        /// <param name="pHasSubscribedChildren">Specifies if mailboxes that are not themselves subscribed, but that have subscribed children, are included in the returned list.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
+        /// <inheritdoc cref="Mailboxes(string, char?, fMailboxCacheDataSets)" select="returns|remarks"/>
         public Task<List<cMailbox>> SubscribedAsync(string pListMailbox, char? pDelimiter, bool pHasSubscribedChildren, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));
@@ -47,9 +47,7 @@ namespace work.bacome.imapclient
             return ZZSubscribedAsync(pListMailbox, pDelimiter, lPattern, pHasSubscribedChildren, pDataSets, lContext);
         }
 
-        // mailbox sub-mailbox list
-
-        public List<cMailbox> Subscribed(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
+        internal List<cMailbox> Subscribed(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
             var lTask = ZSubscribedAsync(pHandle, pDescend, pDataSets, lContext);
@@ -57,7 +55,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<List<cMailbox>> SubscribedAsync(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
+        internal Task<List<cMailbox>> SubscribedAsync(iMailboxHandle pHandle, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));
             return ZSubscribedAsync(pHandle, pDescend, pDataSets, lContext);
@@ -80,9 +78,7 @@ namespace work.bacome.imapclient
             return await ZZSubscribedAsync(lListMailbox, pHandle.MailboxName.Delimiter, lPattern, !pDescend, pDataSets, lContext).ConfigureAwait(false);
         }
 
-        // namespace sub-mailbox list
-
-        public List<cMailbox> Subscribed(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets)
+        internal List<cMailbox> Subscribed(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Subscribed));
             var lTask = ZSubscribedAsync(pNamespaceName, pDescend, pDataSets, lContext);
@@ -90,7 +86,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<List<cMailbox>> SubscribedAsync(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets)
+        internal Task<List<cMailbox>> SubscribedAsync(cNamespaceName pNamespaceName, bool pDescend, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(SubscribedAsync));
             return ZSubscribedAsync(pNamespaceName, pDescend, pDataSets, lContext);
@@ -121,7 +117,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
             if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));

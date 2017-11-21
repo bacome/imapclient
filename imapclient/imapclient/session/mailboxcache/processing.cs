@@ -82,11 +82,10 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.notprocessed;
                 }
 
-                public bool ProcessTextCode(eResponseTextType pTextType, cResponseData pData, cTrace.cContext pParentContext)
+                public void ProcessTextCode(eResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ProcessTextCode), pTextType, pData);
-                    if (mSelectedMailbox == null) return false;
-                    return mSelectedMailbox.ProcessTextCode(pTextType, pData, lContext);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ProcessTextCode), pTextContext, pData);
+                    if (mSelectedMailbox != null) mSelectedMailbox.ProcessTextCode(pTextContext, pData, lContext);
                 }
 
                 private void ZProcessListMailbox(cResponseDataListMailbox pListMailbox, cTrace.cContext pParentContext)
@@ -98,7 +97,7 @@ namespace work.bacome.imapclient
 
                     if (mCapabilities.ListExtended)
                     {
-                        if ((mMailboxCacheData & fMailboxCacheData.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, (pListMailbox.Flags & fListFlags.subscribed) != 0), lContext);
+                        if ((mMailboxCacheDataItems & fMailboxCacheDataItems.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, (pListMailbox.Flags & fListFlags.subscribed) != 0), lContext);
                         else if ((pListMailbox.Flags & fListFlags.subscribed) != 0) lItem.SetLSubFlags(new cLSubFlags(mSequence++, true), lContext);
                     }
                 }

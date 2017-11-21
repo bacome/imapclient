@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
     public partial class cIMAPClient
     {
         /// <summary>
-        /// Poll the server using CHECK (if a mailbox is selected) and NOOP to see if the server has pending notifications for us
+        /// Polls the server using IMAP CHECK (if a mailbox is selected) and IMAP NOOP to see if the server has pending notifications for the client.
         /// </summary>
         public void Poll()
         {
@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Poll the server using CHECK (if a mailbox is selected) and NOOP to see if the server has pending notifications for us
+        /// Asynchronously polls the server using IMAP CHECK (if a mailbox is selected) and IMAP NOOP to see if the server has pending notifications for the client.
         /// </summary>
         public Task PollAsync()
         {
@@ -32,7 +32,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {

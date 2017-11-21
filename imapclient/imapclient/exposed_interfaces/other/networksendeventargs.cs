@@ -5,12 +5,23 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Carries data sent to a server.
+    /// </summary>
+    /// <seealso cref="cIMAPClient.NetworkSend"/>
     public class cNetworkSendEventArgs : EventArgs
     {
+        /// <summary>
+        /// The number of bytes sent (<see langword="null"/> if this can't be disclosed).
+        /// </summary>
         public readonly int? Bytes;
+
+        /// <summary>
+        /// The bytes sent (sensitive data redacted).
+        /// </summary>
         public readonly ReadOnlyCollection<cBytes> Buffers;
 
-        public cNetworkSendEventArgs(cBytes pBuffer)
+        internal cNetworkSendEventArgs(cBytes pBuffer)
         {
             Bytes = pBuffer.Count;
             List<cBytes> lBuffers = new List<cBytes>(1);
@@ -18,7 +29,7 @@ namespace work.bacome.imapclient
             Buffers = lBuffers.AsReadOnly();
         }
 
-        public cNetworkSendEventArgs(IEnumerable<byte> pBuffer)
+        internal cNetworkSendEventArgs(IEnumerable<byte> pBuffer)
         {
             cBytes lBuffer = new cBytes(new List<byte>(pBuffer));
             Bytes = lBuffer.Count;
@@ -27,12 +38,13 @@ namespace work.bacome.imapclient
             Buffers = lBuffers.AsReadOnly();
         }
 
-        public cNetworkSendEventArgs(int? pBytes, IEnumerable<cBytes> pBuffers)
+        internal cNetworkSendEventArgs(int? pBytes, IEnumerable<cBytes> pBuffers)
         {
             Bytes = pBytes;
             Buffers = new List<cBytes>(pBuffers).AsReadOnly();
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cNetworkSendEventArgs));

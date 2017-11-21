@@ -15,17 +15,17 @@ namespace testharness2
     {
         private readonly cIMAPClient mClient;
         private readonly int mMaxMessages;
-        private readonly IList<eResponseTextType> mTypes;
+        private readonly IList<eResponseTextContext> mContexts;
         private readonly IList<eResponseTextCode> mCodes;
         private readonly Queue<string> mQueue = new Queue<string>();
         private readonly StringBuilder mBuilder = new StringBuilder();
         private bool mRefreshRequired = false;
 
-        public frmResponseText(cIMAPClient pClient, int pMaxMessages, IList<eResponseTextType> pTypes, IList<eResponseTextCode> pCodes)
+        public frmResponseText(cIMAPClient pClient, int pMaxMessages, IList<eResponseTextContext> pContexts, IList<eResponseTextCode> pCodes)
         {
             mClient = pClient;
             mMaxMessages = pMaxMessages;
-            mTypes = pTypes;
+            mContexts = pContexts;
             mCodes = pCodes;
             InitializeComponent();
         }
@@ -38,7 +38,7 @@ namespace testharness2
 
         private void mClient_ResponseText(object sender, cResponseTextEventArgs e)
         {
-            if (mTypes.Contains(e.TextType) || mCodes.Contains(e.Text.Code))
+            if (mContexts.Contains(e.Context) || mCodes.Contains(e.Text.Code))
             {
                 mQueue.Enqueue(e.ToString());
                 if (mQueue.Count > mMaxMessages) mQueue.Dequeue();

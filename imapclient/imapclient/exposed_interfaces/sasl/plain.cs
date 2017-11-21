@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Contains parameters for use with the IMAP AUTHENTICATE PLAIN command.
+    /// </summary>
+    /// <remarks>
+    /// RFC 4616 specifies that the authenticationid and password must be specified (i.e. be at least 1 character long) and may not include the NUL character.
+    /// </remarks>
     public class cSASLPlain : cSASL
     {
         // rfc4616
@@ -22,6 +27,12 @@ namespace work.bacome.imapclient
             mTLSRequirement = pTLSRequirement;
         }
 
+        /// <summary>
+        /// Initlalises a new instance with the specified authenticationid, password and TLS requirement. Will throw if the authenticationid or password are not valid.
+        /// </summary>
+        /// <param name="pAuthenticationId"></param>
+        /// <param name="pPassword"></param>
+        /// <param name="pTLSRequirement"></param>
         public cSASLPlain(string pAuthenticationId, string pPassword, eTLSRequirement pTLSRequirement)
         {
             if (string.IsNullOrEmpty(pAuthenticationId) || pAuthenticationId.IndexOf(cChar.NUL) != -1) throw new ArgumentOutOfRangeException(nameof(pAuthenticationId));
@@ -31,7 +42,7 @@ namespace work.bacome.imapclient
             mTLSRequirement = pTLSRequirement;
         }
 
-        public static bool TryConstruct(string pAuthenticationId, string pPassword, eTLSRequirement pTLSRequirement, out cSASLPlain rPlain)
+        internal static bool TryConstruct(string pAuthenticationId, string pPassword, eTLSRequirement pTLSRequirement, out cSASLPlain rPlain)
         {
             if (!string.IsNullOrEmpty(pAuthenticationId) &&
                 pAuthenticationId.IndexOf(cChar.NUL) == -1 &&
@@ -46,8 +57,15 @@ namespace work.bacome.imapclient
             return false;
         }
 
+        /// <summary>
+        /// Gets the value "PLAIN"
+        /// </summary>
         public override string MechanismName => kName;
+
+        /// <inheritdoc/>
         public override eTLSRequirement TLSRequirement => mTLSRequirement;
+
+        /// <inheritdoc/>
         public override cSASLAuthentication GetAuthentication() => new cAuth(mAuthenticationId, mPassword);
 
         private class cAuth : cSASLAuthentication
@@ -64,7 +82,7 @@ namespace work.bacome.imapclient
 
             public override IList<byte> GetResponse(IList<byte> pChallenge)
             {
-                if (mDone) throw new InvalidOperationException("already challenged");
+                if (mDone) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyChallenged);
                 mDone = true;
 
                 if (pChallenge != null && pChallenge.Count != 0) throw new ArgumentOutOfRangeException("non zero length challenge");

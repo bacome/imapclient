@@ -2,17 +2,39 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using work.bacome.apidocumentation;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// Represents an IMAP mailbox name.
+    /// </summary>
+    /// <remarks>
+    /// IMAP mailbox names have few grammatical restrictions, but may not include the NUL character.
+    /// IMAP hierarchy delimitiers have few grammatical restrictions, but must be ASCII, and not NUL, CR or LF.
+    /// Be careful to correctly specify the hierarchy delimiter, it is used in preparing the mailbox name for sending to the server.
+    /// </remarks>
+    /// <seealso cref="cIMAPClient.Mailbox(cMailboxName)"/>
+    /// <seealso cref="cIMAPClient.Create(cMailboxName, bool)"/>
+    /// <seealso cref="iMailboxHandle.MailboxName"/>
     public class cMailboxName : IComparable<cMailboxName>, IEquatable<cMailboxName>
     {
-        public const string InboxString = "INBOX";
-        public static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
+        internal const string InboxString = "INBOX";
+        internal static readonly ReadOnlyCollection<byte> InboxBytes = new cBytes(InboxString);
 
+        /// <summary>
+        /// The mailbox path including the full hierarchy.
+        /// </summary>
         public readonly string Path;
+
+        /// <summary>
+        /// The hierarchy delimiter used in this mailbox name. May be <see langword="null"/>. 
+        /// </summary>
+        /// <remarks>
+        /// Will be <see langword="null"/> if the server has no hierarchy in its names.
+        /// </remarks>
         public readonly char? Delimiter;
 
         private cMailboxName(string pPath, char? pDelimiter, bool pValid)
@@ -20,7 +42,13 @@ namespace work.bacome.imapclient
             Path = pPath;
             Delimiter = pDelimiter;
         }
-
+    
+        /// <summary>
+        /// Initialises a new instance with the specified path and hierarchy delimiter. Will throw if the parameters provided are not valid.
+        /// </summary>
+        /// <param name="pPath"></param>
+        /// <param name="pDelimiter"></param>
+        /// <inheritdoc cref="cMailboxName" select="remarks"/>
         public cMailboxName(string pPath, char? pDelimiter)
         {
             if (string.IsNullOrEmpty(pPath)) throw new ArgumentNullException(nameof(pPath));
@@ -41,6 +69,9 @@ namespace work.bacome.imapclient
             Delimiter = pDelimiter;
         }
 
+        /// <summary>
+        /// Gets the path of the parent mailbox. Will be <see langword="null"/> if there is no parent mailbox.
+        /// </summary>
         public string ParentPath
         {
             get
@@ -52,6 +83,9 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// Gets the name of the mailbox. As compared to <see cref="Path"/> this does not include the hierarchy.
+        /// </summary>
         public string Name
         {
             get
@@ -63,8 +97,12 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <summary>
+        /// Indicates whether this is 'INBOX'.
+        /// </summary>
         public bool IsInbox => ReferenceEquals(Path, InboxString);
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo"/>
         public int CompareTo(cMailboxName pOther)
         {
             if (pOther == null) return 1;
@@ -86,10 +124,13 @@ namespace work.bacome.imapclient
             return Delimiter.Value.CompareTo(pOther.Delimiter.Value);
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals"/>
         public bool Equals(cMailboxName pOther) => this == pOther;
 
+        /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cMailboxName;
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -101,8 +142,10 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cMailboxName)}({Path},{Delimiter})";
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cMailboxName pA, cMailboxName pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -111,9 +154,10 @@ namespace work.bacome.imapclient
             return pA.Path == pB.Path && pA.Delimiter == pB.Delimiter;
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
         public static bool operator !=(cMailboxName pA, cMailboxName pB) => !(pA == pB);
 
-        public static bool TryConstruct(string pPath, char? pDelimiter, out cMailboxName rResult)
+        internal static bool TryConstruct(string pPath, char? pDelimiter, out cMailboxName rResult)
         {
             if (string.IsNullOrEmpty(pPath)) { rResult = null; return false; }
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
@@ -132,7 +176,7 @@ namespace work.bacome.imapclient
             return true;
         }
 
-        public static bool TryConstruct(IList<byte> pEncodedMailboxPath, byte? pDelimiter, bool pUTF8Enabled, out cMailboxName rResult)
+        internal static bool TryConstruct(IList<byte> pEncodedMailboxPath, byte? pDelimiter, bool pUTF8Enabled, out cMailboxName rResult)
         {
             if (pEncodedMailboxPath == null || pEncodedMailboxPath.Count == 0) { rResult = null; return false; }
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rResult = null; return false; }
@@ -150,7 +194,7 @@ namespace work.bacome.imapclient
         }
 
         [Conditional("DEBUG")]
-        public static void _Tests(cTrace.cContext pParentContext)
+        internal static void _Tests(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cMailboxName), nameof(_Tests));
 

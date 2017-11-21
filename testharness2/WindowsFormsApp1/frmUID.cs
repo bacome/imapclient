@@ -467,7 +467,7 @@ namespace testharness2
             if (!ZUIDs(out var lUIDs)) return;
 
             eStoreOperation lOperation;
-            cSettableFlags lFlags;
+            cStorableFlags lFlags;
             ulong? lIfUnchangedSinceModSeq;
 
             using (frmStoreDialog lStoreDialog = new frmStoreDialog())

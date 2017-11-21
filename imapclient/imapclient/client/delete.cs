@@ -8,14 +8,14 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void Delete(iMailboxHandle pHandle)
+        internal void Delete(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Delete));
             var lTask = ZDeleteAsync(pHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task DeleteAsync(iMailboxHandle pHandle)
+        internal Task DeleteAsync(iMailboxHandle pHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(DeleteAsync));
             return ZDeleteAsync(pHandle, lContext);
@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 

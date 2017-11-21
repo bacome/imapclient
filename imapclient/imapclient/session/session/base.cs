@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
 
             private readonly cCallbackSynchroniser mSynchroniser;
             private readonly fCapabilities mIgnoreCapabilities;
-            private readonly fMailboxCacheData mMailboxCacheData;
+            private readonly fMailboxCacheDataItems mMailboxCacheDataItems;
             private readonly cCommandPipeline mPipeline;
 
             private cBatchSizer mFetchCacheItemsSizer;
@@ -32,7 +32,7 @@ namespace work.bacome.imapclient
             private cAccountId _ConnectedAccountId = null;
 
             // set once enabled
-            private fMailboxCacheData mStatusAttributes = 0;
+            private fMailboxCacheDataItems mStatusAttributes = 0;
             private cMailboxCache mMailboxCache = null;
 
             // locks
@@ -43,13 +43,13 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cCallbackSynchroniser pSynchroniser, fCapabilities pIgnoreCapabilities, fMailboxCacheData pMailboxCacheData, cBatchSizerConfiguration pNetworkWriteConfiguration, cIdleConfiguration pIdleConfiguration, cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(cCallbackSynchroniser pSynchroniser, fCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems, cBatchSizerConfiguration pNetworkWriteConfiguration, cIdleConfiguration pIdleConfiguration, cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pMailboxCacheData, pNetworkWriteConfiguration, pIdleConfiguration, pFetchCacheItemsConfiguration, pFetchBodyReadConfiguration);
+                var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pMailboxCacheDataItems, pNetworkWriteConfiguration, pIdleConfiguration, pFetchCacheItemsConfiguration, pFetchBodyReadConfiguration);
 
                 mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
                 mIgnoreCapabilities = pIgnoreCapabilities;
-                mMailboxCacheData = pMailboxCacheData;
+                mMailboxCacheDataItems = pMailboxCacheDataItems;
 
                 mPipeline = new cCommandPipeline(pSynchroniser, ZDisconnected, pNetworkWriteConfiguration, pIdleConfiguration, lContext);
 
@@ -69,7 +69,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetEnabled));
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.authenticated) throw new InvalidOperationException("must be authenticated");
+                if (_ConnectionState != eConnectionState.authenticated) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotAuthenticated);
 
                 bool lUTF8Enabled = (EnabledExtensions & fEnableableExtensions.utf8) != 0;
 
@@ -79,10 +79,10 @@ namespace work.bacome.imapclient
                     mEncodingPartFactory = mCommandPartFactory;
                 }
 
-                mStatusAttributes = mMailboxCacheData & fMailboxCacheData.allstatus;
-                if (!mCapabilities.CondStore) mStatusAttributes &= ~fMailboxCacheData.highestmodseq;
+                mStatusAttributes = mMailboxCacheDataItems & fMailboxCacheDataItems.allstatus;
+                if (!mCapabilities.CondStore) mStatusAttributes &= ~fMailboxCacheDataItems.highestmodseq;
 
-                mMailboxCache = new cMailboxCache(mSynchroniser, mMailboxCacheData, mCommandPartFactory, mCapabilities, ZSetState);
+                mMailboxCache = new cMailboxCache(mSynchroniser, mMailboxCacheDataItems, mCommandPartFactory, mCapabilities, ZSetState);
 
                 mPipeline.Install(new cResponseTextCodeParserSelect(mCapabilities));
                 mPipeline.Install(new cResponseDataParserSelect());
@@ -101,7 +101,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetInitialised));
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.enabled) throw new InvalidOperationException("must be enabled");
+                if (_ConnectionState != eConnectionState.enabled) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotEnabled);
 
                 ZSetState(eConnectionState.notselected, lContext);
             }
@@ -174,9 +174,9 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetHomeServerReferral), pResponseText);
 
-                if (pResponseText.Code != eResponseTextCode.referral || pResponseText.Strings == null || pResponseText.Strings.Count != 1) return false;
+                if (pResponseText.Code != eResponseTextCode.referral || pResponseText.Arguments == null || pResponseText.Arguments.Count != 1) return false;
 
-                if (cURL.TryParse(pResponseText.Strings[0], out var lReferral) && lReferral.IsHomeServerReferral)
+                if (cURL.TryParse(pResponseText.Arguments[0], out var lReferral) && lReferral.IsHomeServerReferral)
                 {
                     _HomeServerReferral = lReferral;
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.HomeServerReferral), lContext);
@@ -191,7 +191,7 @@ namespace work.bacome.imapclient
             private void ZSetConnectedAccountId(cAccountId pAccountId, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetConnectedAccountId), pAccountId);
-                if (_ConnectedAccountId != null) throw new InvalidOperationException(); // can only be set once
+                if (_ConnectedAccountId != null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyConnected); // can only be set once
                 _ConnectedAccountId = pAccountId ?? throw new ArgumentNullException(nameof(pAccountId));
                 ZSetState(eConnectionState.authenticated, lContext);
                 mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.ConnectedAccountId), lContext);
@@ -205,7 +205,7 @@ namespace work.bacome.imapclient
 
             public iMailboxHandle GetMailboxHandle(cMailboxName pMailboxName)
             {
-                if (mMailboxCache == null) throw new InvalidOperationException();
+                if (mMailboxCache == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotEnabled);
                 return mMailboxCache.GetHandle(pMailboxName);
             }
 

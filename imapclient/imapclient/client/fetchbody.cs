@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void Fetch(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
+        internal void Fetch(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task FetchAsync(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
+        internal Task FetchAsync(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));

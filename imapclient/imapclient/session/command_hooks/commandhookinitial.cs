@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -11,34 +10,37 @@ namespace work.bacome.imapclient
         {
             private class cCommandHookInitial : cCommandHook
             {
-                private static readonly cBytes kCapabilitySpace = new cBytes("CAPABILITY ");
+                private static readonly cBytes kCapability = new cBytes("CAPABILITY");
 
                 public cCommandHookInitial() { }
 
                 public cStrings Capabilities { get; private set; } = null;
                 public cStrings AuthenticationMechanisms { get; private set; } = null;
 
-                public override bool ProcessTextCode(eResponseTextType pTextType, cBytesCursor pCursor, cTrace.cContext pParentContext)
+                public override void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandHookInitial), nameof(ProcessTextCode), pTextType);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandHookInitial), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
 
-                    if (pTextType == eResponseTextType.greeting || pTextType == eResponseTextType.success)
+                    if (pTextContext == eResponseTextContext.greeting || pTextContext == eResponseTextContext.success)
                     {
-                        if (pCursor.SkipBytes(kCapabilitySpace))
+                        if (pCode.Equals(kCapability))
                         {
-                            if (pCursor.ProcessCapability(out var lCapabilities, out var lAuthenticationMechanisms, lContext) && pCursor.SkipBytes(cBytesCursor.RBracketSpace))
+                            if (pArguments != null)
                             {
-                                lContext.TraceVerbose("received capabilities: {0} {1}", lCapabilities, lAuthenticationMechanisms);
-                                Capabilities = lCapabilities;
-                                AuthenticationMechanisms = lAuthenticationMechanisms;
-                                return true;
+                                cBytesCursor lCursor = new cBytesCursor(pArguments);
+
+                                if (lCursor.ProcessCapability(out var lCapabilities, out var lAuthenticationMechanisms, lContext) && lCursor.Position.AtEnd)
+                                {
+                                    lContext.TraceVerbose("received capabilities: {0} {1}", lCapabilities, lAuthenticationMechanisms);
+                                    Capabilities = lCapabilities;
+                                    AuthenticationMechanisms = lAuthenticationMechanisms;
+                                    return;
+                                }
                             }
 
                             lContext.TraceWarning("likely malformed capability response");
                         }
                     }
-
-                    return false;
                 }
             }
         }

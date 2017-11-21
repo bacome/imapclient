@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public cCopyFeedback UIDCopy(iMailboxHandle pSourceHandle, cUID pSourceUID, iMailboxHandle pDestinationHandle)
+        internal cCopyFeedback UIDCopy(iMailboxHandle pSourceHandle, cUID pSourceUID, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopy), 1);
             var lTask = ZUIDCopyAsync(pSourceHandle, cUIDList.FromUID(pSourceUID), pDestinationHandle, lContext);
@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public cCopyFeedback UIDCopy(iMailboxHandle pSourceHandle, IEnumerable<cUID> pSourceUIDs, iMailboxHandle pDestinationHandle)
+        internal cCopyFeedback UIDCopy(iMailboxHandle pSourceHandle, IEnumerable<cUID> pSourceUIDs, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopy), 2);
             var lTask = ZUIDCopyAsync(pSourceHandle, cUIDList.FromUIDs(pSourceUIDs), pDestinationHandle, lContext);
@@ -25,13 +25,13 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<cCopyFeedback> UIDCopyAsync(iMailboxHandle pSourceHandle, cUID pSourceUID, iMailboxHandle pDestinationHandle)
+        internal Task<cCopyFeedback> UIDCopyAsync(iMailboxHandle pSourceHandle, cUID pSourceUID, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopyAsync), 1);
             return ZUIDCopyAsync(pSourceHandle, cUIDList.FromUID(pSourceUID), pDestinationHandle, lContext);
         }
 
-        public Task<cCopyFeedback> UIDCopyAsync(iMailboxHandle pSourceHandle, IEnumerable<cUID> pSourceUIDs, iMailboxHandle pDestinationHandle)
+        internal Task<cCopyFeedback> UIDCopyAsync(iMailboxHandle pSourceHandle, IEnumerable<cUID> pSourceUIDs, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopyAsync), 2);
             return ZUIDCopyAsync(pSourceHandle, cUIDList.FromUIDs(pSourceUIDs), pDestinationHandle, lContext);
@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
             if (pSourceHandle == null) throw new ArgumentNullException(nameof(pSourceHandle));
             if (pSourceUIDs == null) throw new ArgumentNullException(nameof(pSourceUIDs));

@@ -1,17 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// A read-only collection of <see cref="cNamespace"/>.
+    /// </summary>
+    /// <seealso cref="cIMAPClient.Namespaces"/>
     public class cNamespaces
     {
+        /**<summary>The personal <see cref="cNamespace"/> instances in the collection.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> Personal;
+        /**<summary>The 'other user' <see cref="cNamespace"/> instances in the collection.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> OtherUsers;
+        /**<summary>The shared <see cref="cNamespace"/> instances in the collection.</summary>*/
         public readonly ReadOnlyCollection<cNamespace> Shared;
 
-        public cNamespaces(cIMAPClient pClient, IList<cNamespaceName> pPersonal, IList<cNamespaceName> pOtherUsers, IList<cNamespaceName> pShared)
+        internal cNamespaces(cIMAPClient pClient, IList<cNamespaceName> pPersonal, IList<cNamespaceName> pOtherUsers, IList<cNamespaceName> pShared)
         {
             if (pPersonal != null && pPersonal.Count == 0) throw new ArgumentOutOfRangeException(nameof(pPersonal));
             if (pOtherUsers != null && pOtherUsers.Count == 0) throw new ArgumentOutOfRangeException(nameof(pOtherUsers));
@@ -30,6 +36,7 @@ namespace work.bacome.imapclient
             return lNamespaces.AsReadOnly();
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             cListBuilder lBuilder = new cListBuilder(nameof(cNamespaces));

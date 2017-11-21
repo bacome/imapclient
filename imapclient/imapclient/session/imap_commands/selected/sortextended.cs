@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SortExtendedAsync), pMC, pHandle, pFilter, pSort);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pFilter == null) throw new ArgumentNullException(nameof(pFilter));
                 if (pSort == null) throw new ArgumentNullException(nameof(pSort));
@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                     var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, pFilter.UIDValidity);
 
                     // special case
-                    if (ReferenceEquals(pFilter, cFilter.False)) return new cMessageHandleList();
+                    if (ReferenceEquals(pFilter, cFilter.None)) return new cMessageHandleList();
 
                     if (pFilter.ContainsMessageHandles) lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 

@@ -8,14 +8,14 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void Expunge(iMailboxHandle pHandle, bool pAndUnselect)
+        internal void Expunge(iMailboxHandle pHandle, bool pAndUnselect)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Expunge));
             var lTask = ZExpungeAsync(pHandle, pAndUnselect, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task ExpungeAsync(iMailboxHandle pHandle, bool pAndUnselect)
+        internal Task ExpungeAsync(iMailboxHandle pHandle, bool pAndUnselect)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ExpungeAsync));
             return ZExpungeAsync(pHandle, pAndUnselect, lContext);
@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 

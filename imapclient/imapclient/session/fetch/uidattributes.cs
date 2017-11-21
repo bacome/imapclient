@@ -11,12 +11,12 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cMessageHandleList> UIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, cCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> UIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, cMessageCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchCacheItemsAsync), pMC, pHandle, pUIDs, pItems);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
                 return lHandles;
             }
 
-            private async Task ZUIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, cCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
+            private async Task ZUIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pHandle, cUIDList pUIDs, cMessageCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchCacheItemsAsync), pMC, pHandle, pUIDs, pItems);
 

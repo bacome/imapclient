@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Diagnostics;
-using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /// <summary>
+        /// Internal library tests.
+        /// </summary>
+        /// <param name="pParentContext"></param>
         [Conditional("DEBUG")]
         public static void _Tests(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(_Tests));
             cBytesCursor._Tests(lContext);
-            cModifiedUTF7._Tests(cTrace.cContext.Null);
-            cBase64._Tests(cTrace.cContext.Null);
-            cSession._Tests(cTrace.cContext.Null);
-            cCredentials._Tests(cTrace.cContext.Null);
+            cModifiedUTF7._Tests(cTrace.cContext.None);
+            cBase64._Tests(cTrace.cContext.None);
+            cSession._Tests(cTrace.cContext.None);
+            cCredentials._Tests(cTrace.cContext.None);
             cURI._Tests(lContext);
             cURLParts._Tests(lContext);
             cURIParts._Tests(lContext);
@@ -26,7 +29,7 @@ namespace work.bacome.imapclient
             //cHeaderFieldNames._Tests(lContext);
             cHeaderFieldNameList._Tests(lContext);
             cHeaderFields._Tests(lContext);
-            cSettableFlagList._Tests(lContext);
+            cStorableFlagList._Tests(lContext);
         }
 
         private partial class cSession

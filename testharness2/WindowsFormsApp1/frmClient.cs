@@ -118,18 +118,18 @@ namespace testharness2
                     else mClient.SetPlainCredentials(txtUserId.Text.Trim(), txtPassword.Text.Trim(), lTLSRequirement, chkTryIfNotAdvertised.Checked);
                 }
 
-                fMailboxCacheData lMailboxCacheData = 0;
-                if (chkCacheSubscribed.Checked) lMailboxCacheData |= fMailboxCacheData.subscribed;
-                if (chkCacheChildren.Checked) lMailboxCacheData |= fMailboxCacheData.children;
-                if (chkCacheSpecialUse.Checked) lMailboxCacheData |= fMailboxCacheData.specialuse;
-                if (chkCacheMessageCount.Checked) lMailboxCacheData |= fMailboxCacheData.messagecount;
-                if (chkCacheRecentCount.Checked) lMailboxCacheData |= fMailboxCacheData.recentcount;
-                if (chkCacheUIDNext.Checked) lMailboxCacheData |= fMailboxCacheData.uidnext;
-                if (chkCacheUIDValidity.Checked) lMailboxCacheData |= fMailboxCacheData.uidvalidity;
-                if (chkCacheUnseenCount.Checked) lMailboxCacheData |= fMailboxCacheData.unseencount;
-                if (chkCacheHighestModSeq.Checked) lMailboxCacheData |= fMailboxCacheData.highestmodseq;
+                fMailboxCacheDataItems lMailboxCacheData = 0;
+                if (chkCacheSubscribed.Checked) lMailboxCacheData |= fMailboxCacheDataItems.subscribed;
+                if (chkCacheChildren.Checked) lMailboxCacheData |= fMailboxCacheDataItems.children;
+                if (chkCacheSpecialUse.Checked) lMailboxCacheData |= fMailboxCacheDataItems.specialuse;
+                if (chkCacheMessageCount.Checked) lMailboxCacheData |= fMailboxCacheDataItems.messagecount;
+                if (chkCacheRecentCount.Checked) lMailboxCacheData |= fMailboxCacheDataItems.recentcount;
+                if (chkCacheUIDNext.Checked) lMailboxCacheData |= fMailboxCacheDataItems.uidnext;
+                if (chkCacheUIDValidity.Checked) lMailboxCacheData |= fMailboxCacheDataItems.uidvalidity;
+                if (chkCacheUnseenCount.Checked) lMailboxCacheData |= fMailboxCacheDataItems.unseencount;
+                if (chkCacheHighestModSeq.Checked) lMailboxCacheData |= fMailboxCacheDataItems.highestmodseq;
 
-                mClient.MailboxCacheData = lMailboxCacheData;
+                mClient.MailboxCacheDataItems = lMailboxCacheData;
 
                 fCapabilities lKnownCapabilities = 0;
 
@@ -322,16 +322,16 @@ namespace testharness2
             ZSetControlStateIdle();           
             mClient.PropertyChanged += mClient_PropertyChanged;
 
-            var lMailboxCacheData = mClient.MailboxCacheData;
-            chkCacheSubscribed.Checked = (lMailboxCacheData & fMailboxCacheData.subscribed) != 0;
-            chkCacheChildren.Checked = (lMailboxCacheData & fMailboxCacheData.children) != 0;
-            chkCacheSpecialUse.Checked = (lMailboxCacheData & fMailboxCacheData.specialuse) != 0;
-            chkCacheMessageCount.Checked = (lMailboxCacheData & fMailboxCacheData.messagecount) != 0;
-            chkCacheRecentCount.Checked = (lMailboxCacheData & fMailboxCacheData.recentcount) != 0;
-            chkCacheUIDNext.Checked = (lMailboxCacheData & fMailboxCacheData.uidnext) != 0;
-            chkCacheUIDValidity.Checked = (lMailboxCacheData & fMailboxCacheData.uidvalidity) != 0;
-            chkCacheUnseenCount.Checked = (lMailboxCacheData & fMailboxCacheData.unseencount) != 0;
-            chkCacheHighestModSeq.Checked = (lMailboxCacheData & fMailboxCacheData.highestmodseq) != 0;
+            var lMailboxCacheData = mClient.MailboxCacheDataItems;
+            chkCacheSubscribed.Checked = (lMailboxCacheData & fMailboxCacheDataItems.subscribed) != 0;
+            chkCacheChildren.Checked = (lMailboxCacheData & fMailboxCacheDataItems.children) != 0;
+            chkCacheSpecialUse.Checked = (lMailboxCacheData & fMailboxCacheDataItems.specialuse) != 0;
+            chkCacheMessageCount.Checked = (lMailboxCacheData & fMailboxCacheDataItems.messagecount) != 0;
+            chkCacheRecentCount.Checked = (lMailboxCacheData & fMailboxCacheDataItems.recentcount) != 0;
+            chkCacheUIDNext.Checked = (lMailboxCacheData & fMailboxCacheDataItems.uidnext) != 0;
+            chkCacheUIDValidity.Checked = (lMailboxCacheData & fMailboxCacheDataItems.uidvalidity) != 0;
+            chkCacheUnseenCount.Checked = (lMailboxCacheData & fMailboxCacheDataItems.unseencount) != 0;
+            chkCacheHighestModSeq.Checked = (lMailboxCacheData & fMailboxCacheDataItems.highestmodseq) != 0;
 
             ZLoadBatchSizerConfiguration(mClient.NetworkWriteConfiguration, txtNWMin, txtNWMax, txtNWMaxTime, txtNWInitial);
 
@@ -355,14 +355,14 @@ namespace testharness2
 
             ZSortDescriptionSet();
 
-            chkAHEnvelope.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.envelope) != 0;
-            chkAHFlags.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            chkAHReceived.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            chkAHSize.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            chkAHUID.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            chkAHModSeq.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            chkAHBodyStructure.Checked = (mClient.DefaultCacheItems.Attributes & fCacheAttributes.flags) != 0;
-            txtAHHeaderFieldNames.Text = ZHeaderFieldNames(mClient.DefaultCacheItems.Names);
+            chkAHEnvelope.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.envelope) != 0;
+            chkAHFlags.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
+            chkAHReceived.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
+            chkAHSize.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
+            chkAHUID.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
+            chkAHModSeq.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
+            chkAHBodyStructure.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
+            txtAHHeaderFieldNames.Text = ZHeaderFieldNames(mClient.DefaultMessageCacheItems.Names);
         }
 
         private void ZLoadBatchSizerConfiguration(cBatchSizerConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
@@ -523,18 +523,18 @@ namespace testharness2
             {
                 int lMaxMessages = int.Parse(txtResponseText.Text);
 
-                List<eResponseTextType> lTypes = new List<eResponseTextType>();
+                List<eResponseTextContext> lTypes = new List<eResponseTextContext>();
 
-                if (chkRTTGreeting.Checked) lTypes.Add(eResponseTextType.greeting);
-                if (chkRTTContinue.Checked) lTypes.Add(eResponseTextType.continuerequest);
-                if (chkRTTBye.Checked) lTypes.Add(eResponseTextType.bye);
-                if (chkRTTInformation.Checked) lTypes.Add(eResponseTextType.information);
-                if (chkRTTWarning.Checked) lTypes.Add(eResponseTextType.warning);
-                if (chkRTTError.Checked) lTypes.Add(eResponseTextType.error);
-                if (chkRTTSuccess.Checked) lTypes.Add(eResponseTextType.success);
-                if (chkRTTFailure.Checked) lTypes.Add(eResponseTextType.failure);
-                if (chkRTTProtocolError.Checked) lTypes.Add(eResponseTextType.protocolerror);
-                if (chkRTTAuthenticationCancelled.Checked) lTypes.Add(eResponseTextType.authenticationcancelled);
+                if (chkRTTGreeting.Checked) lTypes.Add(eResponseTextContext.greeting);
+                if (chkRTTContinue.Checked) lTypes.Add(eResponseTextContext.continuerequest);
+                if (chkRTTBye.Checked) lTypes.Add(eResponseTextContext.bye);
+                if (chkRTTInformation.Checked) lTypes.Add(eResponseTextContext.information);
+                if (chkRTTWarning.Checked) lTypes.Add(eResponseTextContext.warning);
+                if (chkRTTError.Checked) lTypes.Add(eResponseTextContext.error);
+                if (chkRTTSuccess.Checked) lTypes.Add(eResponseTextContext.success);
+                if (chkRTTFailure.Checked) lTypes.Add(eResponseTextContext.failure);
+                if (chkRTTProtocolError.Checked) lTypes.Add(eResponseTextContext.protocolerror);
+                if (chkRTTAuthenticationCancelled.Checked) lTypes.Add(eResponseTextContext.authenticationcancelled);
 
                 List<eResponseTextCode> lCodes = new List<eResponseTextCode>();
 
@@ -727,19 +727,19 @@ namespace testharness2
         {
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
 
-            fCacheAttributes lAttributes = 0;
+            fMessageCacheAttributes lAttributes = 0;
 
-            if (chkAHEnvelope.Checked) lAttributes |= fCacheAttributes.envelope;
-            if (chkAHFlags.Checked) lAttributes |= fCacheAttributes.flags;
-            if (chkAHReceived.Checked) lAttributes |= fCacheAttributes.received;
-            if (chkAHSize.Checked) lAttributes |= fCacheAttributes.size;
-            if (chkAHUID.Checked) lAttributes |= fCacheAttributes.uid;
-            if (chkAHModSeq.Checked) lAttributes |= fCacheAttributes.modseq;
-            if (chkAHBodyStructure.Checked) lAttributes |= fCacheAttributes.bodystructure;
+            if (chkAHEnvelope.Checked) lAttributes |= fMessageCacheAttributes.envelope;
+            if (chkAHFlags.Checked) lAttributes |= fMessageCacheAttributes.flags;
+            if (chkAHReceived.Checked) lAttributes |= fMessageCacheAttributes.received;
+            if (chkAHSize.Checked) lAttributes |= fMessageCacheAttributes.size;
+            if (chkAHUID.Checked) lAttributes |= fMessageCacheAttributes.uid;
+            if (chkAHModSeq.Checked) lAttributes |= fMessageCacheAttributes.modseq;
+            if (chkAHBodyStructure.Checked) lAttributes |= fMessageCacheAttributes.bodystructure;
 
             ZTryParseHeaderFieldNames(txtAHHeaderFieldNames.Text, out var lNames);
 
-            mClient.DefaultCacheItems = new cCacheItems(lAttributes, lNames ?? cHeaderFieldNames.None);
+            mClient.DefaultMessageCacheItems = new cMessageCacheItems(lAttributes, lNames ?? cHeaderFieldNames.None);
         }
 
         private void cmdPSet_Click(object sender, EventArgs e)
@@ -764,7 +764,7 @@ namespace testharness2
             if (chkPReferences.Checked) lProperties |= fMessageProperties.references;
             if (chkPImportance.Checked) lProperties |= fMessageProperties.importance;
 
-            mClient.DefaultCacheItems = lProperties;
+            mClient.DefaultMessageCacheItems = lProperties;
         }
     }
 }

@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.imapclient;
-using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace testharness2
@@ -23,7 +22,7 @@ namespace testharness2
             // quickly get to the test I'm working on
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(CurrentTest));
             //cIMAPClient._Tests(lContext);
-            ZTestUIDFetch1(lContext);
+            ZTestBadCharsetUIDNotSticky(lContext);
         }
 
         [Conditional("DEBUG")]
@@ -35,27 +34,27 @@ namespace testharness2
             {
                 cIMAPClient._Tests(lContext);
 
-                ZTestByeAtStartup1(cTrace.cContext.Null); // tests BYE at startup and ALERT
-                ZTestByeAtStartup2(cTrace.cContext.Null); // tests BYE at startup and greeting
+                ZTestByeAtStartup1(cTrace.cContext.None); // tests BYE at startup and ALERT
+                ZTestByeAtStartup2(cTrace.cContext.None); // tests BYE at startup and greeting
                 ZTestByeAtStartup3(lContext); // tests BYE at startup with referral
 
                 ZTestPreauthAtStartup1(lContext); // tests capability in greeting and logout
                 ZTestPreauthAtStartup1_2(lContext); // tests utf8 id
                 ZTestPreauthAtStartup1_3(lContext); // tests utf8 id 2
                 ZTestPreauthAtStartup2(lContext); // tests capability command, enabling UTF8, information, warning and error messages, 
-                ZTestPreauthAtStartup3(cTrace.cContext.Null); // tests that when there is nothing to enable that the enable isn't done
+                ZTestPreauthAtStartup3(cTrace.cContext.None); // tests that when there is nothing to enable that the enable isn't done
 
-                ZTestAuthAtStartup1(cTrace.cContext.Null); // tests that connect fails when there are no credentials that can be used
-                ZTestAuthAtStartup2(cTrace.cContext.Null); // tests login, literal+, capability response on successful login, disconnect
-                ZTestAuthAtStartup3(cTrace.cContext.Null); // tests auth=plain, capability response on successful authenticate
-                ZTestAuthAtStartup4(cTrace.cContext.Null); // tests auth failure falls back to login, synchronised literals, that failure to authenticate causes connect to fail, capability response where it shouldn't be, failure responses
-                ZTestAuthAtStartup4_1(cTrace.cContext.Null); // tests referral terminates login sequence
-                ZTestAuthAtStartup4_2(cTrace.cContext.Null); // tests authfailed terminates login sequence
-                if (!pQuick) ZTestAuthAtStartup5(cTrace.cContext.Null); // tests capability is issued when there isn't one in the OK, tests IDLE
-                ZTestAuthAtStartup5_1(cTrace.cContext.Null); // tests referral on an ok
+                ZTestAuthAtStartup1(cTrace.cContext.None); // tests that connect fails when there are no credentials that can be used
+                ZTestAuthAtStartup2(cTrace.cContext.None); // tests login, literal+, capability response on successful login, disconnect
+                ZTestAuthAtStartup3(cTrace.cContext.None); // tests auth=plain, capability response on successful authenticate
+                ZTestAuthAtStartup4(cTrace.cContext.None); // tests auth failure falls back to login, synchronised literals, that failure to authenticate causes connect to fail, capability response where it shouldn't be, failure responses
+                ZTestAuthAtStartup4_1(cTrace.cContext.None); // tests referral terminates login sequence
+                ZTestAuthAtStartup4_2(cTrace.cContext.None); // tests authfailed terminates login sequence
+                if (!pQuick) ZTestAuthAtStartup5(cTrace.cContext.None); // tests capability is issued when there isn't one in the OK, tests IDLE
+                ZTestAuthAtStartup5_1(cTrace.cContext.None); // tests referral on an ok
 
-                ZTestLiteralMinus(cTrace.cContext.Null); // tests literal-
-                if (!pQuick) ZTestNonIdlePolling(cTrace.cContext.Null); // tests polling when idle is not available
+                ZTestLiteralMinus(cTrace.cContext.None); // tests literal-
+                if (!pQuick) ZTestNonIdlePolling(cTrace.cContext.None); // tests polling when idle is not available
 
                 ZTestAuth1(lContext); // tests auth=anon and multiple auth methods with forced try
                 ZTestSASLIR(lContext);
@@ -70,6 +69,8 @@ namespace testharness2
                 ZTestSearch3(lContext);
                 if (!pQuick) ZTestIdleRestart(lContext);
                 ZTestUIDFetch1(lContext);
+
+                ZTestBadCharsetUIDNotSticky(lContext);
             }
             catch (Exception e) when (lContext.TraceException(e)) { }
         }
@@ -87,7 +88,7 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus");
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.alert, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.alert, "this is the text");
 
             Task lTask = null;
 
@@ -128,7 +129,7 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus");
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.none, "this is the text");
 
             Task lTask = null;
 
@@ -169,7 +170,7 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus");
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.referral, "Server not accepting connections.Try SERVER2");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.referral, "Server not accepting connections.Try SERVER2");
 
             Task lTask = null;
 
@@ -225,11 +226,11 @@ namespace testharness2
             lClient.ClientId = lIdDictionary;
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "NAMESPACE command completed");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "ID command completed");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "NAMESPACE command completed");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
             Task lTask = null;
 
@@ -297,11 +298,11 @@ namespace testharness2
             lClient.IdleConfiguration = null;
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "ID command completed");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
             Task lTask = null;
 
@@ -366,14 +367,14 @@ namespace testharness2
             lClient.ClientIdUTF8 = lIdDictionary;
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            //lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "ID command completed");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged in");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "enable done");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "ID command completed");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            //lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.unknown, "logged in");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "enable done");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
             Task lTask = null;
 
@@ -433,15 +434,15 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus");
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "capability done");
-            lExpecter.Expect(eResponseTextType.information, eResponseTextCode.none, "information message");
-            lExpecter.Expect(eResponseTextType.warning, eResponseTextCode.none, "warning message");
-            lExpecter.Expect(eResponseTextType.protocolerror, eResponseTextCode.none, "error message");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "enable done");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.none, "this is the text");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
+            lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
+            lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
+            lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "enable done");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
             Task lTask = null;
 
@@ -485,10 +486,10 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus");
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
             Task lTask = null;
 
@@ -526,9 +527,9 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus");
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
             Task lTask = null;
 
@@ -575,11 +576,11 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged in");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.unknown, "logged in");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
             Task lTask = null;
 
@@ -627,11 +628,11 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged in");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.unknown, "logged in");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
             Task lTask = null;
 
@@ -685,13 +686,13 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.failure, eResponseTextCode.none, "incorrect password");
-            lExpecter.Expect(eResponseTextType.continuerequest, eResponseTextCode.none, "ready");
-            lExpecter.Expect(eResponseTextType.continuerequest, eResponseTextCode.none, "ready");
-            lExpecter.Expect(eResponseTextType.failure, eResponseTextCode.unknown, "incorrect password again"); // the CAPABILITY on a NO is not allowed by the base spec
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.none, "incorrect password");
+            lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "ready");
+            lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "ready");
+            lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.unknown, "incorrect password again"); // the CAPABILITY on a NO is not allowed by the base spec
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
             Task lTask = null;
 
@@ -737,10 +738,10 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.failure, eResponseTextCode.referral, "Specified user is invalid on this server.Try SERVER2.");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.referral, "Specified user is invalid on this server.Try SERVER2.");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
             Task lTask = null;
 
@@ -793,10 +794,10 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.failure, eResponseTextCode.authenticationfailed, "incorrect password");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "logging out");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged out");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.authenticationfailed, "incorrect password");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
             Task lTask = null;
 
@@ -865,17 +866,17 @@ namespace testharness2
             lClient.IdleConfiguration = new cIdleConfiguration(2000, 10000);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged in");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "capability done");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextType.continuerequest, eResponseTextCode.none, "idling");
-            lExpecter.Expect(eResponseTextType.information, eResponseTextCode.none, "information message");
-            lExpecter.Expect(eResponseTextType.warning, eResponseTextCode.none, "warning message");
-            lExpecter.Expect(eResponseTextType.protocolerror, eResponseTextCode.none, "error message");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "idle terminated");
-            lExpecter.Expect(eResponseTextType.continuerequest, eResponseTextCode.none, "idling");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "unilateral bye");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged in");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+            lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "idling");
+            lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
+            lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
+            lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "idle terminated");
+            lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "idling");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "unilateral bye");
 
             Task lTask = null;
 
@@ -1094,19 +1095,19 @@ namespace testharness2
             lClient.IdleConfiguration = new cIdleConfiguration(2000, 1200000, 7000);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextType.greeting, eResponseTextCode.none, "this is the text");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "logged in");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "capability done");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "LIST command completed");
-            lExpecter.Expect(eResponseTextType.information, eResponseTextCode.none, "information message");
-            lExpecter.Expect(eResponseTextType.warning, eResponseTextCode.none, "warning message");
-            lExpecter.Expect(eResponseTextType.protocolerror, eResponseTextCode.none, "error message");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "noop completed");
-            lExpecter.Expect(eResponseTextType.information, eResponseTextCode.none, "information message");
-            lExpecter.Expect(eResponseTextType.warning, eResponseTextCode.none, "warning message");
-            lExpecter.Expect(eResponseTextType.protocolerror, eResponseTextCode.none, "error message");
-            lExpecter.Expect(eResponseTextType.success, eResponseTextCode.none, "noop completed");
-            lExpecter.Expect(eResponseTextType.bye, eResponseTextCode.none, "unilateral bye");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged in");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
+            lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
+            lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
+            lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "noop completed");
+            lExpecter.Expect(eResponseTextContext.information, eResponseTextCode.none, "information message");
+            lExpecter.Expect(eResponseTextContext.warning, eResponseTextCode.none, "warning message");
+            lExpecter.Expect(eResponseTextContext.protocolerror, eResponseTextCode.none, "error message");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "noop completed");
+            lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "unilateral bye");
 
             Task lTask = null;
 
@@ -1651,7 +1652,7 @@ namespace testharness2
 
                 lTask = lServer.RunAsync(lContext);
 
-                lClient.MailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount | fMailboxCacheData.uidnext;
+                lClient.MailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.unseencount | fMailboxCacheDataItems.uidnext;
 
                 lClient.Connect();
 
@@ -1664,19 +1665,19 @@ namespace testharness2
                 if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 4392 || lClient.Inbox.UIDValidity != 3857529045 || lClient.Inbox.UnseenCount != 0 || lClient.Inbox.UnseenUnknownCount != 172) throw new cTestsException("ZTestSearch1.3");
 
                 lFlags = lClient.Inbox.MessageFlags;
-                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlagName.Answered) || !lFlags.Contains(kMessageFlagName.Flagged) || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.Draft)) throw new cTestsException("ZTestSearch1.4");
+                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlag.Answered) || !lFlags.Contains(kMessageFlag.Flagged) || !lFlags.Contains(kMessageFlag.Deleted) || !lFlags.Contains(kMessageFlag.Seen) || !lFlags.Contains(kMessageFlag.Draft)) throw new cTestsException("ZTestSearch1.4");
 
                 lFlags = lClient.Inbox.ForUpdatePermanentFlags;
-                if (lFlags.Count != 3 || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.CreateNewIsPossible) || lFlags.Contains(kMessageFlagName.Draft) || lFlags.Contains(kMessageFlagName.Flagged)) throw new cTestsException("ZTestSearch1.5");
+                if (lFlags.Count != 3 || !lFlags.Contains(kMessageFlag.Deleted) || !lFlags.Contains(kMessageFlag.Seen) || !lFlags.Contains(kMessageFlag.CreateNewIsPossible) || lFlags.Contains(kMessageFlag.Draft) || lFlags.Contains(kMessageFlag.Flagged)) throw new cTestsException("ZTestSearch1.5");
 
                 if (!lClient.Inbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch1.6");
 
                 bool lFailed = false;
-                try { lClient.Inbox.SetUnseen(); }
+                try { lClient.Inbox.SetUnseenCount(); }
                 catch (cUIDValidityChangedException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestSearch1.7");
 
-                lClient.Inbox.SetUnseen();
+                lClient.Inbox.SetUnseenCount();
                 if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 0 || lClient.Inbox.UIDNextUnknownCount != 172 || lClient.Inbox.UIDValidity != 3857529046 || lClient.Inbox.UnseenCount != 3 || lClient.Inbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch1.8");
 
                 lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
@@ -1693,26 +1694,25 @@ namespace testharness2
                 if (lMailbox.MessageCount != 17 || lMailbox.RecentCount != 2 || lMailbox.UIDNext != 4392 || lMailbox.UIDValidity != 3857529045 || lMailbox.UnseenCount != 0 || lMailbox.UnseenUnknownCount != 17) throw new cTestsException("ZTestSearch3.2");
 
                 lFlags = lMailbox.MessageFlags;
-                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlagName.Answered) || !lFlags.Contains(kMessageFlagName.Flagged) || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.Draft)) throw new cTestsException("ZTestSearch3.3");
+                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlag.Answered) || !lFlags.Contains(kMessageFlag.Flagged) || !lFlags.Contains(kMessageFlag.Deleted) || !lFlags.Contains(kMessageFlag.Seen) || !lFlags.Contains(kMessageFlag.Draft)) throw new cTestsException("ZTestSearch3.3");
 
                 lFlags = lMailbox.ReadOnlyPermanentFlags;
                 if (lFlags.Count != 0) throw new cTestsException("ZTestSearch3.4");
 
                 if (lMailbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch3.5");
 
-                lMailbox.SetUnseen();
+                lMailbox.SetUnseenCount();
                 if (lMailbox.UnseenCount != 3 || lMailbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch3.7");
 
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.1");
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fCacheAttributes.received);
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageCacheAttributes.received);
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch4.2");
-                foreach (var lItem in lMessageList) if (lItem.Indent != -1) throw new cTestsException("ZTestSearch4.3");
 
                 lMessage = lMessageList[0];
 
-                if (lMessage.Expunged || lMessage.Handle.Attributes != (fCacheAttributes.received | fCacheAttributes.modseq)) throw new cTestsException("ZTestSearch4.4");
+                if (lMessage.Expunged || lMessage.Handle.Attributes != (fMessageCacheAttributes.received | fMessageCacheAttributes.modseq)) throw new cTestsException("ZTestSearch4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch4.5");
 
 
@@ -1906,7 +1906,7 @@ namespace testharness2
 
                 lTask = lServer.RunAsync(lContext);
 
-                lClient.MailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount | fMailboxCacheData.uidnext;
+                lClient.MailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.unseencount | fMailboxCacheDataItems.uidnext;
 
                 lClient.Connect();
 
@@ -1919,19 +1919,19 @@ namespace testharness2
                 if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 4392 || lClient.Inbox.UIDValidity != 3857529045 || lClient.Inbox.UnseenCount != 0 || lClient.Inbox.UnseenUnknownCount != 172) throw new cTestsException("ZTestSearch1.3");
 
                 lFlags = lClient.Inbox.MessageFlags;
-                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlagName.Answered) || !lFlags.Contains(kMessageFlagName.Flagged) || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.Draft)) throw new cTestsException("ZTestSearch2_1.4");
+                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlag.Answered) || !lFlags.Contains(kMessageFlag.Flagged) || !lFlags.Contains(kMessageFlag.Deleted) || !lFlags.Contains(kMessageFlag.Seen) || !lFlags.Contains(kMessageFlag.Draft)) throw new cTestsException("ZTestSearch2_1.4");
 
                 lFlags = lClient.Inbox.ForUpdatePermanentFlags;
-                if (lFlags.Count != 3 || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.CreateNewIsPossible) || lFlags.Contains(kMessageFlagName.Draft) || lFlags.Contains(kMessageFlagName.Flagged)) throw new cTestsException("ZTestSearch2_1.5");
+                if (lFlags.Count != 3 || !lFlags.Contains(kMessageFlag.Deleted) || !lFlags.Contains(kMessageFlag.Seen) || !lFlags.Contains(kMessageFlag.CreateNewIsPossible) || lFlags.Contains(kMessageFlag.Draft) || lFlags.Contains(kMessageFlag.Flagged)) throw new cTestsException("ZTestSearch2_1.5");
 
                 if (!lClient.Inbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch2_1.6");
 
                 bool lFailed = false;
-                try { lClient.Inbox.SetUnseen(); }
+                try { lClient.Inbox.SetUnseenCount(); }
                 catch (cUIDValidityChangedException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestSearch2_1.7");
 
-                lClient.Inbox.SetUnseen();
+                lClient.Inbox.SetUnseenCount();
                 if (lClient.Inbox.MessageCount != 172 || lClient.Inbox.RecentCount != 1 || lClient.Inbox.UIDNext != 0 || lClient.Inbox.UIDNextUnknownCount != 172 || lClient.Inbox.UIDValidity != 3857529046 || lClient.Inbox.UnseenCount != 3 || lClient.Inbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch2_1.8");
 
                 lMailbox = lClient.Mailbox(new cMailboxName("blurdybloop", null));
@@ -1948,26 +1948,25 @@ namespace testharness2
                 if (lMailbox.MessageCount != 17 || lMailbox.RecentCount != 2 || lMailbox.UIDNext != 4392 || lMailbox.UIDValidity != 3857529045 || lMailbox.UnseenCount != 0 || lMailbox.UnseenUnknownCount != 17) throw new cTestsException("ZTestSearch2_3.2");
 
                 lFlags = lMailbox.MessageFlags;
-                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlagName.Answered) || !lFlags.Contains(kMessageFlagName.Flagged) || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.Draft)) throw new cTestsException("ZTestSearch2_3.3");
+                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlag.Answered) || !lFlags.Contains(kMessageFlag.Flagged) || !lFlags.Contains(kMessageFlag.Deleted) || !lFlags.Contains(kMessageFlag.Seen) || !lFlags.Contains(kMessageFlag.Draft)) throw new cTestsException("ZTestSearch2_3.3");
 
                 lFlags = lMailbox.ReadOnlyPermanentFlags;
                 if (lFlags.Count != 0) throw new cTestsException("ZTestSearch2_3.4");
 
                 if (lMailbox.IsSelectedForUpdate) throw new cTestsException("ZTestSearch2_3.5");
 
-                lMailbox.SetUnseen();
+                lMailbox.SetUnseenCount();
                 if (lMailbox.UnseenCount != 3 || lMailbox.UnseenUnknownCount != 0) throw new cTestsException("ZTestSearch2_3.7");
 
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8));
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch2_4.1");
 
-                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fCacheAttributes.received);
+                lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 8), null, fMessageCacheAttributes.received);
                 if (lMessageList.Count != 3) throw new cTestsException("ZTestSearch2_4.2");
-                foreach (var lItem in lMessageList) if (lItem.Indent != -1) throw new cTestsException("ZTestSearch2_4.3");
 
                 lMessage = lMessageList[0];
 
-                if (lMessage.Expunged || lMessage.Handle.Attributes != (fCacheAttributes.received | fCacheAttributes.modseq)) throw new cTestsException("ZTestSearch2_4.4");
+                if (lMessage.Expunged || lMessage.Handle.Attributes != (fMessageCacheAttributes.received | fMessageCacheAttributes.modseq)) throw new cTestsException("ZTestSearch2_4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch2_4.5");
 
 
@@ -2102,7 +2101,7 @@ namespace testharness2
 
                 lTask = lServer.RunAsync(lContext);
 
-                lClient.MailboxCacheData = fMailboxCacheData.messagecount | fMailboxCacheData.unseencount | fMailboxCacheData.uidnext;
+                lClient.MailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.unseencount | fMailboxCacheDataItems.uidnext;
 
                 lClient.Connect();
 
@@ -2112,15 +2111,15 @@ namespace testharness2
                 if (lMailbox.MessageCount != 231 || lMailbox.UIDNext != 44292) throw new cTestsException("ZTestSearch3_2.2");
 
                 lMailbox.Fetch(fMailboxCacheDataSets.status);
-                if (lMailbox.MessageCount != 232 || lMailbox.UnseenCount != 3 || lMailbox.UIDNext != 44293) throw new cTestsException("ZTestSearch3_2.3");
+                if (lMailbox.MessageCount != 232 || lMailbox.UnseenCount != 3 || lMailbox.UIDNext != 44293 || lMailbox.UIDNotSticky != null) throw new cTestsException("ZTestSearch3_2.3");
 
                 lMailbox.Select();
-                if (lClient.Inbox.IsSelected || !lMailbox.IsSelected) throw new cTestsException("ZTestSearch3_3.1");
+                if (lClient.Inbox.IsSelected || !lMailbox.IsSelected || lMailbox.UIDNotSticky != false) throw new cTestsException("ZTestSearch3_3.1");
 
                 if (lMailbox.MessageCount != 17 || lMailbox.RecentCount != 2 || lMailbox.UIDNext != 4392 || lMailbox.UIDValidity != 3857529045 || lMailbox.UnseenCount != 0 || lMailbox.UnseenUnknownCount != 17) throw new cTestsException("ZTestSearch3_3.2");
 
                 lFlags = lMailbox.MessageFlags;
-                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlagName.Answered) || !lFlags.Contains(kMessageFlagName.Flagged) || !lFlags.Contains(kMessageFlagName.Deleted) || !lFlags.Contains(kMessageFlagName.Seen) || !lFlags.Contains(kMessageFlagName.Draft)) throw new cTestsException("ZTestSearch3_3.3");
+                if (lFlags.Count != 5 || !lFlags.Contains(kMessageFlag.Answered) || !lFlags.Contains(kMessageFlag.Flagged) || !lFlags.Contains(kMessageFlag.Deleted) || !lFlags.Contains(kMessageFlag.Seen) || !lFlags.Contains(kMessageFlag.Draft)) throw new cTestsException("ZTestSearch3_3.3");
 
                 lFlags = lMailbox.ReadOnlyPermanentFlags;
                 if (lFlags.Count != 0) throw new cTestsException("ZTestSearch3_3.4");
@@ -2155,6 +2154,93 @@ namespace testharness2
                 Task.WaitAll(lTask1, lTask2, lTask3);
 
 
+
+
+
+
+                lClient.Disconnect();
+
+                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
+                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+            }
+            finally
+            {
+                ZFinally(lServer, lClient, lTask);
+            }
+
+        }
+
+        private static void ZTestBadCharsetUIDNotSticky(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestBadCharsetUIDNotSticky));
+
+            cServer lServer = new cServer();
+            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 LITERAL+] this is the text\r\n");
+            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+            lServer.AddSendData("* LIST () nil \"\"\r\n");
+            lServer.AddSendTagged("OK LIST command completed\r\n");
+            lServer.AddExpectTagged("EXAMINE INBOX\r\n");
+            lServer.AddSendData("* 17 EXISTS\r\n");
+            lServer.AddSendData("* 2 RECENT\r\n");
+            lServer.AddSendData("* OK [UNSEEN 8] Message 8 is first unseen\r\n");
+            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+            lServer.AddSendData("* OK [PERMANENTFLAGS ()] No permanent flags permitted\r\n");
+            lServer.AddSendData("* NO [UIDNOTSTICKY] Non-persistent UIDs\r\n");
+            lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
+
+
+
+
+
+            lServer.AddExpectTagged(Encoding.UTF8.GetBytes("SEARCH CHARSET utf-8 BODY {6+}\r\nfr€d\r\n"));
+            lServer.AddSendTagged("NO [BADCHARSET] invalid charset\r\n");
+
+            lServer.AddExpectTagged(Encoding.UTF8.GetBytes("SEARCH CHARSET utf-8 BODY {6+}\r\nfr€d\r\n"));
+            lServer.AddSendTagged("NO [BADCHARSET (x1 x2 \"a nother 1\")] invalid charset, use one of the ones I support\r\n");
+
+
+            lServer.AddExpectTagged("LOGOUT\r\n");
+            lServer.AddSendData("* BYE logging out\r\n");
+            lServer.AddSendTagged("OK logged out\r\n");
+            lServer.AddExpectClose();
+
+
+            cIMAPClient lClient = new cIMAPClient("ZTestBadCharset_cIMAPClient");
+            lClient.SetServer("localhost");
+            lClient.SetNoCredentials();
+            lClient.IdleConfiguration = null;
+
+            Task lTask = null;
+
+            try
+            {
+                lTask = lServer.RunAsync(lContext);
+
+                lClient.Connect();
+                lClient.Inbox.Select();
+
+                if (lClient.Inbox.UIDNotSticky != true) throw new cTestsException("ZTestBadCharsetUIDNotSticky.2");
+
+                try
+                {
+                    var lMessageList = lClient.Inbox.Messages(cFilter.Body.Contains("fr€d"));
+                }
+                catch (cUnsuccessfulCompletionException e)
+                {
+                    if (e.ResponseText.Code != eResponseTextCode.badcharset || e.ResponseText.Arguments != null) throw new cTestsException("ZTestBadCharsetUIDNotSticky.3");
+                }
+
+                try
+                {
+                    var lMessageList = lClient.Inbox.Messages(cFilter.Body.Contains("fr€d"));
+                }
+                catch (cUnsuccessfulCompletionException e)
+                {
+                    if (e.ResponseText.Code != eResponseTextCode.badcharset || e.ResponseText.Arguments == null || e.ResponseText.Arguments.Count != 3) throw new cTestsException("ZTestBadCharsetUIDNotSticky.4");
+                    if (e.ResponseText.Arguments[0] != "x1" || e.ResponseText.Arguments[2] != "a nother 1") throw new cTestsException("ZTestBadCharsetUIDNotSticky.5");
+                }
 
 
 
@@ -2277,32 +2363,23 @@ namespace testharness2
 
                 if (lClient.Inbox.MessageCount != 171) throw new cTestsException("ZTestIdleRestart1.2");
 
-                if (lMessages[1].Fetch(fCacheAttributes.uid)) throw new cTestsException("ZTestIdleRestart1.3.1"); // this should retrieve nothing (as the message has been deleted), but idle should stop
+                if (lMessages[1].Fetch(fMessageCacheAttributes.uid)) throw new cTestsException("ZTestIdleRestart1.3.1"); // this should retrieve nothing (as the message has been deleted), but idle should stop
                 Thread.Sleep(3000); // idle should restart in this wait
 
-                List<iMessageHandle> lList = new List<iMessageHandle>();
-                lList.Add(lMessages[0].Handle);
-                lList.Add(lMessages[1].Handle);
-                lList.Add(lMessages[2].Handle);
-                lList.Add(lMessages[0].Handle);
-                lList.Add(lMessages[1].Handle);
-                lList.Add(lMessages[2].Handle);
-                lList.Add(lMessages[0].Handle);
-                var lMHL = cMessageHandleList.FromHandles(lList);
-                if (lMHL.Count != 3) throw new cTestsException("ZTestIdleRestart1.3.2.a");
+                var lList = new cMessage[] { lMessages[0], lMessages[1], lMessages[2] };
 
-                cMessageHandleList lUnfetched;
+                List<cMessage> lUnfetched;
 
                 // only message 1 and 3 should be fetched by this, as message 2 was 168 which should now be gone
                 //  1 should be UID fetched, 3 should be a normal fetch
-                lUnfetched = lClient.Fetch(lList, fCacheAttributes.received, null);
-                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0], lMessages[1].Handle)) throw new cTestsException("ZTestIdleRestart1.3.2");
+                lUnfetched = lClient.Fetch(lList, fMessageCacheAttributes.received, null);
+                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0].Handle, lMessages[1].Handle)) throw new cTestsException("ZTestIdleRestart1.3.2");
 
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
-                lUnfetched = lClient.Fetch(lMessages, fCacheAttributes.flags, null);
-                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0], lMessages[1].Handle)) throw new cTestsException("ZTestIdleRestart1.3.3");
+                lUnfetched = lClient.Fetch(lMessages, fMessageCacheAttributes.flags, null);
+                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0].Handle, lMessages[1].Handle)) throw new cTestsException("ZTestIdleRestart1.3.3");
 
 
                 cMailbox lMailbox;
@@ -2431,7 +2508,7 @@ namespace testharness2
                 cUID[] lUIDs = new cUID[] { new cUID(3857529045, 105), new cUID(3857529045, 104), new cUID(3857529045, 103), new cUID(3857529045, 102), new cUID(3857529045, 101) };
 
                 // fetch flags
-                var lMessages = lClient.Inbox.Messages(lUIDs, fCacheAttributes.flags | fCacheAttributes.received);
+                var lMessages = lClient.Inbox.Messages(lUIDs, fMessageCacheAttributes.flags | fMessageCacheAttributes.received);
                 if (lMessages.Count != 4) throw new cTestsException($"{nameof(ZTestUIDFetch1)}.1");
 
 
@@ -2578,7 +2655,7 @@ namespace testharness2
 
                             byte[] lData = lBytes.ToArray();
 
-                            lContext.TraceVerbose($"sending {new cBytes(lBytes)}");
+                            //lContext.TraceVerbose($"sending {new cBytes(lBytes)}");
                             await mStream.WriteAsync(lData, 0, lData.Length, mCancellationTokenSource.Token).ConfigureAwait(false);
                             lTask = mTasks[lTaskNo++];
                             goto next_task;
@@ -2587,7 +2664,7 @@ namespace testharness2
                         if (lTask.Type == cTask.eType.sendtagged)
                         {
                             byte[] lTag = lTagStack.Pop();
-                            lContext.TraceVerbose($"sending {new cBytes(lTag)} {new cBytes(lTask.Data)}");
+                            //lContext.TraceVerbose($"sending {new cBytes(lTag)} {new cBytes(lTask.Data)}");
                             await mStream.WriteAsync(lTag, 0, lTag.Length, mCancellationTokenSource.Token).ConfigureAwait(false);
                             await mStream.WriteAsync(new byte[1] { 32 }, 0, 1, mCancellationTokenSource.Token).ConfigureAwait(false);
                             await mStream.WriteAsync(lTask.Data, 0, lTask.Data.Length, mCancellationTokenSource.Token).ConfigureAwait(false);
@@ -2604,7 +2681,8 @@ namespace testharness2
                             {
                                 List<byte> lBytes = new List<byte>(lBytesRead);
                                 for (int i = 0; i < lBytesRead; i++) lBytes.Add(lBuffer[i]);
-                                throw new cTestsException($"expected close, got {new cBytes(lBytes)}", lContext);
+                                //throw new cTestsException($"expected close, got {new cBytes(lBytes)}", lContext);
+                                throw new cTestsException($"expected close, got data", lContext);
                             }
 
                             lContext.TraceVerbose("closed");
@@ -2636,7 +2714,9 @@ namespace testharness2
                         while (lByteInBuffer < lBytesRead)
                         {
                             // this is case sensitive
-                            if (lBuffer[lByteInBuffer++] != lTask.Data[lByteInLine++]) throw new cTestsException($"received bytes don't match expectation: {new cBytes(lTask.Data)} at position {lByteInLine}", lContext);
+                            if (lBuffer[lByteInBuffer++] != lTask.Data[lByteInLine++])
+                                throw new cTestsException($"received bytes don't match expectation: ", lContext);
+                            //throw new cTestsException($"received bytes don't match expectation: {new cBytes(lTask.Data)} at position {lByteInLine}", lContext);
 
                             if (lByteInLine == lTask.Data.Length)
                             {
@@ -2656,7 +2736,7 @@ namespace testharness2
                         {
                             List<byte> lBytes = new List<byte>(lBytesRead);
                             for (int i = 0; i < lBytesRead; i++) lBytes.Add(lBuffer[i]);
-                            lContext.TraceVerbose($"read {new cBytes(lBytes)}");
+                            //lContext.TraceVerbose($"read {new cBytes(lBytes)}");
                         }
 
                         lByteInBuffer = 0;
@@ -2760,7 +2840,7 @@ namespace testharness2
                 pClient.ResponseText += ResponseText;
             }
 
-            public void Expect(eResponseTextType pType, eResponseTextCode pCode, string pText)
+            public void Expect(eResponseTextContext pType, eResponseTextCode pCode, string pText)
             {
                 mExpected.Add(new cExpected(pType, pCode, pText));
             }
@@ -2782,24 +2862,33 @@ namespace testharness2
 
                 var lExpected = mExpected[mCurrent++];
 
-                if (e.TextType == lExpected.Type && e.Text.Code == lExpected.Code && e.Text.Text == lExpected.Text) return;
+                if (e.Context == lExpected.Context && e.Text.Code == lExpected.Code && e.Text.Text == lExpected.Text) return;
 
                 mUnexpected.Add(e.ToString());
             }
 
             private class cExpected
             {
-                public readonly eResponseTextType Type;
+                public readonly eResponseTextContext Context;
                 public readonly eResponseTextCode Code;
                 public readonly string Text;
 
-                public cExpected(eResponseTextType pType, eResponseTextCode pCode, string pText)
+                public cExpected(eResponseTextContext pContext, eResponseTextCode pCode, string pText)
                 {
-                    Type = pType;
+                    Context = pContext;
                     Code = pCode;
                     Text = pText;
                 }
             }
         }
+    }
+
+    internal class cTestsException : Exception
+    {
+        internal cTestsException() { }
+        internal cTestsException(string pMessage) : base(pMessage) { }
+        internal cTestsException(string pMessage, Exception pInner) : base(pMessage, pInner) { }
+        internal cTestsException(string pMessage, cTrace.cContext pContext) : base(pMessage) => pContext.TraceError(pMessage);
+        internal cTestsException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}\n{1}", pMessage, pInner);
     }
 }

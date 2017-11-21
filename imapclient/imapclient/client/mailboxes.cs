@@ -10,12 +10,26 @@ namespace work.bacome.imapclient
     public partial class cIMAPClient
     {
         /// <summary>
-        /// List mailboxes using an IMAP wildcard search
+        /// Gets a list of mailboxes using an IMAP wildcard search.
         /// </summary>
-        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
-        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
-        /// <returns>A list of mailboxes</returns>
+        /// <param name="pListMailbox">The search string possibly including IMAP wildcards.</param>
+        /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// <para>
+        /// The IMAP wildcards are;
+        /// <list type="bullet">
+        /// <item><token>*</token><description>Matches zero or more characters.</description></item>
+        /// <item><token>%</token><description>Matches zero or more characters but not the hierarchy delimiter.</description></item>
+        /// </list>
+        /// </para>
+        /// <para>
+        /// <paramref name="pDelimiter"/> is used in preparing <paramref name="pListMailbox"/> for sending to the server.
+        /// It should be correctly specified.
+        /// The value specified does not affect what character is not matched by the % wildcard.
+        /// </para>
+        /// </remarks>
         public List<cMailbox> Mailboxes(string pListMailbox, char? pDelimiter, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
@@ -25,12 +39,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// List mailboxes using an IMAP wildcard search
+        /// Asynchronously gets a list of mailboxes using an IMAP wildcard search.
         /// </summary>
-        /// <param name="pListMailbox">The search string including IMAP wildcards</param>
-        /// <param name="pDelimiter">The mailbox name hierarchy delimiter</param>
-        /// <param name="pDataSets">The sets of data that should be cached in the mailbox cache for the returned mailboxes</param>
-        /// <returns>A list of mailboxes</returns>
+        /// <param name="pListMailbox">The search string possibly including IMAP wildcards.</param>
+        /// <param name="pDelimiter">The hierarchy delimiter used in <paramref name="pListMailbox"/>.</param>
+        /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
+        /// <inheritdoc cref="Mailboxes(string, char?, fMailboxCacheDataSets)" select="returns|remarks"/>
         public Task<List<cMailbox>> MailboxesAsync(string pListMailbox, char? pDelimiter, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxesAsync));
@@ -45,9 +59,7 @@ namespace work.bacome.imapclient
             return ZZMailboxesAsync(pListMailbox, pDelimiter, lPattern, pDataSets, lContext);
         }
 
-        // mailbox sub-mailbox list
-
-        public List<cMailbox> Mailboxes(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
+        internal List<cMailbox> Mailboxes(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
             var lTask = ZMailboxesAsync(pHandle, pDataSets, lContext);
@@ -55,7 +67,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<List<cMailbox>> MailboxesAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
+        internal Task<List<cMailbox>> MailboxesAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxesAsync));
             return ZMailboxesAsync(pHandle, pDataSets, lContext);
@@ -74,9 +86,7 @@ namespace work.bacome.imapclient
             return await ZZMailboxesAsync(lListMailbox, pHandle.MailboxName.Delimiter, lPattern, pDataSets, lContext).ConfigureAwait(false);
         }
 
-        // namespace sub-mailbox list
-
-        public List<cMailbox> Mailboxes(cNamespaceName pNamespaceName, fMailboxCacheDataSets pDataSets)
+        internal List<cMailbox> Mailboxes(cNamespaceName pNamespaceName, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Mailboxes));
             var lTask = ZMailboxesAsync(pNamespaceName, pDataSets, lContext);
@@ -84,7 +94,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<List<cMailbox>> MailboxesAsync(cNamespaceName pNamespaceName, fMailboxCacheDataSets pDataSets)
+        internal Task<List<cMailbox>> MailboxesAsync(cNamespaceName pNamespaceName, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MailboxesAsync));
             return ZMailboxesAsync(pNamespaceName, pDataSets, lContext);
@@ -111,7 +121,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             if (pListMailbox == null) throw new ArgumentNullException(nameof(pListMailbox));
             if (pPattern == null) throw new ArgumentNullException(nameof(pPattern));
@@ -135,7 +145,7 @@ namespace work.bacome.imapclient
 
                     lListTask = lSession.ListExtendedAsync(lMC, eListExtendedSelect.exists, mMailboxReferrals, pListMailbox, pDelimiter, pPattern, lListStatus, lContext);
 
-                    if (lLSub && (mMailboxCacheData & fMailboxCacheData.subscribed) == 0)
+                    if (lLSub && (mMailboxCacheDataItems & fMailboxCacheDataItems.subscribed) == 0)
                     {
                         if (mMailboxReferrals) lLSubTask = lSession.ListExtendedAsync(lMC, eListExtendedSelect.subscribed, true, pListMailbox, pDelimiter, pPattern, false, lContext);
                         else lLSubTask = lSession.LSubAsync(lMC, pListMailbox, pDelimiter, pPattern, false, lContext);

@@ -1,46 +1,48 @@
 ﻿using System;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// The type of account
+    /// Represents the type of an IMAP account.
     /// </summary>
+    /// <seealso cref="cAccountId"/>
+    /// <seealso cref="cCredentials"/>
     public enum eAccountType
     {
-        /** <summary> the library has no idea about the account that is in use </summary>"*/
-        none,
-
-        /** <summary> the account is an anonymous one </summary>"*/
+        /** <summary>The library has no idea about the type of the account.</summary>"*/
+        unknown,
+        /** <summary>The account is an anonymous one.</summary>"*/
         anonymous,
-
-        /** <summary> the account has a userid </summary>"*/
+        /** <summary>The account has a userid.</summary>"*/
         userid
     }
 
     /// <summary>
-    /// Describes an IMAP account
+    /// Represents an IMAP account.
     /// </summary>
+    /// <seealso cref="cIMAPClient.ConnectedAccountId"/>
     public class cAccountId
     {
         /// <summary>
-        /// The host that contains the account
+        /// The host that contains the account.
         /// </summary>
         public readonly string Host;
 
-        /// <summary>
-        /// The account type
+        /// <summary> 
+        /// The type of the account.
         /// </summary>
         /// <remarks>
-        /// If the connection was PREAUTHed then this will be none
+        /// If the connection was IMAP PREAUTHed then this will be <see cref="eAccountType.unknown"/>.
         /// </remarks>
         public readonly eAccountType Type;
 
         /// <summary>
-        /// If account's userid, if any
+        /// The account's userid. May be <see langword="null"/>.
         /// </summary>
         public readonly string UserId;
 
-        public cAccountId(string pHost, eAccountType pType)
+        internal cAccountId(string pHost, eAccountType pType)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
             if (pType == eAccountType.userid) throw new ArgumentOutOfRangeException(nameof(pType));
@@ -50,7 +52,7 @@ namespace work.bacome.imapclient
             UserId = null;
         }
 
-        public cAccountId(string pHost, string pUserId)
+        internal cAccountId(string pHost, string pUserId)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
@@ -60,7 +62,7 @@ namespace work.bacome.imapclient
             UserId = pUserId;
         }
 
-        public cAccountId(string pHost, eAccountType pType, string pUserId)
+        internal cAccountId(string pHost, eAccountType pType, string pUserId)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));
 
@@ -78,8 +80,10 @@ namespace work.bacome.imapclient
             UserId = pUserId;
         }
 
+        /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cAccountId;
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -91,8 +95,10 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <inheritdoc />
         public override string ToString() => $"{nameof(cAccountId)}({Host},{Type},{UserId})";
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator ==(cAccountId pA, cAccountId pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -101,6 +107,7 @@ namespace work.bacome.imapclient
             return (pA.Host == pB.Host && pA.Type == pB.Type && pA.UserId == pB.UserId);
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
         public static bool operator !=(cAccountId pA, cAccountId pB) => !(pA == pB);
     }
 }

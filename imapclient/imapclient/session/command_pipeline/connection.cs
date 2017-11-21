@@ -60,7 +60,7 @@ namespace work.bacome.imapclient
                     {
                         var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ConnectAsync), pMC, pServer);
 
-                        if (mState != eState.notconnected) throw new InvalidOperationException();
+                        if (mState != eState.notconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyConnected);
 
                         if (pServer == null) throw new ArgumentNullException(nameof(pServer));
 
@@ -115,9 +115,9 @@ namespace work.bacome.imapclient
                     {
                         var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(InstallTLS));
 
-                        if (mState != eState.connected) throw new InvalidOperationException("must be connected");
-                        if (mSSLStream != null) throw new InvalidOperationException("tls already installed");
-                        if (mBuildResponseTask != null) throw new InvalidOperationException("reading stream");
+                        if (mState != eState.connected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
+                        if (mSSLStream != null) throw new InvalidOperationException();
+                        if (mBuildResponseTask != null) throw new InvalidOperationException();
 
                         lContext.TraceInformation("installing tls");
 
@@ -132,8 +132,8 @@ namespace work.bacome.imapclient
                     {
                         var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(InstallSASLSecurity));
 
-                        if (mState != eState.connected) throw new InvalidOperationException("must be connected");
-                        if (mSASLSecurity != null) throw new InvalidOperationException("sasl security already installed");
+                        if (mState != eState.connected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
+                        if (mSASLSecurity != null) throw new InvalidOperationException();
 
                         lContext.TraceInformation("installing sasl security");
 
@@ -154,7 +154,7 @@ namespace work.bacome.imapclient
                     {
                         var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(GetBuildResponseTask));
 
-                        if (mState != eState.connected) throw new InvalidOperationException("must be connected");
+                        if (mState != eState.connected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
                         if (mBuildResponseTask == null)
                         {
@@ -168,8 +168,8 @@ namespace work.bacome.imapclient
                     public cBytesLines GetResponse(cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(GetResponse));
-                        if (mState != eState.connected) throw new InvalidOperationException("must be connected");
-                        if (mBuildResponseTask == null || !mBuildResponseTask.IsCompleted) throw new InvalidOperationException("await response task must be complete");
+                        if (mState != eState.connected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
+                        if (mBuildResponseTask == null || !mBuildResponseTask.IsCompleted) throw new InvalidOperationException();
                         cBytesLines lResult = mBuildResponseTask.Result;
                         mBuildResponseTask.Dispose();
                         mBuildResponseTask = null;
@@ -181,7 +181,7 @@ namespace work.bacome.imapclient
                     {
                         var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(WriteAsync));
 
-                        if (mState != eState.connected) throw new InvalidOperationException("must be connected");
+                        if (mState != eState.connected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
                         byte[] lBuffer;
 

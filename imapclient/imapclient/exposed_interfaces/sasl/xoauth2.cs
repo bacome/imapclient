@@ -5,7 +5,7 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public class cSASLXOAuth2 : cSASL
+    internal class cSASLXOAuth2 : cSASL
     {
         // https://developers.google.com/gmail/imap/xoauth2-protocol
         //  (untested) : TODO: test it
@@ -63,7 +63,7 @@ namespace work.bacome.imapclient
 
                     default:
 
-                        throw new InvalidOperationException("already challenged and error received");
+                        throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyChallenged);
                 }
             }
 

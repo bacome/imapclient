@@ -9,14 +9,14 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void Fetch(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
+        internal void Fetch(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
             var lTask = ZFetchAsync(pHandle, pDataSets, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task FetchAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
+        internal Task FetchAsync(iMailboxHandle pHandle, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
             return ZFetchAsync(pHandle, pDataSets, lContext);
@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
 

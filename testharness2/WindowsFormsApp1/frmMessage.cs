@@ -974,7 +974,7 @@ namespace testharness2
         private async void cmdStore_Click(object sender, EventArgs e)
         {
             eStoreOperation lOperation;
-            cSettableFlags lFlags;
+            cStorableFlags lFlags;
             ulong? lIfUnchangedSinceModSeq;
 
             using (frmStoreDialog lStoreDialog = new frmStoreDialog())

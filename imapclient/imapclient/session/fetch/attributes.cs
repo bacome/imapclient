@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using work.bacome.async;
-using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -12,12 +11,12 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pHandles, cCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
+            public async Task FetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pHandles, cMessageCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchCacheItemsAsync), pMC, pHandles, pItems);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
                 if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
                 if (pItems == null) throw new ArgumentNullException(nameof(pItems));
@@ -113,13 +112,13 @@ namespace work.bacome.imapclient
                 await ZUIDFetchCacheItemsAsync(pMC, lMailboxHandle, lUIDs, pGroup.Items, pProgress, lContext).ConfigureAwait(false);
             }
 
-            private IEnumerable<cFetchCacheItemsGroup> ZFetchCacheItemsGroups(cMessageHandleList pHandles, cCacheItems pItems)
+            private IEnumerable<cFetchCacheItemsGroup> ZFetchCacheItemsGroups(cMessageHandleList pHandles, cMessageCacheItems pItems)
             {
-                Dictionary<cCacheItems, cFetchCacheItemsGroup> lGroups = new Dictionary<cCacheItems, cFetchCacheItemsGroup>();
+                Dictionary<cMessageCacheItems, cFetchCacheItemsGroup> lGroups = new Dictionary<cMessageCacheItems, cFetchCacheItemsGroup>();
 
                 foreach (var lHandle in pHandles)
                 {
-                    cCacheItems lItems = lHandle.Missing(pItems);
+                    cMessageCacheItems lItems = lHandle.Missing(pItems);
 
                     cFetchCacheItemsGroup lGroup;
 
@@ -139,11 +138,11 @@ namespace work.bacome.imapclient
 
             private class cFetchCacheItemsGroup
             {
-                public readonly cCacheItems Items;
+                public readonly cMessageCacheItems Items;
                 public int MSNHandleCount = 0;
                 public readonly cMessageHandleList Handles = new cMessageHandleList();
 
-                public cFetchCacheItemsGroup(cCacheItems pItems) { Items = pItems ?? throw new ArgumentNullException(nameof(pItems)); }
+                public cFetchCacheItemsGroup(cMessageCacheItems pItems) { Items = pItems ?? throw new ArgumentNullException(nameof(pItems)); }
 
                 public override string ToString()
                 {

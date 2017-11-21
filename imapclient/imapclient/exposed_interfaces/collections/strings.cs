@@ -1,16 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using work.bacome.imapclient.support;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
+    /// <summary>
+    /// A read-only collection of strings.
+    /// </summary>
     public class cStrings : ReadOnlyCollection<string>
     {
+        /// <summary>
+        /// Initialises a new instance with the specified list.
+        /// </summary>
+        /// <param name="pStrings"></param>
         public cStrings(IList<string> pStrings) : base(pStrings) { }
 
+        /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cStrings;
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
         {
             unchecked
@@ -21,6 +30,7 @@ namespace work.bacome.imapclient
             }
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cStrings));
@@ -28,6 +38,12 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
+        /// <summary>
+        /// Determines whether two instances contain the same strings in the same order.
+        /// </summary>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator ==(cStrings pA, cStrings pB)
         {
             if (ReferenceEquals(pA, pB)) return true;
@@ -38,6 +54,12 @@ namespace work.bacome.imapclient
             return true;
         }
 
+        /// <summary>
+        /// Determines whether two instances contain different strings or have them in a different order.
+        /// </summary>
+        /// <param name="pA"></param>
+        /// <param name="pB"></param>
+        /// <returns></returns>
         public static bool operator !=(cStrings pA, cStrings pB) => !(pA == pB);
     }
 }

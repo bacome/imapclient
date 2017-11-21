@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public void UIDFetch(iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
+        internal void UIDFetch(iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetch));
@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        public Task UIDFetchAsync(iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
+        internal Task UIDFetchAsync(iMailboxHandle pHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDFetchAsync));
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
             if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));

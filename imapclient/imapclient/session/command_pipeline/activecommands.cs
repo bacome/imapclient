@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using work.bacome.imapclient.support;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -15,36 +14,16 @@ namespace work.bacome.imapclient
                 {
                     public cActiveCommands() { }
 
-                    public bool ProcessTextCode(eResponseTextType pTextType, cResponseData pData, cTrace.cContext pParentContext)
+                    public void ProcessTextCode(eResponseTextContext pTextContext, cResponseData pData, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode), pTextType, pData);
-                        bool lProcessed = false;
-                        foreach (var lCommand in this) if (lCommand.Hook.ProcessTextCode(pTextType, pData, lContext)) lProcessed = true;
-                        return lProcessed;
+                        var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode), pTextContext, pData);
+                        foreach (var lCommand in this) lCommand.Hook.ProcessTextCode(pTextContext, pData, lContext);
                     }
 
-                    public bool ProcessTextCode(eResponseTextType pTextType, cBytesCursor pCursor, cTrace.cContext pParentContext)
+                    public void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
                     {
-                        var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode), pTextType);
-
-                        bool lProcessed = false;
-                        var lBookmark = pCursor.Position;
-                        var lPositionAtEnd = pCursor.Position;
-
-                        foreach (var lCommand in this)
-                        {
-                            if (lCommand.Hook.ProcessTextCode(pTextType, pCursor, lContext) && !lProcessed)
-                            {
-                                lProcessed = true;
-                                lPositionAtEnd = pCursor.Position;
-                            }
-
-                            pCursor.Position = lBookmark;
-                        }
-
-                        if (lProcessed) pCursor.Position = lPositionAtEnd;
-
-                        return lProcessed;
+                        var lContext = pParentContext.NewMethod(nameof(cActiveCommands), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
+                        foreach (var lCommand in this) lCommand.Hook.ProcessTextCode(pTextContext, pCode, pArguments, lContext);
                     }
 
                     public override string ToString()

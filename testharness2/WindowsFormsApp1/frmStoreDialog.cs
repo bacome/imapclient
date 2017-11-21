@@ -33,21 +33,21 @@ namespace testharness2
             }
         }
 
-        public cSettableFlags Flags
+        public cStorableFlags Flags
         {
             get
             {
-                cSettableFlagList lFlags = new cSettableFlagList();
+                cStorableFlagList lFlags = new cStorableFlagList();
 
-                if (chkAnswered.Checked) lFlags.Add(kMessageFlagName.Answered);
-                if (chkDeleted.Checked) lFlags.Add(kMessageFlagName.Deleted);
-                if (chkDraft.Checked) lFlags.Add(kMessageFlagName.Draft);
-                if (chkFlagged.Checked) lFlags.Add(kMessageFlagName.Flagged);
-                if (chkSeen.Checked) lFlags.Add(kMessageFlagName.Seen);
+                if (chkAnswered.Checked) lFlags.Add(kMessageFlag.Answered);
+                if (chkDeleted.Checked) lFlags.Add(kMessageFlag.Deleted);
+                if (chkDraft.Checked) lFlags.Add(kMessageFlag.Draft);
+                if (chkFlagged.Checked) lFlags.Add(kMessageFlag.Flagged);
+                if (chkSeen.Checked) lFlags.Add(kMessageFlag.Seen);
 
-                if (chkForwarded.Checked) lFlags.Add(kMessageFlagName.Forwarded);
-                if (chkSubmitPending.Checked) lFlags.Add(kMessageFlagName.SubmitPending);
-                if (chkSubmitted.Checked) lFlags.Add(kMessageFlagName.Submitted);
+                if (chkForwarded.Checked) lFlags.Add(kMessageFlag.Forwarded);
+                if (chkSubmitPending.Checked) lFlags.Add(kMessageFlag.SubmitPending);
+                if (chkSubmitted.Checked) lFlags.Add(kMessageFlag.Submitted);
 
                 // see comments in the library as to why this is commented out
                 //if (chkMDNSent.Checked) lFlags.Add(kMessageFlagName.MDNSent);
@@ -93,22 +93,22 @@ namespace testharness2
             }
         }
 
-        private bool ZTryParseFlagNames(string pText, out cSettableFlags rFlags)
+        private bool ZTryParseFlagNames(string pText, out cStorableFlags rFlags)
         {
-            if (pText == null) { rFlags = cSettableFlags.None; return true; }
+            if (pText == null) { rFlags = cStorableFlags.None; return true; }
 
             List<string> lFlags = new List<string>();
             foreach (var lFlag in pText.Trim().Split(' ')) if (!string.IsNullOrWhiteSpace(lFlag)) lFlags.Add(lFlag);
 
-            if (lFlags.Count == 0) { rFlags = cSettableFlags.None; return true; }
+            if (lFlags.Count == 0) { rFlags = cStorableFlags.None; return true; }
 
-            try { rFlags = new cSettableFlags(lFlags); }
+            try { rFlags = new cStorableFlags(lFlags); }
             catch { rFlags = null; return false; }
 
             return true;
         }
 
-        private string ZFlagNames(cSettableFlags pFlags)
+        private string ZFlagNames(cStorableFlags pFlags)
         {
             if (pFlags == null || pFlags.Count == 0) return string.Empty;
 

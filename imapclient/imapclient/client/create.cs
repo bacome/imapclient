@@ -7,6 +7,12 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
+        /// <summary>
+        /// Creates a new mailbox on the connected server.
+        /// </summary>
+        /// <param name="pMailboxName">The mailbox name to use.</param>
+        /// <param name="pAsFutureParent">Indicate to the IMAP server that you intend to create child mailboxes in the new mailbox.</param>
+        /// <returns></returns>
         public cMailbox Create(cMailboxName pMailboxName, bool pAsFutureParent)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Create));
@@ -15,6 +21,12 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
+        /// <summary>
+        /// Ansynchronously creates a new mailbox on the connected server.
+        /// </summary>
+        /// <param name="pMailboxName">The mailbox name to use.</param>
+        /// <param name="pAsFutureParent">Indicate to the IMAP server that you intend to create child mailboxes in the new mailbox.</param>
+        /// <returns></returns>
         public Task<cMailbox> CreateAsync(cMailboxName pMailboxName, bool pAsFutureParent)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(CreateAsync));
@@ -28,7 +40,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException();
+            if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 

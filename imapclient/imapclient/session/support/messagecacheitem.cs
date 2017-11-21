@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -14,7 +12,7 @@ namespace work.bacome.imapclient
                 private readonly iMessageCache mCache;
                 private readonly int mCacheSequence;
                 private bool mExpunged = false;
-                private fCacheAttributes mAttributes;
+                private fMessageCacheAttributes mAttributes;
                 private cBodyPart mBody = null;
                 private ulong? mModSeq;
 
@@ -25,7 +23,7 @@ namespace work.bacome.imapclient
 
                     if (pCache.NoModSeq)
                     {
-                        mAttributes = fCacheAttributes.modseq;
+                        mAttributes = fMessageCacheAttributes.modseq;
                         mModSeq = 0;
                     }
                     else
@@ -38,7 +36,7 @@ namespace work.bacome.imapclient
                 public iMessageCache Cache => mCache;
                 public int CacheSequence => mCacheSequence;
                 public bool Expunged => mExpunged;
-                public fCacheAttributes Attributes => mAttributes;
+                public fMessageCacheAttributes Attributes => mAttributes;
                 public cBodyPart Body => mBody ?? BodyStructure;
                 public cBodyPart BodyStructure { get; private set; } = null;
                 public cEnvelope Envelope { get; private set; } = null;
@@ -50,42 +48,42 @@ namespace work.bacome.imapclient
                 public cHeaderFields HeaderFields { get; private set; } = cHeaderFields.None;
                 public cBinarySizes BinarySizes { get; private set; } = cBinarySizes.None;
 
-                public bool Contains(cCacheItems pItems) => (~mAttributes & pItems.Attributes) == 0 && HeaderFields.Contains(pItems.Names);
-                public bool ContainsNone(cCacheItems pItems) => (~mAttributes & pItems.Attributes) == pItems.Attributes && HeaderFields.ContainsNone(pItems.Names);
-                public cCacheItems Missing(cCacheItems pItems) => new cCacheItems(~mAttributes & pItems.Attributes, HeaderFields.Missing(pItems.Names));
+                public bool Contains(cMessageCacheItems pItems) => (~mAttributes & pItems.Attributes) == 0 && HeaderFields.Contains(pItems.Names);
+                public bool ContainsNone(cMessageCacheItems pItems) => (~mAttributes & pItems.Attributes) == pItems.Attributes && HeaderFields.ContainsNone(pItems.Names);
+                public cMessageCacheItems Missing(cMessageCacheItems pItems) => new cMessageCacheItems(~mAttributes & pItems.Attributes, HeaderFields.Missing(pItems.Names));
 
                 public void SetExpunged() => mExpunged = true;
 
-                public void Update(cResponseDataFetch lFetch, out fCacheAttributes rAttributesSet, out fMessageProperties rPropertiesChanged)
+                public void Update(cResponseDataFetch lFetch, out fMessageCacheAttributes rAttributesSet, out fMessageProperties rPropertiesChanged)
                 {
                     rAttributesSet = ~mAttributes & lFetch.Attributes;
                     rPropertiesChanged = 0;
 
-                    if ((rAttributesSet & fCacheAttributes.flags) != 0) Flags = lFetch.Flags;
+                    if ((rAttributesSet & fMessageCacheAttributes.flags) != 0) Flags = lFetch.Flags;
                     else if (lFetch.Flags != null)
                     {
                         foreach (var lFlag in Flags.SymmetricDifference(lFetch.Flags))
                         {
-                            rAttributesSet |= fCacheAttributes.flags;
+                            rAttributesSet |= fMessageCacheAttributes.flags;
                             rPropertiesChanged |= fMessageProperties.flags | LMessageProperty(lFlag);
                         }
 
                         Flags = lFetch.Flags;
                     }
 
-                    if ((rAttributesSet & fCacheAttributes.envelope) != 0) Envelope = lFetch.Envelope;
-                    if ((rAttributesSet & fCacheAttributes.received) != 0) Received = lFetch.Received;
-                    if ((rAttributesSet & fCacheAttributes.size) != 0) Size = lFetch.Size;
-                    if ((rAttributesSet & fCacheAttributes.body) != 0) mBody = lFetch.Body;
-                    if ((rAttributesSet & fCacheAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
-                    if ((rAttributesSet & fCacheAttributes.uid) != 0 && mCache.UIDValidity != 0) UID = new cUID(mCache.UIDValidity, lFetch.UID.Value);
+                    if ((rAttributesSet & fMessageCacheAttributes.envelope) != 0) Envelope = lFetch.Envelope;
+                    if ((rAttributesSet & fMessageCacheAttributes.received) != 0) Received = lFetch.Received;
+                    if ((rAttributesSet & fMessageCacheAttributes.size) != 0) Size = lFetch.Size;
+                    if ((rAttributesSet & fMessageCacheAttributes.body) != 0) mBody = lFetch.Body;
+                    if ((rAttributesSet & fMessageCacheAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
+                    if ((rAttributesSet & fMessageCacheAttributes.uid) != 0 && mCache.UIDValidity != 0) UID = new cUID(mCache.UIDValidity, lFetch.UID.Value);
 
                     if (!mCache.NoModSeq)
                     {
-                        if ((rAttributesSet & fCacheAttributes.modseq) != 0) mModSeq = lFetch.ModSeq;
+                        if ((rAttributesSet & fMessageCacheAttributes.modseq) != 0) mModSeq = lFetch.ModSeq;
                         else if (lFetch.ModSeq != null && lFetch.ModSeq != mModSeq)
                         {
-                            rAttributesSet |= fCacheAttributes.modseq;
+                            rAttributesSet |= fMessageCacheAttributes.modseq;
                             rPropertiesChanged |= fMessageProperties.modseq;
                             mModSeq = lFetch.ModSeq;
                         }
@@ -98,17 +96,17 @@ namespace work.bacome.imapclient
 
                     fMessageProperties LMessageProperty(string pFlag)
                     {
-                        if (pFlag.Equals(kMessageFlagName.Answered, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.answered;
-                        if (pFlag.Equals(kMessageFlagName.Flagged, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.flagged;
-                        if (pFlag.Equals(kMessageFlagName.Deleted, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.deleted;
-                        if (pFlag.Equals(kMessageFlagName.Seen, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.seen;
-                        if (pFlag.Equals(kMessageFlagName.Draft, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.draft;
-                        if (pFlag.Equals(kMessageFlagName.Recent, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.recent;
+                        if (pFlag.Equals(kMessageFlag.Answered, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.answered;
+                        if (pFlag.Equals(kMessageFlag.Flagged, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.flagged;
+                        if (pFlag.Equals(kMessageFlag.Deleted, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.deleted;
+                        if (pFlag.Equals(kMessageFlag.Seen, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.seen;
+                        if (pFlag.Equals(kMessageFlag.Draft, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.draft;
+                        if (pFlag.Equals(kMessageFlag.Recent, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.recent;
                         // see comments elsewhere as to why this is commented out
                         //if (pFlag.Equals(kMessageFlagName.MDNSent, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.mdnsent;
-                        if (pFlag.Equals(kMessageFlagName.Forwarded, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.forwarded;
-                        if (pFlag.Equals(kMessageFlagName.SubmitPending, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.submitpending;
-                        if (pFlag.Equals(kMessageFlagName.Submitted, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.submitted;
+                        if (pFlag.Equals(kMessageFlag.Forwarded, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.forwarded;
+                        if (pFlag.Equals(kMessageFlag.SubmitPending, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.submitpending;
+                        if (pFlag.Equals(kMessageFlag.Submitted, StringComparison.InvariantCultureIgnoreCase)) return fMessageProperties.submitted;
                         return 0;
                     }
                 }

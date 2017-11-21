@@ -4,21 +4,24 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        private cCacheItems mDefaultCacheItems = cCacheItems.None;
+        private cMessageCacheItems mDefaultMessageCacheItems = cMessageCacheItems.None;
         private cSort mDefaultSort = cSort.None;
 
         /// <summary>
-        /// Specifies the cache items that are fetched by default when message lists are generated using the mailbox's message list methods
+        /// Gets and sets the items that are cached by default when message lists are generated.
         /// </summary>
-        public cCacheItems DefaultCacheItems
+        /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
+        /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{support.iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
+        public cMessageCacheItems DefaultMessageCacheItems
         {
-            get => mDefaultCacheItems;
-            set => mDefaultCacheItems = value ?? throw new ArgumentNullException();
+            get => mDefaultMessageCacheItems;
+            set => mDefaultMessageCacheItems = value ?? throw new ArgumentNullException();
         }
 
         /// <summary>
-        /// Specifies the sort that is used by default when message lists are generated using the mailbox's message list methods
+        /// Gets and sets the default message sort order.
         /// </summary>
+        /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
         public cSort DefaultSort
         {
             get => mDefaultSort;

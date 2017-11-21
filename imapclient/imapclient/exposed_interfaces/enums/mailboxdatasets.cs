@@ -3,67 +3,75 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Sets of data that can be fetched about a mailbox
+    /// Represents sets of data that can be requested about a mailbox. 
     /// </summary>
+    /// <remarks>
+    /// The exact data items requested depend on the value of <see cref="cIMAPClient.MailboxCacheDataItems"/>.
+    /// <para>
+    /// <see cref="list"/> data affects the following <see cref="cMailbox"/> properties;
+    /// <list type="bullet">
+    /// <item>
+    /// Always;
+    ///   <list type="bullet">
+    ///   <item><see cref="cMailbox.Exists"/></item>
+    ///   <item><see cref="cMailbox.CanHaveChildren"/></item>
+    ///   <item><see cref="cMailbox.CanSelect"/></item>
+    ///   <item><see cref="cMailbox.IsMarked"/></item>
+    ///   <item><see cref="cMailbox.IsRemote"/></item>
+    ///   </list>
+    /// </item>
+    /// <item>
+    /// If requesting <see cref="fMailboxCacheDataItems.children"/>;
+    ///   <list type="bullet">
+    ///   <item><see cref="cMailbox.HasChildren"/></item>
+    ///   </list>
+    /// </item>
+    /// <item>
+    /// If requesting <see cref="fMailboxCacheDataItems.specialuse"/>;
+    ///   <list type="bullet">
+    ///   <item><see cref="cMailbox.ContainsAll"/></item>
+    ///   <item><see cref="cMailbox.IsArchive"/></item>
+    ///   <item><see cref="cMailbox.ContainsDrafts"/></item>
+    ///   <item><see cref="cMailbox.ContainsFlagged"/></item>
+    ///   <item><see cref="cMailbox.ContainsJunk"/></item>
+    ///   <item><see cref="cMailbox.ContainsSent"/></item>
+    ///   <item><see cref="cMailbox.ContainsTrash"/></item>
+    ///   </list>
+    /// </item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// <see cref="lsub"/> data always affects <see cref="cMailbox.IsSubscribed"/>. 
+    /// </para>
+    /// <para>
+    /// <see cref="status"/> data affects the following <see cref="cMailbox"/> properties;
+    /// <list type="bullet">
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.messagecount"/>: <see cref="cMailbox.MessageCount"/></item>
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.recentcount"/>: <see cref="cMailbox.RecentCount"/></item>
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.uidnext"/>: <see cref="cMailbox.UIDNext"/></item>
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.uidvalidity"/>: <see cref="cMailbox.UIDValidity"/></item>
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.unseencount"/>: <see cref="cMailbox.UnseenCount"/></item>
+    /// <item>If requesting <see cref="fMailboxCacheDataItems.highestmodseq"/>: <see cref="cMailbox.HighestModSeq"/></item>
+    /// </list>
+    /// </para>
+    /// </remarks>
+    /// <seealso cref="cNamespace.Mailboxes(fMailboxCacheDataSets)"/>
+    /// <seealso cref="cNamespace.Subscribed(bool, fMailboxCacheDataSets)"/>
+    /// <seealso cref="cMailbox.Mailboxes(fMailboxCacheDataSets)"/>
+    /// <seealso cref="cMailbox.Subscribed(bool, fMailboxCacheDataSets)"/>
+    /// <seealso cref="cMailbox.Fetch(fMailboxCacheDataSets)"/>
+    /// <seealso cref="iMailboxContainer.Mailboxes(fMailboxCacheDataSets)"/>
+    /// <seealso cref="iMailboxContainer.Subscribed(bool, fMailboxCacheDataSets)"/>
+    /// <seealso cref="cIMAPClient.Mailboxes(string, char?, fMailboxCacheDataSets)"/>
+    /// <seealso cref="cIMAPClient.Subscribed(string, char?, bool, fMailboxCacheDataSets)"/>
     [Flags]
     public enum fMailboxCacheDataSets
     {
-        /// <summary>
-        /// Data returned by the LIST command
-        /// </summary>
-        /// <remarks>
-        /// Affects the following properties of the mailbox class
-        /// ALWAYS: Exists, CanHaveChildren, CanSelect, IsMarked, IsRemote
-        /// IF the internal mailbox cache is caching the backing data: HasChildren (fMailboxCacheData.children), Contains* and IsArchive (fMailboxCacheData.specialuse)
-        /// </remarks>
-        /// <seealso cref="cIMAPClient.MailboxCacheData"/>
-        /// <seealso cref="fMailboxCacheData.children"/>
-        /// <seealso cref="fMailboxCacheData.specialuse"/>
-        /// <seealso cref="cMailbox.Exists"/>
-        /// <seealso cref="cMailbox.CanHaveChildren"/>
-        /// <seealso cref="cMailbox.CanSelect"/>
-        /// <seealso cref="cMailbox.IsMarked"/>
-        /// <seealso cref="cMailbox.IsRemote"/>
-        /// <seealso cref="cMailbox.HasChildren"/>
-        /// <seealso cref="cMailbox.ContainsAll"/>
-        /// <seealso cref="cMailbox.IsArchive"/>
-        /// <seealso cref="cMailbox.ContainsDrafts"/>
-        /// <seealso cref="cMailbox.ContainsFlagged"/>
-        /// <seealso cref="cMailbox.ContainsJunk"/>
-        /// <seealso cref="cMailbox.ContainsSent"/>
-        /// <seealso cref="cMailbox.ContainsTrash"/>
+        /**<summary>The data returned by the IMAP LIST command.</summary>*/
         list = 1 << 0,
-
-        /// <summary>
-        /// Data returned by the LSUB command
-        /// </summary>
-        /// <remarks>
-        /// Affects the IsSubscribed property of the mailbox class
-        /// </remarks>
-        /// <seealso cref="cIMAPClient.MailboxCacheData"/>
-        /// <seealso cref="fMailboxCacheData.subscribed"/>
-        /// <seealso cref="cMailbox.IsSubscribed"/>
+        /**<summary>The data returned by the IMAP LSUB command.</summary>*/
         lsub = 1 << 1,
-
-        /// <summary>
-        /// Data returned by the STATUS command
-        /// </summary>
-        /// <remarks>
-        /// Affects the following properties of the mailbox class IF the internal mailbox cache is caching the backing data: MessageCount, RecentCount, UIDNext, UIDValidity, UnseenCount, HighestModSeq
-        /// </remarks>
-        /// <seealso cref="cIMAPClient.MailboxCacheData"/>
-        /// <seealso cref="fMailboxCacheData.messagecount"/>
-        /// <seealso cref="fMailboxCacheData.recentcount"/>
-        /// <seealso cref="fMailboxCacheData.uidnext"/>
-        /// <seealso cref="fMailboxCacheData.uidvalidity"/>
-        /// <seealso cref="fMailboxCacheData.unseencount"/>
-        /// <seealso cref="fMailboxCacheData.highestmodseq"/>
-        /// <seealso cref="cMailbox.MessageCount"/>
-        /// <seealso cref="cMailbox.RecentCount"/>
-        /// <seealso cref="cMailbox.UIDNext"/>
-        /// <seealso cref="cMailbox.UIDValidity"/>
-        /// <seealso cref="cMailbox.UnseenCount"/>
-        /// <seealso cref="cMailbox.HighestModSeq"/>
+        /**<summary>The data returned by the IMAP STATUS command.</summary>*/
         status = 1 << 2
     }
 }

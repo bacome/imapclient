@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
 
-                    if (mState != eState.notconnected) throw new InvalidOperationException();
+                    if (mState != eState.notconnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotUnconnected);
                     mState = eState.connecting;
 
                     try
@@ -45,7 +45,7 @@ namespace work.bacome.imapclient
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpaceOKSpace))
                                 {
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greeting, lCursor, lHook, lContext);
                                     lContext.TraceVerbose("got ok: {0}", lResponseText);
 
                                     mState = eState.connected;
@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpacePreAuthSpace))
                                 {
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greeting, lCursor, lHook, lContext);
                                     lContext.TraceVerbose("got preauth: {0}", lResponseText);
 
                                     mState = eState.connected;
@@ -65,7 +65,7 @@ namespace work.bacome.imapclient
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpaceBYESpace))
                                 {
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextType.greeting, lCursor, lHook, lContext);
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greeting, lCursor, lHook, lContext);
                                     lContext.TraceError("got bye: {0}", lResponseText);
 
                                     if (lHook.Capabilities != null) lContext.TraceError("received capability on a bye greeting");
@@ -93,7 +93,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(SetCapabilities));
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
-                    if (mState != eState.connected) throw new InvalidOperationException();
+                    if (mState != eState.connected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
                     if (pCapabilities == null) throw new ArgumentNullException(nameof(pCapabilities));
 
                     mLiteralPlus = pCapabilities.LiteralPlus;
@@ -107,7 +107,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(InstallTLS));
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
-                    if (mState != eState.connected) throw new InvalidOperationException();
+                    if (mState != eState.connected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
                     mConnection.InstallTLS(lContext);
                 }
@@ -165,7 +165,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(InstallSASLSecurity));
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
-                    if (mState != eState.connected) throw new InvalidOperationException();
+                    if (mState != eState.connected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
                     mConnection.InstallSASLSecurity(pSASLSecurity, lContext);
                 }
@@ -175,7 +175,7 @@ namespace work.bacome.imapclient
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(Enable));
 
                     if (mDisposed) throw new ObjectDisposedException(nameof(cCommandPipeline));
-                    if (mState != eState.connected) throw new InvalidOperationException();
+                    if (mState != eState.connected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
                     if (pMailboxCache == null) throw new ArgumentNullException(nameof(pMailboxCache));
                     if (pCapabilities == null) throw new ArgumentNullException(nameof(pCapabilities));

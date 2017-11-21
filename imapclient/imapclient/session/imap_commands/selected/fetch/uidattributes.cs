@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task ZUIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pHandle, uint pUIDValidity, cUIntList pUIDs, cCacheItems pItems, cTrace.cContext pParentContext)
+            private async Task ZUIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pHandle, uint pUIDValidity, cUIntList pUIDs, cMessageCacheItems pItems, cTrace.cContext pParentContext)
             {
                 // note that this will fail if the UIDValidity has changed (this is different to the behaviour of standard fetch)
                 // note that the caller should have checked that pAttributes contains some attributes to fetch
@@ -18,7 +18,7 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchCacheItemsAsync), pMC, pHandle, pUIDValidity, pUIDs, pItems);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
-                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+                if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
                 if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
                 if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));

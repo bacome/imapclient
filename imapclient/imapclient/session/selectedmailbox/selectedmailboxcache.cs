@@ -146,9 +146,9 @@ namespace work.bacome.imapclient
                     return (uint)lIndex + 1;
                 }
 
-                public cMessageHandleList SetUnseen(int pMessageCount, cUIntList pMSNs, cTrace.cContext pParentContext)
+                public cMessageHandleList SetUnseenCount(int pMessageCount, cUIntList pMSNs, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetUnseen), pMSNs);
+                    var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(SetUnseenCount), pMSNs);
 
                     // the message count is required because messages can be delivered during the search, after the search results are calculated
                     //  it should be the message count that existed when the command was submitted
@@ -263,9 +263,9 @@ namespace work.bacome.imapclient
 
                     bool lSetMailboxStatus = false;
 
-                    if ((lAttributesSet & fCacheAttributes.flags) != 0)
+                    if ((lAttributesSet & fMessageCacheAttributes.flags) != 0)
                     {
-                        if (pFetch.Flags.Contains(kMessageFlagName.Seen))
+                        if (pFetch.Flags.Contains(kMessageFlag.Seen))
                         {
                             if (lFetchedItem.Unseen == null)
                             {
@@ -298,7 +298,7 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    if ((lAttributesSet & fCacheAttributes.uid) != 0 && lFetchedItem.UID != null)
+                    if ((lAttributesSet & fMessageCacheAttributes.uid) != 0 && lFetchedItem.UID != null)
                     {
                         mUIDIndex.Add(lFetchedItem.UID, lFetchedItem);
 

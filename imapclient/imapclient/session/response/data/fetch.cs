@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
             private class cResponseDataFetch : cResponseData
             {
                 public readonly uint MSN;
-                public readonly fCacheAttributes Attributes;
+                public readonly fMessageCacheAttributes Attributes;
                 public readonly cFetchableFlags Flags;
                 public readonly cEnvelope Envelope;
                 public readonly DateTime? Received;
@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
                 public readonly cBinarySizes BinarySizes;
                 public readonly ulong? ModSeq;
 
-                public cResponseDataFetch(uint pMSN, fCacheAttributes pAttributes, cFetchableFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaderFields pHeaderFields, IDictionary<string, uint> pBinarySizes, ulong? pModSeq)
+                public cResponseDataFetch(uint pMSN, fMessageCacheAttributes pAttributes, cFetchableFlags pFlags, cEnvelope pEnvelope, DateTime? pReceived, IList<byte> pRFC822, IList<byte> pRFC822Header, IList<byte> pRFC822Text, uint? pSize, cBodyPart pBody, cBodyPart pBodyStructure, IList<cBody> pBodies, uint? pUID, cHeaderFields pHeaderFields, IDictionary<string, uint> pBinarySizes, ulong? pModSeq)
                 {
                     MSN = pMSN;
                     Attributes = pAttributes;

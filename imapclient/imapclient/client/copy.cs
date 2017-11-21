@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        public cCopyFeedback Copy(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
+        internal cCopyFeedback Copy(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Copy), 1);
             var lTask = ZCopyAsync(cMessageHandleList.FromHandle(pSourceHandle), pDestinationHandle, lContext);
@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public cCopyFeedback Copy(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
+        internal cCopyFeedback Copy(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Copy), 2);
             var lTask = ZCopyAsync(cMessageHandleList.FromHandles(pSourceHandles), pDestinationHandle, lContext);
@@ -25,13 +25,13 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        public Task<cCopyFeedback> CopyAsync(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
+        internal Task<cCopyFeedback> CopyAsync(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 1);
             return ZCopyAsync(cMessageHandleList.FromHandle(pSourceHandle), pDestinationHandle, lContext);
         }
 
-        public Task<cCopyFeedback> CopyAsync(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
+        internal Task<cCopyFeedback> CopyAsync(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 2);
             return ZCopyAsync(cMessageHandleList.FromHandles(pSourceHandles), pDestinationHandle, lContext);
@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
-            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException();
+            if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
             if (pSourceHandles == null) throw new ArgumentNullException(nameof(pSourceHandles));
             if (pDestinationHandle == null) throw new ArgumentNullException(nameof(pDestinationHandle));
