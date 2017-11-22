@@ -6,7 +6,7 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains feedback on one message in a copy operation, extracted from the RFC 4315 UIDCOPY response.
+    /// Contains feedback on one message in a copy operation, based on the RFC 4315 UIDCOPY response.
     /// </summary>
     /// <seealso cref="cCopyFeedback"/>
     public class cCopyFeedbackItem
@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains feedback on a copy operation based on the RFC 4315 UIDCOPY response.
+    /// Contains feedback on a copy operation, based on the RFC 4315 UIDCOPY response.
     /// </summary>
     /// <seealso cref="cMailbox.Copy(IEnumerable{cMessage})"/>
     /// <seealso cref="cMailbox.UIDCopy(IEnumerable{cUID}, cMailbox)"/>

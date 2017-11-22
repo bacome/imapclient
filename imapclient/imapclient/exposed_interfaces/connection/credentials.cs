@@ -7,7 +7,7 @@ using work.bacome.trace;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents a set of credentials that can be used during <see cref="cIMAPClient.Connect"/>.
+    /// Represents credentials that can be used during <see cref="cIMAPClient.Connect"/>.
     /// </summary>
     /// <seealso cref="cIMAPClient.Credentials"/>
     public class cCredentials

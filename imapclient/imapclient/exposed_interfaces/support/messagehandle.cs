@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// Represents an IMAP message uniquely within a message cache.
+    /// Represents an IMAP message.
     /// </summary>
     /// <seealso cref="cMessageHandleList"/>
     /// <seealso cref="cMessageDeliveryEventArgs"/>
@@ -33,7 +33,7 @@ namespace work.bacome.imapclient.support
         /// </summary>
         /// <remarks>
         /// The BODY data is the same as the BODYSTRUCTURE data but is missing the 'extension data'.
-        /// In particular the following elements (and the properties that derive from them) will be null;
+        /// In particular the following elements (and the properties that derive from them) will be <see langword="null"/>;
         /// <list type="bullet">
         /// <item><see cref="cMultiPartBody.ExtensionData"/></item>
         /// <item><see cref="cSinglePartBody.ExtensionData"/></item>
@@ -65,7 +65,7 @@ namespace work.bacome.imapclient.support
         /// Gets the UID of the message, may be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// Null indicates that either the data isn't cached or that the mailbox does not support unique identifiers.
+        /// <see langword="null"/> indicates that either the data isn't cached or that the mailbox does not support unique identifiers.
         /// </remarks>
         cUID UID { get; }
 

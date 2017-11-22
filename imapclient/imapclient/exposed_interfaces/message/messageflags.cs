@@ -67,10 +67,10 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents a unique read-only message-flag collection. Message flags are case insensitive.
+    /// Represents a read-only message-flag collection.
     /// </summary>
     /// <remarks>
-    /// Message flags have a limited grammer - see RFC 3501.
+    /// Message flags are case insensitive and have a limited grammer - see RFC 3501.
     /// (Generally user-defined message-flags must only include <see cref="cCharset.Atom"/> characters.)
     /// </remarks>
     /// <seealso cref="cMailbox.ForUpdatePermanentFlags"/>
@@ -127,13 +127,13 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A unique read-only storable message-flag collection. Message flags are case insensitive.
+    /// A read-only storable-message-flag collection.
     /// </summary>
     /// <remarks>
-    /// <see cref="kMessageFlag.Recent"/> is not a storable message-flag.
-    /// <see cref="kMessageFlag.CreateNewIsPossible"/> is not a storable message-flag.
-    /// Message flag names have a limited grammar - see RFC 3501.
-    /// (Generally, non-system flags must only include <see cref="cCharset.Atom"/> characters).
+    /// Message flags are case insensitive and have a limited grammar - see RFC 3501.
+    /// (Generally user-defined message-flags must only include <see cref="cCharset.Atom"/> characters.)
+    /// <see cref="kMessageFlag.Recent"/> is not a storable-message-flag.
+    /// <see cref="kMessageFlag.CreateNewIsPossible"/> is not a storable-message-flag.
     /// </remarks>
     /// <seealso cref="cMessage.Store(eStoreOperation, cStorableFlags, ulong?)"/>,
     /// <seealso cref="cIMAPClient.Store(IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)"/>
@@ -143,38 +143,38 @@ namespace work.bacome.imapclient
     {
         // immutable (for passing in)
 
-        /** <summary>An empty storable message-flag collection.</summary> */
+        /** <summary>An empty storable-message-flag collection.</summary> */
         public static readonly cStorableFlags None = new cStorableFlags();
 
-        /** <summary>A storable message-flag collection containing only <see cref="kMessageFlag.Answered"/>.</summary> */
+        /** <summary>A storable-message-flag collection containing only <see cref="kMessageFlag.Answered"/>.</summary> */
         public static readonly cStorableFlags Answered = new cStorableFlags(kMessageFlag.Answered);
 
-        /** <summary>A storable message-flag collection containing only <see cref="kMessageFlag.Flagged"/>.</summary> */
+        /** <summary>A storable-message-flag collection containing only <see cref="kMessageFlag.Flagged"/>.</summary> */
         public static readonly cStorableFlags Flagged = new cStorableFlags(kMessageFlag.Flagged);
 
-        /** <summary>A storable message-flag collection containing only <see cref="kMessageFlag.Deleted"/>.</summary> */
+        /** <summary>A storable-message-flag collection containing only <see cref="kMessageFlag.Deleted"/>.</summary> */
         public static readonly cStorableFlags Deleted = new cStorableFlags(kMessageFlag.Deleted);
 
-        /** <summary>A storable message-flag collection containing only <see cref="kMessageFlag.Seen"/>.</summary> */
+        /** <summary>A storable-message-flag collection containing only <see cref="kMessageFlag.Seen"/>.</summary> */
         public static readonly cStorableFlags Seen = new cStorableFlags(kMessageFlag.Seen);
 
-        /** <summary>A storable message-flag collection containing only <see cref="kMessageFlag.Draft"/>.</summary> */
+        /** <summary>A storable-message-flag collection containing only <see cref="kMessageFlag.Draft"/>.</summary> */
         public static readonly cStorableFlags Draft = new cStorableFlags(kMessageFlag.Draft);
 
-        /** <summary>A storable message-flag collection containing only <see cref="kMessageFlag.Forwarded"/>.</summary> */
+        /** <summary>A storable-message-flag collection containing only <see cref="kMessageFlag.Forwarded"/>.</summary> */
         public static readonly cStorableFlags Forwarded = new cStorableFlags(kMessageFlag.Forwarded);
 
-        /** <summary>A storable message-flag collection containing only <see cref="kMessageFlag.SubmitPending"/>.</summary> */
+        /** <summary>A storable-message-flag collection containing only <see cref="kMessageFlag.SubmitPending"/>.</summary> */
         public static readonly cStorableFlags SubmitPending = new cStorableFlags(kMessageFlag.SubmitPending);
 
-        /** <summary>A storable message-flag collection containing only <see cref="kMessageFlag.Submitted"/>.</summary> */
+        /** <summary>A storable-message-flag collection containing only <see cref="kMessageFlag.Submitted"/>.</summary> */
         public static readonly cStorableFlags Submitted = new cStorableFlags(kMessageFlag.Submitted);
 
         // see comments elsewhere as to why this is commented out
         //public static readonly cSettableFlags MDNSent = new cSettableFlags(kMessageFlagName.MDNSent);
 
         /// <summary>
-        /// Initialises a new instance with a duplicate free copy of the specified flags. Will throw if the specified flags aren't valid storable message-flags.
+        /// Initialises a new instance with a duplicate free (case insensitive) copy of the specified flags. Will throw if the specified flags aren't valid storable-message-flags.
         /// </summary>
         /// <param name="pFlags"></param>
         /// <inheritdoc cref="cStorableFlags" select="remarks"/>
@@ -197,12 +197,12 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A unique read-only fetchable message-flag collection. Message flags are case insensitive.
+    /// A read-only fetchable-message-flag collection.
     /// </summary>
     /// <remarks>
-    /// <see cref="kMessageFlag.CreateNewIsPossible"/> is not a fetchable message-flag.
-    /// Message flag names have a limited grammar - see RFC 3501.
-    /// (Generally, non-system flags must only include <see cref="cCharset.Atom"/> characters).
+    /// Message flags are case insensitive and have a limited grammar - see RFC 3501.
+    /// (Generally user-defined message-flags must only include <see cref="cCharset.Atom"/> characters.)
+    /// <see cref="kMessageFlag.CreateNewIsPossible"/> is not a fetchable-message-flag.
     /// </remarks>
     /// <seealso cref="cMailbox.MessageFlags"/>
     /// <seealso cref="cFilter.FlagsContain(cFetchableFlags)"/>
@@ -211,7 +211,7 @@ namespace work.bacome.imapclient
         // immutable (for passing in and out)
 
         /// <summary>
-        /// Initialises a new instance with a duplicate free copy of the specified flags. Will throw if the specified flags aren't valid fetchable message-flags.
+        /// Initialises a new instance with a duplicate free (case insensitive) copy of the specified flags. Will throw if the specified flags aren't valid fetchable-message-flags.
         /// </summary>
         /// <param name="pFlags"></param>
         /// <inheritdoc cref="cFetchableFlags" select="remarks"/>
@@ -243,7 +243,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents a message-flag list. Message flags are case insensitive.
+    /// Represents a message-flag list.
     /// </summary>
     /// <inheritdoc cref="cMessageFlags" select="remarks"/>
     public abstract class cMessageFlagList : IReadOnlyCollection<string>
@@ -354,7 +354,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A unique storable message-flag list. Message flag names are case insensitive.
+    /// A storable-message-flag list.
     /// </summary>
     /// <inheritdoc cref="cStorableFlags" select="remarks"/>
     /// <seealso cref="cStorableFlags"/>
@@ -440,7 +440,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A unique fetchable message-flag list. Message flags are case insensitive.
+    /// A fetchable-message-flag list.
     /// </summary>
     /// <inheritdoc cref="cFetchableFlags" select="remarks"/>
     /// <seealso cref="cFetchableFlags"/>

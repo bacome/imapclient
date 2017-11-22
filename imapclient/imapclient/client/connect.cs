@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// <para>
         /// TLS is established if possible before authentication is attempted.
-        /// TLS will be established immediately upon TCP connect if <see cref="Server"/> indicates that this is required (<see cref="cServer.SSL"/>),
+        /// TLS will be established immediately upon connect if <see cref="Server"/> indicates that the host requires this (<see cref="cServer.SSL"/>),
         /// otherwise the library will use the IMAP STARTTLS command if <see cref="cCapabilities.StartTLS"/> is in use.
         /// </para>
         /// <para>

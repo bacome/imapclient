@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using work.bacome.apidocumentation;
 using work.bacome.trace;
 
 namespace work.bacome.async
@@ -37,7 +36,7 @@ namespace work.bacome.async
         private cToken mToken = null;
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance with the specified name and sequence number.
         /// </summary>
         /// <param name="pName">The instance name to include in trace messages written by the instance.</param>
         /// <param name="pSequence">The sequence number to give the instance. Sequence numbers can be used by external code to ensure that the program's tokens are requested in a consistent order (to avoid deadlocks).</param>

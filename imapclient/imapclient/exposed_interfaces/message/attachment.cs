@@ -8,6 +8,11 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents a message attachment.
     /// </summary>
+    /// <remarks>
+    /// Instances of this class are only valid whilst the mailbox that they are in remains selected. 
+    /// Re-selecting the mailbox will not bring instances back to life.
+    /// Instances of this class are only valid whilst the containing mailbox has the same UIDValidity.
+    /// </remarks>
     /// <seealso cref="cMessage.Attachments"/>
     public class cAttachment
     {

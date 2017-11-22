@@ -25,10 +25,10 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A unique read-only header-field-name collection. Header field names are case insensitive.
+    /// A read-only header-field-name collection. 
     /// </summary>
     /// <remarks>
-    /// Header field names have a limited grammar - see RFC 5322. 
+    /// Header field names are case insensitive and have a limited grammar - see RFC 5322. 
     /// (Header field names must only include <see cref="cCharset.FText"/> characters.)
     /// </remarks>
     /// <seealso cref="cSection"/>
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
         private cHeaderFieldNames() => mNames = new cHeaderFieldNameList();
 
         /// <summary>
-        /// Initalises a new instance with a duplicate free copy of the specified names. Will throw if the specified names aren't valid header field names.
+        /// Initalises a new instance with a duplicate free (case insensitive) copy of the specified names. Will throw if the specified names aren't valid header field names.
         /// </summary>
         /// <param name="pNames"></param>
         /// <inheritdoc cref="cHeaderFieldNames" select="remarks"/>
@@ -147,7 +147,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A unique header field name list. Header field names are case insensitive.
+    /// A header field name list.
     /// </summary>
     /// <inheritdoc cref="cHeaderFieldNames" select="remarks"/>
     /// <seealso cref="cHeaderFieldNames"/>

@@ -39,9 +39,9 @@ namespace work.bacome.imapclient
                                 lContext.TraceVerbose("waiting");
                                 await lAwaiter.AwaitAny(mConnection.GetBuildResponseTask(lContext)).ConfigureAwait(false);
 
-                                var lLines = mConnection.GetResponse(lContext);
-                                mSynchroniser.InvokeNetworkReceive(lLines, lContext);
-                                var lCursor = new cBytesCursor(lLines);
+                                var lResponse = mConnection.GetResponse(lContext);
+                                mSynchroniser.InvokeNetworkReceive(lResponse, lContext);
+                                var lCursor = new cBytesCursor(lResponse);
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpaceOKSpace))
                                 {
@@ -76,7 +76,7 @@ namespace work.bacome.imapclient
                                     return new sGreeting(eGreetingType.bye, lResponseText, null, null);
                                 }
 
-                                lContext.TraceError("unrecognised response: {0}", lLines);
+                                lContext.TraceError("unrecognised response: {0}", lResponse);
                             }
                         }
                     }

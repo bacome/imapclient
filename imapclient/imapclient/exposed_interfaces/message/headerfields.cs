@@ -200,7 +200,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Determines whether the collection has been populated with all header fields of the name specified (case insensitive). 
+        /// Determines whether the collection has been populated with header fields of the name specified (case insensitive). 
         /// </summary>
         /// <param name="pName"></param>
         /// <returns></returns>
@@ -210,7 +210,7 @@ namespace work.bacome.imapclient
         public bool Contains(string pName) => mNot != mNames.Contains(pName);
 
         /// <summary>
-        /// Determines whether the collection has been populated with all header fields of all the names specified (case insensitive).
+        /// Determines whether the collection has been populated with header fields of all the names specified (case insensitive).
         /// </summary>
         /// <param name="pNames"></param>
         /// <returns></returns>
@@ -256,7 +256,7 @@ namespace work.bacome.imapclient
         /// <param name="pName"></param>
         /// <returns></returns>
         /// <remarks>
-        /// Null indicates that there are no header fields of the specified name in the collection.
+        /// <see langword="null"/> indicates that there are no header fields of the specified name in the collection.
         /// </remarks>
         public cHeaderField FirstNamed(string pName)
         {
@@ -283,7 +283,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// Normalised message-ids have the delimiters, quoting, comments and white space removed.
-        /// Null indicates that there is either no references header field in the collection or that the references header field could not be parsed.
+        /// <see langword="null"/> indicates that there is either no references header field in the collection or that the references header field could not be parsed.
         /// </remarks>
         public cStrings References => (FirstNamed(kHeaderFieldName.References) as cHeaderFieldMsgIds)?.MsgIds;
 
@@ -291,7 +291,7 @@ namespace work.bacome.imapclient
         /// Returns the importance value from the importance header field, or <see langword="null"/>. Throws if the collection has not been populated with the importance header field.
         /// </summary>
         /// <remarks>
-        /// Null indicates that there is either no importance header field in the collection or that the importance header field could not be parsed.
+        /// <see langword="null"/> indicates that there is either no importance header field in the collection or that the importance header field could not be parsed.
         /// </remarks>
         public eImportance? Importance => (FirstNamed(kHeaderFieldName.Importance) as cHeaderFieldImportance)?.Importance;
 

@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
         /// <param name="pIfUnchangedSinceModSeq"></param>
         /// <returns>Feedback on the success (or otherwise) of the store.</returns>
         /// <remarks>
-        /// The <paramref name="pIfUnchangedSinceModSeq"/> can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero. 
+        /// <paramref name="pIfUnchangedSinceModSeq"/> can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero. 
         /// (i.e. <see cref="cCapabilities.CondStore"/> is in use and the mailbox supports the persistent storage of mod-sequences.)
         /// If a message has been modified since the specified value then the server will fail the store for that message.
         /// </remarks>

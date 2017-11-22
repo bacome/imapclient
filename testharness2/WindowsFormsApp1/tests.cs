@@ -226,7 +226,7 @@ namespace testharness2
             lClient.ClientId = lIdDictionary;
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "NAMESPACE command completed");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
             lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
@@ -298,7 +298,7 @@ namespace testharness2
             lClient.IdleConfiguration = null;
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
             lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
@@ -367,9 +367,9 @@ namespace testharness2
             lClient.ClientIdUTF8 = lIdDictionary;
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
             //lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.unknown, "logged in");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "enable done");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "ID command completed");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
@@ -486,7 +486,7 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus");
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
             lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
@@ -527,7 +527,7 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus");
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
             lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
@@ -576,8 +576,8 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.unknown, "logged in");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
             lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
@@ -628,8 +628,8 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
-            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.unknown, "logged in");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
+            lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.other, "logged in");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
             lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
@@ -686,11 +686,11 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
             lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.none, "incorrect password");
             lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "ready");
             lExpecter.Expect(eResponseTextContext.continuerequest, eResponseTextCode.none, "ready");
-            lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.unknown, "incorrect password again"); // the CAPABILITY on a NO is not allowed by the base spec
+            lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.other, "incorrect password again"); // the CAPABILITY on a NO is not allowed by the base spec
             lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
 
@@ -738,7 +738,7 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
             lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.referral, "Specified user is invalid on this server.Try SERVER2.");
             lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
@@ -794,7 +794,7 @@ namespace testharness2
             lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
             lExpecter.Expect(eResponseTextContext.failure, eResponseTextCode.authenticationfailed, "incorrect password");
             lExpecter.Expect(eResponseTextContext.bye, eResponseTextCode.none, "logging out");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged out");
@@ -866,7 +866,7 @@ namespace testharness2
             lClient.IdleConfiguration = new cIdleConfiguration(2000, 10000);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged in");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");
@@ -1095,7 +1095,7 @@ namespace testharness2
             lClient.IdleConfiguration = new cIdleConfiguration(2000, 1200000, 7000);
 
             cResponseTextExpecter lExpecter = new cResponseTextExpecter(lClient, lContext);
-            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.unknown, "this is the text");
+            lExpecter.Expect(eResponseTextContext.greeting, eResponseTextCode.other, "this is the text");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "logged in");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "capability done");
             lExpecter.Expect(eResponseTextContext.success, eResponseTextCode.none, "LIST command completed");

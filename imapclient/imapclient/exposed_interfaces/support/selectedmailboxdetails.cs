@@ -3,18 +3,18 @@
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// Contains details of a selected mailbox.
+    /// Represents a selected mailbox.
     /// </summary>
     /// <seealso cref="cIMAPClient.SelectedMailboxDetails"/>
     public interface iSelectedMailboxDetails
     {
-        /**<summary>Gets the mailbox that the details are for.</summary>*/
+        /**<summary>Gets the mailbox.</summary>*/
         iMailboxHandle Handle { get; }
         /**<summary>Indicates whether the mailbox is selected for update.</summary>*/
         bool SelectedForUpdate { get; }
         /**<summary>Indicates whether the mailbox can be modified.</summary>*/
         bool AccessReadOnly { get; }
-        /**<summary>Gets the message cache of the mailbox.</summary>*/
+        /**<summary>Gets the message cache.</summary>*/
         iMessageCache Cache { get; }
     }
 }

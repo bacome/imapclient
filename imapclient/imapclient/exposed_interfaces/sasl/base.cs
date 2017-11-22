@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents an object that can participate in the <see cref="cIMAPClient"/> SASL (RFC 4422) mechanism.
+    /// Represents an object that can participate in the <see cref="cIMAPClient"/> SASL mechanism.
     /// </summary>
     /// <seealso cref="cSASLAuthentication"/>
     /// <seealso cref="cSASLSecurity"/>
@@ -26,17 +26,17 @@ namespace work.bacome.imapclient
         /// <returns></returns>
         /// <remarks>
         /// If authentication is successful the library will use <see cref="cSASLAuthentication.GetSecurity"/> to get an object that implements any security layer negotiated as part of the authentication.
-        /// <see cref="cSASLAuthentication.GetSecurity"/> must return null if no security layer was negotiated.
+        /// <see cref="cSASLAuthentication.GetSecurity"/> must return <see langword="null"/> if no security layer was negotiated.
         /// The <see cref="cSASLAuthentication"/> object will be disposed once authentication is complete (upon either of success or failure).
         /// Any <see cref="cSASLSecurity"/> object obtained will be disposed when the underlying network connection closes.
         /// </remarks>
         public abstract cSASLAuthentication GetAuthentication();
 
         /// <summary>
-        /// Gets a reference to the <see cref="cSASLAuthentication"/> object used in the last <see cref="cIMAPClient.Connect"/> attempt. May be <see langword="null"/>.
+        /// Gets a reference to the <see cref="cSASLAuthentication"/> object returned by <see cref="GetAuthentication"/> for use in the last <see cref="cIMAPClient.Connect"/> attempt. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// This will return <see langword="null"/> if the mechanism was not attempted.
+        /// This will return <see langword="null"/> if the instance was not used in the last <see cref="cIMAPClient.Connect"/> attempt.
         /// This property exists for mechanisms that have out of band error reporting (e.g. XOAUTH2) and provides a way for the out of band errors to be passed back to external code.
         /// <note type="note">Any object returned will almost certainly have been disposed.</note>
         /// </remarks>
@@ -44,7 +44,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents an object that can participate in the <see cref="cIMAPClient"/> SASL (RFC 4422) authentication process.
+    /// Represents an object that can participate in the <see cref="cIMAPClient"/> SASL authentication process.
     /// </summary>
     /// <remarks>
     /// Instances will be disposed once authentication is complete (upon either of success or failure).
@@ -88,7 +88,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents an object that can participate in the <see cref="cIMAPClient"/> SASL (RFC 4422) security layer process.
+    /// Represents an object that can participate in the <see cref="cIMAPClient"/> SASL security layer process.
     /// </summary>
     /// <remarks>
     /// Instances will be disposed when the connection closes.

@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="exposed_interfaces\other\eventsubscriptioncounts.cs" />
     <Compile Include="tools\apidocumentation.cs" />
     <Compile Include="client\base.cs" />
     <Compile Include="client\connect.cs" />

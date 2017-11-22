@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
     /// Contains parameters for use with the IMAP AUTHENTICATE PLAIN command.
     /// </summary>
     /// <remarks>
-    /// RFC 4616 specifies that the authenticationid and password must be specified (i.e. be at least 1 character long) and may not include the NUL character.
+    /// RFC 4616 specifies that the authentication-id and password must be at least 1 character long and that they may not include the NUL character.
     /// </remarks>
     public class cSASLPlain : cSASL
     {
@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initlalises a new instance with the specified authenticationid, password and TLS requirement. Will throw if the authenticationid or password are not valid.
+        /// Initialises a new instance with the specified authentication-id, password and TLS requirement. Will throw if the authentication-id or password are not valid.
         /// </summary>
         /// <param name="pAuthenticationId"></param>
         /// <param name="pPassword"></param>

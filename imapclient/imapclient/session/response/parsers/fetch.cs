@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.LPAREN))
                     {
-                        lContext.TraceWarning("likely malformed fetch response");
+                        lContext.TraceWarning("likely malformed fetch response: {0}", pCursor);
                         rResponseData = null;
                         return true;
                     }
@@ -178,7 +178,7 @@ namespace work.bacome.imapclient
 
                         if (!lOK)
                         {
-                            lContext.TraceWarning("likely malformed fetch response");
+                            lContext.TraceWarning("likely malformed fetch response: {0}", pCursor);
                             rResponseData = null;
                             return true;
                         }
@@ -187,8 +187,8 @@ namespace work.bacome.imapclient
                     }
 
                     if (!pCursor.SkipByte(cASCII.RPAREN) || !pCursor.Position.AtEnd)
-                    { 
-                        lContext.TraceWarning("likely malformed fetch response");
+                    {
+                        lContext.TraceWarning("likely malformed fetch response: {0}", pCursor);
                         rResponseData = null;
                         return true;
                     }
@@ -369,7 +369,8 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    if (lGroupAddresses != null) { rAddresses = null; return false; } // missed the end of group
+                    // handle a start of group with no end of group
+                    if (lGroupAddresses != null) lAddresses.Add(new cGroupAddress(lGroupDisplayName, lGroupAddresses));
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rAddresses = null; return false; }
 
@@ -1304,15 +1305,15 @@ namespace work.bacome.imapclient
 
                     cBytesCursor MakeCursor(params string[] pLines)
                     {
-                        List<cBytesLine> lLines = new List<cBytesLine>();
+                        List<cResponseLine> lLines = new List<cResponseLine>();
 
                         foreach (var lLine in pLines)
                         {
-                            if (lLine.Length > 0 && lLine[0] == '{') lLines.Add(new cBytesLine(true, new cBytes(lLine.TrimStart('{'))));
-                            else lLines.Add(new cBytesLine(false, new cBytes(lLine)));
+                            if (lLine.Length > 0 && lLine[0] == '{') lLines.Add(new cResponseLine(true, new cBytes(lLine.TrimStart('{'))));
+                            else lLines.Add(new cResponseLine(false, new cBytes(lLine)));
                         }
 
-                        return new cBytesCursor(new cBytesLines(lLines));
+                        return new cBytesCursor(new cResponse(lLines));
                     }
                 }
             }

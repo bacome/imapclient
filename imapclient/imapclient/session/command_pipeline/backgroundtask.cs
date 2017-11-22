@@ -128,9 +128,9 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundTaskProcessResponseAsync));
 
-                    var lLines = mConnection.GetResponse(lContext);
-                    mSynchroniser.InvokeNetworkReceive(lLines, lContext);
-                    var lCursor = new cBytesCursor(lLines);
+                    var lResponse = mConnection.GetResponse(lContext);
+                    mSynchroniser.InvokeNetworkReceive(lResponse, lContext);
+                    var lCursor = new cBytesCursor(lResponse);
 
                     if (lCursor.SkipBytes(kPlusSpace))
                     {
@@ -161,7 +161,7 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    lContext.TraceError("unrecognised response: {0}", lLines);
+                    lContext.TraceError("unrecognised response: {0}", lResponse);
                 }
 
                 private bool ZBackgroundTaskProcessActiveCommandCompletion(cBytesCursor pCursor, cTrace.cContext pParentContext)

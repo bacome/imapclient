@@ -310,7 +310,7 @@ namespace testharness2
                     if (lMessages.Count > mMaxMessages) lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
 
                     // get any missing properties: using the same configuration is a bit of a hack as the count will not be right (TODO: fix it)
-                    await mClient.FetchAsync(lMessages, null, lConfiguration);
+                    await mClient.FetchAsync(lMessages, mClient.DefaultMessageCacheItems, lConfiguration);
                 }
                 else if (mFilter != null || mOverrideSort != null || lConfiguration != null) lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
                 else lMessages = await mSelectedMailbox.MessagesAsync(); // show that getting the full set of messages in a mailbox is trivial if no restrictions are required and the defaults are set correctly

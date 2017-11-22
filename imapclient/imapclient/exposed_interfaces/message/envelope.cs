@@ -4,7 +4,7 @@ using work.bacome.imapclient.support;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains IMAP message envelope data.
+    /// Contains IMAP message ENVELOPE data.
     /// </summary>
     /// <seealso cref="cMessage.Envelope"/>
     /// <seealso cref="cMessageBodyPart.Envelope"/>

@@ -13,8 +13,8 @@ namespace work.bacome.imapclient
     /// Represents an IMAP message.
     /// </summary>
     /// <remarks>
-    /// Instances of this class are only valid whilst the <see cref="cMailbox"/> remains selected. 
-    /// Re-selecting the mailbox will not bring message instances back to life.
+    /// Instances of this class are only valid whilst the mailbox that they are in remains selected. 
+    /// Re-selecting the mailbox will not bring instances back to life.
     /// Instances of this class are only valid whilst the containing mailbox has the same UIDValidity.
     /// </remarks>
     /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
@@ -113,7 +113,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the IMAP envelope data of the message.
+        /// Gets the IMAP ENVELOPE data of the message.
         /// </summary>
         /// <remarks>
         /// If the message cache does not contain the <see cref="fMessageCacheAttributes.envelope"/> of the message, it will be fetched from the server.
@@ -452,7 +452,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the mod-sequence number of the message. May be zero.
+        /// Gets the mod-sequence of the message. May be zero.
         /// </summary>
         /// <remarks>
         /// If the message cache does not contain the <see cref="fMessageCacheAttributes.modseq"/> of the message, it will be fetched from the server.
@@ -487,7 +487,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// If the message cache does not contain the <see cref="fMessageCacheAttributes.bodystructure"/> of the message, it will be fetched from the server.
-        /// The library defines an attachment as a message body-part with a disposition of ‘attachment’.
+        /// The library defines an attachment as a single-part message body-part with a disposition of ‘attachment’.
         /// If there are alternate versions of an attachment only one of the alternates is included in the list (the first one).
         /// </remarks>
         public List<cAttachment> Attachments
@@ -836,7 +836,7 @@ namespace work.bacome.imapclient
         /// <param name="pFlags"></param>
         /// <param name="pIfUnchangedSinceModSeq"></param>
         /// <remarks>
-        /// The <paramref name="pIfUnchangedSinceModSeq"/> can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero. 
+        /// <paramref name="pIfUnchangedSinceModSeq"/> can only be specified if the containing mailbox's <see cref="cMailbox.HighestModSeq"/> is not zero. 
         /// (i.e. <see cref="cCapabilities.CondStore"/> is in use and the mailbox supports the persistent storage of mod-sequences.)
         /// If the message has been modified since the specified value then the server will fail the store.
         /// This method will throw if it detects that the store is likely to have failed.

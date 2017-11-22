@@ -105,8 +105,8 @@ namespace work.bacome.imapclient
     /// Contains IMAP response text.
     /// </summary>
     /// <remarks>
-    /// If <see cref="Code"/> is <see cref="eResponseTextCode.badcharset"/> <see cref="Arguments"/> may contain a list of supported character sets.
-    /// If <see cref="Code"/> is <see cref="eResponseTextCode.referral"/> <see cref="Arguments"/> should contain URI(s).
+    /// If <see cref="Code"/> is <see cref="eResponseTextCode.badcharset"/> then <see cref="Arguments"/> may contain a list of supported character sets.
+    /// If <see cref="Code"/> is <see cref="eResponseTextCode.referral"/> then <see cref="Arguments"/> should contain URI(s).
     /// </remarks>
     /// <seealso cref="cResponseTextEventArgs"/>
     /// <seealso cref="cUnsuccessfulCompletionException"/>
