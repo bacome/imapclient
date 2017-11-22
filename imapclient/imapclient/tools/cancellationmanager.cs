@@ -29,7 +29,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Initialises a new instance specifying a callback to be used when <see cref="Count"/> changes.
+        /// Initialises a new instance with the specified callback to be used when <see cref="Count"/> changes.
         /// </summary>
         /// <param name="pCountChanged"></param>
         public cCancellationManager(Action<cTrace.cContext> pCountChanged)

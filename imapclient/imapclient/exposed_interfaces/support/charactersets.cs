@@ -676,7 +676,7 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset AfterPath = new cAfterPath();
         /**<summary>Represents the characters used in RFC 3986 'reg-name'.</summary>*/
         public static readonly cCharset RegName = new cRegName();
-        /**<summary>Represents the characters used in the RFC 3986 'IP-literal'.</summary>*/
+        /**<summary>Represents the characters used in RFC 3986 'IP-literal'.</summary>*/
         public static readonly cCharset IPLiteral = new cIPLiteral();
         /**<summary>Represents the characters used in RFC 5092 'uauth-mechanism'.</summary>*/
         public static readonly cCharset UAuthMechanism = new cUAuthMechanism();
@@ -688,7 +688,7 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset CharsetNameDash = new cCharsetNameDash();
         /**<summary>Represents a character set that contains all characters.</summary>*/
         public static readonly cCharset All = new cAll();
-        /**<summary>Represents the characters A-Z, 0-9, a-z, +/=.</summary>*/
+        /**<summary>Represents the characters A-Z, 0-9, a-z, +, /, and =.</summary>*/
         public static readonly cCharset Base64 = new cBase64();
         /**<summary>Represents the characters used in RFC 2047 Quoted-Printable.</summary>*/
         public static readonly cCharset QEncoding = new cQEncoding();

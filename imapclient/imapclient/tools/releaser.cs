@@ -37,7 +37,7 @@ namespace work.bacome.async
         private Task mTask = null;
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance with the specified name and cancellation token.
         /// </summary>
         /// <param name="pName">A name to use when tracing.</param>
         /// <param name="pCancellationToken">A cancellation token to use on the coordinating tasks, may not be <see cref="System.Threading.CancellationToken.None"/>, must be capable of being cancelled.</param>

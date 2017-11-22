@@ -3,16 +3,16 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents an IMAP service.
+    /// Represents an IMAP server.
     /// </summary>
     /// <seealso cref="cIMAPClient.Server"/>
     public class cServer
     {
         /**<summary>The host name of the server.</summary>*/
         public readonly string Host;
-        /**<summary>The port number of the service.</summary>*/
+        /**<summary>The port number to connect to.</summary>*/
         public readonly int Port;
-        /**<summary>Indicates whether the service requires that TLS be established immediately upon TCP connect.</summary>*/
+        /**<summary>Indicates whether the host requires that TLS be established immediately upon connect.</summary>*/
         public readonly bool SSL;
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
         /// Initialises a new instance with the specified host name and SSL setting.
         /// </summary>
         /// <param name="pHost"></param>
-        /// <param name="pSSL">Indicates whether the service requires that TLS be established immediately upon TCP connect.</param>
+        /// <param name="pSSL">Indicates whether the host requires that TLS be established immediately upon connect.</param>
         /// <remarks>
         /// The port number is set to 143 if <paramref name="pSSL"/> is <see langword="false"/>, otherwise the port number is set to 993.
         /// </remarks>
@@ -51,7 +51,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pPort"></param>
-        /// <param name="pSSL">Indicates whether the service requires that TLS be established immediately upon TCP connect.</param>
+        /// <param name="pSSL">Indicates whether the host requires that TLS be established immediately upon connect.</param>
         public cServer(string pHost, int pPort, bool pSSL)
         {
             if (string.IsNullOrWhiteSpace(pHost)) throw new ArgumentOutOfRangeException(nameof(pHost));

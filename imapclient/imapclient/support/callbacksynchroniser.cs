@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using work.bacome.apidocumentation;
 using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
@@ -142,12 +141,12 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void InvokeNetworkReceive(cBytesLines pLines, cTrace.cContext pParentContext)
+            public void InvokeNetworkReceive(cResponse pResponse, cTrace.cContext pParentContext)
             {
                 if (NetworkReceive == null) return; // pre-check for efficiency only
                 var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(NetworkReceive));
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
-                ZInvokeAndForget(new cNetworkReceiveEventArgs(pLines), lContext);
+                ZInvokeAndForget(new cNetworkReceiveEventArgs(pResponse), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
@@ -524,32 +523,6 @@ namespace work.bacome.imapclient
 
                 public override string ToString() => $"{nameof(cActionIntEventArgs)}({Int})";
             }
-        }
-
-        /// <summary>
-        /// Contains the counts of the subscriptions to various <see cref="cIMAPClient"/> events.
-        /// </summary>
-        /// <seealso cref="EventSubscriptionCounts"/>
-        public struct sEventSubscriptionCounts
-        {
-            /**<summary>The count of subscriptions to the <see cref="PropertyChanged"/> event.</summary>*/
-            public int PropertyChangedSubscriptionCount;
-            /**<summary>The count of subscriptions to the <see cref="ResponseText"/> event.</summary>*/
-            public int ResponseTextSubscriptionCount;
-            /**<summary>The count of subscriptions to the <see cref="NetworkReceive"/> event.</summary>*/
-            public int NetworkReceiveSubscriptionCount;
-            /**<summary>The count of subscriptions to the <see cref="NetworkSend"/> event.</summary>*/
-            public int NetworkSendSubscriptionCount;
-            /**<summary>The count of subscriptions to the <see cref="MailboxPropertyChanged"/> event. The count includes one for each <see cref="cMailbox"/> with some <see cref="cMailbox.PropertyChanged"/> subscriptions.</summary>*/
-            public int MailboxPropertyChangedSubscriptionCount;
-            /**<summary>The count of subscriptions to the <see cref="MailboxMessageDelivery"/> event. The count includes one for each <see cref="cMailbox"/> with some <see cref="cMailbox.MessageDelivery"/> subscriptions.</summary>*/
-            public int MailboxMessageDeliverySubscriptionCount;
-            /**<summary>The count of subscriptions to the <see cref="MessagePropertyChanged"/> event. The count includes one for each <see cref="cMessage"/> with some <see cref="cMessage.PropertyChanged"/> subscriptions.</summary>*/
-            public int MessagePropertyChangedSubscriptionCount;
-            /**<summary>The count of subscriptions to the <see cref="CallbackException"/> event.</summary>*/
-            public int CallbackExceptionSubscriptionCount;
-            /// <inheritdoc/>
-            public override string ToString() => $"{nameof(PropertyChanged)}:{PropertyChangedSubscriptionCount} {nameof(ResponseText)}:{ResponseTextSubscriptionCount} {nameof(NetworkReceive)}:{NetworkReceiveSubscriptionCount} {nameof(NetworkSend)}:{NetworkSendSubscriptionCount} {nameof(MailboxPropertyChanged)}:{MailboxPropertyChangedSubscriptionCount} {nameof(MailboxMessageDelivery)}:{MailboxMessageDeliverySubscriptionCount} {nameof(MessagePropertyChanged)}:{MessagePropertyChangedSubscriptionCount} {nameof(CallbackException)}:{CallbackExceptionSubscriptionCount}";
         }
     }
 }

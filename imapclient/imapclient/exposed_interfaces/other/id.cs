@@ -68,8 +68,11 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only ID (RFC 2971) field/ value dictionary. Field names are case insensitive.
+    /// A read-only ID (RFC 2971) field/ value dictionary.
     /// </summary>
+    /// <remarks>
+    /// ID field names are case insensitive.
+    /// </remarks>
     /// <seealso cref="cIMAPClient.ServerId"/>
     public class cId : iId
     {
@@ -160,15 +163,20 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only ID (RFC 2971) field/ value dictionary. Field names are case insensitive.
+    /// A read-only ID (RFC 2971) field/ value dictionary.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// ID field names are case insensitive.
+    /// </para>
+    /// <para>
     /// This class enforces the limits of RFC 2971;
     /// <list type="bullet">
     /// <item>Field names no longer than 30 bytes.</item>
     /// <item>Values no longer than 1024 bytes.</item>
     /// <item>No more than 30 field/ value pairs.</item>
     /// </list>
+    /// </para>
     /// </remarks>
     /// <seealso cref="cIMAPClient.ClientIdUTF8"/>
     public class cClientIdUTF8 : cId
@@ -234,8 +242,11 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// An ID (RFC 2971) field/ value dictionary. Field names are case insensitive.
+    /// An ID (RFC 2971) field/ value dictionary.
     /// </summary>
+    /// <remarks>
+    /// ID field names are case insensitive.
+    /// </remarks>
     /// <seealso cref="cClientId"/>
     /// <seealso cref="cClientIdUTF8"/>
     public class cIdDictionary : iId, IDictionary<string, string>

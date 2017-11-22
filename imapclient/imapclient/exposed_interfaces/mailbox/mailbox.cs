@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
     /// <remarks>
     /// <para>
     /// Instances of this class are only valid whilst the <see cref="Client"/> remains connected.
-    /// Reconnecting the client will not bring mailbox instances back to life.
+    /// Reconnecting the client will not bring instances back to life.
     /// </para>
     /// <para>
     /// To interact with messages in a mailbox, IMAP requires that the mailbox be selected - use <see cref="Select(bool)"/> to select the mailbox.
@@ -553,7 +553,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the highest mod-sequence number (see RFC 7162) for the mailbox. May be <see langword="null"/> or zero.
+        /// Gets the highest mod-sequence (see RFC 7162) for the mailbox. May be <see langword="null"/> or zero.
         /// </summary>
         /// <remarks>
         /// <para>When the mailbox is selected this property will always have a value but zero indicates that <see cref="cCapabilities.CondStore"/> is not in use or that the mailbox does not support the persistent storage of mod-sequences.</para>
@@ -1005,7 +1005,7 @@ namespace work.bacome.imapclient
         /// <param name="pStream"></param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <remarks>
-        /// Will throw if the <paramref name="pUID"/> does not exist in the mailbox.
+        /// Will throw if <paramref name="pUID"/> does not exist in the mailbox.
         /// If <see cref="cCapabilities.Binary"/> is in use and the entire body-part (<see cref="cSection.TextPart"/> is <see cref="eSectionTextPart.all"/>) is being fetched then
         /// unless <paramref name="pDecoding"/> is <see cref="eDecodingRequired.none"/> the server will do the decoding that it determines is required (i.e. the decoding specified is ignored).
         /// </remarks>

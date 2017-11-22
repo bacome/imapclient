@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
             private class cCommandHookInitial : cCommandHook
             {
                 private static readonly cBytes kCapability = new cBytes("CAPABILITY");
-
+                
                 public cCommandHookInitial() { }
 
                 public cStrings Capabilities { get; private set; } = null;

@@ -219,17 +219,17 @@ namespace work.bacome.imapclient
 
                     void LTestFail(cNamespaceDataProcessor pNDP, string pExample)
                     {
-                        List<cBytesLine> lLines = new List<cBytesLine>();
-                        lLines.Add(new cBytesLine(false, System.Text.Encoding.UTF8.GetBytes(pExample)));
-                        cBytesCursor lCursor = new cBytesCursor(new cBytesLines(lLines));
+                        List<cResponseLine> lLines = new List<cResponseLine>();
+                        lLines.Add(new cResponseLine(false, System.Text.Encoding.UTF8.GetBytes(pExample)));
+                        cBytesCursor lCursor = new cBytesCursor(new cResponse(lLines));
                         if (pNDP.ProcessData(lCursor, lContext) == eProcessDataResult.processed) throw new cTestsException($"namespace: processed '{pExample}'");
                     }
 
                     void LTest(cNamespaceDataProcessor pNDP, string pExample)
                     {
-                        List<cBytesLine> lLines = new List<cBytesLine>();
-                        lLines.Add(new cBytesLine(false, System.Text.Encoding.UTF8.GetBytes(pExample)));
-                        cBytesCursor lCursor = new cBytesCursor(new cBytesLines(lLines));
+                        List<cResponseLine> lLines = new List<cResponseLine>();
+                        lLines.Add(new cResponseLine(false, System.Text.Encoding.UTF8.GetBytes(pExample)));
+                        cBytesCursor lCursor = new cBytesCursor(new cResponse(lLines));
                         if (pNDP.ProcessData(lCursor, lContext) != eProcessDataResult.processed) throw new cTestsException($"namespace: didn't process '{pExample}'");
                     }
                 }

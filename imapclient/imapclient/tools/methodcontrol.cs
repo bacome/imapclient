@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using work.bacome.apidocumentation;
 
 namespace work.bacome.async
 {
     /// <summary>
-    /// Represents <see langword="async"/> method controls. 
+    /// Represents controls on the execution of a potentially long running method. 
     /// </summary>
     /// <remarks>
     /// Any timeout specified runs from when the instance is created; each time the value of <see cref="Timeout"/> is retrieved only the time remaining is returned. 
-    /// This means that if the method being controlled itself makes <see langword="async"/> calls, the timeout can be applied to the total time that the method takes.
+    /// This means that if the method being controlled itself makes several calls, the timeout can be applied to the total time that the method takes.
     /// </remarks>
     public class cMethodControl
     {
@@ -20,7 +19,7 @@ namespace work.bacome.async
         public readonly CancellationToken CancellationToken;
 
         /// <summary>
-        /// Initialises a new instance. 
+        /// Initialises a new instance with the specified timeout and cancellation token. 
         /// </summary>
         /// <param name="pTimeout">The timeout to use in milliseconds (or <see cref="System.Threading.Timeout.Infinite"/> for no timeout).</param>
         /// <param name="pCancellationToken">The cancellation token to use (or <see cref="System.Threading.CancellationToken.None"/> for no cancellation).</param>

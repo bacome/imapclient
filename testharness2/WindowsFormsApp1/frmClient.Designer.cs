@@ -228,7 +228,7 @@
             this.chkRTCParse = new System.Windows.Forms.CheckBox();
             this.chkRTCBadCharset = new System.Windows.Forms.CheckBox();
             this.chkRTCAlert = new System.Windows.Forms.CheckBox();
-            this.chkRTCUnknown = new System.Windows.Forms.CheckBox();
+            this.chkRTCOther = new System.Windows.Forms.CheckBox();
             this.chkRTCNone = new System.Windows.Forms.CheckBox();
             this.gbxResponseTextType = new System.Windows.Forms.GroupBox();
             this.chkRTTContinue = new System.Windows.Forms.CheckBox();
@@ -2355,7 +2355,7 @@
             this.gbxResponseTextCode.Controls.Add(this.chkRTCParse);
             this.gbxResponseTextCode.Controls.Add(this.chkRTCBadCharset);
             this.gbxResponseTextCode.Controls.Add(this.chkRTCAlert);
-            this.gbxResponseTextCode.Controls.Add(this.chkRTCUnknown);
+            this.gbxResponseTextCode.Controls.Add(this.chkRTCOther);
             this.gbxResponseTextCode.Controls.Add(this.chkRTCNone);
             this.gbxResponseTextCode.Location = new System.Drawing.Point(9, 168);
             this.gbxResponseTextCode.Name = "gbxResponseTextCode";
@@ -2460,17 +2460,17 @@
             this.chkRTCAlert.Text = "Alert";
             this.chkRTCAlert.UseVisualStyleBackColor = true;
             // 
-            // chkRTCUnknown
+            // chkRTCOther
             // 
-            this.chkRTCUnknown.AutoSize = true;
-            this.chkRTCUnknown.Checked = true;
-            this.chkRTCUnknown.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRTCUnknown.Location = new System.Drawing.Point(122, 19);
-            this.chkRTCUnknown.Name = "chkRTCUnknown";
-            this.chkRTCUnknown.Size = new System.Drawing.Size(72, 17);
-            this.chkRTCUnknown.TabIndex = 1;
-            this.chkRTCUnknown.Text = "Unknown";
-            this.chkRTCUnknown.UseVisualStyleBackColor = true;
+            this.chkRTCOther.AutoSize = true;
+            this.chkRTCOther.Checked = true;
+            this.chkRTCOther.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkRTCOther.Location = new System.Drawing.Point(122, 19);
+            this.chkRTCOther.Name = "chkRTCOther";
+            this.chkRTCOther.Size = new System.Drawing.Size(52, 17);
+            this.chkRTCOther.TabIndex = 1;
+            this.chkRTCOther.Text = "Other";
+            this.chkRTCOther.UseVisualStyleBackColor = true;
             // 
             // chkRTCNone
             // 
@@ -2865,7 +2865,7 @@
         private System.Windows.Forms.CheckBox chkRTCParse;
         private System.Windows.Forms.CheckBox chkRTCBadCharset;
         private System.Windows.Forms.CheckBox chkRTCAlert;
-        private System.Windows.Forms.CheckBox chkRTCUnknown;
+        private System.Windows.Forms.CheckBox chkRTCOther;
         private System.Windows.Forms.CheckBox chkRTCNone;
         private System.Windows.Forms.GroupBox gbxResponseTextType;
         private System.Windows.Forms.CheckBox chkRTTContinue;

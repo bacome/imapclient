@@ -12,15 +12,15 @@ namespace work.bacome.imapclient
         /// <summary>
         /// The response that was received.
         /// </summary>
-        public readonly cBytesLines Lines;
+        public readonly cResponse Response;
 
-        internal cNetworkReceiveEventArgs(cBytesLines pLines) { Lines = pLines; }
+        internal cNetworkReceiveEventArgs(cResponse pResponse) { Response = pResponse; }
 
         /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cNetworkReceiveEventArgs));
-            foreach (var lLine in Lines) lBuilder.Append(lLine.ToString(80));
+            foreach (var lLine in Response) lBuilder.Append(lLine.ToString(80));
             return lBuilder.ToString();
         }
     }

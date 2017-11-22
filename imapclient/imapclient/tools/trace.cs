@@ -63,7 +63,7 @@ namespace work.bacome.trace
         private TraceEventType mContextTraceEventType;
 
         /// <summary>
-        /// Initialises a new instance.
+        /// Initialises a new instance with the specified trace source name.
         /// </summary>
         /// <param name="pTraceSourceName">The <see cref="TraceSource"/> name to use.</param>
         public cTrace(string pTraceSourceName)

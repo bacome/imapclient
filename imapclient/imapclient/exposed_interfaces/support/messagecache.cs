@@ -53,7 +53,7 @@ namespace work.bacome.imapclient.support
         int UnseenUnknownCount { get; }
 
         /// <summary>
-        /// Gets the highest mod-sequence number for the mailbox. May be zero.
+        /// Gets the highest mod-sequence for the mailbox. May be zero.
         /// </summary>
         /// <remarks>
         /// Zero indicates that <see cref="cCapabilities.CondStore"/> is not in use or that the mailbox does not support the persistent storage of mod-sequences.

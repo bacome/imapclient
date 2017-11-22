@@ -21,7 +21,7 @@ namespace work.bacome.async
         private readonly Task mTask;
 
         /// <summary>
-        /// Initialises a new instance. 
+        /// Initialises a new instance with the specified method control. 
         /// </summary>
         /// <param name="pMC"></param>
         /// <remarks>If a timeout is specified then it runs from when the instance is created.</remarks>
@@ -32,7 +32,7 @@ namespace work.bacome.async
         }
 
         /// <summary>
-        /// Initialises a new instance with no timeout.
+        /// Initialises a new instance with the specified cancellation token but no timeout.
         /// </summary>
         /// <param name="pCancellationToken"></param>
         public cAwaiter(CancellationToken pCancellationToken)

@@ -16,7 +16,11 @@ namespace work.bacome.imapclient
         /// <param name="pStrings"></param>
         public cStrings(IList<string> pStrings) : base(pStrings) { }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Determines whether two instances contain the same strings in the same order.
+        /// </summary>
+        /// <param name="pObject"></param>
+        /// <returns></returns>
         public override bool Equals(object pObject) => this == pObject as cStrings;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>

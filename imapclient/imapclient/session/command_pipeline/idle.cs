@@ -169,9 +169,9 @@ namespace work.bacome.imapclient
                         if (ReferenceEquals(lTask, lBackgroundReleaserTask)) return eIdleProcessResponsesTerminatedBy.backgroundreleaser;
                         if (ReferenceEquals(lTask, pCountdownTask)) return eIdleProcessResponsesTerminatedBy.countdowntask;
 
-                        var lLines = mConnection.GetResponse(lContext);
-                        mSynchroniser.InvokeNetworkReceive(lLines, lContext);
-                        var lCursor = new cBytesCursor(lLines);
+                        var lResponse = mConnection.GetResponse(lContext);
+                        mSynchroniser.InvokeNetworkReceive(lResponse, lContext);
+                        var lCursor = new cBytesCursor(lResponse);
 
                         if (lCursor.SkipBytes(kPlusSpace))
                         {
@@ -184,7 +184,7 @@ namespace work.bacome.imapclient
 
                         if (pTag != null && ZProcessCommandCompletionResponse(lCursor, pTag, false, null, lContext) != null) return eIdleProcessResponsesTerminatedBy.commandcompletion;
 
-                        lContext.TraceError("unrecognised response: {0}", lLines);
+                        lContext.TraceError("unrecognised response: {0}", lResponse);
                     }
                 }
             }

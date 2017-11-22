@@ -3,25 +3,6 @@ using System.Collections.Generic;
 
 namespace work.bacome.imapclient
 {
-    /*
-    /// <remarks>
-    /// IMAP namespace names have few grammatical restrictions, but may not include the null character.
-    /// IMAP hierarchy delimitiers have few grammatical restrictions, but must be ASCII, and not NUL, CR or LF.
-    /// Be careful to correctly specify the hierarchy delimitier, it is used in preparing the namespace name for sending to the server.
-    /// </remarks>
-
-
-        /// <summary>
-        /// Initialises a new instance. Will throw if the parameters provided are not valid.
-        /// </summary>
-        /// <param name="pPrefix">The name prefix of the namespace. May be the empty string, may not be <see langword="null"/></param>
-        /// <param name="pDelimiter">The namespace hierarchy delimiter. <see langword="null"/> if the server has no hierarchy in its names.</param>
-        /// <inheritdoc cref="cNamespaceName" select="remarks"/>
-
-     */
-
-
-
     /// <summary>
     /// Represents an IMAP namespace name.
     /// </summary>

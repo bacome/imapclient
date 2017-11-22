@@ -6,9 +6,11 @@ namespace work.bacome.imapclient
     /// Represents sets of data that can be requested about a mailbox. 
     /// </summary>
     /// <remarks>
-    /// The exact data items requested depend on the value of <see cref="cIMAPClient.MailboxCacheDataItems"/>.
     /// <para>
-    /// <see cref="list"/> data affects the following <see cref="cMailbox"/> properties;
+    /// The exact data items requested depend on the value of <see cref="cIMAPClient.MailboxCacheDataItems"/>.
+    /// </para>
+    /// <para>
+    /// The <see cref="list"/> set of data affects the following <see cref="cMailbox"/> properties;
     /// <list type="bullet">
     /// <item>
     /// Always;
@@ -41,10 +43,10 @@ namespace work.bacome.imapclient
     /// </list>
     /// </para>
     /// <para>
-    /// <see cref="lsub"/> data always affects <see cref="cMailbox.IsSubscribed"/>. 
+    /// The <see cref="lsub"/> set of data always affects <see cref="cMailbox.IsSubscribed"/>. 
     /// </para>
     /// <para>
-    /// <see cref="status"/> data affects the following <see cref="cMailbox"/> properties;
+    /// The <see cref="status"/> set of data affects the following <see cref="cMailbox"/> properties;
     /// <list type="bullet">
     /// <item>If requesting <see cref="fMailboxCacheDataItems.messagecount"/>: <see cref="cMailbox.MessageCount"/></item>
     /// <item>If requesting <see cref="fMailboxCacheDataItems.recentcount"/>: <see cref="cMailbox.RecentCount"/></item>

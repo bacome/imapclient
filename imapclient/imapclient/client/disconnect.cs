@@ -12,8 +12,7 @@ namespace work.bacome.imapclient
         /// Can only be called when the instance <see cref="IsConnected"/>.
         /// </summary>
         /// <remarks>
-        /// Long running operations that are in progress will fail.
-        /// (The gracefully refers to the IMAP protocol.)
+        /// The IMAP connection is closed gracefully, however any multi-part operations in progress will throw exceptions.
         /// </remarks>
         public void Disconnect()
         {

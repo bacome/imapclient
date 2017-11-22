@@ -228,7 +228,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cUIDStoreFeedback.Summary"/>
     public struct sStoreFeedbackSummary
     {
-        /**<summary>The count where an IMAP FETCH for the message was received during the store operation AND the message wasn't mentioned in the RFC 7162 MODIFIED response code of the store operation (=> the message was _likely_ to have been updated by the store).</summary>*/
+        /**<summary>The count where an IMAP FETCH response containing the flags for the message was received during the store operation AND the message wasn't mentioned in the RFC 7162 MODIFIED response code of the store operation (=> the message was _likely_ to have been updated by the store).</summary>*/
         public int UpdatedCount;
 
         /**<summary>The count where the message was mentioned in the RFC 7162 MODIFIED response code of the store operation (=> _NOT_ updated by the store).</summary>*/

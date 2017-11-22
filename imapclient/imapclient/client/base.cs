@@ -427,7 +427,7 @@ namespace work.bacome.imapclient
         /// Sets <see cref="Server"/>, defaulting the port to 143 (no SSL) or 993 otherwise.
         /// </summary>
         /// <param name="pHost"></param>
-        /// <param name="pSSL">Indicates whether TLS should be established immediately upon TCP connect (see <see cref="Connect"/>).</param>
+        /// <param name="pSSL">Indicates whether the host requires that TLS be established immediately upon connect.</param>
         /// <remarks>
         /// Can only be called while <see cref="IsUnconnected"/>.
         /// </remarks>
@@ -438,7 +438,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pHost"></param>
         /// <param name="pPort"></param>
-        /// <param name="pSSL">Indicates whether TLS should be established immediately upon TCP connect (see <see cref="Connect"/>).</param>
+        /// <param name="pSSL">Indicates whether the host requires that TLS be established immediately upon connect.</param>
         /// <remarks>
         /// Can only be called while <see cref="IsUnconnected"/>.
         /// </remarks>

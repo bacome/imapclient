@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// The abstract base class for all of the library's custom exceptions.
+    /// The <see langword="abstract"/> base class for all of the library's custom exceptions.
     /// </summary>
     public abstract class cIMAPException : Exception
     {
@@ -151,7 +151,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when the server says 'BYE' at connect.
+    /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to the server rejecting the connection.
     /// </summary>
     /// <seealso cref="cIMAPClient.Connect"/>
     public class cConnectByeException : cIMAPException
@@ -178,7 +178,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when the server rejects connection but suggests trying a different server.
+    /// Thrown to indicate that a <see cref="cIMAPClient.Connect"/> failure came with a <see cref="cIMAPClient.HomeServerReferral"/>.
     /// </summary>
     /// <seealso cref="cIMAPClient.Connect"/>
     public class cHomeServerReferralException : cIMAPException
@@ -206,7 +206,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when the server didn't accept the credentials provided.
+    /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to the server rejecting the <see cref="cIMAPClient.Credentials"/>.
     /// </summary>
     /// <seealso cref="cIMAPClient.Connect"/>
     public class cCredentialsException : cIMAPException
@@ -239,7 +239,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown to indicate that the inability to connect is related to a lack of usable authentication mechanisms.
+    /// Thrown to indicate that <see cref="cIMAPClient.Connect"/> failure is due to a lack of usable authentication mechanisms.
     /// </summary>
     /// <seealso cref="cIMAPClient.Connect"/>
     public class cAuthenticationMechanismsException : cIMAPException
@@ -351,12 +351,12 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when the message's sequence number or server-side message data is required after the message has been expunged.
+    /// Thrown when a message's sequence number or server-side message data is required after the message has been expunged.
     /// </summary>
     public class cMessageExpungedException : cIMAPException
     {
         /// <summary>
-        /// The message involved.
+        /// The message concerned.
         /// </summary>
         public readonly iMessageHandle Handle;
 

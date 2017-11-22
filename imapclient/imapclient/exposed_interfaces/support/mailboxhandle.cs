@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// Represents an IMAP mailbox uniquely within a mailbox cache.
+    /// Represents an IMAP mailbox.
     /// </summary>
     /// <seealso cref="cMailbox.Handle"/>
     /// <seealso cref="iSelectedMailboxDetails"/>

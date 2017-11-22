@@ -539,7 +539,7 @@ namespace testharness2
                 List<eResponseTextCode> lCodes = new List<eResponseTextCode>();
 
                 if (chkRTCNone.Checked) lCodes.Add(eResponseTextCode.none);
-                if (chkRTCUnknown.Checked) lCodes.Add(eResponseTextCode.unknown);
+                if (chkRTCOther.Checked) lCodes.Add(eResponseTextCode.other);
                 if (chkRTCAlert.Checked) lCodes.Add(eResponseTextCode.alert);
                 if (chkRTCBadCharset.Checked) lCodes.Add(eResponseTextCode.badcharset);
                 if (chkRTCParse.Checked) lCodes.Add(eResponseTextCode.parse);

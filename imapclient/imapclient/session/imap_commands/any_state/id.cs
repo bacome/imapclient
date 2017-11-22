@@ -161,9 +161,9 @@ namespace work.bacome.imapclient
                     if (!lCursor.Position.AtEnd) throw new cTestsException("should be at end");
                     if (lId != null) throw new cTestsException("unexpected value");
 
-                    List<cBytesLine> lLines = new List<cBytesLine>();
-                    lLines.Add(new cBytesLine(false, Encoding.UTF8.GetBytes("(\"name\" nil \"versionx\" \"fr€d\")")));
-                    lCursor = new cBytesCursor(new cBytesLines(lLines));
+                    List<cResponseLine> lLines = new List<cResponseLine>();
+                    lLines.Add(new cResponseLine(false, Encoding.UTF8.GetBytes("(\"name\" nil \"versionx\" \"fr€d\")")));
+                    lCursor = new cBytesCursor(new cResponse(lLines));
                         
                     if (!ZGetId(lCursor, out lId, lContext)) throw new cTestsException("should be ok");
                     if (!lCursor.Position.AtEnd) throw new cTestsException("should be at end");

@@ -163,12 +163,12 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents an element of additional extension-data.
+    /// Represents an element of additional IMAP BODYSTRUCTURE extension-data.
     /// </summary>
     public abstract class cBodyPartExtensionValue { }
 
     /// <summary>
-    /// Contains an element of additional extension-data that is a string.
+    /// Contains an element of additional IMAP BODYSTRUCTURE extension-data that is a string.
     /// </summary>
     public class cBodyPartExtensionString : cBodyPartExtensionValue
     {
@@ -180,7 +180,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains an element of additional extension-data that is a number.
+    /// Contains an element of additional IMAP BODYSTRUCTURE extension-data that is a number.
     /// </summary>
     public class cBodyPartExtensionNumber : cBodyPartExtensionValue
     {
@@ -192,7 +192,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains an element of additional extension-data that is a collection of values.
+    /// Contains an element of additional IMAP BODYSTRUCTURE extension-data that is a collection of values.
     /// </summary>
     /// <seealso cref="cBodyPart.ExtensionValues"/>
     /// <seealso cref="cBodyPartExtensionData.ExtensionValues"/>
@@ -269,7 +269,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains the IMAP BODYSTRUCTURE extension-data of a multipart-part message body-part.
+    /// Contains the IMAP BODYSTRUCTURE extension-data of a multipart message body-part.
     /// </summary>
     /// <seealso cref="cMultiPartBody.ExtensionData"/>
     public class cMultiPartExtensionData : cBodyPartExtensionData
@@ -545,7 +545,7 @@ namespace work.bacome.imapclient
     public class cMessageBodyPart : cSinglePartBody
     {
         /// <summary>
-        /// The IMAP envelope of the encapsulated message.
+        /// The IMAP ENVELOPE data of the encapsulated message.
         /// </summary>
         public readonly cEnvelope Envelope;
 
@@ -613,7 +613,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents an attribute-value pair.
+    /// Represents an IMAP BODYSTRUCTURE attribute-value pair.
     /// </summary>
     /// <remarks>
     /// The value may have a language associated with it. See RFC 2184.
@@ -702,7 +702,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only collection of attribute-value pairs.
+    /// A read-only collection of IMAP BODYSTRUCTURE attribute-value pairs.
     /// </summary>
     /// <seealso cref="cAttachment.Parameters"/>
     /// <seealso cref="cSinglePartBody.Parameters"/>

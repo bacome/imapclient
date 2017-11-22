@@ -141,7 +141,7 @@ namespace work.bacome.imapclient
     public class cCulturedStringPart
     {
         /// <summary>
-        /// The decoded text of the part.
+        /// The text of the part (after RFC 2231 decoding). 
         /// </summary>
         public readonly string String;
 

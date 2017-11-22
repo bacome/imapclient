@@ -4,7 +4,7 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents set of items that can be cached in a message cache.
+    /// Represents set of items that can be cached in a <see cref="cIMAPClient"/> message cache.
     /// </summary>
     /// <seealso cref="cIMAPClient.DefaultMessageCacheItems"/>
     /// <seealso cref="cMessage.Fetch(cMessageCacheItems)"/>

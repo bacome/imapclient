@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
                     private int mBufferPosition;
 
                     // task that is getting the next response
-                    private Task<cBytesLines> mBuildResponseTask = null;
+                    private Task<cResponse> mBuildResponseTask = null;
 
                     public cConnection(cBatchSizerConfiguration pWriteConfiguration)
                     {
@@ -165,12 +165,12 @@ namespace work.bacome.imapclient
                         return mBuildResponseTask;
                     }
 
-                    public cBytesLines GetResponse(cTrace.cContext pParentContext)
+                    public cResponse GetResponse(cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(GetResponse));
                         if (mState != eState.connected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
                         if (mBuildResponseTask == null || !mBuildResponseTask.IsCompleted) throw new InvalidOperationException();
-                        cBytesLines lResult = mBuildResponseTask.Result;
+                        cResponse lResult = mBuildResponseTask.Result;
                         mBuildResponseTask.Dispose();
                         mBuildResponseTask = null;
                         if (lContext.EmitsVerbose) ZLogResponse(lResult, lContext);
@@ -212,7 +212,7 @@ namespace work.bacome.imapclient
 
                     public int CurrentWriteSize => mWriteSizer.Current;
 
-                    private void ZLogResponse(cBytesLines pResponse, cTrace.cContext pParentContext)
+                    private void ZLogResponse(cResponse pResponse, cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cConnection), nameof(ZLogResponse));
 
@@ -241,7 +241,7 @@ namespace work.bacome.imapclient
                         lContext.TraceVerbose($"received: {cTools.BytesToLoggableString(lLogBytes)}");
                     }
 
-                    public async Task<cBytesLines> ZBuildResponseAsync(cTrace.cContext pParentContext)
+                    public async Task<cResponse> ZBuildResponseAsync(cTrace.cContext pParentContext)
                     {
                         // SUPERVERBOSE
                         var lContext = pParentContext.NewMethod(true, nameof(cConnection), nameof(ZBuildResponseAsync));
@@ -250,8 +250,8 @@ namespace work.bacome.imapclient
                         {
                             if (mBuffer != null && mBufferPosition < mBuffer.Length)
                             {
-                                cBytesLines lLines = mBuilder.BuildFromBuffer(mBuffer, ref mBufferPosition, lContext);
-                                if (lLines != null) return lLines;
+                                cResponse lResponse = mBuilder.BuildFromBuffer(mBuffer, ref mBufferPosition, lContext);
+                                if (lResponse != null) return lResponse;
                             }
 
                             var lBuffer = await ZReadAsync(lContext).ConfigureAwait(false);

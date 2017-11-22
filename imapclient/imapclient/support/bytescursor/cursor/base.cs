@@ -16,12 +16,12 @@ namespace work.bacome.imapclient
         public static readonly cBytes SpaceLParen = new cBytes(" (");
         public static readonly cBytes RParenSpace = new cBytes(") ");
 
-        private cBytesLines mLines;
+        private cResponse mLines;
         public sPosition Position;
 
-        public cBytesCursor(cBytesLines pLines)
+        public cBytesCursor(cResponse pResponse)
         {
-            mLines = pLines ?? throw new ArgumentNullException(nameof(pLines));
+            mLines = pResponse ?? throw new ArgumentNullException(nameof(pResponse));
 
             if (mLines.Count == 0)
             {
@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
 
-            mLines = new cBytesLines(new cBytesLine[] { new cBytesLine(false, pBytes) });
+            mLines = new cResponse(new cResponseLine[] { new cResponseLine(false, pBytes) });
 
             Position.BytesLine = mLines[0];
             Position.LineNumber = 0;
@@ -55,7 +55,7 @@ namespace work.bacome.imapclient
         {
             if (pString == null) throw new ArgumentNullException(nameof(pString));
 
-            mLines = new cBytesLines(new cBytesLine[] { new cBytesLine(false, Encoding.UTF8.GetBytes(pString)) });
+            mLines = new cResponse(new cResponseLine[] { new cResponseLine(false, Encoding.UTF8.GetBytes(pString)) });
 
             Position.BytesLine = mLines[0];
             Position.LineNumber = 0;
@@ -693,7 +693,7 @@ namespace work.bacome.imapclient
 
         public struct sPosition
         {
-            public cBytesLine BytesLine;
+            public cResponseLine BytesLine;
             public int LineNumber;
             public int Byte;
             public bool AtEnd;

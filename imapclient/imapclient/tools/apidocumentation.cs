@@ -24,7 +24,7 @@ namespace work.bacome.apidocumentation
         public bool Equality(cAPIDocumentationTemplate pA, cAPIDocumentationTemplate pB) { return false; }
 
         /// <summary>
-        /// Determines whether two instances are the different.
+        /// Determines whether two instances are different.
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>
