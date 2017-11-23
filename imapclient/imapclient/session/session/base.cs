@@ -218,7 +218,7 @@ namespace work.bacome.imapclient
                 return mMailboxCache.GetHandle(pMailboxName);
             }
 
-            public bool? HasCachedChildren(iMailboxHandle pHandle) => mMailboxCache?.HasChildren(pHandle);
+            public bool? HasCachedChildren(iMailboxHandle pMailboxHandle) => mMailboxCache?.HasChildren(pMailboxHandle);
 
             public void Disconnect(cTrace.cContext pParentContext)
             {

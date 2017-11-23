@@ -12,15 +12,15 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kUIDCopyCommandPart = new cTextCommandPart("UID COPY ");
 
-            private async Task<cCopyFeedback> ZUIDCopyAsync(cMethodControl pMC, iMailboxHandle pSourceHandle, uint pSourceUIDValidity, cUIntList pSourceUIDs, cMailboxCacheItem pDestinationItem, cTrace.cContext pParentContext)
+            private async Task<cCopyFeedback> ZUIDCopyAsync(cMethodControl pMC, iMailboxHandle pSourceMailboxHandle, uint pSourceUIDValidity, cUIntList pSourceUIDs, cMailboxCacheItem pDestinationItem, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZCopyAsync), pMC, pSourceHandle, pSourceUIDValidity, pSourceUIDs, pDestinationItem);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZCopyAsync), pMC, pSourceMailboxHandle, pSourceUIDValidity, pSourceUIDs, pDestinationItem);
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pSourceHandle, pSourceUIDValidity);
+                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pSourceMailboxHandle, pSourceUIDValidity);
 
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 

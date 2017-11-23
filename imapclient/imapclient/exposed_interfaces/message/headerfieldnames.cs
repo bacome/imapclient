@@ -25,11 +25,11 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only header-field-name collection. 
+    /// An immutable header-field-name collection. 
     /// </summary>
     /// <remarks>
     /// Header field names are case insensitive and have a limited grammar - see RFC 5322. 
-    /// (Header field names must only include <see cref="cCharset.FText"/> characters.)
+    /// (Header field names may only include <see cref="cCharset.FText"/> characters.)
     /// </remarks>
     /// <seealso cref="cSection"/>
     /// <seealso cref="cMessageCacheItems"/>
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
         // immutable (for passing in and out)
 
         /** <summary>An empty header-field-name collection.</summary>*/
-        public static readonly cHeaderFieldNames None = new cHeaderFieldNames();
+        public static readonly cHeaderFieldNames Empty = new cHeaderFieldNames();
         /** <summary>A header-field-name collection containing only <see cref="kHeaderFieldName.References"/>.</summary>*/
         public static readonly cHeaderFieldNames References = new cHeaderFieldNames(kHeaderFieldName.References);
         /** <summary>A header-field-name collection containing only <see cref="kHeaderFieldName.Importance"/>.</summary>*/

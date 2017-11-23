@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using work.bacome.imapclient;
 
 namespace work.bacome.apidocumentation
 {
@@ -9,6 +10,17 @@ namespace work.bacome.apidocumentation
     /// </remarks>
     internal class cAPIDocumentationTemplate
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// If <see cref="cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events and callbacks are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
+        /// If an exception is raised in an event handler or callback then the <see cref="cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
+        /// </remarks>
+        private event Action Event;
+
+
+
         /// <summary>
         /// Initialises a new instance.
         /// </summary>
@@ -72,6 +84,8 @@ namespace work.bacome.apidocumentation
         {
             return base.Equals(pObject);
         }
+       
+
     }
 
     /// <summary>
@@ -102,6 +116,8 @@ namespace work.bacome.apidocumentation
     /// <inheritdoc cref="cAPIDocumentationTemplate" select="returns|remarks"/>
     internal class cAPIDocumentationExample2
     {
+
+
         /**<summary>An apidocumentation that represents ...</summary>*/
         public static readonly cAPIDocumentationExample2 PSR = new cAPIDocumentationExample2();
 
@@ -143,10 +159,8 @@ namespace work.bacome.apidocumentation
 
 
 
-
-
-
-
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
+        public event Action Event;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo"/>
         public int CompareTo(object pOther) => 0;

@@ -179,93 +179,93 @@ namespace work.bacome.imapclient
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void InvokeMailboxPropertiesChanged(iMailboxHandle pHandle, fMailboxProperties pProperties, cTrace.cContext pParentContext)
+            public void InvokeMailboxPropertiesChanged(iMailboxHandle pMailboxHandle, fMailboxProperties pProperties, cTrace.cContext pParentContext)
             {
                 if (MailboxPropertyChanged == null || pProperties == 0) return; // pre-checks for efficiency
 
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMailboxPropertiesChanged), pHandle, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMailboxPropertiesChanged), pMailboxHandle, pProperties);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
 
-                if ((pProperties & fMailboxProperties.exists) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.Exists)));
+                if ((pProperties & fMailboxProperties.exists) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.Exists)));
 
-                if ((pProperties & fMailboxProperties.canhavechildren) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.CanHaveChildren)));
-                if ((pProperties & fMailboxProperties.canselect) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.CanSelect)));
-                if ((pProperties & fMailboxProperties.ismarked) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsMarked)));
-                if ((pProperties & fMailboxProperties.isremote) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsRemote)));
-                if ((pProperties & fMailboxProperties.haschildren) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasChildren)));
-                if ((pProperties & fMailboxProperties.containsall) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsAll)));
-                if ((pProperties & fMailboxProperties.isarchive) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsArchive)));
-                if ((pProperties & fMailboxProperties.containsdrafts) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsDrafts)));
-                if ((pProperties & fMailboxProperties.containsflagged) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsFlagged)));
-                if ((pProperties & fMailboxProperties.containsjunk) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsJunk)));
-                if ((pProperties & fMailboxProperties.containssent) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsSent)));
-                if ((pProperties & fMailboxProperties.containstrash) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ContainsTrash)));
+                if ((pProperties & fMailboxProperties.canhavechildren) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.CanHaveChildren)));
+                if ((pProperties & fMailboxProperties.canselect) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.CanSelect)));
+                if ((pProperties & fMailboxProperties.ismarked) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.IsMarked)));
+                if ((pProperties & fMailboxProperties.isremote) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.IsRemote)));
+                if ((pProperties & fMailboxProperties.haschildren) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.HasChildren)));
+                if ((pProperties & fMailboxProperties.containsall) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.ContainsAll)));
+                if ((pProperties & fMailboxProperties.isarchive) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.IsArchive)));
+                if ((pProperties & fMailboxProperties.containsdrafts) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.ContainsDrafts)));
+                if ((pProperties & fMailboxProperties.containsflagged) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.ContainsFlagged)));
+                if ((pProperties & fMailboxProperties.containsjunk) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.ContainsJunk)));
+                if ((pProperties & fMailboxProperties.containssent) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.ContainsSent)));
+                if ((pProperties & fMailboxProperties.containstrash) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.ContainsTrash)));
 
-                if ((pProperties & fMailboxProperties.issubscribed) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsSubscribed)));
+                if ((pProperties & fMailboxProperties.issubscribed) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.IsSubscribed)));
 
-                if ((pProperties & fMailboxProperties.messagecount) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.MessageCount)));
-                if ((pProperties & fMailboxProperties.recentcount) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.RecentCount)));
-                if ((pProperties & fMailboxProperties.uidnext) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UIDNext)));
-                if ((pProperties & fMailboxProperties.uidnextunknowncount) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UIDNextUnknownCount)));
-                if ((pProperties & fMailboxProperties.uidvalidity) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UIDValidity)));
-                if ((pProperties & fMailboxProperties.unseencount) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UnseenCount)));
-                if ((pProperties & fMailboxProperties.unseenunknowncount) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UnseenUnknownCount)));
-                if ((pProperties & fMailboxProperties.highestmodseq) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HighestModSeq)));
+                if ((pProperties & fMailboxProperties.messagecount) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.MessageCount)));
+                if ((pProperties & fMailboxProperties.recentcount) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.RecentCount)));
+                if ((pProperties & fMailboxProperties.uidnext) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UIDNext)));
+                if ((pProperties & fMailboxProperties.uidnextunknowncount) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UIDNextUnknownCount)));
+                if ((pProperties & fMailboxProperties.uidvalidity) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UIDValidity)));
+                if ((pProperties & fMailboxProperties.unseencount) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UnseenCount)));
+                if ((pProperties & fMailboxProperties.unseenunknowncount) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UnseenUnknownCount)));
+                if ((pProperties & fMailboxProperties.highestmodseq) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.HighestModSeq)));
 
-                if ((pProperties & fMailboxProperties.hasbeenselected) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasBeenSelected)));
-                if ((pProperties & fMailboxProperties.hasbeenselectedforupdate) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasBeenSelectedForUpdate)));
-                if ((pProperties & fMailboxProperties.hasbeenselectedreadonly) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.HasBeenSelectedReadOnly)));
-                if ((pProperties & fMailboxProperties.uidnotsticky) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.UIDNotSticky)));
-                if ((pProperties & fMailboxProperties.messageflags) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.MessageFlags)));
-                if ((pProperties & fMailboxProperties.forupdatepermanentflags) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ForUpdatePermanentFlags)));
-                if ((pProperties & fMailboxProperties.readonlypermanentflags) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.ReadOnlyPermanentFlags)));
+                if ((pProperties & fMailboxProperties.hasbeenselected) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.HasBeenSelected)));
+                if ((pProperties & fMailboxProperties.hasbeenselectedforupdate) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.HasBeenSelectedForUpdate)));
+                if ((pProperties & fMailboxProperties.hasbeenselectedreadonly) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.HasBeenSelectedReadOnly)));
+                if ((pProperties & fMailboxProperties.uidnotsticky) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.UIDNotSticky)));
+                if ((pProperties & fMailboxProperties.messageflags) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.MessageFlags)));
+                if ((pProperties & fMailboxProperties.forupdatepermanentflags) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.ForUpdatePermanentFlags)));
+                if ((pProperties & fMailboxProperties.readonlypermanentflags) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.ReadOnlyPermanentFlags)));
 
-                if ((pProperties & fMailboxProperties.isselected) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsSelected)));
-                if ((pProperties & fMailboxProperties.isselectedforupdate) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsSelectedForUpdate)));
-                if ((pProperties & fMailboxProperties.isaccessreadonly) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pHandle, nameof(cMailbox.IsAccessReadOnly)));
+                if ((pProperties & fMailboxProperties.isselected) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.IsSelected)));
+                if ((pProperties & fMailboxProperties.isselectedforupdate) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.IsSelectedForUpdate)));
+                if ((pProperties & fMailboxProperties.isaccessreadonly) != 0) ZInvokeAndForgetEnqueue(new cMailboxPropertyChangedEventArgs(pMailboxHandle, nameof(cMailbox.IsAccessReadOnly)));
 
                 ZInvokeAndForget(lContext);
             }
 
-            public void InvokeMailboxMessageDelivery(iMailboxHandle pHandle, cMessageHandleList pHandles, cTrace.cContext pParentContext)
+            public void InvokeMailboxMessageDelivery(iMailboxHandle pMailboxHandle, cMessageHandleList pMessageHandles, cTrace.cContext pParentContext)
             {
                 if (MailboxMessageDelivery == null) return; // pre-check for efficiency only
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMailboxMessageDelivery), pHandle, pHandles);
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMailboxMessageDelivery), pMailboxHandle, pMessageHandles);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
-                ZInvokeAndForget(new cMailboxMessageDeliveryEventArgs(pHandle, pHandles), lContext);
+                ZInvokeAndForget(new cMailboxMessageDeliveryEventArgs(pMailboxHandle, pMessageHandles), lContext);
                 // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
             }
 
-            public void InvokeMessagePropertyChanged(iMessageHandle pHandle, string pPropertyName, cTrace.cContext pParentContext)
+            public void InvokeMessagePropertyChanged(iMessageHandle pMessageHandle, string pPropertyName, cTrace.cContext pParentContext)
             {
                 if (MessagePropertyChanged == null) return; // pre-check for efficiency only
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMessagePropertyChanged), pHandle, pPropertyName);
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMessagePropertyChanged), pMessageHandle, pPropertyName);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
-                ZInvokeAndForget(new cMessagePropertyChangedEventArgs(pHandle, pPropertyName), lContext);
+                ZInvokeAndForget(new cMessagePropertyChangedEventArgs(pMessageHandle, pPropertyName), lContext);
             }
 
-            public void InvokeMessagePropertiesChanged(iMessageHandle pHandle, fMessageProperties pProperties, cTrace.cContext pParentContext)
+            public void InvokeMessagePropertiesChanged(iMessageHandle pMessageHandle, fMessageProperties pProperties, cTrace.cContext pParentContext)
             {
                 if (MessagePropertyChanged == null || pProperties == 0) return; // pre-checks for efficiency
 
-                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMessagePropertiesChanged), pHandle, pProperties);
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeMessagePropertiesChanged), pMessageHandle, pProperties);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
 
-                if ((pProperties & fMessageProperties.flags) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Flags)));
-                if ((pProperties & fMessageProperties.answered) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Answered)));
-                if ((pProperties & fMessageProperties.flagged) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Flagged)));
-                if ((pProperties & fMessageProperties.deleted) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Deleted)));
-                if ((pProperties & fMessageProperties.seen) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Seen)));
-                if ((pProperties & fMessageProperties.draft) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Draft)));
-                if ((pProperties & fMessageProperties.recent) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Recent)));
+                if ((pProperties & fMessageProperties.flags) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cMessage.Flags)));
+                if ((pProperties & fMessageProperties.answered) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cMessage.Answered)));
+                if ((pProperties & fMessageProperties.flagged) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cMessage.Flagged)));
+                if ((pProperties & fMessageProperties.deleted) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cMessage.Deleted)));
+                if ((pProperties & fMessageProperties.seen) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cMessage.Seen)));
+                if ((pProperties & fMessageProperties.draft) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cMessage.Draft)));
+                if ((pProperties & fMessageProperties.recent) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cMessage.Recent)));
                 // see comments elsewhere as to why this is commented out
                 //if ((pProperties & fMessageProperties.mdnsent) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.MDNSent)));
-                if ((pProperties & fMessageProperties.forwarded) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Forwarded)));
-                if ((pProperties & fMessageProperties.submitpending) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.SubmitPending)));
-                if ((pProperties & fMessageProperties.submitted) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.Submitted)));
-                if (((pProperties & fMessageProperties.modseq) != 0)) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pHandle, nameof(cMessage.ModSeq)));
+                if ((pProperties & fMessageProperties.forwarded) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cMessage.Forwarded)));
+                if ((pProperties & fMessageProperties.submitpending) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cMessage.SubmitPending)));
+                if ((pProperties & fMessageProperties.submitted) != 0) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cMessage.Submitted)));
+                if (((pProperties & fMessageProperties.modseq) != 0)) ZInvokeAndForgetEnqueue(new cMessagePropertyChangedEventArgs(pMessageHandle, nameof(cMessage.ModSeq)));
 
                 ZInvokeAndForget(lContext);
             }

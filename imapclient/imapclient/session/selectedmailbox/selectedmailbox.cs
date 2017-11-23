@@ -27,16 +27,16 @@ namespace work.bacome.imapclient
                     mCache = new cSelectedMailboxCache(pSynchroniser, pMailboxCacheItem, pUIDValidity, pExists, pRecent, pUIDNext, pHighestModSeq, lContext);
                 }
 
-                public iMailboxHandle Handle => mMailboxCacheItem;
+                public iMailboxHandle MailboxHandle => mMailboxCacheItem;
                 public bool SelectedForUpdate => mSelectedForUpdate;
                 public bool AccessReadOnly => mAccessReadOnly;
-                public iMessageCache Cache => mCache;
+                public iMessageCache MessageCache => mCache;
 
                 public void UpdateHighestModSeq(cTrace.cContext pParentContext) => mCache.UpdateHighestModSeq(pParentContext);
 
                 public iMessageHandle GetHandle(uint pMSN) => mCache.GetHandle(pMSN); // this should only be called from a commandcompletion
                 public iMessageHandle GetHandle(cUID pUID) => mCache.GetHandle(pUID);
-                public uint GetMSN(iMessageHandle pHandle) => mCache.GetMSN(pHandle); // this should only be called when no msnunsafe commands are running
+                public uint GetMSN(iMessageHandle pMessageHandle) => mCache.GetMSN(pMessageHandle); // this should only be called when no msnunsafe commands are running
 
                 public cMessageHandleList SetUnseenCount(int pMessageCount, cUIntList pMSNs, cTrace.cContext pParentContext) => mCache.SetUnseenCount(pMessageCount, pMSNs, pParentContext); // this should only be called from a commandcompletion
 

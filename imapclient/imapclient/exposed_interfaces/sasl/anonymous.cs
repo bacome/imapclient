@@ -6,7 +6,7 @@ using System.Text;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains parameters for use with the IMAP AUTHENTICATE ANONYMOUS command.
+    /// Contains arguments for use with the IMAP AUTHENTICATE ANONYMOUS command.
     /// </summary>
     /// <remarks>
     /// RFC 4505 specifies that the trace information must be a valid email address or 1 to 255 characters of text not including '@'.

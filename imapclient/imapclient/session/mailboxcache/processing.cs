@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
 
                         var lItem = ZItem(lEncodedMailboxPath);
                         lItem.UpdateStatus(lStatus, lContext);
-                        if (!ReferenceEquals(mSelectedMailbox?.Handle, lItem)) lItem.UpdateMailboxStatus(lContext);
+                        if (!ReferenceEquals(mSelectedMailbox?.MailboxHandle, lItem)) lItem.UpdateMailboxStatus(lContext);
 
                         return eProcessDataResult.processed;
                     }

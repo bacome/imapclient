@@ -13,7 +13,5 @@ namespace work.bacome.imapclient
         none = 0,
         /**<summary><see cref="cCapabilities.UTF8Accept"/>, <see cref="cCapabilities.UTF8Only"/></summary>*/
         utf8 = 1,
-        /**<summary>A mask representing all extensions.</summary>*/
-        all = 0b1
     }
 }

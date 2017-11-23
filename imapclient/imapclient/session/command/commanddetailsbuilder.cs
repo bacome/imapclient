@@ -167,7 +167,7 @@ namespace work.bacome.imapclient
 
                     if (pFilter.UIDValidity != null)
                     {
-                        if (pFilter.UIDValidity != pSelectedMailbox.Cache.UIDValidity) throw new cUIDValidityChangedException();
+                        if (pFilter.UIDValidity != pSelectedMailbox.MessageCache.UIDValidity) throw new cUIDValidityChangedException();
                         AddUIDValidity(pFilter.UIDValidity.Value);
                     }
 
@@ -219,18 +219,18 @@ namespace work.bacome.imapclient
 
                             long lMSN;
 
-                            if (lRelativity.Handle == null)
+                            if (lRelativity.MessageHandle == null)
                             {
                                 if (lRelativity.End == eFilterEnd.first) lMSN = 1;
-                                else lMSN = pSelectedMailbox.Cache.Count; // could be zero
+                                else lMSN = pSelectedMailbox.MessageCache.Count; // could be zero
                             }
                             else
                             {
-                                lMSN = pSelectedMailbox.GetMSN(lRelativity.Handle);
+                                lMSN = pSelectedMailbox.GetMSN(lRelativity.MessageHandle);
 
                                 if (lMSN == 0)
                                 {
-                                    if (lRelativity.Handle.Expunged) throw new cMessageExpungedException(lRelativity.Handle);
+                                    if (lRelativity.MessageHandle.Expunged) throw new cMessageExpungedException(lRelativity.MessageHandle);
                                     else throw new ArgumentOutOfRangeException(nameof(pFilter));
                                 }
                             }
@@ -768,8 +768,8 @@ namespace work.bacome.imapclient
                     if (!lFailed) throw new cTestsException("ZMessageFilterCommandPartsTests UIDValidity.2 - didn't fail as expected", lContext);
 
                     var lClient = new cIMAPClient();
-                    var lMH1 = new cMessage(lClient, lSelectedMailbox.Cache[0]);
-                    var lMH2 = new cMessage(lClient, lSelectedMailbox.Cache[1]);
+                    var lMH1 = new cMessage(lClient, lSelectedMailbox.MessageCache[0]);
+                    var lMH2 = new cMessage(lClient, lSelectedMailbox.MessageCache[1]);
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN < lMH1, lSelectedMailbox, false, false, null) != "SEEN UNSEEN") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN < lMH2, lSelectedMailbox, false, false, null) != "1:1") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.2", lContext);

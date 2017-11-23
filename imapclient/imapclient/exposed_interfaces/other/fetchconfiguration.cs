@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Threading;
+using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
     /// Contains an operation specific timeout, cancellation token and progress-increment callback. Intended for use when doing large message cache population operations.
     /// </summary>
-    /// <remarks>
-    /// If <see cref="cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, then callbacks are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-    /// If an exception is raised in a callback the <see cref="cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
-    /// </remarks>
+    /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
     /// <seealso cref="cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{cMessage}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
     /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
     /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{support.iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
@@ -22,13 +20,13 @@ namespace work.bacome.imapclient
         public readonly CancellationToken CancellationToken;
     
         /// <summary>
-        /// The progress-increment callback for the operation. May be <see langword="null"/>. Invoked once for each batch of messages fetched, the parameter specifies how many messages were fetched in the batch.
+        /// The progress-increment callback for the operation. May be <see langword="null"/>. Invoked once for each batch of messages fetched, the argument specifies how many messages were fetched in the batch.
         /// </summary>
         /// <inheritdoc cref="cCacheItemFetchConfiguration" select="remarks"/>
         public readonly Action<int> Increment;
 
         /// <summary>
-        /// Initialises a new instance with the specified timeout only. Intended for use with synchronous APIs.
+        /// Initialises a new instance with the specified timeout. Intended for use with synchronous APIs.
         /// </summary>
         /// <param name="pTimeout">May be <see cref="Timeout.Infinite"/>.</param>
         public cCacheItemFetchConfiguration(int pTimeout)
@@ -113,7 +111,7 @@ namespace work.bacome.imapclient
     public class cMessageFetchConfiguration : cCacheItemFetchConfiguration
     {
         /// <summary>
-        /// The progress-setcount callback for the operation. May be <see langword="null"/>. Invoked once before any progress-increment invoke, the parameter specifies how many messages are going to be fetched.
+        /// The progress-setcount callback for the operation. May be <see langword="null"/>. Invoked once before any progress-increment invokes, the argument specifies how many messages are going to be fetched.
         /// </summary>
         /// <inheritdoc cref="cCacheItemFetchConfiguration" select="remarks"/>
         public readonly Action<int> SetCount;

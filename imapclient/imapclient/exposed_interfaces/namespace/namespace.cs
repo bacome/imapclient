@@ -74,16 +74,18 @@ namespace work.bacome.imapclient
         /// Creates a mailbox at the top level of hierarchy in the namespace.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
-        /// <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
+        /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
+        /// <inheritdoc cref="cIMAPClient.Create(cMailboxName, bool)" select="remarks"/>
         public cMailbox CreateChild(string pName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pName), pAsFutureParent);
 
         /// <summary>
         /// Asynchronously creates a mailbox at the top level of hierarchy in the namespace.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
-        /// <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
+        /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
+        /// <inheritdoc cref="CreateChild(string, bool)" select="remarks"/>
         public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = true) => Client.CreateAsync(ZCreateChild(pName), pAsFutureParent);
 
         private cMailboxName ZCreateChild(string pName)

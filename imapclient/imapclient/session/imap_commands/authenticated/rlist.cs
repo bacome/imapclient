@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("rlist success");
-                        return lHook.Handles;
+                        return lHook.MailboxHandles;
                     }
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.mailboxreferrals, lContext);

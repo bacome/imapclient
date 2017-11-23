@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Text;
 using System.Threading;
+using work.bacome.apidocumentation;
 using work.bacome.async;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
@@ -98,10 +99,10 @@ namespace work.bacome.imapclient
         // ......................................................................................................................... when changing the version here also change it in the assemblyinfo
 
         /**<summary>The version number of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
-        public static Version Version = new Version(0, 4);
+        public static Version Version = new Version(0, 5);
 
         /**<summary>The release date of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
-        public static DateTime ReleaseDate = new DateTime(2017, 11, 14);
+        public static DateTime ReleaseDate = new DateTime(2017, 11, 23);
 
         /**<summary>The trace source name used when tracing. See <see cref="cTrace"/>.</summary>*/
         public const string TraceSourceName = "work.bacome.cIMAPClient";
@@ -173,10 +174,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Fired when a property value of the instance changes.
         /// </summary>
-        /// <remarks>
-        /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
-        /// </remarks>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event PropertyChangedEventHandler PropertyChanged
         {
             add { mSynchroniser.PropertyChanged += value; }
@@ -190,7 +188,7 @@ namespace work.bacome.imapclient
         /// <para>The IMAP spec says that <see cref="eResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="cResponseTextEventArgs.Text"/>.</para>
         /// <para>
         /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
+        /// If an exception is raised in an event handler then the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
         /// </para>
         /// </remarks>
         public event EventHandler<cResponseTextEventArgs> ResponseText
@@ -206,7 +204,7 @@ namespace work.bacome.imapclient
         /// <para>This event is provided to aid in the debugging of the library.</para>
         /// <para>
         /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
+        /// If an exception is raised in an event handler then the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
         /// </para>
         /// </remarks>
         public event EventHandler<cNetworkReceiveEventArgs> NetworkReceive
@@ -222,7 +220,7 @@ namespace work.bacome.imapclient
         /// <para>This event is provided to aid in the debugging of the library.</para>
         /// <para>
         /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
+        /// If an exception is raised in an event handler then the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
         /// </para>
         /// </remarks>
         public event EventHandler<cNetworkSendEventArgs> NetworkSend
@@ -234,10 +232,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Fired when the server notifies the client of a change that could affect a property value of a <see cref="cMailbox"/> instance.
         /// </summary>
-        /// <remarks>
-        /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
-        /// </remarks>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event EventHandler<cMailboxPropertyChangedEventArgs> MailboxPropertyChanged
         {
             add { mSynchroniser.MailboxPropertyChanged += value; }
@@ -247,10 +242,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Fired when the server notifies the client that messages have arrived in a mailbox.
         /// </summary>
-        /// <remarks>
-        /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
-        /// </remarks>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event EventHandler<cMailboxMessageDeliveryEventArgs> MailboxMessageDelivery
         {
             add { mSynchroniser.MailboxMessageDelivery += value; }
@@ -260,10 +252,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Fired when the server notifies the client of a change that could affect a property value of a <see cref="cMessage"/> instance.
         /// </summary>
-        /// <remarks>
-        /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler the <see cref="CallbackException"/> event is raised, but otherwise the exception is ignored.
-        /// </remarks>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event EventHandler<cMessagePropertyChangedEventArgs> MessagePropertyChanged
         {
             add { mSynchroniser.MessagePropertyChanged += value; }
@@ -277,7 +266,7 @@ namespace work.bacome.imapclient
         /// <para>The library ignores the exception other than raising this event. This event is provided to aid in the debugging of external code.</para>
         /// <para>
         /// If <see cref="SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler of this event the exception is completely ignored.
+        /// If an exception is raised in an event handler of this event then the exception is completely ignored.
         /// </para>
         /// </remarks>
         public event EventHandler<cCallbackExceptionEventArgs> CallbackException
@@ -819,7 +808,7 @@ namespace work.bacome.imapclient
             {
                 var lDetails = mSession?.SelectedMailboxDetails;
                 if (lDetails == null) return null;
-                return new cMailbox(this, lDetails.Handle);
+                return new cMailbox(this, lDetails.MailboxHandle);
             }
         }
 
@@ -837,12 +826,12 @@ namespace work.bacome.imapclient
 
             if (pMailboxName == null) throw new ArgumentNullException(nameof(pMailboxName));
 
-            var lHandle = mSession.GetMailboxHandle(pMailboxName);
+            var lMailboxHandle = mSession.GetMailboxHandle(pMailboxName);
 
-            return new cMailbox(this, lHandle);
+            return new cMailbox(this, lMailboxHandle);
         }
 
-        internal bool? HasCachedChildren(iMailboxHandle pHandle) => mSession?.HasCachedChildren(pHandle);
+        internal bool? HasCachedChildren(iMailboxHandle pMailboxHandle) => mSession?.HasCachedChildren(pMailboxHandle);
 
         /// <summary>
         /// Gets a report on the number of subscriptions to the events of this instance.

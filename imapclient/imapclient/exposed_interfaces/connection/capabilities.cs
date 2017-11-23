@@ -70,7 +70,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only collection of IMAP capabilities.
+    /// An immutable collection of IMAP capabilities.
     /// </summary>
     /// <remarks>
     /// The properties of this class reflect the value of <see cref="EffectiveCapabilities"/>.

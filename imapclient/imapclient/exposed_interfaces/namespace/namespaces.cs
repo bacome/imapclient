@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// A read-only collection of <see cref="cNamespace"/>.
+    /// An immutable collection of <see cref="cNamespace"/>.
     /// </summary>
     /// <seealso cref="cIMAPClient.Namespaces"/>
     public class cNamespaces

@@ -741,7 +741,7 @@ namespace testharness2
 
             ZTryParseHeaderFieldNames(txtAHHeaderFieldNames.Text, out var lNames);
 
-            mClient.DefaultMessageCacheItems = new cMessageCacheItems(lAttributes, lNames ?? cHeaderFieldNames.None);
+            mClient.DefaultMessageCacheItems = new cMessageCacheItems(lAttributes, lNames ?? cHeaderFieldNames.Empty);
         }
 
         private void cmdPSet_Click(object sender, EventArgs e)

@@ -95,12 +95,12 @@ namespace testharness2
 
         private bool ZTryParseFlagNames(string pText, out cStorableFlags rFlags)
         {
-            if (pText == null) { rFlags = cStorableFlags.None; return true; }
+            if (pText == null) { rFlags = cStorableFlags.Empty; return true; }
 
             List<string> lFlags = new List<string>();
             foreach (var lFlag in pText.Trim().Split(' ')) if (!string.IsNullOrWhiteSpace(lFlag)) lFlags.Add(lFlag);
 
-            if (lFlags.Count == 0) { rFlags = cStorableFlags.None; return true; }
+            if (lFlags.Count == 0) { rFlags = cStorableFlags.Empty; return true; }
 
             try { rFlags = new cStorableFlags(lFlags); }
             catch { rFlags = null; return false; }

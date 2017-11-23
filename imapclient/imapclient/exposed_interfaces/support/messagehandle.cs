@@ -3,14 +3,14 @@
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// Represents an IMAP message.
+    /// Represents an IMAP message uniquely within a message cache.
     /// </summary>
     /// <seealso cref="cMessageHandleList"/>
     /// <seealso cref="cMessageDeliveryEventArgs"/>
     /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
     /// <seealso cref="cMailbox.SetUnseenCount"/>
-    /// <seealso cref="cAttachment.Handle"/>
-    /// <seealso cref="cMessage.Handle"/>
+    /// <seealso cref="cAttachment.MessageHandle"/>
+    /// <seealso cref="cMessage.MessageHandle"/>
     /// <seealso cref="cStoreFeedbackItem"/>
     /// <seealso cref="cUIDStoreFeedbackItem"/>
     /// <seealso cref="cSort"/>
@@ -20,8 +20,8 @@ namespace work.bacome.imapclient.support
     public interface iMessageHandle
     {
         /**<summary>Gets the message cache that the instance belongs to.</summary>*/
-        iMessageCache Cache { get; }
-        /**<summary>Gets the sequence in the <see cref="Cache"/> of the message.</summary>*/
+        iMessageCache MessageCache { get; }
+        /**<summary>Gets the sequence in the <see cref="MessageCache"/> of the message.</summary>*/
         int CacheSequence { get; }
         /**<summary>Indicates whether the message exists on the server.</summary>*/
         bool Expunged { get; }

@@ -218,26 +218,26 @@ namespace work.bacome.imapclient
     /// </remarks>
     public class cFilterMSNOffset
     {
-        internal readonly iMessageHandle Handle;
+        internal readonly iMessageHandle MessageHandle;
         internal readonly eFilterEnd? End;
         internal readonly int Offset;
 
-        internal cFilterMSNOffset(iMessageHandle pHandle, int pOffset)
+        internal cFilterMSNOffset(iMessageHandle pMessageHandle, int pOffset)
         {
-            Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             End = null; 
             Offset = pOffset;
         }
 
         internal cFilterMSNOffset(eFilterEnd pEnd, int pOffset)
         {
-            Handle = null;
+            MessageHandle = null;
             End = pEnd;
             Offset = pOffset;
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cFilterMSNOffset)}({Handle},{End},{Offset})";
+        public override string ToString() => $"{nameof(cFilterMSNOffset)}({MessageHandle},{End},{Offset})";
     }
 
     /// <summary>
@@ -282,7 +282,7 @@ namespace work.bacome.imapclient
         public static cFilter operator <(cFilterMSN pFilterMSN, cMessage pMessage)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-            return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.less);
+            return new cFilterMSNRelativity(pMessage.MessageHandle, eFilterHandleRelativity.less);
         }
 
         /// <summary>
@@ -294,7 +294,7 @@ namespace work.bacome.imapclient
         public static cFilter operator >(cFilterMSN pFilterMSN, cMessage pMessage)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-            return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.greater);
+            return new cFilterMSNRelativity(pMessage.MessageHandle, eFilterHandleRelativity.greater);
         }
 
         /// <summary>
@@ -330,7 +330,7 @@ namespace work.bacome.imapclient
         public static cFilter operator <=(cFilterMSN pFilterMSN, cMessage pMessage)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-            return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.lessequal);
+            return new cFilterMSNRelativity(pMessage.MessageHandle, eFilterHandleRelativity.lessequal);
         }
 
         /// <summary>
@@ -342,7 +342,7 @@ namespace work.bacome.imapclient
         public static cFilter operator >=(cFilterMSN pFilterMSN, cMessage pMessage)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-            return new cFilterMSNRelativity(pMessage.Handle, eFilterHandleRelativity.greaterequal);
+            return new cFilterMSNRelativity(pMessage.MessageHandle, eFilterHandleRelativity.greaterequal);
         }
 
         /// <summary>

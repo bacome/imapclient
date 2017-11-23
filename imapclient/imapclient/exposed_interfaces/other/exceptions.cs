@@ -358,15 +358,15 @@ namespace work.bacome.imapclient
         /// <summary>
         /// The message concerned.
         /// </summary>
-        public readonly iMessageHandle Handle;
+        public readonly iMessageHandle MessageHandle;
 
-        internal cMessageExpungedException(iMessageHandle pHandle) { Handle = pHandle; }
+        internal cMessageExpungedException(iMessageHandle pMessageHandle) { MessageHandle = pMessageHandle; }
 
         /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cMessageExpungedException));
-            lBuilder.Append(Handle);
+            lBuilder.Append(MessageHandle);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
         }

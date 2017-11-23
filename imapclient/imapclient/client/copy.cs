@@ -9,52 +9,52 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal cCopyFeedback Copy(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
+        internal cCopyFeedback Copy(iMessageHandle pSourceMessageHandle, iMailboxHandle pDestinationMailboxHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Copy), 1);
-            var lTask = ZCopyAsync(cMessageHandleList.FromHandle(pSourceHandle), pDestinationHandle, lContext);
+            var lTask = ZCopyAsync(cMessageHandleList.FromMessageHandle(pSourceMessageHandle), pDestinationMailboxHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        internal cCopyFeedback Copy(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
+        internal cCopyFeedback Copy(IEnumerable<iMessageHandle> pSourceMessageHandles, iMailboxHandle pDestinationMailboxHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Copy), 2);
-            var lTask = ZCopyAsync(cMessageHandleList.FromHandles(pSourceHandles), pDestinationHandle, lContext);
+            var lTask = ZCopyAsync(cMessageHandleList.FromMessageHandles(pSourceMessageHandles), pDestinationMailboxHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        internal Task<cCopyFeedback> CopyAsync(iMessageHandle pSourceHandle, iMailboxHandle pDestinationHandle)
+        internal Task<cCopyFeedback> CopyAsync(iMessageHandle pSourceMessageHandle, iMailboxHandle pDestinationMailboxHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 1);
-            return ZCopyAsync(cMessageHandleList.FromHandle(pSourceHandle), pDestinationHandle, lContext);
+            return ZCopyAsync(cMessageHandleList.FromMessageHandle(pSourceMessageHandle), pDestinationMailboxHandle, lContext);
         }
 
-        internal Task<cCopyFeedback> CopyAsync(IEnumerable<iMessageHandle> pSourceHandles, iMailboxHandle pDestinationHandle)
+        internal Task<cCopyFeedback> CopyAsync(IEnumerable<iMessageHandle> pSourceMessageHandles, iMailboxHandle pDestinationMailboxHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(CopyAsync), 2);
-            return ZCopyAsync(cMessageHandleList.FromHandles(pSourceHandles), pDestinationHandle, lContext);
+            return ZCopyAsync(cMessageHandleList.FromMessageHandles(pSourceMessageHandles), pDestinationMailboxHandle, lContext);
         }
 
-        private async Task<cCopyFeedback> ZCopyAsync(cMessageHandleList pSourceHandles, iMailboxHandle pDestinationHandle, cTrace.cContext pParentContext)
+        private async Task<cCopyFeedback> ZCopyAsync(cMessageHandleList pSourceMessageHandles, iMailboxHandle pDestinationMailboxHandle, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCopyAsync), pSourceHandles, pDestinationHandle);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCopyAsync), pSourceMessageHandles, pDestinationMailboxHandle);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-            if (pSourceHandles == null) throw new ArgumentNullException(nameof(pSourceHandles));
-            if (pDestinationHandle == null) throw new ArgumentNullException(nameof(pDestinationHandle));
+            if (pSourceMessageHandles == null) throw new ArgumentNullException(nameof(pSourceMessageHandles));
+            if (pDestinationMailboxHandle == null) throw new ArgumentNullException(nameof(pDestinationMailboxHandle));
 
-            if (pSourceHandles.Count == 0) return null;
+            if (pSourceMessageHandles.Count == 0) return null;
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                return await lSession.CopyAsync(lMC, pSourceHandles, pDestinationHandle, lContext).ConfigureAwait(false);
+                return await lSession.CopyAsync(lMC, pSourceMessageHandles, pDestinationMailboxHandle, lContext).ConfigureAwait(false);
             }
         }
     }

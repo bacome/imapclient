@@ -12,19 +12,19 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kCloseCommandPart = new cTextCommandPart("CLOSE");
 
-            public async Task CloseAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
+            public async Task CloseAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(CloseAsync), pMC);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
-                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // get exclusive access to the selected mailbox
 
-                    mMailboxCache.CheckIsSelectedMailbox(pHandle, null);
+                    mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, null);
 
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 

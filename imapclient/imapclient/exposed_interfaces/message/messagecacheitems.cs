@@ -4,7 +4,7 @@ using work.bacome.apidocumentation;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents set of items that can be cached in a <see cref="cIMAPClient"/> message cache.
+    /// Represents a set of items that can be cached in a <see cref="cIMAPClient"/> message cache.
     /// </summary>
     /// <seealso cref="cIMAPClient.DefaultMessageCacheItems"/>
     /// <seealso cref="cMessage.Fetch(cMessageCacheItems)"/>
@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// An empty set of items.
         /// </summary>
-        public static readonly cMessageCacheItems None = new cMessageCacheItems(0, cHeaderFieldNames.None);
+        public static readonly cMessageCacheItems Empty = new cMessageCacheItems(0, cHeaderFieldNames.Empty);
 
         /// <summary>
         /// The IMAP message attributes to cache.
@@ -68,7 +68,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Indicates whether the set is empty.
         /// </summary>
-        public bool IsNone => Attributes == 0 && Names.Count == 0;
+        public bool IsEmpty => Attributes == 0 && Names.Count == 0;
 
         /// <inheritdoc/>
         public override bool Equals(object pObject) => this == pObject as cMessageCacheItems;
@@ -104,7 +104,7 @@ namespace work.bacome.imapclient
         /// Returns a new instance initialised with the specified IMAP message attributes.
         /// </summary>
         /// <param name="pAttributes"></param>
-        public static implicit operator cMessageCacheItems(fMessageCacheAttributes pAttributes) => new cMessageCacheItems(pAttributes, cHeaderFieldNames.None);
+        public static implicit operator cMessageCacheItems(fMessageCacheAttributes pAttributes) => new cMessageCacheItems(pAttributes, cHeaderFieldNames.Empty);
 
         /// <summary>
         /// Returns a new instance initialised with the specified header field names.

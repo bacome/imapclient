@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// A read-only collection of bytes.
+    /// An immutable collection of bytes.
     /// </summary>
     /// <seealso cref="cNetworkSendEventArgs"/>
     public class cBytes : ReadOnlyCollection<byte>

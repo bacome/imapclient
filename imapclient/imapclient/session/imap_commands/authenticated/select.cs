@@ -13,15 +13,15 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kSelectCommandPart = new cTextCommandPart("SELECT ");
             private static readonly cCommandPart kSelectCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
 
-            public async Task SelectAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
+            public async Task SelectAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SelectAsync), pMC, pHandle);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SelectAsync), pMC, pMailboxHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
-                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
-                var lItem = mMailboxCache.CheckHandle(pHandle);
+                var lItem = mMailboxCache.CheckHandle(pMailboxHandle);
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(kSelectCommandPart, lItem.MailboxNameCommandPart);
                     if (_Capabilities.CondStore) lBuilder.Add(kSelectCommandPartCondStore);
 
-                    var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pHandle, true);
+                    var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pMailboxHandle, true);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);

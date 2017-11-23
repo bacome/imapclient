@@ -67,11 +67,11 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Represents a read-only message-flag collection.
+    /// Represents an immutable message-flag collection.
     /// </summary>
     /// <remarks>
     /// Message flags are case insensitive and have a limited grammer - see RFC 3501.
-    /// (Generally user-defined message-flags must only include <see cref="cCharset.Atom"/> characters.)
+    /// (Generally user-defined message-flags may only include <see cref="cCharset.Atom"/> characters.)
     /// </remarks>
     /// <seealso cref="cMailbox.ForUpdatePermanentFlags"/>
     /// <seealso cref="cMailbox.ReadOnlyPermanentFlags"/>
@@ -83,7 +83,7 @@ namespace work.bacome.imapclient
         /// Initialises a new instance with the specified list.
         /// </summary>
         /// <param name="pFlags"></param>
-        public cMessageFlags(cMessageFlagList pFlags) => mFlags = pFlags;
+        internal cMessageFlags(cMessageFlagList pFlags) => mFlags = pFlags;
 
         /// <summary>
         /// Determines whether the collection contains the specified flag (case insensitive).
@@ -127,11 +127,11 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only storable-message-flag collection.
+    /// An immutable storable-message-flag collection.
     /// </summary>
     /// <remarks>
     /// Message flags are case insensitive and have a limited grammar - see RFC 3501.
-    /// (Generally user-defined message-flags must only include <see cref="cCharset.Atom"/> characters.)
+    /// (Generally user-defined message-flags may only include <see cref="cCharset.Atom"/> characters.)
     /// <see cref="kMessageFlag.Recent"/> is not a storable-message-flag.
     /// <see cref="kMessageFlag.CreateNewIsPossible"/> is not a storable-message-flag.
     /// </remarks>
@@ -144,7 +144,7 @@ namespace work.bacome.imapclient
         // immutable (for passing in)
 
         /** <summary>An empty storable-message-flag collection.</summary> */
-        public static readonly cStorableFlags None = new cStorableFlags();
+        public static readonly cStorableFlags Empty = new cStorableFlags();
 
         /** <summary>A storable-message-flag collection containing only <see cref="kMessageFlag.Answered"/>.</summary> */
         public static readonly cStorableFlags Answered = new cStorableFlags(kMessageFlag.Answered);
@@ -197,11 +197,11 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only fetchable-message-flag collection.
+    /// An immutable fetchable-message-flag collection.
     /// </summary>
     /// <remarks>
     /// Message flags are case insensitive and have a limited grammar - see RFC 3501.
-    /// (Generally user-defined message-flags must only include <see cref="cCharset.Atom"/> characters.)
+    /// (Generally user-defined message-flags may only include <see cref="cCharset.Atom"/> characters.)
     /// <see cref="kMessageFlag.CreateNewIsPossible"/> is not a fetchable-message-flag.
     /// </remarks>
     /// <seealso cref="cMailbox.MessageFlags"/>

@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
     public enum eBodyPartTypeCode
     {
         /**<summary>The type was not recognised by the library.</summary>*/
-        unknown,
+        other,
         /**<summary>Text.</summary>*/
         text,
         /**<summary>Image data.</summary>*/
@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
     public enum eDispositionTypeCode
     {
         /**<summary>The type was not recognised by the library.</summary>*/
-        unknown,
+        other,
         /**<summary>Inline.</summary>*/
         inline,
         /**<summary>Attachment.</summary>*/
@@ -54,7 +54,7 @@ namespace work.bacome.imapclient
     public enum eTextBodyPartSubTypeCode
     {
         /**<summary>The subtype was not recognised by the library.</summary>*/
-        unknown,
+        other,
         /**<summary>Plain text.</summary>*/
         plain,
         /**<summary>HTML.</summary>*/
@@ -68,7 +68,7 @@ namespace work.bacome.imapclient
     public enum eMultiPartBodySubTypeCode
     {
         /**<summary>The subtype was not recognised by the library.</summary>*/
-        unknown,
+        other,
         /**<summary>Independent parts in a particular order.</summary>*/
         mixed,
         /**<summary>Independent parts in a particular order.</summary>*/
@@ -103,12 +103,12 @@ namespace work.bacome.imapclient
     public abstract class cBodyPart
     {
         /// <summary>
-        /// The MIME type of the body-part in text form.
+        /// The MIME type of the body-part as a string.
         /// </summary>
         public readonly string Type;
 
         /// <summary>
-        /// The MIME subtype of the body-part in text form.
+        /// The MIME subtype of the body-part as a string.
         /// </summary>
         public readonly string SubType;
 
@@ -118,7 +118,7 @@ namespace work.bacome.imapclient
         public readonly cSection Section;
 
         /// <summary>
-        /// The MIME type of the body-part in code form.
+        /// The MIME type of the body-part as a code.
         /// </summary>
         public readonly eBodyPartTypeCode TypeCode;
 
@@ -135,7 +135,7 @@ namespace work.bacome.imapclient
             else if (Type.Equals("APPLICATION", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.application;
             else if (Type.Equals(kMimeType.Multipart, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.multipart;
             else if (Type.Equals(kMimeType.Message, StringComparison.InvariantCultureIgnoreCase)) TypeCode = eBodyPartTypeCode.message;
-            else TypeCode = eBodyPartTypeCode.unknown;
+            else TypeCode = eBodyPartTypeCode.other;
         }
 
         /// <summary>
@@ -215,7 +215,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only collection of message body-parts.
+    /// An immutable collection of message body-parts.
     /// </summary>
     /// <seealso cref="cMultiPartBody.Parts"/>
     public class cBodyParts : ReadOnlyCollection<cBodyPart>
@@ -329,7 +329,7 @@ namespace work.bacome.imapclient
         public readonly cBodyParts Parts;
 
         /// <summary>
-        /// The MIME subtype of the body-part in code form.
+        /// The MIME subtype of the body-part as a code.
         /// </summary>
         public readonly eMultiPartBodySubTypeCode SubTypeCode;
 
@@ -346,7 +346,7 @@ namespace work.bacome.imapclient
             else if (SubType.Equals("DIGEST", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.digest;
             else if (SubType.Equals("ALTERNATIVE", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.alternative;
             else if (SubType.Equals("RELATED", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eMultiPartBodySubTypeCode.related;
-            else SubTypeCode = eMultiPartBodySubTypeCode.unknown;
+            else SubTypeCode = eMultiPartBodySubTypeCode.other;
 
             ExtensionData = pExtensionData;
         }
@@ -382,12 +382,12 @@ namespace work.bacome.imapclient
     public class cBodyPartDisposition
     {
         /// <summary>
-        /// The disposition type in text form. 
+        /// The disposition type as a string. 
         /// </summary>
         public readonly string Type;
 
         /// <summary>
-        /// The disposition type in code form. 
+        /// The disposition type as a code. 
         /// </summary>
         public readonly eDispositionTypeCode TypeCode;
 
@@ -403,7 +403,7 @@ namespace work.bacome.imapclient
 
             if (Type.Equals("INLINE", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eDispositionTypeCode.inline;
             else if (Type.Equals("ATTACHMENT", StringComparison.InvariantCultureIgnoreCase)) TypeCode = eDispositionTypeCode.attachment;
-            else TypeCode = eDispositionTypeCode.unknown;
+            else TypeCode = eDispositionTypeCode.other;
         }
 
         /// <summary>
@@ -479,12 +479,12 @@ namespace work.bacome.imapclient
         public readonly cCulturedString Description;
 
         /// <summary>
-        /// The MIME content-transfer-encoding of the body-part in text form.
+        /// The MIME content-transfer-encoding of the body-part as a string.
         /// </summary>
         public readonly string ContentTransferEncoding;
 
         /// <summary>
-        /// The MIME content-transfer-encoding of the body-part in code form.
+        /// The MIME content-transfer-encoding of the body-part as a code.
         /// </summary>
         public readonly eDecodingRequired DecodingRequired;
 
@@ -510,7 +510,7 @@ namespace work.bacome.imapclient
             else if (ContentTransferEncoding.Equals("BINARY", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.none;
             else if (ContentTransferEncoding.Equals("QUOTED-PRINTABLE", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.quotedprintable;
             else if (ContentTransferEncoding.Equals("BASE64", StringComparison.InvariantCultureIgnoreCase)) DecodingRequired = eDecodingRequired.base64;
-            else DecodingRequired = eDecodingRequired.unknown; // note that rfc 2045 section 6.4 specifies that if 'unknown' then the part has to be treated as application/octet-stream
+            else DecodingRequired = eDecodingRequired.other; // note that rfc 2045 section 6.4 specifies that if 'unknown' then the part has to be treated as application/octet-stream
 
             SizeInBytes = pSizeInBytes;
             ExtensionData = pExtensionData;
@@ -585,7 +585,7 @@ namespace work.bacome.imapclient
     public class cTextBodyPart : cSinglePartBody
     {
         /// <summary>
-        /// The MIME subtype of the body-part in code form.
+        /// The MIME subtype of the body-part as a code.
         /// </summary>
         public readonly eTextBodyPartSubTypeCode SubTypeCode;
 
@@ -598,7 +598,7 @@ namespace work.bacome.imapclient
         {
             if (SubType.Equals("PLAIN", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eTextBodyPartSubTypeCode.plain;
             else if (SubType.Equals("HTML", StringComparison.InvariantCultureIgnoreCase)) SubTypeCode = eTextBodyPartSubTypeCode.html;
-            else SubTypeCode = eTextBodyPartSubTypeCode.unknown;
+            else SubTypeCode = eTextBodyPartSubTypeCode.other;
 
             SizeInLines = pSizeInLines;
         }
@@ -702,7 +702,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only collection of IMAP BODYSTRUCTURE attribute-value pairs.
+    /// An immutable collection of IMAP BODYSTRUCTURE attribute-value pairs.
     /// </summary>
     /// <seealso cref="cAttachment.Parameters"/>
     /// <seealso cref="cSinglePartBody.Parameters"/>

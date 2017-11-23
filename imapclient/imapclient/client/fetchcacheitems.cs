@@ -10,36 +10,36 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal bool Fetch(iMessageHandle pHandle, cMessageCacheItems pItems)
+        internal bool Fetch(iMessageHandle pMessageHandle, cMessageCacheItems pItems)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(Fetch), 1);
 
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-            if (pHandle.Contains(pItems)) return true;
+            if (pMessageHandle.Contains(pItems)) return true;
 
-            var lTask = ZFetchCacheItemsAsync(cMessageHandleList.FromHandle(pHandle), pItems, null, lContext);
+            var lTask = ZFetchCacheItemsAsync(cMessageHandleList.FromMessageHandle(pMessageHandle), pItems, null, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
-            return pHandle.Contains(pItems);
+            return pMessageHandle.Contains(pItems);
         }
 
-        internal cMessageHandleList Fetch(IEnumerable<iMessageHandle> pHandles, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration)
+        internal cMessageHandleList Fetch(IEnumerable<iMessageHandle> pMessageHandles, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(Fetch), 2);
 
-            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+            if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-            var lHandles = cMessageHandleList.FromHandles(pHandles);
+            var lMessageHandles = cMessageHandleList.FromMessageHandles(pMessageHandles);
 
-            if (lHandles.All(h => h.Contains(pItems))) return new cMessageHandleList();
+            if (lMessageHandles.All(h => h.Contains(pItems))) return new cMessageHandleList();
 
-            var lTask = ZFetchCacheItemsAsync(lHandles, pItems, pConfiguration, lContext);
+            var lTask = ZFetchCacheItemsAsync(lMessageHandles, pItems, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
-            return new cMessageHandleList(from h in lHandles where !h.Contains(pItems) select h);
+            return new cMessageHandleList(from h in lMessageHandles where !h.Contains(pItems) select h);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <returns>A list of messages where something went wrong and the cache was not populated.</returns>
         /// <remarks>
-        /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fMessageProperties"/>. This means that you can use values of those types as parameters to this method.</note>
+        /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
         public List<cMessage> Fetch(IEnumerable<cMessage> pMessages, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration)
         {
@@ -59,44 +59,44 @@ namespace work.bacome.imapclient
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-            var lHandles = cMessageHandleList.FromMessages(pMessages);
+            var lMessageHandles = cMessageHandleList.FromMessages(pMessages);
 
-            if (lHandles.All(h => h.Contains(pItems))) return new List<cMessage>();
+            if (lMessageHandles.All(h => h.Contains(pItems))) return new List<cMessage>();
 
-            var lTask = ZFetchCacheItemsAsync(lHandles, pItems, pConfiguration, lContext);
+            var lTask = ZFetchCacheItemsAsync(lMessageHandles, pItems, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
 
-            return new List<cMessage>(from m in pMessages where !m.Handle.Contains(pItems) select m);
+            return new List<cMessage>(from m in pMessages where !m.MessageHandle.Contains(pItems) select m);
         }
 
-        internal async Task<bool> FetchAsync(iMessageHandle pHandle, cMessageCacheItems pItems)
+        internal async Task<bool> FetchAsync(iMessageHandle pMessageHandle, cMessageCacheItems pItems)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(FetchAsync), 1);
 
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-            if (pHandle.Contains(pItems)) return true;
+            if (pMessageHandle.Contains(pItems)) return true;
 
-            await ZFetchCacheItemsAsync(cMessageHandleList.FromHandle(pHandle), pItems, null, lContext).ConfigureAwait(false);
+            await ZFetchCacheItemsAsync(cMessageHandleList.FromMessageHandle(pMessageHandle), pItems, null, lContext).ConfigureAwait(false);
 
-            return pHandle.Contains(pItems);
+            return pMessageHandle.Contains(pItems);
         }
 
-        internal async Task<cMessageHandleList> FetchAsync(IEnumerable<iMessageHandle> pHandles, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration)
+        internal async Task<cMessageHandleList> FetchAsync(IEnumerable<iMessageHandle> pMessageHandles, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration)
         {
             var lContext = mRootContext.NewMethodV(true, nameof(cIMAPClient), nameof(FetchAsync), 2);
 
-            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+            if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-            var lHandles = cMessageHandleList.FromHandles(pHandles);
+            var lMessageHandles = cMessageHandleList.FromMessageHandles(pMessageHandles);
 
-            if (lHandles.All(h => h.Contains(pItems))) return new cMessageHandleList();
+            if (lMessageHandles.All(h => h.Contains(pItems))) return new cMessageHandleList();
 
-            await ZFetchCacheItemsAsync(lHandles, pItems, pConfiguration, lContext).ConfigureAwait(false);
+            await ZFetchCacheItemsAsync(lMessageHandles, pItems, pConfiguration, lContext).ConfigureAwait(false);
 
-            return new cMessageHandleList(from h in lHandles where !h.Contains(pItems) select h);
+            return new cMessageHandleList(from h in lMessageHandles where !h.Contains(pItems) select h);
         }
 
         /// <summary>
@@ -113,29 +113,29 @@ namespace work.bacome.imapclient
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-            var lHandles = cMessageHandleList.FromMessages(pMessages);
+            var lMessageHandles = cMessageHandleList.FromMessages(pMessages);
 
-            if (lHandles.All(h => h.Contains(pItems))) return new List<cMessage>();
+            if (lMessageHandles.All(h => h.Contains(pItems))) return new List<cMessage>();
 
-            await ZFetchCacheItemsAsync(lHandles, pItems, pConfiguration, lContext).ConfigureAwait(false);
+            await ZFetchCacheItemsAsync(lMessageHandles, pItems, pConfiguration, lContext).ConfigureAwait(false);
 
-            return new List<cMessage>(from m in pMessages where !m.Handle.Contains(pItems) select m);
+            return new List<cMessage>(from m in pMessages where !m.MessageHandle.Contains(pItems) select m);
         }
 
-        private async Task ZFetchCacheItemsAsync(cMessageHandleList pHandles, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task ZFetchCacheItemsAsync(cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchCacheItemsAsync), pHandles, pItems);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchCacheItemsAsync), pMessageHandles, pItems);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+            if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-            if (pHandles.Count == 0) return;
-            if (pItems.IsNone) return;
+            if (pMessageHandles.Count == 0) return;
+            if (pItems.IsEmpty) return;
 
             if (pConfiguration == null)
             {
@@ -143,34 +143,34 @@ namespace work.bacome.imapclient
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                     var lProgress = new cProgress();
-                    await lSession.FetchCacheItemsAsync(lMC, pHandles, pItems, lProgress, lContext).ConfigureAwait(false);
+                    await lSession.FetchCacheItemsAsync(lMC, pMessageHandles, pItems, lProgress, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
                 var lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
-                await lSession.FetchCacheItemsAsync(lMC, pHandles, pItems, lProgress, lContext).ConfigureAwait(false);
+                await lSession.FetchCacheItemsAsync(lMC, pMessageHandles, pItems, lProgress, lContext).ConfigureAwait(false);
             }
         }
     
-        private async Task<List<cMessage>> ZUIDFetchCacheItemsAsync(iMailboxHandle pHandle, cUIDList pUIDs, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task<List<cMessage>> ZUIDFetchCacheItemsAsync(iMailboxHandle pMailboxHandle, cUIDList pUIDs, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchCacheItemsAsync), pHandle, pUIDs, pItems);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDFetchCacheItemsAsync), pMailboxHandle, pUIDs, pItems);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
             if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
             if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
             if (pUIDs.Count == 0) return new List<cMessage>();
-            if (pItems.IsNone) throw new ArgumentOutOfRangeException(nameof(pItems));
+            if (pItems.IsEmpty) throw new ArgumentOutOfRangeException(nameof(pItems));
 
-            cMessageHandleList lHandles;
+            cMessageHandleList lMessageHandles;
 
             if (pConfiguration == null)
             {
@@ -178,18 +178,18 @@ namespace work.bacome.imapclient
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                     var lProgress = new cProgress();
-                    lHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pHandle, pUIDs, pItems, lProgress, lContext).ConfigureAwait(false);
+                    lMessageHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pMailboxHandle, pUIDs, pItems, lProgress, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
                 var lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
-                lHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pHandle, pUIDs, pItems, lProgress, lContext).ConfigureAwait(false);
+                lMessageHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pMailboxHandle, pUIDs, pItems, lProgress, lContext).ConfigureAwait(false);
             }
 
-            List<cMessage> lMessages = new List<cMessage>(lHandles.Count);
-            foreach (var lHandle in lHandles) lMessages.Add(new cMessage(this, lHandle));
+            List<cMessage> lMessages = new List<cMessage>(lMessageHandles.Count);
+            foreach (var lMessageHandle in lMessageHandles) lMessages.Add(new cMessage(this, lMessageHandle));
             return lMessages;
         }
     }

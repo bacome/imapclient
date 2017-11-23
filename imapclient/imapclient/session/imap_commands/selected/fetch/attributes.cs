@@ -10,38 +10,38 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pHandles, cMessageCacheItems pItems, cTrace.cContext pParentContext)
+            private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchCacheItemsAsync), pMC, pHandles, pItems);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchCacheItemsAsync), pMC, pMessageHandles, pItems);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-                if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+                if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
                 if (pItems == null) throw new ArgumentNullException(nameof(pItems));
 
-                if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
-                if (pItems.IsNone) throw new ArgumentOutOfRangeException(nameof(pItems));
+                if (pMessageHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pMessageHandles));
+                if (pItems.IsEmpty) throw new ArgumentOutOfRangeException(nameof(pItems));
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pHandles);
+                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pMessageHandles);
 
                     lBuilder.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
                     lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     // uidvalidity must be captured before the handles are resolved
-                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+                    lBuilder.AddUIDValidity(lSelectedMailbox.MessageCache.UIDValidity);
 
                     // resolve MSNs
 
                     cUIntList lMSNs = new cUIntList();
 
-                    foreach (var lHandle in pHandles)
+                    foreach (var lMessageHandle in pMessageHandles)
                     {
-                        var lMSN = lSelectedMailbox.GetMSN(lHandle);
+                        var lMSN = lSelectedMailbox.GetMSN(lMessageHandle);
                         if (lMSN != 0) lMSNs.Add(lMSN);
                     }
 
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
                     // build command
 
                     lBuilder.Add(kFetchCommandPartFetchSpace, new cTextCommandPart(cSequenceSet.FromUInts(lMSNs)), cCommandPart.Space);
-                    lBuilder.Add(pItems, lSelectedMailbox.Cache.NoModSeq);
+                    lBuilder.Add(pItems, lSelectedMailbox.MessageCache.NoModSeq);
 
                     // go
 

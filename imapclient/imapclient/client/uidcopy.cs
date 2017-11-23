@@ -9,53 +9,53 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal cCopyFeedback UIDCopy(iMailboxHandle pSourceHandle, cUID pSourceUID, iMailboxHandle pDestinationHandle)
+        internal cCopyFeedback UIDCopy(iMailboxHandle pSourceMailboxHandle, cUID pSourceUID, iMailboxHandle pDestinationMailboxHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopy), 1);
-            var lTask = ZUIDCopyAsync(pSourceHandle, cUIDList.FromUID(pSourceUID), pDestinationHandle, lContext);
+            var lTask = ZUIDCopyAsync(pSourceMailboxHandle, cUIDList.FromUID(pSourceUID), pDestinationMailboxHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        internal cCopyFeedback UIDCopy(iMailboxHandle pSourceHandle, IEnumerable<cUID> pSourceUIDs, iMailboxHandle pDestinationHandle)
+        internal cCopyFeedback UIDCopy(iMailboxHandle pSourceMailboxHandle, IEnumerable<cUID> pSourceUIDs, iMailboxHandle pDestinationMailboxHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopy), 2);
-            var lTask = ZUIDCopyAsync(pSourceHandle, cUIDList.FromUIDs(pSourceUIDs), pDestinationHandle, lContext);
+            var lTask = ZUIDCopyAsync(pSourceMailboxHandle, cUIDList.FromUIDs(pSourceUIDs), pDestinationMailboxHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        internal Task<cCopyFeedback> UIDCopyAsync(iMailboxHandle pSourceHandle, cUID pSourceUID, iMailboxHandle pDestinationHandle)
+        internal Task<cCopyFeedback> UIDCopyAsync(iMailboxHandle pSourceMailboxHandle, cUID pSourceUID, iMailboxHandle pDestinationMailboxHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopyAsync), 1);
-            return ZUIDCopyAsync(pSourceHandle, cUIDList.FromUID(pSourceUID), pDestinationHandle, lContext);
+            return ZUIDCopyAsync(pSourceMailboxHandle, cUIDList.FromUID(pSourceUID), pDestinationMailboxHandle, lContext);
         }
 
-        internal Task<cCopyFeedback> UIDCopyAsync(iMailboxHandle pSourceHandle, IEnumerable<cUID> pSourceUIDs, iMailboxHandle pDestinationHandle)
+        internal Task<cCopyFeedback> UIDCopyAsync(iMailboxHandle pSourceMailboxHandle, IEnumerable<cUID> pSourceUIDs, iMailboxHandle pDestinationMailboxHandle)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(UIDCopyAsync), 2);
-            return ZUIDCopyAsync(pSourceHandle, cUIDList.FromUIDs(pSourceUIDs), pDestinationHandle, lContext);
+            return ZUIDCopyAsync(pSourceMailboxHandle, cUIDList.FromUIDs(pSourceUIDs), pDestinationMailboxHandle, lContext);
         }
 
-        private async Task<cCopyFeedback> ZUIDCopyAsync(iMailboxHandle pSourceHandle, cUIDList pSourceUIDs, iMailboxHandle pDestinationHandle, cTrace.cContext pParentContext)
+        private async Task<cCopyFeedback> ZUIDCopyAsync(iMailboxHandle pSourceMailboxHandle, cUIDList pSourceUIDs, iMailboxHandle pDestinationMailboxHandle, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCopyAsync), pSourceHandle, pSourceUIDs, pDestinationHandle);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZCopyAsync), pSourceMailboxHandle, pSourceUIDs, pDestinationMailboxHandle);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-            if (pSourceHandle == null) throw new ArgumentNullException(nameof(pSourceHandle));
+            if (pSourceMailboxHandle == null) throw new ArgumentNullException(nameof(pSourceMailboxHandle));
             if (pSourceUIDs == null) throw new ArgumentNullException(nameof(pSourceUIDs));
-            if (pDestinationHandle == null) throw new ArgumentNullException(nameof(pDestinationHandle));
+            if (pDestinationMailboxHandle == null) throw new ArgumentNullException(nameof(pDestinationMailboxHandle));
 
             if (pSourceUIDs.Count == 0) return null;
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                return await lSession.UIDCopyAsync(lMC, pSourceHandle, pSourceUIDs, pDestinationHandle, lContext).ConfigureAwait(false);
+                return await lSession.UIDCopyAsync(lMC, pSourceMailboxHandle, pSourceUIDs, pDestinationMailboxHandle, lContext).ConfigureAwait(false);
             }
         }
     }

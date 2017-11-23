@@ -12,15 +12,15 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kStatusCommandPart = new cTextCommandPart("STATUS");
 
-            public async Task StatusAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
+            public async Task StatusAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StatusAsync), pMC, pHandle);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(StatusAsync), pMC, pMailboxHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
-                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
-                var lItem = mMailboxCache.CheckHandle(pHandle);
+                var lItem = mMailboxCache.CheckHandle(pMailboxHandle);
 
                 if (mStatusAttributes == 0) return;
 
@@ -28,8 +28,8 @@ namespace work.bacome.imapclient
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select: the status command is not supported on the selected mailbox
 
-                    var lHandle = mMailboxCache.SelectedMailboxDetails?.Handle;
-                    if (ReferenceEquals(pHandle, lHandle)) return;
+                    var lMailboxHandle = mMailboxCache.SelectedMailboxDetails?.MailboxHandle;
+                    if (ReferenceEquals(pMailboxHandle, lMailboxHandle)) return;
 
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // status is msnunsafe
 

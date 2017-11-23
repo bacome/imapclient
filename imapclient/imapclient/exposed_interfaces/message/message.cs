@@ -42,25 +42,22 @@ namespace work.bacome.imapclient
         /**<summary>The client that this instance was created by.</summary>*/
         public readonly cIMAPClient Client;
         /**<summary>The message that this instance represents.</summary>*/
-        public readonly iMessageHandle Handle;
+        public readonly iMessageHandle MessageHandle;
 
         // re-instate if threading is ever done
         //public readonly int Indent; // Indicates the indent of the message. This only means something when compared to the indents of surrounding items in a threaded list of messages. It is a bit of a hack having it in this class.
 
-        internal cMessage(cIMAPClient pClient, iMessageHandle pHandle) // , int pIndent = -1 // re-instate if threading is ever done
+        internal cMessage(cIMAPClient pClient, iMessageHandle pMessageHandle) // , int pIndent = -1 // re-instate if threading is ever done
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             //Indent = pIndent; // re-instate if threading is ever done
         }
 
         /// <summary>
         /// Fired when the server notifies the client of a change that affects a property value of the instance.
         /// </summary>
-        /// <remarks>
-        /// If <see cref="cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
-        /// If an exception is raised in an event handler the <see cref="cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
-        /// </remarks>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public event PropertyChangedEventHandler PropertyChanged
         {
             add
@@ -84,17 +81,17 @@ namespace work.bacome.imapclient
 
         private void ZMessagePropertyChanged(object pSender, cMessagePropertyChangedEventArgs pArgs)
         {
-            if (ReferenceEquals(pArgs.Handle, Handle)) mPropertyChanged?.Invoke(this, pArgs);
+            if (ReferenceEquals(pArgs.MessageHandle, MessageHandle)) mPropertyChanged?.Invoke(this, pArgs);
         }
 
         /// <summary>
         /// Indicates whether the message exists on the server.
         /// </summary>
-        public bool Expunged => Handle.Expunged;
+        public bool Expunged => MessageHandle.Expunged;
 
         private void ZThrowFailure(eOperationType pType)
         {
-            if (Handle.Expunged) throw new cMessageExpungedException(Handle);
+            if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
 
             switch (pType)
             {
@@ -122,8 +119,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope;
             }
         }
 
@@ -135,8 +132,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope.Sent;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.Sent;
             }
         }
 
@@ -148,8 +145,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope.Subject;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.Subject;
             }
         }
 
@@ -164,8 +161,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope.BaseSubject;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.BaseSubject;
             }
         }
 
@@ -177,8 +174,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope.From;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.From;
             }
         }
 
@@ -190,8 +187,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope.Sender;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.Sender;
             }
         }
 
@@ -203,8 +200,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope.ReplyTo;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.ReplyTo;
             }
         }
 
@@ -216,8 +213,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope.To;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.To;
             }
         }
 
@@ -229,8 +226,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope.CC;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.CC;
             }
         }
 
@@ -242,8 +239,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope.BCC;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.BCC;
             }
         }
 
@@ -258,8 +255,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope.InReplyTo?.MsgIds;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.InReplyTo?.MsgIds;
             }
         }
 
@@ -271,8 +268,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Envelope.MessageId?.MsgId;
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.MessageId?.MsgId;
             }
         }
 
@@ -286,8 +283,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kFlags)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Flags;
+                if (!Client.Fetch(MessageHandle, kFlags)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Flags;
             }
         }
 
@@ -393,15 +390,15 @@ namespace work.bacome.imapclient
 
         private bool ZFlagsContain(string pFlag)
         {
-            if (!Client.Fetch(Handle, kFlags)) ZThrowFailure(eOperationType.fetch);
-            return Handle.Flags.Contains(pFlag);
+            if (!Client.Fetch(MessageHandle, kFlags)) ZThrowFailure(eOperationType.fetch);
+            return MessageHandle.Flags.Contains(pFlag);
         }
 
         private void ZFlagSet(cStorableFlags pFlags, bool pValue)
         {
             cStoreFeedback lFeedback;
-            if (pValue) lFeedback = Client.Store(Handle, eStoreOperation.add, pFlags, null);
-            else lFeedback = Client.Store(Handle, eStoreOperation.remove, pFlags, null);
+            if (pValue) lFeedback = Client.Store(MessageHandle, eStoreOperation.add, pFlags, null);
+            else lFeedback = Client.Store(MessageHandle, eStoreOperation.remove, pFlags, null);
             if (lFeedback.Summary().LikelyFailedCount != 0) ZThrowFailure(eOperationType.store); 
         }
 
@@ -415,8 +412,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kReceived)) ZThrowFailure(eOperationType.fetch);
-                return Handle.Received.Value;
+                if (!Client.Fetch(MessageHandle, kReceived)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Received.Value;
             }
         }
 
@@ -430,8 +427,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kSize)) ZThrowFailure(eOperationType.fetch);
-                return (int)Handle.Size.Value;
+                if (!Client.Fetch(MessageHandle, kSize)) ZThrowFailure(eOperationType.fetch);
+                return (int)MessageHandle.Size.Value;
             }
         }
 
@@ -446,8 +443,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kUID)) ZThrowFailure(eOperationType.fetch);
-                return Handle.UID;
+                if (!Client.Fetch(MessageHandle, kUID)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.UID;
             }
         }
 
@@ -462,8 +459,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kModSeq)) ZThrowFailure(eOperationType.fetch);
-                return Handle.ModSeq.Value;
+                if (!Client.Fetch(MessageHandle, kModSeq)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.ModSeq.Value;
             }
         }
 
@@ -477,8 +474,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
-                return Handle.BodyStructure;
+                if (!Client.Fetch(MessageHandle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.BodyStructure;
             }
         }
 
@@ -494,8 +491,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
-                return ZAttachmentParts(Handle.BodyStructure);
+                if (!Client.Fetch(MessageHandle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
+                return ZAttachmentParts(MessageHandle.BodyStructure);
             }
         }
 
@@ -507,7 +504,7 @@ namespace work.bacome.imapclient
 
             if (pPart is cSinglePartBody lSinglePart)
             {
-                if (lSinglePart.Disposition?.TypeCode == eDispositionTypeCode.attachment) lResult.Add(new cAttachment(Client, Handle, lSinglePart));
+                if (lSinglePart.Disposition?.TypeCode == eDispositionTypeCode.attachment) lResult.Add(new cAttachment(Client, MessageHandle, lSinglePart));
             }
             else if (pPart.Disposition?.TypeCode != eDispositionTypeCode.attachment && pPart is cMultiPartBody lMultiPart)
             {
@@ -534,9 +531,9 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
+                if (!Client.Fetch(MessageHandle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
                 int lSize = 0;
-                foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lSize += (int)lPart.SizeInBytes;
+                foreach (var lPart in ZPlainTextParts(MessageHandle.BodyStructure)) lSize += (int)lPart.SizeInBytes;
                 return lSize;
             }
         }
@@ -579,8 +576,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kReferences)) ZThrowFailure(eOperationType.fetch);
-                return Handle.HeaderFields.References;
+                if (!Client.Fetch(MessageHandle, kReferences)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.HeaderFields.References;
             }
         }
 
@@ -595,8 +592,8 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (!Client.Fetch(Handle, kImportance)) ZThrowFailure(eOperationType.fetch);
-                return Handle.HeaderFields.Importance;
+                if (!Client.Fetch(MessageHandle, kImportance)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.HeaderFields.Importance;
             }
         }
 
@@ -610,16 +607,16 @@ namespace work.bacome.imapclient
         /// </returns>
         /// <remarks>
         /// The items that aren't currently cached will be fetched from the server.
-        /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fMessageProperties"/>. This means that you can use values of those types as parameters to this method.</note>
+        /// <note type="note"><see cref="cMessageCacheItems"/> has implicit conversions from other types including <see cref="fMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
         /// </remarks>
-        public bool Fetch(cMessageCacheItems pItems) => Client.Fetch(Handle, pItems);
+        public bool Fetch(cMessageCacheItems pItems) => Client.Fetch(MessageHandle, pItems);
 
         /// <summary>
         /// Ansynchronously ensures that the message cache contains the specified items for the message.
         /// </summary>
         /// <param name="pItems"></param>
         /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
-        public Task<bool> FetchAsync(cMessageCacheItems pItems) => Client.FetchAsync(Handle, pItems);
+        public Task<bool> FetchAsync(cMessageCacheItems pItems) => Client.FetchAsync(MessageHandle, pItems);
 
         private bool ZContainsPart(cBodyPart pPart, cSinglePartBody pSinglePart)
         {
@@ -640,9 +637,9 @@ namespace work.bacome.imapclient
         /// </remarks>
         public int FetchSizeInBytes(cSinglePartBody pPart)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
-            if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
-            return Client.FetchSizeInBytes(Handle, pPart);
+            if (MessageHandle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
+            if (!ZContainsPart(MessageHandle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            return Client.FetchSizeInBytes(MessageHandle, pPart);
         }
 
         /// <summary>
@@ -652,9 +649,9 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
         public Task<int> FetchSizeInBytesAsync(cSinglePartBody pPart)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
-            if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
-            return Client.FetchSizeInBytesAsync(Handle, pPart);
+            if (MessageHandle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
+            if (!ZContainsPart(MessageHandle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            return Client.FetchSizeInBytesAsync(MessageHandle, pPart);
         }
 
         /// <summary>
@@ -662,7 +659,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pOffset">The offset required from the message's sequence number.</param>
         /// <returns></returns>
-        public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(Handle, pOffset);
+        public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(MessageHandle, pOffset);
 
         /// <summary>
         /// Returns the plain text of the message.
@@ -677,9 +674,9 @@ namespace work.bacome.imapclient
         /// </remarks>
         public string PlainText()
         {
-            if (!Client.Fetch(Handle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
+            if (!Client.Fetch(MessageHandle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
             StringBuilder lBuilder = new StringBuilder();
-            foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lBuilder.Append(Fetch(lPart));
+            foreach (var lPart in ZPlainTextParts(MessageHandle.BodyStructure)) lBuilder.Append(Fetch(lPart));
             return lBuilder.ToString();
         }
 
@@ -689,10 +686,10 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="PlainText" select="returns|remarks"/>
         public async Task<string> PlainTextAsync()
         {
-            if (!await Client.FetchAsync(Handle, kBodyStructure).ConfigureAwait(false)) ZThrowFailure(eOperationType.fetch);
+            if (!await Client.FetchAsync(MessageHandle, kBodyStructure).ConfigureAwait(false)) ZThrowFailure(eOperationType.fetch);
 
             List<Task<string>> lTasks = new List<Task<string>>();
-            foreach (var lPart in ZPlainTextParts(Handle.BodyStructure)) lTasks.Add(FetchAsync(lPart));
+            foreach (var lPart in ZPlainTextParts(MessageHandle.BodyStructure)) lTasks.Add(FetchAsync(lPart));
             await Task.WhenAll(lTasks).ConfigureAwait(false);
 
             StringBuilder lBuilder = new StringBuilder();
@@ -711,12 +708,12 @@ namespace work.bacome.imapclient
         /// </remarks>
         public string Fetch(cTextBodyPart pPart)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
-            if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            if (MessageHandle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
+            if (!ZContainsPart(MessageHandle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
 
             using (var lStream = new MemoryStream())
             {
-                Client.Fetch(Handle, pPart.Section, pPart.DecodingRequired, lStream, null);
+                Client.Fetch(MessageHandle, pPart.Section, pPart.DecodingRequired, lStream, null);
                 Encoding lEncoding = Encoding.GetEncoding(pPart.Charset);
                 return new string(lEncoding.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
             }
@@ -729,12 +726,12 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Fetch(cTextBodyPart)" select="returns|remarks"/>
         public async Task<string> FetchAsync(cTextBodyPart pPart)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
-            if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            if (MessageHandle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
+            if (!ZContainsPart(MessageHandle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
 
             using (var lStream = new MemoryStream())
             {
-                await Client.FetchAsync(Handle, pPart.Section, pPart.DecodingRequired, lStream, null).ConfigureAwait(false);
+                await Client.FetchAsync(MessageHandle, pPart.Section, pPart.DecodingRequired, lStream, null).ConfigureAwait(false);
                 Encoding lEncoding = Encoding.GetEncoding(pPart.Charset);
                 return new string(lEncoding.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
             }
@@ -752,7 +749,7 @@ namespace work.bacome.imapclient
         {
             using (var lStream = new MemoryStream())
             {
-                Client.Fetch(Handle, pSection, eDecodingRequired.none, lStream, null);
+                Client.Fetch(MessageHandle, pSection, eDecodingRequired.none, lStream, null);
                 return new string(Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
             }
         }
@@ -766,7 +763,7 @@ namespace work.bacome.imapclient
         {
             using (var lStream = new MemoryStream())
             {
-                await Client.FetchAsync(Handle, pSection, eDecodingRequired.none, lStream, null).ConfigureAwait(false);
+                await Client.FetchAsync(MessageHandle, pSection, eDecodingRequired.none, lStream, null).ConfigureAwait(false);
                 return new string(Encoding.UTF8.GetChars(lStream.GetBuffer(), 0, (int)lStream.Length));
             }
         }
@@ -785,9 +782,9 @@ namespace work.bacome.imapclient
         /// </remarks>
         public void Fetch(cSinglePartBody pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
-            if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
-            Client.Fetch(Handle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
+            if (MessageHandle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
+            if (!ZContainsPart(MessageHandle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            Client.Fetch(MessageHandle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
         }
 
         /// <summary>
@@ -800,9 +797,9 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Fetch(cSinglePartBody, Stream, cBodyFetchConfiguration)" select="remarks"/>
         public Task FetchAsync(cSinglePartBody pPart, Stream pStream, cBodyFetchConfiguration pConfiguration = null)
         {
-            if (Handle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
-            if (!ZContainsPart(Handle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
-            return Client.FetchAsync(Handle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
+            if (MessageHandle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
+            if (!ZContainsPart(MessageHandle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            return Client.FetchAsync(MessageHandle, pPart.Section, pPart.DecodingRequired, pStream, pConfiguration);
         }
 
         /// <summary>
@@ -816,7 +813,7 @@ namespace work.bacome.imapclient
         /// If <see cref="cCapabilities.Binary"/> is in use and the entire body-part (<see cref="cSection.TextPart"/> is <see cref="eSectionTextPart.all"/>) is being fetched then
         /// unless <paramref name="pDecoding"/> is <see cref="eDecodingRequired.none"/> the server will do the decoding that it determines is required (i.e. the decoding specified is ignored).
         /// </remarks>
-        public void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.Fetch(Handle, pSection, pDecoding, pStream, pConfiguration);
+        public void Fetch(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.Fetch(MessageHandle, pSection, pDecoding, pStream, pConfiguration);
 
         /// <summary>
         /// Asynchronously fetches the content of the specified <see cref="cSection"/> into the specified <see cref="Stream"/>.
@@ -827,7 +824,7 @@ namespace work.bacome.imapclient
         /// <param name="pConfiguration">An operation specific timeout, cancellation token, progress callback and write size controller.</param>
         /// <returns></returns>
         /// <inheritdoc cref="Fetch(cSection, eDecodingRequired, Stream, cBodyFetchConfiguration)" select="remarks"/>
-        public Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(Handle, pSection, pDecoding, pStream, pConfiguration);
+        public Task FetchAsync(cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration = null) => Client.FetchAsync(MessageHandle, pSection, pDecoding, pStream, pConfiguration);
 
         /// <summary>
         /// Stores flags for the message. 
@@ -843,7 +840,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public void Store(eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
-            var lFeedback = Client.Store(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
+            var lFeedback = Client.Store(MessageHandle, pOperation, pFlags, pIfUnchangedSinceModSeq);
             if (lFeedback.Summary().LikelyFailedCount != 0) ZThrowFailure(eOperationType.store);
         }
 
@@ -857,7 +854,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Store(eStoreOperation, cStorableFlags, ulong?)" select="remarks"/>
         public async Task StoreAsync(eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
-            var lFeedback = await Client.StoreAsync(Handle, pOperation, pFlags, pIfUnchangedSinceModSeq);
+            var lFeedback = await Client.StoreAsync(MessageHandle, pOperation, pFlags, pIfUnchangedSinceModSeq);
             if (lFeedback.Summary().LikelyFailedCount != 0) ZThrowFailure(eOperationType.store); 
         }
 
@@ -868,8 +865,8 @@ namespace work.bacome.imapclient
         /// <returns>If the server provides an RFC 4315 UIDCOPY response, the UID of the message in the destination mailbox, otherwise <see langword="null"/>.</returns>
         public cUID Copy(cMailbox pDestination)
         {
-            var lFeedback = Client.Copy(Handle, pDestination.Handle);
-            if (lFeedback?.Count == 1) return lFeedback[0].CreatedUID;
+            var lFeedback = Client.Copy(MessageHandle, pDestination.MailboxHandle);
+            if (lFeedback?.Count == 1) return lFeedback[0].CreatedMessageUID;
             return null;
         }
 
@@ -880,8 +877,8 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Copy(cMailbox)" select="returns|remarks"/>
         public async Task<cUID> CopyAsync(cMailbox pDestination)
         {
-            var lFeedback = await Client.CopyAsync(Handle, pDestination.Handle).ConfigureAwait(false);
-            if (lFeedback?.Count == 1) return lFeedback[0].CreatedUID;
+            var lFeedback = await Client.CopyAsync(MessageHandle, pDestination.MailboxHandle).ConfigureAwait(false);
+            if (lFeedback?.Count == 1) return lFeedback[0].CreatedMessageUID;
             return null;
         }
 
@@ -894,6 +891,6 @@ namespace work.bacome.imapclient
         } */
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cMessage)}({Handle})"; // ,{Indent} // re-instate if threading is ever done
+        public override string ToString() => $"{nameof(cMessage)}({MessageHandle})"; // ,{Indent} // re-instate if threading is ever done
     }
 }

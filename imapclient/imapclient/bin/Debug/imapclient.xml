@@ -88,10 +88,7 @@
             <summary>
             Fired when a property value of the instance changes.
             </summary>
-            <remarks>
-            If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
-            </remarks>
+            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.ResponseText">
             <summary>
@@ -101,7 +98,7 @@
             <para>The IMAP spec says that <see cref="F:work.bacome.imapclient.eResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="F:work.bacome.imapclient.cResponseTextEventArgs.Text"/>.</para>
             <para>
             If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
+            If an exception is raised in an event handler then the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
             </para>
             </remarks>
         </member>
@@ -113,7 +110,7 @@
             <para>This event is provided to aid in the debugging of the library.</para>
             <para>
             If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
+            If an exception is raised in an event handler then the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
             </para>
             </remarks>
         </member>
@@ -125,7 +122,7 @@
             <para>This event is provided to aid in the debugging of the library.</para>
             <para>
             If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
+            If an exception is raised in an event handler then the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
             </para>
             </remarks>
         </member>
@@ -133,28 +130,19 @@
             <summary>
             Fired when the server notifies the client of a change that could affect a property value of a <see cref="T:work.bacome.imapclient.cMailbox"/> instance.
             </summary>
-            <remarks>
-            If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
-            </remarks>
+            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MailboxMessageDelivery">
             <summary>
             Fired when the server notifies the client that messages have arrived in a mailbox.
             </summary>
-            <remarks>
-            If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
-            </remarks>
+            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MessagePropertyChanged">
             <summary>
             Fired when the server notifies the client of a change that could affect a property value of a <see cref="T:work.bacome.imapclient.cMessage"/> instance.
             </summary>
-            <remarks>
-            If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
-            </remarks>
+            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.CallbackException">
             <summary>
@@ -164,7 +152,7 @@
             <para>The library ignores the exception other than raising this event. This event is provided to aid in the debugging of external code.</para>
             <para>
             If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler of this event the exception is completely ignored.
+            If an exception is raised in an event handler of this event then the exception is completely ignored.
             </para>
             </remarks>
         </member>
@@ -626,16 +614,23 @@
             Creates a new mailbox on the connected server.
             </summary>
             <param name="pMailboxName">The mailbox name to use.</param>
-            <param name="pAsFutureParent">Indicate to the IMAP server that you intend to create child mailboxes in the new mailbox.</param>
+            <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
+            <remarks>
+            Both Dovecot and GMail object to <paramref name="pAsFutureParent"/> being <see langword="true"/> despite this appearing to be in violation of RFC 3501 section 6.3.3.
+            Dovecot objects when the mailbox name is encoded in modified UTF-7, replying with a 'NO'.
+            GMail just objects full stop and always replies with an OK [CANNOT].
+            In both these cases the mailbox is not created.
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.CreateAsync(work.bacome.imapclient.cMailboxName,System.Boolean)">
             <summary>
             Ansynchronously creates a new mailbox on the connected server.
             </summary>
             <param name="pMailboxName">The mailbox name to use.</param>
-            <param name="pAsFutureParent">Indicate to the IMAP server that you intend to create child mailboxes in the new mailbox.</param>
+            <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
+            <inheritdoc cref="M:work.bacome.imapclient.cIMAPClient.Create(work.bacome.imapclient.cMailboxName,System.Boolean)" select="remarks"/>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.DefaultMessageCacheItems">
             <summary>
@@ -701,7 +696,7 @@
             <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
             <returns>A list of messages where something went wrong and the cache was not populated.</returns>
             <remarks>
-            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as parameters to this method.</note>
+            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.FetchAsync(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cMessage},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)">
@@ -969,17 +964,17 @@
         </member>
         <member name="T:work.bacome.imapclient.cHeaderFieldNames">
             <summary>
-            A read-only header-field-name collection. 
+            An immutable header-field-name collection. 
             </summary>
             <remarks>
             Header field names are case insensitive and have a limited grammar - see RFC 5322. 
-            (Header field names must only include <see cref="F:work.bacome.imapclient.support.cCharset.FText"/> characters.)
+            (Header field names may only include <see cref="F:work.bacome.imapclient.support.cCharset.FText"/> characters.)
             </remarks>
             <seealso cref="T:work.bacome.imapclient.cSection"/>
             <seealso cref="T:work.bacome.imapclient.cMessageCacheItems"/>
             <seealso cref="T:work.bacome.imapclient.cHeaderFields"/>
         </member>
-        <member name="F:work.bacome.imapclient.cHeaderFieldNames.None">
+        <member name="F:work.bacome.imapclient.cHeaderFieldNames.Empty">
             <summary>An empty header-field-name collection.</summary>
         </member>
         <member name="F:work.bacome.imapclient.cHeaderFieldNames.References">
@@ -1274,11 +1269,11 @@
         </member>
         <member name="T:work.bacome.imapclient.cHeaderFields">
             <summary>
-            A read-only collection of message header fields.
+            An immutable collection of message header fields.
             </summary>
             <seealso cref="P:work.bacome.imapclient.support.iMessageHandle.HeaderFields"/>
         </member>
-        <member name="F:work.bacome.imapclient.cHeaderFields.None">
+        <member name="F:work.bacome.imapclient.cHeaderFields.Empty">
             <summary>An empty collection.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFields.Contains(System.String)">
@@ -1390,10 +1385,10 @@
             </summary>
             <seealso cref="T:work.bacome.imapclient.cCopyFeedback"/>
         </member>
-        <member name="F:work.bacome.imapclient.cCopyFeedbackItem.SourceUID">
+        <member name="F:work.bacome.imapclient.cCopyFeedbackItem.SourceMessageUID">
             <summary>The UID of the source message.</summary>
         </member>
-        <member name="F:work.bacome.imapclient.cCopyFeedbackItem.CreatedUID">
+        <member name="F:work.bacome.imapclient.cCopyFeedbackItem.CreatedMessageUID">
             <summary>The UID of the newly created message.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cCopyFeedbackItem.ToString">
@@ -1422,10 +1417,7 @@
             <summary>
             Contains an operation specific timeout, cancellation token and progress-increment callback. Intended for use when doing large message cache population operations.
             </summary>
-            <remarks>
-            If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, then callbacks are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in a callback the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
-            </remarks>
+            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cMessage},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/>
             <seealso cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cUID},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/>
             <seealso cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/>
@@ -1438,13 +1430,13 @@
         </member>
         <member name="F:work.bacome.imapclient.cCacheItemFetchConfiguration.Increment">
             <summary>
-            The progress-increment callback for the operation. May be <see langword="null"/>. Invoked once for each batch of messages fetched, the parameter specifies how many messages were fetched in the batch.
+            The progress-increment callback for the operation. May be <see langword="null"/>. Invoked once for each batch of messages fetched, the argument specifies how many messages were fetched in the batch.
             </summary>
             <inheritdoc cref="T:work.bacome.imapclient.cCacheItemFetchConfiguration" select="remarks"/>
         </member>
         <member name="M:work.bacome.imapclient.cCacheItemFetchConfiguration.#ctor(System.Int32)">
             <summary>
-            Initialises a new instance with the specified timeout only. Intended for use with synchronous APIs.
+            Initialises a new instance with the specified timeout. Intended for use with synchronous APIs.
             </summary>
             <param name="pTimeout">May be <see cref="F:System.Threading.Timeout.Infinite"/>.</param>
         </member>
@@ -1503,7 +1495,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cMessageFetchConfiguration.SetCount">
             <summary>
-            The progress-setcount callback for the operation. May be <see langword="null"/>. Invoked once before any progress-increment invoke, the parameter specifies how many messages are going to be fetched.
+            The progress-setcount callback for the operation. May be <see langword="null"/>. Invoked once before any progress-increment invokes, the argument specifies how many messages are going to be fetched.
             </summary>
             <inheritdoc cref="T:work.bacome.imapclient.cCacheItemFetchConfiguration" select="remarks"/>
         </member>
@@ -1705,7 +1697,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cCapabilities">
             <summary>
-            A read-only collection of IMAP capabilities.
+            An immutable collection of IMAP capabilities.
             </summary>
             <remarks>
             The properties of this class reflect the value of <see cref="F:work.bacome.imapclient.cCapabilities.EffectiveCapabilities"/>.
@@ -1826,7 +1818,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cCredentials.Login">
             <summary>
-            The parameters to use with the IMAP LOGIN command for these credentials.
+            The arguments to use with the IMAP LOGIN command for these credentials.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cCredentials.TryAllSASLs">
@@ -1878,7 +1870,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cLogin">
             <summary>
-            Contains parameters for use with the IMAP LOGIN command.
+            Contains arguments for use with the IMAP LOGIN command.
             </summary>
             <remarks>
             The IMAP LOGIN command limits userids and passwords to ASCII characters excluding the NUL character.
@@ -1977,8 +1969,8 @@
             <seealso cref="M:work.bacome.imapclient.cMailbox.UIDFetch(work.bacome.imapclient.cUID,work.bacome.imapclient.cSection,work.bacome.imapclient.eDecodingRequired,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)"/>
             <seealso cref="F:work.bacome.imapclient.cSinglePartBody.DecodingRequired"/>
         </member>
-        <member name="F:work.bacome.imapclient.eDecodingRequired.unknown">
-            <summary>The decoding required is unknown.</summary> 
+        <member name="F:work.bacome.imapclient.eDecodingRequired.other">
+            <summary>The decoding required is not recognised by the library.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.eDecodingRequired.none">
             <summary>No decoding is required.</summary> 
@@ -2000,9 +1992,6 @@
         </member>
         <member name="F:work.bacome.imapclient.fEnableableExtensions.utf8">
             <summary><see cref="P:work.bacome.imapclient.cCapabilities.UTF8Accept"/>, <see cref="P:work.bacome.imapclient.cCapabilities.UTF8Only"/></summary>
-        </member>
-        <member name="F:work.bacome.imapclient.fEnableableExtensions.all">
-            <summary>A mask representing all extensions.</summary>
         </member>
         <member name="T:work.bacome.imapclient.fMailboxCacheDataItems">
             <summary>
@@ -2139,7 +2128,7 @@
             </summary>
             <seealso cref="T:work.bacome.imapclient.cStoreFeedback"/>
         </member>
-        <member name="F:work.bacome.imapclient.cStoreFeedbackItem.Handle">
+        <member name="F:work.bacome.imapclient.cStoreFeedbackItem.MessageHandle">
             <summary>The message that the feedback relates to.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cStoreFeedbackItem.ToString">
@@ -2231,7 +2220,7 @@
         <member name="F:work.bacome.imapclient.cUIDStoreFeedbackItem.UID">
             <summary>The UID that the feedback relates to.</summary>
         </member>
-        <member name="F:work.bacome.imapclient.cUIDStoreFeedbackItem.Handle">
+        <member name="F:work.bacome.imapclient.cUIDStoreFeedbackItem.MessageHandle">
             <summary>The message that the feedback relates to. May be <see langword="null"/>.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cUIDStoreFeedbackItem.ToString">
@@ -2340,8 +2329,8 @@
             </summary>
             <seealso cref="P:work.bacome.imapclient.cIMAPClient.SelectedMailboxDetails"/>
         </member>
-        <member name="P:work.bacome.imapclient.support.iSelectedMailboxDetails.Handle">
-            <summary>Gets the mailbox.</summary>
+        <member name="P:work.bacome.imapclient.support.iSelectedMailboxDetails.MailboxHandle">
+            <summary>Gets the mailbox that is selected.</summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iSelectedMailboxDetails.SelectedForUpdate">
             <summary>Indicates whether the mailbox is selected for update.</summary>
@@ -2349,21 +2338,21 @@
         <member name="P:work.bacome.imapclient.support.iSelectedMailboxDetails.AccessReadOnly">
             <summary>Indicates whether the mailbox can be modified.</summary>
         </member>
-        <member name="P:work.bacome.imapclient.support.iSelectedMailboxDetails.Cache">
-            <summary>Gets the message cache.</summary>
+        <member name="P:work.bacome.imapclient.support.iSelectedMailboxDetails.MessageCache">
+            <summary>Gets the message cache of the selected mailbox.</summary>
         </member>
         <member name="T:work.bacome.imapclient.support.iMailboxHandle">
             <summary>
-            Represents an IMAP mailbox.
+            Represents an IMAP mailbox uniquely within a mailbox cache.
             </summary>
-            <seealso cref="F:work.bacome.imapclient.cMailbox.Handle"/>
+            <seealso cref="F:work.bacome.imapclient.cMailbox.MailboxHandle"/>
             <seealso cref="T:work.bacome.imapclient.support.iSelectedMailboxDetails"/>
             <seealso cref="T:work.bacome.imapclient.support.iMessageCache"/>
             <seealso cref="T:work.bacome.imapclient.cMailboxPropertyChangedEventArgs"/>"/>
             <seealso cref="T:work.bacome.imapclient.cMailboxMessageDeliveryEventArgs"/>"/>
         </member>
-        <member name="P:work.bacome.imapclient.support.iMailboxHandle.Cache">
-            <summary>Gets an object that represents the mailbox cache that this instance belongs to.</summary>
+        <member name="P:work.bacome.imapclient.support.iMailboxHandle.MailboxCache">
+            <summary>Gets the mailbox cache that the instance belongs to.</summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMailboxHandle.MailboxName">
             <summary>Gets the name of the mailbox.</summary>
@@ -2403,7 +2392,7 @@
         </member>
         <member name="T:work.bacome.imapclient.support.cBinarySizes">
             <summary>
-            A read-only mapping from a message body-part that can be fetched using the BINARY (RFC 3516) command to the decoded size in bytes of that body-part.
+            An immutable mapping from a message body-part that can be fetched using the BINARY (RFC 3516) command to the decoded size in bytes of that body-part.
             </summary>
             <seealso cref="M:work.bacome.imapclient.cAttachment.SaveSizeInBytes"/>
             <seealso cref="M:work.bacome.imapclient.cMessage.FetchSizeInBytes(work.bacome.imapclient.cSinglePartBody)"/>
@@ -2422,14 +2411,14 @@
         </member>
         <member name="T:work.bacome.imapclient.support.iMessageHandle">
             <summary>
-            Represents an IMAP message.
+            Represents an IMAP message uniquely within a message cache.
             </summary>
             <seealso cref="T:work.bacome.imapclient.cMessageHandleList"/>
             <seealso cref="T:work.bacome.imapclient.cMessageDeliveryEventArgs"/>
             <seealso cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/>
             <seealso cref="M:work.bacome.imapclient.cMailbox.SetUnseenCount"/>
-            <seealso cref="F:work.bacome.imapclient.cAttachment.Handle"/>
-            <seealso cref="F:work.bacome.imapclient.cMessage.Handle"/>
+            <seealso cref="F:work.bacome.imapclient.cAttachment.MessageHandle"/>
+            <seealso cref="F:work.bacome.imapclient.cMessage.MessageHandle"/>
             <seealso cref="T:work.bacome.imapclient.cStoreFeedbackItem"/>
             <seealso cref="T:work.bacome.imapclient.cUIDStoreFeedbackItem"/>
             <seealso cref="T:work.bacome.imapclient.cSort"/>
@@ -2437,11 +2426,11 @@
             <seealso cref="T:work.bacome.imapclient.cMessagePropertyChangedEventArgs"/>
             <seealso cref="T:work.bacome.imapclient.cMessageExpungedException"/>
         </member>
-        <member name="P:work.bacome.imapclient.support.iMessageHandle.Cache">
+        <member name="P:work.bacome.imapclient.support.iMessageHandle.MessageCache">
             <summary>Gets the message cache that the instance belongs to.</summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.CacheSequence">
-            <summary>Gets the sequence in the <see cref="P:work.bacome.imapclient.support.iMessageHandle.Cache"/> of the message.</summary>
+            <summary>Gets the sequence in the <see cref="P:work.bacome.imapclient.support.iMessageHandle.MessageCache"/> of the message.</summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.Expunged">
             <summary>Indicates whether the message exists on the server.</summary>
@@ -2522,7 +2511,7 @@
         </member>
         <member name="T:work.bacome.imapclient.support.cBytes">
             <summary>
-            A read-only collection of bytes.
+            An immutable collection of bytes.
             </summary>
             <seealso cref="T:work.bacome.imapclient.cNetworkSendEventArgs"/>
         </member>
@@ -2683,26 +2672,20 @@
         <member name="F:work.bacome.imapclient.cMailbox.Client">
             <summary>The client that this instance was created by.</summary>
         </member>
-        <member name="F:work.bacome.imapclient.cMailbox.Handle">
+        <member name="F:work.bacome.imapclient.cMailbox.MailboxHandle">
             <summary>The mailbox that this instance represents.</summary>
         </member>
         <member name="E:work.bacome.imapclient.cMailbox.PropertyChanged">
             <summary>
             Fired when the server notifies the client of a change that affects a property value of this instance.
             </summary>
-            <remarks>
-            If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
-            </remarks>
+            <inheritdoc cref="!:cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="E:work.bacome.imapclient.cMailbox.MessageDelivery">
             <summary>
             Fired when the server notifies the client that messages have arrived in the mailbox.
             </summary>
-            <remarks>
-            If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
-            </remarks>
+            <inheritdoc cref="!:cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.Path">
             <summary>
@@ -2899,7 +2882,7 @@
             When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server,
             but for the value to be up-to-date 
             FETCH responses containing the UID have to be solicited for new messages  
-            (use <see cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/> with <see cref="F:work.bacome.imapclient.cMessageDeliveryEventArgs.Handles"/> and <see cref="F:work.bacome.imapclient.fMessageCacheAttributes.uid"/>).
+            (use <see cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/> with <see cref="F:work.bacome.imapclient.cMessageDeliveryEventArgs.MessageHandles"/> and <see cref="F:work.bacome.imapclient.fMessageCacheAttributes.uid"/>).
             </para>
             </remarks>
             <seealso cref="E:work.bacome.imapclient.cMailbox.MessageDelivery"/>
@@ -2936,7 +2919,7 @@
             When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server, 
             but for the value to be accurate it has to be explicitly initialised (using <see cref="M:work.bacome.imapclient.cMailbox.SetUnseenCount"/>) and
             FETCH responses containing the flags have to be solicited for new messages  
-            (use <see cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/> with <see cref="F:work.bacome.imapclient.cMessageDeliveryEventArgs.Handles"/> and <see cref="F:work.bacome.imapclient.fMessageCacheAttributes.flags"/>).
+            (use <see cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/> with <see cref="F:work.bacome.imapclient.cMessageDeliveryEventArgs.MessageHandles"/> and <see cref="F:work.bacome.imapclient.fMessageCacheAttributes.flags"/>).
             </para>
             </remarks>
             <seealso cref="M:work.bacome.imapclient.cMailbox.SetUnseenCount"/>
@@ -3061,15 +3044,16 @@
             Creates a child mailbox of the mailbox.
             </summary>
             <param name="pName">The mailbox name to use.</param>
-            <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
+            <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
+            <inheritdoc cref="M:work.bacome.imapclient.cIMAPClient.Create(work.bacome.imapclient.cMailboxName,System.Boolean)" select="remarks"/>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.CreateChildAsync(System.String,System.Boolean)">
             <summary>
             Asynchronously creates a child mailbox of the mailbox.
             </summary>
             <param name="pName">The mailbox name to use.</param>
-            <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
+            <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <inheritdoc cref="M:work.bacome.imapclient.cMailbox.CreateChild(System.String,System.Boolean)" select="returns|remarks"/>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.Subscribe">
@@ -3181,7 +3165,7 @@
             <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
             <returns></returns>
             <remarks>
-            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as parameters to this method.</note>
+            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.MessagesAsync(work.bacome.imapclient.cFilter,work.bacome.imapclient.cSort,work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cMessageFetchConfiguration)">
@@ -3198,19 +3182,19 @@
             <summary>
             Gets a list of messages. (Useful when handling <see cref="E:work.bacome.imapclient.cMailbox.MessageDelivery"/>.)
             </summary>
-            <param name="pHandles"></param>
+            <param name="pMessageHandles"></param>
             <param name="pItems">The set of items to ensure are cached for the returned messages. If not specified <see cref="P:work.bacome.imapclient.cIMAPClient.DefaultMessageCacheItems"/> will be used.</param>
             <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
             <returns></returns>
             <remarks>
-            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as parameters to this method.</note>
+            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.MessagesAsync(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)">
             <summary>
             Asynchronously gets a list of messages. (Useful when handling <see cref="E:work.bacome.imapclient.cMailbox.MessageDelivery"/>.)
             </summary>
-            <param name="pHandles"></param>
+            <param name="pMessageHandles"></param>
             <param name="pItems">The set of items to ensure are cached for the returned messages. If not specified <see cref="P:work.bacome.imapclient.cIMAPClient.DefaultMessageCacheItems"/> will be used.</param>
             <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
             <inheritdoc cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)" select="returns|remarks"/>
@@ -3238,7 +3222,7 @@
             <param name="pItems">The set of items to ensure are cached for the returned message.</param>
             <returns></returns>
             <remarks>
-            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as parameters to this method.</note>
+            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.MessageAsync(work.bacome.imapclient.cUID,work.bacome.imapclient.cMessageCacheItems)">
@@ -3258,7 +3242,7 @@
             <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
             <returns></returns>
             <remarks>
-            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as parameters to this method.</note>
+            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.MessagesAsync(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cUID},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)">
@@ -3463,16 +3447,18 @@
             Creates a mailbox at the top level of hierarchy in the container.
             </summary>
             <param name="pName">The mailbox name to use.</param>
-            <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
+            <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
+            <inheritdoc cref="M:work.bacome.imapclient.cIMAPClient.Create(work.bacome.imapclient.cMailboxName,System.Boolean)" select="remarks"/>
         </member>
         <member name="M:work.bacome.imapclient.iMailboxContainer.CreateChildAsync(System.String,System.Boolean)">
             <summary>
             Asynchronously creates a mailbox at the top level of hierarchy in the container.
             </summary>
             <param name="pName">The mailbox name to use.</param>
-            <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
+            <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
+            <inheritdoc cref="M:work.bacome.imapclient.iMailboxContainer.CreateChild(System.String,System.Boolean)" select="remarks"/>
         </member>
         <member name="T:work.bacome.imapclient.fMessageProperties">
             <summary>
@@ -3610,7 +3596,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cMailboxName.#ctor(System.String,System.Nullable{System.Char})">
             <summary>
-            Initialises a new instance with the specified path and hierarchy delimiter. Will throw if the parameters provided are not valid.
+            Initialises a new instance with the specified path and hierarchy delimiter. Will throw if the arguments provided are not valid.
             </summary>
             <param name="pPath"></param>
             <param name="pDelimiter"></param>
@@ -3658,7 +3644,7 @@
             </summary>
             <seealso cref="E:work.bacome.imapclient.cIMAPClient.MailboxPropertyChanged"/>
         </member>
-        <member name="F:work.bacome.imapclient.cMailboxPropertyChangedEventArgs.Handle">
+        <member name="F:work.bacome.imapclient.cMailboxPropertyChangedEventArgs.MailboxHandle">
             <summary>The mailbox that changed.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cMailboxPropertyChangedEventArgs.ToString">
@@ -3670,7 +3656,7 @@
             </summary>
             <seealso cref="E:work.bacome.imapclient.cMailbox.MessageDelivery"/>
         </member>
-        <member name="F:work.bacome.imapclient.cMessageDeliveryEventArgs.Handles">
+        <member name="F:work.bacome.imapclient.cMessageDeliveryEventArgs.MessageHandles">
             <summary>The messages that were delivered.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cMessageDeliveryEventArgs.ToString">
@@ -3682,7 +3668,7 @@
             </summary>
             <seealso cref="E:work.bacome.imapclient.cIMAPClient.MailboxMessageDelivery"/>
         </member>
-        <member name="F:work.bacome.imapclient.cMailboxMessageDeliveryEventArgs.Handle">
+        <member name="F:work.bacome.imapclient.cMailboxMessageDeliveryEventArgs.MailboxHandle">
             <summary>The mailbox that the messages were delivered to.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cMailboxMessageDeliveryEventArgs.ToString">
@@ -3701,7 +3687,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cAddresses">
             <summary>
-            A read-only collection of email addresses.
+            An immutable collection of email addresses.
             </summary>
             <seealso cref="P:work.bacome.imapclient.cMessage.BCC"/>
             <seealso cref="P:work.bacome.imapclient.cMessage.CC"/>
@@ -3779,7 +3765,7 @@
         <member name="F:work.bacome.imapclient.cAttachment.Client">
             <summary>The client that the instance was created by.</summary>
         </member>
-        <member name="F:work.bacome.imapclient.cAttachment.Handle">
+        <member name="F:work.bacome.imapclient.cAttachment.MessageHandle">
             <summary>The message that the attachment belongs to.</summary>
         </member>
         <member name="F:work.bacome.imapclient.cAttachment.Part">
@@ -3787,17 +3773,17 @@
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.Type">
             <summary>
-            Gets the MIME type of the attachment in text form.
+            Gets the MIME type of the attachment as a string.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.TypeCode">
             <summary>
-            Gets the MIME type of the attachment in code form.
+            Gets the MIME type of the attachment as a code.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.SubType">
             <summary>
-            Gets the MIME subtype of the attachment in text form.
+            Gets the MIME subtype of the attachment as a string.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.Parameters">
@@ -3817,12 +3803,12 @@
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.ContentTransferEncoding">
             <summary>
-            Gets the MIME content-transfer-encoding of the attachment in text form.
+            Gets the MIME content-transfer-encoding of the attachment as a string.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.DecodingRequired">
             <summary>
-            Gets the MIME content-transfer-encoding of the attachment in code form.
+            Gets the MIME content-transfer-encoding of the attachment as a code.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cAttachment.PartSizeInBytes">
@@ -3906,7 +3892,7 @@
             <seealso cref="F:work.bacome.imapclient.cBodyPart.TypeCode"/>
             <seealso cref="P:work.bacome.imapclient.cAttachment.TypeCode"/>"/>
         </member>
-        <member name="F:work.bacome.imapclient.eBodyPartTypeCode.unknown">
+        <member name="F:work.bacome.imapclient.eBodyPartTypeCode.other">
             <summary>The type was not recognised by the library.</summary>
         </member>
         <member name="F:work.bacome.imapclient.eBodyPartTypeCode.text">
@@ -3936,7 +3922,7 @@
             </summary>
             <seealso cref="F:work.bacome.imapclient.cBodyPartDisposition.TypeCode"/>
         </member>
-        <member name="F:work.bacome.imapclient.eDispositionTypeCode.unknown">
+        <member name="F:work.bacome.imapclient.eDispositionTypeCode.other">
             <summary>The type was not recognised by the library.</summary>
         </member>
         <member name="F:work.bacome.imapclient.eDispositionTypeCode.inline">
@@ -3951,7 +3937,7 @@
             </summary>
             <seealso cref="F:work.bacome.imapclient.cTextBodyPart.SubTypeCode"/>
         </member>
-        <member name="F:work.bacome.imapclient.eTextBodyPartSubTypeCode.unknown">
+        <member name="F:work.bacome.imapclient.eTextBodyPartSubTypeCode.other">
             <summary>The subtype was not recognised by the library.</summary>
         </member>
         <member name="F:work.bacome.imapclient.eTextBodyPartSubTypeCode.plain">
@@ -3966,7 +3952,7 @@
             </summary>
             <seealso cref="F:work.bacome.imapclient.cMultiPartBody.SubTypeCode"/>
         </member>
-        <member name="F:work.bacome.imapclient.eMultiPartBodySubTypeCode.unknown">
+        <member name="F:work.bacome.imapclient.eMultiPartBodySubTypeCode.other">
             <summary>The subtype was not recognised by the library.</summary>
         </member>
         <member name="F:work.bacome.imapclient.eMultiPartBodySubTypeCode.mixed">
@@ -3994,12 +3980,12 @@
         </member>
         <member name="F:work.bacome.imapclient.cBodyPart.Type">
             <summary>
-            The MIME type of the body-part in text form.
+            The MIME type of the body-part as a string.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cBodyPart.SubType">
             <summary>
-            The MIME subtype of the body-part in text form.
+            The MIME subtype of the body-part as a string.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cBodyPart.Section">
@@ -4009,7 +3995,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cBodyPart.TypeCode">
             <summary>
-            The MIME type of the body-part in code form.
+            The MIME type of the body-part as a code.
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.cBodyPart.Disposition">
@@ -4080,7 +4066,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cBodyParts">
             <summary>
-            A read-only collection of message body-parts.
+            An immutable collection of message body-parts.
             </summary>
             <seealso cref="F:work.bacome.imapclient.cMultiPartBody.Parts"/>
         </member>
@@ -4165,7 +4151,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cMultiPartBody.SubTypeCode">
             <summary>
-            The MIME subtype of the body-part in code form.
+            The MIME subtype of the body-part as a code.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cMultiPartBody.ExtensionData">
@@ -4204,12 +4190,12 @@
         </member>
         <member name="F:work.bacome.imapclient.cBodyPartDisposition.Type">
             <summary>
-            The disposition type in text form. 
+            The disposition type as a string. 
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cBodyPartDisposition.TypeCode">
             <summary>
-            The disposition type in code form. 
+            The disposition type as a code. 
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cBodyPartDisposition.Parameters">
@@ -4282,12 +4268,12 @@
         </member>
         <member name="F:work.bacome.imapclient.cSinglePartBody.ContentTransferEncoding">
             <summary>
-            The MIME content-transfer-encoding of the body-part in text form.
+            The MIME content-transfer-encoding of the body-part as a string.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cSinglePartBody.DecodingRequired">
             <summary>
-            The MIME content-transfer-encoding of the body-part in code form.
+            The MIME content-transfer-encoding of the body-part as a code.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cSinglePartBody.SizeInBytes">
@@ -4358,7 +4344,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cTextBodyPart.SubTypeCode">
             <summary>
-            The MIME subtype of the body-part in code form.
+            The MIME subtype of the body-part as a code.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cTextBodyPart.SizeInLines">
@@ -4428,7 +4414,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cBodyStructureParameters">
             <summary>
-            A read-only collection of IMAP BODYSTRUCTURE attribute-value pairs.
+            An immutable collection of IMAP BODYSTRUCTURE attribute-value pairs.
             </summary>
             <seealso cref="P:work.bacome.imapclient.cAttachment.Parameters"/>
             <seealso cref="F:work.bacome.imapclient.cSinglePartBody.Parameters"/>
@@ -4970,17 +4956,14 @@
         <member name="F:work.bacome.imapclient.cMessage.Client">
             <summary>The client that this instance was created by.</summary>
         </member>
-        <member name="F:work.bacome.imapclient.cMessage.Handle">
+        <member name="F:work.bacome.imapclient.cMessage.MessageHandle">
             <summary>The message that this instance represents.</summary>
         </member>
         <member name="E:work.bacome.imapclient.cMessage.PropertyChanged">
             <summary>
             Fired when the server notifies the client of a change that affects a property value of the instance.
             </summary>
-            <remarks>
-            If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
-            </remarks>
+            <inheritdoc cref="!:cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Expunged">
             <summary>
@@ -5248,7 +5231,7 @@
             </returns>
             <remarks>
             The items that aren't currently cached will be fetched from the server.
-            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as parameters to this method.</note>
+            <note type="note"><see cref="T:work.bacome.imapclient.cMessageCacheItems"/> has implicit conversions from other types including <see cref="T:work.bacome.imapclient.fMessageProperties"/>. This means that you can use values of those types as arguments to this method.</note>
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cMessageCacheItems)">
@@ -5464,11 +5447,11 @@
         </member>
         <member name="T:work.bacome.imapclient.cMessageFlags">
             <summary>
-            Represents a read-only message-flag collection.
+            Represents an immutable message-flag collection.
             </summary>
             <remarks>
             Message flags are case insensitive and have a limited grammer - see RFC 3501.
-            (Generally user-defined message-flags must only include <see cref="F:work.bacome.imapclient.support.cCharset.Atom"/> characters.)
+            (Generally user-defined message-flags may only include <see cref="F:work.bacome.imapclient.support.cCharset.Atom"/> characters.)
             </remarks>
             <seealso cref="P:work.bacome.imapclient.cMailbox.ForUpdatePermanentFlags"/>
             <seealso cref="P:work.bacome.imapclient.cMailbox.ReadOnlyPermanentFlags"/>
@@ -5515,11 +5498,11 @@
         </member>
         <member name="T:work.bacome.imapclient.cStorableFlags">
             <summary>
-            A read-only storable-message-flag collection.
+            An immutable storable-message-flag collection.
             </summary>
             <remarks>
             Message flags are case insensitive and have a limited grammar - see RFC 3501.
-            (Generally user-defined message-flags must only include <see cref="F:work.bacome.imapclient.support.cCharset.Atom"/> characters.)
+            (Generally user-defined message-flags may only include <see cref="F:work.bacome.imapclient.support.cCharset.Atom"/> characters.)
             <see cref="F:work.bacome.imapclient.kMessageFlag.Recent"/> is not a storable-message-flag.
             <see cref="F:work.bacome.imapclient.kMessageFlag.CreateNewIsPossible"/> is not a storable-message-flag.
             </remarks>
@@ -5528,7 +5511,7 @@
             <seealso cref="M:work.bacome.imapclient.cMailbox.UIDStore(work.bacome.imapclient.cUID,work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cStorableFlags,System.Nullable{System.UInt64})"/>,
             <seealso cref="M:work.bacome.imapclient.cMailbox.UIDStore(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cUID},work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cStorableFlags,System.Nullable{System.UInt64})"/>,
         </member>
-        <member name="F:work.bacome.imapclient.cStorableFlags.None">
+        <member name="F:work.bacome.imapclient.cStorableFlags.Empty">
             <summary>An empty storable-message-flag collection.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.cStorableFlags.Answered">
@@ -5579,11 +5562,11 @@
         </member>
         <member name="T:work.bacome.imapclient.cFetchableFlags">
             <summary>
-            A read-only fetchable-message-flag collection.
+            An immutable fetchable-message-flag collection.
             </summary>
             <remarks>
             Message flags are case insensitive and have a limited grammar - see RFC 3501.
-            (Generally user-defined message-flags must only include <see cref="F:work.bacome.imapclient.support.cCharset.Atom"/> characters.)
+            (Generally user-defined message-flags may only include <see cref="F:work.bacome.imapclient.support.cCharset.Atom"/> characters.)
             <see cref="F:work.bacome.imapclient.kMessageFlag.CreateNewIsPossible"/> is not a fetchable-message-flag.
             </remarks>
             <seealso cref="P:work.bacome.imapclient.cMailbox.MessageFlags"/>
@@ -5732,7 +5715,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cMessageCacheItems">
             <summary>
-            Represents set of items that can be cached in a <see cref="T:work.bacome.imapclient.cIMAPClient"/> message cache.
+            Represents a set of items that can be cached in a <see cref="T:work.bacome.imapclient.cIMAPClient"/> message cache.
             </summary>
             <seealso cref="P:work.bacome.imapclient.cIMAPClient.DefaultMessageCacheItems"/>
             <seealso cref="M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cMessageCacheItems)"/>
@@ -5741,7 +5724,7 @@
             <seealso cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cUID},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cMessage},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/>
         </member>
-        <member name="F:work.bacome.imapclient.cMessageCacheItems.None">
+        <member name="F:work.bacome.imapclient.cMessageCacheItems.Empty">
             <summary>
             An empty set of items.
             </summary>
@@ -5769,7 +5752,7 @@
             </summary>
             <param name="pProperties">The message properties to cache the backing data for.</param>
         </member>
-        <member name="P:work.bacome.imapclient.cMessageCacheItems.IsNone">
+        <member name="P:work.bacome.imapclient.cMessageCacheItems.IsEmpty">
             <summary>
             Indicates whether the set is empty.
             </summary>
@@ -5813,7 +5796,7 @@
             </summary>
             <seealso cref="E:work.bacome.imapclient.cIMAPClient.MessagePropertyChanged"/>
         </member>
-        <member name="F:work.bacome.imapclient.cMessagePropertyChangedEventArgs.Handle">
+        <member name="F:work.bacome.imapclient.cMessagePropertyChangedEventArgs.MessageHandle">
             <summary>The message that changed.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cMessagePropertyChangedEventArgs.ToString">
@@ -6230,16 +6213,18 @@
             Creates a mailbox at the top level of hierarchy in the namespace.
             </summary>
             <param name="pName">The mailbox name to use.</param>
-            <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
+            <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
+            <inheritdoc cref="M:work.bacome.imapclient.cIMAPClient.Create(work.bacome.imapclient.cMailboxName,System.Boolean)" select="remarks"/>
         </member>
         <member name="M:work.bacome.imapclient.cNamespace.CreateChildAsync(System.String,System.Boolean)">
             <summary>
             Asynchronously creates a mailbox at the top level of hierarchy in the namespace.
             </summary>
             <param name="pName">The mailbox name to use.</param>
-            <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
+            <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
+            <inheritdoc cref="M:work.bacome.imapclient.cNamespace.CreateChild(System.String,System.Boolean)" select="remarks"/>
         </member>
         <member name="M:work.bacome.imapclient.cNamespace.ToString">
             <inheritdoc/>
@@ -6269,7 +6254,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cNamespaces">
             <summary>
-            A read-only collection of <see cref="T:work.bacome.imapclient.cNamespace"/>.
+            An immutable collection of <see cref="T:work.bacome.imapclient.cNamespace"/>.
             </summary>
             <seealso cref="P:work.bacome.imapclient.cIMAPClient.Namespaces"/>
         </member>
@@ -6532,7 +6517,7 @@
             Thrown when a message's sequence number or server-side message data is required after the message has been expunged.
             </summary>
         </member>
-        <member name="F:work.bacome.imapclient.cMessageExpungedException.Handle">
+        <member name="F:work.bacome.imapclient.cMessageExpungedException.MessageHandle">
             <summary>
             The message concerned.
             </summary>
@@ -6660,7 +6645,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cId">
             <summary>
-            A read-only ID (RFC 2971) field/ value dictionary.
+            An immutable ID (RFC 2971) field/ value dictionary.
             </summary>
             <remarks>
             ID field names are case insensitive.
@@ -6748,7 +6733,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cClientIdUTF8">
             <summary>
-            A read-only ID (RFC 2971) field/ value dictionary.
+            An immutable ID (RFC 2971) field/ value dictionary.
             </summary>
             <remarks>
             <para>
@@ -7128,17 +7113,17 @@
         </member>
         <member name="F:work.bacome.imapclient.cResponseText.CodeText">
             <summary>
-            The response code associated with the response text in text form, may be <see langword="null"/>.
+            The response code associated with the response text as a string, may be <see langword="null"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cResponseText.ArgumentsText">
             <summary>
-            The response code arguments associated with the response text in text form, may be <see langword="null"/>.
+            The response code arguments associated with the response text as a string, may be <see langword="null"/>.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cResponseText.Code">
             <summary>
-            The response code associated with the response text in code form.
+            The response code associated with the response text as a code.
             </summary>
             <inheritdoc cref="T:work.bacome.imapclient.cResponseText" select="remarks"/>
         </member>
@@ -7278,7 +7263,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cSASLAnonymous">
             <summary>
-            Contains parameters for use with the IMAP AUTHENTICATE ANONYMOUS command.
+            Contains arguments for use with the IMAP AUTHENTICATE ANONYMOUS command.
             </summary>
             <remarks>
             RFC 4505 specifies that the trace information must be a valid email address or 1 to 255 characters of text not including '@'.
@@ -7415,7 +7400,7 @@
         </member>
         <member name="T:work.bacome.imapclient.cSASLPlain">
             <summary>
-            Contains parameters for use with the IMAP AUTHENTICATE PLAIN command.
+            Contains arguments for use with the IMAP AUTHENTICATE PLAIN command.
             </summary>
             <remarks>
             RFC 4616 specifies that the authentication-id and password must be at least 1 character long and that they may not include the NUL character.
@@ -7564,6 +7549,15 @@
             <remarks>
             </remarks>
         </member>
+        <member name="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event">
+            <summary>
+            
+            </summary>
+            <remarks>
+            If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events and callbacks are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
+            If an exception is raised in an event handler or callback then the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
+            </remarks>
+        </member>
         <member name="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.#ctor">
             <summary>
             Initialises a new instance.
@@ -7679,6 +7673,9 @@
         </member>
         <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.#ctor">
             <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.#ctor"/>
+        </member>
+        <member name="E:work.bacome.apidocumentation.cAPIDocumentationExample2.Event">
+            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.CompareTo(System.Object)">
             <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.CompareTo(System.Object)"/>

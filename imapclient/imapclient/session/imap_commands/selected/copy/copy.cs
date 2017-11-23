@@ -12,35 +12,35 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kCopyCommandPart = new cTextCommandPart("COPY ");
 
-            private async Task<cCopyFeedback> ZCopyAsync(cMethodControl pMC, cMessageHandleList pSourceHandles, cMailboxCacheItem pDestinationItem, cTrace.cContext pParentContext)
+            private async Task<cCopyFeedback> ZCopyAsync(cMethodControl pMC, cMessageHandleList pSourceMessageHandles, cMailboxCacheItem pDestinationItem, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZCopyAsync), pMC, pSourceHandles, pDestinationItem);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZCopyAsync), pMC, pSourceMessageHandles, pDestinationItem);
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pSourceHandles);
+                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pSourceMessageHandles);
 
                     lBuilder.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
                     lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     // uidvalidity must be captured before the handles are resolved
-                    var lUIDValidity = lSelectedMailbox.Cache.UIDValidity;
+                    var lUIDValidity = lSelectedMailbox.MessageCache.UIDValidity;
                     lBuilder.AddUIDValidity(lUIDValidity);
 
                     // resolve the handles to MSNs
 
                     cUIntList lMSNs = new cUIntList();
 
-                    foreach (var lHandle in pSourceHandles)
+                    foreach (var lMessageHandle in pSourceMessageHandles)
                     {
-                        var lMSN = lSelectedMailbox.GetMSN(lHandle);
+                        var lMSN = lSelectedMailbox.GetMSN(lMessageHandle);
 
                         if (lMSN == 0)
                         {
-                            if (lHandle.Expunged) throw new cMessageExpungedException(lHandle);
-                            else throw new ArgumentOutOfRangeException(nameof(pSourceHandles));
+                            if (lMessageHandle.Expunged) throw new cMessageExpungedException(lMessageHandle);
+                            else throw new ArgumentOutOfRangeException(nameof(pSourceMessageHandles));
                         }
 
                         lMSNs.Add(lMSN);

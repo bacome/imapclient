@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
         public readonly string UserId;
 
         /// <summary>
-        /// The parameters to use with the IMAP LOGIN command for these credentials.
+        /// The arguments to use with the IMAP LOGIN command for these credentials.
         /// </summary>
         public readonly cLogin Login;
 

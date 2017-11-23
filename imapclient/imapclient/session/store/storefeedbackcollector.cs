@@ -25,8 +25,8 @@ namespace work.bacome.imapclient
 
                     foreach (var lItem in pItems)
                     {
-                        if (lItem.Handle.UID == null) throw new InvalidOperationException();
-                        mDictionary[lItem.Handle.UID.UID] = lItem;
+                        if (lItem.MessageHandle.UID == null) throw new InvalidOperationException();
+                        mDictionary[lItem.MessageHandle.UID.UID] = lItem;
                     }
                 }
 

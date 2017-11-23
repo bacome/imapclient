@@ -233,7 +233,7 @@ namespace testharness2
         {
             rUID = null;
             rSection = null;
-            rDecoding = eDecodingRequired.unknown;
+            rDecoding = eDecodingRequired.other;
 
             if (!ValidateChildren(ValidationConstraints.Enabled))
             {

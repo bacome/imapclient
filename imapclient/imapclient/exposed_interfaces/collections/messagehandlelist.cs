@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     public class cMessageHandleList : List<iMessageHandle>
     {
         internal cMessageHandleList() { }
-        internal cMessageHandleList(IEnumerable<iMessageHandle> pHandles) : base(pHandles) { }
+        internal cMessageHandleList(IEnumerable<iMessageHandle> pMessageHandles) : base(pMessageHandles) { }
 
         internal void SortByCacheSequence() => Sort(ZCompareCacheSequence);
 
@@ -22,18 +22,18 @@ namespace work.bacome.imapclient
 
             object lLastCache = null;
 
-            foreach (var lHandle in this)
+            foreach (var lMessageHandle in this)
             {
-                if (lHandle == null) lBuilder.Append(lHandle);
+                if (lMessageHandle == null) lBuilder.Append(lMessageHandle);
                 else
                 {
-                    if (!ReferenceEquals(lHandle.Cache, lLastCache))
+                    if (!ReferenceEquals(lMessageHandle.MessageCache, lLastCache))
                     {
-                        lLastCache = lHandle.Cache;
-                        lBuilder.Append(lHandle.Cache);
+                        lLastCache = lMessageHandle.MessageCache;
+                        lBuilder.Append(lMessageHandle.MessageCache);
                     }
 
-                    lBuilder.Append(lHandle.CacheSequence);
+                    lBuilder.Append(lMessageHandle.CacheSequence);
                 }
             }
 
@@ -53,46 +53,46 @@ namespace work.bacome.imapclient
             return pX.CacheSequence.CompareTo(pY.CacheSequence);
         }
 
-        internal static cMessageHandleList FromHandle(iMessageHandle pHandle)
+        internal static cMessageHandleList FromMessageHandle(iMessageHandle pMessageHandle)
         {
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             var lResult = new cMessageHandleList();
-            lResult.Add(pHandle);
+            lResult.Add(pMessageHandle);
             return lResult;
         }
 
-        internal static cMessageHandleList FromHandles(IEnumerable<iMessageHandle> pHandles)
+        internal static cMessageHandleList FromMessageHandles(IEnumerable<iMessageHandle> pMessageHandles)
         {
-            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+            if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
 
-            object lCache = null;
+            object lMessageCache = null;
 
-            foreach (var lHandle in pHandles)
+            foreach (var lMessageHandle in pMessageHandles)
             {
-                if (lHandle == null) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains nulls");
-                if (lCache == null) lCache = lHandle.Cache;
-                else if (!ReferenceEquals(lHandle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains mixed caches");
+                if (lMessageHandle == null) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), "contains nulls");
+                if (lMessageCache == null) lMessageCache = lMessageHandle.MessageCache;
+                else if (!ReferenceEquals(lMessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), "contains mixed message caches");
             }
 
-            return new cMessageHandleList(pHandles.Distinct());
+            return new cMessageHandleList(pMessageHandles.Distinct());
         }
 
         internal static cMessageHandleList FromMessages(IEnumerable<cMessage> pMessages)
         {
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
 
-            object lCache = null;
-            cMessageHandleList lHandles = new cMessageHandleList();
+            object lMessageCache = null;
+            cMessageHandleList lMessageHandles = new cMessageHandleList();
 
             foreach (var lMessage in pMessages)
             {
                 if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains nulls");
-                if (lCache == null) lCache = lMessage.Handle.Cache;
-                else if (!ReferenceEquals(lMessage.Handle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains mixed caches");
-                lHandles.Add(lMessage.Handle);
+                if (lMessageCache == null) lMessageCache = lMessage.MessageHandle.MessageCache;
+                else if (!ReferenceEquals(lMessage.MessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains mixed message caches");
+                lMessageHandles.Add(lMessage.MessageHandle);
             }
 
-            return new cMessageHandleList(lHandles.Distinct());
+            return new cMessageHandleList(lMessageHandles.Distinct());
         }
     }
 }

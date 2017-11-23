@@ -19,29 +19,29 @@ namespace work.bacome.imapclient
         /**<summary>The client that the instance was created by.</summary>*/
         public readonly cIMAPClient Client;
         /**<summary>The message that the attachment belongs to.</summary>*/
-        public readonly iMessageHandle Handle;
+        public readonly iMessageHandle MessageHandle;
         /**<summary>The body-part of the attachment.</summary>*/
         public readonly cSinglePartBody Part;
 
-        internal cAttachment(cIMAPClient pClient, iMessageHandle pHandle, cSinglePartBody pPart)
+        internal cAttachment(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
         }
 
         /// <summary>
-        /// Gets the MIME type of the attachment in text form.
+        /// Gets the MIME type of the attachment as a string.
         /// </summary>
         public string Type => Part.Type;
 
         /// <summary>
-        /// Gets the MIME type of the attachment in code form.
+        /// Gets the MIME type of the attachment as a code.
         /// </summary>
         public eBodyPartTypeCode TypeCode => Part.TypeCode;
 
         /// <summary>
-        /// Gets the MIME subtype of the attachment in text form.
+        /// Gets the MIME subtype of the attachment as a string.
         /// </summary>
         public string SubType => Part.SubType;
 
@@ -61,12 +61,12 @@ namespace work.bacome.imapclient
         public cCulturedString Description => Part.Description;
 
         /// <summary>
-        /// Gets the MIME content-transfer-encoding of the attachment in text form.
+        /// Gets the MIME content-transfer-encoding of the attachment as a string.
         /// </summary>
         public string ContentTransferEncoding => Part.ContentTransferEncoding;
 
         /// <summary>
-        /// Gets the MIME content-transfer-encoding of the attachment in code form.
+        /// Gets the MIME content-transfer-encoding of the attachment as a code.
         /// </summary>
         public eDecodingRequired DecodingRequired => Part.DecodingRequired;
 
@@ -118,13 +118,13 @@ namespace work.bacome.imapclient
         /// This may be smaller than <see cref="PartSizeInBytes"/> if <see cref="DecodingRequired"/>) isn't <see cref="eDecodingRequired.none"/> and <see cref="cCapabilities.Binary"/> is in use.
         /// The size may have to be fetched from the server, but once fetched it will be cached.
         /// </remarks>
-        public int SaveSizeInBytes() => Client.FetchSizeInBytes(Handle, Part);
+        public int SaveSizeInBytes() => Client.FetchSizeInBytes(MessageHandle, Part);
 
         /// <summary>
         /// Asynchronously gets the number of bytes that will have to come over the network from the server to save the attachment
         /// </summary>
         /// <inheritdoc cref="SaveSizeInBytes" select="returns|remarks"/>
-        public Task<int> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(Handle, Part);
+        public Task<int> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(MessageHandle, Part);
 
         /// <summary>
         /// Saves the attachment to the specified path.
@@ -135,7 +135,7 @@ namespace work.bacome.imapclient
         {
             using (FileStream lStream = new FileStream(pPath, FileMode.Create))
             {
-                Client.Fetch(Handle, Part.Section, Part.DecodingRequired, lStream, pConfiguration);
+                Client.Fetch(MessageHandle, Part.Section, Part.DecodingRequired, lStream, pConfiguration);
             }
 
             if (Part.Disposition?.CreationDate != null) File.SetCreationTime(pPath, Part.Disposition.CreationDate.Value);
@@ -153,7 +153,7 @@ namespace work.bacome.imapclient
         {
             using (FileStream lStream = new FileStream(pPath, FileMode.Create))
             {
-                await Client.FetchAsync(Handle, Part.Section, Part.DecodingRequired, lStream, pConfiguration).ConfigureAwait(false);
+                await Client.FetchAsync(MessageHandle, Part.Section, Part.DecodingRequired, lStream, pConfiguration).ConfigureAwait(false);
             }
 
             if (Part.Disposition?.CreationDate != null) File.SetCreationTime(pPath, Part.Disposition.CreationDate.Value);
@@ -162,6 +162,6 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cAttachment)}({Handle},{Part.Section})";
+        public override string ToString() => $"{nameof(cAttachment)}({MessageHandle},{Part.Section})";
     }
 }

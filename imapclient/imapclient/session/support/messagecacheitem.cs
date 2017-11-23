@@ -9,19 +9,19 @@ namespace work.bacome.imapclient
         {
             private abstract class cMessageCacheItem : iMessageHandle
             {
-                private readonly iMessageCache mCache;
+                private readonly iMessageCache mMessageCache;
                 private readonly int mCacheSequence;
                 private bool mExpunged = false;
                 private fMessageCacheAttributes mAttributes;
                 private cBodyPart mBody = null;
                 private ulong? mModSeq;
 
-                public cMessageCacheItem(iMessageCache pCache, int pCacheSequence)
+                public cMessageCacheItem(iMessageCache pMessageCache, int pCacheSequence)
                 {
-                    mCache = pCache ?? throw new ArgumentNullException(nameof(pCache));
+                    mMessageCache = pMessageCache ?? throw new ArgumentNullException(nameof(pMessageCache));
                     mCacheSequence = pCacheSequence;
 
-                    if (pCache.NoModSeq)
+                    if (pMessageCache.NoModSeq)
                     {
                         mAttributes = fMessageCacheAttributes.modseq;
                         mModSeq = 0;
@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public iMessageCache Cache => mCache;
+                public iMessageCache MessageCache => mMessageCache;
                 public int CacheSequence => mCacheSequence;
                 public bool Expunged => mExpunged;
                 public fMessageCacheAttributes Attributes => mAttributes;
@@ -45,8 +45,8 @@ namespace work.bacome.imapclient
                 public DateTime? Received { get; private set; } = null;
                 public uint? Size { get; private set; } = null;
                 public cUID UID { get; private set; } = null;
-                public cHeaderFields HeaderFields { get; private set; } = cHeaderFields.None;
-                public cBinarySizes BinarySizes { get; private set; } = cBinarySizes.None;
+                public cHeaderFields HeaderFields { get; private set; } = cHeaderFields.Empty;
+                public cBinarySizes BinarySizes { get; private set; } = cBinarySizes.Empty;
 
                 public bool Contains(cMessageCacheItems pItems) => (~mAttributes & pItems.Attributes) == 0 && HeaderFields.Contains(pItems.Names);
                 public bool ContainsNone(cMessageCacheItems pItems) => (~mAttributes & pItems.Attributes) == pItems.Attributes && HeaderFields.ContainsNone(pItems.Names);
@@ -76,9 +76,9 @@ namespace work.bacome.imapclient
                     if ((rAttributesSet & fMessageCacheAttributes.size) != 0) Size = lFetch.Size;
                     if ((rAttributesSet & fMessageCacheAttributes.body) != 0) mBody = lFetch.Body;
                     if ((rAttributesSet & fMessageCacheAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;
-                    if ((rAttributesSet & fMessageCacheAttributes.uid) != 0 && mCache.UIDValidity != 0) UID = new cUID(mCache.UIDValidity, lFetch.UID.Value);
+                    if ((rAttributesSet & fMessageCacheAttributes.uid) != 0 && mMessageCache.UIDValidity != 0) UID = new cUID(mMessageCache.UIDValidity, lFetch.UID.Value);
 
-                    if (!mCache.NoModSeq)
+                    if (!mMessageCache.NoModSeq)
                     {
                         if ((rAttributesSet & fMessageCacheAttributes.modseq) != 0) mModSeq = lFetch.ModSeq;
                         else if (lFetch.ModSeq != null && lFetch.ModSeq != mModSeq)
@@ -111,7 +111,7 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                public override string ToString() => $"{nameof(cMessageCacheItem)}({mCache},{mCacheSequence})";
+                public override string ToString() => $"{nameof(cMessageCacheItem)}({mMessageCache},{mCacheSequence})";
             }
         }
     }

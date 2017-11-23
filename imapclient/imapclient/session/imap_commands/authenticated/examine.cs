@@ -13,15 +13,15 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kExamineCommandPart = new cTextCommandPart("EXAMINE ");
             private static readonly cCommandPart kExamineCommandPartCondStore = new cTextCommandPart(" (CONDSTORE)");
 
-            public async Task ExamineAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
+            public async Task ExamineAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ExamineAsync), pMC, pHandle);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ExamineAsync), pMC, pMailboxHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
-                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
-                var lItem = mMailboxCache.CheckHandle(pHandle);
+                var lItem = mMailboxCache.CheckHandle(pMailboxHandle);
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(kExamineCommandPart, lItem.MailboxNameCommandPart);
                     if (_Capabilities.CondStore) lBuilder.Add(kExamineCommandPartCondStore);
 
-                    var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pHandle, false);
+                    var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pMailboxHandle, false);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);

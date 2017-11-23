@@ -90,7 +90,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("listextended success");
-                        return lHook.Handles;
+                        return lHook.MailboxHandles;
                     }
 
                     fCapabilities lTryIgnoring = 0;
@@ -121,7 +121,7 @@ namespace work.bacome.imapclient
                     mStatus = pStatus;
                 }
 
-                public List<iMailboxHandle> Handles { get; private set; } = null;
+                public List<iMailboxHandle> MailboxHandles { get; private set; } = null;
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
@@ -185,7 +185,7 @@ namespace work.bacome.imapclient
                     if (mSelect == eListExtendedSelect.subscribed || mSelect == eListExtendedSelect.subscribedrecursive) mCache.ResetLSubFlags(mPattern, mSequence, lContext);
                     if (mStatus) mCache.ResetStatus(mPattern, mSequence, lContext);
 
-                    Handles = mCache.GetHandles(mMailboxes);
+                    MailboxHandles = mCache.GetHandles(mMailboxes);
                 }
             }
         }

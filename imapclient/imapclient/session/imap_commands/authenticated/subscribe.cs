@@ -13,15 +13,15 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kSubscribeCommandPart = new cTextCommandPart("SUBSCRIBE ");
             private static readonly cCommandPart kUnsubscribeCommandPart = new cTextCommandPart("UNSUBSCRIBE ");
 
-            public async Task SubscribeAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
+            public async Task SubscribeAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SubscribeAsync), pMC, pHandle);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SubscribeAsync), pMC, pMailboxHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
-                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
-                var lItem = mMailboxCache.CheckHandle(pHandle);
+                var lItem = mMailboxCache.CheckHandle(pMailboxHandle);
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
@@ -45,15 +45,15 @@ namespace work.bacome.imapclient
                 }
             }
 
-            public async Task UnsubscribeAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
+            public async Task UnsubscribeAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UnsubscribeAsync), pMC, pHandle);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UnsubscribeAsync), pMC, pMailboxHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
-                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
-                var lItem = mMailboxCache.CheckHandle(pHandle);
+                var lItem = mMailboxCache.CheckHandle(pMailboxHandle);
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {

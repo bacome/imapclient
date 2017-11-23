@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
 
                 private readonly cMailboxCache mMailboxCache;
                 private readonly cCapabilities mCapabilities;
-                private readonly iMailboxHandle mHandle;
+                private readonly iMailboxHandle mMailboxHandle;
                 private readonly bool mForUpdate;
 
                 private cFetchableFlags mFlags = null;
@@ -29,11 +29,11 @@ namespace work.bacome.imapclient
                 private bool mUIDNotSticky = false;
                 private bool mAccessReadOnly = false;
 
-                public cCommandHookSelect(cMailboxCache pMailboxCache, cCapabilities pCapabilities, iMailboxHandle pHandle, bool pForUpdate)
+                public cCommandHookSelect(cMailboxCache pMailboxCache, cCapabilities pCapabilities, iMailboxHandle pMailboxHandle, bool pForUpdate)
                 {
                     mMailboxCache = pMailboxCache ?? throw new ArgumentNullException(nameof(pMailboxCache));
                     mCapabilities = pCapabilities ?? throw new ArgumentNullException(nameof(pCapabilities));
-                    mHandle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+                    mMailboxHandle = pMailboxHandle ?? throw new ArgumentNullException(nameof(pMailboxHandle));
                     mForUpdate = pForUpdate;
                 }
 
@@ -124,7 +124,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookSelect), nameof(CommandCompleted), pResult);
                     if (pResult.ResultType != eCommandResultType.ok) return;
-                    mMailboxCache.Select(mHandle, mForUpdate, mAccessReadOnly, mUIDNotSticky, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
+                    mMailboxCache.Select(mMailboxHandle, mForUpdate, mAccessReadOnly, mUIDNotSticky, mFlags, mPermanentFlags, mExists, mRecent, mUIDNext, mUIDValidity, mHighestModSeq, lContext);
                 }
             }
         }

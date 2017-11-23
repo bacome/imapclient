@@ -11,46 +11,46 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public Task<cCopyFeedback> CopyAsync(cMethodControl pMC, cMessageHandleList pSourceHandles, iMailboxHandle pDestinationHandle, cTrace.cContext pParentContext)
+            public Task<cCopyFeedback> CopyAsync(cMethodControl pMC, cMessageHandleList pSourceMessageHandles, iMailboxHandle pDestinationMailboxHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(CopyAsync), pMC, pSourceHandles, pDestinationHandle);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(CopyAsync), pMC, pSourceMessageHandles, pDestinationMailboxHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-                if (pSourceHandles == null) throw new ArgumentNullException(nameof(pSourceHandles));
-                if (pDestinationHandle == null) throw new ArgumentNullException(nameof(pDestinationHandle));
+                if (pSourceMessageHandles == null) throw new ArgumentNullException(nameof(pSourceMessageHandles));
+                if (pDestinationMailboxHandle == null) throw new ArgumentNullException(nameof(pDestinationMailboxHandle));
 
-                if (pSourceHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pSourceHandles));
+                if (pSourceMessageHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pSourceMessageHandles));
 
-                cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pSourceHandles); // to be repeated inside the select lock
+                cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pSourceMessageHandles); // to be repeated inside the select lock
 
-                var lDestinationItem = mMailboxCache.CheckHandle(pDestinationHandle);
+                var lDestinationItem = mMailboxCache.CheckHandle(pDestinationMailboxHandle);
 
-                if (pSourceHandles.TrueForAll(h => h.UID != null)) return ZUIDCopyAsync(pMC, lSelectedMailbox.Handle, pSourceHandles[0].UID.UIDValidity, new cUIntList(from h in pSourceHandles select h.UID.UID), lDestinationItem, lContext);
-                else return ZCopyAsync(pMC, pSourceHandles, lDestinationItem, lContext);
+                if (pSourceMessageHandles.TrueForAll(h => h.UID != null)) return ZUIDCopyAsync(pMC, lSelectedMailbox.MailboxHandle, pSourceMessageHandles[0].UID.UIDValidity, new cUIntList(from h in pSourceMessageHandles select h.UID.UID), lDestinationItem, lContext);
+                else return ZCopyAsync(pMC, pSourceMessageHandles, lDestinationItem, lContext);
             }
 
-            public Task<cCopyFeedback> UIDCopyAsync(cMethodControl pMC, iMailboxHandle pSourceHandle, cUIDList pSourceUIDs, iMailboxHandle pDestinationHandle, cTrace.cContext pParentContext)
+            public Task<cCopyFeedback> UIDCopyAsync(cMethodControl pMC, iMailboxHandle pSourceMailboxHandle, cUIDList pSourceUIDs, iMailboxHandle pDestinationMailboxHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDCopyAsync), pMC, pSourceHandle, pSourceUIDs, pDestinationHandle);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDCopyAsync), pMC, pSourceMailboxHandle, pSourceUIDs, pDestinationMailboxHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-                if (pSourceHandle == null) throw new ArgumentNullException(nameof(pSourceHandle));
+                if (pSourceMailboxHandle == null) throw new ArgumentNullException(nameof(pSourceMailboxHandle));
                 if (pSourceUIDs == null) throw new ArgumentNullException(nameof(pSourceUIDs));
-                if (pDestinationHandle == null) throw new ArgumentNullException(nameof(pDestinationHandle));
+                if (pDestinationMailboxHandle == null) throw new ArgumentNullException(nameof(pDestinationMailboxHandle));
 
                 if (pSourceUIDs.Count == 0) throw new ArgumentOutOfRangeException(nameof(pSourceUIDs));
 
                 uint lSourceUIDValidity = pSourceUIDs[0].UIDValidity;
 
-                cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pSourceHandle, lSourceUIDValidity); // to be repeated inside the select lock
+                cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pSourceMailboxHandle, lSourceUIDValidity); // to be repeated inside the select lock
 
-                var lDestinationItem = mMailboxCache.CheckHandle(pDestinationHandle);
+                var lDestinationItem = mMailboxCache.CheckHandle(pDestinationMailboxHandle);
 
-                return ZUIDCopyAsync(pMC, pSourceHandle, lSourceUIDValidity, new cUIntList(from lUID in pSourceUIDs select lUID.UID), lDestinationItem, lContext);
+                return ZUIDCopyAsync(pMC, pSourceMailboxHandle, lSourceUIDValidity, new cUIntList(from lUID in pSourceUIDs select lUID.UID), lDestinationItem, lContext);
             }
         }
     }

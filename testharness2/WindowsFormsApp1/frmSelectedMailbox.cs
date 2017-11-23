@@ -84,7 +84,7 @@ namespace testharness2
             //    as an example: consider that the client may become selected whilst we are processing the unselect (e.g. before the setting of the mSelectedMailbox below)
             //  )
             //
-            if (ReferenceEquals(mClient.SelectedMailboxDetails?.Cache, mQueriedMessageCache)) return;
+            if (ReferenceEquals(mClient.SelectedMailboxDetails?.MessageCache, mQueriedMessageCache)) return;
 
             ZMessageFormsClose();
 
@@ -95,8 +95,8 @@ namespace testharness2
 
             // defence part two
             var lDetails = mClient.SelectedMailboxDetails;
-            if (!ReferenceEquals(lDetails?.Handle, mSelectedMailbox.Handle)) return;
-            mQueriedMessageCache = lDetails?.Cache;
+            if (!ReferenceEquals(lDetails?.MailboxHandle, mSelectedMailbox.MailboxHandle)) return;
+            mQueriedMessageCache = lDetails?.MessageCache;
 
             ZSubscribeMailbox();
 
@@ -139,7 +139,7 @@ namespace testharness2
             //   therefore some of the messages could be on the grid already
             //  we could be processing one of these when the next one arrives
 
-            if (!ReferenceEquals(e.Handles[0].Cache, mClient.SelectedMailboxDetails?.Cache)) return;
+            if (!ReferenceEquals(e.MessageHandles[0].MessageCache, mClient.SelectedMailboxDetails?.MessageCache)) return;
 
             frmProgress lProgress = null;
             List<cMessage> lMessages;
@@ -148,14 +148,14 @@ namespace testharness2
             {
                 if (mProgressBar)
                 {
-                    lProgress = new frmProgress("loading new messages", e.Handles.Count);
+                    lProgress = new frmProgress("loading new messages", e.MessageHandles.Count);
                     Program.Centre(lProgress, this);
                     lProgress.Show();
                     var lConfiguration = new cCacheItemFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
                     ZMessagesLoadingAdd(lProgress); // so it can be cancelled from code
-                    lMessages = await mSelectedMailbox.MessagesAsync(e.Handles, null, lConfiguration);
+                    lMessages = await mSelectedMailbox.MessagesAsync(e.MessageHandles, null, lConfiguration);
                 }
-                else lMessages = await mSelectedMailbox.MessagesAsync(e.Handles);
+                else lMessages = await mSelectedMailbox.MessagesAsync(e.MessageHandles);
             }
             catch (OperationCanceledException) { return; }
             catch (Exception ex)
@@ -169,7 +169,7 @@ namespace testharness2
             }
 
             // check that while getting the messages we haven't been closed or the mailbox changed
-            if (IsDisposed || !ReferenceEquals(e.Handles[0].Cache, mClient.SelectedMailboxDetails?.Cache)) return;
+            if (IsDisposed || !ReferenceEquals(e.MessageHandles[0].MessageCache, mClient.SelectedMailboxDetails?.MessageCache)) return;
 
             // load the grid with data
             ZAddMessagesToGrid(lMessages);
@@ -185,7 +185,7 @@ namespace testharness2
             {
                 var lData = lBindingSource.List[i] as cGridRowData;
 
-                if (lData != null && lData.Message.Handle == pMessage.Handle)
+                if (lData != null && lData.Message.MessageHandle == pMessage.MessageHandle)
                 {
                     lData = lBindingSource.List[i + 1] as cGridRowData;
                     if (lData == null) return null;
@@ -206,7 +206,7 @@ namespace testharness2
             {
                 var lData = lBindingSource.List[i] as cGridRowData;
 
-                if (lData != null && lData.Message.Handle == pMessage.Handle)
+                if (lData != null && lData.Message.MessageHandle == pMessage.MessageHandle)
                 {
                     lData = lBindingSource.List[i - 1] as cGridRowData;
                     if (lData == null) return null;
@@ -303,7 +303,7 @@ namespace testharness2
                 if (mSelectedMailbox.MessageCount > mMaxMessages)
                 {
                     // first get the messages, sorted, but don't get the requested properties yet (as this would be wasteful)
-                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, cMessageCacheItems.None, lConfiguration);
+                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, cMessageCacheItems.Empty, lConfiguration);
                     if (IsDisposed || lQueryMessagesAsyncEntryNumber != mQueryMessagesAsyncEntryNumber) return;
 
                     // remove any excess messages (the filter may have removed enough or the mailbox may have changed in the meantime)

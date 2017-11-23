@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool WasNotUnchangedSince = false;
 
-        internal void IncrementSummary(iMessageHandle pHandle, eStoreOperation pOperation, cStorableFlags pFlags, ref sStoreFeedbackSummary pSummary)
+        internal void IncrementSummary(iMessageHandle pMessageHandle, eStoreOperation pOperation, cStorableFlags pFlags, ref sStoreFeedbackSummary pSummary)
         {
             if (WasNotUnchangedSince)
             {
@@ -38,19 +38,19 @@ namespace work.bacome.imapclient
                 return;
             }
 
-            if (pHandle == null)
+            if (pMessageHandle == null)
             {
                 pSummary.UnknownCount++;
                 return;
             }
 
-            if (pHandle.Expunged)
+            if (pMessageHandle.Expunged)
             {
                 pSummary.ExpungedCount++;
                 return;
             }
 
-            if (pHandle.Flags == null)
+            if (pMessageHandle.Flags == null)
             {
                 pSummary.UnknownCount++;
                 return;
@@ -60,19 +60,19 @@ namespace work.bacome.imapclient
             {
                 case eStoreOperation.add:
 
-                    if (pHandle.Flags.Contains(pFlags)) pSummary.ReflectsOperationCount++;
+                    if (pMessageHandle.Flags.Contains(pFlags)) pSummary.ReflectsOperationCount++;
                     else pSummary.NotReflectsOperationCount++;
                     return;
 
                 case eStoreOperation.remove:
 
-                    if (pHandle.Flags.Contains(pFlags)) pSummary.NotReflectsOperationCount++;
+                    if (pMessageHandle.Flags.Contains(pFlags)) pSummary.NotReflectsOperationCount++;
                     else pSummary.ReflectsOperationCount++;
                     return;
 
                 case eStoreOperation.replace:
 
-                    if (pHandle.Flags.SymmetricDifference(pFlags, kMessageFlag.Recent).Count() == 0) pSummary.ReflectsOperationCount++;
+                    if (pMessageHandle.Flags.SymmetricDifference(pFlags, kMessageFlag.Recent).Count() == 0) pSummary.ReflectsOperationCount++;
                     else pSummary.NotReflectsOperationCount++;
                     return;
             }
@@ -88,15 +88,15 @@ namespace work.bacome.imapclient
     public class cStoreFeedbackItem : cStoreFeedbackItemBase
     {
         /**<summary>The message that the feedback relates to.</summary>*/
-        public readonly iMessageHandle Handle;
+        public readonly iMessageHandle MessageHandle;
 
-        internal cStoreFeedbackItem(iMessageHandle pHandle)
+        internal cStoreFeedbackItem(iMessageHandle pMessageHandle)
         {
-            Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
         }
 
         /// <inheritdoc/>
-        public override string ToString() => $"{nameof(cStoreFeedbackItem)}({Handle},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
+        public override string ToString() => $"{nameof(cStoreFeedbackItem)}({MessageHandle},{ReceivedFlagsUpdate},{WasNotUnchangedSince})";
     }
 
     /// <summary>
@@ -109,33 +109,33 @@ namespace work.bacome.imapclient
         private eStoreOperation mOperation;
         private cStorableFlags mFlags;
 
-        internal cStoreFeedback(iMessageHandle pHandle, eStoreOperation pOperation, cStorableFlags pFlags)
+        internal cStoreFeedback(iMessageHandle pMessageHandle, eStoreOperation pOperation, cStorableFlags pFlags)
         {
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
             mItems = new List<cStoreFeedbackItem>();
-            mItems.Add(new cStoreFeedbackItem(pHandle));
+            mItems.Add(new cStoreFeedbackItem(pMessageHandle));
 
             mOperation = pOperation;
             mFlags = pFlags;
         }
 
-        internal cStoreFeedback(IEnumerable<iMessageHandle> pHandles, eStoreOperation pOperation, cStorableFlags pFlags)
+        internal cStoreFeedback(IEnumerable<iMessageHandle> pMessageHandles, eStoreOperation pOperation, cStorableFlags pFlags)
         {
-            if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+            if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
-            object lCache = null;
+            object lMessageCache = null;
 
-            foreach (var lHandle in pHandles)
+            foreach (var lMessageHandle in pMessageHandles)
             {
-                if (lHandle == null) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains nulls");
-                if (lCache == null) lCache = lHandle.Cache;
-                else if (!ReferenceEquals(lHandle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pHandles), "contains mixed caches");
+                if (lMessageHandle == null) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), "contains nulls");
+                if (lMessageCache == null) lMessageCache = lMessageHandle.MessageCache;
+                else if (!ReferenceEquals(lMessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), "contains mixed message caches");
             }
 
-            mItems = new List<cStoreFeedbackItem>(from lHandle in pHandles.Distinct() select new cStoreFeedbackItem(lHandle));
+            mItems = new List<cStoreFeedbackItem>(from lMessageHandle in pMessageHandles.Distinct() select new cStoreFeedbackItem(lMessageHandle));
             mOperation = pOperation;
             mFlags = pFlags;
         }
@@ -145,26 +145,26 @@ namespace work.bacome.imapclient
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
-            object lCache = null;
+            object lMessageCache = null;
 
-            cMessageHandleList lHandles = new cMessageHandleList();
+            cMessageHandleList lMessageHandles = new cMessageHandleList();
 
             foreach (var lMessage in pMessages)
             {
                 if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains nulls");
-                var lHandle = lMessage.Handle;
-                if (lCache == null) lCache = lHandle.Cache;
-                else if (!ReferenceEquals(lHandle.Cache, lCache)) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains mixed caches");
-                lHandles.Add(lHandle);
+                var lMessageHandle = lMessage.MessageHandle;
+                if (lMessageCache == null) lMessageCache = lMessageHandle.MessageCache;
+                else if (!ReferenceEquals(lMessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains mixed message caches");
+                lMessageHandles.Add(lMessageHandle);
 
             }
 
-            mItems = new List<cStoreFeedbackItem>(from lHandle in lHandles.Distinct() select new cStoreFeedbackItem(lHandle));
+            mItems = new List<cStoreFeedbackItem>(from lMessageHandle in lMessageHandles.Distinct() select new cStoreFeedbackItem(lMessageHandle));
             mOperation = pOperation;
             mFlags = pFlags;
         }
 
-        internal bool AllHaveUID => mItems.TrueForAll(i => i.Handle.UID != null);
+        internal bool AllHaveUID => mItems.TrueForAll(i => i.MessageHandle.UID != null);
 
         /// <summary>
         /// Gets a summary of the feedback. May return a different value after a <see cref="cIMAPClient.Poll"/>.
@@ -173,7 +173,7 @@ namespace work.bacome.imapclient
         public sStoreFeedbackSummary Summary()
         {
             sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();
-            foreach (var lItem in mItems) lItem.IncrementSummary(lItem.Handle, mOperation, mFlags, ref lSummary);
+            foreach (var lItem in mItems) lItem.IncrementSummary(lItem.MessageHandle, mOperation, mFlags, ref lSummary);
             return lSummary;
         }
 
@@ -197,8 +197,8 @@ namespace work.bacome.imapclient
 
             if (mItems.Count > 0)
             {
-                lBuilder.Append(mItems[0].Handle.Cache);
-                foreach (var lItem in mItems) lBuilder.Append(lItem.Handle.CacheSequence);
+                lBuilder.Append(mItems[0].MessageHandle.MessageCache);
+                foreach (var lItem in mItems) lBuilder.Append(lItem.MessageHandle.CacheSequence);
             }
 
             return lBuilder.ToString();
@@ -266,7 +266,7 @@ namespace work.bacome.imapclient
         /**<summary>The UID that the feedback relates to.</summary>*/
         public readonly cUID UID;
         /**<summary>The message that the feedback relates to. May be <see langword="null"/>.</summary>*/
-        public iMessageHandle Handle = null; 
+        public iMessageHandle MessageHandle = null; 
 
         internal cUIDStoreFeedbackItem(cUID pUID)
         {
@@ -323,7 +323,7 @@ namespace work.bacome.imapclient
         public sStoreFeedbackSummary Summary()
         {
             sStoreFeedbackSummary lSummary = new sStoreFeedbackSummary();
-            foreach (var lItem in mItems) lItem.IncrementSummary(lItem.Handle, mOperation, mFlags, ref lSummary);
+            foreach (var lItem in mItems) lItem.IncrementSummary(lItem.MessageHandle, mOperation, mFlags, ref lSummary);
             return lSummary;
         }
 

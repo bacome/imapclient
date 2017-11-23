@@ -182,13 +182,13 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only collection of message header fields.
+    /// An immutable collection of message header fields.
     /// </summary>
     /// <seealso cref="iMessageHandle.HeaderFields"/>
     public class cHeaderFields : ReadOnlyCollection<cHeaderField>
     {
         /** <summary>An empty collection.</summary>*/
-        public static readonly cHeaderFields None = new cHeaderFields(cHeaderFieldNames.None, false, new List<cHeaderField>());
+        public static readonly cHeaderFields Empty = new cHeaderFields(cHeaderFieldNames.Empty, false, new List<cHeaderField>());
 
         private readonly cHeaderFieldNames mNames;
         private readonly bool mNot;
@@ -305,7 +305,7 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
-        internal static bool TryConstruct(IList<byte> pBytes, out cHeaderFields rFields) => ZTryConstruct(cHeaderFieldNames.None, true, pBytes, out rFields);
+        internal static bool TryConstruct(IList<byte> pBytes, out cHeaderFields rFields) => ZTryConstruct(cHeaderFieldNames.Empty, true, pBytes, out rFields);
         internal static bool TryConstruct(cHeaderFieldNames pNames, bool pNot, IList<byte> pBytes, out cHeaderFields rFields) => ZTryConstruct(pNames, pNot, pBytes, out rFields);
 
         private static bool ZTryConstruct(cHeaderFieldNames pNames, bool pNot, IList<byte> pBytes, out cHeaderFields rFields)
@@ -349,8 +349,8 @@ namespace work.bacome.imapclient
         /// <returns></returns>
         public static cHeaderFields operator +(cHeaderFields pA, cHeaderFields pB)
         {
-            if (pA == null || (pA.mNames.Count == 0 && !pA.mNot)) return pB ?? None; // pA is null or None
-            if (pB == null || (pB.mNames.Count == 0 && !pB.mNot)) return pA; // pB is null or None
+            if (pA == null || (pA.mNames.Count == 0 && !pA.mNot)) return pB ?? Empty; // pA is null or Empty
+            if (pB == null || (pB.mNames.Count == 0 && !pB.mNot)) return pA; // pB is null or Empty
 
             if (pA.mNames.Count == 0 && pA.mNot) return pA; // pA has all headers
             if (pB.mNames.Count == 0 && pB.mNot) return pB; // pB has all headers

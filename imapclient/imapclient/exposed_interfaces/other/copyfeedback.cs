@@ -12,18 +12,18 @@ namespace work.bacome.imapclient
     public class cCopyFeedbackItem
     {
         /**<summary>The UID of the source message.</summary>*/
-        public readonly cUID SourceUID;
+        public readonly cUID SourceMessageUID;
         /**<summary>The UID of the newly created message.</summary>*/
-        public readonly cUID CreatedUID;
+        public readonly cUID CreatedMessageUID;
 
-        internal cCopyFeedbackItem(cUID pSourceUID, cUID pCreatedUID)
+        internal cCopyFeedbackItem(cUID pSourceMessageUID, cUID pCreatedMessageUID)
         {
-            SourceUID = pSourceUID;
-            CreatedUID = pCreatedUID;
+            SourceMessageUID = pSourceMessageUID;
+            CreatedMessageUID = pCreatedMessageUID;
         }
 
         /// <inheritdoc/>
-        public override string ToString() => $"{nameof(cCopyFeedbackItem)}({SourceUID},{CreatedUID})";
+        public override string ToString() => $"{nameof(cCopyFeedbackItem)}({SourceMessageUID},{CreatedMessageUID})";
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cCopyFeedback));
-            foreach (var lItem in mItems) lBuilder.Append($"{lItem.SourceUID}->{lItem.CreatedUID}");
+            foreach (var lItem in mItems) lBuilder.Append($"{lItem.SourceMessageUID}->{lItem.CreatedMessageUID}");
             return lBuilder.ToString();
         }
     }

@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     // uidvalidity must be captured before the handles are resolved
-                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+                    lBuilder.AddUIDValidity(lSelectedMailbox.MessageCache.UIDValidity);
 
                     // collector
                     cStoreFeedbackCollector lFeedbackCollector = new cStoreFeedbackCollector();
@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
                     // resolve the handles to MSNs
                     foreach (var lItem in pFeedback)
                     {
-                        var lMSN = lSelectedMailbox.GetMSN(lItem.Handle);
+                        var lMSN = lSelectedMailbox.GetMSN(lItem.MessageHandle);
                         if (lMSN != 0) lFeedbackCollector.Add(lMSN, lItem);
                     }
 

@@ -121,17 +121,17 @@ namespace work.bacome.imapclient
     public class cResponseText
     {
         /// <summary>
-        /// The response code associated with the response text in text form, may be <see langword="null"/>.
+        /// The response code associated with the response text as a string, may be <see langword="null"/>.
         /// </summary>
         public readonly string CodeText;
 
         /// <summary>
-        /// The response code arguments associated with the response text in text form, may be <see langword="null"/>.
+        /// The response code arguments associated with the response text as a string, may be <see langword="null"/>.
         /// </summary>
         public readonly string ArgumentsText;
 
         /// <summary>
-        /// The response code associated with the response text in code form.
+        /// The response code associated with the response text as a code.
         /// </summary>
         /// <inheritdoc cref="cResponseText" select="remarks"/>
         public readonly eResponseTextCode Code;

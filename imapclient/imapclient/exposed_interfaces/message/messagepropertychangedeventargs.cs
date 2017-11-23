@@ -11,14 +11,14 @@ namespace work.bacome.imapclient
     public class cMessagePropertyChangedEventArgs : PropertyChangedEventArgs
     {
         /**<summary>The message that changed.</summary>*/
-        public readonly iMessageHandle Handle;
+        public readonly iMessageHandle MessageHandle;
 
-        internal cMessagePropertyChangedEventArgs(iMessageHandle pHandle, string pPropertyName) : base(pPropertyName)
+        internal cMessagePropertyChangedEventArgs(iMessageHandle pMessageHandle, string pPropertyName) : base(pPropertyName)
         {
-            Handle = pHandle;
+            MessageHandle = pMessageHandle;
         }
 
         /// <inheritdoc/>
-        public override string ToString() => $"{nameof(cMessagePropertyChangedEventArgs)}({Handle},{PropertyName})";
+        public override string ToString() => $"{nameof(cMessagePropertyChangedEventArgs)}({MessageHandle},{PropertyName})";
     }
 }

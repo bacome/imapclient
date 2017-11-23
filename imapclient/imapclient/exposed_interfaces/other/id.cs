@@ -68,7 +68,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only ID (RFC 2971) field/ value dictionary.
+    /// An immutable ID (RFC 2971) field/ value dictionary.
     /// </summary>
     /// <remarks>
     /// ID field names are case insensitive.
@@ -163,7 +163,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only ID (RFC 2971) field/ value dictionary.
+    /// An immutable ID (RFC 2971) field/ value dictionary.
     /// </summary>
     /// <remarks>
     /// <para>

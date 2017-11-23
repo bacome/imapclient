@@ -10,10 +10,10 @@ namespace work.bacome.imapclient
     public class cMessageDeliveryEventArgs : EventArgs
     {
         /**<summary>The messages that were delivered.</summary>*/
-        public readonly cMessageHandleList Handles;
-        internal cMessageDeliveryEventArgs(cMessageHandleList pHandles) { Handles = pHandles; }
+        public readonly cMessageHandleList MessageHandles;
+        internal cMessageDeliveryEventArgs(cMessageHandleList pMessageHandles) { MessageHandles = pMessageHandles; }
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cMessageDeliveryEventArgs)}({Handles})";
+        public override string ToString() => $"{nameof(cMessageDeliveryEventArgs)}({MessageHandles})";
     }
 
     /// <summary>
@@ -23,14 +23,14 @@ namespace work.bacome.imapclient
     public class cMailboxMessageDeliveryEventArgs : cMessageDeliveryEventArgs
     {
         /**<summary>The mailbox that the messages were delivered to.</summary>*/
-        public readonly iMailboxHandle Handle;
+        public readonly iMailboxHandle MailboxHandle;
 
-        internal cMailboxMessageDeliveryEventArgs(iMailboxHandle pHandle, cMessageHandleList pHandles) : base(pHandles)
+        internal cMailboxMessageDeliveryEventArgs(iMailboxHandle pMailboxHandle, cMessageHandleList pMessageHandles) : base(pMessageHandles)
         {
-            Handle = pHandle;
+            MailboxHandle = pMailboxHandle;
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cMailboxMessageDeliveryEventArgs)}({Handle},{Handles})";
+        public override string ToString() => $"{nameof(cMailboxMessageDeliveryEventArgs)}({MailboxHandle},{MessageHandles})";
     }
 }

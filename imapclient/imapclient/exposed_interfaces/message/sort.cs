@@ -319,7 +319,7 @@ namespace work.bacome.imapclient
             cMessageCacheItems lItems = Attributes(out _);
             pX.Fetch(lItems);
             pY.Fetch(lItems);
-            return Compare(pX.Handle, pY.Handle);
+            return Compare(pX.MessageHandle, pY.MessageHandle);
         }
 
         /// <summary>

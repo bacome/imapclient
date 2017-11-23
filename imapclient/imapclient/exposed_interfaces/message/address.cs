@@ -19,7 +19,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// A read-only collection of email addresses.
+    /// An immutable collection of email addresses.
     /// </summary>
     /// <seealso cref="cMessage.BCC"/>
     /// <seealso cref="cMessage.CC"/>

@@ -11,50 +11,50 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pHandles, cMessageCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
+            public async Task FetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchCacheItemsAsync), pMC, pHandles, pItems);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchCacheItemsAsync), pMC, pMessageHandles, pItems);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-                if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
+                if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
                 if (pItems == null) throw new ArgumentNullException(nameof(pItems));
                 if (pProgress == null) throw new ArgumentNullException(nameof(pProgress));
 
-                mMailboxCache.CheckInSelectedMailbox(pHandles); // to be repeated inside the select lock
+                mMailboxCache.CheckInSelectedMailbox(pMessageHandles); // to be repeated inside the select lock
 
                 // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                foreach (var lGroup in ZFetchCacheItemsGroups(pHandles, pItems)) await ZFetchCacheItemsAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
+                foreach (var lGroup in ZFetchCacheItemsGroups(pMessageHandles, pItems)) await ZFetchCacheItemsAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
             }
 
             private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cFetchCacheItemsGroup pGroup, cProgress pProgress, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchCacheItemsAsync), pMC, pGroup);
 
-                if (pGroup.Items.IsNone)
+                if (pGroup.Items.IsEmpty)
                 {
                     // the group where we already have everything that we need
-                    pProgress.Increment(pGroup.Handles.Count, lContext);
+                    pProgress.Increment(pGroup.MessageHandles.Count, lContext);
                     return; 
                 }
 
                 cUIDList lUIDs = new cUIDList();
 
-                if (pGroup.MSNHandleCount == 0) foreach (var lHandle in pGroup.Handles) lUIDs.Add(lHandle.UID);
+                if (pGroup.MSNHandleCount == 0) foreach (var lMessageHandle in pGroup.MessageHandles) lUIDs.Add(lMessageHandle.UID);
                 else
                 {
                     // this is where we use straight fetch (not UID fetch)
                     //////////////////////////////////////////////////////
 
                     // sort the handles so we might get good sequence sets
-                    pGroup.Handles.SortByCacheSequence();
+                    pGroup.MessageHandles.SortByCacheSequence();
 
                     int lIndex = 0;
                     int lMSNHandleCount = pGroup.MSNHandleCount;
                     Stopwatch lStopwatch = new Stopwatch();
 
-                    while (lIndex < pGroup.Handles.Count && lMSNHandleCount != 0)
+                    while (lIndex < pGroup.MessageHandles.Count && lMSNHandleCount != 0)
                     {
                         // the number of messages to fetch this time
                         int lFetchCount = mFetchCacheItemsSizer.Current;
@@ -67,58 +67,58 @@ namespace work.bacome.imapclient
 
                         // get the handles to fetch this time
 
-                        cMessageHandleList lHandles = new cMessageHandleList();
+                        cMessageHandleList lMessageHandles = new cMessageHandleList();
 
-                        while (lIndex < pGroup.Handles.Count && lHandles.Count < lFetchCount)
+                        while (lIndex < pGroup.MessageHandles.Count && lMessageHandles.Count < lFetchCount)
                         {
-                            var lHandle = pGroup.Handles[lIndex++];
+                            var lMessageHandle = pGroup.MessageHandles[lIndex++];
 
-                            if (lHandle.UID == null)
+                            if (lMessageHandle.UID == null)
                             {
-                                lHandles.Add(lHandle);
+                                lMessageHandles.Add(lMessageHandle);
                                 lMSNHandleCount--;
                             }
                             else if (lUIDHandleCount > 0)
                             {
-                                lHandles.Add(lHandle);
+                                lMessageHandles.Add(lMessageHandle);
                                 lUIDHandleCount--;
                             }
-                            else lUIDs.Add(lHandle.UID);
+                            else lUIDs.Add(lMessageHandle.UID);
                         }
 
                         // if other fetching is occurring at the same time (retrieving UIDs) then there mightn't be any
                         //
-                        if (lHandles.Count > 0)
+                        if (lMessageHandles.Count > 0)
                         {
                             // fetch
                             lStopwatch.Restart();
-                            await ZFetchCacheItemsAsync(pMC, lHandles, pGroup.Items, lContext).ConfigureAwait(false);
+                            await ZFetchCacheItemsAsync(pMC, lMessageHandles, pGroup.Items, lContext).ConfigureAwait(false);
                             lStopwatch.Stop();
 
                             // store the time taken so the next fetch is a better size
-                            mFetchCacheItemsSizer.AddSample(lHandles.Count, lStopwatch.ElapsedMilliseconds);
+                            mFetchCacheItemsSizer.AddSample(lMessageHandles.Count, lStopwatch.ElapsedMilliseconds);
 
                             // update progress
-                            pProgress.Increment(lHandles.Count, lContext);
+                            pProgress.Increment(lMessageHandles.Count, lContext);
                         }
                     }
 
-                    while (lIndex < pGroup.Handles.Count) lUIDs.Add(pGroup.Handles[lIndex++].UID);
+                    while (lIndex < pGroup.MessageHandles.Count) lUIDs.Add(pGroup.MessageHandles[lIndex++].UID);
                     if (lUIDs.Count == 0) return;
                 }
 
                 // uid fetch the remainder
-                var lMailboxHandle = pGroup.Handles[0].Cache.MailboxHandle;
+                var lMailboxHandle = pGroup.MessageHandles[0].MessageCache.MailboxHandle;
                 await ZUIDFetchCacheItemsAsync(pMC, lMailboxHandle, lUIDs, pGroup.Items, pProgress, lContext).ConfigureAwait(false);
             }
 
-            private IEnumerable<cFetchCacheItemsGroup> ZFetchCacheItemsGroups(cMessageHandleList pHandles, cMessageCacheItems pItems)
+            private IEnumerable<cFetchCacheItemsGroup> ZFetchCacheItemsGroups(cMessageHandleList pMessageHandles, cMessageCacheItems pItems)
             {
                 Dictionary<cMessageCacheItems, cFetchCacheItemsGroup> lGroups = new Dictionary<cMessageCacheItems, cFetchCacheItemsGroup>();
 
-                foreach (var lHandle in pHandles)
+                foreach (var lMessageHandle in pMessageHandles)
                 {
-                    cMessageCacheItems lItems = lHandle.Missing(pItems);
+                    cMessageCacheItems lItems = lMessageHandle.Missing(pItems);
 
                     cFetchCacheItemsGroup lGroup;
 
@@ -128,9 +128,9 @@ namespace work.bacome.imapclient
                         lGroups.Add(lItems, lGroup);
                     }
 
-                    if (lHandle.UID == null) lGroup.MSNHandleCount++;
+                    if (lMessageHandle.UID == null) lGroup.MSNHandleCount++;
 
-                    lGroup.Handles.Add(lHandle);
+                    lGroup.MessageHandles.Add(lMessageHandle);
                 }
 
                 return lGroups.Values;
@@ -140,7 +140,7 @@ namespace work.bacome.imapclient
             {
                 public readonly cMessageCacheItems Items;
                 public int MSNHandleCount = 0;
-                public readonly cMessageHandleList Handles = new cMessageHandleList();
+                public readonly cMessageHandleList MessageHandles = new cMessageHandleList();
 
                 public cFetchCacheItemsGroup(cMessageCacheItems pItems) { Items = pItems ?? throw new ArgumentNullException(nameof(pItems)); }
 
@@ -149,7 +149,7 @@ namespace work.bacome.imapclient
                     cListBuilder lBuilder = new cListBuilder(nameof(cFetchCacheItemsGroup));
                     lBuilder.Append(Items);
                     lBuilder.Append(MSNHandleCount);
-                    lBuilder.Append(Handles);
+                    lBuilder.Append(MessageHandles);
                     return lBuilder.ToString();
                 }
             }

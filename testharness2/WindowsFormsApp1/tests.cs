@@ -1712,7 +1712,7 @@ namespace testharness2
 
                 lMessage = lMessageList[0];
 
-                if (lMessage.Expunged || lMessage.Handle.Attributes != (fMessageCacheAttributes.received | fMessageCacheAttributes.modseq)) throw new cTestsException("ZTestSearch4.4");
+                if (lMessage.Expunged || lMessage.MessageHandle.Attributes != (fMessageCacheAttributes.received | fMessageCacheAttributes.modseq)) throw new cTestsException("ZTestSearch4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch4.5");
 
 
@@ -1721,8 +1721,8 @@ namespace testharness2
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
 
                 if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch5.1");
-                if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
-                    lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch5.2");
+                if (lMessageList[0].MessageHandle.CacheSequence != 16 || lMessageList[1].MessageHandle.CacheSequence != 15 || lMessageList[2].MessageHandle.CacheSequence != 14 ||
+                    lMessageList[3].MessageHandle.CacheSequence != 12 || lMessageList[4].MessageHandle.CacheSequence != 13 || lMessageList[5].MessageHandle.CacheSequence != 11) throw new cTestsException("ZTestSearch5.2");
 
                 /*
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
@@ -1966,7 +1966,7 @@ namespace testharness2
 
                 lMessage = lMessageList[0];
 
-                if (lMessage.Expunged || lMessage.Handle.Attributes != (fMessageCacheAttributes.received | fMessageCacheAttributes.modseq)) throw new cTestsException("ZTestSearch2_4.4");
+                if (lMessage.Expunged || lMessage.MessageHandle.Attributes != (fMessageCacheAttributes.received | fMessageCacheAttributes.modseq)) throw new cTestsException("ZTestSearch2_4.4");
                 if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch2_4.5");
 
 
@@ -1975,8 +1975,8 @@ namespace testharness2
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
 
                 if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch2_5.1");
-                if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
-                    lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch2_5.2");
+                if (lMessageList[0].MessageHandle.CacheSequence != 16 || lMessageList[1].MessageHandle.CacheSequence != 15 || lMessageList[2].MessageHandle.CacheSequence != 14 ||
+                    lMessageList[3].MessageHandle.CacheSequence != 12 || lMessageList[4].MessageHandle.CacheSequence != 13 || lMessageList[5].MessageHandle.CacheSequence != 11) throw new cTestsException("ZTestSearch2_5.2");
 
                 /*
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
@@ -2129,8 +2129,8 @@ namespace testharness2
                 lMessageList = lMailbox.Messages(cFilter.Received >= new DateTime(2017, 6, 7), new cSort(cSortItem.ReceivedDesc));
 
                 if (lMessageList.Count != 6) throw new cTestsException("ZTestSearch3_6.1");
-                if (lMessageList[0].Handle.CacheSequence != 16 || lMessageList[1].Handle.CacheSequence != 15 || lMessageList[2].Handle.CacheSequence != 14 ||
-                    lMessageList[3].Handle.CacheSequence != 12 || lMessageList[4].Handle.CacheSequence != 13 || lMessageList[5].Handle.CacheSequence != 11) throw new cTestsException("ZTestSearch3_6.2");
+                if (lMessageList[0].MessageHandle.CacheSequence != 16 || lMessageList[1].MessageHandle.CacheSequence != 15 || lMessageList[2].MessageHandle.CacheSequence != 14 ||
+                    lMessageList[3].MessageHandle.CacheSequence != 12 || lMessageList[4].MessageHandle.CacheSequence != 13 || lMessageList[5].MessageHandle.CacheSequence != 11) throw new cTestsException("ZTestSearch3_6.2");
 
 
                 lTask1 = lMailbox.MessagesAsync(cFilter.Received >= new DateTime(2017, 6, 7));
@@ -2373,13 +2373,13 @@ namespace testharness2
                 // only message 1 and 3 should be fetched by this, as message 2 was 168 which should now be gone
                 //  1 should be UID fetched, 3 should be a normal fetch
                 lUnfetched = lClient.Fetch(lList, fMessageCacheAttributes.received, null);
-                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0].Handle, lMessages[1].Handle)) throw new cTestsException("ZTestIdleRestart1.3.2");
+                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0].MessageHandle, lMessages[1].MessageHandle)) throw new cTestsException("ZTestIdleRestart1.3.2");
 
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 // only message 1 and 3 should be fetched, however this time (due to getting fast responses the last time) they should both be normal fetch
                 lUnfetched = lClient.Fetch(lMessages, fMessageCacheAttributes.flags, null);
-                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0].Handle, lMessages[1].Handle)) throw new cTestsException("ZTestIdleRestart1.3.3");
+                if (lUnfetched.Count != 1 || !ReferenceEquals(lUnfetched[0].MessageHandle, lMessages[1].MessageHandle)) throw new cTestsException("ZTestIdleRestart1.3.3");
 
 
                 cMailbox lMailbox;

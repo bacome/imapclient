@@ -11,14 +11,14 @@ namespace work.bacome.imapclient
     public class cMailboxPropertyChangedEventArgs : PropertyChangedEventArgs
     {
         /**<summary>The mailbox that changed.</summary>*/
-        public readonly iMailboxHandle Handle;
+        public readonly iMailboxHandle MailboxHandle;
 
-        internal cMailboxPropertyChangedEventArgs(iMailboxHandle pHandle, string pPropertyName) : base(pPropertyName)
+        internal cMailboxPropertyChangedEventArgs(iMailboxHandle pMailboxHandle, string pPropertyName) : base(pPropertyName)
         {
-            Handle = pHandle;
+            MailboxHandle = pMailboxHandle;
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cMailboxPropertyChangedEventArgs)}({Handle},{PropertyName})";
+        public override string ToString() => $"{nameof(cMailboxPropertyChangedEventArgs)}({MailboxHandle},{PropertyName})";
     }
 }
