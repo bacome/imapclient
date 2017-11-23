@@ -76,7 +76,7 @@ namespace usageexample2
                             // only process the message if it looks as expected
                             if (lMessage.Attachments.Count == 1 && lMessage.PlainText() == "FILE FOR PROCESSING")
                             {
-                                // save the attachement
+                                // save the attachment
                                 lMessage.Attachments[0].SaveAs($".\\SavedAttachment.{lMessage.UID.UIDValidity}.{lMessage.UID.UID}");
 
                                 // mark the message as deleted

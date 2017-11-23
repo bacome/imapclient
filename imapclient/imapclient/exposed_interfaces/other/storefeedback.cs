@@ -206,7 +206,7 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains a summary of store operation feeback.
+    /// Contains a summary of store operation feedback.
     /// </summary>
     /// <remarks>
     /// <para>Each message counts towards ONE of;

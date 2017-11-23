@@ -42,7 +42,7 @@ namespace work.bacome.imapclient
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    if (!mCapabilities.QResync) lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select if mailbox-data delivered during the command would be ambiguous
+                    if (!_Capabilities.QResync) lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select if mailbox-data delivered during the command would be ambiguous
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lBuilder.BeginList(eListBracketing.none);
@@ -71,7 +71,7 @@ namespace work.bacome.imapclient
 
                     if ((mMailboxCacheDataItems & fMailboxCacheDataItems.subscribed) != 0) lBuilder.Add(kListExtendedCommandPartSubscribed);
                     if ((mMailboxCacheDataItems & fMailboxCacheDataItems.children) != 0) lBuilder.Add(kListExtendedCommandPartChildren);
-                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.specialuse) != 0 && mCapabilities.SpecialUse) lBuilder.Add(kListExtendedCommandPartSpecialUse);
+                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.specialuse) != 0 && _Capabilities.SpecialUse) lBuilder.Add(kListExtendedCommandPartSpecialUse);
 
                     if (pStatus)
                     {
@@ -95,7 +95,7 @@ namespace work.bacome.imapclient
 
                     fCapabilities lTryIgnoring = 0;
 
-                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.specialuse) != 0 && mCapabilities.SpecialUse) lTryIgnoring |= fCapabilities.specialuse;
+                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.specialuse) != 0 && _Capabilities.SpecialUse) lTryIgnoring |= fCapabilities.specialuse;
                     if (pStatus) lTryIgnoring |= fCapabilities.liststatus;
                     if (lTryIgnoring == 0) lTryIgnoring |= fCapabilities.listextended;
 

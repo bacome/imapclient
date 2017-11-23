@@ -51,6 +51,10 @@ namespace work.bacome.imapclient
                 private Task mBackgroundTask = null; // background task
                 private Exception mBackgroundTaskException = null;
 
+                // capability data
+                private cStrings mCapabilities = null;
+                private cStrings mAuthenticationMechanisms = null;
+
                 // can be set only before and on enable
                 private bool mLiteralPlus = false;
                 private bool mLiteralMinus = false;
@@ -86,6 +90,9 @@ namespace work.bacome.imapclient
                     // plumbing
                     mIdleBlock.Released += mBackgroundReleaser.Release; // when the idle block is removed, kick the background process
                 }
+
+                public cStrings Capabilities => mCapabilities;
+                public cStrings AuthenticationMechanisms => mAuthenticationMechanisms;
 
                 public void SetIdleConfiguration(cIdleConfiguration pConfiguration, cTrace.cContext pParentContext)
                 {

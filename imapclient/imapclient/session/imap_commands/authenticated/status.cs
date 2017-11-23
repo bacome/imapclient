@@ -57,7 +57,7 @@ namespace work.bacome.imapclient
                     }
 
                     fCapabilities lTryIgnoring;
-                    if (mCapabilities.CondStore) lTryIgnoring = fCapabilities.condstore;
+                    if (_Capabilities.CondStore) lTryIgnoring = fCapabilities.condstore;
                     else lTryIgnoring = 0;
 
                     throw new cProtocolErrorException(lResult, lTryIgnoring, lContext);

@@ -27,7 +27,7 @@ namespace work.bacome.imapclient
             private cCommandPartFactory mEncodingPartFactory;
 
             // properties
-            private cCapabilities mCapabilities = null;
+            private cCapabilities _Capabilities = null;
             private cURL _HomeServerReferral = null;
             private cAccountId _ConnectedAccountId = null;
 
@@ -80,18 +80,18 @@ namespace work.bacome.imapclient
                 }
 
                 mStatusAttributes = mMailboxCacheDataItems & fMailboxCacheDataItems.allstatus;
-                if (!mCapabilities.CondStore) mStatusAttributes &= ~fMailboxCacheDataItems.highestmodseq;
+                if (!_Capabilities.CondStore) mStatusAttributes &= ~fMailboxCacheDataItems.highestmodseq;
 
-                mMailboxCache = new cMailboxCache(mSynchroniser, mMailboxCacheDataItems, mCommandPartFactory, mCapabilities, ZSetState);
+                mMailboxCache = new cMailboxCache(mSynchroniser, mMailboxCacheDataItems, mCommandPartFactory, _Capabilities, ZSetState);
 
-                mPipeline.Install(new cResponseTextCodeParserSelect(mCapabilities));
+                mPipeline.Install(new cResponseTextCodeParserSelect(_Capabilities));
                 mPipeline.Install(new cResponseDataParserSelect());
                 mPipeline.Install(new cResponseDataParserFetch());
                 mPipeline.Install(new cResponseDataParserList(lUTF8Enabled));
                 mPipeline.Install(new cResponseDataParserLSub(lUTF8Enabled));
-                if (mCapabilities.ESearch || mCapabilities.ESort) mPipeline.Install(new cResponseDataParserESearch());
+                if (_Capabilities.ESearch || _Capabilities.ESort) mPipeline.Install(new cResponseDataParserESearch());
 
-                mPipeline.Enable(mMailboxCache, mCapabilities, lContext);
+                mPipeline.Enable(mMailboxCache, _Capabilities, lContext);
 
                 ZSetState(eConnectionState.enabled, lContext);
             }
@@ -166,7 +166,16 @@ namespace work.bacome.imapclient
                 if (IsUnconnected != lIsUnconnected) mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.IsUnconnected), lContext);
             }
 
-            public cCapabilities Capabilities => mCapabilities;
+            public cCapabilities Capabilities => _Capabilities;
+
+            private void ZSetCapabilities(cStrings pCapabilities, cStrings pAuthenticationMechanisms, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZSetCapabilities), pCapabilities, pAuthenticationMechanisms);
+
+                _Capabilities = new cCapabilities(pCapabilities, pAuthenticationMechanisms, mIgnoreCapabilities);
+                mPipeline.SetCapabilities(_Capabilities, lContext);
+                mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
+            }
 
             public cURL HomeServerReferral => _HomeServerReferral;
 

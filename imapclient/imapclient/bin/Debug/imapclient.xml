@@ -37,40 +37,6 @@
         <member name="M:work.bacome.imapclient.sEventSubscriptionCounts.ToString">
             <inheritdoc/>
         </member>
-        <member name="T:work.bacome.imapclient.eConnectionState">
-            <summary>
-            Represents the connection state of an IMAP client instance.
-            </summary>
-            <remarks>
-            In the <see cref="F:work.bacome.imapclient.eConnectionState.disconnected"/> state some <see cref="T:work.bacome.imapclient.cIMAPClient"/> properties retain their values from when the instance was connecting/ was connected.
-            For example <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> may have a value in this state, whereas it definitely won't have one in the <see cref="F:work.bacome.imapclient.eConnectionState.notconnected"/> state.
-            </remarks>
-            <seealso cref="P:work.bacome.imapclient.cIMAPClient.ConnectionState"/>
-        </member>
-        <member name="F:work.bacome.imapclient.eConnectionState.notconnected">
-            <summary>The instance is not connected and never has been.</summary>
-        </member>
-        <member name="F:work.bacome.imapclient.eConnectionState.connecting">
-            <summary>The instance is in the process of connecting.</summary>
-        </member>
-        <member name="F:work.bacome.imapclient.eConnectionState.notauthenticated">
-            <summary>The instance is in the process of connecting, it is currently not authenticated.</summary>
-        </member>
-        <member name="F:work.bacome.imapclient.eConnectionState.authenticated">
-            <summary>The instance is in the process of connecting, it is authenticated.</summary>
-        </member>
-        <member name="F:work.bacome.imapclient.eConnectionState.enabled">
-            <summary>The instance is in the process of connecting, it has enabled all the server features it is going to.</summary>
-        </member>
-        <member name="F:work.bacome.imapclient.eConnectionState.notselected">
-            <summary>The instance connected, there is no mailbox selected.</summary>
-        </member>
-        <member name="F:work.bacome.imapclient.eConnectionState.selected">
-            <summary>The instance connected, there is a mailbox selected.</summary>
-        </member>
-        <member name="F:work.bacome.imapclient.eConnectionState.disconnected">
-            <summary>The instance is not connected, but it was connected, or tried to connect, once.</summary>
-        </member>
         <member name="T:work.bacome.imapclient.cIMAPClient">
             <summary>
             Instances of this class can interact with an IMAP server.
@@ -279,7 +245,7 @@
             Gets and sets the server capabilities that the instance should ignore.
             </summary>
             <remarks>
-            Can only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             Useful for testing or if your server (or the library) has a bug in its implementation of an IMAP extension.
             </remarks>
             <seealso cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/>
@@ -290,7 +256,7 @@
             </summary>
             <remarks>
             Must be set before calling <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>.
-            Can only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </remarks>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String)"/>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Boolean)"/>
@@ -302,7 +268,7 @@
             </summary>
             <param name="pHost"></param>
             <remarks>
-            Can only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Boolean)">
@@ -312,7 +278,7 @@
             <param name="pHost"></param>
             <param name="pSSL">Indicates whether the host requires that TLS be established immediately upon connect.</param>
             <remarks>
-            Can only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Int32,System.Boolean)">
@@ -323,7 +289,7 @@
             <param name="pPort"></param>
             <param name="pSSL">Indicates whether the host requires that TLS be established immediately upon connect.</param>
             <remarks>
-            Can only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.Credentials">
@@ -332,7 +298,7 @@
             </summary>
             <remarks>
             Must be set before calling <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. 
-            Can only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </remarks>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetNoCredentials"/>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.SetAnonymousCredentials(System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)"/>
@@ -343,7 +309,7 @@
             Sets <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/> to no credentials. 
             </summary>
             <remarks>
-            Can only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             Useful to retrieve the property values set during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/> without actually connecting.
             Also useful when there is external authentication.
             </remarks>
@@ -357,7 +323,7 @@
             <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
             <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if not advertised.</param>
             <remarks>
-            Can only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             The credentials may fall back to IMAP LOGIN if SASL ANONYMOUS isn't available.
             This method will throw if <paramref name="pTrace"/> can be used in neither <see cref="F:work.bacome.imapclient.cLogin.Password"/> nor <see cref="T:work.bacome.imapclient.cSASLAnonymous"/>.
             </remarks>
@@ -371,7 +337,7 @@
             <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
             <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if not advertised.</param>
             <remarks>
-            Can only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             The credentials may fall back to IMAP LOGIN if SASL PLAIN isn't available.
             This method will throw if the userid and password can be used in neither <see cref="T:work.bacome.imapclient.cLogin"/> nor <see cref="T:work.bacome.imapclient.cSASLPlain"/>.
             </remarks>
@@ -382,7 +348,7 @@
             </summary>
             <remarks>
             The default value is <see langword="false"/>.
-            Can only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             If this is set to <see langword="false"/> the instance will not return remote mailboxes in mailbox lists.
             Handling mailbox referrals means handling the exceptions that could be raised when accessing remote mailboxes.
             See RFC 2193 for details.
@@ -395,16 +361,28 @@
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems">
             <summary>
-            Gets and sets the set of optional mailbox data items that are requested from the server.
+            Gets and sets the set of optionally requested mailbox data items for the instance.
             </summary>
             <remarks>
-            The default value is <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.messagecount"/> and <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.unseencount"/>.
-            Can only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            The default set is <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.messagecount"/> and <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.unseencount"/>.
+            May only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            <note type="note" >
+            The mailbox data items that are actually requested depends on the <see cref="T:work.bacome.imapclient.fMailboxCacheDataSets"/> value used at the time of the request.
+            </note>
             </remarks>
+            <seealso cref="M:work.bacome.imapclient.cNamespace.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.cNamespace.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.cMailbox.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.cMailbox.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.cMailbox.Fetch(work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.iMailboxContainer.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.iMailboxContainer.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.Mailboxes(System.String,System.Nullable{System.Char},work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.cIMAPClient.Subscribed(System.String,System.Nullable{System.Char},System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
         </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.NetworkWriteConfiguration">
             <summary>
-            Gets and sets the network-write batch-size configuration. You might want to limit this to increase the speed with which you can terminate the instance. Can only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            Gets and sets the network-write batch-size configuration. You might want to limit this to increase the speed with which you can terminate the instance. May only be set while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             </summary>
             <remarks>
             Limits the size of the buffer used when sending data to the server. Measured in bytes.
@@ -566,7 +544,7 @@
         <member name="M:work.bacome.imapclient.cIMAPClient.Connect">
             <summary>
             Connects to the <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/> using the <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/>. 
-            Can only be called when the instance <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be called when the instance <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             Will throw if an authenticated IMAP connection cannot be established.
             </summary>
             <remarks>
@@ -637,7 +615,7 @@
         <member name="M:work.bacome.imapclient.cIMAPClient.ConnectAsync">
             <summary>
             Ansynchronously connects to the <see cref="P:work.bacome.imapclient.cIMAPClient.Server"/> using the <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/>. 
-            Can only be called when the instance <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
+            May only be called when the instance <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             Will throw if an authenticated IMAP connection cannot be established.
             </summary>
             <returns></returns>
@@ -675,7 +653,7 @@
         <member name="M:work.bacome.imapclient.cIMAPClient.Disconnect">
             <summary>
             Disconnects gracefully from the connected server.
-            Can only be called when the instance <see cref="P:work.bacome.imapclient.cIMAPClient.IsConnected"/>.
+            May only be called when the instance <see cref="P:work.bacome.imapclient.cIMAPClient.IsConnected"/>.
             </summary>
             <remarks>
             The IMAP connection is closed gracefully, however any multi-part operations in progress will throw exceptions.
@@ -684,7 +662,7 @@
         <member name="M:work.bacome.imapclient.cIMAPClient.DisconnectAsync">
             <summary>
             Disconnects gracefully and asynchronously from the connected server.
-            Can only be called when the instance <see cref="P:work.bacome.imapclient.cIMAPClient.IsConnected"/>.
+            May only be called when the instance <see cref="P:work.bacome.imapclient.cIMAPClient.IsConnected"/>.
             </summary>
             <returns></returns>
             <inheritdoc cref="M:work.bacome.imapclient.cIMAPClient.Disconnect" select="remarks"/>
@@ -699,7 +677,7 @@
             <param name="pIfUnchangedSinceModSeq"></param>
             <returns>Feedback on the success (or otherwise) of the store.</returns>
             <remarks>
-            <paramref name="pIfUnchangedSinceModSeq"/> can only be specified if the containing mailbox's <see cref="P:work.bacome.imapclient.cMailbox.HighestModSeq"/> is not zero. 
+            <paramref name="pIfUnchangedSinceModSeq"/> may only be specified if the containing mailbox's <see cref="P:work.bacome.imapclient.cMailbox.HighestModSeq"/> is not zero. 
             (i.e. <see cref="P:work.bacome.imapclient.cCapabilities.CondStore"/> is in use and the mailbox supports the persistent storage of mod-sequences.)
             If a message has been modified since the specified value then the server will fail the store for that message.
             </remarks>
@@ -803,16 +781,50 @@
             </summary>
             <param name="pParentContext"></param>
         </member>
+        <member name="T:work.bacome.imapclient.eConnectionState">
+            <summary>
+            Represents the connection state of an IMAP client instance.
+            </summary>
+            <remarks>
+            In the <see cref="F:work.bacome.imapclient.eConnectionState.disconnected"/> state some <see cref="T:work.bacome.imapclient.cIMAPClient"/> properties retain their values from when the instance was connecting/ was connected.
+            For example <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> may have a value in this state, whereas it definitely won't have one in the <see cref="F:work.bacome.imapclient.eConnectionState.notconnected"/> state.
+            </remarks>
+            <seealso cref="P:work.bacome.imapclient.cIMAPClient.ConnectionState"/>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.notconnected">
+            <summary>The instance is not connected and never has been.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.connecting">
+            <summary>The instance is in the process of connecting.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.notauthenticated">
+            <summary>The instance is in the process of connecting, it is currently not authenticated.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.authenticated">
+            <summary>The instance is in the process of connecting, it is authenticated.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.enabled">
+            <summary>The instance is in the process of connecting, it has enabled all the server features it is going to.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.notselected">
+            <summary>The instance is connected, there is no mailbox selected.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.selected">
+            <summary>The instance is connected, there is a mailbox selected.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eConnectionState.disconnected">
+            <summary>The instance is not connected, but it was connected, or tried to connect, once.</summary>
+        </member>
         <member name="T:work.bacome.imapclient.fMailboxCacheDataSets">
             <summary>
-            Represents sets of data that can be requested about a mailbox. 
+            Represents sets of data items that can be requested about a mailbox. 
             </summary>
             <remarks>
             <para>
             The exact data items requested depend on the value of <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>.
             </para>
             <para>
-            The <see cref="F:work.bacome.imapclient.fMailboxCacheDataSets.list"/> set of data affects the following <see cref="T:work.bacome.imapclient.cMailbox"/> properties;
+            The <see cref="F:work.bacome.imapclient.fMailboxCacheDataSets.list"/> set of data will request data items that back the following <see cref="T:work.bacome.imapclient.cMailbox"/> properties;
             <list type="bullet">
             <item>
             Always;
@@ -825,13 +837,13 @@
               </list>
             </item>
             <item>
-            If requesting <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.children"/>;
+            If <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/> includes <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.children"/>;
               <list type="bullet">
               <item><see cref="P:work.bacome.imapclient.cMailbox.HasChildren"/></item>
               </list>
             </item>
             <item>
-            If requesting <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.specialuse"/>;
+            If <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/> includes <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.specialuse"/>;
               <list type="bullet">
               <item><see cref="P:work.bacome.imapclient.cMailbox.ContainsAll"/></item>
               <item><see cref="P:work.bacome.imapclient.cMailbox.IsArchive"/></item>
@@ -845,17 +857,17 @@
             </list>
             </para>
             <para>
-            The <see cref="F:work.bacome.imapclient.fMailboxCacheDataSets.lsub"/> set of data always affects <see cref="P:work.bacome.imapclient.cMailbox.IsSubscribed"/>. 
+            The <see cref="F:work.bacome.imapclient.fMailboxCacheDataSets.lsub"/> set of data will request data items that back <see cref="P:work.bacome.imapclient.cMailbox.IsSubscribed"/>. 
             </para>
             <para>
-            The <see cref="F:work.bacome.imapclient.fMailboxCacheDataSets.status"/> set of data affects the following <see cref="T:work.bacome.imapclient.cMailbox"/> properties;
+            The <see cref="F:work.bacome.imapclient.fMailboxCacheDataSets.status"/> set of data will request data items that back the following <see cref="T:work.bacome.imapclient.cMailbox"/> properties;
             <list type="bullet">
-            <item>If requesting <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.messagecount"/>: <see cref="P:work.bacome.imapclient.cMailbox.MessageCount"/></item>
-            <item>If requesting <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.recentcount"/>: <see cref="P:work.bacome.imapclient.cMailbox.RecentCount"/></item>
-            <item>If requesting <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.uidnext"/>: <see cref="P:work.bacome.imapclient.cMailbox.UIDNext"/></item>
-            <item>If requesting <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.uidvalidity"/>: <see cref="P:work.bacome.imapclient.cMailbox.UIDValidity"/></item>
-            <item>If requesting <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.unseencount"/>: <see cref="P:work.bacome.imapclient.cMailbox.UnseenCount"/></item>
-            <item>If requesting <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.highestmodseq"/>: <see cref="P:work.bacome.imapclient.cMailbox.HighestModSeq"/></item>
+            <item>If <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/> includes <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.messagecount"/>: <see cref="P:work.bacome.imapclient.cMailbox.MessageCount"/></item>
+            <item>If <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/> includes <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.recentcount"/>: <see cref="P:work.bacome.imapclient.cMailbox.RecentCount"/></item>
+            <item>If <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/> includes <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.uidnext"/>: <see cref="P:work.bacome.imapclient.cMailbox.UIDNext"/></item>
+            <item>If <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/> includes <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.uidvalidity"/>: <see cref="P:work.bacome.imapclient.cMailbox.UIDValidity"/></item>
+            <item>If <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/> includes <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.unseencount"/>: <see cref="P:work.bacome.imapclient.cMailbox.UnseenCount"/></item>
+            <item>If <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/> includes <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.highestmodseq"/>: <see cref="P:work.bacome.imapclient.cMailbox.HighestModSeq"/></item>
             </list>
             </para>
             </remarks>
@@ -2159,7 +2171,7 @@
         </member>
         <member name="T:work.bacome.imapclient.sStoreFeedbackSummary">
             <summary>
-            Contains a summary of store operation feeback.
+            Contains a summary of store operation feedback.
             </summary>
             <remarks>
             <para>Each message counts towards ONE of;
@@ -2883,8 +2895,12 @@
             <para><see langword="null"/> indicates that <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.uidnext"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.</para>
             <para>When the mailbox is selected the value of this property may not be up-to-date: <see cref="P:work.bacome.imapclient.cMailbox.UIDNextUnknownCount"/> indicates how out-of-date the value may be.</para>
             <para>IMAP does not mandate that the server keep the client updated with this value when the mailbox is selected but it also disallows retrieving this value for a mailbox when it is selected.</para>
-            <para>When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server, but these responses may have to be explicitly requested.</para>
-            <para>If it is important to you that the value of this property be up-to-date when the mailbox is selected then you must cache <see cref="F:work.bacome.imapclient.fMessageCacheAttributes.uid"/> for new messages as they arrive.</para>
+            <para>
+            When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server,
+            but for the value to be up-to-date 
+            FETCH responses containing the UID have to be solicited for new messages  
+            (use <see cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/> with <see cref="F:work.bacome.imapclient.cMessageDeliveryEventArgs.Handles"/> and <see cref="F:work.bacome.imapclient.fMessageCacheAttributes.uid"/>).
+            </para>
             </remarks>
             <seealso cref="E:work.bacome.imapclient.cMailbox.MessageDelivery"/>
             <seealso cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/>
@@ -2916,8 +2932,12 @@
             <para><see langword="null"/> indicates that <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.unseencount"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.</para>
             <para>When the mailbox is selected the value of this property may not be accurate: <see cref="P:work.bacome.imapclient.cMailbox.UnseenUnknownCount"/> indicates how inaccurate the value may be.</para>
             <para>IMAP does not provide a mechanism for retrieving this value for a mailbox when it is selected.</para>
-            <para>When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server, but the property value has to be explicitly initialised and the FETCH responses may have to be explicitly requested.</para>
-            <para>If it is important to you that the value of this property be accurate when the mailbox is selected then you must initialise the value and cache <see cref="F:work.bacome.imapclient.fMessageCacheAttributes.flags"/> for new messages as they arrive.</para>
+            <para>
+            When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server, 
+            but for the value to be accurate it has to be explicitly initialised (using <see cref="M:work.bacome.imapclient.cMailbox.SetUnseenCount"/>) and
+            FETCH responses containing the flags have to be solicited for new messages  
+            (use <see cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/> with <see cref="F:work.bacome.imapclient.cMessageDeliveryEventArgs.Handles"/> and <see cref="F:work.bacome.imapclient.fMessageCacheAttributes.flags"/>).
+            </para>
             </remarks>
             <seealso cref="M:work.bacome.imapclient.cMailbox.SetUnseenCount"/>
             <seealso cref="E:work.bacome.imapclient.cMailbox.MessageDelivery"/>
@@ -3318,7 +3338,7 @@
             <param name="pIfUnchangedSinceModSeq"></param>
             <returns>Feedback on the success (or otherwise) of the store.</returns>
             <remarks>
-            <paramref name="pIfUnchangedSinceModSeq"/> can only be specified if <see cref="P:work.bacome.imapclient.cMailbox.HighestModSeq"/> is not zero. 
+            <paramref name="pIfUnchangedSinceModSeq"/> may only be specified if <see cref="P:work.bacome.imapclient.cMailbox.HighestModSeq"/> is not zero. 
             (i.e. <see cref="P:work.bacome.imapclient.cCapabilities.CondStore"/> is in use and the mailbox supports the persistent storage of mod-sequences.)
             If the message has been modified since the specified value then the server will fail the store.
             </remarks>
@@ -5374,7 +5394,7 @@
             <param name="pFlags"></param>
             <param name="pIfUnchangedSinceModSeq"></param>
             <remarks>
-            <paramref name="pIfUnchangedSinceModSeq"/> can only be specified if the containing mailbox's <see cref="P:work.bacome.imapclient.cMailbox.HighestModSeq"/> is not zero. 
+            <paramref name="pIfUnchangedSinceModSeq"/> may only be specified if the containing mailbox's <see cref="P:work.bacome.imapclient.cMailbox.HighestModSeq"/> is not zero. 
             (i.e. <see cref="P:work.bacome.imapclient.cCapabilities.CondStore"/> is in use and the mailbox supports the persistent storage of mod-sequences.)
             If the message has been modified since the specified value then the server will fail the store.
             This method will throw if it detects that the store is likely to have failed.
@@ -6971,14 +6991,20 @@
             </summary>
             <seealso cref="T:work.bacome.imapclient.cResponseTextEventArgs"/>
         </member>
-        <member name="F:work.bacome.imapclient.eResponseTextContext.greeting">
-            <summary>As part of an IMAP greeting.</summary>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.greetingok">
+            <summary>As part of an IMAP '* OK' greeting.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.greetingpreauth">
+            <summary>As part of an IMAP '* PREAUTH' greeting.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.eResponseTextContext.greetingbye">
+            <summary>As part of an IMAP '* BYE' greeting.</summary>
         </member>
         <member name="F:work.bacome.imapclient.eResponseTextContext.continuerequest">
             <summary>As part of an IMAP continuation request.</summary>
         </member>
         <member name="F:work.bacome.imapclient.eResponseTextContext.bye">
-            <summary>As part of an IMAP bye.</summary>
+            <summary>As part of an IMAP '* BYE'.</summary>
         </member>
         <member name="F:work.bacome.imapclient.eResponseTextContext.information">
             <summary>As part of an IMAP '* OK'.</summary>
@@ -7195,10 +7221,10 @@
             <summary>Gets the decoded 'isection' part of the URL. May be <see langword="null"/>.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cURL.PartialOffset">
-            <summary>Gets the from part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>
+            <summary>Gets the 'offset' part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cURL.PartialLength">
-            <summary>Gets the length part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>
+            <summary>Gets the 'length' part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>
         </member>
         <member name="P:work.bacome.imapclient.cURL.Expire">
             <summary>Gets the parsed 'datetime' part of the 'expire' part of the URL. May be <see langword="null"/>.</summary>

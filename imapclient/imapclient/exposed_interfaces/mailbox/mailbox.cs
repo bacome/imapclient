@@ -457,8 +457,12 @@ namespace work.bacome.imapclient
         /// <para><see langword="null"/> indicates that <see cref="fMailboxCacheDataItems.uidnext"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.</para>
         /// <para>When the mailbox is selected the value of this property may not be up-to-date: <see cref="UIDNextUnknownCount"/> indicates how out-of-date the value may be.</para>
         /// <para>IMAP does not mandate that the server keep the client updated with this value when the mailbox is selected but it also disallows retrieving this value for a mailbox when it is selected.</para>
-        /// <para>When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server, but these responses may have to be explicitly requested.</para>
-        /// <para>If it is important to you that the value of this property be up-to-date when the mailbox is selected then you must cache <see cref="fMessageCacheAttributes.uid"/> for new messages as they arrive.</para>
+        /// <para>
+        /// When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server,
+        /// but for the value to be up-to-date 
+        /// FETCH responses containing the UID have to be solicited for new messages  
+        /// (use <see cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/> with <see cref="cMessageDeliveryEventArgs.Handles"/> and <see cref="fMessageCacheAttributes.uid"/>).
+        /// </para>
         /// </remarks>
         /// <seealso cref="MessageDelivery"/>
         /// <seealso cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
@@ -518,8 +522,12 @@ namespace work.bacome.imapclient
         /// <para><see langword="null"/> indicates that <see cref="fMailboxCacheDataItems.unseencount"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.</para>
         /// <para>When the mailbox is selected the value of this property may not be accurate: <see cref="UnseenUnknownCount"/> indicates how inaccurate the value may be.</para>
         /// <para>IMAP does not provide a mechanism for retrieving this value for a mailbox when it is selected.</para>
-        /// <para>When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server, but the property value has to be explicitly initialised and the FETCH responses may have to be explicitly requested.</para>
-        /// <para>If it is important to you that the value of this property be accurate when the mailbox is selected then you must initialise the value and cache <see cref="fMessageCacheAttributes.flags"/> for new messages as they arrive.</para>
+        /// <para>
+        /// When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server, 
+        /// but for the value to be accurate it has to be explicitly initialised (using <see cref="SetUnseenCount"/>) and
+        /// FETCH responses containing the flags have to be solicited for new messages  
+        /// (use <see cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/> with <see cref="cMessageDeliveryEventArgs.Handles"/> and <see cref="fMessageCacheAttributes.flags"/>).
+        /// </para>
         /// </remarks>
         /// <seealso cref="SetUnseenCount"/>
         /// <seealso cref="MessageDelivery"/>
@@ -1032,7 +1040,7 @@ namespace work.bacome.imapclient
         /// <param name="pIfUnchangedSinceModSeq"></param>
         /// <returns>Feedback on the success (or otherwise) of the store.</returns>
         /// <remarks>
-        /// <paramref name="pIfUnchangedSinceModSeq"/> can only be specified if <see cref="HighestModSeq"/> is not zero. 
+        /// <paramref name="pIfUnchangedSinceModSeq"/> may only be specified if <see cref="HighestModSeq"/> is not zero. 
         /// (i.e. <see cref="cCapabilities.CondStore"/> is in use and the mailbox supports the persistent storage of mod-sequences.)
         /// If the message has been modified since the specified value then the server will fail the store.
         /// </remarks>

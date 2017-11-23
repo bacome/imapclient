@@ -3,14 +3,14 @@
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Represents sets of data that can be requested about a mailbox. 
+    /// Represents sets of data items that can be requested about a mailbox. 
     /// </summary>
     /// <remarks>
     /// <para>
     /// The exact data items requested depend on the value of <see cref="cIMAPClient.MailboxCacheDataItems"/>.
     /// </para>
     /// <para>
-    /// The <see cref="list"/> set of data affects the following <see cref="cMailbox"/> properties;
+    /// The <see cref="list"/> set of data will request data items that back the following <see cref="cMailbox"/> properties;
     /// <list type="bullet">
     /// <item>
     /// Always;
@@ -23,13 +23,13 @@ namespace work.bacome.imapclient
     ///   </list>
     /// </item>
     /// <item>
-    /// If requesting <see cref="fMailboxCacheDataItems.children"/>;
+    /// If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.children"/>;
     ///   <list type="bullet">
     ///   <item><see cref="cMailbox.HasChildren"/></item>
     ///   </list>
     /// </item>
     /// <item>
-    /// If requesting <see cref="fMailboxCacheDataItems.specialuse"/>;
+    /// If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.specialuse"/>;
     ///   <list type="bullet">
     ///   <item><see cref="cMailbox.ContainsAll"/></item>
     ///   <item><see cref="cMailbox.IsArchive"/></item>
@@ -43,17 +43,17 @@ namespace work.bacome.imapclient
     /// </list>
     /// </para>
     /// <para>
-    /// The <see cref="lsub"/> set of data always affects <see cref="cMailbox.IsSubscribed"/>. 
+    /// The <see cref="lsub"/> set of data will request data items that back <see cref="cMailbox.IsSubscribed"/>. 
     /// </para>
     /// <para>
-    /// The <see cref="status"/> set of data affects the following <see cref="cMailbox"/> properties;
+    /// The <see cref="status"/> set of data will request data items that back the following <see cref="cMailbox"/> properties;
     /// <list type="bullet">
-    /// <item>If requesting <see cref="fMailboxCacheDataItems.messagecount"/>: <see cref="cMailbox.MessageCount"/></item>
-    /// <item>If requesting <see cref="fMailboxCacheDataItems.recentcount"/>: <see cref="cMailbox.RecentCount"/></item>
-    /// <item>If requesting <see cref="fMailboxCacheDataItems.uidnext"/>: <see cref="cMailbox.UIDNext"/></item>
-    /// <item>If requesting <see cref="fMailboxCacheDataItems.uidvalidity"/>: <see cref="cMailbox.UIDValidity"/></item>
-    /// <item>If requesting <see cref="fMailboxCacheDataItems.unseencount"/>: <see cref="cMailbox.UnseenCount"/></item>
-    /// <item>If requesting <see cref="fMailboxCacheDataItems.highestmodseq"/>: <see cref="cMailbox.HighestModSeq"/></item>
+    /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.messagecount"/>: <see cref="cMailbox.MessageCount"/></item>
+    /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.recentcount"/>: <see cref="cMailbox.RecentCount"/></item>
+    /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.uidnext"/>: <see cref="cMailbox.UIDNext"/></item>
+    /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.uidvalidity"/>: <see cref="cMailbox.UIDValidity"/></item>
+    /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.unseencount"/>: <see cref="cMailbox.UnseenCount"/></item>
+    /// <item>If <see cref="cIMAPClient.MailboxCacheDataItems"/> includes <see cref="fMailboxCacheDataItems.highestmodseq"/>: <see cref="cMailbox.HighestModSeq"/></item>
     /// </list>
     /// </para>
     /// </remarks>

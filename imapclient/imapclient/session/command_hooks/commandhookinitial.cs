@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCommandHookInitial), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
 
-                    if (pTextContext == eResponseTextContext.greeting || pTextContext == eResponseTextContext.success)
+                    if (pTextContext == eResponseTextContext.greetingok || pTextContext == eResponseTextContext.greetingpreauth || pTextContext == eResponseTextContext.success)
                     {
                         if (pCode.Equals(kCapability))
                         {

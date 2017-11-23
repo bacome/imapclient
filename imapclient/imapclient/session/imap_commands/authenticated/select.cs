@@ -29,9 +29,9 @@ namespace work.bacome.imapclient
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lBuilder.Add(kSelectCommandPart, lItem.MailboxNameCommandPart);
-                    if (mCapabilities.CondStore) lBuilder.Add(kSelectCommandPartCondStore);
+                    if (_Capabilities.CondStore) lBuilder.Add(kSelectCommandPartCondStore);
 
-                    var lHook = new cCommandHookSelect(mMailboxCache, mCapabilities, pHandle, true);
+                    var lHook = new cCommandHookSelect(mMailboxCache, _Capabilities, pHandle, true);
                     lBuilder.Add(lHook);
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
@@ -43,8 +43,8 @@ namespace work.bacome.imapclient
                     }
 
                     fCapabilities lTryIgnoring;
-                    if (mCapabilities.CondStore) lTryIgnoring = fCapabilities.condstore;
-                    if (mCapabilities.QResync) lTryIgnoring = fCapabilities.qresync;
+                    if (_Capabilities.CondStore) lTryIgnoring = fCapabilities.condstore;
+                    if (_Capabilities.QResync) lTryIgnoring = fCapabilities.qresync;
                     else lTryIgnoring = 0;
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnoring, lContext);

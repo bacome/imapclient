@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
                 if (pFeedback.Count == 0) throw new ArgumentOutOfRangeException(nameof(pFeedback));
 
                 if (pIfUnchangedSinceModSeq == 0) throw new ArgumentOutOfRangeException(nameof(pIfUnchangedSinceModSeq));
-                if (pIfUnchangedSinceModSeq != null && !mCapabilities.CondStore) throw new InvalidOperationException(kInvalidOperationExceptionMessage.CondStoreNotInUse);
+                if (pIfUnchangedSinceModSeq != null && !_Capabilities.CondStore) throw new InvalidOperationException(kInvalidOperationExceptionMessage.CondStoreNotInUse);
 
                 cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pFeedback); // to be repeated inside the select lock
                 if (!lSelectedMailbox.SelectedForUpdate) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelectedForUpdate); // to be repeated inside the select lock
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
                 if (pFeedback.Count == 0) throw new ArgumentOutOfRangeException(nameof(pFeedback));
 
                 if (pIfUnchangedSinceModSeq == 0) throw new ArgumentOutOfRangeException(nameof(pIfUnchangedSinceModSeq));
-                if (pIfUnchangedSinceModSeq != null && !mCapabilities.CondStore) throw new InvalidOperationException(kInvalidOperationExceptionMessage.CondStoreNotInUse);
+                if (pIfUnchangedSinceModSeq != null && !_Capabilities.CondStore) throw new InvalidOperationException(kInvalidOperationExceptionMessage.CondStoreNotInUse);
 
                 uint lUIDValidity = pFeedback[0].UID.UIDValidity;
 

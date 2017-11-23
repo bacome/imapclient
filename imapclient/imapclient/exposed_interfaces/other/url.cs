@@ -56,9 +56,9 @@ namespace work.bacome.imapclient
         public uint? UID => mParts.UID;
         /**<summary>Gets the decoded 'isection' part of the URL. May be <see langword="null"/>.</summary>*/
         public string Section => mParts.Section;
-        /**<summary>Gets the from part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>*/
+        /**<summary>Gets the 'offset' part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>*/
         public uint? PartialOffset => mParts.PartialOffset;
-        /**<summary>Gets the length part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>*/
+        /**<summary>Gets the 'length' part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>*/
         public uint? PartialLength => mParts.PartialLength;
         /**<summary>Gets the parsed 'datetime' part of the 'expire' part of the URL. May be <see langword="null"/>.</summary>*/
         public DateTime? Expire => mParts.Expire;
