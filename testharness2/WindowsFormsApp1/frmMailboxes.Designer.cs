@@ -305,6 +305,7 @@
             this.Text = "frmMailboxes";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMailboxes_FormClosed);
             this.Load += new System.EventHandler(this.frmMailboxes_Load);
+            this.Shown += new System.EventHandler(this.frmMailboxes_Shown);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();

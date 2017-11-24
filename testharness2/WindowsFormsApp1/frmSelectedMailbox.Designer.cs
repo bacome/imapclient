@@ -223,6 +223,7 @@
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmSelectedMailbox_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmSelectedMailbox_FormClosed);
             this.Load += new System.EventHandler(this.frmSelectedMailbox_Load);
+            this.Shown += new System.EventHandler(this.frmSelectedMailbox_Shown);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();

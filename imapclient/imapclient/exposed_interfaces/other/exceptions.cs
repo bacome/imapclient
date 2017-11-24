@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
         public readonly cResponseText ResponseText;
 
         /// <summary>
-        /// Indicates that ignoring these capabilities may have prevented the problem.
+        /// Indicates that ignoring these capabilities may prevent the problem.
         /// </summary>
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
         public readonly cCommandResult CommandResult;
 
         /// <summary>
-        /// Indicates that ignoring these capabilities may have prevented the exception.
+        /// Indicates that ignoring these capabilities may prevent the problem.
         /// </summary>
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
@@ -113,7 +113,7 @@ namespace work.bacome.imapclient
     public class cUnexpectedServerActionException : cIMAPException
     {
         /// <summary>
-        /// Indicates that ignoring these capabilities may have prevented the exception.
+        /// Indicates that ignoring these capabilities may prevent the problem.
         /// </summary>
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;

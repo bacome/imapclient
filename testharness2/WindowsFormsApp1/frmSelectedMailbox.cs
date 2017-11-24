@@ -45,6 +45,10 @@ namespace testharness2
             lblOverrideSort.Text = kUsingDefault;
             ZGridInitialise();
             mClient.PropertyChanged += mClient_PropertyChanged;
+        }
+
+        private void frmSelectedMailbox_Shown(object sender, EventArgs e)
+        {
             ZQuery();
         }
 
