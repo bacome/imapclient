@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient
 {

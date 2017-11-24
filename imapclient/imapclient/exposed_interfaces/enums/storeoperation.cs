@@ -11,13 +11,13 @@ namespace work.bacome.imapclient
     /// <seealso cref="cMailbox.UIDStore(System.Collections.Generic.IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>
     public enum eStoreOperation
     {
-        /** <summary>Add flags to the flags already set.</summary> */
+        /** <summary>Add flags to the flags that are already set.</summary> */
         add,
 
-        /** <summary>Remove flags from the flags already set.</summary> */
+        /** <summary>Remove flags from the flags that are already set.</summary> */
         remove,
 
-        /** <summary>Replace the flags.</summary> */
+        /** <summary>Replace the flags that are already set.</summary> */
         replace
     }
 }

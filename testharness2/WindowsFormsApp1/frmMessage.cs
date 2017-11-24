@@ -997,7 +997,7 @@ namespace testharness2
         {
             cMailbox lMailbox;
 
-            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mMessage.Client))
+            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mMessage.Client, false))
             {
                 if (lMailboxDialog.ShowDialog(this) != DialogResult.OK) return;
                 lMailbox = lMailboxDialog.Mailbox;

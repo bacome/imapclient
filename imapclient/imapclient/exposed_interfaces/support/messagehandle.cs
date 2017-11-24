@@ -21,7 +21,7 @@ namespace work.bacome.imapclient.support
     {
         /**<summary>Gets the message cache that the instance belongs to.</summary>*/
         iMessageCache MessageCache { get; }
-        /**<summary>Gets the sequence in the <see cref="MessageCache"/> of the message.</summary>*/
+        /**<summary>Gets the message's sequence in the <see cref="MessageCache"/>.</summary>*/
         int CacheSequence { get; }
         /**<summary>Indicates whether the message exists on the server.</summary>*/
         bool Expunged { get; }
@@ -45,7 +45,7 @@ namespace work.bacome.imapclient.support
         cBodyPart BodyStructure { get; }
         /**<summary>Gets the IMAP ENVELOPE data, <see langword="null"/> if this data isn't cached.</summary>*/
         cEnvelope Envelope { get; }
-        /**<summary>Gets the IMAP FLAGS data, <see langword="null"/> if this data isn't cached.</summary>*/
+        /**<summary>Gets the current IMAP FLAGS data, <see langword="null"/> if this data isn't cached.</summary>*/
         cFetchableFlags Flags { get; }
 
         /// <summary>
@@ -69,9 +69,9 @@ namespace work.bacome.imapclient.support
         /// </remarks>
         cUID UID { get; }
 
-        /**<summary>Gets the set of header fields that are cached for the message, will be <see langword="null"/> if none have been cached.</summary>*/
+        /**<summary>Gets the set of header fields that are currently cached for the message, will be <see langword="null"/> if none have been cached.</summary>*/
         cHeaderFields HeaderFields { get; }
-        /**<summary>Gets the binary body-part sizes that are cached for the message, will be <see langword="null"/> if none have been cached.</summary>*/
+        /**<summary>Gets the binary body-part sizes that are currently cached for the message, will be <see langword="null"/> if none have been cached.</summary>*/
         cBinarySizes BinarySizes { get; }
 
         /// <summary>

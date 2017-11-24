@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
+using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient

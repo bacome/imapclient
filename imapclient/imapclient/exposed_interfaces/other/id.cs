@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
-using work.bacome.apidocumentation;
+using work.bacome.imapclient.apidocumentation;
 
 namespace work.bacome.imapclient
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using work.bacome.apidocumentation;
+using work.bacome.imapclient.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -70,6 +70,15 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Subscribed(bool, fMailboxCacheDataSets)" select="returns|remarks"/>
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(NamespaceName, pDescend, pDataSets);
 
+        /// <inheritdoc cref="iMailboxContainer.GetMailboxName(string)"/>
+        public cMailboxName GetMailboxName(string pName)
+        {
+            if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (NamespaceName.Delimiter != null && pName.IndexOf(NamespaceName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cMailboxName.TryConstruct(NamespaceName.Prefix + pName, NamespaceName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            return lMailboxName;
+        }
+
         /// <summary>
         /// Creates a mailbox at the top level of hierarchy in the namespace.
         /// </summary>
@@ -77,7 +86,7 @@ namespace work.bacome.imapclient
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <inheritdoc cref="cIMAPClient.Create(cMailboxName, bool)" select="remarks"/>
-        public cMailbox CreateChild(string pName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pName), pAsFutureParent);
+        public cMailbox CreateChild(string pName, bool pAsFutureParent = false) => Client.Create(GetMailboxName(pName), pAsFutureParent);
 
         /// <summary>
         /// Asynchronously creates a mailbox at the top level of hierarchy in the namespace.
@@ -86,15 +95,13 @@ namespace work.bacome.imapclient
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <inheritdoc cref="CreateChild(string, bool)" select="remarks"/>
-        public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = true) => Client.CreateAsync(ZCreateChild(pName), pAsFutureParent);
+        public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = false) => Client.CreateAsync(GetMailboxName(pName), pAsFutureParent);
 
-        private cMailboxName ZCreateChild(string pName)
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(iMailboxContainer pOther)
         {
-            if (NamespaceName.Delimiter == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NoMailboxHierarchy);
-            if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
-            if (pName.IndexOf(NamespaceName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
-            if (!cMailboxName.TryConstruct(NamespaceName.Prefix + pName, NamespaceName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
-            return lMailboxName;
+            if (pOther is cNamespace lOther) return ReferenceEquals(lOther.Client, Client) && lOther.NamespaceName == NamespaceName;
+            return false;
         }
 
         /// <inheritdoc/>

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using work.bacome.apidocumentation;
 
 namespace work.bacome.imapclient.support
 {
@@ -26,7 +25,7 @@ namespace work.bacome.imapclient.support
         }
 
         /// <summary>
-        /// Combines two maps.
+        /// Returns a map that is the combination of the two specified two maps.
         /// </summary>
         /// <param name="pA"></param>
         /// <param name="pB"></param>

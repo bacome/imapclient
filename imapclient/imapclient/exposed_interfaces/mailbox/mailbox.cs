@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
+using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -709,6 +710,16 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Subscribed(bool, fMailboxCacheDataSets)" select="returns|remarks"/>
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = false, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(MailboxHandle, pDescend, pDataSets);
 
+        /// <inheritdoc cref="iMailboxContainer.GetMailboxName(string)"/>
+        public cMailboxName GetMailboxName(string pName)
+        {
+            if (MailboxHandle.MailboxName.Delimiter == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NoMailboxHierarchy);
+            if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (pName.IndexOf(MailboxHandle.MailboxName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cMailboxName.TryConstruct(MailboxHandle.MailboxName.Path + MailboxHandle.MailboxName.Delimiter.Value + pName, MailboxHandle.MailboxName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            return lMailboxName;
+        }
+
         /// <summary>
         /// Creates a child mailbox of the mailbox.
         /// </summary>
@@ -716,7 +727,7 @@ namespace work.bacome.imapclient
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <inheritdoc cref="cIMAPClient.Create(cMailboxName, bool)" select="remarks"/>
-        public cMailbox CreateChild(string pName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pName), pAsFutureParent);
+        public cMailbox CreateChild(string pName, bool pAsFutureParent = false) => Client.Create(GetMailboxName(pName), pAsFutureParent);
 
         /// <summary>
         /// Asynchronously creates a child mailbox of the mailbox.
@@ -724,15 +735,13 @@ namespace work.bacome.imapclient
         /// <param name="pName">The mailbox name to use.</param>
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <inheritdoc cref="CreateChild(string, bool)" select="returns|remarks"/>
-        public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = true) => Client.CreateAsync(ZCreateChild(pName), pAsFutureParent);
+        public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = false) => Client.CreateAsync(GetMailboxName(pName), pAsFutureParent);
 
-        private cMailboxName ZCreateChild(string pName)
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(iMailboxContainer pOther)
         {
-            if (MailboxHandle.MailboxName.Delimiter == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NoMailboxHierarchy);
-            if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
-            if (pName.IndexOf(MailboxHandle.MailboxName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
-            if (!cMailboxName.TryConstruct(MailboxHandle.MailboxName.Path + MailboxHandle.MailboxName.Delimiter.Value + pName, MailboxHandle.MailboxName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
-            return lMailboxName;
+            if (pOther is cMailbox lOther) return ReferenceEquals(lOther.MailboxHandle, MailboxHandle);
+            return false;
         }
 
         /// <summary>
@@ -760,19 +769,20 @@ namespace work.bacome.imapclient
         public Task UnsubscribeAsync() => Client.UnsubscribeAsync(MailboxHandle);
 
         /// <summary>
-        /// Changes the name of the mailbox.
+        /// Changes the <see cref="Name"/> of the mailbox.
         /// </summary>
         /// <param name="pName">The new mailbox name.</param>
         /// <returns></returns>
         /// <remarks>
-        /// This method renames the mailbox inside its parent mailbox - it just changes the last part of the path hierarchy.
+        /// After renaming, this instance will continue to have the same <see cref="Path"/>, which, unless the mailbox <see cref="IsInbox"/>, means that it will no longer exist.
+        /// A new instance representing the renamed mailbox is returned.
         /// </remarks>
         public cMailbox Rename(string pName) => Client.Rename(MailboxHandle, ZRename(pName));
 
         /// <summary>
-        /// Ansynchronously changes the name of the mailbox.
+        /// Ansynchronously changes the <see cref="Name"/> of the mailbox.
         /// </summary>
-        /// <param name="pName">The new mailbox name.</param>
+        /// <param name="pName"></param>
         /// <inheritdoc cref="Rename(string)" select="returns|remarks"/>
         public Task<cMailbox> RenameAsync(string pName) => Client.RenameAsync(MailboxHandle, ZRename(pName));
 
@@ -785,16 +795,32 @@ namespace work.bacome.imapclient
             return lMailboxName;
         }
 
-        /* TODO!
-        public cMailbox Rename(cNamespace pNamespace, string pName = null)
-        {
-            ;?;
-        }
+        /// <summary>
+        /// Changes the <see cref="Path"/> of the mailbox.
+        /// </summary>
+        /// <param name="pContainer">The mailbox container that provides first part of the new <see cref="Path"/>.</param>
+        /// <param name="pName">The new mailbox name inside the <paramref name="pContainer"/>. If <see langword="null"/> the current <see cref="Name"/> is used.</param>
+        /// <inheritdoc cref="Rename(string)" select="returns|remarks"/>
+        public cMailbox Rename(iMailboxContainer pContainer, string pName = null) => Client.Rename(MailboxHandle, ZRename(pContainer, pName));
 
-        public cMailbox Rename(cMailbox pMailbox, string pName = null)
+        /// <summary>
+        /// Ansynchronously changes the <see cref="Path"/> of the mailbox.
+        /// </summary>
+        /// <param name="pContainer"></param>
+        /// <param name="pName"></param>
+        /// <inheritdoc cref="Rename(iMailboxContainer, string)" select="returns|remarks"/>
+        public Task<cMailbox> RenameAsync(iMailboxContainer pContainer, string pName = null) => Client.RenameAsync(MailboxHandle, ZRename(pContainer, pName));
+
+        private cMailboxName ZRename(iMailboxContainer pContainer, string pName)
         {
-            ;?;
-        } */
+            if (pContainer == null) throw new ArgumentNullException(nameof(pContainer));
+
+            string lName;
+            if (pName == null) lName = MailboxHandle.MailboxName.Name;
+            else lName = pName;
+
+            return pContainer.GetMailboxName(lName);
+        }
 
         /// <summary>
         /// Deletes the mailbox.

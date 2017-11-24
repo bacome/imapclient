@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections;
-using work.bacome.imapclient;
 
-namespace work.bacome.apidocumentation
+namespace work.bacome.imapclient.apidocumentation
 {
     /// <summary>
     /// </summary>

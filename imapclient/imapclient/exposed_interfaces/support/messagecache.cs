@@ -25,7 +25,7 @@ namespace work.bacome.imapclient.support
         int RecentCount { get; }
 
         /// <summary>
-        /// Gets the predicted next UID for the mailbox, may be zero.
+        /// Gets the predicted next UID for the mailbox. May be zero.
         /// </summary>
         /// <remarks>
         /// Zero indicates that the value is not known.
@@ -38,7 +38,12 @@ namespace work.bacome.imapclient.support
         /// </summary>
         int UIDNextUnknownCount { get; }
 
-        /**<summary>Gets the UIDValidity of the mailbox. Zero if the server does not support unique identifiers.</summary>*/
+        /// <summary>
+        /// Gets the UIDValidity of the mailbox. May be zero.
+        /// </summary>
+        /// <remarks>
+        /// Zero indicates that the server does not support unique identifiers.
+        /// </remarks>
         uint UIDValidity { get; }
 
         /// <summary>

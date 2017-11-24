@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
         success,
         /**<summary>As part of an IMAP command failure.</summary>*/
         failure,
-        /**<summary>As part of IMAP authentication cancellation.</summary>*/
+        /**<summary>As part of an IMAP authentication cancellation.</summary>*/
         authenticationcancelled,
         /**<summary>As part of an IMAP protocol error command termination.</summary>*/
         protocolerror

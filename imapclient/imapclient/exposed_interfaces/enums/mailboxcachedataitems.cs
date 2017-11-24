@@ -64,7 +64,7 @@ namespace work.bacome.imapclient
         highestmodseq = 1 << 8,
 
         /// <summary>
-        /// The backing data retrieved by the IMAP STATUS command.
+        /// The backing data retrieved by the IMAP STATUS command (equivalent to: <see cref="messagecount"/>, <see cref="recentcount"/>, <see cref="uidnext"/>, <see cref="uidvalidity"/>, <see cref="unseencount"/> and <see cref="highestmodseq"/>). 
         /// </summary>
         allstatus = messagecount | recentcount | uidnext | uidvalidity | unseencount | highestmodseq
     }

@@ -111,8 +111,8 @@ namespace testharness2
 
             try
             {
-                if (mSubscriptions) lMailboxes = await lTag.ChildMailboxes.SubscribedAsync(false, mDataSets);
-                else lMailboxes = await lTag.ChildMailboxes.MailboxesAsync(mDataSets);
+                if (mSubscriptions) lMailboxes = await lTag.MailboxContainer.SubscribedAsync(false, mDataSets);
+                else lMailboxes = await lTag.MailboxContainer.MailboxesAsync(mDataSets);
                 if (IsDisposed) return;
                 foreach (var lMailbox in lMailboxes) ZAddMailbox(e.Node, lMailbox);
             }
@@ -382,6 +382,48 @@ namespace testharness2
             }
         }
 
+        private async void cmdRenameTo_Click(object sender, EventArgs e)
+        {
+            var lNode = tvw.SelectedNode;
+            if (lNode == null) return;
+            var lTag = tvw.SelectedNode.Tag as cNodeTag;
+            if (lTag?.Mailbox == null) return;
+
+            iMailboxContainer lContainer;
+
+            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mClient, true))
+            {
+                if (lMailboxDialog.ShowDialog(this) != DialogResult.OK) return;
+                lContainer = lMailboxDialog.MailboxContainer;
+            }
+
+            string lName;
+            if (string.IsNullOrWhiteSpace(txtRename.Text)) lName = null;
+            else lName = txtRename.Text.Trim();
+
+            try
+            {
+                var lMailbox = await lTag.Mailbox.RenameAsync(lContainer, lName);
+                if (IsDisposed) return;
+                foreach (TreeNode n in tvw.Nodes) ZAddChildMailbox(n, lContainer, lMailbox);
+            }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while renaming: {ex}");
+            }
+        }
+
+        private void ZAddChildMailbox(TreeNode pNode, iMailboxContainer pContainer, cMailbox pMailbox)
+        {
+            var lTag = pNode.Tag as cNodeTag;
+
+            if (lTag != null && lTag.State == cNodeTag.eState.expanded)
+            {
+                if (lTag.MailboxContainer.Equals(pContainer)) ZAddMailbox(pNode, pMailbox);
+                foreach (TreeNode lNode in pNode.Nodes) ZAddChildMailbox(lNode, pContainer, pMailbox);
+            }
+        }
+
         private async void cmdCreate_Click(object sender, EventArgs e)
         {
             var lNode = tvw.SelectedNode;
@@ -445,29 +487,31 @@ namespace testharness2
 
             public readonly cNamespace Namespace;
             public readonly cMailbox Mailbox;
-            public readonly iMailboxContainer ChildMailboxes;
+            public readonly iMailboxContainer MailboxContainer;
             public readonly bool CanSelect;
             public readonly TreeNode PleaseWait;
-
-            // if it has been expanded then it has to be refreshed to get any new entries
-            public eState State = eState.neverexpanded;
+            public eState State;
 
             public cNodeTag(cNamespace pNamespace, TreeNode pPleaseWait)
             {
                 Namespace = pNamespace ?? throw new ArgumentNullException(nameof(pNamespace));
                 Mailbox = null;
-                ChildMailboxes = pNamespace;
+                MailboxContainer = pNamespace;
                 CanSelect = false;
                 PleaseWait = pPleaseWait;
+                if (pPleaseWait == null) State = eState.expanded;
+                else State = eState.neverexpanded;
             }
 
             public cNodeTag(cMailbox pMailbox, TreeNode pPleaseWait)
             {
                 Namespace = null;
                 Mailbox = pMailbox ?? throw new ArgumentNullException(nameof(pMailbox));
-                ChildMailboxes = pMailbox;
+                MailboxContainer = pMailbox;
                 CanSelect = pMailbox.CanSelect;
                 PleaseWait = pPleaseWait;
+                if (pPleaseWait == null) State = eState.expanded;
+                else State = eState.neverexpanded;
             }
         }
     }

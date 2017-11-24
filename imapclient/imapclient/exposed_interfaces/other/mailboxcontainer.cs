@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
     /// </summary>
     /// <seealso cref="cNamespace"/>
     /// <seealso cref="cMailbox"/>
-    public interface iMailboxContainer
+    public interface iMailboxContainer : IEquatable<iMailboxContainer>
     {
         /// <summary>
         /// Gets the hierarchy delimiter used in the container. May be <see langword="null"/>. 
@@ -55,13 +55,23 @@ namespace work.bacome.imapclient
         Task<List<cMailbox>> SubscribedAsync(bool pDescend, fMailboxCacheDataSets pDataSets = 0);
 
         /// <summary>
+        /// Gets the full mailbox name of a contained mailbox with the specified name.
+        /// </summary>
+        /// <param name="pName"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// <paramref name="pName"/> may not include <see cref="Delimiter"/> and must be a valid IMAP mailbox name.
+        /// </remarks>
+        cMailboxName GetMailboxName(string pName);
+
+        /// <summary>
         /// Creates a mailbox at the top level of hierarchy in the container.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <inheritdoc cref="cIMAPClient.Create(cMailboxName, bool)" select="remarks"/>
-        cMailbox CreateChild(string pName, bool pAsFutureParent);
+        cMailbox CreateChild(string pName, bool pAsFutureParent = false);
 
         /// <summary>
         /// Asynchronously creates a mailbox at the top level of hierarchy in the container.
@@ -70,6 +80,6 @@ namespace work.bacome.imapclient
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <inheritdoc cref="CreateChild(string, bool)" select="remarks"/>
-        Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent);
+        Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = false);
     }
 }

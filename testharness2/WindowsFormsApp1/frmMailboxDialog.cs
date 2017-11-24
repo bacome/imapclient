@@ -17,18 +17,22 @@ namespace testharness2
         private const string kPleaseWait = "<please wait>";
 
         private readonly cIMAPClient mClient;
+        private readonly bool mContainer;
 
-        public frmMailboxDialog(cIMAPClient pClient)
+        public frmMailboxDialog(cIMAPClient pClient, bool pContainer)
         {
             mClient = pClient;
+            mContainer = pContainer;
             InitializeComponent();
         }
 
         public cMailbox Mailbox { get; private set; }
+        public iMailboxContainer MailboxContainer { get; private set; }
 
         private void frmMailboxDialog_Load(object sender, EventArgs e)
         {
-            Text = "imapclient testharness - choose mailbox - " + mClient.InstanceName;
+            if (mContainer) Text = "imapclient testharness - choose mailbox container - " + mClient.InstanceName;
+            else Text = "imapclient testharness - choose mailbox - " + mClient.InstanceName;
 
             mClient.PropertyChanged += mClient_PropertyChanged;
 
@@ -103,7 +107,7 @@ namespace testharness2
 
             try
             {
-                lMailboxes = await lTag.ChildMailboxes.MailboxesAsync();
+                lMailboxes = await lTag.MailboxContainer.MailboxesAsync();
                 if (IsDisposed) return;
                 foreach (var lMailbox in lMailboxes) ZAddMailbox(e.Node, lMailbox);
             }
@@ -126,21 +130,29 @@ namespace testharness2
                 return;
             }
 
-            if (lTag.Namespace != null)
+            if (mContainer)
             {
-                cmdOK.Enabled = false;
-                return;
+                cmdOK.Enabled = true;
+                MailboxContainer = lTag.MailboxContainer;
             }
+            else
+            {
+                if (lTag.Namespace != null)
+                {
+                    cmdOK.Enabled = false;
+                    return;
+                }
 
-            bool lCanSelect;
+                bool lCanSelect;
 
-            try { lCanSelect = lTag.Mailbox.CanSelect; }
-            catch { lCanSelect = false; }
+                try { lCanSelect = lTag.Mailbox.CanSelect; }
+                catch { lCanSelect = false; }
 
-            cmdOK.Enabled = lCanSelect;
+                cmdOK.Enabled = lCanSelect;
 
-            if (lCanSelect) Mailbox = lTag.Mailbox;
-            else Mailbox = null;
+                if (lCanSelect) Mailbox = lTag.Mailbox;
+                else Mailbox = null;
+            }
         }
 
         private void mClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -159,7 +171,7 @@ namespace testharness2
 
             public readonly cNamespace Namespace;
             public readonly cMailbox Mailbox;
-            public readonly iMailboxContainer ChildMailboxes;
+            public readonly iMailboxContainer MailboxContainer;
             public readonly bool CanSelect;
             public readonly TreeNode PleaseWait;
 
@@ -170,7 +182,7 @@ namespace testharness2
             {
                 Namespace = pNamespace ?? throw new ArgumentNullException(nameof(pNamespace));
                 Mailbox = null;
-                ChildMailboxes = pNamespace;
+                MailboxContainer = pNamespace;
                 CanSelect = false;
                 PleaseWait = pPleaseWait;
             }
@@ -179,7 +191,7 @@ namespace testharness2
             {
                 Namespace = null;
                 Mailbox = pMailbox ?? throw new ArgumentNullException(nameof(pMailbox));
-                ChildMailboxes = pMailbox;
+                MailboxContainer = pMailbox;
                 CanSelect = pMailbox.CanSelect;
                 PleaseWait = pPleaseWait;
             }

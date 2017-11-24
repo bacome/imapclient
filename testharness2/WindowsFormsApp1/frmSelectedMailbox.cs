@@ -288,31 +288,44 @@ namespace testharness2
 
             try
             {
-                cMessageFetchConfiguration lConfiguration;
-
                 if (mProgressBar)
                 {
                     lProgress = new frmProgress("loading messages");
                     Program.Centre(lProgress, this);
                     lProgress.Show();
-                    lConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, lProgress.SetCount, lProgress.Increment);
                     ZMessagesLoadingAdd(lProgress); // so it can be cancelled from code
                 }
-                else lConfiguration = null;
 
                 if (mSelectedMailbox.MessageCount > mMaxMessages)
                 {
                     // first get the messages, sorted, but don't get the requested properties yet (as this would be wasteful)
-                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, cMessageCacheItems.Empty, lConfiguration);
+                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, cMessageCacheItems.Empty);
                     if (IsDisposed || lQueryMessagesAsyncEntryNumber != mQueryMessagesAsyncEntryNumber) return;
 
                     // remove any excess messages (the filter may have removed enough or the mailbox may have changed in the meantime)
                     if (lMessages.Count > mMaxMessages) lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
 
+                    cCacheItemFetchConfiguration lConfiguration;
+
+                    if (lProgress == null) lConfiguration = null;
+                    else
+                    {
+                        lProgress.SetCount(lMessages.Count);
+                        lConfiguration = new cCacheItemFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
+                    }
+
                     // get any missing properties: using the same configuration is a bit of a hack as the count will not be right (TODO: fix it)
                     await mClient.FetchAsync(lMessages, mClient.DefaultMessageCacheItems, lConfiguration);
                 }
-                else if (mFilter != null || mOverrideSort != null || lConfiguration != null) lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
+                else if (mFilter != null || mOverrideSort != null || lProgress != null)
+                {
+                    cMessageFetchConfiguration lConfiguration;
+
+                    if (lProgress == null) lConfiguration = null;
+                    else lConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, lProgress.SetCount, lProgress.Increment);
+
+                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
+                }
                 else lMessages = await mSelectedMailbox.MessagesAsync(); // show that getting the full set of messages in a mailbox is trivial if no restrictions are required and the defaults are set correctly
             }
             /* this is commented out as it hides problems in the gating code 
@@ -622,7 +635,7 @@ namespace testharness2
 
             cMailbox lMailbox;
 
-            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mClient))
+            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mClient, false))
             {
                 if (lMailboxDialog.ShowDialog(this) != DialogResult.OK) return;
                 lMailbox = lMailboxDialog.Mailbox;

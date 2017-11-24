@@ -88,7 +88,7 @@
             <summary>
             Fired when a property value of the instance changes.
             </summary>
-            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
+            <inheritdoc cref="E:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.ResponseText">
             <summary>
@@ -130,19 +130,19 @@
             <summary>
             Fired when the server notifies the client of a change that could affect a property value of a <see cref="T:work.bacome.imapclient.cMailbox"/> instance.
             </summary>
-            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
+            <inheritdoc cref="E:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MailboxMessageDelivery">
             <summary>
             Fired when the server notifies the client that messages have arrived in a mailbox.
             </summary>
-            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
+            <inheritdoc cref="E:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.MessagePropertyChanged">
             <summary>
             Fired when the server notifies the client of a change that could affect a property value of a <see cref="T:work.bacome.imapclient.cMessage"/> instance.
             </summary>
-            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
+            <inheritdoc cref="E:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.CallbackException">
             <summary>
@@ -617,10 +617,14 @@
             <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
             <remarks>
-            Both Dovecot and GMail object to <paramref name="pAsFutureParent"/> being <see langword="true"/> despite this appearing to be in violation of RFC 3501 section 6.3.3.
-            Dovecot objects when the mailbox name is encoded in modified UTF-7, replying with a 'NO'.
-            GMail just objects full stop and always replies with an OK [CANNOT].
-            In both these cases the mailbox is not created.
+            <para>
+            Some servers have issues when <paramref name="pAsFutureParent"/> is <see langword="true"/> despite this appearing to be in violation of RFC 3501 section 6.3.3.
+            The servers tested with issues replied either 'NO' or 'OK [CANNOT]' and did not create the mailbox.
+            </para>
+            <para>
+            Some servers exhibit unusual behaviour when the mailbox name includes special characters (e.g. '/' when it isn't the delimiter). 
+            One server tested created the mailbox with the name truncated at the special character.
+            </para>
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cIMAPClient.CreateAsync(work.bacome.imapclient.cMailboxName,System.Boolean)">
@@ -776,6 +780,170 @@
             </summary>
             <param name="pParentContext"></param>
         </member>
+        <member name="T:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate">
+            <summary>
+            </summary>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="E:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Event">
+            <summary>
+            
+            </summary>
+            <remarks>
+            If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events and callbacks are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
+            If an exception is raised in an event handler or callback then the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
+            </remarks>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.#ctor">
+            <summary>
+            Initialises a new instance.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)">
+            <summary>
+            Determines whether two instances are the same.
+            </summary>
+            <param name="pA"></param>
+            <param name="pB"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)">
+            <summary>
+            Determines whether two instances are different.
+            </summary>
+            <param name="pA"></param>
+            <param name="pB"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Indexer(System.Int32)">
+            <summary>
+            Gets one item.
+            </summary>
+            <param name="i"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.CompareTo(System.Object)">
+            <summary>
+            Compares this instance with the specified object.
+            </summary>
+            <param name="pOther"></param>
+            <returns></returns>
+        </member>
+        <member name="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Count">
+            <summary>Gets the number of items in the set.</summary>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator">
+            <summary>
+            Returns an enumerator that iterates through the items in the set.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetHashCode">
+            <summary>
+            Returns the hash code for the instance.
+            </summary>
+            <returns>A hash code for the current object.</returns>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equals(System.Object)">
+            <summary>
+            Determines whether the specified object is equal to the current object.
+            </summary>
+            <param name="pObject"></param>
+            <returns></returns>
+        </member>
+        <member name="T:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample1">
+            <summary>
+            Contains ...
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample1.Constant">
+            <summary>fred</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.apidocumentation.eAPIDocumentationExample">
+            <summary>
+            The ...
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.apidocumentation.eAPIDocumentationExample.fred">
+            <summary>The ...</summary>
+        </member>
+        <member name="T:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2">
+            <summary>
+            Represents a ...
+            A ... collection.
+            A ... list.
+            </summary>
+            <inheritdoc cref="T:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate" select="returns|remarks"/>
+        </member>
+        <member name="F:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.PSR">
+            <summary>An apidocumentation that represents ...</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.Field1">
+            <summary>
+            The field1.
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.#ctor(System.Boolean)">
+            <summary>
+            Initialises a new instance {so it ... | with the specified ... }
+            </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.Contains(System.String)">
+            <summary>
+            Determines whether the { collection | list } contains ...
+            </summary>
+            <param name="pName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.AMethod">
+            <summary>
+            Returns | Indicates whether ...
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.op_Implicit(System.String)~work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2">
+            <summary>
+            Returns a new instance containing [a copy of] ...
+            </summary>
+            <param name="pParam"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.#ctor">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.#ctor"/>
+        </member>
+        <member name="E:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.Event">
+            <inheritdoc cref="E:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.CompareTo(System.Object)">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.CompareTo(System.Object)"/>
+        </member>
+        <member name="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.Count">
+            <inheritdoc cref="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Count"/>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.GetEnumerator">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.GetHashCode">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
+        </member>
+        <member name="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.Item(System.Int32)">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Indexer(System.Int32)"/>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.op_Equality(work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2,work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2)">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.op_Inequality(work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2,work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2)">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.Equals(work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2)">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equals(System.Object)"/>
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationExample2.ToString">
+            <inheritdoc />
+        </member>
         <member name="T:work.bacome.imapclient.eConnectionState">
             <summary>
             Represents the connection state of an IMAP client instance.
@@ -895,13 +1063,13 @@
             <seealso cref="M:work.bacome.imapclient.cMailbox.UIDStore(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cUID},work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cStorableFlags,System.Nullable{System.UInt64})"/>
         </member>
         <member name="F:work.bacome.imapclient.eStoreOperation.add">
-            <summary>Add flags to the flags already set.</summary> 
+            <summary>Add flags to the flags that are already set.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.eStoreOperation.remove">
-            <summary>Remove flags from the flags already set.</summary> 
+            <summary>Remove flags from the flags that are already set.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.eStoreOperation.replace">
-            <summary>Replace the flags.</summary> 
+            <summary>Replace the flags that are already set.</summary> 
         </member>
         <member name="T:work.bacome.imapclient.fMessageCacheAttributes">
             <summary>
@@ -1038,10 +1206,10 @@
             <returns></returns>
         </member>
         <member name="P:work.bacome.imapclient.cHeaderFieldNames.Count">
-            <inheritdoc cref="P:work.bacome.apidocumentation.cAPIDocumentationTemplate.Count"/>
+            <inheritdoc cref="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Count"/>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFieldNames.GetEnumerator">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFieldNames.ToString">
             <inheritdoc />
@@ -1050,13 +1218,13 @@
             <inheritdoc />
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFieldNames.GetHashCode">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFieldNames.op_Equality(work.bacome.imapclient.cHeaderFieldNames,work.bacome.imapclient.cHeaderFieldNames)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFieldNames.op_Inequality(work.bacome.imapclient.cHeaderFieldNames,work.bacome.imapclient.cHeaderFieldNames)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFieldNames.op_Implicit(work.bacome.imapclient.cHeaderFieldNameList)~work.bacome.imapclient.cHeaderFieldNames">
             <summary>
@@ -1154,10 +1322,10 @@
             <returns></returns>
         </member>
         <member name="P:work.bacome.imapclient.cHeaderFieldNameList.Count">
-            <inheritdoc cref="P:work.bacome.apidocumentation.cAPIDocumentationTemplate.Count"/>
+            <inheritdoc cref="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Count"/>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFieldNameList.GetEnumerator">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFieldNameList.ToString">
             <inheritdoc />
@@ -1170,7 +1338,7 @@
             <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFieldNameList.GetHashCode">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
         </member>
         <member name="M:work.bacome.imapclient.cHeaderFieldNameList.op_Equality(work.bacome.imapclient.cHeaderFieldNameList,work.bacome.imapclient.cHeaderFieldNameList)">
             <summary>
@@ -1402,13 +1570,13 @@
             <seealso cref="M:work.bacome.imapclient.cMailbox.UIDCopy(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cUID},work.bacome.imapclient.cMailbox)"/>
         </member>
         <member name="P:work.bacome.imapclient.cCopyFeedback.Item(System.Int32)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Indexer(System.Int32)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Indexer(System.Int32)"/>
         </member>
         <member name="P:work.bacome.imapclient.cCopyFeedback.Count">
-            <inheritdoc cref="P:work.bacome.apidocumentation.cAPIDocumentationTemplate.Count"/>
+            <inheritdoc cref="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Count"/>
         </member>
         <member name="M:work.bacome.imapclient.cCopyFeedback.GetEnumerator">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
         </member>
         <member name="M:work.bacome.imapclient.cCopyFeedback.ToString">
             <inheritdoc/>
@@ -1417,7 +1585,7 @@
             <summary>
             Contains an operation specific timeout, cancellation token and progress-increment callback. Intended for use when doing large message cache population operations.
             </summary>
-            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
+            <inheritdoc cref="E:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cMessage},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/>
             <seealso cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cUID},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/>
             <seealso cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/>
@@ -1537,7 +1705,7 @@
             <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cStrings.GetHashCode">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
         </member>
         <member name="M:work.bacome.imapclient.cStrings.ToString">
             <inheritdoc />
@@ -1602,16 +1770,16 @@
             <inheritdoc />
         </member>
         <member name="M:work.bacome.imapclient.cAccountId.GetHashCode">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
         </member>
         <member name="M:work.bacome.imapclient.cAccountId.ToString">
             <inheritdoc />
         </member>
         <member name="M:work.bacome.imapclient.cAccountId.op_Equality(work.bacome.imapclient.cAccountId,work.bacome.imapclient.cAccountId)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="M:work.bacome.imapclient.cAccountId.op_Inequality(work.bacome.imapclient.cAccountId,work.bacome.imapclient.cAccountId)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="T:work.bacome.imapclient.fCapabilities">
             <summary>
@@ -1970,7 +2138,7 @@
             <seealso cref="F:work.bacome.imapclient.cSinglePartBody.DecodingRequired"/>
         </member>
         <member name="F:work.bacome.imapclient.eDecodingRequired.other">
-            <summary>The decoding required is not recognised by the library.</summary> 
+            <summary>Decoding is required, but it is not <see cref="F:work.bacome.imapclient.eDecodingRequired.quotedprintable"/> or <see cref="F:work.bacome.imapclient.eDecodingRequired.base64"/> decoding.</summary> 
         </member>
         <member name="F:work.bacome.imapclient.eDecodingRequired.none">
             <summary>No decoding is required.</summary> 
@@ -2055,7 +2223,7 @@
         </member>
         <member name="F:work.bacome.imapclient.fMailboxCacheDataItems.allstatus">
             <summary>
-            The backing data retrieved by the IMAP STATUS command.
+            The backing data retrieved by the IMAP STATUS command (equivalent to: <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.messagecount"/>, <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.recentcount"/>, <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.uidnext"/>, <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.uidvalidity"/>, <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.unseencount"/> and <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.highestmodseq"/>). 
             </summary>
         </member>
         <member name="T:work.bacome.imapclient.cCallbackExceptionEventArgs">
@@ -2147,13 +2315,13 @@
             <returns></returns>
         </member>
         <member name="P:work.bacome.imapclient.cStoreFeedback.Item(System.Int32)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Indexer(System.Int32)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Indexer(System.Int32)"/>
         </member>
         <member name="P:work.bacome.imapclient.cStoreFeedback.Count">
-            <inheritdoc cref="P:work.bacome.apidocumentation.cAPIDocumentationTemplate.Count"/>
+            <inheritdoc cref="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Count"/>
         </member>
         <member name="M:work.bacome.imapclient.cStoreFeedback.GetEnumerator">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
         </member>
         <member name="M:work.bacome.imapclient.cStoreFeedback.ToString">
             <inheritdoc/>
@@ -2237,20 +2405,20 @@
             <inheritdoc cref="M:work.bacome.imapclient.cStoreFeedback.Summary" select="summary|returns|remarks"/>
         </member>
         <member name="P:work.bacome.imapclient.cUIDStoreFeedback.Item(System.Int32)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Indexer(System.Int32)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Indexer(System.Int32)"/>
         </member>
         <member name="P:work.bacome.imapclient.cUIDStoreFeedback.Count">
-            <inheritdoc cref="P:work.bacome.apidocumentation.cAPIDocumentationTemplate.Count"/>
+            <inheritdoc cref="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Count"/>
         </member>
         <member name="M:work.bacome.imapclient.cUIDStoreFeedback.GetEnumerator">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
         </member>
         <member name="M:work.bacome.imapclient.cUIDStoreFeedback.ToString">
             <inheritdoc />
         </member>
         <member name="T:work.bacome.imapclient.support.cListFlags">
             <summary>
-            Contains some cached mailbox data.
+            Contains some cached mailbox data. Intended for internal use.
             </summary>
             <seealso cref="T:work.bacome.imapclient.support.iMailboxHandle"/>
         </member>
@@ -2259,7 +2427,7 @@
         </member>
         <member name="T:work.bacome.imapclient.support.cLSubFlags">
             <summary>
-            Contains some cached mailbox data.
+            Contains some cached mailbox data. Intended for internal use.
             </summary>
             <seealso cref="T:work.bacome.imapclient.support.iMailboxHandle"/>
         </member>
@@ -2289,7 +2457,7 @@
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageCache.UIDNext">
             <summary>
-            Gets the predicted next UID for the mailbox, may be zero.
+            Gets the predicted next UID for the mailbox. May be zero.
             </summary>
             <remarks>
             Zero indicates that the value is not known.
@@ -2302,7 +2470,12 @@
             </summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageCache.UIDValidity">
-            <summary>Gets the UIDValidity of the mailbox. Zero if the server does not support unique identifiers.</summary>
+            <summary>
+            Gets the UIDValidity of the mailbox. May be zero.
+            </summary>
+            <remarks>
+            Zero indicates that the server does not support unique identifiers.
+            </remarks>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageCache.UnseenCount">
             <summary>
@@ -2374,7 +2547,7 @@
         </member>
         <member name="T:work.bacome.imapclient.support.cMailboxSelectedProperties">
             <summary>
-            Contains some cached mailbox data.
+            Contains some cached mailbox data. Intended for internal use.
             </summary>
             <seealso cref="T:work.bacome.imapclient.support.iMailboxHandle"/>
         </member>
@@ -2383,7 +2556,7 @@
         </member>
         <member name="T:work.bacome.imapclient.support.cMailboxStatus">
             <summary>
-            Contains some cached mailbox data.
+            Contains some cached mailbox data. Intended for internal use.
             </summary>
             <seealso cref="T:work.bacome.imapclient.support.iMailboxHandle"/>
         </member>
@@ -2403,7 +2576,7 @@
         </member>
         <member name="M:work.bacome.imapclient.support.cBinarySizes.op_Addition(work.bacome.imapclient.support.cBinarySizes,work.bacome.imapclient.support.cBinarySizes)">
             <summary>
-            Combines two maps.
+            Returns a map that is the combination of the two specified two maps.
             </summary>
             <param name="pA"></param>
             <param name="pB"></param>
@@ -2430,7 +2603,7 @@
             <summary>Gets the message cache that the instance belongs to.</summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.CacheSequence">
-            <summary>Gets the sequence in the <see cref="P:work.bacome.imapclient.support.iMessageHandle.MessageCache"/> of the message.</summary>
+            <summary>Gets the message's sequence in the <see cref="P:work.bacome.imapclient.support.iMessageHandle.MessageCache"/>.</summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.Expunged">
             <summary>Indicates whether the message exists on the server.</summary>
@@ -2458,7 +2631,7 @@
             <summary>Gets the IMAP ENVELOPE data, <see langword="null"/> if this data isn't cached.</summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.Flags">
-            <summary>Gets the IMAP FLAGS data, <see langword="null"/> if this data isn't cached.</summary>
+            <summary>Gets the current IMAP FLAGS data, <see langword="null"/> if this data isn't cached.</summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.ModSeq">
             <summary>
@@ -2483,10 +2656,10 @@
             </remarks>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.HeaderFields">
-            <summary>Gets the set of header fields that are cached for the message, will be <see langword="null"/> if none have been cached.</summary>
+            <summary>Gets the set of header fields that are currently cached for the message, will be <see langword="null"/> if none have been cached.</summary>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageHandle.BinarySizes">
-            <summary>Gets the binary body-part sizes that are cached for the message, will be <see langword="null"/> if none have been cached.</summary>
+            <summary>Gets the binary body-part sizes that are currently cached for the message, will be <see langword="null"/> if none have been cached.</summary>
         </member>
         <member name="M:work.bacome.imapclient.support.iMessageHandle.Contains(work.bacome.imapclient.cMessageCacheItems)">
             <summary>
@@ -2679,13 +2852,13 @@
             <summary>
             Fired when the server notifies the client of a change that affects a property value of this instance.
             </summary>
-            <inheritdoc cref="!:cAPIDocumentationTemplate.Event" select="remarks"/>
+            <inheritdoc cref="E:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="E:work.bacome.imapclient.cMailbox.MessageDelivery">
             <summary>
             Fired when the server notifies the client that messages have arrived in the mailbox.
             </summary>
-            <inheritdoc cref="!:cAPIDocumentationTemplate.Event" select="remarks"/>
+            <inheritdoc cref="E:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.Path">
             <summary>
@@ -3039,6 +3212,9 @@
             <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>
             <inheritdoc cref="M:work.bacome.imapclient.cMailbox.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)" select="returns|remarks"/>
         </member>
+        <member name="M:work.bacome.imapclient.cMailbox.GetMailboxName(System.String)">
+            <inheritdoc cref="M:work.bacome.imapclient.iMailboxContainer.GetMailboxName(System.String)"/>
+        </member>
         <member name="M:work.bacome.imapclient.cMailbox.CreateChild(System.String,System.Boolean)">
             <summary>
             Creates a child mailbox of the mailbox.
@@ -3055,6 +3231,9 @@
             <param name="pName">The mailbox name to use.</param>
             <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <inheritdoc cref="M:work.bacome.imapclient.cMailbox.CreateChild(System.String,System.Boolean)" select="returns|remarks"/>
+        </member>
+        <member name="M:work.bacome.imapclient.cMailbox.Equals(work.bacome.imapclient.iMailboxContainer)">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equals(System.Object)"/>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.Subscribe">
             <summary>
@@ -3082,20 +3261,37 @@
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.Rename(System.String)">
             <summary>
-            Changes the name of the mailbox.
+            Changes the <see cref="P:work.bacome.imapclient.cMailbox.Name"/> of the mailbox.
             </summary>
             <param name="pName">The new mailbox name.</param>
             <returns></returns>
             <remarks>
-            This method renames the mailbox inside its parent mailbox - it just changes the last part of the path hierarchy.
+            After renaming, this instance will continue to have the same <see cref="P:work.bacome.imapclient.cMailbox.Path"/>, which, unless the mailbox <see cref="P:work.bacome.imapclient.cMailbox.IsInbox"/>, means that it will no longer exist.
+            A new instance representing the renamed mailbox is returned.
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.RenameAsync(System.String)">
             <summary>
-            Ansynchronously changes the name of the mailbox.
+            Ansynchronously changes the <see cref="P:work.bacome.imapclient.cMailbox.Name"/> of the mailbox.
             </summary>
-            <param name="pName">The new mailbox name.</param>
+            <param name="pName"></param>
             <inheritdoc cref="M:work.bacome.imapclient.cMailbox.Rename(System.String)" select="returns|remarks"/>
+        </member>
+        <member name="M:work.bacome.imapclient.cMailbox.Rename(work.bacome.imapclient.iMailboxContainer,System.String)">
+            <summary>
+            Changes the <see cref="P:work.bacome.imapclient.cMailbox.Path"/> of the mailbox.
+            </summary>
+            <param name="pContainer">The mailbox container that provides first part of the new <see cref="P:work.bacome.imapclient.cMailbox.Path"/>.</param>
+            <param name="pName">The new mailbox name inside the <paramref name="pContainer"/>. If <see langword="null"/> the current <see cref="P:work.bacome.imapclient.cMailbox.Name"/> is used.</param>
+            <inheritdoc cref="M:work.bacome.imapclient.cMailbox.Rename(System.String)" select="returns|remarks"/>
+        </member>
+        <member name="M:work.bacome.imapclient.cMailbox.RenameAsync(work.bacome.imapclient.iMailboxContainer,System.String)">
+            <summary>
+            Ansynchronously changes the <see cref="P:work.bacome.imapclient.cMailbox.Path"/> of the mailbox.
+            </summary>
+            <param name="pContainer"></param>
+            <param name="pName"></param>
+            <inheritdoc cref="M:work.bacome.imapclient.cMailbox.Rename(work.bacome.imapclient.iMailboxContainer,System.String)" select="returns|remarks"/>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.Delete">
             <summary>
@@ -3442,6 +3638,16 @@
             <returns></returns>
             <inheritdoc cref="M:work.bacome.imapclient.iMailboxContainer.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)" select="returns|remarks"/>
         </member>
+        <member name="M:work.bacome.imapclient.iMailboxContainer.GetMailboxName(System.String)">
+            <summary>
+            Gets the full mailbox name of a contained mailbox with the specified name.
+            </summary>
+            <param name="pName"></param>
+            <returns></returns>
+            <remarks>
+            <paramref name="pName"/> may not include <see cref="P:work.bacome.imapclient.iMailboxContainer.Delimiter"/> and must be a valid IMAP mailbox name.
+            </remarks>
+        </member>
         <member name="M:work.bacome.imapclient.iMailboxContainer.CreateChild(System.String,System.Boolean)">
             <summary>
             Creates a mailbox at the top level of hierarchy in the container.
@@ -3618,25 +3824,25 @@
             </summary>
         </member>
         <member name="M:work.bacome.imapclient.cMailboxName.CompareTo(work.bacome.imapclient.cMailboxName)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.CompareTo(System.Object)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.CompareTo(System.Object)"/>
         </member>
         <member name="M:work.bacome.imapclient.cMailboxName.Equals(work.bacome.imapclient.cMailboxName)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equals(System.Object)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equals(System.Object)"/>
         </member>
         <member name="M:work.bacome.imapclient.cMailboxName.Equals(System.Object)">
             <inheritdoc />
         </member>
         <member name="M:work.bacome.imapclient.cMailboxName.GetHashCode">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
         </member>
         <member name="M:work.bacome.imapclient.cMailboxName.ToString">
             <inheritdoc />
         </member>
         <member name="M:work.bacome.imapclient.cMailboxName.op_Equality(work.bacome.imapclient.cMailboxName,work.bacome.imapclient.cMailboxName)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="M:work.bacome.imapclient.cMailboxName.op_Inequality(work.bacome.imapclient.cMailboxName,work.bacome.imapclient.cMailboxName)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="T:work.bacome.imapclient.cMailboxPropertyChangedEventArgs">
             <summary>
@@ -3893,7 +4099,7 @@
             <seealso cref="P:work.bacome.imapclient.cAttachment.TypeCode"/>"/>
         </member>
         <member name="F:work.bacome.imapclient.eBodyPartTypeCode.other">
-            <summary>The type was not recognised by the library.</summary>
+            <summary>The MIME type was not recognised by the library.</summary>
         </member>
         <member name="F:work.bacome.imapclient.eBodyPartTypeCode.text">
             <summary>Text.</summary>
@@ -3923,7 +4129,7 @@
             <seealso cref="F:work.bacome.imapclient.cBodyPartDisposition.TypeCode"/>
         </member>
         <member name="F:work.bacome.imapclient.eDispositionTypeCode.other">
-            <summary>The type was not recognised by the library.</summary>
+            <summary>The disposition type was not recognised by the library.</summary>
         </member>
         <member name="F:work.bacome.imapclient.eDispositionTypeCode.inline">
             <summary>Inline.</summary>
@@ -4059,7 +4265,7 @@
             <summary>The additional extension-data.</summary>
         </member>
         <member name="M:work.bacome.imapclient.cBodyPartExtensionValues.GetEnumerator">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
         </member>
         <member name="M:work.bacome.imapclient.cBodyPartExtensionValues.ToString">
             <inheritdoc />
@@ -4963,7 +5169,7 @@
             <summary>
             Fired when the server notifies the client of a change that affects a property value of the instance.
             </summary>
-            <inheritdoc cref="!:cAPIDocumentationTemplate.Event" select="remarks"/>
+            <inheritdoc cref="E:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
         </member>
         <member name="P:work.bacome.imapclient.cMessage.Expunged">
             <summary>
@@ -5488,10 +5694,10 @@
             <returns></returns>
         </member>
         <member name="P:work.bacome.imapclient.cMessageFlags.Count">
-            <inheritdoc cref="P:work.bacome.apidocumentation.cAPIDocumentationTemplate.Count"/>
+            <inheritdoc cref="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Count"/>
         </member>
         <member name="M:work.bacome.imapclient.cMessageFlags.GetEnumerator">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
         </member>
         <member name="M:work.bacome.imapclient.cMessageFlags.ToString">
             <inheritdoc />
@@ -5654,10 +5860,10 @@
             <inheritdoc cref="M:work.bacome.imapclient.cMessageFlagList.Remove(System.String[])"/>
         </member>
         <member name="P:work.bacome.imapclient.cMessageFlagList.Count">
-            <inheritdoc cref="P:work.bacome.apidocumentation.cAPIDocumentationTemplate.Count"/>
+            <inheritdoc cref="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Count"/>
         </member>
         <member name="M:work.bacome.imapclient.cMessageFlagList.GetEnumerator">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
         </member>
         <member name="M:work.bacome.imapclient.cMessageFlagList.YIsValidFlag(System.String)">
             <summary></summary>
@@ -5761,16 +5967,16 @@
             <inheritdoc/>
         </member>
         <member name="M:work.bacome.imapclient.cMessageCacheItems.GetHashCode">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
         </member>
         <member name="M:work.bacome.imapclient.cMessageCacheItems.ToString">
             <inheritdoc/>
         </member>
         <member name="M:work.bacome.imapclient.cMessageCacheItems.op_Equality(work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cMessageCacheItems)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="M:work.bacome.imapclient.cMessageCacheItems.op_Inequality(work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cMessageCacheItems)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="M:work.bacome.imapclient.cMessageCacheItems.op_Implicit(work.bacome.imapclient.fMessageCacheAttributes)~work.bacome.imapclient.cMessageCacheItems">
             <summary>
@@ -5900,16 +6106,16 @@
             <inheritdoc />
         </member>
         <member name="M:work.bacome.imapclient.cSection.GetHashCode">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
         </member>
         <member name="M:work.bacome.imapclient.cSection.ToString">
             <inheritdoc />
         </member>
         <member name="M:work.bacome.imapclient.cSection.op_Equality(work.bacome.imapclient.cSection,work.bacome.imapclient.cSection)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="M:work.bacome.imapclient.cSection.op_Inequality(work.bacome.imapclient.cSection,work.bacome.imapclient.cSection)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="T:work.bacome.imapclient.eSortItem">
             <summary>
@@ -6128,25 +6334,25 @@
             <param name="pUID"></param>
         </member>
         <member name="M:work.bacome.imapclient.cUID.CompareTo(work.bacome.imapclient.cUID)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.CompareTo(System.Object)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.CompareTo(System.Object)"/>
         </member>
         <member name="M:work.bacome.imapclient.cUID.Equals(work.bacome.imapclient.cUID)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equals(System.Object)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equals(System.Object)"/>
         </member>
         <member name="M:work.bacome.imapclient.cUID.Equals(System.Object)">
             <inheritdoc/>
         </member>
         <member name="M:work.bacome.imapclient.cUID.GetHashCode">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
         </member>
         <member name="M:work.bacome.imapclient.cUID.ToString">
             <inheritdoc/>
         </member>
         <member name="M:work.bacome.imapclient.cUID.op_Equality(work.bacome.imapclient.cUID,work.bacome.imapclient.cUID)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="M:work.bacome.imapclient.cUID.op_Inequality(work.bacome.imapclient.cUID,work.bacome.imapclient.cUID)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="T:work.bacome.imapclient.cNamespace">
             <summary>
@@ -6208,6 +6414,9 @@
             <returns></returns>
             <inheritdoc cref="M:work.bacome.imapclient.cNamespace.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)" select="returns|remarks"/>
         </member>
+        <member name="M:work.bacome.imapclient.cNamespace.GetMailboxName(System.String)">
+            <inheritdoc cref="M:work.bacome.imapclient.iMailboxContainer.GetMailboxName(System.String)"/>
+        </member>
         <member name="M:work.bacome.imapclient.cNamespace.CreateChild(System.String,System.Boolean)">
             <summary>
             Creates a mailbox at the top level of hierarchy in the namespace.
@@ -6225,6 +6434,9 @@
             <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
             <inheritdoc cref="M:work.bacome.imapclient.cNamespace.CreateChild(System.String,System.Boolean)" select="remarks"/>
+        </member>
+        <member name="M:work.bacome.imapclient.cNamespace.Equals(work.bacome.imapclient.iMailboxContainer)">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equals(System.Object)"/>
         </member>
         <member name="M:work.bacome.imapclient.cNamespace.ToString">
             <inheritdoc/>
@@ -6249,8 +6461,20 @@
             Will be <see langword="null"/> if the server has no hierarchy in its names.
             </remarks>
         </member>
+        <member name="M:work.bacome.imapclient.cNamespaceName.Equals(System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:work.bacome.imapclient.cNamespaceName.GetHashCode">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
+        </member>
         <member name="M:work.bacome.imapclient.cNamespaceName.ToString">
             <inheritdoc/>
+        </member>
+        <member name="M:work.bacome.imapclient.cNamespaceName.op_Equality(work.bacome.imapclient.cNamespaceName,work.bacome.imapclient.cNamespaceName)">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
+        </member>
+        <member name="M:work.bacome.imapclient.cNamespaceName.op_Inequality(work.bacome.imapclient.cNamespaceName,work.bacome.imapclient.cNamespaceName)">
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate,work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate)"/>
         </member>
         <member name="T:work.bacome.imapclient.cNamespaces">
             <summary>
@@ -6662,7 +6886,7 @@
             <param name="pDictionary"></param>
         </member>
         <member name="P:work.bacome.imapclient.cId.Count">
-            <inheritdoc cref="P:work.bacome.apidocumentation.cAPIDocumentationTemplate.Count"/>
+            <inheritdoc cref="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Count"/>
         </member>
         <member name="P:work.bacome.imapclient.cId.Values">
             <summary>Gets the values that are in the dictionary.</summary>
@@ -6686,7 +6910,7 @@
             <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cId.GetEnumerator">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
         </member>
         <member name="P:work.bacome.imapclient.cId.Item(System.String)">
             <summary>
@@ -6800,7 +7024,7 @@
             </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.Count">
-            <inheritdoc cref="P:work.bacome.apidocumentation.cAPIDocumentationTemplate.Count"/>
+            <inheritdoc cref="P:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.Count"/>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.IsReadOnly">
             <summary>Gets the value <see langword="false"/>.</summary>
@@ -6873,7 +7097,7 @@
             <param name="pIndex"></param>
         </member>
         <member name="M:work.bacome.imapclient.cIdDictionary.GetEnumerator">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
+            <inheritdoc cref="M:work.bacome.imapclient.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
         </member>
         <member name="P:work.bacome.imapclient.cIdDictionary.Item(System.String)">
             <summary>
@@ -7007,7 +7231,7 @@
             <summary>As part of an IMAP command failure.</summary>
         </member>
         <member name="F:work.bacome.imapclient.eResponseTextContext.authenticationcancelled">
-            <summary>As part of IMAP authentication cancellation.</summary>
+            <summary>As part of an IMAP authentication cancellation.</summary>
         </member>
         <member name="F:work.bacome.imapclient.eResponseTextContext.protocolerror">
             <summary>As part of an IMAP protocol error command termination.</summary>
@@ -7542,170 +7766,6 @@
             <param name="pURI"></param>
             <param name="rURI"></param>
             <returns></returns>
-        </member>
-        <member name="T:work.bacome.apidocumentation.cAPIDocumentationTemplate">
-            <summary>
-            </summary>
-            <remarks>
-            </remarks>
-        </member>
-        <member name="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event">
-            <summary>
-            
-            </summary>
-            <remarks>
-            If <see cref="P:work.bacome.imapclient.cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events and callbacks are invoked on the specified <see cref="T:System.Threading.SynchronizationContext"/>.
-            If an exception is raised in an event handler or callback then the <see cref="E:work.bacome.imapclient.cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
-            </remarks>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.#ctor">
-            <summary>
-            Initialises a new instance.
-            </summary>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)">
-            <summary>
-            Determines whether two instances are the same.
-            </summary>
-            <param name="pA"></param>
-            <param name="pB"></param>
-            <returns></returns>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)">
-            <summary>
-            Determines whether two instances are different.
-            </summary>
-            <param name="pA"></param>
-            <param name="pB"></param>
-            <returns></returns>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Indexer(System.Int32)">
-            <summary>
-            Gets one item.
-            </summary>
-            <param name="i"></param>
-            <returns></returns>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.CompareTo(System.Object)">
-            <summary>
-            Compares this instance with the specified object.
-            </summary>
-            <param name="pOther"></param>
-            <returns></returns>
-        </member>
-        <member name="P:work.bacome.apidocumentation.cAPIDocumentationTemplate.Count">
-            <summary>Gets the number of items in the set.</summary>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator">
-            <summary>
-            Returns an enumerator that iterates through the items in the set.
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetHashCode">
-            <summary>
-            Returns the hash code for the instance.
-            </summary>
-            <returns>A hash code for the current object.</returns>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equals(System.Object)">
-            <summary>
-            Determines whether the specified object is equal to the current object.
-            </summary>
-            <param name="pObject"></param>
-            <returns></returns>
-        </member>
-        <member name="T:work.bacome.apidocumentation.cAPIDocumentationExample1">
-            <summary>
-            Contains ...
-            </summary>
-        </member>
-        <member name="F:work.bacome.apidocumentation.cAPIDocumentationExample1.Constant">
-            <summary>fred</summary>
-        </member>
-        <member name="T:work.bacome.apidocumentation.eAPIDocumentationExample">
-            <summary>
-            The ...
-            </summary>
-        </member>
-        <member name="F:work.bacome.apidocumentation.eAPIDocumentationExample.fred">
-            <summary>The ...</summary>
-        </member>
-        <member name="T:work.bacome.apidocumentation.cAPIDocumentationExample2">
-            <summary>
-            Represents a ...
-            A ... collection.
-            A ... list.
-            </summary>
-            <inheritdoc cref="T:work.bacome.apidocumentation.cAPIDocumentationTemplate" select="returns|remarks"/>
-        </member>
-        <member name="F:work.bacome.apidocumentation.cAPIDocumentationExample2.PSR">
-            <summary>An apidocumentation that represents ...</summary>
-        </member>
-        <member name="F:work.bacome.apidocumentation.cAPIDocumentationExample2.Field1">
-            <summary>
-            The field1.
-            </summary>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.#ctor(System.Boolean)">
-            <summary>
-            Initialises a new instance {so it ... | with the specified ... }
-            </summary>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.Contains(System.String)">
-            <summary>
-            Determines whether the { collection | list } contains ...
-            </summary>
-            <param name="pName"></param>
-            <returns></returns>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.AMethod">
-            <summary>
-            Returns | Indicates whether ...
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.op_Implicit(System.String)~work.bacome.apidocumentation.cAPIDocumentationExample2">
-            <summary>
-            Returns a new instance containing [a copy of] ...
-            </summary>
-            <param name="pParam"></param>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.#ctor">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.#ctor"/>
-        </member>
-        <member name="E:work.bacome.apidocumentation.cAPIDocumentationExample2.Event">
-            <inheritdoc cref="E:work.bacome.apidocumentation.cAPIDocumentationTemplate.Event" select="remarks"/>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.CompareTo(System.Object)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.CompareTo(System.Object)"/>
-        </member>
-        <member name="P:work.bacome.apidocumentation.cAPIDocumentationExample2.Count">
-            <inheritdoc cref="P:work.bacome.apidocumentation.cAPIDocumentationTemplate.Count"/>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.GetEnumerator">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetEnumerator"/>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.GetHashCode">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.GetHashCode"/>
-        </member>
-        <member name="P:work.bacome.apidocumentation.cAPIDocumentationExample2.Item(System.Int32)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Indexer(System.Int32)"/>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.op_Equality(work.bacome.apidocumentation.cAPIDocumentationExample2,work.bacome.apidocumentation.cAPIDocumentationExample2)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.op_Inequality(work.bacome.apidocumentation.cAPIDocumentationExample2,work.bacome.apidocumentation.cAPIDocumentationExample2)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Inequality(work.bacome.apidocumentation.cAPIDocumentationTemplate,work.bacome.apidocumentation.cAPIDocumentationTemplate)"/>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.Equals(work.bacome.apidocumentation.cAPIDocumentationExample2)">
-            <inheritdoc cref="M:work.bacome.apidocumentation.cAPIDocumentationTemplate.Equals(System.Object)"/>
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.Equals(System.Object)">
-            <inheritdoc />
-        </member>
-        <member name="M:work.bacome.apidocumentation.cAPIDocumentationExample2.ToString">
-            <inheritdoc />
         </member>
         <member name="T:work.bacome.async.cCancellationManager">
             <summary>

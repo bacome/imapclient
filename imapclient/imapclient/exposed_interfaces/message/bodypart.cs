@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using work.bacome.apidocumentation;
+using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cAttachment.TypeCode"/>"/>
     public enum eBodyPartTypeCode
     {
-        /**<summary>The type was not recognised by the library.</summary>*/
+        /**<summary>The MIME type was not recognised by the library.</summary>*/
         other,
         /**<summary>Text.</summary>*/
         text,
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cBodyPartDisposition.TypeCode"/>
     public enum eDispositionTypeCode
     {
-        /**<summary>The type was not recognised by the library.</summary>*/
+        /**<summary>The disposition type was not recognised by the library.</summary>*/
         other,
         /**<summary>Inline.</summary>*/
         inline,

@@ -14,12 +14,16 @@ namespace work.bacome.imapclient
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <remarks>
-        /// Both Dovecot and GMail object to <paramref name="pAsFutureParent"/> being <see langword="true"/> despite this appearing to be in violation of RFC 3501 section 6.3.3.
-        /// Dovecot objects when the mailbox name is encoded in modified UTF-7, replying with a 'NO'.
-        /// GMail just objects full stop and always replies with an OK [CANNOT].
-        /// In both these cases the mailbox is not created.
+        /// <para>
+        /// Some servers have issues when <paramref name="pAsFutureParent"/> is <see langword="true"/> despite this appearing to be in violation of RFC 3501 section 6.3.3.
+        /// The servers tested with issues replied either 'NO' or 'OK [CANNOT]' and did not create the mailbox.
+        /// </para>
+        /// <para>
+        /// Some servers exhibit unusual behaviour when the mailbox name includes special characters (e.g. '/' when it isn't the delimiter). 
+        /// One server tested created the mailbox with the name truncated at the special character.
+        /// </para>
         /// </remarks>
-        public cMailbox Create(cMailboxName pMailboxName, bool pAsFutureParent)
+        public cMailbox Create(cMailboxName pMailboxName, bool pAsFutureParent = false)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Create));
             var lTask = ZCreateAsync(pMailboxName, pAsFutureParent, lContext);
@@ -34,7 +38,7 @@ namespace work.bacome.imapclient
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <inheritdoc cref="Create(cMailboxName, bool)" select="remarks"/>
-        public Task<cMailbox> CreateAsync(cMailboxName pMailboxName, bool pAsFutureParent)
+        public Task<cMailbox> CreateAsync(cMailboxName pMailboxName, bool pAsFutureParent = false)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(CreateAsync));
             return ZCreateAsync(pMailboxName, pAsFutureParent, lContext);

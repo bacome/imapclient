@@ -98,7 +98,7 @@
     <Compile Include="support\bytescursor\rfc822\tests.cs" />
     <Compile Include="exposed_interfaces\support\listflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
-    <Compile Include="exposed_interfaces\other\childmailboxes.cs" />
+    <Compile Include="exposed_interfaces\other\mailboxcontainer.cs" />
     <Compile Include="exposed_interfaces\message\messageproperties.cs" />
     <Compile Include="support\charsets.cs" />
     <Compile Include="support\filter.cs" />

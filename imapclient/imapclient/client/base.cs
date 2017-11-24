@@ -2,8 +2,8 @@
 using System.ComponentModel;
 using System.Text;
 using System.Threading;
-using work.bacome.apidocumentation;
 using work.bacome.async;
+using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
