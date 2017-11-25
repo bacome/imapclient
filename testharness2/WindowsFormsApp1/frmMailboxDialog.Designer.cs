@@ -60,6 +60,7 @@
             // 
             this.cmdOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cmdOK.DialogResult = System.Windows.Forms.DialogResult.OK;
+            this.cmdOK.Enabled = false;
             this.cmdOK.Location = new System.Drawing.Point(109, 265);
             this.cmdOK.Name = "cmdOK";
             this.cmdOK.Size = new System.Drawing.Size(100, 25);
@@ -80,6 +81,7 @@
             this.Text = "frmMailboxDialog";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMailboxDialog_FormClosed);
             this.Load += new System.EventHandler(this.frmMailboxDialog_Load);
+            this.Shown += new System.EventHandler(this.frmMailboxDialog_Shown);
             this.ResumeLayout(false);
 
         }

@@ -537,7 +537,7 @@ namespace work.bacome.imapclient
         /// <seealso cref="cNamespace.Subscribed(bool, fMailboxCacheDataSets)"/>
         /// <seealso cref="cMailbox.Mailboxes(fMailboxCacheDataSets)"/>
         /// <seealso cref="cMailbox.Subscribed(bool, fMailboxCacheDataSets)"/>
-        /// <seealso cref="cMailbox.Fetch(fMailboxCacheDataSets)"/>
+        /// <seealso cref="cMailbox.Refresh(fMailboxCacheDataSets)"/>
         /// <seealso cref="iMailboxContainer.Mailboxes(fMailboxCacheDataSets)"/>
         /// <seealso cref="iMailboxContainer.Subscribed(bool, fMailboxCacheDataSets)"/>
         /// <seealso cref="Mailboxes(string, char?, fMailboxCacheDataSets)"/>

@@ -61,7 +61,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cNamespace.Subscribed(bool, fMailboxCacheDataSets)"/>
     /// <seealso cref="cMailbox.Mailboxes(fMailboxCacheDataSets)"/>
     /// <seealso cref="cMailbox.Subscribed(bool, fMailboxCacheDataSets)"/>
-    /// <seealso cref="cMailbox.Fetch(fMailboxCacheDataSets)"/>
+    /// <seealso cref="cMailbox.Refresh(fMailboxCacheDataSets)"/>
     /// <seealso cref="iMailboxContainer.Mailboxes(fMailboxCacheDataSets)"/>
     /// <seealso cref="iMailboxContainer.Subscribed(bool, fMailboxCacheDataSets)"/>
     /// <seealso cref="cIMAPClient.Mailboxes(string, char?, fMailboxCacheDataSets)"/>
@@ -74,6 +74,8 @@ namespace work.bacome.imapclient
         /**<summary>The data returned by the IMAP LSUB command.</summary>*/
         lsub = 1 << 1,
         /**<summary>The data returned by the IMAP STATUS command.</summary>*/
-        status = 1 << 2
+        status = 1 << 2,
+        /**<summary>The data returned by the IMAP LIST, LSUB and STATUS commands.</summary>*/
+        all = list | lsub | status
     }
 }

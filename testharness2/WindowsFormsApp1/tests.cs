@@ -16,16 +16,14 @@ namespace testharness2
 
         // TODO: UIDNotSticky test
 
-        [Conditional("DEBUG")]
         public static void CurrentTest(cTrace.cContext pParentContext)
         {
             // quickly get to the test I'm working on
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(CurrentTest));
             //cIMAPClient._Tests(lContext);
-            ZTestBadCharsetUIDNotSticky(lContext);
+            ZTestPipelineCancellation(lContext);
         }
 
-        [Conditional("DEBUG")]
         public static void Tests(bool pQuick, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(Tests));
@@ -71,6 +69,8 @@ namespace testharness2
                 ZTestUIDFetch1(lContext);
 
                 ZTestBadCharsetUIDNotSticky(lContext);
+
+                ZTestPipelineCancellation(lContext);
             }
             catch (Exception e) when (lContext.TraceException(e)) { }
         }
@@ -1685,7 +1685,7 @@ namespace testharness2
 
                 if (lMailbox.MessageCount != 231 || lMailbox.UIDNext != 44292) throw new cTestsException("ZTestSearch2.2");
 
-                lMailbox.Fetch(fMailboxCacheDataSets.status);
+                lMailbox.Refresh(fMailboxCacheDataSets.status);
                 if (lMailbox.MessageCount != 232 || lMailbox.UnseenCount != 3 || lMailbox.UIDNext != 44293) throw new cTestsException("ZTestSearch2.3");
 
                 lMailbox.Select();
@@ -1939,7 +1939,7 @@ namespace testharness2
 
                 if (lMailbox.MessageCount != 231 || lMailbox.UIDNext != 44292) throw new cTestsException("ZTestSearch2_2.2");
 
-                lMailbox.Fetch(fMailboxCacheDataSets.status);
+                lMailbox.Refresh(fMailboxCacheDataSets.status);
                 if (lMailbox.MessageCount != 232 || lMailbox.UnseenCount != 3 || lMailbox.UIDNext != 44293) throw new cTestsException("ZTestSearch2_2.3");
 
                 lMailbox.Select();
@@ -2110,7 +2110,7 @@ namespace testharness2
 
                 if (lMailbox.MessageCount != 231 || lMailbox.UIDNext != 44292) throw new cTestsException("ZTestSearch3_2.2");
 
-                lMailbox.Fetch(fMailboxCacheDataSets.status);
+                lMailbox.Refresh(fMailboxCacheDataSets.status);
                 if (lMailbox.MessageCount != 232 || lMailbox.UnseenCount != 3 || lMailbox.UIDNext != 44293 || lMailbox.UIDNotSticky != null) throw new cTestsException("ZTestSearch3_2.3");
 
                 lMailbox.Select();
@@ -2522,6 +2522,129 @@ namespace testharness2
                 ZFinally(lServer, lClient, lTask);
             }
         }
+
+
+
+
+
+
+
+
+
+
+        private static void ZTestPipelineCancellation(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestPipelineCancellation)); // CHANGE THE NAME HERE
+
+            cServer lServer = new cServer();
+            lServer.AddSendData("* PREAUTH [CAPABILITY IMAP4rev1 ESEARCH] this is the text\r\n");
+            lServer.AddExpectTagged("LIST \"\" \"\"\r\n");
+            lServer.AddSendData("* LIST () nil \"\"\r\n");
+            lServer.AddSendTagged("OK LIST command completed\r\n");
+
+            // add stuff here
+
+            lServer.AddExpectTagged("SELECT INBOX\r\n");
+            lServer.AddSendData("* 172 EXISTS\r\n");
+            lServer.AddSendData("* 1 RECENT\r\n");
+            lServer.AddSendData("* OK [UNSEEN 12] Message 12 is first unseen\r\n");
+            lServer.AddSendData("* OK [UIDVALIDITY 3857529045] UIDs valid\r\n");
+            lServer.AddSendData("* OK [UIDNEXT 4392] Predicted next UID\r\n");
+            lServer.AddSendData("* FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\r\n");
+            lServer.AddSendData("* OK [PERMANENTFLAGS (\\Deleted \\Seen \\*)] Limited\r\n");
+            lServer.AddSendTagged("OK [READ-WRITE] SELECT completed\r\n");
+
+            lServer.AddExpectTagged("SEARCH RETURN () BODY {6}\r\n");
+            lServer.AddSendData("+ ready\r\n");
+            lServer.AddExpectData("stu\rff\r\n");
+
+            lServer.AddExpectTagged("SEARCH RETURN () BODY {5}\r\n");
+            lServer.AddSendData("+ ready\r\n");
+            lServer.AddExpectData("stu\rf\r\n");
+
+            lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+            lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+            lServer.AddExpectTagged("SEARCH RETURN () BODY {6}\r\n");
+            lServer.AddDelay(3000);
+            lServer.AddSendData("+ ready\r\n");
+            lServer.AddExpectData("stu\rff\r\n");
+
+            lServer.AddSendData("* ESEARCH (TAG \"\t\")\r\n");
+            lServer.AddSendTagged("OK SEARCH completed\r\n");
+
+
+
+
+
+            //
+
+            lServer.AddExpectTagged("LOGOUT\r\n");
+            lServer.AddSendData("* BYE logging out\r\n");
+            lServer.AddSendTagged("OK logged out\r\n");
+            lServer.AddExpectClose();
+
+            cIMAPClient lClient = new cIMAPClient(nameof(ZTestPipelineCancellation)); // CHANGE THE NAME HERE
+            lClient.SetServer("localhost");
+            lClient.SetNoCredentials();
+            lClient.IdleConfiguration = null;
+
+            Task lTask = null;
+            Task<List<cMessage>> lTask1;
+            Task<List<cMessage>> lTask2;
+            List<cMessage> lMessages;
+            bool lFailed;
+
+            try
+            {
+                lTask = lServer.RunAsync(lContext);
+
+                lClient.Connect();
+                lClient.Inbox.Select(true);
+
+                lTask1 = lClient.Inbox.MessagesAsync(cFilter.Body.Contains("stu\rff"));
+
+                using (var lCTS = new CancellationTokenSource(1000))
+                {
+                    lTask2 = lClient.Inbox.MessagesAsync(cFilter.Body.Contains("stu\rf"), null, null, new cMessageFetchConfiguration(lCTS.Token, null, null));
+
+                    lMessages = lTask1.Result;
+                    lMessages = lTask2.Result;
+                }
+
+                lTask1 = lClient.Inbox.MessagesAsync(cFilter.Body.Contains("stu\rff"));
+
+                using (var lCTS = new CancellationTokenSource(1000))
+                {
+                    lTask2 = lClient.Inbox.MessagesAsync(cFilter.Body.Contains("stu\rf"), null, null, new cMessageFetchConfiguration(lCTS.Token, null, null));
+
+                    lMessages = lTask1.Result;
+
+                    lFailed = false;
+                    try { lMessages = lTask2.Result; }
+                    catch { lFailed = true; }
+                    if (lFailed != true) throw new cTestsException($"{nameof(ZTestPipelineCancellation)}.1");
+                }
+
+
+
+                lClient.Disconnect();
+
+                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
+                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+            }
+            finally
+            {
+                ZFinally(lServer, lClient, lTask);
+            }
+        }
+
+
+
+
 
         private static void ZTestBlank(cTrace.cContext pParentContext)
         {

@@ -141,7 +141,7 @@ namespace work.bacome.imapclient
 
                     lMailboxHandles = await lSession.ListExtendedAsync(lMC, lSelect, mMailboxReferrals, pListMailbox, pDelimiter, pPattern, lListStatus, lContext).ConfigureAwait(false);
 
-                    if (lStatus && !lListStatus) await ZFetchStatus(lMC, lSession, lMailboxHandles, lContext).ConfigureAwait(false);
+                    if (lStatus && !lListStatus) await ZRequestStatus(lMC, lSession, lMailboxHandles, lContext).ConfigureAwait(false);
                 }
                 else
                 {
@@ -160,7 +160,7 @@ namespace work.bacome.imapclient
 
                     lMailboxHandles = await lLSubTask.ConfigureAwait(false);
 
-                    if (lStatus) await ZFetchStatus(lMC, lSession, lMailboxHandles, lContext).ConfigureAwait(false);
+                    if (lStatus) await ZRequestStatus(lMC, lSession, lMailboxHandles, lContext).ConfigureAwait(false);
 
                     if (lListTask != null) await lListTask.ConfigureAwait(false);
                 }

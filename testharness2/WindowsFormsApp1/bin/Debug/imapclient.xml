@@ -362,7 +362,7 @@
             <seealso cref="M:work.bacome.imapclient.cNamespace.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
             <seealso cref="M:work.bacome.imapclient.cMailbox.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)"/>
             <seealso cref="M:work.bacome.imapclient.cMailbox.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
-            <seealso cref="M:work.bacome.imapclient.cMailbox.Fetch(work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.cMailbox.Refresh(work.bacome.imapclient.fMailboxCacheDataSets)"/>
             <seealso cref="M:work.bacome.imapclient.iMailboxContainer.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)"/>
             <seealso cref="M:work.bacome.imapclient.iMailboxContainer.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.Mailboxes(System.String,System.Nullable{System.Char},work.bacome.imapclient.fMailboxCacheDataSets)"/>
@@ -1038,7 +1038,7 @@
             <seealso cref="M:work.bacome.imapclient.cNamespace.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
             <seealso cref="M:work.bacome.imapclient.cMailbox.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)"/>
             <seealso cref="M:work.bacome.imapclient.cMailbox.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
-            <seealso cref="M:work.bacome.imapclient.cMailbox.Fetch(work.bacome.imapclient.fMailboxCacheDataSets)"/>
+            <seealso cref="M:work.bacome.imapclient.cMailbox.Refresh(work.bacome.imapclient.fMailboxCacheDataSets)"/>
             <seealso cref="M:work.bacome.imapclient.iMailboxContainer.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)"/>
             <seealso cref="M:work.bacome.imapclient.iMailboxContainer.Subscribed(System.Boolean,work.bacome.imapclient.fMailboxCacheDataSets)"/>
             <seealso cref="M:work.bacome.imapclient.cIMAPClient.Mailboxes(System.String,System.Nullable{System.Char},work.bacome.imapclient.fMailboxCacheDataSets)"/>
@@ -1052,6 +1052,9 @@
         </member>
         <member name="F:work.bacome.imapclient.fMailboxCacheDataSets.status">
             <summary>The data returned by the IMAP STATUS command.</summary>
+        </member>
+        <member name="F:work.bacome.imapclient.fMailboxCacheDataSets.all">
+            <summary>The data returned by the IMAP LIST, LSUB and STATUS commands.</summary>
         </member>
         <member name="T:work.bacome.imapclient.eStoreOperation">
             <summary>
@@ -3028,8 +3031,17 @@
             Gets the number of messages in the mailbox. May be <see langword="null"/>.
             </summary>
             <remarks>
+            <para>
             This property always has an up-to-date value when the mailbox is selected.
-            <see langword="null"/> indicates that <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.messagecount"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.
+            </para>
+            <para>
+            <see langword="null"/> indicates that either;
+            <list type="bullet">
+            <item>The mailbox is not <see cref="P:work.bacome.imapclient.cMailbox.CanSelect"/>, or</item>
+            <item><see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.messagecount"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>), or</item>
+            <item>The value was not sent when requested.</item>
+            </list>
+            </para>
             </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.RecentCount">
@@ -3037,9 +3049,20 @@
             Gets the number of recent messages in the mailbox. May be <see langword="null"/>.
             </summary>
             <remarks>
+            <para>
             See RFC 3501 for a definition of recent.
+            </para>
+            <para>
             This property always has an up-to-date value when the mailbox is selected.
-            <see langword="null"/> indicates that <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.recentcount"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.
+            </para>
+            <para>
+            <see langword="null"/> indicates that either;
+            <list type="bullet">
+            <item>The mailbox is not <see cref="P:work.bacome.imapclient.cMailbox.CanSelect"/>, or</item>
+            <item><see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.recentcount"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>), or</item>
+            <item>The value was not sent when requested.</item>
+            </list>
+            </para>
             </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.UIDNext">
@@ -3047,10 +3070,23 @@
             Gets the predicted next UID for the mailbox. May be <see langword="null"/> or zero.
             </summary>
             <remarks>
-            <para>This property always has a value when the mailbox is selected, but zero indicates that the value is not known and the value may not be up-to-date.</para>
-            <para><see langword="null"/> indicates that <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.uidnext"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.</para>
-            <para>When the mailbox is selected the value of this property may not be up-to-date: <see cref="P:work.bacome.imapclient.cMailbox.UIDNextUnknownCount"/> indicates how out-of-date the value may be.</para>
-            <para>IMAP does not mandate that the server keep the client updated with this value when the mailbox is selected but it also disallows retrieving this value for a mailbox when it is selected.</para>
+            <para>
+            This property always has a value when the mailbox is selected, but zero indicates that the value is not known.
+            </para>
+            <para>
+            <see langword="null"/> indicates that either;
+            <list type="bullet">
+            <item>The mailbox is not <see cref="P:work.bacome.imapclient.cMailbox.CanSelect"/>, or</item>
+            <item><see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.uidnext"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>), or</item>
+            <item>The value was not sent when requested.</item>
+            </list>
+            </para>
+            <para>
+            When the mailbox is selected the value of this property may not be up-to-date: <see cref="P:work.bacome.imapclient.cMailbox.UIDNextUnknownCount"/> indicates how out-of-date the value is.
+            </para>
+            <para>
+            IMAP does not mandate that the server keep the client updated with this value when the mailbox is selected but it also disallows retrieving this value for a mailbox when the mailbox is selected.
+            </para>
             <para>
             When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server,
             but for the value to be up-to-date 
@@ -3074,8 +3110,18 @@
             Gets the UIDValidity of the mailbox. May be <see langword="null"/> or zero.
             </summary>
             <remarks>
+            <para>
             This property always has a value when the mailbox is selected but zero indicates that the server does not support unique identifiers.
-            <see langword="null"/> indicates that the mailbox does not support unique identifiers or that <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.uidvalidity"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.
+            </para>
+            <para>
+            <see langword="null"/> indicates that either;
+            <list type="bullet">
+            <item>The mailbox does not support unique identifiers, or</item>
+            <item>The mailbox is not <see cref="P:work.bacome.imapclient.cMailbox.CanSelect"/>, or</item>
+            <item><see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.uidvalidity"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>), or</item>
+            <item>The value was not sent when requested.</item>
+            </list>
+            </para>
             </remarks>
             <seealso cref="P:work.bacome.imapclient.cMailbox.UIDNotSticky"/>
         </member>
@@ -3084,14 +3130,27 @@
             Gets the number of unseen messages in the mailbox. May be <see langword="null"/>.
             </summary>
             <remarks>
-            <para>This property always has a value when the mailbox is selected, but the value may not be accurate.</para>
-            <para><see langword="null"/> indicates that <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.unseencount"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.</para>
-            <para>When the mailbox is selected the value of this property may not be accurate: <see cref="P:work.bacome.imapclient.cMailbox.UnseenUnknownCount"/> indicates how inaccurate the value may be.</para>
-            <para>IMAP does not provide a mechanism for retrieving this value for a mailbox when it is selected.</para>
+            <para>
+            This property always has a value when the mailbox is selected, but the value may not be accurate.
+            </para>
+            <para>
+            <see langword="null"/> indicates that either;
+            <list type="bullet">
+            <item>The mailbox is not <see cref="P:work.bacome.imapclient.cMailbox.CanSelect"/>, or</item>
+            <item><see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.unseencount"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>), or</item>
+            <item>The value was not sent when requested.</item>
+            </list>
+            </para>
+            <para>
+            When the mailbox is selected the value of this property may not be accurate: <see cref="P:work.bacome.imapclient.cMailbox.UnseenUnknownCount"/> indicates how inaccurate the value may be.
+            </para>
+            <para>
+            IMAP does not provide a mechanism for retrieving this value for a mailbox when the mailbox is selected.
+            </para>
             <para>
             When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server, 
-            but for the value to be accurate it has to be explicitly initialised (using <see cref="M:work.bacome.imapclient.cMailbox.SetUnseenCount"/>) and
-            FETCH responses containing the flags have to be solicited for new messages  
+            but for the value to be accurate it has to be initialised after the mailbox is selected (using <see cref="M:work.bacome.imapclient.cMailbox.SetUnseenCount"/>) and
+            FETCH responses containing the message flags have to be solicited for new messages  
             (use <see cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)"/> with <see cref="F:work.bacome.imapclient.cMessageDeliveryEventArgs.MessageHandles"/> and <see cref="F:work.bacome.imapclient.fMessageCacheAttributes.flags"/>).
             </para>
             </remarks>
@@ -3112,8 +3171,17 @@
             Gets the highest mod-sequence (see RFC 7162) for the mailbox. May be <see langword="null"/> or zero.
             </summary>
             <remarks>
-            <para>When the mailbox is selected this property will always have a value but zero indicates that <see cref="P:work.bacome.imapclient.cCapabilities.CondStore"/> is not in use or that the mailbox does not support the persistent storage of mod-sequences.</para>
-            <para><see langword="null"/> indicates that <see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.highestmodseq"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.</para>
+            <para>
+            When the mailbox is selected this property will always have a value but zero indicates that <see cref="P:work.bacome.imapclient.cCapabilities.CondStore"/> is not in use or that the mailbox does not support the persistent storage of mod-sequences.
+            </para>
+            <para>
+            <see langword="null"/> indicates that either;
+            <list type="bullet">
+            <item>The mailbox is not <see cref="P:work.bacome.imapclient.cMailbox.CanSelect"/>, or</item>
+            <item><see cref="F:work.bacome.imapclient.fMailboxCacheDataItems.highestmodseq"/> is not being requested (see <see cref="P:work.bacome.imapclient.cIMAPClient.MailboxCacheDataItems"/>), or</item>
+            <item>The value was not sent when requested.</item>
+            </list>
+            </para>
             </remarks>
         </member>
         <member name="P:work.bacome.imapclient.cMailbox.HasBeenSelected">
@@ -3397,7 +3465,7 @@
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.SetUnseenCount">
             <summary>
-            Initialises the value of <see cref="P:work.bacome.imapclient.cMailbox.UnseenCount"/>. The mailbox must be selected.
+            Initialises the value of <see cref="P:work.bacome.imapclient.cMailbox.UnseenCount"/> when the mailbox is selected.
             </summary>
             <returns>A list of unseen messages.</returns>
             <remarks>
@@ -3450,19 +3518,19 @@
             <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
             <inheritdoc cref="M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cUID},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)" select="returns|remarks"/>
         </member>
-        <member name="M:work.bacome.imapclient.cMailbox.Fetch(work.bacome.imapclient.fMailboxCacheDataSets)">
+        <member name="M:work.bacome.imapclient.cMailbox.Refresh(work.bacome.imapclient.fMailboxCacheDataSets)">
             <summary>
             Refreshes the cached data for the mailbox.
             </summary>
             <param name="pDataSets">The sets of data to fetch into cache.</param>
         </member>
-        <member name="M:work.bacome.imapclient.cMailbox.FetchAsync(work.bacome.imapclient.fMailboxCacheDataSets)">
+        <member name="M:work.bacome.imapclient.cMailbox.RefreshAsync(work.bacome.imapclient.fMailboxCacheDataSets)">
             <summary>
             Asynchronously refreshes the cached data for the mailbox.
             </summary>
             <param name="pDataSets">The sets of data to fetch into cache.</param>
             <returns></returns>
-            <inheritdoc cref="M:work.bacome.imapclient.cMailbox.Fetch(work.bacome.imapclient.fMailboxCacheDataSets)" select="remarks"/>
+            <inheritdoc cref="M:work.bacome.imapclient.cMailbox.Refresh(work.bacome.imapclient.fMailboxCacheDataSets)" select="remarks"/>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.Copy(System.Collections.Generic.IEnumerable{work.bacome.imapclient.cMessage})">
             <summary>
@@ -6588,7 +6656,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cUnsuccessfulCompletionException.TryIgnoring">
             <summary>
-            Indicates that ignoring these capabilities may have prevented the problem.
+            Indicates that ignoring these capabilities may prevent the problem.
             </summary>
             <seealso cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>
         </member>
@@ -6607,7 +6675,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cProtocolErrorException.TryIgnoring">
             <summary>
-            Indicates that ignoring these capabilities may have prevented the exception.
+            Indicates that ignoring these capabilities may prevent the problem.
             </summary>
             <seealso cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>
         </member>
@@ -6621,7 +6689,7 @@
         </member>
         <member name="F:work.bacome.imapclient.cUnexpectedServerActionException.TryIgnoring">
             <summary>
-            Indicates that ignoring these capabilities may have prevented the exception.
+            Indicates that ignoring these capabilities may prevent the problem.
             </summary>
             <seealso cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/>
         </member>

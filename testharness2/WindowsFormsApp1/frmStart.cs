@@ -45,10 +45,15 @@ namespace testharness2
 
             try
             {
+                gbxTests.Enabled = false;
                 cTests.Tests(false, lContext);
                 MessageBox.Show(this, "all tests passed");
             }
             catch (Exception ex) { MessageBox.Show(this, ex.ToString()); }
+            finally
+            {
+                gbxTests.Enabled = true;
+            }
         }
 
         private void cmdQuickTests_Click(object sender, EventArgs e)
@@ -57,10 +62,15 @@ namespace testharness2
 
             try
             {
+                gbxTests.Enabled = false;
                 cTests.Tests(true, lContext);
                 MessageBox.Show(this, "quick tests passed");
             }
             catch (Exception ex) { MessageBox.Show(this, ex.ToString()); }
+            finally
+            {
+                gbxTests.Enabled = true;
+            }
         }
 
         private void cmdCurrentTest_Click(object sender, EventArgs e)
@@ -69,11 +79,16 @@ namespace testharness2
 
             try
             {
+                gbxTests.Enabled = false;
                 cTests.CurrentTest(lContext);
                 MessageBox.Show(this, "current test passed");
 
             }
             catch (Exception ex) { MessageBox.Show(this, ex.ToString()); }
+            finally
+            {
+                gbxTests.Enabled = true;
+            }
         }
     }
 }

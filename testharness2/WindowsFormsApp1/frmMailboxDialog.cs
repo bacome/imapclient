@@ -35,7 +35,10 @@ namespace testharness2
             else Text = "imapclient testharness - choose mailbox - " + mClient.InstanceName;
 
             mClient.PropertyChanged += mClient_PropertyChanged;
+        }
 
+        private void frmMailboxDialog_Shown(object sender, EventArgs e)
+        {
             ZAddInbox();
 
             var lNamespaces = mClient.Namespaces;

@@ -73,7 +73,10 @@ namespace testharness2
                 gbxFlags.Enabled = false;
                 cmdStore.Enabled = false;
             }
+        }
 
+        private void frmMessage_Shown(object sender, EventArgs e)
+        {
             ZQueryAsync(true);
         }
 

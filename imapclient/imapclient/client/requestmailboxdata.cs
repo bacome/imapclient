@@ -9,22 +9,22 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal void Fetch(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets)
+        internal void Request(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZFetchAsync(pMailboxHandle, pDataSets, lContext);
+            var lTask = ZRequestAsync(pMailboxHandle, pDataSets, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        internal Task FetchAsync(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets)
+        internal Task RequestAsync(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            return ZFetchAsync(pMailboxHandle, pDataSets, lContext);
+            return ZRequestAsync(pMailboxHandle, pDataSets, lContext);
         }
 
-        private async Task ZFetchAsync(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
+        private async Task ZRequestAsync(iMailboxHandle pMailboxHandle, fMailboxCacheDataSets pDataSets, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchAsync), pMailboxHandle, pDataSets);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZRequestAsync), pMailboxHandle, pDataSets);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
@@ -89,9 +89,9 @@ namespace work.bacome.imapclient
             }
         }
 
-        private Task ZFetchStatus(cMethodControl pMC, cSession pSession, List<iMailboxHandle> pMailboxHandles, cTrace.cContext pParentContext)
+        private Task ZRequestStatus(cMethodControl pMC, cSession pSession, List<iMailboxHandle> pMailboxHandles, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchStatus), pMC);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZRequestStatus), pMC);
             List<Task> lTasks = new List<Task>();
             foreach (var lMailboxHandle in pMailboxHandles) if (lMailboxHandle.ListFlags?.CanSelect == true) lTasks.Add(pSession.StatusAsync(pMC, lMailboxHandle, lContext));
             return Task.WhenAll(lTasks);

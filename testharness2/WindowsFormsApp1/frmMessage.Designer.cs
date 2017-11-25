@@ -542,6 +542,7 @@
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMessage_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmMessage_FormClosed);
             this.Load += new System.EventHandler(this.frmMessage_Load);
+            this.Shown += new System.EventHandler(this.frmMessage_Shown);
             this.tab.ResumeLayout(false);
             this.tpgEnvelope.ResumeLayout(false);
             this.tpgText.ResumeLayout(false);

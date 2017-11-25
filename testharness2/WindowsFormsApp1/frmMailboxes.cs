@@ -211,6 +211,8 @@ namespace testharness2
                     if (mSubscribedMailbox.ContainsTrash == true) lBuilder.AppendLine("Contains Trash");
                     lBuilder.AppendLine();
 
+                    // status
+
                     if (mSubscribedMailbox.MessageCount != null) lBuilder.AppendLine("Messages: " + mSubscribedMailbox.MessageCount);
 
                     if (mSubscribedMailbox.RecentCount != null) lBuilder.AppendLine("Recent: " + mSubscribedMailbox.RecentCount);
@@ -233,25 +235,33 @@ namespace testharness2
 
                     lBuilder.AppendLine();
 
-                    if (mSubscribedMailbox.UIDNotSticky == false) lBuilder.AppendLine("UID is sticky");
-                    if (mSubscribedMailbox.UIDNotSticky == true) lBuilder.AppendLine("UID is NOT sticky");
-
-                    if (mSubscribedMailbox.MessageFlags != null)
+                    if (mSubscribedMailbox.CanSelect)
                     {
-                        lBuilder.AppendLine("Flags: " + mSubscribedMailbox.MessageFlags.ToString());
+                        if (mSubscribedMailbox.UIDNotSticky == false) lBuilder.AppendLine("UID is sticky");
+                        if (mSubscribedMailbox.UIDNotSticky == true) lBuilder.AppendLine("UID is NOT sticky");
+
+                        if (mSubscribedMailbox.MessageFlags != null)
+                        {
+                            lBuilder.AppendLine("Flags: " + mSubscribedMailbox.MessageFlags.ToString());
+                            lBuilder.AppendLine();
+
+                            if (mSubscribedMailbox.ForUpdatePermanentFlags != null)
+                            {
+                                lBuilder.AppendLine("PermanentFlags: " + mSubscribedMailbox.ForUpdatePermanentFlags.ToString());
+                                lBuilder.AppendLine();
+                            }
+
+                            if (mSubscribedMailbox.ReadOnlyPermanentFlags != null && mSubscribedMailbox.ReadOnlyPermanentFlags.Count != 0)
+                            {
+                                lBuilder.AppendLine("PermanentFlags (read only): " + mSubscribedMailbox.ReadOnlyPermanentFlags.ToString());
+                                lBuilder.AppendLine();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        lBuilder.AppendLine("can't select this mailbox");
                         lBuilder.AppendLine();
-
-                        if (mSubscribedMailbox.ForUpdatePermanentFlags != null)
-                        {
-                            lBuilder.AppendLine("PermanentFlags: " + mSubscribedMailbox.ForUpdatePermanentFlags.ToString());
-                            lBuilder.AppendLine();
-                        }
-
-                        if (mSubscribedMailbox.ReadOnlyPermanentFlags != null && mSubscribedMailbox.ReadOnlyPermanentFlags.Count != 0)
-                        {
-                            lBuilder.AppendLine("PermanentFlags (read only): " + mSubscribedMailbox.ReadOnlyPermanentFlags.ToString());
-                            lBuilder.AppendLine();
-                        }
                     }
 
                     if (mSubscribedMailbox.IsSelected)
@@ -310,9 +320,9 @@ namespace testharness2
         {
             try
             {
+                if (chkOpenOnSelect.Checked) mDisplaySelectedMailbox(this);
                 await mSubscribedMailbox.SelectAsync();
                 if (IsDisposed) return;
-                if (chkOpenOnSelect.Checked) mDisplaySelectedMailbox(this);
             }
             catch (Exception ex)
             {
@@ -324,9 +334,9 @@ namespace testharness2
         {
             try
             {
+                if (chkOpenOnSelect.Checked) mDisplaySelectedMailbox(this);
                 await mSubscribedMailbox.SelectAsync(true);
                 if (IsDisposed) return;
-                if (chkOpenOnSelect.Checked) mDisplaySelectedMailbox(this);
             }
             catch (Exception ex)
             {
@@ -354,6 +364,15 @@ namespace testharness2
             catch (Exception ex)
             {
                 if (!IsDisposed) MessageBox.Show(this, $"an error occurred while unsubscribing: {ex}");
+            }
+        }
+
+        private async void cmdRefresh_Click(object sender, EventArgs e)
+        {
+            try { await mSubscribedMailbox.RefreshAsync(fMailboxCacheDataSets.all); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while refreshing: {ex}");
             }
         }
 

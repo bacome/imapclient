@@ -148,7 +148,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (MailboxHandle.Exists == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.Exists == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 return MailboxHandle.Exists == true;
             }
         }
@@ -165,7 +165,7 @@ namespace work.bacome.imapclient
             get
             {
                 if (MailboxHandle.Exists == false) return null; // don't know until the mailbox is created
-                if (MailboxHandle.ListFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.ListFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 if (MailboxHandle.ListFlags == null) return null; // don't know
                 return MailboxHandle.ListFlags.CanHaveChildren;
             }
@@ -182,7 +182,7 @@ namespace work.bacome.imapclient
             get
             {
                 if (MailboxHandle.Exists == false) return false;
-                if (MailboxHandle.ListFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.ListFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 if (MailboxHandle.ListFlags == null) return false;
                 return MailboxHandle.ListFlags.CanSelect;
             }
@@ -199,7 +199,7 @@ namespace work.bacome.imapclient
             get
             {
                 if (MailboxHandle.Exists == false) return false;
-                if (MailboxHandle.ListFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.ListFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 if (MailboxHandle.ListFlags == null) return false;
                 return MailboxHandle.ListFlags.IsMarked;
             }
@@ -221,7 +221,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (MailboxHandle.Exists == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.Exists == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 if (MailboxHandle.ListFlags == null) return false;
                 if (MailboxHandle.ListFlags.IsRemote) return true;
                 if (Client.Capabilities.ListExtended) return false;
@@ -244,7 +244,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (MailboxHandle.ListFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.ListFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 bool? lHasChildren = MailboxHandle.ListFlags?.HasChildren;
                 if (lHasChildren == true) return true;
                 if (Client.HasCachedChildren(MailboxHandle) == true) return true;
@@ -264,7 +264,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (MailboxHandle.ListFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.ListFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 if (MailboxHandle.ListFlags == null) return false;
                 if (MailboxHandle.ListFlags.ContainsAll) return true;
                 if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.specialuse) == 0) return null;
@@ -284,7 +284,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (MailboxHandle.ListFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.ListFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 if (MailboxHandle.ListFlags == null) return false;
                 if (MailboxHandle.ListFlags.IsArchive) return true;
                 if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.specialuse) == 0) return null;
@@ -304,7 +304,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (MailboxHandle.ListFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.ListFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 if (MailboxHandle.ListFlags == null) return false;
                 if (MailboxHandle.ListFlags.ContainsDrafts) return true;
                 if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.specialuse) == 0) return null;
@@ -324,7 +324,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (MailboxHandle.ListFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.ListFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 if (MailboxHandle.ListFlags == null) return false;
                 if (MailboxHandle.ListFlags.ContainsFlagged) return true;
                 if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.specialuse) == 0) return null;
@@ -344,7 +344,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (MailboxHandle.ListFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.ListFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 if (MailboxHandle.ListFlags == null) return false;
                 if (MailboxHandle.ListFlags.ContainsJunk) return true;
                 if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.specialuse) == 0) return null;
@@ -364,7 +364,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (MailboxHandle.ListFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.ListFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 if (MailboxHandle.ListFlags == null) return false;
                 if (MailboxHandle.ListFlags.ContainsSent) return true;
                 if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.specialuse) == 0) return null;
@@ -384,7 +384,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (MailboxHandle.ListFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.list);
+                if (MailboxHandle.ListFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.list);
                 if (MailboxHandle.ListFlags == null) return false;
                 if (MailboxHandle.ListFlags.ContainsTrash) return true;
                 if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.specialuse) == 0) return null;
@@ -399,7 +399,7 @@ namespace work.bacome.imapclient
         {
             get
             {
-                if (MailboxHandle.LSubFlags == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.lsub);
+                if (MailboxHandle.LSubFlags == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.lsub);
                 if (MailboxHandle.LSubFlags == null) throw new cInternalErrorException();
                 return MailboxHandle.LSubFlags.Subscribed;
             }
@@ -409,8 +409,17 @@ namespace work.bacome.imapclient
         /// Gets the number of messages in the mailbox. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// This property always has an up-to-date value when the mailbox is selected.
-        /// <see langword="null"/> indicates that <see cref="fMailboxCacheDataItems.messagecount"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.
+        /// </para>
+        /// <para>
+        /// <see langword="null"/> indicates that either;
+        /// <list type="bullet">
+        /// <item>The mailbox is not <see cref="CanSelect"/>, or</item>
+        /// <item><see cref="fMailboxCacheDataItems.messagecount"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>), or</item>
+        /// <item>The value was not sent when requested.</item>
+        /// </list>
+        /// </para>
         /// </remarks>
         public int? MessageCount
         {
@@ -418,8 +427,8 @@ namespace work.bacome.imapclient
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.MailboxHandle, MailboxHandle)) return lSelectedMailboxDetails.MessageCache.Count;
-                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.messagecount) == 0) return null;
-                if (MailboxHandle.MailboxStatus == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.status);
+                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.messagecount) == 0 || MailboxHandle.ListFlags?.CanSelect == false) return null;
+                if (MailboxHandle.MailboxStatus == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.status);
                 return MailboxHandle.MailboxStatus?.MessageCount;
             }
         }
@@ -428,9 +437,20 @@ namespace work.bacome.imapclient
         /// Gets the number of recent messages in the mailbox. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// See RFC 3501 for a definition of recent.
+        /// </para>
+        /// <para>
         /// This property always has an up-to-date value when the mailbox is selected.
-        /// <see langword="null"/> indicates that <see cref="fMailboxCacheDataItems.recentcount"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.
+        /// </para>
+        /// <para>
+        /// <see langword="null"/> indicates that either;
+        /// <list type="bullet">
+        /// <item>The mailbox is not <see cref="CanSelect"/>, or</item>
+        /// <item><see cref="fMailboxCacheDataItems.recentcount"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>), or</item>
+        /// <item>The value was not sent when requested.</item>
+        /// </list>
+        /// </para>
         /// </remarks>
         public int? RecentCount
         {
@@ -438,8 +458,8 @@ namespace work.bacome.imapclient
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.MailboxHandle, MailboxHandle)) return lSelectedMailboxDetails.MessageCache.RecentCount;
-                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.recentcount) == 0) return null;
-                if (MailboxHandle.MailboxStatus == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.status);
+                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.recentcount) == 0 || MailboxHandle.ListFlags?.CanSelect == false) return null;
+                if (MailboxHandle.MailboxStatus == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.status);
                 return MailboxHandle.MailboxStatus?.RecentCount;
             }
         }
@@ -448,10 +468,23 @@ namespace work.bacome.imapclient
         /// Gets the predicted next UID for the mailbox. May be <see langword="null"/> or zero.
         /// </summary>
         /// <remarks>
-        /// <para>This property always has a value when the mailbox is selected, but zero indicates that the value is not known and the value may not be up-to-date.</para>
-        /// <para><see langword="null"/> indicates that <see cref="fMailboxCacheDataItems.uidnext"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.</para>
-        /// <para>When the mailbox is selected the value of this property may not be up-to-date: <see cref="UIDNextUnknownCount"/> indicates how out-of-date the value may be.</para>
-        /// <para>IMAP does not mandate that the server keep the client updated with this value when the mailbox is selected but it also disallows retrieving this value for a mailbox when it is selected.</para>
+        /// <para>
+        /// This property always has a value when the mailbox is selected, but zero indicates that the value is not known.
+        /// </para>
+        /// <para>
+        /// <see langword="null"/> indicates that either;
+        /// <list type="bullet">
+        /// <item>The mailbox is not <see cref="CanSelect"/>, or</item>
+        /// <item><see cref="fMailboxCacheDataItems.uidnext"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>), or</item>
+        /// <item>The value was not sent when requested.</item>
+        /// </list>
+        /// </para>
+        /// <para>
+        /// When the mailbox is selected the value of this property may not be up-to-date: <see cref="UIDNextUnknownCount"/> indicates how out-of-date the value is.
+        /// </para>
+        /// <para>
+        /// IMAP does not mandate that the server keep the client updated with this value when the mailbox is selected but it also disallows retrieving this value for a mailbox when the mailbox is selected.
+        /// </para>
         /// <para>
         /// When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server,
         /// but for the value to be up-to-date 
@@ -467,8 +500,8 @@ namespace work.bacome.imapclient
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.MailboxHandle, MailboxHandle)) return lSelectedMailboxDetails.MessageCache.UIDNext;
-                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.uidnext) == 0) return null;
-                if (MailboxHandle.MailboxStatus == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.status);
+                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.uidnext) == 0 || MailboxHandle.ListFlags?.CanSelect == false) return null;
+                if (MailboxHandle.MailboxStatus == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.status);
                 return MailboxHandle.MailboxStatus?.UIDNext;
             }
         }
@@ -493,8 +526,18 @@ namespace work.bacome.imapclient
         /// Gets the UIDValidity of the mailbox. May be <see langword="null"/> or zero.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// This property always has a value when the mailbox is selected but zero indicates that the server does not support unique identifiers.
-        /// <see langword="null"/> indicates that the mailbox does not support unique identifiers or that <see cref="fMailboxCacheDataItems.uidvalidity"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.
+        /// </para>
+        /// <para>
+        /// <see langword="null"/> indicates that either;
+        /// <list type="bullet">
+        /// <item>The mailbox does not support unique identifiers, or</item>
+        /// <item>The mailbox is not <see cref="CanSelect"/>, or</item>
+        /// <item><see cref="fMailboxCacheDataItems.uidvalidity"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>), or</item>
+        /// <item>The value was not sent when requested.</item>
+        /// </list>
+        /// </para>
         /// </remarks>
         /// <seealso cref="UIDNotSticky"/>
         public uint? UIDValidity
@@ -503,8 +546,8 @@ namespace work.bacome.imapclient
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.MailboxHandle, MailboxHandle)) return lSelectedMailboxDetails.MessageCache.UIDValidity;
-                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.uidvalidity) == 0) return null;
-                if (MailboxHandle.MailboxStatus == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.status);
+                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.uidvalidity) == 0 || MailboxHandle.ListFlags?.CanSelect == false) return null;
+                if (MailboxHandle.MailboxStatus == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.status);
                 return MailboxHandle.MailboxStatus?.UIDValidity;
             }
         }
@@ -513,14 +556,27 @@ namespace work.bacome.imapclient
         /// Gets the number of unseen messages in the mailbox. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// <para>This property always has a value when the mailbox is selected, but the value may not be accurate.</para>
-        /// <para><see langword="null"/> indicates that <see cref="fMailboxCacheDataItems.unseencount"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.</para>
-        /// <para>When the mailbox is selected the value of this property may not be accurate: <see cref="UnseenUnknownCount"/> indicates how inaccurate the value may be.</para>
-        /// <para>IMAP does not provide a mechanism for retrieving this value for a mailbox when it is selected.</para>
+        /// <para>
+        /// This property always has a value when the mailbox is selected, but the value may not be accurate.
+        /// </para>
+        /// <para>
+        /// <see langword="null"/> indicates that either;
+        /// <list type="bullet">
+        /// <item>The mailbox is not <see cref="CanSelect"/>, or</item>
+        /// <item><see cref="fMailboxCacheDataItems.unseencount"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>), or</item>
+        /// <item>The value was not sent when requested.</item>
+        /// </list>
+        /// </para>
+        /// <para>
+        /// When the mailbox is selected the value of this property may not be accurate: <see cref="UnseenUnknownCount"/> indicates how inaccurate the value may be.
+        /// </para>
+        /// <para>
+        /// IMAP does not provide a mechanism for retrieving this value for a mailbox when the mailbox is selected.
+        /// </para>
         /// <para>
         /// When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server, 
-        /// but for the value to be accurate it has to be explicitly initialised (using <see cref="SetUnseenCount"/>) and
-        /// FETCH responses containing the flags have to be solicited for new messages  
+        /// but for the value to be accurate it has to be initialised after the mailbox is selected (using <see cref="SetUnseenCount"/>) and
+        /// FETCH responses containing the message flags have to be solicited for new messages  
         /// (use <see cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/> with <see cref="cMessageDeliveryEventArgs.MessageHandles"/> and <see cref="fMessageCacheAttributes.flags"/>).
         /// </para>
         /// </remarks>
@@ -533,8 +589,8 @@ namespace work.bacome.imapclient
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.MailboxHandle, MailboxHandle)) return lSelectedMailboxDetails.MessageCache.UnseenCount;
-                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.unseencount) == 0) return null;
-                if (MailboxHandle.MailboxStatus == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.status);
+                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.unseencount) == 0 || MailboxHandle.ListFlags?.CanSelect == false) return null;
+                if (MailboxHandle.MailboxStatus == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.status);
                 return MailboxHandle.MailboxStatus?.UnseenCount;
             }
         }
@@ -559,8 +615,17 @@ namespace work.bacome.imapclient
         /// Gets the highest mod-sequence (see RFC 7162) for the mailbox. May be <see langword="null"/> or zero.
         /// </summary>
         /// <remarks>
-        /// <para>When the mailbox is selected this property will always have a value but zero indicates that <see cref="cCapabilities.CondStore"/> is not in use or that the mailbox does not support the persistent storage of mod-sequences.</para>
-        /// <para><see langword="null"/> indicates that <see cref="fMailboxCacheDataItems.highestmodseq"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>) or that the value was not sent when requested.</para>
+        /// <para>
+        /// When the mailbox is selected this property will always have a value but zero indicates that <see cref="cCapabilities.CondStore"/> is not in use or that the mailbox does not support the persistent storage of mod-sequences.
+        /// </para>
+        /// <para>
+        /// <see langword="null"/> indicates that either;
+        /// <list type="bullet">
+        /// <item>The mailbox is not <see cref="CanSelect"/>, or</item>
+        /// <item><see cref="fMailboxCacheDataItems.highestmodseq"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>), or</item>
+        /// <item>The value was not sent when requested.</item>
+        /// </list>
+        /// </para>
         /// </remarks>
         public ulong? HighestModSeq
         {
@@ -568,8 +633,8 @@ namespace work.bacome.imapclient
             {
                 var lSelectedMailboxDetails = Client.SelectedMailboxDetails;
                 if (ReferenceEquals(lSelectedMailboxDetails?.MailboxHandle, MailboxHandle)) return lSelectedMailboxDetails.MessageCache.HighestModSeq;
-                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.highestmodseq) == 0) return null;
-                if (MailboxHandle.MailboxStatus == null) Client.Fetch(MailboxHandle, fMailboxCacheDataSets.status);
+                if ((Client.MailboxCacheDataItems & fMailboxCacheDataItems.highestmodseq) == 0 || MailboxHandle.ListFlags?.CanSelect == false) return null;
+                if (MailboxHandle.MailboxStatus == null) Client.Request(MailboxHandle, fMailboxCacheDataSets.status);
                 return MailboxHandle.MailboxStatus?.HighestModSeq;
             }
         }
@@ -940,7 +1005,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises the value of <see cref="UnseenCount"/>. The mailbox must be selected.
+        /// Initialises the value of <see cref="UnseenCount"/> when the mailbox is selected.
         /// </summary>
         /// <returns>A list of unseen messages.</returns>
         /// <remarks>
@@ -993,20 +1058,20 @@ namespace work.bacome.imapclient
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <inheritdoc cref="Messages(IEnumerable{cUID}, cMessageCacheItems, cCacheItemFetchConfiguration)" select="returns|remarks"/>
         public Task<List<cMessage>> MessagesAsync(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration = null) => Client.MessagesAsync(MailboxHandle, pUIDs, pItems, pConfiguration);
-
+    
         /// <summary>
-        /// Refreshes the cached data for the mailbox.
+        /// Refreshes sets of data in the mailbox cache.
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache.</param>
-        public void Fetch(fMailboxCacheDataSets pDataSets) => Client.Fetch(MailboxHandle, pDataSets);
+        public void Refresh(fMailboxCacheDataSets pDataSets) => Client.Request(MailboxHandle, pDataSets);
 
         /// <summary>
-        /// Asynchronously refreshes the cached data for the mailbox.
+        /// Asynchronously refreshes sets of data in the mailbox cache.
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache.</param>
         /// <returns></returns>
-        /// <inheritdoc cref="Fetch(fMailboxCacheDataSets)" select="remarks"/>
-        public Task FetchAsync(fMailboxCacheDataSets pDataSets) => Client.FetchAsync(MailboxHandle, pDataSets);
+        /// <inheritdoc cref="Refresh(fMailboxCacheDataSets)" select="remarks"/>
+        public Task RefreshAsync(fMailboxCacheDataSets pDataSets) => Client.RequestAsync(MailboxHandle, pDataSets);
 
         /// <summary>
         /// Copies a set of messages to the mailbox represented by the instance.

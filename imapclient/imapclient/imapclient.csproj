@@ -66,7 +66,7 @@
     <Compile Include="exposed_interfaces\other\fetchconfiguration.cs" />
     <Compile Include="client\fetchcacheitems.cs" />
     <Compile Include="client\fetchbody.cs" />
-    <Compile Include="client\fetchmailboxdata.cs" />
+    <Compile Include="client\requestmailboxdata.cs" />
     <Compile Include="client\rename.cs" />
     <Compile Include="client\setunseencount.cs" />
     <Compile Include="client\subscribe.cs" />

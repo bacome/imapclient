@@ -99,7 +99,7 @@ namespace testharness2
 
             // defence part two
             var lDetails = mClient.SelectedMailboxDetails;
-            if (!ReferenceEquals(lDetails?.MailboxHandle, mSelectedMailbox.MailboxHandle)) return;
+            if (!ReferenceEquals(lDetails?.MailboxHandle, mSelectedMailbox?.MailboxHandle)) return;
             mQueriedMessageCache = lDetails?.MessageCache;
 
             ZSubscribeMailbox();
@@ -302,24 +302,29 @@ namespace testharness2
 
                 if (mSelectedMailbox.MessageCount > mMaxMessages)
                 {
-                    // first get the messages, sorted, but don't get the requested properties yet (as this would be wasteful)
-                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, cMessageCacheItems.Empty);
+                    cMessageFetchConfiguration lMFConfiguration;
+
+                    if (lProgress == null) lMFConfiguration = null;
+                    else lMFConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, null, null); // the setcount and progress will never be used as we aren't asked for items to be cached
+
+                    // first get the messages, sorted, but don't get the requested properties yet (as this would be wasteful if we are about to trim the set of messages we are going to display)
+                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, cMessageCacheItems.Empty, lMFConfiguration);
                     if (IsDisposed || lQueryMessagesAsyncEntryNumber != mQueryMessagesAsyncEntryNumber) return;
 
                     // remove any excess messages (the filter may have removed enough or the mailbox may have changed in the meantime)
                     if (lMessages.Count > mMaxMessages) lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
 
-                    cCacheItemFetchConfiguration lConfiguration;
+                    cCacheItemFetchConfiguration lCIFConfiguration;
 
-                    if (lProgress == null) lConfiguration = null;
+                    if (lProgress == null) lCIFConfiguration = null;
                     else
                     {
                         lProgress.SetCount(lMessages.Count);
-                        lConfiguration = new cCacheItemFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
+                        lCIFConfiguration = new cCacheItemFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
                     }
 
-                    // get any missing properties: using the same configuration is a bit of a hack as the count will not be right (TODO: fix it)
-                    await mClient.FetchAsync(lMessages, mClient.DefaultMessageCacheItems, lConfiguration);
+                    // get any missing cache items
+                    await mClient.FetchAsync(lMessages, mClient.DefaultMessageCacheItems, lCIFConfiguration);
                 }
                 else if (mFilter != null || mOverrideSort != null || lProgress != null)
                 {
