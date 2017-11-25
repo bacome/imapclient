@@ -1060,13 +1060,13 @@ namespace work.bacome.imapclient
         public Task<List<cMessage>> MessagesAsync(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration = null) => Client.MessagesAsync(MailboxHandle, pUIDs, pItems, pConfiguration);
     
         /// <summary>
-        /// Refreshes sets of data in the mailbox cache.
+        /// Refreshes the data cached for the mailbox.
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache.</param>
         public void Refresh(fMailboxCacheDataSets pDataSets) => Client.Request(MailboxHandle, pDataSets);
 
         /// <summary>
-        /// Asynchronously refreshes sets of data in the mailbox cache.
+        /// Asynchronously refreshes the data cached for the mailbox.
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache.</param>
         /// <returns></returns>

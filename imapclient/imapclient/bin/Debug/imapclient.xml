@@ -3520,13 +3520,13 @@
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.Refresh(work.bacome.imapclient.fMailboxCacheDataSets)">
             <summary>
-            Refreshes sets of data in the mailbox cache.
+            Refreshes the data cached for the mailbox.
             </summary>
             <param name="pDataSets">The sets of data to fetch into cache.</param>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.RefreshAsync(work.bacome.imapclient.fMailboxCacheDataSets)">
             <summary>
-            Asynchronously refreshes sets of data in the mailbox cache.
+            Asynchronously refreshes the data cached for the mailbox.
             </summary>
             <param name="pDataSets">The sets of data to fetch into cache.</param>
             <returns></returns>
