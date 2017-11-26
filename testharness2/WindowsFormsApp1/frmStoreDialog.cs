@@ -130,13 +130,6 @@ namespace testharness2
             erp.SetError((Control)sender, null);
         }
 
-        private void frmStoreDialog_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            // TODO: check if this is required
-            // to allow closing with validation errors
-            //e.Cancel = false;
-        }
-
         private void cmdStore_Click(object sender, EventArgs e)
         {
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;

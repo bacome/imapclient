@@ -231,6 +231,8 @@
             this.chkRTCOther = new System.Windows.Forms.CheckBox();
             this.chkRTCNone = new System.Windows.Forms.CheckBox();
             this.gbxResponseTextType = new System.Windows.Forms.GroupBox();
+            this.chkRTTPreAuthGreeting = new System.Windows.Forms.CheckBox();
+            this.chkRTTByeGreeting = new System.Windows.Forms.CheckBox();
             this.chkRTTContinue = new System.Windows.Forms.CheckBox();
             this.chkRTTProtocolError = new System.Windows.Forms.CheckBox();
             this.chkRTTAuthenticationCancelled = new System.Windows.Forms.CheckBox();
@@ -245,8 +247,6 @@
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
             this.cmdPoll = new System.Windows.Forms.Button();
-            this.chkRTTByeGreeting = new System.Windows.Forms.CheckBox();
-            this.chkRTTPreAuthGreeting = new System.Windows.Forms.CheckBox();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -2275,9 +2275,9 @@
             this.gbxEvents.Controls.Add(this.txtEvents);
             this.gbxEvents.Controls.Add(this.label24);
             this.gbxEvents.Controls.Add(this.cmdEvents);
-            this.gbxEvents.Location = new System.Drawing.Point(253, 56);
+            this.gbxEvents.Location = new System.Drawing.Point(252, 56);
             this.gbxEvents.Name = "gbxEvents";
-            this.gbxEvents.Size = new System.Drawing.Size(205, 77);
+            this.gbxEvents.Size = new System.Drawing.Size(205, 81);
             this.gbxEvents.TabIndex = 2;
             this.gbxEvents.TabStop = false;
             this.gbxEvents.Text = "Events";
@@ -2308,7 +2308,7 @@
             this.gbxNetworkActivity.Controls.Add(this.cmdNetworkActivity);
             this.gbxNetworkActivity.Location = new System.Drawing.Point(6, 56);
             this.gbxNetworkActivity.Name = "gbxNetworkActivity";
-            this.gbxNetworkActivity.Size = new System.Drawing.Size(205, 77);
+            this.gbxNetworkActivity.Size = new System.Drawing.Size(205, 81);
             this.gbxNetworkActivity.TabIndex = 1;
             this.gbxNetworkActivity.TabStop = false;
             this.gbxNetworkActivity.Text = "Network Activity";
@@ -2505,6 +2505,30 @@
             this.gbxResponseTextType.TabStop = false;
             this.gbxResponseTextType.Text = "Text Context";
             // 
+            // chkRTTPreAuthGreeting
+            // 
+            this.chkRTTPreAuthGreeting.AutoSize = true;
+            this.chkRTTPreAuthGreeting.Checked = true;
+            this.chkRTTPreAuthGreeting.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkRTTPreAuthGreeting.Location = new System.Drawing.Point(12, 45);
+            this.chkRTTPreAuthGreeting.Name = "chkRTTPreAuthGreeting";
+            this.chkRTTPreAuthGreeting.Size = new System.Drawing.Size(107, 17);
+            this.chkRTTPreAuthGreeting.TabIndex = 1;
+            this.chkRTTPreAuthGreeting.Text = "PreAuth Greeting";
+            this.chkRTTPreAuthGreeting.UseVisualStyleBackColor = true;
+            // 
+            // chkRTTByeGreeting
+            // 
+            this.chkRTTByeGreeting.AutoSize = true;
+            this.chkRTTByeGreeting.Checked = true;
+            this.chkRTTByeGreeting.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkRTTByeGreeting.Location = new System.Drawing.Point(12, 69);
+            this.chkRTTByeGreeting.Name = "chkRTTByeGreeting";
+            this.chkRTTByeGreeting.Size = new System.Drawing.Size(87, 17);
+            this.chkRTTByeGreeting.TabIndex = 2;
+            this.chkRTTByeGreeting.Text = "Bye Greeting";
+            this.chkRTTByeGreeting.UseVisualStyleBackColor = true;
+            // 
             // chkRTTContinue
             // 
             this.chkRTTContinue.AutoSize = true;
@@ -2656,30 +2680,6 @@
             this.cmdPoll.Text = "Poll";
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
-            // 
-            // chkRTTByeGreeting
-            // 
-            this.chkRTTByeGreeting.AutoSize = true;
-            this.chkRTTByeGreeting.Checked = true;
-            this.chkRTTByeGreeting.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRTTByeGreeting.Location = new System.Drawing.Point(12, 69);
-            this.chkRTTByeGreeting.Name = "chkRTTByeGreeting";
-            this.chkRTTByeGreeting.Size = new System.Drawing.Size(87, 17);
-            this.chkRTTByeGreeting.TabIndex = 2;
-            this.chkRTTByeGreeting.Text = "Bye Greeting";
-            this.chkRTTByeGreeting.UseVisualStyleBackColor = true;
-            // 
-            // chkRTTPreAuthGreeting
-            // 
-            this.chkRTTPreAuthGreeting.AutoSize = true;
-            this.chkRTTPreAuthGreeting.Checked = true;
-            this.chkRTTPreAuthGreeting.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRTTPreAuthGreeting.Location = new System.Drawing.Point(12, 45);
-            this.chkRTTPreAuthGreeting.Name = "chkRTTPreAuthGreeting";
-            this.chkRTTPreAuthGreeting.Size = new System.Drawing.Size(107, 17);
-            this.chkRTTPreAuthGreeting.TabIndex = 1;
-            this.chkRTTPreAuthGreeting.Text = "PreAuth Greeting";
-            this.chkRTTPreAuthGreeting.UseVisualStyleBackColor = true;
             // 
             // frmClient
             // 

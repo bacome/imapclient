@@ -90,8 +90,10 @@ namespace testharness2
             }
         }
 
-        private void ZAddMailbox(TreeNode pNode, cMailbox pMailbox)
+        private void ZAddMailbox(TreeNode pNode, cMailbox pMailbox, bool pCheck)
         {
+            if (pCheck) foreach (TreeNode n in pNode.Nodes) if (n.Tag is cNodeTag lTag && lTag.Mailbox == pMailbox) return;
+
             var lNode = pNode.Nodes.Add(pMailbox.Name);
 
             TreeNode lPleaseWait;
@@ -117,7 +119,7 @@ namespace testharness2
                 if (mSubscriptions) lMailboxes = await lTag.MailboxContainer.SubscribedAsync(false, mDataSets);
                 else lMailboxes = await lTag.MailboxContainer.MailboxesAsync(mDataSets);
                 if (IsDisposed) return;
-                foreach (var lMailbox in lMailboxes) ZAddMailbox(e.Node, lMailbox);
+                foreach (var lMailbox in lMailboxes) ZAddMailbox(e.Node, lMailbox, false);
             }
             catch (Exception ex)
             {
@@ -391,12 +393,14 @@ namespace testharness2
             if (lNode == null) return;
             var lTag = tvw.SelectedNode.Tag as cNodeTag;
             if (lTag?.Mailbox == null) return;
+            var lParentTag = lNode.Parent?.Tag as cNodeTag;
+            if (lParentTag.MailboxContainer == null) return;
 
             try
             {
                 var lMailbox = await lTag.Mailbox.RenameAsync(txtRename.Text.Trim());
                 if (IsDisposed) return;
-                ZAddMailbox(lNode.Parent, lMailbox);
+                ZAddMailbox(lParentTag.MailboxContainer, lMailbox);
             }
             catch (Exception ex)
             {
@@ -427,7 +431,7 @@ namespace testharness2
             {
                 var lMailbox = await lTag.Mailbox.RenameAsync(lContainer, lName);
                 if (IsDisposed) return;
-                foreach (TreeNode n in tvw.Nodes) ZAddChildMailbox(n, lContainer, lMailbox);
+                ZAddMailbox(lContainer, lMailbox);
             }
             catch (Exception ex)
             {
@@ -435,14 +439,19 @@ namespace testharness2
             }
         }
 
-        private void ZAddChildMailbox(TreeNode pNode, iMailboxContainer pContainer, cMailbox pMailbox)
+        private void ZAddMailbox(iMailboxContainer pContainer, cMailbox pMailbox)
+        {
+            foreach (TreeNode lNode in tvw.Nodes) ZAddMailbox(lNode, pContainer, pMailbox);
+        }
+
+        private void ZAddMailbox(TreeNode pNode, iMailboxContainer pContainer, cMailbox pMailbox)
         {
             var lTag = pNode.Tag as cNodeTag;
 
             if (lTag != null && lTag.State == cNodeTag.eState.expanded)
             {
-                if (lTag.MailboxContainer.Equals(pContainer)) ZAddMailbox(pNode, pMailbox);
-                foreach (TreeNode lNode in pNode.Nodes) ZAddChildMailbox(lNode, pContainer, pMailbox);
+                if (lTag.MailboxContainer.Equals(pContainer)) ZAddMailbox(pNode, pMailbox, true);
+                foreach (TreeNode lNode in pNode.Nodes) ZAddMailbox(lNode, pContainer, pMailbox);
             }
         }
 
@@ -459,7 +468,7 @@ namespace testharness2
                 {
                     var lMailbox = await lTag.Mailbox.CreateChildAsync(txtCreate.Text.Trim(), chkCreate.Checked);
                     if (IsDisposed) return;
-                    if (lTag.State == cNodeTag.eState.expanded) ZAddMailbox(lNode, lMailbox);
+                    ZAddMailbox(lTag.Mailbox, lMailbox);
                 }
                 catch (Exception ex)
                 {
@@ -475,7 +484,7 @@ namespace testharness2
                 {
                     var lMailbox = await lTag.Namespace.CreateChildAsync(txtCreate.Text.Trim(), chkCreate.Checked);
                     if (IsDisposed) return;
-                    if (lTag.State == cNodeTag.eState.expanded) ZAddMailbox(lNode, lMailbox);
+                    if (lTag.State == cNodeTag.eState.expanded) ZAddMailbox(lNode, lMailbox, true);
                 }
                 catch (Exception ex)
                 {

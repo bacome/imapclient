@@ -191,6 +191,7 @@ namespace work.bacome.imapclient
         private class cAll : cFilter
         {
             public cAll() { }
+            public override string ToString() => $"{nameof(cFilter)}.{nameof(cAll)}()";
         }
 
         /// <summary>

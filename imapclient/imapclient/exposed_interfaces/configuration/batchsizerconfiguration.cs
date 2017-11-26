@@ -72,7 +72,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return (pA.Min == pB.Min && pA.Max == pB.Max && pA.MaxTime == pB.MaxTime && pA.Initial == pB.Initial);
+            return pA.Min == pB.Min && pA.Max == pB.Max && pA.MaxTime == pB.MaxTime && pA.Initial == pB.Initial;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>

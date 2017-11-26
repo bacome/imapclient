@@ -85,6 +85,33 @@ namespace testharness2
             if (rdoImpNormal.Checked) lTerms.Add(cFilter.Importance == eImportance.normal);
             if (rdoImpHigh.Checked) lTerms.Add(cFilter.Importance == eImportance.high);
 
+            if (!rdoUIDAll.Checked && uint.TryParse(txtUIDValidity.Text, out var lUIDValidity) && lUIDValidity > 0 && uint.TryParse(txtUID.Text, out var lUID) && lUID > 0)
+            {
+                cUID lUIDc = new cUID(lUIDValidity, lUID);
+                if (rdoUIDLT.Checked) lTerms.Add(cFilter.UID < lUIDc);
+                else if (rdoUIDLE.Checked) lTerms.Add(cFilter.UID <= lUIDc);
+                else if (rdoUIDEQ.Checked) lTerms.Add(cFilter.UID == lUIDc);
+                else if (rdoUIDGT.Checked) lTerms.Add(cFilter.UID > lUIDc);
+                else if (rdoUIDGE.Checked) lTerms.Add(cFilter.UID >= lUIDc);
+                else if (rdoUIDNEQ.Checked) lTerms.Add(cFilter.UID != lUIDc);
+            }
+
+            if (chkAll.Checked) lTerms.Add(cFilter.All);
+            if (chkNone.Checked) lTerms.Add(cFilter.None);
+
+            if (!rdoMSNAll.Checked && int.TryParse(txtOffset.Text, out var lOffset))
+            {
+                cFilterMSNOffset lOffsetc;
+                if (rdoFromFirst.Checked) lOffsetc = cFilter.First.MSNOffset(lOffset); 
+                else lOffsetc = cFilter.Last.MSNOffset(lOffset);
+
+                if (rdoMSNLT.Checked) lTerms.Add(cFilter.MSN < lOffsetc);
+                else if (rdoMSNLE.Checked) lTerms.Add(cFilter.MSN <= lOffsetc);
+                else if (rdoMSNGT.Checked) lTerms.Add(cFilter.MSN > lOffsetc);
+                else if (rdoMSNGE.Checked) lTerms.Add(cFilter.MSN >= lOffsetc);
+            }
+
+
             // return
 
             if (lTerms.Count == 0) return null;
@@ -202,12 +229,21 @@ namespace testharness2
         {
             if (!(sender is TextBox lSender)) return;
 
-            if (string.IsNullOrWhiteSpace(lSender.Text)) return;
-
-            if (!uint.TryParse(lSender.Text, out var i))
+            if (string.IsNullOrWhiteSpace(lSender.Text) || !uint.TryParse(lSender.Text, out var i) || i == 0)
             {
                 e.Cancel = true;
-                erp.SetError(lSender, "should be a uint");
+                erp.SetError(lSender, "should be a uint > zero");
+            }
+        }
+
+        private void ZValTextBoxIsInt(object sender, CancelEventArgs e)
+        {
+            if (!(sender is TextBox lSender)) return;
+
+            if (string.IsNullOrWhiteSpace(lSender.Text) || !int.TryParse(lSender.Text, out var i))
+            {
+                e.Cancel = true;
+                erp.SetError(lSender, "should be an int");
             }
         }
 
@@ -286,6 +322,18 @@ namespace testharness2
         private void dgvHeaders_RowValidated(object sender, DataGridViewCellEventArgs e)
         {
             dgvHeaders.Rows[e.RowIndex].ErrorText = null;
+        }
+
+        private void rdoUIDAll_CheckedChanged(object sender, EventArgs e)
+        {
+            txtUIDValidity.Enabled = !rdoUIDAll.Checked;
+            txtUIDValidity.Text = mParent.UIDValidity;
+            txtUID.Enabled = !rdoUIDAll.Checked;
+        }
+
+        private void rdoMSNAll_CheckedChanged(object sender, EventArgs e)
+        {
+            gbxOffset.Enabled = !rdoMSNAll.Checked;
         }
 
         private void tab_Validating(object sender, CancelEventArgs e)

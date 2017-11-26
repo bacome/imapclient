@@ -41,12 +41,15 @@
             this.cmdOverrideSortSet = new System.Windows.Forms.Button();
             this.cmdFilter = new System.Windows.Forms.Button();
             this.dgvMessages = new System.Windows.Forms.DataGridView();
+            this.gbxFilter = new System.Windows.Forms.GroupBox();
+            this.lblFilter = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.gbxOverrideSort.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvMessages)).BeginInit();
+            this.gbxFilter.SuspendLayout();
             this.SuspendLayout();
             // 
             // cmdExpunge
@@ -78,7 +81,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtx.Location = new System.Drawing.Point(3, 3);
             this.rtx.Name = "rtx";
-            this.rtx.Size = new System.Drawing.Size(314, 391);
+            this.rtx.Size = new System.Drawing.Size(314, 340);
             this.rtx.TabIndex = 0;
             this.rtx.Text = "";
             // 
@@ -92,11 +95,10 @@
             // 
             // splitContainer1.Panel1
             // 
+            this.splitContainer1.Panel1.Controls.Add(this.gbxFilter);
             this.splitContainer1.Panel1.Controls.Add(this.cmdCopyTo);
             this.splitContainer1.Panel1.Controls.Add(this.cmdStore);
-            this.splitContainer1.Panel1.Controls.Add(this.cmdFilterClear);
             this.splitContainer1.Panel1.Controls.Add(this.gbxOverrideSort);
-            this.splitContainer1.Panel1.Controls.Add(this.cmdFilter);
             this.splitContainer1.Panel1.Controls.Add(this.rtx);
             this.splitContainer1.Panel1.Controls.Add(this.cmdExpunge);
             this.splitContainer1.Panel1.Controls.Add(this.cmdClose);
@@ -132,8 +134,7 @@
             // 
             // cmdFilterClear
             // 
-            this.cmdFilterClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdFilterClear.Location = new System.Drawing.Point(121, 400);
+            this.cmdFilterClear.Location = new System.Drawing.Point(115, 41);
             this.cmdFilterClear.Name = "cmdFilterClear";
             this.cmdFilterClear.Size = new System.Drawing.Size(100, 25);
             this.cmdFilterClear.TabIndex = 2;
@@ -186,12 +187,11 @@
             // 
             // cmdFilter
             // 
-            this.cmdFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdFilter.Location = new System.Drawing.Point(15, 400);
+            this.cmdFilter.Location = new System.Drawing.Point(9, 40);
             this.cmdFilter.Name = "cmdFilter";
             this.cmdFilter.Size = new System.Drawing.Size(100, 25);
             this.cmdFilter.TabIndex = 1;
-            this.cmdFilter.Text = "Filter ...";
+            this.cmdFilter.Text = "Set ...";
             this.cmdFilter.UseVisualStyleBackColor = true;
             this.cmdFilter.Click += new System.EventHandler(this.cmdFilter_Click);
             // 
@@ -212,6 +212,29 @@
             this.dgvMessages.TabIndex = 0;
             this.dgvMessages.RowHeaderMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgv_RowHeaderMouseDoubleClick);
             // 
+            // gbxFilter
+            // 
+            this.gbxFilter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbxFilter.Controls.Add(this.lblFilter);
+            this.gbxFilter.Controls.Add(this.cmdFilter);
+            this.gbxFilter.Controls.Add(this.cmdFilterClear);
+            this.gbxFilter.Location = new System.Drawing.Point(3, 349);
+            this.gbxFilter.Name = "gbxFilter";
+            this.gbxFilter.Size = new System.Drawing.Size(314, 76);
+            this.gbxFilter.TabIndex = 8;
+            this.gbxFilter.TabStop = false;
+            this.gbxFilter.Text = "Filter";
+            // 
+            // lblFilter
+            // 
+            this.lblFilter.AutoSize = true;
+            this.lblFilter.Location = new System.Drawing.Point(6, 18);
+            this.lblFilter.Name = "lblFilter";
+            this.lblFilter.Size = new System.Drawing.Size(43, 13);
+            this.lblFilter.TabIndex = 1;
+            this.lblFilter.Text = "<none>";
+            // 
             // frmSelectedMailbox
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -231,6 +254,8 @@
             this.gbxOverrideSort.ResumeLayout(false);
             this.gbxOverrideSort.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvMessages)).EndInit();
+            this.gbxFilter.ResumeLayout(false);
+            this.gbxFilter.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -249,5 +274,7 @@
         private System.Windows.Forms.Button cmdFilterClear;
         private System.Windows.Forms.Button cmdStore;
         private System.Windows.Forms.Button cmdCopyTo;
+        private System.Windows.Forms.GroupBox gbxFilter;
+        private System.Windows.Forms.Label lblFilter;
     }
 }

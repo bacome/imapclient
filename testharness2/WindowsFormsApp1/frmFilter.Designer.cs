@@ -78,6 +78,15 @@
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.dgvHeaders = new System.Windows.Forms.DataGridView();
             this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.groupBox7 = new System.Windows.Forms.GroupBox();
+            this.txtUID = new System.Windows.Forms.TextBox();
+            this.rdoUIDNEQ = new System.Windows.Forms.RadioButton();
+            this.rdoUIDGE = new System.Windows.Forms.RadioButton();
+            this.rdoUIDGT = new System.Windows.Forms.RadioButton();
+            this.rdoUIDEQ = new System.Windows.Forms.RadioButton();
+            this.rdoUIDLE = new System.Windows.Forms.RadioButton();
+            this.rdoUIDLT = new System.Windows.Forms.RadioButton();
+            this.rdoUIDAll = new System.Windows.Forms.RadioButton();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.rdoImpHigh = new System.Windows.Forms.RadioButton();
             this.rdoImpNormal = new System.Windows.Forms.RadioButton();
@@ -89,6 +98,22 @@
             this.label8 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
+            this.groupBox8 = new System.Windows.Forms.GroupBox();
+            this.txtOffset = new System.Windows.Forms.TextBox();
+            this.rdoMSNGE = new System.Windows.Forms.RadioButton();
+            this.rdoMSNGT = new System.Windows.Forms.RadioButton();
+            this.rdoMSNLE = new System.Windows.Forms.RadioButton();
+            this.rdoMSNLT = new System.Windows.Forms.RadioButton();
+            this.rdoMSNAll = new System.Windows.Forms.RadioButton();
+            this.rdoFromLast = new System.Windows.Forms.RadioButton();
+            this.rdoFromFirst = new System.Windows.Forms.RadioButton();
+            this.gbxOffset = new System.Windows.Forms.GroupBox();
+            this.groupBox9 = new System.Windows.Forms.GroupBox();
+            this.chkAll = new System.Windows.Forms.CheckBox();
+            this.chkNone = new System.Windows.Forms.CheckBox();
+            this.txtUIDValidity = new System.Windows.Forms.TextBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
             this.tab.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -101,16 +126,20 @@
             this.tabPage4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvHeaders)).BeginInit();
             this.tabPage5.SuspendLayout();
+            this.groupBox7.SuspendLayout();
             this.groupBox6.SuspendLayout();
             this.groupBox5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
+            this.groupBox8.SuspendLayout();
+            this.gbxOffset.SuspendLayout();
+            this.groupBox9.SuspendLayout();
             this.SuspendLayout();
             // 
             // chkInvert
             // 
             this.chkInvert.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkInvert.AutoSize = true;
-            this.chkInvert.Location = new System.Drawing.Point(5, 297);
+            this.chkInvert.Location = new System.Drawing.Point(5, 293);
             this.chkInvert.Name = "chkInvert";
             this.chkInvert.Size = new System.Drawing.Size(53, 17);
             this.chkInvert.TabIndex = 1;
@@ -120,7 +149,7 @@
             // cmdOr
             // 
             this.cmdOr.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.cmdOr.Location = new System.Drawing.Point(64, 292);
+            this.cmdOr.Location = new System.Drawing.Point(64, 288);
             this.cmdOr.Name = "cmdOr";
             this.cmdOr.Size = new System.Drawing.Size(100, 25);
             this.cmdOr.TabIndex = 2;
@@ -131,7 +160,7 @@
             // cmdApply
             // 
             this.cmdApply.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdApply.Location = new System.Drawing.Point(528, 292);
+            this.cmdApply.Location = new System.Drawing.Point(528, 288);
             this.cmdApply.Name = "cmdApply";
             this.cmdApply.Size = new System.Drawing.Size(100, 25);
             this.cmdApply.TabIndex = 3;
@@ -152,7 +181,7 @@
             this.tab.Location = new System.Drawing.Point(5, 5);
             this.tab.Name = "tab";
             this.tab.SelectedIndex = 0;
-            this.tab.Size = new System.Drawing.Size(623, 281);
+            this.tab.Size = new System.Drawing.Size(623, 277);
             this.tab.TabIndex = 0;
             this.tab.Validating += new System.ComponentModel.CancelEventHandler(this.tab_Validating);
             this.tab.Validated += new System.EventHandler(this.ZValControlValidated);
@@ -164,7 +193,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(615, 255);
+            this.tabPage1.Size = new System.Drawing.Size(615, 251);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Flags";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -431,7 +460,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(615, 255);
+            this.tabPage2.Size = new System.Drawing.Size(615, 413);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Parts Contain";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -446,7 +475,7 @@
             this.dgvParts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvParts.Location = new System.Drawing.Point(3, 6);
             this.dgvParts.Name = "dgvParts";
-            this.dgvParts.Size = new System.Drawing.Size(609, 246);
+            this.dgvParts.Size = new System.Drawing.Size(609, 404);
             this.dgvParts.TabIndex = 0;
             // 
             // tabPage3
@@ -456,7 +485,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(615, 255);
+            this.tabPage3.Size = new System.Drawing.Size(615, 413);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Dates";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -623,7 +652,7 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(615, 255);
+            this.tabPage4.Size = new System.Drawing.Size(615, 413);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Headers Contain";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -637,22 +666,128 @@
             this.dgvHeaders.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvHeaders.Location = new System.Drawing.Point(3, 4);
             this.dgvHeaders.Name = "dgvHeaders";
-            this.dgvHeaders.Size = new System.Drawing.Size(635, 246);
+            this.dgvHeaders.Size = new System.Drawing.Size(635, 404);
             this.dgvHeaders.TabIndex = 1;
             this.dgvHeaders.RowValidated += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvHeaders_RowValidated);
             this.dgvHeaders.RowValidating += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgvHeaders_RowValidating);
             // 
             // tabPage5
             // 
+            this.tabPage5.Controls.Add(this.groupBox9);
+            this.tabPage5.Controls.Add(this.groupBox8);
+            this.tabPage5.Controls.Add(this.groupBox7);
             this.tabPage5.Controls.Add(this.groupBox6);
             this.tabPage5.Controls.Add(this.groupBox5);
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage5.Size = new System.Drawing.Size(615, 255);
+            this.tabPage5.Size = new System.Drawing.Size(615, 251);
             this.tabPage5.TabIndex = 4;
             this.tabPage5.Text = "Other";
             this.tabPage5.UseVisualStyleBackColor = true;
+            // 
+            // groupBox7
+            // 
+            this.groupBox7.Controls.Add(this.label12);
+            this.groupBox7.Controls.Add(this.label11);
+            this.groupBox7.Controls.Add(this.txtUIDValidity);
+            this.groupBox7.Controls.Add(this.txtUID);
+            this.groupBox7.Controls.Add(this.rdoUIDNEQ);
+            this.groupBox7.Controls.Add(this.rdoUIDGE);
+            this.groupBox7.Controls.Add(this.rdoUIDGT);
+            this.groupBox7.Controls.Add(this.rdoUIDEQ);
+            this.groupBox7.Controls.Add(this.rdoUIDLE);
+            this.groupBox7.Controls.Add(this.rdoUIDLT);
+            this.groupBox7.Controls.Add(this.rdoUIDAll);
+            this.groupBox7.Location = new System.Drawing.Point(6, 132);
+            this.groupBox7.Name = "groupBox7";
+            this.groupBox7.Size = new System.Drawing.Size(299, 116);
+            this.groupBox7.TabIndex = 2;
+            this.groupBox7.TabStop = false;
+            this.groupBox7.Text = "UID";
+            // 
+            // txtUID
+            // 
+            this.txtUID.Enabled = false;
+            this.txtUID.Location = new System.Drawing.Point(155, 87);
+            this.txtUID.Name = "txtUID";
+            this.txtUID.Size = new System.Drawing.Size(94, 20);
+            this.txtUID.TabIndex = 7;
+            this.txtUID.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsUID);
+            this.txtUID.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // rdoUIDNEQ
+            // 
+            this.rdoUIDNEQ.AutoSize = true;
+            this.rdoUIDNEQ.Location = new System.Drawing.Point(224, 42);
+            this.rdoUIDNEQ.Name = "rdoUIDNEQ";
+            this.rdoUIDNEQ.Size = new System.Drawing.Size(34, 17);
+            this.rdoUIDNEQ.TabIndex = 6;
+            this.rdoUIDNEQ.Text = "!=";
+            this.rdoUIDNEQ.UseVisualStyleBackColor = true;
+            // 
+            // rdoUIDGE
+            // 
+            this.rdoUIDGE.AutoSize = true;
+            this.rdoUIDGE.Location = new System.Drawing.Point(155, 42);
+            this.rdoUIDGE.Name = "rdoUIDGE";
+            this.rdoUIDGE.Size = new System.Drawing.Size(37, 17);
+            this.rdoUIDGE.TabIndex = 5;
+            this.rdoUIDGE.Text = ">=";
+            this.rdoUIDGE.UseVisualStyleBackColor = true;
+            // 
+            // rdoUIDGT
+            // 
+            this.rdoUIDGT.AutoSize = true;
+            this.rdoUIDGT.Location = new System.Drawing.Point(86, 42);
+            this.rdoUIDGT.Name = "rdoUIDGT";
+            this.rdoUIDGT.Size = new System.Drawing.Size(31, 17);
+            this.rdoUIDGT.TabIndex = 4;
+            this.rdoUIDGT.Text = ">";
+            this.rdoUIDGT.UseVisualStyleBackColor = true;
+            // 
+            // rdoUIDEQ
+            // 
+            this.rdoUIDEQ.AutoSize = true;
+            this.rdoUIDEQ.Location = new System.Drawing.Point(224, 19);
+            this.rdoUIDEQ.Name = "rdoUIDEQ";
+            this.rdoUIDEQ.Size = new System.Drawing.Size(37, 17);
+            this.rdoUIDEQ.TabIndex = 3;
+            this.rdoUIDEQ.Text = "==";
+            this.rdoUIDEQ.UseVisualStyleBackColor = true;
+            // 
+            // rdoUIDLE
+            // 
+            this.rdoUIDLE.AutoSize = true;
+            this.rdoUIDLE.Location = new System.Drawing.Point(155, 19);
+            this.rdoUIDLE.Name = "rdoUIDLE";
+            this.rdoUIDLE.Size = new System.Drawing.Size(37, 17);
+            this.rdoUIDLE.TabIndex = 2;
+            this.rdoUIDLE.Text = "<=";
+            this.rdoUIDLE.UseVisualStyleBackColor = true;
+            // 
+            // rdoUIDLT
+            // 
+            this.rdoUIDLT.AutoSize = true;
+            this.rdoUIDLT.Location = new System.Drawing.Point(86, 19);
+            this.rdoUIDLT.Name = "rdoUIDLT";
+            this.rdoUIDLT.Size = new System.Drawing.Size(31, 17);
+            this.rdoUIDLT.TabIndex = 1;
+            this.rdoUIDLT.Text = "<";
+            this.rdoUIDLT.UseVisualStyleBackColor = true;
+            // 
+            // rdoUIDAll
+            // 
+            this.rdoUIDAll.AutoSize = true;
+            this.rdoUIDAll.Checked = true;
+            this.rdoUIDAll.Location = new System.Drawing.Point(17, 19);
+            this.rdoUIDAll.Name = "rdoUIDAll";
+            this.rdoUIDAll.Size = new System.Drawing.Size(36, 17);
+            this.rdoUIDAll.TabIndex = 0;
+            this.rdoUIDAll.TabStop = true;
+            this.rdoUIDAll.Text = "All";
+            this.rdoUIDAll.UseVisualStyleBackColor = true;
+            this.rdoUIDAll.CheckedChanged += new System.EventHandler(this.rdoUIDAll_CheckedChanged);
             // 
             // groupBox6
             // 
@@ -724,7 +859,7 @@
             // 
             // txtSizeSmaller
             // 
-            this.txtSizeSmaller.Location = new System.Drawing.Point(155, 42);
+            this.txtSizeSmaller.Location = new System.Drawing.Point(155, 36);
             this.txtSizeSmaller.Name = "txtSizeSmaller";
             this.txtSizeSmaller.Size = new System.Drawing.Size(94, 20);
             this.txtSizeSmaller.TabIndex = 3;
@@ -733,10 +868,10 @@
             // 
             // txtSizeLarger
             // 
-            this.txtSizeLarger.Location = new System.Drawing.Point(17, 40);
+            this.txtSizeLarger.Location = new System.Drawing.Point(18, 36);
             this.txtSizeLarger.Name = "txtSizeLarger";
             this.txtSizeLarger.Size = new System.Drawing.Size(94, 20);
-            this.txtSizeLarger.TabIndex = 2;
+            this.txtSizeLarger.TabIndex = 1;
             this.txtSizeLarger.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
             this.txtSizeLarger.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
@@ -746,7 +881,7 @@
             this.label8.Location = new System.Drawing.Point(152, 20);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(41, 13);
-            this.label8.TabIndex = 1;
+            this.label8.TabIndex = 2;
             this.label8.Text = "Smaller";
             // 
             // label9
@@ -762,12 +897,183 @@
             // 
             this.erp.ContainerControl = this;
             // 
+            // groupBox8
+            // 
+            this.groupBox8.Controls.Add(this.gbxOffset);
+            this.groupBox8.Controls.Add(this.rdoMSNGE);
+            this.groupBox8.Controls.Add(this.rdoMSNGT);
+            this.groupBox8.Controls.Add(this.rdoMSNLE);
+            this.groupBox8.Controls.Add(this.rdoMSNLT);
+            this.groupBox8.Controls.Add(this.rdoMSNAll);
+            this.groupBox8.Location = new System.Drawing.Point(311, 80);
+            this.groupBox8.Name = "groupBox8";
+            this.groupBox8.Size = new System.Drawing.Size(299, 168);
+            this.groupBox8.TabIndex = 4;
+            this.groupBox8.TabStop = false;
+            this.groupBox8.Text = "MSN";
+            // 
+            // txtOffset
+            // 
+            this.txtOffset.Location = new System.Drawing.Point(17, 19);
+            this.txtOffset.Name = "txtOffset";
+            this.txtOffset.Size = new System.Drawing.Size(94, 20);
+            this.txtOffset.TabIndex = 0;
+            this.txtOffset.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsInt);
+            this.txtOffset.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // rdoMSNGE
+            // 
+            this.rdoMSNGE.AutoSize = true;
+            this.rdoMSNGE.Location = new System.Drawing.Point(155, 42);
+            this.rdoMSNGE.Name = "rdoMSNGE";
+            this.rdoMSNGE.Size = new System.Drawing.Size(37, 17);
+            this.rdoMSNGE.TabIndex = 4;
+            this.rdoMSNGE.Text = ">=";
+            this.rdoMSNGE.UseVisualStyleBackColor = true;
+            // 
+            // rdoMSNGT
+            // 
+            this.rdoMSNGT.AutoSize = true;
+            this.rdoMSNGT.Location = new System.Drawing.Point(86, 42);
+            this.rdoMSNGT.Name = "rdoMSNGT";
+            this.rdoMSNGT.Size = new System.Drawing.Size(31, 17);
+            this.rdoMSNGT.TabIndex = 3;
+            this.rdoMSNGT.Text = ">";
+            this.rdoMSNGT.UseVisualStyleBackColor = true;
+            // 
+            // rdoMSNLE
+            // 
+            this.rdoMSNLE.AutoSize = true;
+            this.rdoMSNLE.Location = new System.Drawing.Point(155, 19);
+            this.rdoMSNLE.Name = "rdoMSNLE";
+            this.rdoMSNLE.Size = new System.Drawing.Size(37, 17);
+            this.rdoMSNLE.TabIndex = 2;
+            this.rdoMSNLE.Text = "<=";
+            this.rdoMSNLE.UseVisualStyleBackColor = true;
+            // 
+            // rdoMSNLT
+            // 
+            this.rdoMSNLT.AutoSize = true;
+            this.rdoMSNLT.Location = new System.Drawing.Point(86, 19);
+            this.rdoMSNLT.Name = "rdoMSNLT";
+            this.rdoMSNLT.Size = new System.Drawing.Size(31, 17);
+            this.rdoMSNLT.TabIndex = 1;
+            this.rdoMSNLT.Text = "<";
+            this.rdoMSNLT.UseVisualStyleBackColor = true;
+            // 
+            // rdoMSNAll
+            // 
+            this.rdoMSNAll.AutoSize = true;
+            this.rdoMSNAll.Checked = true;
+            this.rdoMSNAll.Location = new System.Drawing.Point(17, 19);
+            this.rdoMSNAll.Name = "rdoMSNAll";
+            this.rdoMSNAll.Size = new System.Drawing.Size(36, 17);
+            this.rdoMSNAll.TabIndex = 0;
+            this.rdoMSNAll.TabStop = true;
+            this.rdoMSNAll.Text = "All";
+            this.rdoMSNAll.UseVisualStyleBackColor = true;
+            this.rdoMSNAll.CheckedChanged += new System.EventHandler(this.rdoMSNAll_CheckedChanged);
+            // 
+            // rdoFromLast
+            // 
+            this.rdoFromLast.AutoSize = true;
+            this.rdoFromLast.Location = new System.Drawing.Point(86, 45);
+            this.rdoFromLast.Name = "rdoFromLast";
+            this.rdoFromLast.Size = new System.Drawing.Size(45, 17);
+            this.rdoFromLast.TabIndex = 2;
+            this.rdoFromLast.Text = "Last";
+            this.rdoFromLast.UseVisualStyleBackColor = true;
+            // 
+            // rdoFromFirst
+            // 
+            this.rdoFromFirst.AutoSize = true;
+            this.rdoFromFirst.Checked = true;
+            this.rdoFromFirst.Location = new System.Drawing.Point(17, 45);
+            this.rdoFromFirst.Name = "rdoFromFirst";
+            this.rdoFromFirst.Size = new System.Drawing.Size(44, 17);
+            this.rdoFromFirst.TabIndex = 1;
+            this.rdoFromFirst.TabStop = true;
+            this.rdoFromFirst.Text = "First";
+            this.rdoFromFirst.UseVisualStyleBackColor = true;
+            // 
+            // gbxOffset
+            // 
+            this.gbxOffset.Controls.Add(this.rdoFromFirst);
+            this.gbxOffset.Controls.Add(this.rdoFromLast);
+            this.gbxOffset.Controls.Add(this.txtOffset);
+            this.gbxOffset.Enabled = false;
+            this.gbxOffset.Location = new System.Drawing.Point(69, 88);
+            this.gbxOffset.Name = "gbxOffset";
+            this.gbxOffset.Size = new System.Drawing.Size(147, 71);
+            this.gbxOffset.TabIndex = 5;
+            this.gbxOffset.TabStop = false;
+            this.gbxOffset.Text = "Offset";
+            // 
+            // groupBox9
+            // 
+            this.groupBox9.Controls.Add(this.chkNone);
+            this.groupBox9.Controls.Add(this.chkAll);
+            this.groupBox9.Location = new System.Drawing.Point(311, 6);
+            this.groupBox9.Name = "groupBox9";
+            this.groupBox9.Size = new System.Drawing.Size(298, 68);
+            this.groupBox9.TabIndex = 3;
+            this.groupBox9.TabStop = false;
+            this.groupBox9.Text = "Special";
+            // 
+            // chkAll
+            // 
+            this.chkAll.AutoSize = true;
+            this.chkAll.Location = new System.Drawing.Point(86, 38);
+            this.chkAll.Name = "chkAll";
+            this.chkAll.Size = new System.Drawing.Size(37, 17);
+            this.chkAll.TabIndex = 0;
+            this.chkAll.Text = "All";
+            this.chkAll.UseVisualStyleBackColor = true;
+            // 
+            // chkNone
+            // 
+            this.chkNone.AutoSize = true;
+            this.chkNone.Location = new System.Drawing.Point(155, 38);
+            this.chkNone.Name = "chkNone";
+            this.chkNone.Size = new System.Drawing.Size(52, 17);
+            this.chkNone.TabIndex = 1;
+            this.chkNone.Text = "None";
+            this.chkNone.UseVisualStyleBackColor = true;
+            // 
+            // txtUIDValidity
+            // 
+            this.txtUIDValidity.Enabled = false;
+            this.txtUIDValidity.Location = new System.Drawing.Point(18, 87);
+            this.txtUIDValidity.Name = "txtUIDValidity";
+            this.txtUIDValidity.Size = new System.Drawing.Size(94, 20);
+            this.txtUIDValidity.TabIndex = 8;
+            this.txtUIDValidity.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsUID);
+            this.txtUIDValidity.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(15, 71);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(59, 13);
+            this.label11.TabIndex = 9;
+            this.label11.Text = "UIDValidity";
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(152, 71);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(26, 13);
+            this.label12.TabIndex = 10;
+            this.label12.Text = "UID";
+            // 
             // frmFilter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(652, 321);
+            this.ClientSize = new System.Drawing.Size(652, 317);
             this.Controls.Add(this.tab);
             this.Controls.Add(this.cmdApply);
             this.Controls.Add(this.cmdOr);
@@ -792,11 +1098,19 @@
             this.tabPage4.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvHeaders)).EndInit();
             this.tabPage5.ResumeLayout(false);
+            this.groupBox7.ResumeLayout(false);
+            this.groupBox7.PerformLayout();
             this.groupBox6.ResumeLayout(false);
             this.groupBox6.PerformLayout();
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();
+            this.groupBox8.ResumeLayout(false);
+            this.groupBox8.PerformLayout();
+            this.gbxOffset.ResumeLayout(false);
+            this.gbxOffset.PerformLayout();
+            this.groupBox9.ResumeLayout(false);
+            this.groupBox9.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -864,5 +1178,30 @@
         private System.Windows.Forms.RadioButton rdoImpNormal;
         private System.Windows.Forms.RadioButton rdoImpLow;
         private System.Windows.Forms.RadioButton rdoImpAll;
+        private System.Windows.Forms.GroupBox groupBox7;
+        private System.Windows.Forms.TextBox txtUID;
+        private System.Windows.Forms.RadioButton rdoUIDNEQ;
+        private System.Windows.Forms.RadioButton rdoUIDGE;
+        private System.Windows.Forms.RadioButton rdoUIDGT;
+        private System.Windows.Forms.RadioButton rdoUIDEQ;
+        private System.Windows.Forms.RadioButton rdoUIDLE;
+        private System.Windows.Forms.RadioButton rdoUIDLT;
+        private System.Windows.Forms.RadioButton rdoUIDAll;
+        private System.Windows.Forms.GroupBox groupBox9;
+        private System.Windows.Forms.CheckBox chkNone;
+        private System.Windows.Forms.CheckBox chkAll;
+        private System.Windows.Forms.GroupBox groupBox8;
+        private System.Windows.Forms.GroupBox gbxOffset;
+        private System.Windows.Forms.RadioButton rdoFromFirst;
+        private System.Windows.Forms.RadioButton rdoFromLast;
+        private System.Windows.Forms.TextBox txtOffset;
+        private System.Windows.Forms.RadioButton rdoMSNGE;
+        private System.Windows.Forms.RadioButton rdoMSNGT;
+        private System.Windows.Forms.RadioButton rdoMSNLE;
+        private System.Windows.Forms.RadioButton rdoMSNLT;
+        private System.Windows.Forms.RadioButton rdoMSNAll;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.TextBox txtUIDValidity;
     }
 }

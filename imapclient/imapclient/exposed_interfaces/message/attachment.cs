@@ -174,8 +174,8 @@ namespace work.bacome.imapclient
             unchecked
             {
                 int lHash = 17;
-                lHash = lHash* 23 + MessageHandle.GetHashCode();
-                lHash = lHash* 23 + Part.GetHashCode();
+                lHash = lHash * 23 + MessageHandle.GetHashCode();
+                lHash = lHash * 23 + Part.GetHashCode();
                 return lHash;
             }
         }
@@ -189,7 +189,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return ReferenceEquals(pA.MessageHandle, pB.MessageHandle) && ReferenceEquals(pA.Part, pB.Part);
+            return pA.Client.Equals(pB.Client) && pA.MessageHandle.Equals(pB.MessageHandle) && pA.Part.Equals(pB.Part);
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>

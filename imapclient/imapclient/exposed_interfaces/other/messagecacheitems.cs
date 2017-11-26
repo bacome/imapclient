@@ -97,7 +97,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return pA.Attributes == pB.Attributes && pA.Names == pB.Names;
+            return pA.Attributes == pB.Attributes && pA.Names.Equals(pB.Names);
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>

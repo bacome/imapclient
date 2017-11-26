@@ -108,7 +108,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return (pA.Host == pB.Host && pA.Type == pB.Type && pA.UserId == pB.UserId);
+            return pA.Host == pB.Host && pA.Type == pB.Type && pA.UserId == pB.UserId;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>

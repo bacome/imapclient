@@ -87,7 +87,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return (pA.StartDelay == pB.StartDelay && pA.IdleRestartInterval == pB.IdleRestartInterval && pA.PollInterval == pB.PollInterval);
+            return pA.StartDelay == pB.StartDelay && pA.IdleRestartInterval == pB.IdleRestartInterval && pA.PollInterval == pB.PollInterval;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>

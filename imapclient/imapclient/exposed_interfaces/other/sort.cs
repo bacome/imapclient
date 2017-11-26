@@ -158,7 +158,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return (pA.Item == pB.Item && pA.Desc == pB.Desc);
+            return pA.Item == pB.Item && pA.Desc == pB.Desc;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
@@ -463,7 +463,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pB, null)) return false;
 
             if (pA.Items.Count != pB.Items.Count) return false;
-            for (int i = 0; i < pA.Items.Count; i++) if (pA.Items[i] != pB.Items[i]) return false;
+            for (int i = 0; i < pA.Items.Count; i++) if (!pA.Items[i].Equals(pB.Items[i])) return false;
             return true;
         }
 

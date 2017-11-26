@@ -14,8 +14,6 @@ namespace testharness2
     {
         private static Random mRandom = new Random();
 
-        // TODO: UIDNotSticky test
-
         public static void CurrentTest(cTrace.cContext pParentContext)
         {
             // quickly get to the test I'm working on

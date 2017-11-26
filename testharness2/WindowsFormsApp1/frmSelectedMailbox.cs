@@ -13,6 +13,7 @@ namespace testharness2
 {
     public partial class frmSelectedMailbox : Form
     {
+        private const string kNone = "<none>";
         private const string kUsingDefault = "<using default>";
 
         private readonly cIMAPClient mClient;
@@ -131,11 +132,10 @@ namespace testharness2
         private async void mSelectedMailbox_MessageDelivery(object sender, cMessageDeliveryEventArgs e)
         {
             if (mSelectedMailbox == null) return;
+            if (mFilter != null) return;
+
             var lBindingSource = dgvMessages.DataSource as BindingSource;
             if (lBindingSource == null) return;
-
-            // if filtering is on, ignore it
-            //  TODO!
 
             // cautions;
             //  the event could be for the previously selected mailbox
@@ -554,7 +554,18 @@ namespace testharness2
         {
             ZFilterFormsClose();
             mFilter = null;
+            lblFilter.Text = kNone;
             ZQueryMessagesAsync();
+        }
+
+        public string UIDValidity
+        {
+            get
+            {
+                var lUIDValidity = mSelectedMailbox?.UIDValidity;
+                if (lUIDValidity == null) return string.Empty;
+                return lUIDValidity.Value.ToString();
+            }
         }
 
         public void FilterOr(frmFilter pCentreOnThis) => ZFilterFormAdd(new frmFilter(mClient.InstanceName, this), pCentreOnThis);
@@ -576,6 +587,8 @@ namespace testharness2
             }
 
             mFilter = lFilter;
+            if (mFilter == null) lblFilter.Text = kNone;
+            else lblFilter.Text = mFilter.ToString();
             ZQueryMessagesAsync();
         }
 

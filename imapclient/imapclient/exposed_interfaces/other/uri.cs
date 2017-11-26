@@ -139,9 +139,10 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
 
-            if (pA.mURLParts != pB.mURLParts) return false;
-            if (pA.mURLParts != null) return true; 
-            return pA.mParts == pB.mParts;
+            if (pA.mURLParts != null) return pA.mURLParts.Equals(pB.mURLParts);
+            if (pB.mURLParts != null) return false;
+
+            return pA.mParts.Equals(pB.mParts);
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
