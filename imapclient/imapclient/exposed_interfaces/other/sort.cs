@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -35,7 +36,7 @@ namespace work.bacome.imapclient
     /// Represents an item in a message sort specification.
     /// </summary>
     /// <seealso cref="cSort"/>
-    public class cSortItem
+    public class cSortItem : IEquatable<cSortItem>
     {
         /** <summary>Sort ascending by <see cref="eSortItem.received"/>.</summary> */
         public static readonly cSortItem Received = new cSortItem(eSortItem.received, false);
@@ -130,8 +131,38 @@ namespace work.bacome.imapclient
             Desc = pDesc;
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cSortItem pObject) => this == pObject;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cSortItem;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash * 23 + Item.GetHashCode();
+                lHash = lHash * 23 + Desc.GetHashCode();
+                return lHash;
+            }
+        }
+
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cSortItem)}({Item},{Attribute},{Desc})";
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cSortItem pA, cSortItem pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return (pA.Item == pB.Item && pA.Desc == pB.Desc);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cSortItem pA, cSortItem pB) => !(pA == pB);
     }
 
     /// <summary>
@@ -146,7 +177,7 @@ namespace work.bacome.imapclient
     /// </remarks>
     /// <seealso cref="cIMAPClient.DefaultSort"/>
     /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
-    public class cSort : IComparer<iMessageHandle>, IComparer<cMessage>
+    public class cSort : IEquatable<cSort>, IComparer<iMessageHandle>, IComparer<cMessage>
     {
         /// <summary>
         /// Specifies that no sorting is required.
@@ -384,6 +415,24 @@ namespace work.bacome.imapclient
             return pX.CompareTo(pY);
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cSort pObject) => this == pObject;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cSort;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                if (mName != null) lHash = lHash * 23 + mName.GetHashCode();
+                if (Items != null) foreach (var lItem in Items) lHash = lHash * 23 + lItem.GetHashCode();
+                return lHash;
+            }
+        }
+
         /// <inheritdoc />
         public override string ToString()
         {
@@ -399,5 +448,26 @@ namespace work.bacome.imapclient
 
             return lBuilder.ToString();
         }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cSort pA, cSort pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+
+            if (pA.mName != pB.mName) return false;
+
+            if (ReferenceEquals(pA.Items, pB.Items)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+
+            if (pA.Items.Count != pB.Items.Count) return false;
+            for (int i = 0; i < pA.Items.Count; i++) if (pA.Items[i] != pB.Items[i]) return false;
+            return true;
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cSort pA, cSort pB) => !(pA == pB);
     }
 }

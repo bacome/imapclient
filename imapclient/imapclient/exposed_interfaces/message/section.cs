@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cMessage.Fetch(cSection)"/>
     /// <seealso cref="cMessage.Fetch(cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
     /// <seealso cref="cMailbox.UIDFetch(cUID, cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
-    public class cSection
+    public class cSection : IEquatable<cSection>
     {
         /// <summary>
         /// The section specification for an entire message.
@@ -135,6 +135,9 @@ namespace work.bacome.imapclient
 
             return lCursor.Position.AtEnd;
         }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cSection pObject) => this == pObject;
 
         /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cSection;

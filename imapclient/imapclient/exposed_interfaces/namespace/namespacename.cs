@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
     /// </summary>
     /// <seealso cref="cNamespace"/>
     /// <seealso cref="cNamespaces"/>
-    public class cNamespaceName
+    public class cNamespaceName : IEquatable<cNamespaceName>
     {
         // to extend with LANGUAGE translations
 
@@ -42,6 +42,9 @@ namespace work.bacome.imapclient
             Prefix = pPrefix;
             Delimiter = pDelimiter;
         }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cNamespaceName pObject) => this == pObject;
 
         /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cNamespaceName;

@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.imapclient.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -11,7 +12,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cIMAPClient.FetchBodyWriteConfiguration"/>
     /// <seealso cref="cIMAPClient.AppendStreamReadConfiguration"/>
     /// <seealso cref="cBodyFetchConfiguration"/>
-    public class cBatchSizerConfiguration
+    public class cBatchSizerConfiguration : IEquatable<cBatchSizerConfiguration>
     {
         /**<summary>The minimum batch size.</summary>*/
         public readonly int Min;
@@ -42,7 +43,39 @@ namespace work.bacome.imapclient
             Initial = pInitial;
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cBatchSizerConfiguration pObject) => this == pObject;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cBatchSizerConfiguration;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash * 23 + Min.GetHashCode();
+                lHash = lHash * 23 + Max.GetHashCode();
+                lHash = lHash * 23 + MaxTime.GetHashCode();
+                lHash = lHash * 23 + Initial.GetHashCode();
+                return lHash;
+            }
+        }
+
         /// <inheritdoc/>
         public override string ToString() => $"{nameof(cBatchSizerConfiguration)}({Min},{Max},{MaxTime},{Initial})";
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cBatchSizerConfiguration pA, cBatchSizerConfiguration pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return (pA.Min == pB.Min && pA.Max == pB.Max && pA.MaxTime == pB.MaxTime && pA.Initial == pB.Initial);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cBatchSizerConfiguration pA, cBatchSizerConfiguration pB) => !(pA == pB);
     }
 }

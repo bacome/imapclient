@@ -93,10 +93,7 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
-        /// <summary>
-        /// Returns the string data sans the language information. 
-        /// </summary>
-        /// <param name="pString"></param>
+        /// <inheritdoc cref="ToString"/>
         public static implicit operator string(cCulturedString pString) => pString?.ToString();
 
         [Conditional("DEBUG")]

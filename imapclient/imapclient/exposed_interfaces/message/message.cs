@@ -23,7 +23,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cMailbox.Message(cUID, cMessageCacheItems)"/>
     /// <seealso cref="cMailbox.Messages(IEnumerable{cUID}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
     /// <seealso cref="cSort"/>
-    public class cMessage
+    public class cMessage : IEquatable<cMessage>
     {
         private enum eOperationType { fetch, store }
 
@@ -891,7 +891,29 @@ namespace work.bacome.imapclient
             ;?; // TODO
         } */
 
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cMessage pObject) => this == pObject;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cMessage;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode() => MessageHandle.GetHashCode();
+
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cMessage)}({MessageHandle})"; // ,{Indent} // re-instate if threading is ever done
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cMessage pA, cMessage pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return ReferenceEquals(pA.MessageHandle, pB.MessageHandle);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cMessage pA, cMessage pB) => !(pA == pB);
     }
 }

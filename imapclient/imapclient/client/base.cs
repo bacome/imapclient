@@ -497,7 +497,7 @@ namespace work.bacome.imapclient
         //public void SetXOAuth2Credentials(string pUserId, string pAccessToken, bool pTryAuthenticateEvenIfXOAuth2IsntAdvertised = false) => Credentials = cCredentials.XOAuth2(pUserId, pAccessToken, pTryAuthenticateEvenIfXOAuth2IsntAdvertised);
 
         /// <summary>
-        /// Gets and sets whether mailbox referrals will be handled for the instance.
+        /// Gets and sets whether mailbox referrals will be handled.
         /// </summary>
         /// <remarks>
         /// The default value is <see langword="false"/>.
@@ -524,7 +524,7 @@ namespace work.bacome.imapclient
         }
     
         /// <summary>
-        /// Gets and sets the set of optionally requested mailbox data items for the instance.
+        /// Gets and sets the set of optionally requested mailbox data items.
         /// </summary>
         /// <remarks>
         /// The default set is <see cref="fMailboxCacheDataItems.messagecount"/> and <see cref="fMailboxCacheDataItems.unseencount"/>.
@@ -574,7 +574,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets and sets the instance idle configuration. May be <see langword="null"/>.
+        /// Gets and sets the idle configuration. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
         /// For details of the idling process, see <see cref="cIdleConfiguration"/>.
@@ -764,10 +764,10 @@ namespace work.bacome.imapclient
         public cId ServerId => mSession?.ServerId;
 
         /// <summary>
-        /// Gets the namespace details for the connected (or last connected) account.
+        /// Gets the namespace details for the connected (or last connected) account. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// Set during <see cref="Connect"/>. Will be set to something even if <see cref="cCapabilities.Namespace"/> is not in use.
+        /// Set during <see cref="Connect"/>.
         /// </remarks>
         public cNamespaces Namespaces
         {
@@ -834,7 +834,7 @@ namespace work.bacome.imapclient
         internal bool? HasCachedChildren(iMailboxHandle pMailboxHandle) => mSession?.HasCachedChildren(pMailboxHandle);
 
         /// <summary>
-        /// Gets a report on the number of subscriptions to the events of this instance.
+        /// Gets a report on the number of subscriptions to the events of the instance.
         /// </summary>
         /// <remarks>
         /// This report is provided to aid in the debugging of external code.

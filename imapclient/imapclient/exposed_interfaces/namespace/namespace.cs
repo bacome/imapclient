@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
     /// Represents an IMAP namespace.
     /// </summary>
     /// <seealso cref="cIMAPClient.Namespaces"/>
-    public class cNamespace : iMailboxContainer
+    public class cNamespace : iMailboxContainer, IEquatable<cNamespace>
     {
         /**<summary>The client that this instance was created by.</summary>*/
         public readonly cIMAPClient Client;
@@ -98,13 +98,39 @@ namespace work.bacome.imapclient
         public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = false) => Client.CreateAsync(GetMailboxName(pName), pAsFutureParent);
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(iMailboxContainer pOther)
+        public bool Equals(cNamespace pObject) => this == pObject;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(iMailboxContainer pObject) => this == pObject as cNamespace;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cNamespace;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
         {
-            if (pOther is cNamespace lOther) return ReferenceEquals(lOther.Client, Client) && lOther.NamespaceName == NamespaceName;
-            return false;
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash * 23 + Client.GetHashCode();
+                lHash = lHash * 23 + NamespaceName.GetHashCode();
+                return lHash;
+            }
         }
 
         /// <inheritdoc/>
         public override string ToString() => $"{nameof(cMailbox)}({NamespaceName})";
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cNamespace pA, cNamespace pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return (ReferenceEquals(pA.Client, pB.Client) && pA.NamespaceName == pB.NamespaceName);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cNamespace pA, cNamespace pB) => !(pA == pB);
     }
 }

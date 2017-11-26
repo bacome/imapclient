@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using work.bacome.imapclient.apidocumentation;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -10,7 +11,7 @@ namespace work.bacome.imapclient
     /// <remarks>
     /// See RFC 3986 and RFC 6874.
     /// </remarks>
-    public class cURI
+    public class cURI : IEquatable<cURI>
     {
         // rfc 3986, 6874
 
@@ -109,6 +110,19 @@ namespace work.bacome.imapclient
         /**<summary>Indicates whether the URI is an authorized IMAP URL.</summary>*/
         public bool IsAuthorised => mURLParts != null && mURLParts.IsAuthorised;
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cURI pObject) => this == pObject;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cURI;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
+        {
+            if (mURLParts == null) return mParts.GetHashCode();
+            return mURLParts.GetHashCode();
+        }
+
         /// <inheritdoc/>
         public override string ToString()
         {
@@ -117,6 +131,21 @@ namespace work.bacome.imapclient
             if (mURLParts != null) lBuilder.Append(mURLParts);
             return lBuilder.ToString();
         }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cURI pA, cURI pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+
+            if (pA.mURLParts != pB.mURLParts) return false;
+            if (pA.mURLParts != null) return true; 
+            return pA.mParts == pB.mParts;
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cURI pA, cURI pB) => !(pA == pB);
 
         /// <summary>
         /// Tries to parse a string as a URI.

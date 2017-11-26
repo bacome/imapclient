@@ -1,14 +1,21 @@
 ﻿using System;
+using work.bacome.imapclient.apidocumentation;
 
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains parameters that control what a <see cref="cIMAPClient"/> instance does while idle.
+    /// Contains parameters that control the <see cref="cIMAPClient"/> idle feature.
     /// </summary>
     /// <remarks>
-    /// <para>Idling refers to the process of inviting the server to send unprompted (unprompted by external code) updates to the client with the aim of keeping the client in synch with the server.</para>
-    /// <para>A <see cref="cIMAPClient"/> instance can only idle while it <see cref="cIMAPClient.IsConnected"/>.</para>
-    /// <para>Idling starts after the configured length of quiet time on the underlying connection has passed (see <see cref="StartDelay"/>).</para>
+    /// <para>
+    /// The aim of idling is to keep the client in synch with the server, in particular the client's data about the currently selected mailbox.
+    /// </para>
+    /// <para>
+    /// A <see cref="cIMAPClient"/> instance can only idle while it <see cref="cIMAPClient.IsConnected"/>.
+    /// </para>
+    /// <para>
+    /// Idling starts after a configured length of quiet time on the underlying connection (see <see cref="StartDelay"/>).
+    /// </para>
     /// <para>
     /// If <see cref="cCapabilities.Idle"/> is in use then the RFC 2177 IDLE command is used.
     /// The IDLE command has to be restarted periodically to avoid the connection being closed due to inactivity - RFC 2177 recommends at least once every 29 minutes (see <see cref="IdleRestartInterval"/>).
@@ -26,7 +33,7 @@ namespace work.bacome.imapclient
     /// </para>
     /// </remarks>
     /// <seealso cref="cIMAPClient.IdleConfiguration"/>
-    public class cIdleConfiguration
+    public class cIdleConfiguration : IEquatable<cIdleConfiguration>
     {
         /**<summary>The length of the quiet time that must pass before idling starts, in milliseconds.</summary>*/
         public readonly int StartDelay;
@@ -36,7 +43,7 @@ namespace work.bacome.imapclient
         public readonly int PollInterval;
 
         /// <summary>
-        /// Initialises a new instance with the specified delay, restart and poll intervals.
+        /// Initialises a new instance with the specified start delay, restart interval and poll interval.
         /// </summary>
         /// <param name="pStartDelay">The length of the quiet time that must pass before idling starts, in milliseconds.</param>
         /// <param name="pIdleRestartInterval">The interval between RFC 2177 IDLE commands, in milliseconds.</param>
@@ -52,7 +59,38 @@ namespace work.bacome.imapclient
             PollInterval = pPollInterval;
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cIdleConfiguration pObject) => this == pObject;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cIdleConfiguration;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash * 23 + StartDelay.GetHashCode();
+                lHash = lHash * 23 + IdleRestartInterval.GetHashCode();
+                lHash = lHash * 23 + PollInterval.GetHashCode();
+                return lHash;
+            }
+        }
+
         /// <inheritdoc/>
         public override string ToString() => $"{nameof(cIdleConfiguration)}({StartDelay},{IdleRestartInterval},{PollInterval})";
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cIdleConfiguration pA, cIdleConfiguration pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return (pA.StartDelay == pB.StartDelay && pA.IdleRestartInterval == pB.IdleRestartInterval && pA.PollInterval == pB.PollInterval);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cIdleConfiguration pA, cIdleConfiguration pB) => !(pA == pB);
     }
 }

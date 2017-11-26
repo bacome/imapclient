@@ -27,6 +27,48 @@ namespace work.bacome.imapclient.apidocumentation
 
 
         /// <summary>
+        /// Compares this instance with the specified object.
+        /// </summary>
+        /// <param name="pOther"></param>
+        /// <returns></returns>
+        public int CompareTo(object pOther) => 0;
+
+        /**<summary>Gets the number of items in the set.</summary>*/
+        public int Count => 0;
+
+        /// <summary>
+        /// Gets one item.
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public string Indexer(int i) => null;
+
+        /// <summary>
+        /// Returns an enumerator that iterates through the items in the set.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerator GetEnumerator() => null;
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="pObject"></param>
+        /// <returns></returns>
+        public override bool Equals(object pObject)
+        {
+            return base.Equals(pObject);
+        }
+
+        /// <summary>
+        /// Returns the hash code for the instance.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        /// <summary>
         /// Determines whether two instances are the same.
         /// </summary>
         /// <param name="pA"></param>
@@ -41,50 +83,6 @@ namespace work.bacome.imapclient.apidocumentation
         /// <param name="pB"></param>
         /// <returns></returns>
         public bool Inequality(cAPIDocumentationTemplate pA, cAPIDocumentationTemplate pB) { return false; }
-
-        /// <summary>
-        /// Gets one item.
-        /// </summary>
-        /// <param name="i"></param>
-        /// <returns></returns>
-        public string Indexer(int i) => null;
-
-        /// <summary>
-        /// Compares this instance with the specified object.
-        /// </summary>
-        /// <param name="pOther"></param>
-        /// <returns></returns>
-        public int CompareTo(object pOther) => 0;
-
-        /**<summary>Gets the number of items in the set.</summary>*/
-        public int Count => 0;
-
-        /// <summary>
-        /// Returns an enumerator that iterates through the items in the set.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerator GetEnumerator() => null;
-
-        /// <summary>
-        /// Returns the hash code for the instance.
-        /// </summary>
-        /// <returns>A hash code for the current object.</returns>
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
-        /// <summary>
-        /// Determines whether the specified object is equal to the current object.
-        /// </summary>
-        /// <param name="pObject"></param>
-        /// <returns></returns>
-        public override bool Equals(object pObject)
-        {
-            return base.Equals(pObject);
-        }
-       
-
     }
 
     /// <summary>
@@ -167,8 +165,24 @@ namespace work.bacome.imapclient.apidocumentation
         /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => 0;
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
+        public string this[int i] => null;
+
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetEnumerator"/>
         public IEnumerator GetEnumerator() => null;
+
+        // for when equals isn't an override
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cAPIDocumentationExample2 pObject)
+        {
+            return false;
+        }
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject)
+        {
+            return base.Equals(pObject);
+        }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
         public override int GetHashCode()
@@ -176,12 +190,11 @@ namespace work.bacome.imapclient.apidocumentation
             return base.GetHashCode();
         }
 
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
-        public string this[int i] => null;
-
-
-
-
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return base.ToString();
+        }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
         public static bool operator ==(cAPIDocumentationExample2 pA, cAPIDocumentationExample2 pB) { return false; }
@@ -190,31 +203,11 @@ namespace work.bacome.imapclient.apidocumentation
         public static bool operator !=(cAPIDocumentationExample2 pA, cAPIDocumentationExample2 pB) { return false; }
 
 
-        // for when equals isn't an override
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(cAPIDocumentationExample2 pObject)
-        {
-            return false;
-        }
 
 
 
 
 
 
-        // just use the ones defined by object ....
-
-        /// <inheritdoc />
-        public override bool Equals(object pObject)
-        {
-            return base.Equals(pObject);
-        }
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            return base.ToString();
-        }
     }
 }

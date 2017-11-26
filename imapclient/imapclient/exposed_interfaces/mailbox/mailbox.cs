@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cNamespace.Subscribed(bool, fMailboxCacheDataSets)"/>
     /// <seealso cref="cIMAPClient.Mailboxes(string, char?, fMailboxCacheDataSets)"/>
     /// <seealso cref="cIMAPClient.Subscribed(string, char?, bool, fMailboxCacheDataSets)"/>
-    public class cMailbox : iMailboxContainer
+    public class cMailbox : iMailboxContainer, IEquatable<cMailbox>
     {
         private PropertyChangedEventHandler mPropertyChanged;
         private object mPropertyChangedLock = new object();
@@ -410,7 +410,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This property always has an up-to-date value when the mailbox is selected.
+        /// This property always has a value when the mailbox is selected. 
         /// </para>
         /// <para>
         /// <see langword="null"/> indicates that either;
@@ -419,6 +419,11 @@ namespace work.bacome.imapclient
         /// <item><see cref="fMailboxCacheDataItems.messagecount"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>), or</item>
         /// <item>The value was not sent when requested.</item>
         /// </list>
+        /// </para>
+        /// <para>
+        /// When the mailbox is selected the library maintains the value of this property by monitoring responses from the server,
+        /// but for the value to be up-to-date 
+        /// the responses have to be solicited (use <see cref="cIMAPClient.Poll"/> or allow idling using <see cref="cIMAPClient.IdleConfiguration"/>).
         /// </para>
         /// </remarks>
         public int? MessageCount
@@ -441,7 +446,7 @@ namespace work.bacome.imapclient
         /// See RFC 3501 for a definition of recent.
         /// </para>
         /// <para>
-        /// This property always has an up-to-date value when the mailbox is selected.
+        /// This property always has a value when the mailbox is selected.
         /// </para>
         /// <para>
         /// <see langword="null"/> indicates that either;
@@ -450,6 +455,11 @@ namespace work.bacome.imapclient
         /// <item><see cref="fMailboxCacheDataItems.recentcount"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>), or</item>
         /// <item>The value was not sent when requested.</item>
         /// </list>
+        /// </para>
+        /// <para>
+        /// When the mailbox is selected the library maintains the value of this property by monitoring responses from the server,
+        /// but for the value to be up-to-date 
+        /// the responses have to be solicited (use <see cref="cIMAPClient.Poll"/> or allow idling using <see cref="cIMAPClient.IdleConfiguration"/>).
         /// </para>
         /// </remarks>
         public int? RecentCount
@@ -480,20 +490,14 @@ namespace work.bacome.imapclient
         /// </list>
         /// </para>
         /// <para>
-        /// When the mailbox is selected the value of this property may not be up-to-date: <see cref="UIDNextUnknownCount"/> indicates how out-of-date the value is.
-        /// </para>
-        /// <para>
-        /// IMAP does not mandate that the server keep the client updated with this value when the mailbox is selected but it also disallows retrieving this value for a mailbox when the mailbox is selected.
-        /// </para>
-        /// <para>
         /// When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server,
         /// but for the value to be up-to-date 
         /// FETCH responses containing the UID have to be solicited for new messages  
-        /// (use <see cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/> with <see cref="cMessageDeliveryEventArgs.MessageHandles"/> and <see cref="fMessageCacheAttributes.uid"/>).
+        /// (to get notification of new messages via <see cref="MessageDelivery"/> use <see cref="cIMAPClient.Poll"/> or allow idling using <see cref="cIMAPClient.IdleConfiguration"/>; to solicit the FETCH responses required
+        /// use <see cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/> with <see cref="cMessageDeliveryEventArgs.MessageHandles"/> and <see cref="fMessageCacheAttributes.uid"/>
+        /// ).
         /// </para>
         /// </remarks>
-        /// <seealso cref="MessageDelivery"/>
-        /// <seealso cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
         public uint? UIDNext
         {
             get
@@ -507,11 +511,8 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates how out-of-date <see cref="UIDNext"/> is.
+        /// Gets the count of messages added to the message cache since the mailbox was selected for which the library has not seen the value of the UID.
         /// </summary>
-        /// <remarks>
-        /// This is the count of messages that have arrived since the mailbox was selected for which the library has not seen the value of the UID.
-        /// </remarks>
         public int UIDNextUnknownCount
         {
             get
@@ -557,7 +558,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// <para>
-        /// This property always has a value when the mailbox is selected, but the value may not be accurate.
+        /// This property always has a value when the mailbox is selected.
         /// </para>
         /// <para>
         /// <see langword="null"/> indicates that either;
@@ -568,21 +569,14 @@ namespace work.bacome.imapclient
         /// </list>
         /// </para>
         /// <para>
-        /// When the mailbox is selected the value of this property may not be accurate: <see cref="UnseenUnknownCount"/> indicates how inaccurate the value may be.
-        /// </para>
-        /// <para>
-        /// IMAP does not provide a mechanism for retrieving this value for a mailbox when the mailbox is selected.
-        /// </para>
-        /// <para>
         /// When the mailbox is selected the library maintains the value of this property by monitoring IMAP FETCH responses from the server, 
-        /// but for the value to be accurate it has to be initialised after the mailbox is selected (using <see cref="SetUnseenCount"/>) and
+        /// but for the value to be accurate it has to be initialised after the mailbox is selected using <see cref="SetUnseenCount"/> and
         /// FETCH responses containing the message flags have to be solicited for new messages  
-        /// (use <see cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/> with <see cref="cMessageDeliveryEventArgs.MessageHandles"/> and <see cref="fMessageCacheAttributes.flags"/>).
+        /// (to get notification of new messages via <see cref="MessageDelivery"/> use <see cref="cIMAPClient.Poll"/> or allow idling using <see cref="cIMAPClient.IdleConfiguration"/>; to solicit the FETCH responses required
+        /// use <see cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/> with <see cref="cMessageDeliveryEventArgs.MessageHandles"/> and <see cref="fMessageCacheAttributes.flags"/>
+        /// ).
         /// </para>
         /// </remarks>
-        /// <seealso cref="SetUnseenCount"/>
-        /// <seealso cref="MessageDelivery"/>
-        /// <seealso cref="Messages(IEnumerable{iMessageHandle}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
         public int? UnseenCount
         {
             get
@@ -596,11 +590,8 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Indicates how inaccurate <see cref="UnseenCount"/> may be.
+        /// Gets the count of messages added to the message cache since the mailbox was selected for which the library is unsure of the value of the <see cref="kMessageFlag.Seen"/> flag.
         /// </summary>
-        /// <remarks>
-        /// This is the number of messages for which the library is unsure of the value of the <see cref="kMessageFlag.Seen"/> flag.
-        /// </remarks>
         public int UnseenUnknownCount
         {
             get
@@ -625,6 +616,11 @@ namespace work.bacome.imapclient
         /// <item><see cref="fMailboxCacheDataItems.highestmodseq"/> is not being requested (see <see cref="cIMAPClient.MailboxCacheDataItems"/>), or</item>
         /// <item>The value was not sent when requested.</item>
         /// </list>
+        /// </para>
+        /// <para>
+        /// When the mailbox is selected the library maintains the value of this property by monitoring responses from the server,
+        /// but for the value to be up-to-date 
+        /// the responses have to be solicited (use <see cref="cIMAPClient.Poll"/> or allow idling using <see cref="cIMAPClient.IdleConfiguration"/>).
         /// </para>
         /// </remarks>
         public ulong? HighestModSeq
@@ -801,13 +797,6 @@ namespace work.bacome.imapclient
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <inheritdoc cref="CreateChild(string, bool)" select="returns|remarks"/>
         public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = false) => Client.CreateAsync(GetMailboxName(pName), pAsFutureParent);
-
-        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
-        public bool Equals(iMailboxContainer pOther)
-        {
-            if (pOther is cMailbox lOther) return ReferenceEquals(lOther.MailboxHandle, MailboxHandle);
-            return false;
-        }
 
         /// <summary>
         /// Subscribes to the mailbox.
@@ -1005,11 +994,11 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Initialises the value of <see cref="UnseenCount"/> when the mailbox is selected.
+        /// Initialises the value of <see cref="UnseenCount"/>. The mailbox must be selected.
         /// </summary>
-        /// <returns>A list of unseen messages.</returns>
+        /// <returns>A list of the unseen messages.</returns>
         /// <remarks>
-        /// See <see cref="UnseenCount"/> to understand why and when you might want to do this. 
+        /// <see cref="UnseenCount"/> must be initialised after the mailbox is selected if the value is to be accurate while the mailbox is selected. See <see cref="UnseenCount"/> for more detail.
         /// </remarks>
         public cMessageHandleList SetUnseenCount() => Client.SetUnseenCount(MailboxHandle);
 
@@ -1060,13 +1049,13 @@ namespace work.bacome.imapclient
         public Task<List<cMessage>> MessagesAsync(IEnumerable<cUID> pUIDs, cMessageCacheItems pItems, cCacheItemFetchConfiguration pConfiguration = null) => Client.MessagesAsync(MailboxHandle, pUIDs, pItems, pConfiguration);
     
         /// <summary>
-        /// Refreshes the data cached for the mailbox.
+        /// Refreshes the data that is cached for the mailbox.
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache.</param>
         public void Refresh(fMailboxCacheDataSets pDataSets) => Client.Request(MailboxHandle, pDataSets);
 
         /// <summary>
-        /// Asynchronously refreshes the data cached for the mailbox.
+        /// Asynchronously refreshes the data that is cached for the mailbox.
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache.</param>
         /// <returns></returns>
@@ -1204,7 +1193,31 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="UIDCopy(IEnumerable{cUID}, cMailbox)" select="returns|remarks"/>
         public Task<cCopyFeedback> UIDCopyAsync(IEnumerable<cUID> pUIDs, cMailbox pDestination) => Client.UIDCopyAsync(MailboxHandle, pUIDs, pDestination.MailboxHandle);
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cMailbox pObject) => this == pObject;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(iMailboxContainer pObject) => this == pObject as cMailbox;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cMailbox;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode() => MailboxHandle.GetHashCode();
+
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cMailbox)}({MailboxHandle})";
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cMailbox pA, cMailbox pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return ReferenceEquals(pA.MailboxHandle, pB.MailboxHandle);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cMailbox pA, cMailbox pB) => !(pA == pB);
     }
 }

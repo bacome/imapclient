@@ -12,7 +12,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cMailbox.Message(cUID, cMessageCacheItems)"/>
     /// <seealso cref="cMailbox.Messages(System.Collections.Generic.IEnumerable{cUID}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
     /// <seealso cref="cIMAPClient.Fetch(System.Collections.Generic.IEnumerable{cMessage}, cMessageCacheItems, cCacheItemFetchConfiguration)"/>
-    public class cMessageCacheItems
+    public class cMessageCacheItems : IEquatable<cMessageCacheItems>
     {
         /// <summary>
         /// An empty set of items.
@@ -69,6 +69,9 @@ namespace work.bacome.imapclient
         /// Indicates whether the set is empty.
         /// </summary>
         public bool IsEmpty => Attributes == 0 && Names.Count == 0;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cMessageCacheItems pObject) => this == pObject;
 
         /// <inheritdoc/>
         public override bool Equals(object pObject) => this == pObject as cMessageCacheItems;

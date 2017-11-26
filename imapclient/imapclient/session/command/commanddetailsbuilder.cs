@@ -690,15 +690,15 @@ namespace work.bacome.imapclient
                     lFFlags.Add(kMessageFlag.Draft);
                     lFFlags.Add(kMessageFlag.Recent);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Answered & cFilter.Flagged | cFilter.FlagsContain(lFFlags), lSelectedMailbox, false, false, null) != "OR (ANSWERED FLAGGED) (DRAFT RECENT)") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.3", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Answered & cFilter.Flagged & cFilter.FlagsContain(lFFlags), lSelectedMailbox, false, false, null) != "ANSWERED FLAGGED DRAFT RECENT") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.4", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Answered & cFilter.Flagged & cFilter.FlagsContain(lFFlags), lSelectedMailbox, false, false, null) != "ANSWERED DRAFT FLAGGED RECENT") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.4", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.Answered & cFilter.Flagged & cFilter.Forwarded, lSelectedMailbox, false, false, null) != "ANSWERED FLAGGED KEYWORD $Forwarded") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.5", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.Answered & cFilter.Flagged & cFilter.Forwarded, lSelectedMailbox, false, false, null) != "KEYWORD $Forwarded ANSWERED FLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.5", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(!(cFilter.Answered & cFilter.Flagged & cFilter.Forwarded), lSelectedMailbox, false, false, null) != "UNANSWERED UNFLAGGED UNKEYWORD $Forwarded") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.6", lContext);
+                    if (LMessageFilterCommandPartsTestsString(!(cFilter.Answered & cFilter.Flagged & cFilter.Forwarded), lSelectedMailbox, false, false, null) != "UNKEYWORD $Forwarded UNANSWERED UNFLAGGED") throw new cTestsException("ZMessageFilterCommandPartsTests Flags.6", lContext);
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred"), lSelectedMailbox, false, false, null) != "KEYWORD fred") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred") | cFilter.FlagsContain("angus"), lSelectedMailbox, false, false, null) != "OR KEYWORD fred KEYWORD angus") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.2", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred") & cFilter.FlagsContain("angus"), lSelectedMailbox, false, false, null) != "KEYWORD fred KEYWORD angus") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.3", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.FlagsContain("fred") & cFilter.FlagsContain("angus"), lSelectedMailbox, false, false, null) != "KEYWORD angus KEYWORD fred") throw new cTestsException("ZMessageFilterCommandPartsTests Keyword.3", lContext);
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.BCC.Contains("@bacome.work"), lSelectedMailbox, false, false, null) != "BCC @bacome.work") throw new cTestsException("ZMessageFilterCommandPartsTests BCC.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.Subject.Contains("imap client"), lSelectedMailbox, false, false, null) != "SUBJECT \"imap client\"") throw new cTestsException("ZMessageFilterCommandPartsTests Subject.1", lContext);

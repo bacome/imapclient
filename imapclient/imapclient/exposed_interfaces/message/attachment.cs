@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -14,7 +15,7 @@ namespace work.bacome.imapclient
     /// Instances of this class are only valid whilst the containing mailbox has the same UIDValidity.
     /// </remarks>
     /// <seealso cref="cMessage.Attachments"/>
-    public class cAttachment
+    public class cAttachment : IEquatable<cAttachment>
     {
         /**<summary>The client that the instance was created by.</summary>*/
         public readonly cIMAPClient Client;
@@ -161,7 +162,37 @@ namespace work.bacome.imapclient
             if (Part.Disposition?.ReadDate != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDate.Value);
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cAttachment pObject) => this == pObject;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cAttachment;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode() 
+        {
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash* 23 + MessageHandle.GetHashCode();
+                lHash = lHash* 23 + Part.GetHashCode();
+                return lHash;
+            }
+        }
+
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cAttachment)}({MessageHandle},{Part.Section})";
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cAttachment pA, cAttachment pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return ReferenceEquals(pA.MessageHandle, pB.MessageHandle) && ReferenceEquals(pA.Part, pB.Part);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cAttachment pA, cAttachment pB) => !(pA == pB);
     }
 }

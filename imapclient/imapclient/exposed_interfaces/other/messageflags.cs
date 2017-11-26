@@ -75,32 +75,40 @@ namespace work.bacome.imapclient
     /// </remarks>
     /// <seealso cref="cMailbox.ForUpdatePermanentFlags"/>
     /// <seealso cref="cMailbox.ReadOnlyPermanentFlags"/>
-    public abstract class cMessageFlags : IReadOnlyCollection<string>
+    public abstract class cMessageFlags : IReadOnlyList<string>, IEquatable<cMessageFlags>
     {
-        private readonly cMessageFlagList mFlags;
+        // ordered (case insensitive) list of flags (the ordering is required for the hashcode and == implementations)
+        private readonly List<string> mFlags;
 
         /// <summary>
-        /// Initialises a new instance with the specified list.
+        /// Initialises a new instance with a copy of the specified flags.
         /// </summary>
         /// <param name="pFlags"></param>
-        internal cMessageFlags(cMessageFlagList pFlags) => mFlags = pFlags;
+        internal cMessageFlags(IEnumerable<string> pFlags) => mFlags = new List<string>(from f in pFlags orderby f.ToUpperInvariant() select f);
 
         /// <summary>
         /// Determines whether the collection contains the specified flag (case insensitive).
         /// </summary>
         /// <param name="pFlag"></param>
         /// <returns></returns>
-        public bool Contains(string pFlag) => mFlags.Contains(pFlag);
+        public bool Contains(string pFlag) => mFlags.Contains(pFlag, StringComparer.InvariantCultureIgnoreCase);
 
         /// <summary>
         /// Determines whether the collection contains all the specified flags (case insensitive).
         /// </summary>
         /// <param name="pFlags"></param>
         /// <returns></returns>
-        public bool Contains(params string[] pFlags) => mFlags.Contains(pFlags);
+        public bool Contains(params string[] pFlags) => ZContains(pFlags);
 
         /// <inheritdoc cref="Contains(string[])"/>
-        public bool Contains(IEnumerable<string> pFlags) => mFlags.Contains(pFlags);
+        public bool Contains(IEnumerable<string> pFlags) => ZContains(pFlags);
+
+        private bool ZContains(IEnumerable<string> pFlags)
+        {
+            if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
+            foreach (var lFlag in pFlags) if (!mFlags.Contains(lFlag, StringComparer.InvariantCultureIgnoreCase)) return false;
+            return true;
+        }
 
         /// <summary>
         /// Returns the symmetric difference between this and the specified collection ignoring an optional set of flags (case insensitive).
@@ -122,8 +130,48 @@ namespace work.bacome.imapclient
         public IEnumerator<string> GetEnumerator() => mFlags.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mFlags.GetEnumerator();
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
+        public string this[int i] => mFlags[i];
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cMessageFlags pObject) => this == pObject;
+
         /// <inheritdoc />
-        public override string ToString() => mFlags.ToString();
+        public override bool Equals(object pObject) => this == pObject as cMessageFlags;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                foreach (var lFlag in mFlags) lHash = lHash * 23 + lFlag.ToUpperInvariant().GetHashCode();
+                return lHash;
+            }
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cMessageFlags));
+            foreach (var lFlag in mFlags) lBuilder.Append(lFlag);
+            return lBuilder.ToString();
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality"/>
+        public static bool operator ==(cMessageFlags pA, cMessageFlags pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+
+            if (pA.mFlags.Count != pB.mFlags.Count) return false;
+            for (int i = 0; i < pA.Count; i++) if (!pA.mFlags[i].Equals(pB.mFlags[i], StringComparison.InvariantCultureIgnoreCase)) return false;
+            return true;
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>
+        public static bool operator !=(cMessageFlags pA, cMessageFlags pB) => !(pA == pB);
     }
 
     /// <summary>
@@ -139,7 +187,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cIMAPClient.Store(IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)"/>
     /// <seealso cref="cMailbox.UIDStore(cUID, eStoreOperation, cStorableFlags, ulong?)"/>,
     /// <seealso cref="cMailbox.UIDStore(IEnumerable{cUID}, eStoreOperation, cStorableFlags, ulong?)"/>,
-    public class cStorableFlags : cMessageFlags
+    public class cStorableFlags : cMessageFlags, IEquatable<cStorableFlags>
     {
         // immutable (for passing in)
 
@@ -187,7 +235,10 @@ namespace work.bacome.imapclient
         /// Initialises a new instance with a copy of the specified list.
         /// </summary>
         /// <param name="pFlags"></param>
-        public cStorableFlags(cStorableFlagList pFlags) : base(new cStorableFlagList(pFlags)) { }
+        public cStorableFlags(cStorableFlagList pFlags) : base(pFlags) { }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cStorableFlags pObject) => this == pObject;
 
         /// <summary>
         /// Returns a new instance containing a copy of the specified list.
@@ -206,7 +257,7 @@ namespace work.bacome.imapclient
     /// </remarks>
     /// <seealso cref="cMailbox.MessageFlags"/>
     /// <seealso cref="cFilter.FlagsContain(cFetchableFlags)"/>
-    public class cFetchableFlags : cMessageFlags
+    public class cFetchableFlags : cMessageFlags, IEquatable<cFetchableFlags>
     {
         // immutable (for passing in and out)
 
@@ -224,9 +275,10 @@ namespace work.bacome.imapclient
         /// Initialises a new instance with a copy of the specified list.
         /// </summary>
         /// <param name="pFlags"></param>
-        public cFetchableFlags(cFetchableFlagList pFlags) : base(new cFetchableFlagList(pFlags)) { }
+        public cFetchableFlags(cFetchableFlagList pFlags) : base(pFlags) { }
 
-        private cFetchableFlags(cFetchableFlagList pFlags, bool pWrap) : base(pFlags) { } // wraps
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cFetchableFlags pObject) => this == pObject;
 
         /// <summary>
         /// Returns a new instance containing a copy of the specified list.
@@ -237,7 +289,7 @@ namespace work.bacome.imapclient
         internal static bool TryConstruct(IEnumerable<string> pFlags, out cFetchableFlags rFlags)
         {
             if (!cFetchableFlagList.TryConstruct(pFlags, out var lFlags)) { rFlags = null; return false; }
-            rFlags = new cFetchableFlags(lFlags, true);
+            rFlags = new cFetchableFlags(lFlags);
             return true;
         }
     }
@@ -246,7 +298,7 @@ namespace work.bacome.imapclient
     /// Represents a message-flag list.
     /// </summary>
     /// <inheritdoc cref="cMessageFlags" select="remarks"/>
-    public abstract class cMessageFlagList : IReadOnlyCollection<string>
+    public abstract class cMessageFlagList : IReadOnlyList<string>
     {
         // implements case insensitivity (note that the specs do NOT explicitly say that keywords are case insensitive OTHER than the spec for MDNSent) via the Comparer [see the notes above though: currently the implementation is case-insensitive]
         //  implements uniqueness (via mutation, not via construct)
@@ -334,6 +386,9 @@ namespace work.bacome.imapclient
             foreach (var lFlag in pFlags) mFlags.RemoveAll(f => f.Equals(lFlag, StringComparison.InvariantCultureIgnoreCase));
         }
 
+        /**<summary></summary>*/
+        protected abstract bool YIsValidFlag(string pFlag);
+
         /// <inheritdoc cref="cAPIDocumentationTemplate.Count"/>
         public int Count => mFlags.Count;
 
@@ -341,8 +396,8 @@ namespace work.bacome.imapclient
         public IEnumerator<string> GetEnumerator() => mFlags.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => mFlags.GetEnumerator();
 
-        /**<summary></summary>*/
-        protected abstract bool YIsValidFlag(string pFlag);
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>
+        public string this[int i] => mFlags[i];
 
         /// <inheritdoc />
         public override string ToString()
@@ -458,7 +513,7 @@ namespace work.bacome.imapclient
         public cFetchableFlagList(IEnumerable<string> pFlags) : base(ZCtor(pFlags)) { }
 
         /// <inheritdoc cref="cFetchableFlags(cFetchableFlagList)"/>
-        public cFetchableFlagList(cFetchableFlagList pFlags) : base(new List<string>(pFlags)) { } 
+        public cFetchableFlagList(cFetchableFlagList pFlags) : base(new List<string>(pFlags)) { }
 
         private cFetchableFlagList(List<string> pFlags) : base(pFlags) { } // wraps
 

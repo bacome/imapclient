@@ -6,7 +6,7 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
-    internal class cURLParts
+    internal class cURLParts : IEquatable<cURLParts>
     {
         // IMAP URL (rfc 5092, 5593)
         //  Note: TODO  punycode displayhost
@@ -277,30 +277,88 @@ namespace work.bacome.imapclient
             return true;
         }
 
+        public bool Equals(cURLParts pObject) => this == pObject;
+
+        public override bool Equals(object pObject) => this == pObject as cURLParts;
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash * 23 + mParts.GetHashCode();
+                if (_UserId != null) lHash = lHash * 23 + _UserId.GetHashCode();
+                if (_MechanismName != null) lHash = lHash * 23 + _MechanismName.GetHashCode();
+                if (_Host != null) lHash = lHash * 23 + _Host.GetHashCode();
+                lHash = lHash * 23 + _Port.GetHashCode();
+                if (_MailboxPath != null) lHash = lHash * 23 + _MailboxPath.GetHashCode();
+                if (_UIDValidity != null) lHash = lHash * 23 + _UIDValidity.GetHashCode();
+                if (_Search != null) lHash = lHash * 23 + _Search.GetHashCode();
+                if (_UID != null) lHash = lHash * 23 + _UID.GetHashCode();
+                if (_Section != null) lHash = lHash * 23 + _Section.GetHashCode();
+                if (_PartialOffset != null) lHash = lHash * 23 + _PartialOffset.GetHashCode();
+                if (_PartialLength != null) lHash = lHash * 23 + _PartialLength.GetHashCode();
+                if (_Expire != null) lHash = lHash * 23 + _Expire.GetHashCode();
+                if (_Application != null) lHash = lHash * 23 + _Application.GetHashCode();
+                if (_AccessUserId != null) lHash = lHash * 23 + _AccessUserId.GetHashCode();
+                if (TokenMechanism != null) lHash = lHash * 23 + TokenMechanism.GetHashCode();
+                if (_Token != null) lHash = lHash * 23 + _Token.GetHashCode();
+                return lHash;
+            }
+        }
+
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cURLParts));
 
             lBuilder.Append(mParts);
-            if (UserId != null) lBuilder.Append(nameof(UserId), UserId);
-            if (MechanismName != null) lBuilder.Append(nameof(MechanismName), MechanismName);
-            if (Host != null) lBuilder.Append(nameof(Host), Host);
-            lBuilder.Append(nameof(Port), Port);
-            if (MailboxPath != null) lBuilder.Append(nameof(MailboxPath), MailboxPath);
-            if (UIDValidity != null) lBuilder.Append(nameof(UIDValidity), UIDValidity);
-            if (Search != null) lBuilder.Append(nameof(Search), Search);
-            if (UID != null) lBuilder.Append(nameof(UID), UID);
-            if (Section != null) lBuilder.Append(nameof(Section), Section);
-            if (PartialOffset != null) lBuilder.Append(nameof(PartialOffset), PartialOffset);
-            if (PartialLength != null) lBuilder.Append(nameof(PartialLength), PartialLength);
-            if (Expire != null) lBuilder.Append(nameof(Expire), Expire);
-            if (Application != null) lBuilder.Append(nameof(Application), Application);
-            if (AccessUserId != null) lBuilder.Append(nameof(AccessUserId), AccessUserId);
+            if (_UserId != null) lBuilder.Append(nameof(UserId), _UserId);
+            if (_MechanismName != null) lBuilder.Append(nameof(MechanismName), _MechanismName);
+            if (_Host != null) lBuilder.Append(nameof(Host), _Host);
+            lBuilder.Append(nameof(Port), _Port);
+            if (_MailboxPath != null) lBuilder.Append(nameof(MailboxPath), _MailboxPath);
+            if (_UIDValidity != null) lBuilder.Append(nameof(UIDValidity), _UIDValidity);
+            if (_Search != null) lBuilder.Append(nameof(Search), _Search);
+            if (_UID != null) lBuilder.Append(nameof(UID), _UID);
+            if (_Section != null) lBuilder.Append(nameof(Section), _Section);
+            if (_PartialOffset != null) lBuilder.Append(nameof(PartialOffset), _PartialOffset);
+            if (_PartialLength != null) lBuilder.Append(nameof(PartialLength), _PartialLength);
+            if (_Expire != null) lBuilder.Append(nameof(Expire), _Expire);
+            if (_Application != null) lBuilder.Append(nameof(Application), _Application);
+            if (_AccessUserId != null) lBuilder.Append(nameof(AccessUserId), _AccessUserId);
             if (TokenMechanism != null) lBuilder.Append(nameof(TokenMechanism), TokenMechanism);
-            if (Token != null) lBuilder.Append(nameof(Token), Token);
+            if (_Token != null) lBuilder.Append(nameof(Token), _Token);
 
             return lBuilder.ToString();
         }
+
+        public static bool operator ==(cURLParts pA, cURLParts pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+
+            return
+                pA.mParts == pB.mParts &&
+                pA._UserId == pB._UserId &&
+                pA._MechanismName == pB._MechanismName &&
+                pA._Host == pB._Host &&
+                pA._Port == pB._Port &&
+                pA._MailboxPath == pB._MailboxPath &&
+                pA._UIDValidity == pB._UIDValidity &&
+                pA._Search == pB._Search &&
+                pA._UID == pB._UID &&
+                pA._Section == pB._Section &&
+                pA._PartialOffset == pB._PartialOffset &&
+                pA._PartialLength == pB._PartialLength &&
+                pA._Expire == pB._Expire &&
+                pA._Application == pB._Application &&
+                pA._AccessUserId == pB._AccessUserId &&
+                pA.TokenMechanism == pB.TokenMechanism &&
+                pA._Token == pB._Token;
+        }
+
+        public static bool operator !=(cURLParts pA, cURLParts pB) => !(pA == pB);
 
         public static bool Process(cBytesCursor pCursor, out cURLParts rParts, cTrace.cContext pParentContext)
         {

@@ -49,7 +49,7 @@ namespace testharness2
             mBindingList.Add(new cGridRowData(eSortItem.displayfrom));
             mBindingList.Add(new cGridRowData(eSortItem.displayto));
 
-            if (ReferenceEquals(mSort, cSort.None)) rdoNone.Checked = true;
+            if (mSort == cSort.None) rdoNone.Checked = true;
             //else if (ReferenceEquals(mSort, cSort.ThreadOrderedSubject)) rdoThreadOrderedSubject.Checked = true;
             //else if (ReferenceEquals(mSort, cSort.ThreadReferences)) rdoThreadReferences.Checked = true;
             else
