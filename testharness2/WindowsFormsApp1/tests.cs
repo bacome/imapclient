@@ -2325,7 +2325,7 @@ namespace testharness2
             //lServer.AddSendData("* CAPABILITY IMAP4rev1 ESEARCH\r\n");
             lServer.AddSendTagged("OK [READ-ONLY] EXAMINE completed\r\n");
 
-            lServer.AddExpectTagged("SEARCH UID 4392:*\r\n");
+            lServer.AddExpectTagged("SEARCH UID 4392:4294967295\r\n");
             lServer.AddSendData("* SEARCH\r\n");
             lServer.AddSendTagged("OK SEARCH completed\r\n");
 

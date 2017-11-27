@@ -19,6 +19,10 @@ namespace work.bacome.imapclient
 
     internal class cSequenceSet : ReadOnlyCollection<cSequenceSetItem>
     {
+        // note the commenting out of 1) and 2) below: these were causing problems when passing ranges to the server, as * means 'the last message', not infinity
+        //  so there was no way to generate a range that was above everything which caused inconsistent behaviour in the > and >= operators for MSN filters 
+        //  (and probably UID filters)
+
         public cSequenceSet(IList<cSequenceSetItem> pItems) : base(pItems) { }
 
         public cSequenceSet(uint pNumber) : base(ZFromNumber(pNumber)) { }
@@ -38,8 +42,11 @@ namespace work.bacome.imapclient
 
             cSequenceSetItem[] lItems = new cSequenceSetItem[1];
 
-            if (pNumber == uint.MaxValue) lItems[0] = cSequenceSetItem.Asterisk;
-            else lItems[0] = new cSequenceSetNumber(pNumber);
+            // 1) 
+            //if (pNumber == uint.MaxValue) lItems[0] = cSequenceSetItem.Asterisk;
+            //else
+
+            lItems[0] = new cSequenceSetNumber(pNumber);
 
             return lItems;
         }
@@ -51,8 +58,11 @@ namespace work.bacome.imapclient
 
             cSequenceSetItem[] lItems = new cSequenceSetItem[1];
 
-            if (pTo == uint.MaxValue) lItems[0] = new cSequenceSetRange(new cSequenceSetNumber(pFrom), cSequenceSetItem.Asterisk);
-            else lItems[0] = new cSequenceSetRange(new cSequenceSetNumber(pFrom), new cSequenceSetNumber(pTo));
+            // 2)
+            //if (pTo == uint.MaxValue) lItems[0] = new cSequenceSetRange(new cSequenceSetNumber(pFrom), cSequenceSetItem.Asterisk);
+            //else
+
+            lItems[0] = new cSequenceSetRange(new cSequenceSetNumber(pFrom), new cSequenceSetNumber(pTo));
 
             return lItems;
         }

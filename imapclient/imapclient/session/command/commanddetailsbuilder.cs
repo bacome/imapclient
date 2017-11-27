@@ -670,10 +670,10 @@ namespace work.bacome.imapclient
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID < new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1:999") throw new cTestsException("ZMessageFilterCommandPartsTests UID.1", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID <= new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1:1000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.2", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID == new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.3", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID >= new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1000:*") throw new cTestsException("ZMessageFilterCommandPartsTests UID.4", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID > new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1001:*") throw new cTestsException("ZMessageFilterCommandPartsTests UID.5", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID >= new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1000:4294967295") throw new cTestsException("ZMessageFilterCommandPartsTests UID.4", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID > new cUID(1, 1000), lSelectedMailbox, false, false, null) != "UID 1001:4294967295") throw new cTestsException("ZMessageFilterCommandPartsTests UID.5", lContext);
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.UID > new cUID(1, 1000) & cFilter.UID < new cUID(1, 2000), lSelectedMailbox, false, false, null) != "UID 1001:* UID 1:1999") throw new cTestsException("ZMessageFilterCommandPartsTests UID.6", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.UID > new cUID(1, 1000) & cFilter.UID < new cUID(1, 2000), lSelectedMailbox, false, false, null) != "UID 1001:4294967295 UID 1:1999") throw new cTestsException("ZMessageFilterCommandPartsTests UID.6", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), lSelectedMailbox, false, false, null) != "NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.7", lContext);
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.UID != new cUID(1, 2000), lSelectedMailbox, true, false, null) != "US-ASCII NOT UID 2000") throw new cTestsException("ZMessageFilterCommandPartsTests UID.8", lContext);
@@ -775,14 +775,14 @@ namespace work.bacome.imapclient
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN < lMH2, lSelectedMailbox, false, false, null) != "1:1") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.2", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN <= lMH1, lSelectedMailbox, false, false, null) != "1:1") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.3", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN <= lMH2, lSelectedMailbox, false, false, null) != "1:2") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.4", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= lMH2, lSelectedMailbox, false, false, null) != "2:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.5", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > lMH2, lSelectedMailbox, false, false, null) != "3:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.6", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= lMH2, lSelectedMailbox, false, false, null) != "2:4294967295") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.5", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > lMH2, lSelectedMailbox, false, false, null) != "3:4294967295") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.6", lContext);
 
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN > cFilter.First.MSNOffset(-5), lSelectedMailbox, false, false, null) != "ALL") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.7", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > cFilter.First.MSNOffset(0), lSelectedMailbox, false, false, null) != "2:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.8", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > cFilter.First.MSNOffset(0), lSelectedMailbox, false, false, null) != "2:4294967295") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.8", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= cFilter.First.MSNOffset(0), lSelectedMailbox, false, false, null) != "ALL") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.9", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= cFilter.First.MSNOffset(2), lSelectedMailbox, false, false, null) != "3:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.10", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= cFilter.First.MSNOffset(2), lSelectedMailbox, false, false, null) != "3:4294967295") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.10", lContext);
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN < cFilter.First.MSNOffset(-5), lSelectedMailbox, false, false, null) != "SEEN UNSEEN") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.11", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN < cFilter.First.MSNOffset(0), lSelectedMailbox, false, false, null) != "SEEN UNSEEN") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.12", lContext);
@@ -791,10 +791,10 @@ namespace work.bacome.imapclient
 
 
 
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > cFilter.Last.MSNOffset(-5), lSelectedMailbox, false, false, null) != "6:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.15", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > cFilter.Last.MSNOffset(0), lSelectedMailbox, false, false, null) != "11:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.16", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= cFilter.Last.MSNOffset(0), lSelectedMailbox, false, false, null) != "10:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.17", lContext);
-                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= cFilter.Last.MSNOffset(2), lSelectedMailbox, false, false, null) != "12:*") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.18", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > cFilter.Last.MSNOffset(-5), lSelectedMailbox, false, false, null) != "6:4294967295") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.15", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN > cFilter.Last.MSNOffset(0), lSelectedMailbox, false, false, null) != "11:4294967295") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.16", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= cFilter.Last.MSNOffset(0), lSelectedMailbox, false, false, null) != "10:4294967295") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.17", lContext);
+                    if (LMessageFilterCommandPartsTestsString(cFilter.MSN >= cFilter.Last.MSNOffset(2), lSelectedMailbox, false, false, null) != "12:4294967295") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.18", lContext);
 
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN < cFilter.Last.MSNOffset(-5), lSelectedMailbox, false, false, null) != "1:4") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.19", lContext);
                     if (LMessageFilterCommandPartsTestsString(cFilter.MSN < cFilter.Last.MSNOffset(0), lSelectedMailbox, false, false, null) != "1:9") throw new cTestsException("ZMessageFilterCommandPartsTests MSN.20", lContext);

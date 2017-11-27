@@ -134,7 +134,7 @@
             // 
             // cmdFilterClear
             // 
-            this.cmdFilterClear.Location = new System.Drawing.Point(115, 41);
+            this.cmdFilterClear.Location = new System.Drawing.Point(115, 40);
             this.cmdFilterClear.Name = "cmdFilterClear";
             this.cmdFilterClear.Size = new System.Drawing.Size(100, 25);
             this.cmdFilterClear.TabIndex = 2;
