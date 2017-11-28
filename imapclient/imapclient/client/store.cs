@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
         /// (i.e. <see cref="cCapabilities.CondStore"/> is in use and the mailbox supports the persistent storage of mod-sequences.)
         /// If a message has been modified since the specified value then the server will fail the store for that message.
         /// </remarks>
-        public cStoreFeedback Store(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        public cStoreFeedback Store(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(Store), 3);
             var lFeedback = new cStoreFeedback(pMessages, pOperation, pFlags);
@@ -73,7 +73,7 @@ namespace work.bacome.imapclient
         /// <param name="pFlags"></param>
         /// <param name="pIfUnchangedSinceModSeq"></param>
         /// <inheritdoc cref="Store(IEnumerable{cMessage}, eStoreOperation, cStorableFlags, ulong?)" select="returns|remarks"/>
-        public async Task<cStoreFeedback> StoreAsync(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        public async Task<cStoreFeedback> StoreAsync(IEnumerable<cMessage> pMessages, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq = null)
         {
             var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(StoreAsync), 3);
             var lFeedback = new cStoreFeedback(pMessages, pOperation, pFlags);

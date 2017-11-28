@@ -275,7 +275,7 @@
     <Compile Include="session\selectedmailbox\selectedmailboxcache.cs" />
     <Compile Include="session\session\base.cs" />
     <Compile Include="session\session\connect.cs" />
-    <Compile Include="session\fetch\attributes.cs" />
+    <Compile Include="session\fetch\cacheitems.cs" />
     <Compile Include="session\fetch\body.cs" />
     <Compile Include="session\fetch\uidattributes.cs" />
     <Compile Include="session\command\commanddetailsbuilder.cs" />

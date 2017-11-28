@@ -44,13 +44,17 @@ namespace work.bacome.imapclient
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                     if (pMessageHandle.UID == null) await lSession.FetchBinarySizeAsync(lMC, pMessageHandle, pPart.Section.Part, lContext).ConfigureAwait(false);
-                    else await lSession.UIDFetchBinarySizeAsync(lMC, pMessageHandle.MessageCache.MailboxHandle, pMessageHandle.UID, pPart.Section.Part, lContext).ConfigureAwait(false);
+                    else
+                    {
+                        if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
+                        await lSession.UIDFetchBinarySizeAsync(lMC, pMessageHandle.MessageCache.MailboxHandle, pMessageHandle.UID, pPart.Section.Part, lContext).ConfigureAwait(false);
+                    }
                 }
 
                 if (pMessageHandle.BinarySizes.TryGetValue(pPart.Section.Part, out lSizeInBytes)) return (int)lSizeInBytes;
 
                 if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
-                else throw new cUnexpectedServerActionException("fetch data not returned");
+                else throw new cRequestedDataNotReturnedException();
             }
 
             return (int)pPart.SizeInBytes;

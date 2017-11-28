@@ -460,7 +460,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(615, 413);
+            this.tabPage2.Size = new System.Drawing.Size(615, 251);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Parts Contain";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -475,7 +475,7 @@
             this.dgvParts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvParts.Location = new System.Drawing.Point(3, 6);
             this.dgvParts.Name = "dgvParts";
-            this.dgvParts.Size = new System.Drawing.Size(609, 404);
+            this.dgvParts.Size = new System.Drawing.Size(609, 242);
             this.dgvParts.TabIndex = 0;
             // 
             // tabPage3
@@ -485,7 +485,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(615, 413);
+            this.tabPage3.Size = new System.Drawing.Size(615, 251);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "Dates";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -652,7 +652,7 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(615, 413);
+            this.tabPage4.Size = new System.Drawing.Size(615, 251);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Headers Contain";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -666,7 +666,7 @@
             this.dgvHeaders.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvHeaders.Location = new System.Drawing.Point(3, 4);
             this.dgvHeaders.Name = "dgvHeaders";
-            this.dgvHeaders.Size = new System.Drawing.Size(635, 404);
+            this.dgvHeaders.Size = new System.Drawing.Size(635, 242);
             this.dgvHeaders.TabIndex = 1;
             this.dgvHeaders.RowValidated += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvHeaders_RowValidated);
             this.dgvHeaders.RowValidating += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgvHeaders_RowValidating);

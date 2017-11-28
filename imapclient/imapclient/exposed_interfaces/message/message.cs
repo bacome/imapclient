@@ -98,7 +98,7 @@ namespace work.bacome.imapclient
             {
                 case eOperationType.fetch:
 
-                    throw new cUnexpectedServerActionException("fetch data not returned");
+                    throw new cRequestedDataNotReturnedException();
 
                 case eOperationType.store:
 

@@ -841,6 +841,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public sEventSubscriptionCounts EventSubscriptionCounts => mSynchroniser.EventSubscriptionCounts;
 
+        /**<summary></summary>*/
         public void Dispose()
         {
             if (mDisposed) return;

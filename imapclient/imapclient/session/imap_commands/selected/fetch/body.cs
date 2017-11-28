@@ -64,7 +64,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("fetch body success");
-                        if (lHook.Body == null) throw new cUnexpectedServerActionException(0, "body not received", lContext);
+                        if (lHook.Body == null) throw new cRequestedDataNotReturnedException(lContext);
                         return lHook.Body;
                     }
 

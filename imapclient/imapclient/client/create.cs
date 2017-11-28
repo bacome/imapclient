@@ -15,12 +15,21 @@ namespace work.bacome.imapclient
         /// <returns></returns>
         /// <remarks>
         /// <para>
-        /// Some servers have issues when <paramref name="pAsFutureParent"/> is <see langword="true"/> despite this appearing to be in violation of RFC 3501 section 6.3.3.
-        /// The servers tested with issues replied either 'NO' or 'OK [CANNOT]' and did not create the mailbox.
+        /// Some servers exhibit unusual behaviour when the mailbox name includes 'unusual' characters (e.g. '/' when it isn't the delimiter). 
+        /// Observed behaviours are;
+        /// <list type="bullet">
+        /// An <item>'OK' reply, but the mailbox created has a truncated name.</item>
+        /// </list>
         /// </para>
         /// <para>
-        /// Some servers exhibit unusual behaviour when the mailbox name includes special characters (e.g. '/' when it isn't the delimiter). 
-        /// One server tested created the mailbox with the name truncated at the special character.
+        /// Some servers exhibit unusual behaviour when <paramref name="pAsFutureParent"/> is <see langword="true"/> despite this appearing to be in violation of RFC 3501 section 6.3.3.
+        /// Observed behaviours are;
+        /// <list type="bullet">
+        /// <item>An 'OK' reply and a mailbox created with the name specified (correct behaviour according to RFC 3501).</item>
+        /// <item>A 'NO' reply and no mailbox created.</item>
+        /// <item>An 'OK [CANNOT]' reply and no mailbox created.</item>
+        /// <item>An 'OK' reply and a mailbox created with the name specified, but the mailbox has the \NoSelect flag set (so the mailbox can't be used to store messages).</item>
+        /// </list>
         /// </para>
         /// </remarks>
         public cMailbox Create(cMailboxName pMailboxName, bool pAsFutureParent = false)

@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
                 {
                     if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
                     if (mSelectedMailbox == null || !ReferenceEquals(pMailboxHandle, mSelectedMailbox.MailboxHandle)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
-                    if (pUIDValidity != null && pUIDValidity != mSelectedMailbox.MessageCache.UIDValidity) throw new cUIDValidityChangedException();
+                    if (pUIDValidity != null && pUIDValidity != mSelectedMailbox.MessageCache.UIDValidity) throw new cUIDValidityException();
                     return mSelectedMailbox;
                 }
 
@@ -82,6 +82,7 @@ namespace work.bacome.imapclient
                 {
                     if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
                     if (mSelectedMailbox == null || !ReferenceEquals(pMessageHandle.MessageCache, mSelectedMailbox.MessageCache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
+                    if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
                     return mSelectedMailbox;
                 }
 

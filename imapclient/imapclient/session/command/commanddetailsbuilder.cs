@@ -167,7 +167,7 @@ namespace work.bacome.imapclient
 
                     if (pFilter.UIDValidity != null)
                     {
-                        if (pFilter.UIDValidity != pSelectedMailbox.MessageCache.UIDValidity) throw new cUIDValidityChangedException();
+                        if (pFilter.UIDValidity != pSelectedMailbox.MessageCache.UIDValidity) throw new cUIDValidityException();
                         AddUIDValidity(pFilter.UIDValidity.Value);
                     }
 

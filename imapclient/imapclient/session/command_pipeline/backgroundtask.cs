@@ -189,7 +189,7 @@ namespace work.bacome.imapclient
                     var lResult = ZProcessCommandCompletionResponse(pCursor, pCommand.Tag, pCommand.IsAuthentication, pCommand.Hook, lContext);
                     if (lResult == null) return false;
 
-                    if (pCommand.UIDValidity != null && pCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.MessageCache.UIDValidity) pCommand.SetException(new cUIDValidityChangedException(lContext), lContext);
+                    if (pCommand.UIDValidity != null && pCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.MessageCache.UIDValidity) pCommand.SetException(new cUIDValidityException(lContext), lContext);
                     else pCommand.SetResult(lResult, lContext);
 
                     return true;

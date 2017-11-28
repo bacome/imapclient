@@ -36,6 +36,7 @@ namespace work.bacome.imapclient
         /// <seealso cref="cCapabilities.AuthenticationMechanisms"/>
         public readonly bool TryAllSASLs;
 
+        /**<summary></summary>*/
         protected readonly List<cSASL> mSASLs = new List<cSASL>();
 
         private cCredentials(eAccountType pType, cLogin pLogin, bool pTryAllSASLs = false)
@@ -46,6 +47,7 @@ namespace work.bacome.imapclient
             TryAllSASLs = pTryAllSASLs;
         }
 
+        /**<summary></summary>*/
         protected cCredentials(string pUserId, cLogin pLogin, bool pTryAllSASLs = false)
         {
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));

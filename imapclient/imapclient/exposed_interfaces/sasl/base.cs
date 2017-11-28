@@ -83,7 +83,9 @@ namespace work.bacome.imapclient
         public abstract cSASLSecurity GetSecurity();
 
         // implement disposable in a way that the sub classes' dispose can be done
+        /**<summary></summary>*/
         public void Dispose() => Dispose(true);
+        /**<summary></summary>*/
         protected virtual void Dispose(bool pDisposing) { }
     }
 
@@ -120,7 +122,9 @@ namespace work.bacome.imapclient
         public abstract byte[] Encode(byte[] pBuffer);
 
         // implement disposable in a way that the sub classes' dispose can be done
+        /**<summary></summary>*/
         public void Dispose() => Dispose(true);
+        /**<summary></summary>*/
         protected virtual void Dispose(bool pDisposing) { }
     }
 }

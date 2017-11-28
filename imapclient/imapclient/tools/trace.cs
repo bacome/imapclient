@@ -322,6 +322,7 @@ namespace work.bacome.trace
 
             /**<summary>Indicates whether the writing of context-create trace messages is being delayed for the context and its sub-contexts.</summary>*/
             public abstract bool ContextTraceDelay { get; }
+            /**<summary></summary>*/
             protected abstract void TraceContext();
 
             /// <summary>
@@ -542,6 +543,7 @@ namespace work.bacome.trace
                 /// <inheritdoc/>
                 public override bool ContextTraceDelay => mContextTraceDelay;
 
+                /**<summary></summary>*/
                 protected override void TraceContext()
                 {
                     if (mLogged) return;

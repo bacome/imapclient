@@ -828,8 +828,8 @@ namespace work.bacome.imapclient
         /// <param name="pName">The new mailbox name.</param>
         /// <returns></returns>
         /// <remarks>
-        /// After renaming, this instance will continue to have the same <see cref="Path"/>, which, unless the mailbox <see cref="IsInbox"/>, means that it will no longer exist.
-        /// A new instance representing the renamed mailbox is returned.
+        /// After renaming the current instance will continue to have the same <see cref="Path"/>, which means that it will no longer represent a mailbox that <see cref="Exists"/> on the server (unless the mailbox <see cref="IsInbox"/>).
+        /// A new instance representing a mailbox with the new <see cref="Path"/> is returned.
         /// </remarks>
         public cMailbox Rename(string pName) => Client.Rename(MailboxHandle, ZRename(pName));
 

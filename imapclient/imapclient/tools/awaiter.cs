@@ -115,6 +115,7 @@ namespace work.bacome.async
             }
         }
 
+        /**<summary></summary>*/
         public void Dispose()
         {
             if (mDisposed) return;

@@ -39,10 +39,11 @@ namespace work.bacome.imapclient
                     return; 
                 }
 
+                int lExpungedCount;
+                int lIndex = 0;
                 cUIDList lUIDs = new cUIDList();
 
-                if (pGroup.MSNHandleCount == 0) foreach (var lMessageHandle in pGroup.MessageHandles) lUIDs.Add(lMessageHandle.UID);
-                else
+                if (pGroup.MSNHandleCount > 0)
                 {
                     // this is where we use straight fetch (not UID fetch)
                     //////////////////////////////////////////////////////
@@ -50,7 +51,6 @@ namespace work.bacome.imapclient
                     // sort the handles so we might get good sequence sets
                     pGroup.MessageHandles.SortByCacheSequence();
 
-                    int lIndex = 0;
                     int lMSNHandleCount = pGroup.MSNHandleCount;
                     Stopwatch lStopwatch = new Stopwatch();
 
@@ -67,23 +67,28 @@ namespace work.bacome.imapclient
 
                         // get the handles to fetch this time
 
+                        lExpungedCount = 0;
                         cMessageHandleList lMessageHandles = new cMessageHandleList();
 
                         while (lIndex < pGroup.MessageHandles.Count && lMessageHandles.Count < lFetchCount)
                         {
                             var lMessageHandle = pGroup.MessageHandles[lIndex++];
 
-                            if (lMessageHandle.UID == null)
+                            if (lMessageHandle.Expunged) lExpungedCount++;
+                            else
                             {
-                                lMessageHandles.Add(lMessageHandle);
-                                lMSNHandleCount--;
+                                if (lMessageHandle.UID == null)
+                                {
+                                    lMessageHandles.Add(lMessageHandle);
+                                    lMSNHandleCount--;
+                                }
+                                else if (lUIDHandleCount > 0)
+                                {
+                                    lMessageHandles.Add(lMessageHandle);
+                                    lUIDHandleCount--;
+                                }
+                                else lUIDs.Add(lMessageHandle.UID);
                             }
-                            else if (lUIDHandleCount > 0)
-                            {
-                                lMessageHandles.Add(lMessageHandle);
-                                lUIDHandleCount--;
-                            }
-                            else lUIDs.Add(lMessageHandle.UID);
                         }
 
                         // if other fetching is occurring at the same time (retrieving UIDs) then there mightn't be any
@@ -97,15 +102,25 @@ namespace work.bacome.imapclient
 
                             // store the time taken so the next fetch is a better size
                             mFetchCacheItemsSizer.AddSample(lMessageHandles.Count, lStopwatch.ElapsedMilliseconds);
-
-                            // update progress
-                            pProgress.Increment(lMessageHandles.Count, lContext);
                         }
-                    }
 
-                    while (lIndex < pGroup.MessageHandles.Count) lUIDs.Add(pGroup.MessageHandles[lIndex++].UID);
-                    if (lUIDs.Count == 0) return;
+                        // update progress
+                        if (lExpungedCount > 0 || lMessageHandles.Count > 0) pProgress.Increment(lExpungedCount + lMessageHandles.Count, lContext);
+                    }
                 }
+
+                lExpungedCount = 0;
+
+                while (lIndex < pGroup.MessageHandles.Count)
+                {
+                    var lMessageHandle = pGroup.MessageHandles[lIndex++];
+                    if (lMessageHandle.Expunged) lExpungedCount++;
+                    else lUIDs.Add(lMessageHandle.UID);
+                }
+
+                if (lExpungedCount > 0) pProgress.Increment(lExpungedCount, lContext);
+
+                if (lUIDs.Count == 0) return;
 
                 // uid fetch the remainder
                 var lMailboxHandle = pGroup.MessageHandles[0].MessageCache.MailboxHandle;
@@ -118,7 +133,10 @@ namespace work.bacome.imapclient
 
                 foreach (var lMessageHandle in pMessageHandles)
                 {
-                    cMessageCacheItems lItems = lMessageHandle.Missing(pItems);
+                    cMessageCacheItems lItems;
+
+                    if (lMessageHandle.Expunged) lItems = cMessageCacheItems.Empty; // none to get
+                    else lItems = lMessageHandle.Missing(pItems); // might also be none to get
 
                     cFetchCacheItemsGroup lGroup;
 

@@ -1672,7 +1672,7 @@ namespace testharness2
 
                 bool lFailed = false;
                 try { lClient.Inbox.SetUnseenCount(); }
-                catch (cUIDValidityChangedException) { lFailed = true; }
+                catch (cUIDValidityException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestSearch1.7");
 
                 lClient.Inbox.SetUnseenCount();
@@ -1926,7 +1926,7 @@ namespace testharness2
 
                 bool lFailed = false;
                 try { lClient.Inbox.SetUnseenCount(); }
-                catch (cUIDValidityChangedException) { lFailed = true; }
+                catch (cUIDValidityException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestSearch2_1.7");
 
                 lClient.Inbox.SetUnseenCount();
@@ -2361,7 +2361,13 @@ namespace testharness2
 
                 if (lClient.Inbox.MessageCount != 171) throw new cTestsException("ZTestIdleRestart1.2");
 
-                if (lMessages[1].Fetch(fMessageCacheAttributes.uid)) throw new cTestsException("ZTestIdleRestart1.3.1"); // this should retrieve nothing (as the message has been deleted), but idle should stop
+
+                var lLM = new List<cMessage>();
+                lLM.Add(lMessages[1]);
+                var lFB = lClient.Store(lLM, eStoreOperation.add, cStorableFlags.Empty);
+                if (lFB.Summary().ExpungedCount != 1) throw new cTestsException("ZTestIdleRestart1.3.1"); // this should do nothing (as the message has been expunged), but idle should stop
+
+                //if (lMessages[1].Fetch(fMessageCacheAttributes.uid)) throw new cTestsException("ZTestIdleRestart1.3.1"); // this should retrieve nothing (as the message has been deleted), but idle should stop
                 Thread.Sleep(3000); // idle should restart in this wait
 
                 var lList = new cMessage[] { lMessages[0], lMessages[1], lMessages[2] };
@@ -2399,7 +2405,7 @@ namespace testharness2
 
                 lFailed = false;
                 try { lMessages = lMailbox.Messages(lFilter); }
-                catch (cUIDValidityChangedException) { lFailed = true; }
+                catch (cUIDValidityException) { lFailed = true; }
                 if (!lFailed) throw new cTestsException("ZTestIdleRestart1.5");
 
                 lFilter = cFilter.UID > new cUID(3857529045, 4391);

@@ -27,7 +27,12 @@ namespace work.bacome.imapclient
 
                 var lDestinationItem = mMailboxCache.CheckHandle(pDestinationMailboxHandle);
 
-                if (pSourceMessageHandles.TrueForAll(h => h.UID != null)) return ZUIDCopyAsync(pMC, lSelectedMailbox.MailboxHandle, pSourceMessageHandles[0].UID.UIDValidity, new cUIntList(from h in pSourceMessageHandles select h.UID.UID), lDestinationItem, lContext);
+                if (pSourceMessageHandles.TrueForAll(h => h.UID != null))
+                {
+                    var lMessageHandle = pSourceMessageHandles.Find(h => h.Expunged);
+                    if (lMessageHandle != null) throw new cMessageExpungedException(lMessageHandle);
+                    return ZUIDCopyAsync(pMC, lSelectedMailbox.MailboxHandle, pSourceMessageHandles[0].UID.UIDValidity, new cUIntList(from h in pSourceMessageHandles select h.UID.UID), lDestinationItem, lContext);
+                }
                 else return ZCopyAsync(pMC, pSourceMessageHandles, lDestinationItem, lContext);
             }
 

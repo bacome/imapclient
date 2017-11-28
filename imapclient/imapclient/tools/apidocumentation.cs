@@ -16,7 +16,7 @@ namespace work.bacome.imapclient.apidocumentation
         /// If <see cref="cIMAPClient.SynchronizationContext"/> is not <see langword="null"/>, events and callbacks are invoked on the specified <see cref="System.Threading.SynchronizationContext"/>.
         /// If an exception is raised in an event handler or callback then the <see cref="cIMAPClient.CallbackException"/> event is raised, but otherwise the exception is ignored.
         /// </remarks>
-        private event Action Event;
+        protected Action Event = null;
 
 
 
@@ -24,7 +24,6 @@ namespace work.bacome.imapclient.apidocumentation
         /// Initialises a new instance.
         /// </summary>
         public cAPIDocumentationTemplate() { }
-
 
         /// <summary>
         /// Compares this instance with the specified object.
@@ -157,7 +156,7 @@ namespace work.bacome.imapclient.apidocumentation
 
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
-        public event Action Event;
+        public Action Event = null;
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.CompareTo"/>
         public int CompareTo(object pOther) => 0;

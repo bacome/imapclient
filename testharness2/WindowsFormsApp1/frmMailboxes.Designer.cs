@@ -174,7 +174,6 @@
             // 
             // cmdRename
             // 
-            this.cmdRename.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdRename.Location = new System.Drawing.Point(12, 47);
             this.cmdRename.Name = "cmdRename";
             this.cmdRename.Size = new System.Drawing.Size(100, 25);
@@ -291,7 +290,6 @@
             // 
             // cmdRenameTo
             // 
-            this.cmdRenameTo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cmdRenameTo.Location = new System.Drawing.Point(118, 47);
             this.cmdRenameTo.Name = "cmdRenameTo";
             this.cmdRenameTo.Size = new System.Drawing.Size(100, 25);
