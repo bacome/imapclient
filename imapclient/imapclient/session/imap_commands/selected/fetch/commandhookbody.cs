@@ -38,16 +38,25 @@ namespace work.bacome.imapclient
 
                         if (lBody.Binary == mBinary && lBody.Section == mSection && lOrigin <= mOrigin)
                         {
-                            uint lTo = lOrigin + (uint)lBody.Bytes.Count;
-
-                            if (lTo >= mOrigin)
+                            if (lBody.Bytes == null)
                             {
-                                lResult = eProcessDataResult.observed;
+                                // this is the case where NIL is returned by the server (e.g. * 1 FETCH (BODY[] NIL))
+                                //  most likely because the message has been expunged
+                                if (lOrigin >= mOrigin) lResult = eProcessDataResult.observed;
+                            }
+                            else
+                            {
+                                uint lTo = lOrigin + (uint)lBody.Bytes.Count;
 
-                                if (Body == null || lTo > mTo)
+                                if (lTo >= mOrigin)
                                 {
-                                    Body = lBody;
-                                    mTo = lTo;
+                                    lResult = eProcessDataResult.observed;
+
+                                    if (Body == null || lTo > mTo)
+                                    {
+                                        Body = lBody;
+                                        mTo = lTo;
+                                    }
                                 }
                             }
                         }

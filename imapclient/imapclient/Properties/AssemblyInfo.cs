@@ -6,7 +6,18 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("work.bacome.imapclient")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription(
+    "Simple IMAP mail access with the ability to get complex if/ when required.\r\n" +
+    "\r\n" +
+    "Synchronous and asynchronous APIs with timeouts and cancellation," +
+    "automatic idle processing to keep the client in sync with the server, " +
+    "conditional-store support for 'mailbox as a message queue' applications.\r\n" +
+    "\r\n" +
+    "This is the initial alpha release: all the APIs are subject to change, however most aren't likely to.\r\n" +
+    "SIGNIFICANT MISSING FEATURE: Append: the ability to upload mail to an IMAP server.\r\n" +
+    "\r\n" +
+    "High level documentation, API level documentation and source code are available via the project site.\r\n" +
+    "")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("bacome")]
 [assembly: AssemblyProduct("imapclient")]
@@ -34,3 +45,4 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.5.*")]
 [assembly: AssemblyFileVersion("0.5")]
+[assembly: AssemblyInformationalVersion("0.5.0-alpha01")]

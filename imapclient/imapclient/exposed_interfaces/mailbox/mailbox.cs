@@ -738,6 +738,22 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
+        /// Gets the message cache that associated with the mailbox. May be null.
+        /// </summary>
+        /// <remarks>
+        /// Will be null when the mailbox is not selected.
+        /// </remarks>
+        public iMessageCache MessageCache
+        {
+            get
+            {
+                var lDetails = Client.SelectedMailboxDetails;
+                if (lDetails == null || !ReferenceEquals(lDetails.MailboxHandle, MailboxHandle)) return null;
+                return lDetails.MessageCache;
+            }
+        }
+
+        /// <summary>
         /// Gets the mailbox's child mailboxes.
         /// </summary>
         /// <param name="pDataSets">The sets of data to fetch into cache for the returned mailboxes.</param>

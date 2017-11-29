@@ -102,7 +102,7 @@ namespace work.bacome.imapclient
         public static Version Version = new Version(0, 5);
 
         /**<summary>The release date of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
-        public static DateTime ReleaseDate = new DateTime(2017, 11, 23);
+        public static DateTime ReleaseDate = new DateTime(2017, 11, 29);
 
         /**<summary>The trace source name used when tracing. See <see cref="cTrace"/>.</summary>*/
         public const string TraceSourceName = "work.bacome.cIMAPClient";
@@ -788,13 +788,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public cMailbox Inbox => mInbox;
 
-        /// <summary>
-        /// Gets the details of the currently selected mailbox, or <see langword="null"/> if there is no mailbox currently selected.
-        /// </summary>
-        /// <remarks>
-        /// Use <see cref="cMailbox.Select(bool)"/> to select a mailbox.
-        /// </remarks>
-        public iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
+        internal iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
 
         /// <summary>
         /// Gets an object that represents the currently selected mailbox, or <see langword="null"/> if there is no mailbox currently selected.

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>http://opensource.org/licenses/mit</licenseUrl>
+    <projectUrl>http://bacome.work</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>This is an alpha release.</releaseNotes>
+    <copyright>$copyright$</copyright>
+    <tags>imap</tags>
+  </metadata>
+</package>

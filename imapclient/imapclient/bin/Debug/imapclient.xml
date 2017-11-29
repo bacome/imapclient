@@ -498,14 +498,6 @@
             Set during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>.
             </remarks>
         </member>
-        <member name="P:work.bacome.imapclient.cIMAPClient.SelectedMailboxDetails">
-            <summary>
-            Gets the details of the currently selected mailbox, or <see langword="null"/> if there is no mailbox currently selected.
-            </summary>
-            <remarks>
-            Use <see cref="M:work.bacome.imapclient.cMailbox.Select(System.Boolean)"/> to select a mailbox.
-            </remarks>
-        </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.SelectedMailbox">
             <summary>
             Gets an object that represents the currently selected mailbox, or <see langword="null"/> if there is no mailbox currently selected.
@@ -2426,7 +2418,7 @@
             Represents a message cache.
             </summary>
             <seealso cref="T:work.bacome.imapclient.support.iMessageHandle"/>
-            <seealso cref="T:work.bacome.imapclient.support.iSelectedMailboxDetails"/>
+            <seealso cref="T:work.bacome.imapclient.iSelectedMailboxDetails"/>
         </member>
         <member name="P:work.bacome.imapclient.support.iMessageCache.MailboxHandle">
             <summary>Gets the mailbox that this message cache belongs to.</summary>
@@ -2483,30 +2475,12 @@
             Zero indicates that <see cref="P:work.bacome.imapclient.cCapabilities.CondStore"/> is not in use or that the mailbox does not support the persistent storage of mod-sequences.
             </remarks>
         </member>
-        <member name="T:work.bacome.imapclient.support.iSelectedMailboxDetails">
-            <summary>
-            Represents a selected mailbox.
-            </summary>
-            <seealso cref="P:work.bacome.imapclient.cIMAPClient.SelectedMailboxDetails"/>
-        </member>
-        <member name="P:work.bacome.imapclient.support.iSelectedMailboxDetails.MailboxHandle">
-            <summary>Gets the mailbox that is selected.</summary>
-        </member>
-        <member name="P:work.bacome.imapclient.support.iSelectedMailboxDetails.SelectedForUpdate">
-            <summary>Indicates whether the mailbox is selected for update.</summary>
-        </member>
-        <member name="P:work.bacome.imapclient.support.iSelectedMailboxDetails.AccessReadOnly">
-            <summary>Indicates whether the mailbox can be modified.</summary>
-        </member>
-        <member name="P:work.bacome.imapclient.support.iSelectedMailboxDetails.MessageCache">
-            <summary>Gets the message cache of the selected mailbox.</summary>
-        </member>
         <member name="T:work.bacome.imapclient.support.iMailboxHandle">
             <summary>
             Represents an IMAP mailbox uniquely within a mailbox cache.
             </summary>
             <seealso cref="F:work.bacome.imapclient.cMailbox.MailboxHandle"/>
-            <seealso cref="T:work.bacome.imapclient.support.iSelectedMailboxDetails"/>
+            <seealso cref="T:work.bacome.imapclient.iSelectedMailboxDetails"/>
             <seealso cref="T:work.bacome.imapclient.support.iMessageCache"/>
             <seealso cref="T:work.bacome.imapclient.cMailboxPropertyChangedEventArgs"/>"/>
             <seealso cref="T:work.bacome.imapclient.cMailboxMessageDeliveryEventArgs"/>"/>
@@ -3225,6 +3199,14 @@
             <summary>
             Indicates whether the mailbox is currently selected, but can't be modified.
             </summary>
+        </member>
+        <member name="P:work.bacome.imapclient.cMailbox.MessageCache">
+            <summary>
+            Gets the message cache that associated with the mailbox. May be null.
+            </summary>
+            <remarks>
+            Will be null when the mailbox is not selected.
+            </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cMailbox.Mailboxes(work.bacome.imapclient.fMailboxCacheDataSets)">
             <summary>
