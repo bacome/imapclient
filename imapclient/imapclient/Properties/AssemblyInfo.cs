@@ -5,18 +5,22 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("work.bacome.imapclient")]
+[assembly: AssemblyTitle("IMAP Client Library.")]
 [assembly: AssemblyDescription(
-    "Simple IMAP mail access with the ability to get complex if/ when required.\r\n" +
+    "Intended for use in projects that need to deal with email presented by an IMAP server where the programmer does not want to learn the finer points of IMAP.\r\n" +
     "\r\n" +
-    "Synchronous and asynchronous APIs with timeouts and cancellation," +
-    "automatic idle processing to keep the client in sync with the server, " +
-    "conditional-store support for 'mailbox as a message queue' applications.\r\n" +
+    "* Simple high level API with the ability to get low level if/when required.\r\n" +
+    "* Complete API documentation.\r\n" +
+    "* Synchronous and asynchronous APIs with timeout and cancellation.\r\n" +
+    "* Automatic idle processing to keep the client in sync with the server.\r\n" +
+    "* Condstore support for 'mailbox as a message queue' applications.\r\n" +
+    "* Automatic IMAP command pipelining and pipelining safety.\r\n" +
     "\r\n" +
-    "This is the initial alpha release: all the APIs are subject to change, however most aren't likely to.\r\n" +
-    "SIGNIFICANT MISSING FEATURE: Append: the ability to upload mail to an IMAP server.\r\n" +
+    "As this is the initial alpha release;\r\n" +
+    "* All the APIs are subject to change (however most aren't likely to do so), and\r\n" +
+    "* There is a significant (depending on your use case) missing feature: Append - the ability to upload mail to an IMAP server.\r\n" +
     "\r\n" +
-    "High level documentation, API level documentation and source code are available via the project site.\r\n" +
+    "High level documentation, API level documentation, examples and source code are available on/via the project site.\r\n" +
     "")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("bacome")]
@@ -45,4 +49,4 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.5.*")]
 [assembly: AssemblyFileVersion("0.5")]
-[assembly: AssemblyInformationalVersion("0.5.0-alpha01")]
+[assembly: AssemblyInformationalVersion("0.5.2-alpha")]

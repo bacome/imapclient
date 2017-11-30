@@ -75,6 +75,7 @@
             this.Controls.Add(this.prg);
             this.Name = "frmProgress";
             this.Text = "frmProgress";
+            this.TopMost = true;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmProgress_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmProgress_FormClosed);
             this.Load += new System.EventHandler(this.frmProgress_Load);

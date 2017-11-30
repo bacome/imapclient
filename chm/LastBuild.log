@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shfbBuild product="Sandcastle Help File Builder and Tools" version="2017.5.15.0" projectFile="C:\Users\barry\Documents\GitHub\imapclient\sandcastle\imapclient.chm.shfbproj" started="2017-11-29 16:34:43">
+<shfbBuild product="Sandcastle Help File Builder and Tools" version="2017.5.15.0" projectFile="C:\Users\barry\Documents\GitHub\imapclient\sandcastle\imapclient.chm.shfbproj" started="2017-11-30 16:02:44">
 <buildStep step="Initializing">
 Finding tools...
 The Sandcastle tools are located in &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\&#39;
@@ -16,37 +16,34 @@ Lightweight Website Style Version 2017.5.15.0
 Copyright &#169; 2006-2017, Eric Woodruff, All Rights Reserved
 Portions Copyright &#169; 2014, Sam Harwell, All Rights Reserved
 </buildStep>
-<buildStep step="ClearWorkFolder">
-Clearing working folder...
-</buildStep>
 <buildStep step="ValidatingDocumentationSources">
 Validating and copying documentation source information
 Source: C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\imapclient.csproj
     Found project &#39;C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\imapclient.csproj&#39;
 
 Parsing project files
-    Found assembly &#39;C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\bin\Debug\imapclient.dll&#39;
+    Found assembly &#39;C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\bin\Debug\work.bacome.imapclient.dll&#39;
 SHFB: Warning BE0007: A project with a different or higher framework version was found.  Changing project FrameworkVersion property from &#39;.NET Framework 4.5&#39; to &#39;.NET Framework 4.5.2&#39; for the build.
 
 References to include (excluding framework assemblies):
     None
 
 Copying XML comments files
-    C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\bin\Debug\imapclient.xml -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\imapclient.xml
+    C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\bin\Debug\work.bacome.imapclient.xml -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\work.bacome.imapclient.xml
 </buildStep>
 <buildStep step="GenerateSharedContent">
 Generating shared content files (en-US, English (United States))...
 <plugIn name="Lightweight Website Style" behavior="After" priority="1000">
-</plugIn>    Last step completed in 00:00:00.4581
+</plugIn>    Last step completed in 00:00:00.0240
 </buildStep>
 <buildStep step="GenerateApiFilter">
 Generating API filter for MRefBuilder...
-    Last step completed in 00:00:00.1215
+    Last step completed in 00:00:00.0065
 </buildStep>
 <buildStep step="GenerateReflectionInfo">
 Generating reflection information...
 [C:\Program Files (x86)\MSBuild\14.0\bin\amd64\MSBuild.exe - GenerateRefInfo.proj]
-Build started 2017-11-29 16:34:50.
+Build started 2017-11-30 16:02:45.
 Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\GenerateRefInfo.proj&quot; on node 1 (default targets).
 PrepareForBuild:
   Creating directory &quot;obj\Debug\&quot;.
@@ -66,13 +63,13 @@ Done Building Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\
 
 Build succeeded.
 
-Time Elapsed 00:00:01.67
-    Last step completed in 00:00:02.6238
+Time Elapsed 00:00:01.28
+    Last step completed in 00:00:01.4012
 </buildStep>
 <buildStep step="TransformReflectionInfo">
 Transforming reflection output...
 [C:\Program Files (x86)\MSBuild\14.0\bin\amd64\MSBuild.exe - TransformManifest.proj]
-Build started 2017-11-29 16:34:52.
+Build started 2017-11-30 16:02:46.
 Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\TransformManifest.proj&quot; on node 1 (default targets).
 TransformManifest:
   XslTransform (v2017.5.15.0)
@@ -200,12 +197,12 @@ Done Building Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\
 
 Build succeeded.
 
-Time Elapsed 00:00:01.87
-    Last step completed in 00:00:01.9753
+Time Elapsed 00:00:00.96
+    Last step completed in 00:00:01.0366
 </buildStep>
 <buildStep step="GenerateNamespaceSummaries">
 Generating namespace summary information...
-    Last step completed in 00:00:00.1255
+    Last step completed in 00:00:00.0825
 </buildStep>
 <buildStep step="GenerateInheritedDocumentation">
 Generating inherited documentation...
@@ -217,27 +214,27 @@ E-Mail: Eric@EWoodruff.us
 Reflection information will be retrieved from &#39;reflection.xml&#39;
 Inherited documentation will be written to &#39;_InheritedDocs_.xml&#39;
 Indexing C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\*.xml
-Indexing C:\Users\barry\Documents\Sandcastle\imapclient\Work\imapclient.xml
+Indexing C:\Users\barry\Documents\Sandcastle\imapclient\Work\work.bacome.imapclient.xml
 Indexed 157394 members in 125 file(s).  1 file(s) to scan for &lt;inheritdoc /&gt; tags.
 Merging inherited documentation...
 
 
 Documentation merged successfully
-    Last step completed in 00:00:06.3683
+    Last step completed in 00:00:01.6022
 </buildStep>
 <buildStep step="CopyAdditionalContent">
 Copying additional content files...
 No additional content to copy
-    Last step completed in 00:00:00.0030
+    Last step completed in 00:00:00.0000
 </buildStep>
 <buildStep step="MergeTablesOfContents">
 Merging conceptual and additional tables of contents...
-    Last step completed in 00:00:00.0005
+    Last step completed in 00:00:00.0000
 </buildStep>
 <buildStep step="GenerateIntermediateTableOfContents">
 Generating intermediate table of contents file...
 [C:\Program Files (x86)\MSBuild\14.0\bin\amd64\MSBuild.exe - GenerateIntermediateTOC.proj]
-Build started 2017-11-29 16:35:00.
+Build started 2017-11-30 16:02:49.
 Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\GenerateIntermediateTOC.proj&quot; on node 1 (default targets).
 GenerateIntermediateTOC:
   XslTransform (v2017.5.15.0)
@@ -248,26 +245,26 @@ Done Building Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\
 
 Build succeeded.
 
-Time Elapsed 00:00:00.20
+Time Elapsed 00:00:00.19
 Generating conceptual content intermediate TOC file...
-    Last step completed in 00:00:00.3030
+    Last step completed in 00:00:00.2660
 </buildStep>
 <buildStep step="CreateBuildAssemblerConfigs">
 Creating Sandcastle configuration files...
     sandcastle.config
-    Last step completed in 00:00:00.7511
+    Last step completed in 00:00:00.2360
 </buildStep>
 <buildStep step="MergeCustomConfigs">
 Merging custom build component configurations
 C:\Users\barry\Documents\Sandcastle\imapclient\Work\sandcastle.config
   Updating reference topic configurations.
   No conceptual content.  Removing conceptual content components.
-    Last step completed in 00:00:00.1565
+    Last step completed in 00:00:00.0185
 </buildStep>
 <buildStep step="BuildTopics">
 Building help topics...
 [C:\Program Files (x86)\MSBuild\14.0\bin\amd64\MSBuild.exe - BuildTopics.proj]
-Build started 2017-11-29 16:35:02.
+Build started 2017-11-30 16:02:49.
 Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\BuildTopics.proj&quot; on node 1 (default targets).
 BuildTopics:
   BuildAssembler (v2017.5.15.0)
@@ -285,12 +282,12 @@ Done Building Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\
 
 Build succeeded.
 
-Time Elapsed 00:00:33.60
-    Last step completed in 00:00:33.7918
+Time Elapsed 00:00:14.39
+    Last step completed in 00:00:14.5178
 </buildStep>
 <buildStep step="CombiningIntermediateTocFiles">
 Combining conceptual and API intermediate TOC files...
-    Last step completed in 00:00:00.0090
+    Last step completed in 00:00:00.0100
 </buildStep>
 <buildStep step="ExtractingHtmlInfo">
 Extracting HTML info for HTML Help 1 and/or website...
@@ -306,7 +303,7 @@ Processed 1796 HTML files
 Sorting keywords and generating See Also indices
 Saving HTML Help 1 keyword index to C:\Users\barry\Documents\Sandcastle\imapclient\Work\work.bacome.imapclient.hhk
 Saving HTML Help 1 table of contents to C:\Users\barry\Documents\Sandcastle\imapclient\Work\work.bacome.imapclient.hhc
-    Last step completed in 00:00:11.5855
+    Last step completed in 00:00:01.0081
 </buildStep>
 <buildStep step="CopyStandardHelpContent">
 Copying standard help content...
@@ -372,7 +369,7 @@ C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyle
 C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-zh-CN.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-zh-CN.css
 C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-zh-TW.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-zh-TW.css
 C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding.css
-    Last step completed in 00:00:06.8024
+    Last step completed in 00:00:00.2505
 </buildStep>
 <buildStep step="GenerateHelpFormatTableOfContents">
 Generating HTML Help 1 table of contents file...
@@ -384,7 +381,7 @@ Generating HTML Help 1 index file...
 </buildStep>
 <buildStep step="GenerateHelpProject">
 Generating HTML Help 1 project file...
-    Last step completed in 00:00:00.0310
+    Last step completed in 00:00:00.0425
 </buildStep>
 <buildStep step="CompilingHelpFile">
 Compiling HTML Help 1 file...
@@ -399,7 +396,7 @@ Compiling HTML Help 1 file...
   
   
   
-  Compile time: 0 minutes, 10 seconds
+  Compile time: 0 minutes, 17 seconds
   
   1,798	Topics
   
@@ -413,19 +410,19 @@ Compiling HTML Help 1 file...
   
   
   
-  Created c:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\work.bacome.imapclient.chm, 1,334,977 bytes
+  Created c:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\work.bacome.imapclient.chm, 1,338,701 bytes
   
-  Compression decreased file by 11,975,264 bytes.
+  Compression decreased file by 12,002,248 bytes.
   
-    Last step completed in 00:00:29.5758
+    Last step completed in 00:00:18.9394
 </buildStep>
 <buildStep step="CleanIntermediates">
 Removing intermediate files...
-    Last step completed in 00:00:01.0716
+    Last step completed in 00:00:01.4032
 </buildStep>
 <buildStep step="Completed">
 
-Build completed successfully at 2017-11-29 16:36:24.  Total time: 00:01:41.3824
+Build completed successfully at 2017-11-30 16:03:25.  Total time: 00:00:41.3162
 
 </buildStep>
 </shfbBuild>

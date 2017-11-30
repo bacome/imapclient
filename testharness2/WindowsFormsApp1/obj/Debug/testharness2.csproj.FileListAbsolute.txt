@@ -1,7 +1,5 @@
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.csprojResolveAssemblyReference.cache
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.csproj.GenerateResource.Cache
-C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\bin\Debug\imapclient.dll
-C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\bin\Debug\imapclient.pdb
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmStart.resources
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\bin\Debug\testharness2.exe.config
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\bin\Debug\testharness2.exe
@@ -24,4 +22,6 @@ C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Deb
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmMailboxDialog.resources
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmUID.resources
 C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\obj\Debug\testharness2.frmMessageData.resources
-C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\bin\Debug\imapclient.xml
+C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\bin\Debug\work.bacome.imapclient.dll
+C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\bin\Debug\work.bacome.imapclient.pdb
+C:\Users\barry\Documents\GitHub\imapclient\testharness2\WindowsFormsApp1\bin\Debug\work.bacome.imapclient.xml

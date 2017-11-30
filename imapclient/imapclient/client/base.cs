@@ -97,12 +97,20 @@ namespace work.bacome.imapclient
 
 
         // ......................................................................................................................... when changing the version here also change it in the assemblyinfo
+        //  the convention for this is that it match the AssemblyInformationalVersion in the assemblyinfo.cs , with 
+        //   revision matching the pre-release version: -alpha (1) -beta (2) -rc (3) 
+        //   a general release would have no "-xxx" in the AssemblyInformationalVersion and should be x.y.0 where y is one greater than the y in the -rc version
+        //    bug fixes to the general release would be x.y.z.0
+        //
+        //    0, 5, 2, 1 -> 0.5.2-alpha; 2017-NOV-30
 
         /**<summary>The version number of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
-        public static Version Version = new Version(0, 5);
+        public static Version Version = new Version(0, 5, 2, 1);
+
+        // ......................................................................................................................... when changing the version here also change it in the assemblyinfo
 
         /**<summary>The release date of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
-        public static DateTime ReleaseDate = new DateTime(2017, 11, 29);
+        public static DateTime ReleaseDate = new DateTime(2017, 11, 30);
 
         /**<summary>The trace source name used when tracing. See <see cref="cTrace"/>.</summary>*/
         public const string TraceSourceName = "work.bacome.cIMAPClient";

@@ -738,10 +738,10 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the message cache that associated with the mailbox. May be null.
+        /// Gets the message cache that is associated with the mailbox. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// Will be null when the mailbox is not selected.
+        /// Will be <see langword="null"/> when the mailbox is not selected.
         /// </remarks>
         public iMessageCache MessageCache
         {

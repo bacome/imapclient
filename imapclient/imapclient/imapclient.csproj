@@ -7,8 +7,8 @@
     <ProjectGuid>{99043948-67B0-4136-B81F-B5F52D4259A3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>imapclient</RootNamespace>
-    <AssemblyName>imapclient</AssemblyName>
+    <RootNamespace>work.bacome.imapclient</RootNamespace>
+    <AssemblyName>work.bacome.imapclient</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -20,7 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\imapclient.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\work.bacome.imapclient.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

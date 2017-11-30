@@ -32,6 +32,13 @@ namespace testharness2
             SetCount(mCount);
         }
 
+        public void ShowAndFocus(Form pCentringOnThis)
+        {
+            Program.Centre(this, pCentringOnThis);
+            Show();
+            Focus();
+        }
+
         public CancellationToken CancellationToken => mCancellationTokenSource.Token;
 
         public void SetCount(int pCount)

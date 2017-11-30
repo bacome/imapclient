@@ -505,8 +505,7 @@ namespace testharness2
                 if (mProgressBar)
                 {
                     lProgress = new frmProgress("image " + pPart.Section.Part + " [" + pSize + " bytes]", pSize);
-                    Program.Centre(lProgress, this);
-                    lProgress.Show();
+                    lProgress.ShowAndFocus(this);
                     lConfiguration = new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
                     mImageLoadProgress = lProgress; // so it can be cancelled from code
                 }

@@ -154,8 +154,7 @@ namespace testharness2
                 if (mProgressBar)
                 {
                     lProgress = new frmProgress("loading new messages", e.MessageHandles.Count);
-                    Program.Centre(lProgress, this);
-                    lProgress.Show();
+                    lProgress.ShowAndFocus(this);
                     var lConfiguration = new cCacheItemFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
                     ZMessagesLoadingAdd(lProgress); // so it can be cancelled from code
                     lMessages = await mCurrentMailbox.MessagesAsync(e.MessageHandles, null, lConfiguration);
@@ -296,8 +295,7 @@ namespace testharness2
                 if (mProgressBar)
                 {
                     lProgress = new frmProgress("loading messages");
-                    Program.Centre(lProgress, this);
-                    lProgress.Show();
+                    lProgress.ShowAndFocus(this);
                     ZMessagesLoadingAdd(lProgress); // so it can be cancelled from code
                 }
 
