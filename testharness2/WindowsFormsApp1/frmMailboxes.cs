@@ -39,7 +39,10 @@ namespace testharness2
             else Text = "imapclient testharness - mailboxes - " + mClient.InstanceName;
 
             mClient.PropertyChanged += mClient_PropertyChanged;
+        }
 
+        private void frmMailboxes_Shown(object sender, EventArgs e)
+        {
             ZAddInbox();
 
             var lNamespaces = mClient.Namespaces;
@@ -87,8 +90,10 @@ namespace testharness2
             }
         }
 
-        private void ZAddMailbox(TreeNode pNode, cMailbox pMailbox)
+        private void ZAddMailbox(TreeNode pNode, cMailbox pMailbox, bool pCheck)
         {
+            if (pCheck) foreach (TreeNode n in pNode.Nodes) if (n.Tag is cNodeTag lTag && lTag.Mailbox == pMailbox) return;
+
             var lNode = pNode.Nodes.Add(pMailbox.Name);
 
             TreeNode lPleaseWait;
@@ -111,10 +116,10 @@ namespace testharness2
 
             try
             {
-                if (mSubscriptions) lMailboxes = await lTag.ChildMailboxes.SubscribedAsync(false, mDataSets);
-                else lMailboxes = await lTag.ChildMailboxes.MailboxesAsync(mDataSets);
+                if (mSubscriptions) lMailboxes = await lTag.MailboxContainer.SubscribedAsync(false, mDataSets);
+                else lMailboxes = await lTag.MailboxContainer.MailboxesAsync(mDataSets);
                 if (IsDisposed) return;
-                foreach (var lMailbox in lMailboxes) ZAddMailbox(e.Node, lMailbox);
+                foreach (var lMailbox in lMailboxes) ZAddMailbox(e.Node, lMailbox, false);
             }
             catch (Exception ex)
             {
@@ -208,6 +213,8 @@ namespace testharness2
                     if (mSubscribedMailbox.ContainsTrash == true) lBuilder.AppendLine("Contains Trash");
                     lBuilder.AppendLine();
 
+                    // status
+
                     if (mSubscribedMailbox.MessageCount != null) lBuilder.AppendLine("Messages: " + mSubscribedMailbox.MessageCount);
 
                     if (mSubscribedMailbox.RecentCount != null) lBuilder.AppendLine("Recent: " + mSubscribedMailbox.RecentCount);
@@ -230,25 +237,33 @@ namespace testharness2
 
                     lBuilder.AppendLine();
 
-                    if (mSubscribedMailbox.UIDNotSticky == false) lBuilder.AppendLine("UID is sticky");
-                    if (mSubscribedMailbox.UIDNotSticky == true) lBuilder.AppendLine("UID is NOT sticky");
-
-                    if (mSubscribedMailbox.MessageFlags != null)
+                    if (mSubscribedMailbox.CanSelect)
                     {
-                        lBuilder.AppendLine("Flags: " + mSubscribedMailbox.MessageFlags.ToString());
+                        if (mSubscribedMailbox.UIDNotSticky == false) lBuilder.AppendLine("UID is sticky");
+                        if (mSubscribedMailbox.UIDNotSticky == true) lBuilder.AppendLine("UID is NOT sticky");
+
+                        if (mSubscribedMailbox.MessageFlags != null)
+                        {
+                            lBuilder.AppendLine("Flags: " + mSubscribedMailbox.MessageFlags.ToString());
+                            lBuilder.AppendLine();
+
+                            if (mSubscribedMailbox.ForUpdatePermanentFlags != null)
+                            {
+                                lBuilder.AppendLine("PermanentFlags: " + mSubscribedMailbox.ForUpdatePermanentFlags.ToString());
+                                lBuilder.AppendLine();
+                            }
+
+                            if (mSubscribedMailbox.ReadOnlyPermanentFlags != null && mSubscribedMailbox.ReadOnlyPermanentFlags.Count != 0)
+                            {
+                                lBuilder.AppendLine("PermanentFlags (read only): " + mSubscribedMailbox.ReadOnlyPermanentFlags.ToString());
+                                lBuilder.AppendLine();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        lBuilder.AppendLine("can't select this mailbox");
                         lBuilder.AppendLine();
-
-                        if (mSubscribedMailbox.ForUpdatePermanentFlags != null)
-                        {
-                            lBuilder.AppendLine("PermanentFlags: " + mSubscribedMailbox.ForUpdatePermanentFlags.ToString());
-                            lBuilder.AppendLine();
-                        }
-
-                        if (mSubscribedMailbox.ReadOnlyPermanentFlags != null && mSubscribedMailbox.ReadOnlyPermanentFlags.Count != 0)
-                        {
-                            lBuilder.AppendLine("PermanentFlags (read only): " + mSubscribedMailbox.ReadOnlyPermanentFlags.ToString());
-                            lBuilder.AppendLine();
-                        }
                     }
 
                     if (mSubscribedMailbox.IsSelected)
@@ -354,6 +369,15 @@ namespace testharness2
             }
         }
 
+        private async void cmdRefresh_Click(object sender, EventArgs e)
+        {
+            try { await mSubscribedMailbox.RefreshAsync(fMailboxCacheDataSets.all); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while refreshing: {ex}");
+            }
+        }
+
         private async void cmdDelete_Click(object sender, EventArgs e)
         {
             try { await mSubscribedMailbox.DeleteAsync(); }
@@ -369,16 +393,65 @@ namespace testharness2
             if (lNode == null) return;
             var lTag = tvw.SelectedNode.Tag as cNodeTag;
             if (lTag?.Mailbox == null) return;
+            var lParentTag = lNode.Parent?.Tag as cNodeTag;
+            if (lParentTag.MailboxContainer == null) return;
 
             try
             {
                 var lMailbox = await lTag.Mailbox.RenameAsync(txtRename.Text.Trim());
                 if (IsDisposed) return;
-                ZAddMailbox(lNode.Parent, lMailbox);
+                ZAddMailbox(lParentTag.MailboxContainer, lMailbox);
             }
             catch (Exception ex)
             {
                 if (!IsDisposed) MessageBox.Show(this, $"an error occurred while renaming: {ex}");
+            }
+        }
+
+        private async void cmdRenameTo_Click(object sender, EventArgs e)
+        {
+            var lNode = tvw.SelectedNode;
+            if (lNode == null) return;
+            var lTag = tvw.SelectedNode.Tag as cNodeTag;
+            if (lTag?.Mailbox == null) return;
+
+            iMailboxContainer lContainer;
+
+            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mClient, true))
+            {
+                if (lMailboxDialog.ShowDialog(this) != DialogResult.OK) return;
+                lContainer = lMailboxDialog.MailboxContainer;
+            }
+
+            string lName;
+            if (string.IsNullOrWhiteSpace(txtRename.Text)) lName = null;
+            else lName = txtRename.Text.Trim();
+
+            try
+            {
+                var lMailbox = await lTag.Mailbox.RenameAsync(lContainer, lName);
+                if (IsDisposed) return;
+                ZAddMailbox(lContainer, lMailbox);
+            }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while renaming: {ex}");
+            }
+        }
+
+        private void ZAddMailbox(iMailboxContainer pContainer, cMailbox pMailbox)
+        {
+            foreach (TreeNode lNode in tvw.Nodes) ZAddMailbox(lNode, pContainer, pMailbox);
+        }
+
+        private void ZAddMailbox(TreeNode pNode, iMailboxContainer pContainer, cMailbox pMailbox)
+        {
+            var lTag = pNode.Tag as cNodeTag;
+
+            if (lTag != null && lTag.State == cNodeTag.eState.expanded)
+            {
+                if (lTag.MailboxContainer.Equals(pContainer)) ZAddMailbox(pNode, pMailbox, true);
+                foreach (TreeNode lNode in pNode.Nodes) ZAddMailbox(lNode, pContainer, pMailbox);
             }
         }
 
@@ -395,7 +468,7 @@ namespace testharness2
                 {
                     var lMailbox = await lTag.Mailbox.CreateChildAsync(txtCreate.Text.Trim(), chkCreate.Checked);
                     if (IsDisposed) return;
-                    if (lTag.State == cNodeTag.eState.expanded) ZAddMailbox(lNode, lMailbox);
+                    ZAddMailbox(lTag.Mailbox, lMailbox);
                 }
                 catch (Exception ex)
                 {
@@ -411,7 +484,7 @@ namespace testharness2
                 {
                     var lMailbox = await lTag.Namespace.CreateChildAsync(txtCreate.Text.Trim(), chkCreate.Checked);
                     if (IsDisposed) return;
-                    if (lTag.State == cNodeTag.eState.expanded) ZAddMailbox(lNode, lMailbox);
+                    if (lTag.State == cNodeTag.eState.expanded) ZAddMailbox(lNode, lMailbox, true);
                 }
                 catch (Exception ex)
                 {
@@ -445,29 +518,31 @@ namespace testharness2
 
             public readonly cNamespace Namespace;
             public readonly cMailbox Mailbox;
-            public readonly iMailboxContainer ChildMailboxes;
+            public readonly iMailboxContainer MailboxContainer;
             public readonly bool CanSelect;
             public readonly TreeNode PleaseWait;
-
-            // if it has been expanded then it has to be refreshed to get any new entries
-            public eState State = eState.neverexpanded;
+            public eState State;
 
             public cNodeTag(cNamespace pNamespace, TreeNode pPleaseWait)
             {
                 Namespace = pNamespace ?? throw new ArgumentNullException(nameof(pNamespace));
                 Mailbox = null;
-                ChildMailboxes = pNamespace;
+                MailboxContainer = pNamespace;
                 CanSelect = false;
                 PleaseWait = pPleaseWait;
+                if (pPleaseWait == null) State = eState.expanded;
+                else State = eState.neverexpanded;
             }
 
             public cNodeTag(cMailbox pMailbox, TreeNode pPleaseWait)
             {
                 Namespace = null;
                 Mailbox = pMailbox ?? throw new ArgumentNullException(nameof(pMailbox));
-                ChildMailboxes = pMailbox;
+                MailboxContainer = pMailbox;
                 CanSelect = pMailbox.CanSelect;
                 PleaseWait = pPleaseWait;
+                if (pPleaseWait == null) State = eState.expanded;
+                else State = eState.neverexpanded;
             }
         }
     }

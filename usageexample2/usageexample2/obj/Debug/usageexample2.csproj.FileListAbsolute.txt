@@ -1,9 +1,9 @@
 C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\bin\Debug\usageexample2.exe.config
 C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\bin\Debug\usageexample2.exe
 C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\bin\Debug\usageexample2.pdb
-C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\bin\Debug\imapclient.dll
-C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\bin\Debug\imapclient.pdb
-C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\bin\Debug\imapclient.xml
 C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\obj\Debug\usageexample2.csprojResolveAssemblyReference.cache
 C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\obj\Debug\usageexample2.exe
 C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\obj\Debug\usageexample2.pdb
+C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\bin\Debug\work.bacome.imapclient.dll
+C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\bin\Debug\work.bacome.imapclient.pdb
+C:\Users\barry\Documents\GitHub\imapclient\usageexample2\usageexample2\bin\Debug\work.bacome.imapclient.xml

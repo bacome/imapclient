@@ -9,11 +9,15 @@ namespace work.bacome.imapclient
     /// <seealso cref="cResponseTextEventArgs"/>
     public enum eResponseTextContext
     {
-        /**<summary>As part of an IMAP greeting.</summary>*/
-        greeting,
+        /**<summary>As part of an IMAP '* OK' greeting.</summary>*/
+        greetingok,
+        /**<summary>As part of an IMAP '* PREAUTH' greeting.</summary>*/
+        greetingpreauth,
+        /**<summary>As part of an IMAP '* BYE' greeting.</summary>*/
+        greetingbye,
         /**<summary>As part of an IMAP continuation request.</summary>*/
         continuerequest,
-        /**<summary>As part of an IMAP bye.</summary>*/
+        /**<summary>As part of an IMAP '* BYE'.</summary>*/
         bye,
         /**<summary>As part of an IMAP '* OK'.</summary>*/
         information,
@@ -25,7 +29,7 @@ namespace work.bacome.imapclient
         success,
         /**<summary>As part of an IMAP command failure.</summary>*/
         failure,
-        /**<summary>As part of IMAP authentication cancellation.</summary>*/
+        /**<summary>As part of an IMAP authentication cancellation.</summary>*/
         authenticationcancelled,
         /**<summary>As part of an IMAP protocol error command termination.</summary>*/
         protocolerror
@@ -117,17 +121,17 @@ namespace work.bacome.imapclient
     public class cResponseText
     {
         /// <summary>
-        /// The response code associated with the response text in text form, may be <see langword="null"/>.
+        /// The response code associated with the response text as a string, may be <see langword="null"/>.
         /// </summary>
         public readonly string CodeText;
 
         /// <summary>
-        /// The response code arguments associated with the response text in text form, may be <see langword="null"/>.
+        /// The response code arguments associated with the response text as a string, may be <see langword="null"/>.
         /// </summary>
         public readonly string ArgumentsText;
 
         /// <summary>
-        /// The response code associated with the response text in code form.
+        /// The response code associated with the response text as a code.
         /// </summary>
         /// <inheritdoc cref="cResponseText" select="remarks"/>
         public readonly eResponseTextCode Code;

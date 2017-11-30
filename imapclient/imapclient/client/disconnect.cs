@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
     {
         /// <summary>
         /// Disconnects gracefully from the connected server.
-        /// Can only be called when the instance <see cref="IsConnected"/>.
+        /// May only be called when the instance <see cref="IsConnected"/>.
         /// </summary>
         /// <remarks>
         /// The IMAP connection is closed gracefully, however any multi-part operations in progress will throw exceptions.
@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// Disconnects gracefully and asynchronously from the connected server.
-        /// Can only be called when the instance <see cref="IsConnected"/>.
+        /// May only be called when the instance <see cref="IsConnected"/>.
         /// </summary>
         /// <returns></returns>
         /// <inheritdoc cref="Disconnect" select="remarks"/>

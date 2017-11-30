@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
         public readonly string UserId;
 
         /// <summary>
-        /// The parameters to use with the IMAP LOGIN command for these credentials.
+        /// The arguments to use with the IMAP LOGIN command for these credentials.
         /// </summary>
         public readonly cLogin Login;
 
@@ -36,6 +36,7 @@ namespace work.bacome.imapclient
         /// <seealso cref="cCapabilities.AuthenticationMechanisms"/>
         public readonly bool TryAllSASLs;
 
+        /**<summary></summary>*/
         protected readonly List<cSASL> mSASLs = new List<cSASL>();
 
         private cCredentials(eAccountType pType, cLogin pLogin, bool pTryAllSASLs = false)
@@ -46,6 +47,7 @@ namespace work.bacome.imapclient
             TryAllSASLs = pTryAllSASLs;
         }
 
+        /**<summary></summary>*/
         protected cCredentials(string pUserId, cLogin pLogin, bool pTryAllSASLs = false)
         {
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));

@@ -12,13 +12,13 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kSortCommandPart = new cTextCommandPart("SORT ");
 
-            public async Task<cMessageHandleList> SortAsync(cMethodControl pMC, iMailboxHandle pHandle, cFilter pFilter, cSort pSort, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> SortAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cFilter pFilter, cSort pSort, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SortAsync), pMC, pHandle, pFilter, pSort);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SortAsync), pMC, pMailboxHandle, pFilter, pSort);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
-                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
                 if (pFilter == null) throw new ArgumentNullException(nameof(pFilter));
                 if (pSort == null) throw new ArgumentNullException(nameof(pSort));
 
@@ -26,7 +26,7 @@ namespace work.bacome.imapclient
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pHandle, pFilter.UIDValidity);
+                    var lSelectedMailbox = mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, pFilter.UIDValidity);
 
                     // special case
                     if (ReferenceEquals(pFilter, cFilter.None)) return new cMessageHandleList();
@@ -34,7 +34,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(await mSortExclusiveAccess.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // sort commands must be single threaded (so we can tell which result is which)
                     if (pFilter.ContainsMessageHandles) lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
-                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity); // if a UIDValidity change happens while the command is running, disbelieve the results
+                    lBuilder.AddUIDValidity(lSelectedMailbox.MessageCache.UIDValidity); // if a UIDValidity change happens while the command is running, disbelieve the results
 
                     lBuilder.Add(kSortCommandPart);
                     lBuilder.Add(pSort);
@@ -49,11 +49,11 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("sort success");
-                        if (lHook.Handles == null) throw new cUnexpectedServerActionException(fCapabilities.sort, "results not received on a successful sort", lContext);
-                        return lHook.Handles;
+                        if (lHook.MessageHandles == null) throw new cUnexpectedServerActionException(fCapabilities.sort, "results not received on a successful sort", lContext);
+                        return lHook.MessageHandles;
                     }
 
-                    if (lHook.Handles != null) lContext.TraceError("results received on a failed sort");
+                    if (lHook.MessageHandles != null) lContext.TraceError("results received on a failed sort");
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.sort, lContext);
                     throw new cProtocolErrorException(lResult, fCapabilities.sort, lContext);
@@ -105,7 +105,7 @@ namespace work.bacome.imapclient
                     return eProcessDataResult.processed;
                 }
 
-                public cMessageHandleList Handles { get; private set; } = null;
+                public cMessageHandleList MessageHandles { get; private set; } = null;
 
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
@@ -113,9 +113,9 @@ namespace work.bacome.imapclient
 
                     if (pResult.ResultType != eCommandResultType.ok || mMSNs == null) return;
 
-                    cMessageHandleList lHandles = new cMessageHandleList();
-                    foreach (var lMSN in mMSNs) lHandles.Add(mSelectedMailbox.GetHandle(lMSN));
-                    Handles = lHandles;
+                    cMessageHandleList lMessageHandles = new cMessageHandleList();
+                    foreach (var lMSN in mMSNs) lMessageHandles.Add(mSelectedMailbox.GetHandle(lMSN));
+                    MessageHandles = lMessageHandles;
                 }
             }
         }

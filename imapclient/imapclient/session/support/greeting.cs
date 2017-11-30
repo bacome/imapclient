@@ -12,15 +12,11 @@ namespace work.bacome.imapclient
             {
                 public readonly eGreetingType Type;
                 public readonly cResponseText ResponseText;
-                public readonly cStrings Capabilities;
-                public readonly cStrings AuthenticationMechanisms;
 
-                public sGreeting(eGreetingType pType, cResponseText pResponseText, cStrings pCapabilities, cStrings pAuthenticationMechanisms)
+                public sGreeting(eGreetingType pType, cResponseText pResponseText)
                 {
                     Type = pType;
                     ResponseText = pResponseText;
-                    Capabilities = pCapabilities;
-                    AuthenticationMechanisms = pAuthenticationMechanisms;
                 }
             }
         }

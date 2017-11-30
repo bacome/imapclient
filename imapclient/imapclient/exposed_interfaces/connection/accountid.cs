@@ -1,5 +1,5 @@
 ﻿using System;
-using work.bacome.apidocumentation;
+using work.bacome.imapclient.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
     /// Represents an IMAP account.
     /// </summary>
     /// <seealso cref="cIMAPClient.ConnectedAccountId"/>
-    public class cAccountId
+    public class cAccountId : IEquatable<cAccountId>
     {
         /// <summary>
         /// The host that contains the account.
@@ -80,6 +80,9 @@ namespace work.bacome.imapclient
             UserId = pUserId;
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cAccountId pObject) => this == pObject;
+
         /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cAccountId;
 
@@ -90,6 +93,7 @@ namespace work.bacome.imapclient
             {
                 int lHash = 17;
                 lHash = lHash * 23 + Host.GetHashCode();
+                lHash = lHash * 23 + Type.GetHashCode();
                 if (UserId != null) lHash = lHash * 23 + UserId.GetHashCode();
                 return lHash;
             }
@@ -104,7 +108,7 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return (pA.Host == pB.Host && pA.Type == pB.Type && pA.UserId == pB.UserId);
+            return pA.Host == pB.Host && pA.Type == pB.Type && pA.UserId == pB.UserId;
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>

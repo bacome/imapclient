@@ -8,38 +8,38 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal cMessageHandleList SetUnseenCount(iMailboxHandle pHandle)
+        internal cMessageHandleList SetUnseenCount(iMailboxHandle pMailboxHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Messages));
-            var lTask = ZSetUnseenCountAsync(pHandle, lContext);
+            var lTask = ZSetUnseenCountAsync(pMailboxHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
         }
 
-        internal Task<cMessageHandleList> SetUnseenCountAsync(iMailboxHandle pHandle)
+        internal Task<cMessageHandleList> SetUnseenCountAsync(iMailboxHandle pMailboxHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(MessagesAsync));
-            return ZSetUnseenCountAsync(pHandle, lContext);
+            return ZSetUnseenCountAsync(pMailboxHandle, lContext);
         }
 
-        private async Task<cMessageHandleList> ZSetUnseenCountAsync(iMailboxHandle pHandle, cTrace.cContext pParentContext)
+        private async Task<cMessageHandleList> ZSetUnseenCountAsync(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesAsync), pHandle);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZMessagesAsync), pMailboxHandle);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
             var lCapabilities = lSession.Capabilities;
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                if (lCapabilities.ESearch) return await lSession.SetUnseenCountExtendedAsync(lMC, pHandle, lContext).ConfigureAwait(false);
-                else return await lSession.SetUnseenCountAsync(lMC, pHandle, lContext).ConfigureAwait(false);
+                if (lCapabilities.ESearch) return await lSession.SetUnseenCountExtendedAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
+                else return await lSession.SetUnseenCountAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
             }
         }
     }

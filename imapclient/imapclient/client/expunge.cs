@@ -8,35 +8,35 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal void Expunge(iMailboxHandle pHandle, bool pAndUnselect)
+        internal void Expunge(iMailboxHandle pMailboxHandle, bool pAndUnselect)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Expunge));
-            var lTask = ZExpungeAsync(pHandle, pAndUnselect, lContext);
+            var lTask = ZExpungeAsync(pMailboxHandle, pAndUnselect, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        internal Task ExpungeAsync(iMailboxHandle pHandle, bool pAndUnselect)
+        internal Task ExpungeAsync(iMailboxHandle pMailboxHandle, bool pAndUnselect)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ExpungeAsync));
-            return ZExpungeAsync(pHandle, pAndUnselect, lContext);
+            return ZExpungeAsync(pMailboxHandle, pAndUnselect, lContext);
         }
 
-        private async Task ZExpungeAsync(iMailboxHandle pHandle, bool pAndUnselect, cTrace.cContext pParentContext)
+        private async Task ZExpungeAsync(iMailboxHandle pMailboxHandle, bool pAndUnselect, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZExpungeAsync), pHandle, pAndUnselect);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZExpungeAsync), pMailboxHandle, pAndUnselect);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                if (pAndUnselect) await lSession.CloseAsync(lMC, pHandle, lContext).ConfigureAwait(false);
-                else await lSession.ExpungeAsync(lMC, pHandle, lContext).ConfigureAwait(false);
+                if (pAndUnselect) await lSession.CloseAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
+                else await lSession.ExpungeAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
             }
         }
     }

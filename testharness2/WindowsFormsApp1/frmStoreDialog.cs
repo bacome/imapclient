@@ -95,12 +95,12 @@ namespace testharness2
 
         private bool ZTryParseFlagNames(string pText, out cStorableFlags rFlags)
         {
-            if (pText == null) { rFlags = cStorableFlags.None; return true; }
+            if (pText == null) { rFlags = cStorableFlags.Empty; return true; }
 
             List<string> lFlags = new List<string>();
             foreach (var lFlag in pText.Trim().Split(' ')) if (!string.IsNullOrWhiteSpace(lFlag)) lFlags.Add(lFlag);
 
-            if (lFlags.Count == 0) { rFlags = cStorableFlags.None; return true; }
+            if (lFlags.Count == 0) { rFlags = cStorableFlags.Empty; return true; }
 
             try { rFlags = new cStorableFlags(lFlags); }
             catch { rFlags = null; return false; }
@@ -128,13 +128,6 @@ namespace testharness2
         private void ZValControlValidated(object sender, EventArgs e)
         {
             erp.SetError((Control)sender, null);
-        }
-
-        private void frmStoreDialog_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            // TODO: check if this is required
-            // to allow closing with validation errors
-            //e.Cancel = false;
         }
 
         private void cmdStore_Click(object sender, EventArgs e)

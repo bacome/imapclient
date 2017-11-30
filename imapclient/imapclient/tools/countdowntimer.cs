@@ -57,6 +57,7 @@ namespace work.bacome.async
             mTask = Task.Delay(mTimeout, mCancellationTokenSource.Token);
         }
 
+        /**<summary></summary>*/
         public void Dispose()
         {
             if (mDisposed) return;

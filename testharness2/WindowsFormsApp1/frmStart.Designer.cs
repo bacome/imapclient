@@ -39,13 +39,15 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.label2 = new System.Windows.Forms.Label();
             this.txtInstanceName = new System.Windows.Forms.TextBox();
+            this.gbxTests = new System.Windows.Forms.GroupBox();
             this.groupBox1.SuspendLayout();
+            this.gbxTests.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(2, 9);
+            this.label1.Location = new System.Drawing.Point(2, 110);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(78, 13);
             this.label1.TabIndex = 0;
@@ -54,7 +56,7 @@
             // lblProofOfASync
             // 
             this.lblProofOfASync.AutoSize = true;
-            this.lblProofOfASync.Location = new System.Drawing.Point(86, 9);
+            this.lblProofOfASync.Location = new System.Drawing.Point(99, 110);
             this.lblProofOfASync.Name = "lblProofOfASync";
             this.lblProofOfASync.Size = new System.Drawing.Size(55, 13);
             this.lblProofOfASync.TabIndex = 1;
@@ -62,7 +64,7 @@
             // 
             // cmdTests
             // 
-            this.cmdTests.Location = new System.Drawing.Point(320, 39);
+            this.cmdTests.Location = new System.Drawing.Point(12, 17);
             this.cmdTests.Name = "cmdTests";
             this.cmdTests.Size = new System.Drawing.Size(100, 25);
             this.cmdTests.TabIndex = 3;
@@ -72,7 +74,7 @@
             // 
             // cmdQuickTests
             // 
-            this.cmdQuickTests.Location = new System.Drawing.Point(320, 69);
+            this.cmdQuickTests.Location = new System.Drawing.Point(12, 48);
             this.cmdQuickTests.Name = "cmdQuickTests";
             this.cmdQuickTests.Size = new System.Drawing.Size(100, 25);
             this.cmdQuickTests.TabIndex = 4;
@@ -82,7 +84,7 @@
             // 
             // cmdCurrentTest
             // 
-            this.cmdCurrentTest.Location = new System.Drawing.Point(320, 99);
+            this.cmdCurrentTest.Location = new System.Drawing.Point(12, 79);
             this.cmdCurrentTest.Name = "cmdCurrentTest";
             this.cmdCurrentTest.Size = new System.Drawing.Size(100, 25);
             this.cmdCurrentTest.TabIndex = 5;
@@ -92,7 +94,7 @@
             // 
             // cmdCreate
             // 
-            this.cmdCreate.Location = new System.Drawing.Point(100, 45);
+            this.cmdCreate.Location = new System.Drawing.Point(97, 48);
             this.cmdCreate.Name = "cmdCreate";
             this.cmdCreate.Size = new System.Drawing.Size(100, 25);
             this.cmdCreate.TabIndex = 2;
@@ -110,9 +112,9 @@
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.txtInstanceName);
             this.groupBox1.Controls.Add(this.cmdCreate);
-            this.groupBox1.Location = new System.Drawing.Point(5, 34);
+            this.groupBox1.Location = new System.Drawing.Point(5, 9);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(309, 90);
+            this.groupBox1.Size = new System.Drawing.Size(302, 82);
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "New Client";
@@ -120,7 +122,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 22);
+            this.label2.Location = new System.Drawing.Point(12, 23);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(79, 13);
             this.label2.TabIndex = 0;
@@ -128,20 +130,30 @@
             // 
             // txtInstanceName
             // 
-            this.txtInstanceName.Location = new System.Drawing.Point(100, 19);
+            this.txtInstanceName.Location = new System.Drawing.Point(97, 20);
             this.txtInstanceName.Name = "txtInstanceName";
             this.txtInstanceName.Size = new System.Drawing.Size(198, 20);
             this.txtInstanceName.TabIndex = 1;
+            // 
+            // gbxTests
+            // 
+            this.gbxTests.Controls.Add(this.cmdCurrentTest);
+            this.gbxTests.Controls.Add(this.cmdQuickTests);
+            this.gbxTests.Controls.Add(this.cmdTests);
+            this.gbxTests.Location = new System.Drawing.Point(313, 9);
+            this.gbxTests.Name = "gbxTests";
+            this.gbxTests.Size = new System.Drawing.Size(121, 114);
+            this.gbxTests.TabIndex = 6;
+            this.gbxTests.TabStop = false;
+            this.gbxTests.Text = "Tests";
             // 
             // frmStart
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(425, 128);
+            this.ClientSize = new System.Drawing.Size(439, 128);
+            this.Controls.Add(this.gbxTests);
             this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.cmdCurrentTest);
-            this.Controls.Add(this.cmdQuickTests);
-            this.Controls.Add(this.cmdTests);
             this.Controls.Add(this.lblProofOfASync);
             this.Controls.Add(this.label1);
             this.Name = "frmStart";
@@ -149,6 +161,7 @@
             this.Text = "imapclient testharness - start";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.gbxTests.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -166,6 +179,7 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox txtInstanceName;
+        private System.Windows.Forms.GroupBox gbxTests;
     }
 }
 

@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
                     mPattern = pPattern;
                 }
 
-                public List<iMailboxHandle> Handles { get; private set; } = null;
+                public List<iMailboxHandle> MailboxHandles { get; private set; } = null;
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
                     if (pResult.ResultType != eCommandResultType.ok) return;
                     
                     mCache.ResetExists(mPattern, mSequence, lContext);
-                    Handles = mCache.GetHandles(mMailboxes);
+                    MailboxHandles = mCache.GetHandles(mMailboxes);
                 }
             }
         }

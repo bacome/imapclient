@@ -3,7 +3,7 @@
 namespace work.bacome.imapclient.support
 {
     /// <summary>
-    /// Contains some cached mailbox data.
+    /// Contains some cached mailbox data. Intended for internal use.
     /// </summary>
     /// <seealso cref="iMailboxHandle"/>
     public class cListFlags

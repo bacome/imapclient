@@ -14,6 +14,7 @@ namespace work.bacome.imapclient
                 private static readonly cBytes kProcessResponseOKSpace = new cBytes("OK ");
                 private static readonly cBytes kProcessResponseNoSpace = new cBytes("NO ");
                 private static readonly cBytes kProcessResponseBadSpace = new cBytes("BAD ");
+                private static readonly cBytes kProcessResponseCapabilitySpace = new cBytes("CAPABILITY ");
                 private static readonly cBytes kProcessResponseByeSpace = new cBytes("BYE ");
 
                 private bool ZProcessDataResponse(cBytesCursor pCursor, cTrace.cContext pParentContext)
@@ -42,6 +43,23 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceVerbose("got a protocol error");
                         mResponseTextProcessor.Process(eResponseTextContext.protocolerror, pCursor, mActiveCommands, lContext);
+                        return true;
+                    }
+
+                    if (pCursor.SkipBytes(kProcessResponseCapabilitySpace))
+                    {
+                        if (mState == eState.connected)
+                        {
+                            if (pCursor.ProcessCapability(out var lCapabilities, out var lAuthenticationMechanisms, lContext) && pCursor.Position.AtEnd)
+                            {
+                                lContext.TraceVerbose("got capabilities: {0} {1}", lCapabilities, lAuthenticationMechanisms);
+                                mCapabilities = lCapabilities;
+                                mAuthenticationMechanisms = lAuthenticationMechanisms;
+                            }
+                            else lContext.TraceWarning("likely malformed capability");
+                        }
+                        else lContext.TraceWarning("capability response received at the wrong time - not processed");
+
                         return true;
                     }
 

@@ -49,7 +49,7 @@ namespace testharness2
             mBindingList.Add(new cGridRowData(eSortItem.displayfrom));
             mBindingList.Add(new cGridRowData(eSortItem.displayto));
 
-            if (ReferenceEquals(mSort, cSort.None)) rdoNone.Checked = true;
+            if (mSort == cSort.None) rdoNone.Checked = true;
             //else if (ReferenceEquals(mSort, cSort.ThreadOrderedSubject)) rdoThreadOrderedSubject.Checked = true;
             //else if (ReferenceEquals(mSort, cSort.ThreadReferences)) rdoThreadReferences.Checked = true;
             else
@@ -120,13 +120,6 @@ namespace testharness2
         private void dgv_Validated(object sender, EventArgs e)
         {
             erp.SetError((Control)sender, null);
-        }
-
-        private void frmSortDialog_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            // TODO: check if this is required
-            // to allow closing with validation errors
-            e.Cancel = false;
         }
 
         private void cmdOK_Click(object sender, EventArgs e)

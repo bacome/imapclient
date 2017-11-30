@@ -5,7 +5,7 @@ using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
-    internal class cURIParts
+    internal class cURIParts : IEquatable<cURIParts>
     {
         // rfc 3986, 6874
         //  TODO: display host conversion using punycode
@@ -113,6 +113,63 @@ namespace work.bacome.imapclient
                 mParts |= fParts.fragment;
             }
         }
+
+        public bool Equals(cURIParts pObject) => this == pObject;
+
+        public override bool Equals(object pObject) => this == pObject as cURIParts;
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash * 23 + mParts.GetHashCode();
+                if (_Scheme != null) lHash = lHash * 23 + _Scheme.GetHashCode();
+                if (_UserInfo != null) lHash = lHash * 23 + _UserInfo.GetHashCode();
+                if (_Host != null) lHash = lHash * 23 + _Host.GetHashCode();
+                if (_Port != null) lHash = lHash * 23 + _Port.GetHashCode();
+                if (_Path != null) lHash = lHash * 23 + _Path.GetHashCode();
+                if (_Query != null) lHash = lHash * 23 + _Query.GetHashCode();
+                if (_Fragment != null) lHash = lHash * 23 + _Fragment.GetHashCode();
+                return lHash;
+            }
+        }
+
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cURIParts));
+
+            lBuilder.Append(mParts);
+            if (_Scheme != null) lBuilder.Append(nameof(Scheme), _Scheme);
+            if (_UserInfo != null) lBuilder.Append(nameof(UserInfo), _UserInfo);
+            if (_Host != null) lBuilder.Append(nameof(Host), _Host);
+            if (_Port != null) lBuilder.Append(nameof(Port), _Port);
+            if (_Path != null) lBuilder.Append(nameof(Path), _Path);
+            if (_Query != null) lBuilder.Append(nameof(Query), _Query);
+            if (_Fragment != null) lBuilder.Append(nameof(Fragment), _Fragment);
+
+            return lBuilder.ToString();
+        }
+
+
+        public static bool operator ==(cURIParts pA, cURIParts pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+
+            return
+                pA.mParts == pB.mParts &&
+                pA._Scheme == pB._Scheme &&
+                pA._UserInfo == pB._UserInfo &&
+                pA._Host == pB._Host &&
+                pA._Port == pB._Port &&
+                pA._Path == pB._Path &&
+                pA._Query == pB._Query &&
+                pA._Fragment == pB._Fragment;
+        }
+
+        public static bool operator !=(cURIParts pA, cURIParts pB) => !(pA == pB);
 
         public static bool Process(cBytesCursor pCursor, out cURIParts rParts, cTrace.cContext pParentContext)
         {
@@ -266,22 +323,6 @@ namespace work.bacome.imapclient
             if ((mParts & pMustHave) != pMustHave) return false;
             if ((mParts & ~(pMustHave | pMayHave)) != 0) return false;
             return true;
-        }
-
-        public override string ToString()
-        {
-            var lBuilder = new cListBuilder(nameof(cURIParts));
-
-            lBuilder.Append(mParts);
-            if (Scheme != null) lBuilder.Append(nameof(Scheme), Scheme);
-            if (UserInfo != null) lBuilder.Append(nameof(UserInfo), UserInfo);
-            if (Host != null) lBuilder.Append(nameof(Host), Host);
-            if (Port != null) lBuilder.Append(nameof(Port), Port);
-            if (Path != null) lBuilder.Append(nameof(Path), Path);
-            if (Query != null) lBuilder.Append(nameof(Query), Query);
-            if (Fragment != null) lBuilder.Append(nameof(Fragment), Fragment);
-
-            return lBuilder.ToString();
         }
 
         [Conditional("DEBUG")]

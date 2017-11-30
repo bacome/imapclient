@@ -231,6 +231,8 @@
             this.chkRTCOther = new System.Windows.Forms.CheckBox();
             this.chkRTCNone = new System.Windows.Forms.CheckBox();
             this.gbxResponseTextType = new System.Windows.Forms.GroupBox();
+            this.chkRTTPreAuthGreeting = new System.Windows.Forms.CheckBox();
+            this.chkRTTByeGreeting = new System.Windows.Forms.CheckBox();
             this.chkRTTContinue = new System.Windows.Forms.CheckBox();
             this.chkRTTProtocolError = new System.Windows.Forms.CheckBox();
             this.chkRTTAuthenticationCancelled = new System.Windows.Forms.CheckBox();
@@ -240,7 +242,7 @@
             this.chkRTTWarning = new System.Windows.Forms.CheckBox();
             this.chkRTTInformation = new System.Windows.Forms.CheckBox();
             this.chkRTTBye = new System.Windows.Forms.CheckBox();
-            this.chkRTTGreeting = new System.Windows.Forms.CheckBox();
+            this.chkRTTOKGreeting = new System.Windows.Forms.CheckBox();
             this.label23 = new System.Windows.Forms.Label();
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
@@ -2273,9 +2275,9 @@
             this.gbxEvents.Controls.Add(this.txtEvents);
             this.gbxEvents.Controls.Add(this.label24);
             this.gbxEvents.Controls.Add(this.cmdEvents);
-            this.gbxEvents.Location = new System.Drawing.Point(253, 56);
+            this.gbxEvents.Location = new System.Drawing.Point(252, 56);
             this.gbxEvents.Name = "gbxEvents";
-            this.gbxEvents.Size = new System.Drawing.Size(205, 77);
+            this.gbxEvents.Size = new System.Drawing.Size(205, 81);
             this.gbxEvents.TabIndex = 2;
             this.gbxEvents.TabStop = false;
             this.gbxEvents.Text = "Events";
@@ -2306,7 +2308,7 @@
             this.gbxNetworkActivity.Controls.Add(this.cmdNetworkActivity);
             this.gbxNetworkActivity.Location = new System.Drawing.Point(6, 56);
             this.gbxNetworkActivity.Name = "gbxNetworkActivity";
-            this.gbxNetworkActivity.Size = new System.Drawing.Size(205, 77);
+            this.gbxNetworkActivity.Size = new System.Drawing.Size(205, 81);
             this.gbxNetworkActivity.TabIndex = 1;
             this.gbxNetworkActivity.TabStop = false;
             this.gbxNetworkActivity.Text = "Network Activity";
@@ -2484,6 +2486,8 @@
             // 
             // gbxResponseTextType
             // 
+            this.gbxResponseTextType.Controls.Add(this.chkRTTPreAuthGreeting);
+            this.gbxResponseTextType.Controls.Add(this.chkRTTByeGreeting);
             this.gbxResponseTextType.Controls.Add(this.chkRTTContinue);
             this.gbxResponseTextType.Controls.Add(this.chkRTTProtocolError);
             this.gbxResponseTextType.Controls.Add(this.chkRTTAuthenticationCancelled);
@@ -2493,21 +2497,45 @@
             this.gbxResponseTextType.Controls.Add(this.chkRTTWarning);
             this.gbxResponseTextType.Controls.Add(this.chkRTTInformation);
             this.gbxResponseTextType.Controls.Add(this.chkRTTBye);
-            this.gbxResponseTextType.Controls.Add(this.chkRTTGreeting);
+            this.gbxResponseTextType.Controls.Add(this.chkRTTOKGreeting);
             this.gbxResponseTextType.Location = new System.Drawing.Point(9, 45);
             this.gbxResponseTextType.Name = "gbxResponseTextType";
-            this.gbxResponseTextType.Size = new System.Drawing.Size(328, 115);
+            this.gbxResponseTextType.Size = new System.Drawing.Size(430, 115);
             this.gbxResponseTextType.TabIndex = 2;
             this.gbxResponseTextType.TabStop = false;
             this.gbxResponseTextType.Text = "Text Context";
             // 
+            // chkRTTPreAuthGreeting
+            // 
+            this.chkRTTPreAuthGreeting.AutoSize = true;
+            this.chkRTTPreAuthGreeting.Checked = true;
+            this.chkRTTPreAuthGreeting.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkRTTPreAuthGreeting.Location = new System.Drawing.Point(12, 45);
+            this.chkRTTPreAuthGreeting.Name = "chkRTTPreAuthGreeting";
+            this.chkRTTPreAuthGreeting.Size = new System.Drawing.Size(107, 17);
+            this.chkRTTPreAuthGreeting.TabIndex = 1;
+            this.chkRTTPreAuthGreeting.Text = "PreAuth Greeting";
+            this.chkRTTPreAuthGreeting.UseVisualStyleBackColor = true;
+            // 
+            // chkRTTByeGreeting
+            // 
+            this.chkRTTByeGreeting.AutoSize = true;
+            this.chkRTTByeGreeting.Checked = true;
+            this.chkRTTByeGreeting.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkRTTByeGreeting.Location = new System.Drawing.Point(12, 69);
+            this.chkRTTByeGreeting.Name = "chkRTTByeGreeting";
+            this.chkRTTByeGreeting.Size = new System.Drawing.Size(87, 17);
+            this.chkRTTByeGreeting.TabIndex = 2;
+            this.chkRTTByeGreeting.Text = "Bye Greeting";
+            this.chkRTTByeGreeting.UseVisualStyleBackColor = true;
+            // 
             // chkRTTContinue
             // 
             this.chkRTTContinue.AutoSize = true;
-            this.chkRTTContinue.Location = new System.Drawing.Point(122, 22);
+            this.chkRTTContinue.Location = new System.Drawing.Point(12, 92);
             this.chkRTTContinue.Name = "chkRTTContinue";
             this.chkRTTContinue.Size = new System.Drawing.Size(68, 17);
-            this.chkRTTContinue.TabIndex = 1;
+            this.chkRTTContinue.TabIndex = 3;
             this.chkRTTContinue.Text = "Continue";
             this.chkRTTContinue.UseVisualStyleBackColor = true;
             // 
@@ -2516,10 +2544,10 @@
             this.chkRTTProtocolError.AutoSize = true;
             this.chkRTTProtocolError.Checked = true;
             this.chkRTTProtocolError.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRTTProtocolError.Location = new System.Drawing.Point(232, 68);
+            this.chkRTTProtocolError.Location = new System.Drawing.Point(122, 92);
             this.chkRTTProtocolError.Name = "chkRTTProtocolError";
             this.chkRTTProtocolError.Size = new System.Drawing.Size(90, 17);
-            this.chkRTTProtocolError.TabIndex = 8;
+            this.chkRTTProtocolError.TabIndex = 7;
             this.chkRTTProtocolError.Text = "Protocol Error";
             this.chkRTTProtocolError.UseVisualStyleBackColor = true;
             // 
@@ -2528,10 +2556,10 @@
             this.chkRTTAuthenticationCancelled.AutoSize = true;
             this.chkRTTAuthenticationCancelled.Checked = true;
             this.chkRTTAuthenticationCancelled.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRTTAuthenticationCancelled.Location = new System.Drawing.Point(122, 91);
+            this.chkRTTAuthenticationCancelled.Location = new System.Drawing.Point(122, 68);
             this.chkRTTAuthenticationCancelled.Name = "chkRTTAuthenticationCancelled";
             this.chkRTTAuthenticationCancelled.Size = new System.Drawing.Size(144, 17);
-            this.chkRTTAuthenticationCancelled.TabIndex = 9;
+            this.chkRTTAuthenticationCancelled.TabIndex = 6;
             this.chkRTTAuthenticationCancelled.Text = "Authentication Cancelled";
             this.chkRTTAuthenticationCancelled.UseVisualStyleBackColor = true;
             // 
@@ -2540,20 +2568,20 @@
             this.chkRTTFailure.AutoSize = true;
             this.chkRTTFailure.Checked = true;
             this.chkRTTFailure.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRTTFailure.Location = new System.Drawing.Point(122, 68);
+            this.chkRTTFailure.Location = new System.Drawing.Point(122, 45);
             this.chkRTTFailure.Name = "chkRTTFailure";
             this.chkRTTFailure.Size = new System.Drawing.Size(57, 17);
-            this.chkRTTFailure.TabIndex = 7;
+            this.chkRTTFailure.TabIndex = 5;
             this.chkRTTFailure.Text = "Failure";
             this.chkRTTFailure.UseVisualStyleBackColor = true;
             // 
             // chkRTTSuccess
             // 
             this.chkRTTSuccess.AutoSize = true;
-            this.chkRTTSuccess.Location = new System.Drawing.Point(12, 68);
+            this.chkRTTSuccess.Location = new System.Drawing.Point(122, 22);
             this.chkRTTSuccess.Name = "chkRTTSuccess";
             this.chkRTTSuccess.Size = new System.Drawing.Size(67, 17);
-            this.chkRTTSuccess.TabIndex = 6;
+            this.chkRTTSuccess.TabIndex = 4;
             this.chkRTTSuccess.Text = "Success";
             this.chkRTTSuccess.UseVisualStyleBackColor = true;
             // 
@@ -2562,10 +2590,10 @@
             this.chkRTTError.AutoSize = true;
             this.chkRTTError.Checked = true;
             this.chkRTTError.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRTTError.Location = new System.Drawing.Point(232, 45);
+            this.chkRTTError.Location = new System.Drawing.Point(342, 91);
             this.chkRTTError.Name = "chkRTTError";
             this.chkRTTError.Size = new System.Drawing.Size(48, 17);
-            this.chkRTTError.TabIndex = 5;
+            this.chkRTTError.TabIndex = 11;
             this.chkRTTError.Text = "Error";
             this.chkRTTError.UseVisualStyleBackColor = true;
             // 
@@ -2574,20 +2602,20 @@
             this.chkRTTWarning.AutoSize = true;
             this.chkRTTWarning.Checked = true;
             this.chkRTTWarning.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRTTWarning.Location = new System.Drawing.Point(122, 45);
+            this.chkRTTWarning.Location = new System.Drawing.Point(342, 68);
             this.chkRTTWarning.Name = "chkRTTWarning";
             this.chkRTTWarning.Size = new System.Drawing.Size(66, 17);
-            this.chkRTTWarning.TabIndex = 4;
+            this.chkRTTWarning.TabIndex = 10;
             this.chkRTTWarning.Text = "Warning";
             this.chkRTTWarning.UseVisualStyleBackColor = true;
             // 
             // chkRTTInformation
             // 
             this.chkRTTInformation.AutoSize = true;
-            this.chkRTTInformation.Location = new System.Drawing.Point(12, 45);
+            this.chkRTTInformation.Location = new System.Drawing.Point(342, 45);
             this.chkRTTInformation.Name = "chkRTTInformation";
             this.chkRTTInformation.Size = new System.Drawing.Size(78, 17);
-            this.chkRTTInformation.TabIndex = 3;
+            this.chkRTTInformation.TabIndex = 9;
             this.chkRTTInformation.Text = "Information";
             this.chkRTTInformation.UseVisualStyleBackColor = true;
             // 
@@ -2596,24 +2624,22 @@
             this.chkRTTBye.AutoSize = true;
             this.chkRTTBye.Checked = true;
             this.chkRTTBye.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRTTBye.Location = new System.Drawing.Point(232, 22);
+            this.chkRTTBye.Location = new System.Drawing.Point(342, 22);
             this.chkRTTBye.Name = "chkRTTBye";
             this.chkRTTBye.Size = new System.Drawing.Size(44, 17);
-            this.chkRTTBye.TabIndex = 2;
+            this.chkRTTBye.TabIndex = 8;
             this.chkRTTBye.Text = "Bye";
             this.chkRTTBye.UseVisualStyleBackColor = true;
             // 
-            // chkRTTGreeting
+            // chkRTTOKGreeting
             // 
-            this.chkRTTGreeting.AutoSize = true;
-            this.chkRTTGreeting.Checked = true;
-            this.chkRTTGreeting.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRTTGreeting.Location = new System.Drawing.Point(12, 22);
-            this.chkRTTGreeting.Name = "chkRTTGreeting";
-            this.chkRTTGreeting.Size = new System.Drawing.Size(66, 17);
-            this.chkRTTGreeting.TabIndex = 0;
-            this.chkRTTGreeting.Text = "Greeting";
-            this.chkRTTGreeting.UseVisualStyleBackColor = true;
+            this.chkRTTOKGreeting.AutoSize = true;
+            this.chkRTTOKGreeting.Location = new System.Drawing.Point(12, 22);
+            this.chkRTTOKGreeting.Name = "chkRTTOKGreeting";
+            this.chkRTTOKGreeting.Size = new System.Drawing.Size(84, 17);
+            this.chkRTTOKGreeting.TabIndex = 0;
+            this.chkRTTOKGreeting.Text = "OK Greeting";
+            this.chkRTTOKGreeting.UseVisualStyleBackColor = true;
             // 
             // label23
             // 
@@ -2626,7 +2652,7 @@
             // 
             // txtResponseText
             // 
-            this.txtResponseText.Location = new System.Drawing.Point(126, 19);
+            this.txtResponseText.Location = new System.Drawing.Point(131, 19);
             this.txtResponseText.Name = "txtResponseText";
             this.txtResponseText.Size = new System.Drawing.Size(50, 20);
             this.txtResponseText.TabIndex = 1;
@@ -2877,7 +2903,7 @@
         private System.Windows.Forms.CheckBox chkRTTWarning;
         private System.Windows.Forms.CheckBox chkRTTInformation;
         private System.Windows.Forms.CheckBox chkRTTBye;
-        private System.Windows.Forms.CheckBox chkRTTGreeting;
+        private System.Windows.Forms.CheckBox chkRTTOKGreeting;
         private System.Windows.Forms.Label label23;
         private System.Windows.Forms.TextBox txtResponseText;
         private System.Windows.Forms.Button cmdResponseText;
@@ -2952,5 +2978,7 @@
         private System.Windows.Forms.TextBox txtASMaxTime;
         private System.Windows.Forms.TextBox txtASMax;
         private System.Windows.Forms.TextBox txtASMin;
+        private System.Windows.Forms.CheckBox chkRTTPreAuthGreeting;
+        private System.Windows.Forms.CheckBox chkRTTByeGreeting;
     }
 }

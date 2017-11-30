@@ -5,7 +5,7 @@ using System.Text;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains parameters for use with the IMAP AUTHENTICATE PLAIN command.
+    /// Contains arguments for use with the IMAP AUTHENTICATE PLAIN command.
     /// </summary>
     /// <remarks>
     /// RFC 4616 specifies that the authentication-id and password must be at least 1 character long and that they may not include the NUL character.

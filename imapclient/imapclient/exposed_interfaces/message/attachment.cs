@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -14,34 +15,34 @@ namespace work.bacome.imapclient
     /// Instances of this class are only valid whilst the containing mailbox has the same UIDValidity.
     /// </remarks>
     /// <seealso cref="cMessage.Attachments"/>
-    public class cAttachment
+    public class cAttachment : IEquatable<cAttachment>
     {
         /**<summary>The client that the instance was created by.</summary>*/
         public readonly cIMAPClient Client;
         /**<summary>The message that the attachment belongs to.</summary>*/
-        public readonly iMessageHandle Handle;
+        public readonly iMessageHandle MessageHandle;
         /**<summary>The body-part of the attachment.</summary>*/
         public readonly cSinglePartBody Part;
 
-        internal cAttachment(cIMAPClient pClient, iMessageHandle pHandle, cSinglePartBody pPart)
+        internal cAttachment(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
-            Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
         }
 
         /// <summary>
-        /// Gets the MIME type of the attachment in text form.
+        /// Gets the MIME type of the attachment as a string.
         /// </summary>
         public string Type => Part.Type;
 
         /// <summary>
-        /// Gets the MIME type of the attachment in code form.
+        /// Gets the MIME type of the attachment as a code.
         /// </summary>
         public eBodyPartTypeCode TypeCode => Part.TypeCode;
 
         /// <summary>
-        /// Gets the MIME subtype of the attachment in text form.
+        /// Gets the MIME subtype of the attachment as a string.
         /// </summary>
         public string SubType => Part.SubType;
 
@@ -61,12 +62,12 @@ namespace work.bacome.imapclient
         public cCulturedString Description => Part.Description;
 
         /// <summary>
-        /// Gets the MIME content-transfer-encoding of the attachment in text form.
+        /// Gets the MIME content-transfer-encoding of the attachment as a string.
         /// </summary>
         public string ContentTransferEncoding => Part.ContentTransferEncoding;
 
         /// <summary>
-        /// Gets the MIME content-transfer-encoding of the attachment in code form.
+        /// Gets the MIME content-transfer-encoding of the attachment as a code.
         /// </summary>
         public eDecodingRequired DecodingRequired => Part.DecodingRequired;
 
@@ -118,13 +119,13 @@ namespace work.bacome.imapclient
         /// This may be smaller than <see cref="PartSizeInBytes"/> if <see cref="DecodingRequired"/>) isn't <see cref="eDecodingRequired.none"/> and <see cref="cCapabilities.Binary"/> is in use.
         /// The size may have to be fetched from the server, but once fetched it will be cached.
         /// </remarks>
-        public int SaveSizeInBytes() => Client.FetchSizeInBytes(Handle, Part);
+        public int SaveSizeInBytes() => Client.FetchSizeInBytes(MessageHandle, Part);
 
         /// <summary>
         /// Asynchronously gets the number of bytes that will have to come over the network from the server to save the attachment
         /// </summary>
         /// <inheritdoc cref="SaveSizeInBytes" select="returns|remarks"/>
-        public Task<int> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(Handle, Part);
+        public Task<int> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(MessageHandle, Part);
 
         /// <summary>
         /// Saves the attachment to the specified path.
@@ -135,7 +136,7 @@ namespace work.bacome.imapclient
         {
             using (FileStream lStream = new FileStream(pPath, FileMode.Create))
             {
-                Client.Fetch(Handle, Part.Section, Part.DecodingRequired, lStream, pConfiguration);
+                Client.Fetch(MessageHandle, Part.Section, Part.DecodingRequired, lStream, pConfiguration);
             }
 
             if (Part.Disposition?.CreationDate != null) File.SetCreationTime(pPath, Part.Disposition.CreationDate.Value);
@@ -153,7 +154,7 @@ namespace work.bacome.imapclient
         {
             using (FileStream lStream = new FileStream(pPath, FileMode.Create))
             {
-                await Client.FetchAsync(Handle, Part.Section, Part.DecodingRequired, lStream, pConfiguration).ConfigureAwait(false);
+                await Client.FetchAsync(MessageHandle, Part.Section, Part.DecodingRequired, lStream, pConfiguration).ConfigureAwait(false);
             }
 
             if (Part.Disposition?.CreationDate != null) File.SetCreationTime(pPath, Part.Disposition.CreationDate.Value);
@@ -161,7 +162,37 @@ namespace work.bacome.imapclient
             if (Part.Disposition?.ReadDate != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDate.Value);
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cAttachment pObject) => this == pObject;
+
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cAttachment)}({Handle},{Part.Section})";
+        public override bool Equals(object pObject) => this == pObject as cAttachment;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode() 
+        {
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash * 23 + MessageHandle.GetHashCode();
+                lHash = lHash * 23 + Part.GetHashCode();
+                return lHash;
+            }
+        }
+
+        /// <inheritdoc />
+        public override string ToString() => $"{nameof(cAttachment)}({MessageHandle},{Part.Section})";
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cAttachment pA, cAttachment pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return pA.Client.Equals(pB.Client) && pA.MessageHandle.Equals(pB.MessageHandle) && pA.Part.Equals(pB.Part);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cAttachment pA, cAttachment pB) => !(pA == pB);
     }
 }

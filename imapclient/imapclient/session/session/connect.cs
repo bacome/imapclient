@@ -34,12 +34,7 @@ namespace work.bacome.imapclient
                     throw new cConnectByeException(lGreeting.ResponseText, lContext);
                 }
 
-                if (lGreeting.Capabilities != null)
-                {
-                    mCapabilities = new cCapabilities(lGreeting.Capabilities, lGreeting.AuthenticationMechanisms, mIgnoreCapabilities);
-                    mPipeline.SetCapabilities(mCapabilities, lContext);
-                    mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
-                }
+                if (mPipeline.Capabilities != null) ZSetCapabilities(mPipeline.Capabilities, mPipeline.AuthenticationMechanisms, lContext);
 
                 if (lGreeting.Type == eGreetingType.ok)
                 {

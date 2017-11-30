@@ -1,4 +1,5 @@
 ﻿using System;
+using work.bacome.imapclient.apidocumentation;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -11,7 +12,7 @@ namespace work.bacome.imapclient
     /// </remarks>
     /// <seealso cref="cIMAPClient.HomeServerReferral"/>
     /// <seealso cref="cIMAPClient.MailboxReferrals"/>
-    public class cURL
+    public class cURL : IEquatable<cURL>
     {
         // IMAP URL (rfc 5092, 5593)
 
@@ -56,9 +57,9 @@ namespace work.bacome.imapclient
         public uint? UID => mParts.UID;
         /**<summary>Gets the decoded 'isection' part of the URL. May be <see langword="null"/>.</summary>*/
         public string Section => mParts.Section;
-        /**<summary>Gets the from part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>*/
+        /**<summary>Gets the 'offset' part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>*/
         public uint? PartialOffset => mParts.PartialOffset;
-        /**<summary>Gets the length part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>*/
+        /**<summary>Gets the 'length' part of the 'partial-range' part of the URL. May be <see langword="null"/>.</summary>*/
         public uint? PartialLength => mParts.PartialLength;
         /**<summary>Gets the parsed 'datetime' part of the 'expire' part of the URL. May be <see langword="null"/>.</summary>*/
         public DateTime? Expire => mParts.Expire;
@@ -88,6 +89,15 @@ namespace work.bacome.imapclient
         /**<summary>Indicates whether the URL is an authorized URL.</summary>*/
         public bool IsAuthorised => mParts.IsAuthorised;
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cURL pObject) => this == pObject;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cURL;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode() => mParts.GetHashCode();
+
         /// <inheritdoc/>
         public override string ToString()
         {
@@ -95,6 +105,18 @@ namespace work.bacome.imapclient
             lBuilder.Append(mParts);
             return lBuilder.ToString();
         }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cURL pA, cURL pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return pA.mParts.Equals(pB.mParts);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cURL pA, cURL pB) => !(pA == pB);
 
         /// <summary>
         /// Tries to parse a string as an IMAP URL.

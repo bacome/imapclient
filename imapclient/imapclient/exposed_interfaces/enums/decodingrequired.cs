@@ -11,8 +11,8 @@ namespace work.bacome.imapclient
     /// <seealso cref="cSinglePartBody.DecodingRequired"/>
     public enum eDecodingRequired
     {
-        /** <summary>The decoding required is unknown.</summary> */
-        unknown,
+        /** <summary>Decoding is required, but it is not <see cref="quotedprintable"/> or <see cref="base64"/> decoding.</summary> */
+        other,
 
         /** <summary>No decoding is required.</summary> */
         none,

@@ -10,38 +10,38 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private async Task<cBody> ZFetchBodyAsync(cMethodControl pMC, iMessageHandle pHandle, bool pBinary, cSection pSection, uint pOrigin, uint pLength, cTrace.cContext pParentContext)
+            private async Task<cBody> ZFetchBodyAsync(cMethodControl pMC, iMessageHandle pMessageHandle, bool pBinary, cSection pSection, uint pOrigin, uint pLength, cTrace.cContext pParentContext)
             {
                 // the caller must have checked that the binary option is compatible with the section (e.g. if binary is true the section can't specify a textpart)
                 //  the length must be greater than zero
 
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pHandle, pBinary, pSection, pOrigin, pLength);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMessageHandle, pBinary, pSection, pOrigin, pLength);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
                 if (pSection == null) throw new ArgumentNullException(nameof(pSection));
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
                     lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select
 
-                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pHandle);
+                    cSelectedMailbox lSelectedMailbox = mMailboxCache.CheckInSelectedMailbox(pMessageHandle);
 
                     lBuilder.Add(await mPipeline.GetIdleBlockTokenAsync(pMC, lContext).ConfigureAwait(false)); // stop the pipeline from iding (idle is msnunsafe)
                     lBuilder.Add(await mMSNUnsafeBlock.GetTokenAsync(pMC, lContext).ConfigureAwait(false)); // wait until all commands that are msnunsafe complete, block all commands that are msnunsafe
 
                     // uidvalidity must be set before the handle is resolved
-                    lBuilder.AddUIDValidity(lSelectedMailbox.Cache.UIDValidity);
+                    lBuilder.AddUIDValidity(lSelectedMailbox.MessageCache.UIDValidity);
 
                     // resolve the MSN
-                    uint lMSN = lSelectedMailbox.GetMSN(pHandle);
+                    uint lMSN = lSelectedMailbox.GetMSN(pMessageHandle);
 
                     if (lMSN == 0)
                     {
-                        if (pHandle.Expunged) throw new cMessageExpungedException(pHandle);
-                        throw new ArgumentOutOfRangeException(nameof(pHandle));
+                        if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
+                        throw new ArgumentOutOfRangeException(nameof(pMessageHandle));
                     }
 
                     // build command
@@ -64,7 +64,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("fetch body success");
-                        if (lHook.Body == null) throw new cUnexpectedServerActionException(0, "body not received", lContext);
+                        if (lHook.Body == null) throw new cRequestedDataNotReturnedException(lContext);
                         return lHook.Body;
                     }
 

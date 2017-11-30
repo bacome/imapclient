@@ -525,7 +525,9 @@ namespace testharness2
 
                 List<eResponseTextContext> lTypes = new List<eResponseTextContext>();
 
-                if (chkRTTGreeting.Checked) lTypes.Add(eResponseTextContext.greeting);
+                if (chkRTTOKGreeting.Checked) lTypes.Add(eResponseTextContext.greetingok);
+                if (chkRTTPreAuthGreeting.Checked) lTypes.Add(eResponseTextContext.greetingpreauth);
+                if (chkRTTByeGreeting.Checked) lTypes.Add(eResponseTextContext.greetingbye);
                 if (chkRTTContinue.Checked) lTypes.Add(eResponseTextContext.continuerequest);
                 if (chkRTTBye.Checked) lTypes.Add(eResponseTextContext.bye);
                 if (chkRTTInformation.Checked) lTypes.Add(eResponseTextContext.information);
@@ -739,7 +741,7 @@ namespace testharness2
 
             ZTryParseHeaderFieldNames(txtAHHeaderFieldNames.Text, out var lNames);
 
-            mClient.DefaultMessageCacheItems = new cMessageCacheItems(lAttributes, lNames ?? cHeaderFieldNames.None);
+            mClient.DefaultMessageCacheItems = new cMessageCacheItems(lAttributes, lNames ?? cHeaderFieldNames.Empty);
         }
 
         private void cmdPSet_Click(object sender, EventArgs e)

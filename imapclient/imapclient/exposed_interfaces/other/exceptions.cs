@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
         public readonly cResponseText ResponseText;
 
         /// <summary>
-        /// Indicates that ignoring these capabilities may have prevented the problem.
+        /// Indicates that ignoring these capabilities may prevent the problem.
         /// </summary>
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
         public readonly cCommandResult CommandResult;
 
         /// <summary>
-        /// Indicates that ignoring these capabilities may have prevented the exception.
+        /// Indicates that ignoring these capabilities may prevent the problem.
         /// </summary>
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
@@ -108,12 +108,21 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
+    /// Thrown when the requested data is not returned by the server. This is most likely because the message has been expunged.
+    /// </summary>
+    public class cRequestedDataNotReturnedException : cIMAPException
+    {
+        internal cRequestedDataNotReturnedException() { }
+        internal cRequestedDataNotReturnedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cRequestedDataNotReturnedException));
+    }
+
+    /// <summary>
     /// Thrown when something happens that shouldn't (according to my reading of the RFCs).
     /// </summary>
     public class cUnexpectedServerActionException : cIMAPException
     {
         /// <summary>
-        /// Indicates that ignoring these capabilities may have prevented the exception.
+        /// Indicates that ignoring these capabilities may prevent the problem.
         /// </summary>
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
@@ -330,12 +339,12 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when the UIDValidity of the selected mailbox changed while the library was doing something that depended on it not changing.
+    /// Thrown when the UIDValidity is incorrect or changed while the library was doing something that depended on it not changing.
     /// </summary>
-    public class cUIDValidityChangedException : cIMAPException
+    public class cUIDValidityException : cIMAPException
     {
-        internal cUIDValidityChangedException() { }
-        internal cUIDValidityChangedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityChangedException));
+        internal cUIDValidityException() { }
+        internal cUIDValidityException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityException));
     }
 
     /// <summary>
@@ -358,15 +367,15 @@ namespace work.bacome.imapclient
         /// <summary>
         /// The message concerned.
         /// </summary>
-        public readonly iMessageHandle Handle;
+        public readonly iMessageHandle MessageHandle;
 
-        internal cMessageExpungedException(iMessageHandle pHandle) { Handle = pHandle; }
+        internal cMessageExpungedException(iMessageHandle pMessageHandle) { MessageHandle = pMessageHandle; }
 
         /// <inheritdoc/>
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cMessageExpungedException));
-            lBuilder.Append(Handle);
+            lBuilder.Append(MessageHandle);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
         }

@@ -99,6 +99,7 @@ namespace work.bacome.async
             }
         }
 
+        /**<summary></summary>*/
         public void Dispose()
         {
             if (mDisposed) return;
@@ -190,6 +191,7 @@ namespace work.bacome.async
                 mContextToUseWhenDisposing = pContextToUseWhenDisposing ?? throw new ArgumentNullException(nameof(pContextToUseWhenDisposing));
             }
 
+            /**<summary></summary>*/
             public void Dispose()
             {
                 if (mDisposed) return;

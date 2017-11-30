@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
                     lBuilder.Add(lAuthentication);
                     pSASL.LastAuthentication = lAuthentication;
 
-                    if (mCapabilities.SASL_IR)
+                    if (_Capabilities.SASL_IR)
                     {
                         IList<byte> lAuthenticationResponse;
 
@@ -50,29 +50,19 @@ namespace work.bacome.imapclient
                         }
                     }
 
-                    var lHook = new cCommandHookAuthenticate(mPipeline, lAuthentication, mCapabilities.LoginReferrals);
+                    var lHook = new cCommandHookAuthenticate(mPipeline, lAuthentication, _Capabilities.LoginReferrals);
                     lBuilder.Add(lHook);
+
+                    var lCapabilities = mPipeline.Capabilities;
 
                     var lResult = await mPipeline.ExecuteAsync(pMC, lBuilder.EmitCommandDetails(), lContext).ConfigureAwait(false);
 
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("authenticate success");
-
-                        if (lHook.Capabilities != null)
-                        {
-                            mCapabilities = new cCapabilities(lHook.Capabilities, lHook.AuthenticationMechanisms, mIgnoreCapabilities);
-                            mPipeline.SetCapabilities(mCapabilities, lContext);
-                            mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.Capabilities), lContext);
-                        }
-
-                        ZSetHomeServerReferral(lResult.ResponseText, lContext);
-                        ZSetConnectedAccountId(pAccountId, lContext);
-
+                        ZAuthenticated(lCapabilities, lHook, lResult.ResponseText, pAccountId, lContext);
                         return null;
                     }
-
-                    if (lHook.Capabilities != null) lContext.TraceError("received capability on a failed authenticate");
 
                     if (lResult.ResultType == eCommandResultType.no)
                     {

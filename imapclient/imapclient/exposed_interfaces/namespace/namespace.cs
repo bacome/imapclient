@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using work.bacome.apidocumentation;
+using work.bacome.imapclient.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
     /// Represents an IMAP namespace.
     /// </summary>
     /// <seealso cref="cIMAPClient.Namespaces"/>
-    public class cNamespace : iMailboxContainer
+    public class cNamespace : iMailboxContainer, IEquatable<cNamespace>
     {
         /**<summary>The client that this instance was created by.</summary>*/
         public readonly cIMAPClient Client;
@@ -70,32 +70,67 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Subscribed(bool, fMailboxCacheDataSets)" select="returns|remarks"/>
         public Task<List<cMailbox>> SubscribedAsync(bool pDescend = true, fMailboxCacheDataSets pDataSets = 0) => Client.SubscribedAsync(NamespaceName, pDescend, pDataSets);
 
+        /// <inheritdoc cref="iMailboxContainer.GetMailboxName(string)"/>
+        public cMailboxName GetMailboxName(string pName)
+        {
+            if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (NamespaceName.Delimiter != null && pName.IndexOf(NamespaceName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cMailboxName.TryConstruct(NamespaceName.Prefix + pName, NamespaceName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            return lMailboxName;
+        }
+
         /// <summary>
         /// Creates a mailbox at the top level of hierarchy in the namespace.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
-        /// <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
+        /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
-        public cMailbox CreateChild(string pName, bool pAsFutureParent = true) => Client.Create(ZCreateChild(pName), pAsFutureParent);
+        /// <inheritdoc cref="cIMAPClient.Create(cMailboxName, bool)" select="remarks"/>
+        public cMailbox CreateChild(string pName, bool pAsFutureParent = false) => Client.Create(GetMailboxName(pName), pAsFutureParent);
 
         /// <summary>
         /// Asynchronously creates a mailbox at the top level of hierarchy in the namespace.
         /// </summary>
         /// <param name="pName">The mailbox name to use.</param>
-        /// <param name="pAsFutureParent">Indicate to the server that you intend to create child mailboxes in the new mailbox.</param>
+        /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
-        public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = true) => Client.CreateAsync(ZCreateChild(pName), pAsFutureParent);
+        /// <inheritdoc cref="CreateChild(string, bool)" select="remarks"/>
+        public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = false) => Client.CreateAsync(GetMailboxName(pName), pAsFutureParent);
 
-        private cMailboxName ZCreateChild(string pName)
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cNamespace pObject) => this == pObject;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(iMailboxContainer pObject) => this == pObject as cNamespace;
+
+        /// <inheritdoc />
+        public override bool Equals(object pObject) => this == pObject as cNamespace;
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.GetHashCode"/>
+        public override int GetHashCode()
         {
-            if (NamespaceName.Delimiter == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NoMailboxHierarchy);
-            if (string.IsNullOrEmpty(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
-            if (pName.IndexOf(NamespaceName.Delimiter.Value) != -1) throw new ArgumentOutOfRangeException(nameof(pName));
-            if (!cMailboxName.TryConstruct(NamespaceName.Prefix + pName, NamespaceName.Delimiter, out var lMailboxName)) throw new ArgumentOutOfRangeException(nameof(pName));
-            return lMailboxName;
+            unchecked
+            {
+                int lHash = 17;
+                lHash = lHash * 23 + Client.GetHashCode();
+                lHash = lHash * 23 + NamespaceName.GetHashCode();
+                return lHash;
+            }
         }
 
         /// <inheritdoc/>
         public override string ToString() => $"{nameof(cMailbox)}({NamespaceName})";
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator ==(cNamespace pA, cNamespace pB)
+        {
+            if (ReferenceEquals(pA, pB)) return true;
+            if (ReferenceEquals(pA, null)) return false;
+            if (ReferenceEquals(pB, null)) return false;
+            return pA.Client.Equals(pB.Client) && pA.NamespaceName.Equals(pB.NamespaceName);
+        }
+
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality(cAPIDocumentationTemplate, cAPIDocumentationTemplate)"/>
+        public static bool operator !=(cNamespace pA, cNamespace pB) => !(pA == pB);
     }
 }

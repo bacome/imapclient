@@ -130,17 +130,17 @@ namespace work.bacome.imapclient
 
                 public iMessageHandle GetHandle(cUID pUID)
                 {
-                    if (mUIDIndex.TryGetValue(pUID, out var lHandle)) return lHandle;
+                    if (mUIDIndex.TryGetValue(pUID, out var lMessageHandle)) return lMessageHandle;
                     return null;
                 }
 
-                public uint GetMSN(iMessageHandle pHandle)
+                public uint GetMSN(iMessageHandle pMessageHandle)
                 {
                     // this should only be called when no msnunsafe commands are running
                     //  zero return means that the message isn't cached
 
-                    if (!(pHandle is cItem lItem)) return 0;
-                    if (!ReferenceEquals(lItem.Cache, this)) return 0;
+                    if (!(pMessageHandle is cItem lItem)) return 0;
+                    if (!ReferenceEquals(lItem.MessageCache, this)) return 0;
                     int lIndex = mItems.BinarySearch(lItem);
                     if (lIndex < 0) return 0;
                     return (uint)lIndex + 1;
@@ -157,7 +157,7 @@ namespace work.bacome.imapclient
                     //  (I don't have to worry about expunges, as they are not allowed during a search command)
 
                     int lMessageCount = pMessageCount;
-                    cMessageHandleList lHandles = new cMessageHandleList();
+                    cMessageHandleList lMessageHandles = new cMessageHandleList();
                     bool lSetMailboxStatus = false;
 
                     foreach (var lMSN in pMSNs)
@@ -176,7 +176,7 @@ namespace work.bacome.imapclient
                             lSetMailboxStatus = true;
                         }
 
-                        lHandles.Add(lItem);
+                        lMessageHandles.Add(lItem);
                     }
 
                     if (mUnseenUnknownCount > 0)
@@ -196,7 +196,7 @@ namespace work.bacome.imapclient
 
                     if (lSetMailboxStatus) ZSetMailboxStatus(lContext);
                     
-                    return lHandles;
+                    return lMessageHandles;
                 }
 
                 private void ZExists(int pMessageCount, cTrace.cContext pParentContext)
@@ -207,19 +207,19 @@ namespace work.bacome.imapclient
 
                     int lToAdd = pMessageCount - mItems.Count;
 
-                    cMessageHandleList lHandles = new cMessageHandleList();
+                    cMessageHandleList lMessageHandles = new cMessageHandleList();
 
                     for (int i = 0; i < lToAdd; i++)
                     {
                         cItem lItem = new cItem(this, mCacheSequence++);
                         mItems.Add(lItem);
-                        lHandles.Add(lItem);
+                        lMessageHandles.Add(lItem);
                     }
 
                     mUIDNextUnknownCount += lToAdd;
                     mUnseenUnknownCount += lToAdd;
 
-                    mSynchroniser.InvokeMailboxMessageDelivery(mMailboxCacheItem, lHandles, lContext);
+                    mSynchroniser.InvokeMailboxMessageDelivery(mMailboxCacheItem, lMessageHandles, lContext);
                     ZSetMailboxStatus(lContext);
                 }
 

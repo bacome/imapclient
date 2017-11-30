@@ -42,7 +42,7 @@ namespace work.bacome.imapclient
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    if (!mCapabilities.QResync) lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select if mailbox-data delivered during the command would be ambiguous
+                    if (!_Capabilities.QResync) lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select if mailbox-data delivered during the command would be ambiguous
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lBuilder.BeginList(eListBracketing.none);
@@ -71,7 +71,7 @@ namespace work.bacome.imapclient
 
                     if ((mMailboxCacheDataItems & fMailboxCacheDataItems.subscribed) != 0) lBuilder.Add(kListExtendedCommandPartSubscribed);
                     if ((mMailboxCacheDataItems & fMailboxCacheDataItems.children) != 0) lBuilder.Add(kListExtendedCommandPartChildren);
-                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.specialuse) != 0 && mCapabilities.SpecialUse) lBuilder.Add(kListExtendedCommandPartSpecialUse);
+                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.specialuse) != 0 && _Capabilities.SpecialUse) lBuilder.Add(kListExtendedCommandPartSpecialUse);
 
                     if (pStatus)
                     {
@@ -90,12 +90,12 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("listextended success");
-                        return lHook.Handles;
+                        return lHook.MailboxHandles;
                     }
 
                     fCapabilities lTryIgnoring = 0;
 
-                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.specialuse) != 0 && mCapabilities.SpecialUse) lTryIgnoring |= fCapabilities.specialuse;
+                    if ((mMailboxCacheDataItems & fMailboxCacheDataItems.specialuse) != 0 && _Capabilities.SpecialUse) lTryIgnoring |= fCapabilities.specialuse;
                     if (pStatus) lTryIgnoring |= fCapabilities.liststatus;
                     if (lTryIgnoring == 0) lTryIgnoring |= fCapabilities.listextended;
 
@@ -121,7 +121,7 @@ namespace work.bacome.imapclient
                     mStatus = pStatus;
                 }
 
-                public List<iMailboxHandle> Handles { get; private set; } = null;
+                public List<iMailboxHandle> MailboxHandles { get; private set; } = null;
 
                 public override void CommandStarted(cTrace.cContext pParentContext)
                 {
@@ -185,7 +185,7 @@ namespace work.bacome.imapclient
                     if (mSelect == eListExtendedSelect.subscribed || mSelect == eListExtendedSelect.subscribedrecursive) mCache.ResetLSubFlags(mPattern, mSequence, lContext);
                     if (mStatus) mCache.ResetStatus(mPattern, mSequence, lContext);
 
-                    Handles = mCache.GetHandles(mMailboxes);
+                    MailboxHandles = mCache.GetHandles(mMailboxes);
                 }
             }
         }

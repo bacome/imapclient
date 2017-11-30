@@ -8,34 +8,34 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal void Delete(iMailboxHandle pHandle)
+        internal void Delete(iMailboxHandle pMailboxHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Delete));
-            var lTask = ZDeleteAsync(pHandle, lContext);
+            var lTask = ZDeleteAsync(pMailboxHandle, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        internal Task DeleteAsync(iMailboxHandle pHandle)
+        internal Task DeleteAsync(iMailboxHandle pMailboxHandle)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(DeleteAsync));
-            return ZDeleteAsync(pHandle, lContext);
+            return ZDeleteAsync(pMailboxHandle, lContext);
         }
 
-        private async Task ZDeleteAsync(iMailboxHandle pHandle, cTrace.cContext pParentContext)
+        private async Task ZDeleteAsync(iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZDeleteAsync), pHandle);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZDeleteAsync), pMailboxHandle);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || !lSession.IsConnected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                await lSession.DeleteAsync(lMC, pHandle, lContext).ConfigureAwait(false);
+                await lSession.DeleteAsync(lMC, pMailboxHandle, lContext).ConfigureAwait(false);
             }
         }
     }

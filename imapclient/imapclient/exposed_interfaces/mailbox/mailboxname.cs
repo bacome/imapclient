@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using work.bacome.apidocumentation;
+using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
 using work.bacome.trace;
 
@@ -42,9 +42,9 @@ namespace work.bacome.imapclient
             Path = pPath;
             Delimiter = pDelimiter;
         }
-    
+
         /// <summary>
-        /// Initialises a new instance with the specified path and hierarchy delimiter. Will throw if the parameters provided are not valid.
+        /// Initialises a new instance with the specified path and hierarchy delimiter. Will throw if the arguments provided are not valid.
         /// </summary>
         /// <param name="pPath"></param>
         /// <param name="pDelimiter"></param>

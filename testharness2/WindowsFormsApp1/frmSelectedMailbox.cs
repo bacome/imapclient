@@ -13,6 +13,7 @@ namespace testharness2
 {
     public partial class frmSelectedMailbox : Form
     {
+        private const string kNone = "<none>";
         private const string kUsingDefault = "<using default>";
 
         private readonly cIMAPClient mClient;
@@ -24,7 +25,8 @@ namespace testharness2
         private readonly List<Form> mMessageForms = new List<Form>();
         private readonly List<Form> mMessagesLoadingForms = new List<Form>();
         private readonly List<Form> mFilterForms = new List<Form>();
-        private cMailbox mSelectedMailbox = null;
+        private cMailbox mCurrentMailbox = null;
+        private object mCurrentMessageCache = null;
         private cFilter mFilter = null;
         private cSort mOverrideSort = null;
 
@@ -45,6 +47,10 @@ namespace testharness2
             lblOverrideSort.Text = kUsingDefault;
             ZGridInitialise();
             mClient.PropertyChanged += mClient_PropertyChanged;
+        }
+
+        private void frmSelectedMailbox_Shown(object sender, EventArgs e)
+        {
             ZQuery();
         }
 
@@ -71,32 +77,34 @@ namespace testharness2
             }
         }
 
-        private object mQueriedMessageCache = new object();
 
         private void ZQuery()
         {
             // defend against querying the same mailbox twice in a row
             //
             //  (note that this will regularly happen without this code as 
-            //    1) events from the client object are delivered asyncronously - therefore two events may arrive after two changes
-            //    2) the client object is updated on an independant thread to the UI therefore as far as UI code is concerned all of the client object properties may dynamically change
-            //
-            //    as an example: consider that the client may become selected whilst we are processing the unselect (e.g. before the setting of the mSelectedMailbox below)
+            //    events from the client object are delivered asyncronously - therefore two events may arrive after two changes
             //  )
             //
-            if (ReferenceEquals(mClient.SelectedMailboxDetails?.Cache, mQueriedMessageCache)) return;
+            var lSelectedMailbox = mClient.SelectedMailbox;
+            var lSelectedMessageCache = lSelectedMailbox?.MessageCache;
+            if (lSelectedMailbox == mCurrentMailbox && lSelectedMessageCache == mCurrentMessageCache) return;
 
             ZMessageFormsClose();
 
             ZUnsubscribeMailbox();
 
-            if (mClient.IsConnected) mSelectedMailbox = mClient.SelectedMailbox;
-            else mSelectedMailbox = null;
-
-            // defence part two
-            var lDetails = mClient.SelectedMailboxDetails;
-            if (!ReferenceEquals(lDetails?.Handle, mSelectedMailbox.Handle)) return;
-            mQueriedMessageCache = lDetails?.Cache;
+            // note that I check the message cache only: in theory if the mailbox is being unselected as we pass through this code it could be null, even though the lSelectedMailbox isn't
+            if (lSelectedMessageCache == null)
+            {
+                mCurrentMailbox = null;
+                mCurrentMessageCache = null;
+            }
+            else
+            {
+                mCurrentMailbox = lSelectedMailbox;
+                mCurrentMessageCache = lSelectedMessageCache;
+            }
 
             ZSubscribeMailbox();
 
@@ -106,40 +114,37 @@ namespace testharness2
 
         private void ZSubscribeMailbox()
         {
-            if (mSelectedMailbox == null) return;
-            mSelectedMailbox.PropertyChanged += mSelectedMailbox_PropertyChanged;
-            mSelectedMailbox.MessageDelivery += mSelectedMailbox_MessageDelivery;
+            if (mCurrentMailbox == null) return;
+            mCurrentMailbox.PropertyChanged += mCurrentMailbox_PropertyChanged;
+            mCurrentMailbox.MessageDelivery += mCurrentMailbox_MessageDelivery;
         }
 
         private void ZUnsubscribeMailbox()
         {
-            if (mSelectedMailbox == null) return;
-            mSelectedMailbox.PropertyChanged -= mSelectedMailbox_PropertyChanged;
-            mSelectedMailbox.MessageDelivery -= mSelectedMailbox_MessageDelivery;
+            if (mCurrentMailbox == null) return;
+            mCurrentMailbox.PropertyChanged -= mCurrentMailbox_PropertyChanged;
+            mCurrentMailbox.MessageDelivery -= mCurrentMailbox_MessageDelivery;
         }
 
-        private void mSelectedMailbox_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void mCurrentMailbox_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             ZQueryProperties();
             if (e.PropertyName == nameof(cMailbox.UIDValidity)) ZQuery();
         }
 
-        private async void mSelectedMailbox_MessageDelivery(object sender, cMessageDeliveryEventArgs e)
+        private async void mCurrentMailbox_MessageDelivery(object sender, cMessageDeliveryEventArgs e)
         {
-            if (mSelectedMailbox == null) return;
-            var lBindingSource = dgvMessages.DataSource as BindingSource;
-            if (lBindingSource == null) return;
-
-            // if filtering is on, ignore it
-            //  TODO!
-
             // cautions;
             //  the event could be for the previously selected mailbox
             //  this could arrive during the query
             //   therefore some of the messages could be on the grid already
             //  we could be processing one of these when the next one arrives
 
-            if (!ReferenceEquals(e.Handles[0].Cache, mClient.SelectedMailboxDetails?.Cache)) return;
+            if (e.MessageHandles[0].MessageCache != mCurrentMessageCache) return;
+            if (mFilter != null) return;
+
+            var lBindingSource = dgvMessages.DataSource as BindingSource;
+            if (lBindingSource == null) return;
 
             frmProgress lProgress = null;
             List<cMessage> lMessages;
@@ -148,14 +153,13 @@ namespace testharness2
             {
                 if (mProgressBar)
                 {
-                    lProgress = new frmProgress("loading new messages", e.Handles.Count);
-                    Program.Centre(lProgress, this);
-                    lProgress.Show();
+                    lProgress = new frmProgress("loading new messages", e.MessageHandles.Count);
+                    lProgress.ShowAndFocus(this);
                     var lConfiguration = new cCacheItemFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
                     ZMessagesLoadingAdd(lProgress); // so it can be cancelled from code
-                    lMessages = await mSelectedMailbox.MessagesAsync(e.Handles, null, lConfiguration);
+                    lMessages = await mCurrentMailbox.MessagesAsync(e.MessageHandles, null, lConfiguration);
                 }
-                else lMessages = await mSelectedMailbox.MessagesAsync(e.Handles);
+                else lMessages = await mCurrentMailbox.MessagesAsync(e.MessageHandles);
             }
             catch (OperationCanceledException) { return; }
             catch (Exception ex)
@@ -169,7 +173,7 @@ namespace testharness2
             }
 
             // check that while getting the messages we haven't been closed or the mailbox changed
-            if (IsDisposed || !ReferenceEquals(e.Handles[0].Cache, mClient.SelectedMailboxDetails?.Cache)) return;
+            if (IsDisposed || e.MessageHandles[0].MessageCache != mCurrentMessageCache) return;
 
             // load the grid with data
             ZAddMessagesToGrid(lMessages);
@@ -185,7 +189,7 @@ namespace testharness2
             {
                 var lData = lBindingSource.List[i] as cGridRowData;
 
-                if (lData != null && lData.Message.Handle == pMessage.Handle)
+                if (lData != null && lData.Message.MessageHandle == pMessage.MessageHandle)
                 {
                     lData = lBindingSource.List[i + 1] as cGridRowData;
                     if (lData == null) return null;
@@ -206,7 +210,7 @@ namespace testharness2
             {
                 var lData = lBindingSource.List[i] as cGridRowData;
 
-                if (lData != null && lData.Message.Handle == pMessage.Handle)
+                if (lData != null && lData.Message.MessageHandle == pMessage.MessageHandle)
                 {
                     lData = lBindingSource.List[i - 1] as cGridRowData;
                     if (lData == null) return null;
@@ -219,7 +223,7 @@ namespace testharness2
 
         private void ZQueryProperties()
         {
-            if (mSelectedMailbox == null)
+            if (mCurrentMailbox == null)
             {
                 rtx.Text = "no selected mailbox";
                 cmdStore.Enabled = false;
@@ -232,24 +236,24 @@ namespace testharness2
 
             try
             {
-                lBuilder.AppendLine("Path: '" + mSelectedMailbox.Path + "'");
-                lBuilder.AppendLine("Delimiter: '" + mSelectedMailbox.Delimiter + "'");
-                lBuilder.AppendLine("Parent Path: '" + mSelectedMailbox.ParentPath + "'");
-                lBuilder.AppendLine("Name: '" + mSelectedMailbox.Name + "'");
+                lBuilder.AppendLine("Path: '" + mCurrentMailbox.Path + "'");
+                lBuilder.AppendLine("Delimiter: '" + mCurrentMailbox.Delimiter + "'");
+                lBuilder.AppendLine("Parent Path: '" + mCurrentMailbox.ParentPath + "'");
+                lBuilder.AppendLine("Name: '" + mCurrentMailbox.Name + "'");
                 lBuilder.AppendLine();
-                lBuilder.AppendLine("Messages: " + mSelectedMailbox.MessageCount);
-                lBuilder.AppendLine("Recent: " + mSelectedMailbox.RecentCount);
-                lBuilder.AppendLine("UIDNext: " + mSelectedMailbox.UIDNext);
-                lBuilder.AppendLine("UIDNextUnknownCount: " + mSelectedMailbox.UIDNextUnknownCount);
-                lBuilder.AppendLine("UIDValidity: " + mSelectedMailbox.UIDValidity);
-                lBuilder.AppendLine("Unseen: " + mSelectedMailbox.UnseenCount);
-                lBuilder.AppendLine("UnseenUnknownCount: " + mSelectedMailbox.UnseenUnknownCount);
-                lBuilder.AppendLine("HighestModSeq: " + mSelectedMailbox.HighestModSeq);
+                lBuilder.AppendLine("Messages: " + mCurrentMailbox.MessageCount);
+                lBuilder.AppendLine("Recent: " + mCurrentMailbox.RecentCount);
+                lBuilder.AppendLine("UIDNext: " + mCurrentMailbox.UIDNext);
+                lBuilder.AppendLine("UIDNextUnknownCount: " + mCurrentMailbox.UIDNextUnknownCount);
+                lBuilder.AppendLine("UIDValidity: " + mCurrentMailbox.UIDValidity);
+                lBuilder.AppendLine("Unseen: " + mCurrentMailbox.UnseenCount);
+                lBuilder.AppendLine("UnseenUnknownCount: " + mCurrentMailbox.UnseenUnknownCount);
+                lBuilder.AppendLine("HighestModSeq: " + mCurrentMailbox.HighestModSeq);
                 lBuilder.AppendLine();
-                lBuilder.AppendLine("Flags: " + mSelectedMailbox.MessageFlags.ToString());
+                lBuilder.AppendLine("Flags: " + mCurrentMailbox.MessageFlags.ToString());
                 lBuilder.AppendLine();
-                if (mSelectedMailbox.IsSelectedForUpdate) lBuilder.AppendLine("PermanentFlags: " + mSelectedMailbox.ForUpdatePermanentFlags.ToString());
-                else lBuilder.AppendLine("PermanentFlags: " + mSelectedMailbox.ReadOnlyPermanentFlags.ToString());
+                if (mCurrentMailbox.IsSelectedForUpdate) lBuilder.AppendLine("PermanentFlags: " + mCurrentMailbox.ForUpdatePermanentFlags.ToString());
+                else lBuilder.AppendLine("PermanentFlags: " + mCurrentMailbox.ReadOnlyPermanentFlags.ToString());
 
             }
             catch (Exception e)
@@ -259,9 +263,9 @@ namespace testharness2
             }
 
             rtx.Text = lBuilder.ToString();
-            cmdStore.Enabled = mSelectedMailbox.IsSelectedForUpdate;
-            cmdExpunge.Enabled = mSelectedMailbox.IsSelectedForUpdate && !mSelectedMailbox.IsAccessReadOnly;
-            cmdClose.Enabled = mSelectedMailbox.IsSelectedForUpdate && !mSelectedMailbox.IsAccessReadOnly;
+            cmdStore.Enabled = mCurrentMailbox.IsSelectedForUpdate;
+            cmdExpunge.Enabled = mCurrentMailbox.IsSelectedForUpdate && !mCurrentMailbox.IsAccessReadOnly;
+            cmdClose.Enabled = mCurrentMailbox.IsSelectedForUpdate && !mCurrentMailbox.IsAccessReadOnly;
         }
 
         private int mQueryMessagesAsyncEntryNumber = 0;
@@ -277,7 +281,7 @@ namespace testharness2
             dgvMessages.Enabled = false;
             dgvMessages.DataSource = new BindingSource();
 
-            if (mSelectedMailbox == null) return;
+            if (mCurrentMailbox == null) return;
 
             // cautions;
             //  message delivery could arrive during the query
@@ -288,32 +292,49 @@ namespace testharness2
 
             try
             {
-                cMessageFetchConfiguration lConfiguration;
-
                 if (mProgressBar)
                 {
                     lProgress = new frmProgress("loading messages");
-                    Program.Centre(lProgress, this);
-                    lProgress.Show();
-                    lConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, lProgress.SetCount, lProgress.Increment);
+                    lProgress.ShowAndFocus(this);
                     ZMessagesLoadingAdd(lProgress); // so it can be cancelled from code
                 }
-                else lConfiguration = null;
 
-                if (mSelectedMailbox.MessageCount > mMaxMessages)
+                if (mCurrentMailbox.MessageCount > mMaxMessages)
                 {
-                    // first get the messages, sorted, but don't get the requested properties yet (as this would be wasteful)
-                    lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, cMessageCacheItems.None, lConfiguration);
+                    cMessageFetchConfiguration lMFConfiguration;
+
+                    if (lProgress == null) lMFConfiguration = null;
+                    else lMFConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, null, null); // the setcount and progress will never be used as we aren't asked for items to be cached
+
+                    // first get the messages, sorted, but don't get the requested properties yet (as this would be wasteful if we are about to trim the set of messages we are going to display)
+                    lMessages = await mCurrentMailbox.MessagesAsync(mFilter, mOverrideSort, cMessageCacheItems.Empty, lMFConfiguration);
                     if (IsDisposed || lQueryMessagesAsyncEntryNumber != mQueryMessagesAsyncEntryNumber) return;
 
                     // remove any excess messages (the filter may have removed enough or the mailbox may have changed in the meantime)
                     if (lMessages.Count > mMaxMessages) lMessages.RemoveRange(mMaxMessages, lMessages.Count - mMaxMessages);
 
-                    // get any missing properties: using the same configuration is a bit of a hack as the count will not be right (TODO: fix it)
-                    await mClient.FetchAsync(lMessages, mClient.DefaultMessageCacheItems, lConfiguration);
+                    cCacheItemFetchConfiguration lCIFConfiguration;
+
+                    if (lProgress == null) lCIFConfiguration = null;
+                    else
+                    {
+                        lProgress.SetCount(lMessages.Count);
+                        lCIFConfiguration = new cCacheItemFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
+                    }
+
+                    // get any missing cache items
+                    await mClient.FetchAsync(lMessages, mClient.DefaultMessageCacheItems, lCIFConfiguration);
                 }
-                else if (mFilter != null || mOverrideSort != null || lConfiguration != null) lMessages = await mSelectedMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
-                else lMessages = await mSelectedMailbox.MessagesAsync(); // show that getting the full set of messages in a mailbox is trivial if no restrictions are required and the defaults are set correctly
+                else if (mFilter != null || mOverrideSort != null || lProgress != null)
+                {
+                    cMessageFetchConfiguration lConfiguration;
+
+                    if (lProgress == null) lConfiguration = null;
+                    else lConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, lProgress.SetCount, lProgress.Increment);
+
+                    lMessages = await mCurrentMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
+                }
+                else lMessages = await mCurrentMailbox.MessagesAsync(); // show that getting the full set of messages in a mailbox is trivial if no restrictions are required and the defaults are set correctly
             }
             /* this is commented out as it hides problems in the gating code 
             catch (OperationCanceledException e)
@@ -342,9 +363,9 @@ namespace testharness2
             dgvMessages.Enabled = true;
 
             // initialise unseen count
-            if (mSelectedMailbox.UnseenUnknownCount > 0 && mTrackUnseen)
+            if (mCurrentMailbox.UnseenUnknownCount > 0 && mTrackUnseen)
             {
-                try { await mSelectedMailbox.SetUnseenCountAsync(); }
+                try { await mCurrentMailbox.SetUnseenCountAsync(); }
                 catch (Exception ex)
                 {
                     if (!IsDisposed) MessageBox.Show(this, $"an error occurred while setting unseen: {ex}");
@@ -473,7 +494,7 @@ namespace testharness2
 
         private async void cmdExpunge_Click(object sender, EventArgs e)
         {
-            try { await mSelectedMailbox.ExpungeAsync(); }
+            try { await mCurrentMailbox.ExpungeAsync(); }
             catch (Exception ex)
             {
                 if (!IsDisposed) MessageBox.Show(this, $"an error occurred while expunging: {ex}");
@@ -482,7 +503,7 @@ namespace testharness2
 
         private async void cmdClose_Click(object sender, EventArgs e)
         {
-            try { await mSelectedMailbox.ExpungeAsync(true); }
+            try { await mCurrentMailbox.ExpungeAsync(true); }
             catch (Exception ex)
             {
                 if (!IsDisposed) MessageBox.Show(this, $"an error occurred while closing: {ex}");
@@ -493,7 +514,7 @@ namespace testharness2
         {
             var lData = dgvMessages.Rows[e.RowIndex].DataBoundItem as cGridRowData;
             if (lData == null) return;
-            ZMessageFormAdd(new frmMessage(mClient.InstanceName, this, mProgressBar, mSelectedMailbox, mMaxTextBytes, lData.Message));
+            ZMessageFormAdd(new frmMessage(mClient.InstanceName, this, mProgressBar, mCurrentMailbox, mMaxTextBytes, lData.Message));
         }
 
         private void cmdOverrideSort_Click(object sender, EventArgs e)
@@ -532,7 +553,18 @@ namespace testharness2
         {
             ZFilterFormsClose();
             mFilter = null;
+            lblFilter.Text = kNone;
             ZQueryMessagesAsync();
+        }
+
+        public string UIDValidity
+        {
+            get
+            {
+                var lUIDValidity = mCurrentMailbox?.UIDValidity;
+                if (lUIDValidity == null) return string.Empty;
+                return lUIDValidity.Value.ToString();
+            }
         }
 
         public void FilterOr(frmFilter pCentreOnThis) => ZFilterFormAdd(new frmFilter(mClient.InstanceName, this), pCentreOnThis);
@@ -554,6 +586,8 @@ namespace testharness2
             }
 
             mFilter = lFilter;
+            if (mFilter == null) lblFilter.Text = kNone;
+            else lblFilter.Text = mFilter.ToString();
             ZQueryMessagesAsync();
         }
 
@@ -622,7 +656,7 @@ namespace testharness2
 
             cMailbox lMailbox;
 
-            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mClient))
+            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mClient, false))
             {
                 if (lMailboxDialog.ShowDialog(this) != DialogResult.OK) return;
                 lMailbox = lMailboxDialog.Mailbox;

@@ -119,6 +119,7 @@ namespace work.bacome.async
             mExclusiveSemaphoreSlim.Release();
         }
 
+        /**<summary></summary>*/
         public void Dispose()
         {
             if (mDisposed) return;
@@ -161,6 +162,7 @@ namespace work.bacome.async
                 mContextToUseWhenDisposing = pContextToUseWhenDisposing;
             }
 
+            /**<summary></summary>*/
             public void Dispose()
             {
                 if (mDisposed) return;
@@ -201,6 +203,7 @@ namespace work.bacome.async
                 mContextToUseWhenDisposing = pContextToUseWhenDisposing;
             }
 
+            /**<summary></summary>*/
             public void Dispose()
             {
                 if (mDisposed) return;

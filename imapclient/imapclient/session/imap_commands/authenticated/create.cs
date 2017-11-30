@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    if (!mCapabilities.QResync) lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select if mailbox-data delivered during the command would be ambiguous
+                    if (!_Capabilities.QResync) lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select if mailbox-data delivered during the command would be ambiguous
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lBuilder.Add(kCreateCommandPart, lMailboxCommandPart);
@@ -42,7 +42,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("create success");
-                        return lHook.Handle;
+                        return lHook.MailboxHandle;
                     }
 
                     if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, 0, lContext);
@@ -61,12 +61,12 @@ namespace work.bacome.imapclient
                     mMailboxName = pMailboxName ?? throw new ArgumentNullException(nameof(pMailboxName));
                 }
 
-                public iMailboxHandle Handle { get; private set; }
+                public iMailboxHandle MailboxHandle { get; private set; }
 
                 public override void CommandCompleted(cCommandResult pResult, cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cCreateCommandHook), nameof(CommandCompleted), pResult);
-                    if (pResult.ResultType == eCommandResultType.ok) Handle = mCache.Create(mMailboxName, lContext);
+                    if (pResult.ResultType == eCommandResultType.ok) MailboxHandle = mCache.Create(mMailboxName, lContext);
                 }
             }
         }

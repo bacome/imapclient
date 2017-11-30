@@ -1,5 +1,5 @@
 ﻿using System;
-using work.bacome.apidocumentation;
+using work.bacome.imapclient.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -35,7 +35,7 @@ namespace work.bacome.imapclient
     /// <seealso cref="cMessage.Fetch(cSection)"/>
     /// <seealso cref="cMessage.Fetch(cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
     /// <seealso cref="cMailbox.UIDFetch(cUID, cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
-    public class cSection
+    public class cSection : IEquatable<cSection>
     {
         /// <summary>
         /// The section specification for an entire message.
@@ -136,6 +136,9 @@ namespace work.bacome.imapclient
             return lCursor.Position.AtEnd;
         }
 
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>
+        public bool Equals(cSection pObject) => this == pObject;
+
         /// <inheritdoc />
         public override bool Equals(object pObject) => this == pObject as cSection;
 
@@ -162,7 +165,12 @@ namespace work.bacome.imapclient
             if (ReferenceEquals(pA, pB)) return true;
             if (ReferenceEquals(pA, null)) return false;
             if (ReferenceEquals(pB, null)) return false;
-            return (pA.Part == pB.Part && pA.TextPart == pB.TextPart && pA.Names == pB.Names);
+
+            if (pA.Part != pB.Part || pA.TextPart != pB.TextPart) return false;
+
+            if (ReferenceEquals(pA.Names, pB.Names)) return true;
+            if (pA.Names == null) return false;
+            return pA.Names.Equals(pB.Names);
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Inequality"/>

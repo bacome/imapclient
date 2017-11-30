@@ -9,7 +9,7 @@ namespace work.bacome.imapclient
     {
         /// <summary>
         /// Connects to the <see cref="Server"/> using the <see cref="Credentials"/>. 
-        /// Can only be called when the instance <see cref="IsUnconnected"/>.
+        /// May only be called when the instance <see cref="IsUnconnected"/>.
         /// Will throw if an authenticated IMAP connection cannot be established.
         /// </summary>
         /// <remarks>
@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
 
         /// <summary>
         /// Ansynchronously connects to the <see cref="Server"/> using the <see cref="Credentials"/>. 
-        /// Can only be called when the instance <see cref="IsUnconnected"/>.
+        /// May only be called when the instance <see cref="IsUnconnected"/>.
         /// Will throw if an authenticated IMAP connection cannot be established.
         /// </summary>
         /// <returns></returns>

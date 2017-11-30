@@ -5,8 +5,23 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("work.bacome.imapclient")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("IMAP Client Library.")]
+[assembly: AssemblyDescription(
+    "Intended for use in projects that need to deal with email presented by an IMAP server where the programmer does not want to learn the finer points of IMAP.\r\n" +
+    "\r\n" +
+    "* Simple high level API with the ability to get low level if/when required.\r\n" +
+    "* Complete API documentation.\r\n" +
+    "* Synchronous and asynchronous APIs with timeout and cancellation.\r\n" +
+    "* Automatic idle processing to keep the client in sync with the server.\r\n" +
+    "* Condstore support for 'mailbox as a message queue' applications.\r\n" +
+    "* Automatic IMAP command pipelining and pipelining safety.\r\n" +
+    "\r\n" +
+    "As this is the initial alpha release;\r\n" +
+    "* All the APIs are subject to change (however most aren't likely to do so), and\r\n" +
+    "* There is a significant (depending on your use case) missing feature: Append - the ability to upload mail to an IMAP server.\r\n" +
+    "\r\n" +
+    "High level documentation, API level documentation, examples and source code are available on/via the project site.\r\n" +
+    "")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("bacome")]
 [assembly: AssemblyProduct("imapclient")]
@@ -32,5 +47,6 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.4.*")]
-[assembly: AssemblyFileVersion("0.4")]
+[assembly: AssemblyVersion("0.5.*")]
+[assembly: AssemblyFileVersion("0.5")]
+[assembly: AssemblyInformationalVersion("0.5.2-alpha")]

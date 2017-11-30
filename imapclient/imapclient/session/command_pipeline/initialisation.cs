@@ -30,8 +30,6 @@ namespace work.bacome.imapclient
                     {
                         await mConnection.ConnectAsync(pMC, pServer, lContext).ConfigureAwait(false);
 
-                        var lHook = new cCommandHookInitial();
-
                         using (var lAwaiter = new cAwaiter(pMC))
                         {
                             while (true)
@@ -45,35 +43,45 @@ namespace work.bacome.imapclient
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpaceOKSpace))
                                 {
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greeting, lCursor, lHook, lContext);
+                                    var lHook = new cCommandHookInitial();
+
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greetingok, lCursor, lHook, lContext);
                                     lContext.TraceVerbose("got ok: {0}", lResponseText);
 
                                     mState = eState.connected;
                                     mBackgroundTask = ZBackgroundTaskAsync(lContext);
-                                    return new sGreeting(eGreetingType.ok, null, lHook.Capabilities, lHook.AuthenticationMechanisms);
+
+                                    mCapabilities = lHook.Capabilities;
+                                    mAuthenticationMechanisms = lHook.AuthenticationMechanisms;
+
+                                    return new sGreeting(eGreetingType.ok, null);
                                 }
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpacePreAuthSpace))
                                 {
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greeting, lCursor, lHook, lContext);
+                                    var lHook = new cCommandHookInitial();
+
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greetingpreauth, lCursor, lHook, lContext);
                                     lContext.TraceVerbose("got preauth: {0}", lResponseText);
 
                                     mState = eState.connected;
                                     mBackgroundTask = ZBackgroundTaskAsync(lContext);
-                                    return new sGreeting(eGreetingType.preauth, lResponseText, lHook.Capabilities, lHook.AuthenticationMechanisms);
+
+                                    mCapabilities = lHook.Capabilities;
+                                    mAuthenticationMechanisms = lHook.AuthenticationMechanisms;
+
+                                    return new sGreeting(eGreetingType.preauth, lResponseText);
                                 }
 
                                 if (lCursor.SkipBytes(kGreetingAsteriskSpaceBYESpace))
                                 {
-                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greeting, lCursor, lHook, lContext);
+                                    cResponseText lResponseText = mResponseTextProcessor.Process(eResponseTextContext.greetingbye, lCursor, null, lContext);
                                     lContext.TraceError("got bye: {0}", lResponseText);
-
-                                    if (lHook.Capabilities != null) lContext.TraceError("received capability on a bye greeting");
 
                                     mConnection.Disconnect(lContext);
 
                                     mState = eState.stopped;
-                                    return new sGreeting(eGreetingType.bye, lResponseText, null, null);
+                                    return new sGreeting(eGreetingType.bye, lResponseText);
                                 }
 
                                 lContext.TraceError("unrecognised response: {0}", lResponse);

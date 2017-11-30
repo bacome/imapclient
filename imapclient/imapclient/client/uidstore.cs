@@ -9,41 +9,41 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal cUIDStoreFeedback UIDStore(iMailboxHandle pHandle, cUID pUID, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal cUIDStoreFeedback UIDStore(iMailboxHandle pMailboxHandle, cUID pUID, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
             var lFeedback = new cUIDStoreFeedback(pUID, pOperation, pFlags);
-            var lTask = ZUIDStoreAsync(pHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
+            var lTask = ZUIDStoreAsync(pMailboxHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lFeedback;
         }
 
-        internal cUIDStoreFeedback UIDStore(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal cUIDStoreFeedback UIDStore(iMailboxHandle pMailboxHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
             var lFeedback = new cUIDStoreFeedback(pUIDs, pOperation, pFlags);
-            var lTask = ZUIDStoreAsync(pHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
+            var lTask = ZUIDStoreAsync(pMailboxHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lFeedback;
         }
 
-        internal async Task<cUIDStoreFeedback> UIDStoreAsync(iMailboxHandle pHandle, cUID pUID, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal async Task<cUIDStoreFeedback> UIDStoreAsync(iMailboxHandle pMailboxHandle, cUID pUID, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
             var lFeedback = new cUIDStoreFeedback(pUID, pOperation, pFlags);
-            await ZUIDStoreAsync(pHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+            await ZUIDStoreAsync(pMailboxHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             return lFeedback;
         }
 
-        internal async Task<cUIDStoreFeedback> UIDStoreAsync(iMailboxHandle pHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
+        internal async Task<cUIDStoreFeedback> UIDStoreAsync(iMailboxHandle pMailboxHandle, IEnumerable<cUID> pUIDs, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(UIDStore));
             var lFeedback = new cUIDStoreFeedback(pUIDs, pOperation, pFlags);
-            await ZUIDStoreAsync(pHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+            await ZUIDStoreAsync(pMailboxHandle, lFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             return lFeedback;
         }
 
-        private async Task ZUIDStoreAsync(iMailboxHandle pHandle, cUIDStoreFeedback pFeedback, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
+        private async Task ZUIDStoreAsync(iMailboxHandle pMailboxHandle, cUIDStoreFeedback pFeedback, eStoreOperation pOperation, cStorableFlags pFlags, ulong? pIfUnchangedSinceModSeq, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZUIDStoreAsync), pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq);
 
@@ -52,7 +52,7 @@ namespace work.bacome.imapclient
             var lSession = mSession;
             if (lSession == null || lSession.SelectedMailboxDetails?.SelectedForUpdate != true) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelectedForUpdate);
 
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
             if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
             if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
@@ -65,7 +65,7 @@ namespace work.bacome.imapclient
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
                 var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                await lSession.UIDStoreAsync(lMC, pHandle, pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
+                await lSession.UIDStoreAsync(lMC, pMailboxHandle, pFeedback, pOperation, pFlags, pIfUnchangedSinceModSeq, lContext).ConfigureAwait(false);
             }
         }
     }

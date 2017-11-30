@@ -14,14 +14,14 @@ namespace work.bacome.imapclient
 
     internal class cFilterMSNRelativity : cFilter
     {
-        public readonly iMessageHandle Handle;
+        public readonly iMessageHandle MessageHandle;
         public readonly eFilterEnd? End;
         public readonly int Offset;
         public readonly eFilterHandleRelativity Relativity;
 
-        public cFilterMSNRelativity(iMessageHandle pHandle, eFilterHandleRelativity pRelativity) : base(true, pHandle.Cache.UIDValidity)
+        public cFilterMSNRelativity(iMessageHandle pMessageHandle, eFilterHandleRelativity pRelativity) : base(true, pMessageHandle.MessageCache.UIDValidity)
         {
-            Handle = pHandle ?? throw new ArgumentNullException(nameof(pHandle));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             End = null;
             Offset = 0;
             Relativity = pRelativity;
@@ -30,12 +30,12 @@ namespace work.bacome.imapclient
         public cFilterMSNRelativity(cFilterMSNOffset pOffset, eFilterHandleRelativity pRelativity)
         {
             End = pOffset.End;
-            Handle = pOffset.Handle;
+            MessageHandle = pOffset.MessageHandle;
             Offset = pOffset.Offset;
             Relativity = pRelativity;
         }
 
-        public override string ToString() => $"{nameof(cFilterMSNRelativity)}({UIDValidity},{Handle},{End},{Offset},{Relativity})";
+        public override string ToString() => $"{nameof(cFilterMSNRelativity)}({UIDValidity},{MessageHandle},{End},{Offset},{Relativity})";
     }
 
     internal class cFilterUIDIn : cFilter

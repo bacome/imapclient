@@ -9,31 +9,31 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal void Fetch(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
+        internal void Fetch(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Fetch));
-            var lTask = ZFetchBodyAsync(pHandle, pSection, pDecoding, pStream, pConfiguration, lContext);
+            var lTask = ZFetchBodyAsync(pMessageHandle, pSection, pDecoding, pStream, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
         }
 
-        internal Task FetchAsync(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
+        internal Task FetchAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration)
         {
             // note: if it fails bytes could have been written to the stream
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchAsync));
-            return ZFetchBodyAsync(pHandle, pSection, pDecoding, pStream, pConfiguration, lContext);
+            return ZFetchBodyAsync(pMessageHandle, pSection, pDecoding, pStream, pConfiguration, lContext);
         }
 
-        private async Task ZFetchBodyAsync(iMessageHandle pHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
+        private async Task ZFetchBodyAsync(iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cBodyFetchConfiguration pConfiguration, cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchBodyAsync), pHandle, pSection, pDecoding);
+            var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchBodyAsync), pMessageHandle, pSection, pDecoding);
 
             if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
 
             var lSession = mSession;
             if (lSession == null || lSession.ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotSelected);
 
-            if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+            if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
             if (pStream == null) throw new ArgumentNullException(nameof(pStream));
 
@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
                     var lProgress = new cProgress();
                     var lWriteSizer = new cBatchSizer(mFetchBodyWriteConfiguration);
-                    await lSession.FetchBodyAsync(lMC, pHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
+                    await lSession.FetchBodyAsync(lMC, pMessageHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
                 }
             }
             else
@@ -54,7 +54,7 @@ namespace work.bacome.imapclient
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
                 var lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
                 var lWriteSizer = new cBatchSizer(pConfiguration.Write ?? mFetchBodyWriteConfiguration);
-                await lSession.FetchBodyAsync(lMC, pHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
+                await lSession.FetchBodyAsync(lMC, pMessageHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
             }
         }
     }

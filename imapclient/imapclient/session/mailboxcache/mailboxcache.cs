@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
                 {
                     if (pMailboxNames == null) return null;
 
-                    List<iMailboxHandle> lHandles = new List<iMailboxHandle>();
+                    List<iMailboxHandle> lMailboxHandles = new List<iMailboxHandle>();
 
                     pMailboxNames.Sort();
 
@@ -46,17 +46,17 @@ namespace work.bacome.imapclient
                     foreach (var lMailboxName in pMailboxNames)
                         if (lMailboxName != lLastMailboxName)
                         {
-                            lHandles.Add(ZItem(lMailboxName));
+                            lMailboxHandles.Add(ZItem(lMailboxName));
                             lLastMailboxName = lMailboxName;
                         }
 
-                    return lHandles;
+                    return lMailboxHandles;
                 }
 
-                public cMailboxCacheItem CheckHandle(iMailboxHandle pHandle)
+                public cMailboxCacheItem CheckHandle(iMailboxHandle pMailboxHandle)
                 {
-                    if (!(pHandle is cMailboxCacheItem lItem)) throw new ArgumentOutOfRangeException(nameof(pHandle));
-                    if (!ReferenceEquals(lItem.MailboxCache, this)) throw new ArgumentOutOfRangeException(nameof(pHandle));
+                    if (!(pMailboxHandle is cMailboxCacheItem lItem)) throw new ArgumentOutOfRangeException(nameof(pMailboxHandle));
+                    if (!ReferenceEquals(lItem.MailboxCache, this)) throw new ArgumentOutOfRangeException(nameof(pMailboxHandle));
                     return lItem;
                 }
 
@@ -64,32 +64,33 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(CommandCompletion));
                     if (mSelectedMailbox == null) return;
-                    if (mSelectedMailbox.Cache.NoModSeq) return;
+                    if (mSelectedMailbox.MessageCache.NoModSeq) return;
                     mSelectedMailbox.UpdateHighestModSeq(lContext);
                 }
 
                 public iSelectedMailboxDetails SelectedMailboxDetails => mSelectedMailbox;
 
-                public cSelectedMailbox CheckIsSelectedMailbox(iMailboxHandle pHandle, uint? pUIDValidity)
+                public cSelectedMailbox CheckIsSelectedMailbox(iMailboxHandle pMailboxHandle, uint? pUIDValidity)
                 {
-                    if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-                    if (mSelectedMailbox == null || !ReferenceEquals(pHandle, mSelectedMailbox.Handle)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
-                    if (pUIDValidity != null && pUIDValidity != mSelectedMailbox.Cache.UIDValidity) throw new cUIDValidityChangedException();
+                    if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
+                    if (mSelectedMailbox == null || !ReferenceEquals(pMailboxHandle, mSelectedMailbox.MailboxHandle)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
+                    if (pUIDValidity != null && pUIDValidity != mSelectedMailbox.MessageCache.UIDValidity) throw new cUIDValidityException();
                     return mSelectedMailbox;
                 }
 
-                public cSelectedMailbox CheckInSelectedMailbox(iMessageHandle pHandle)
+                public cSelectedMailbox CheckInSelectedMailbox(iMessageHandle pMessageHandle)
                 {
-                    if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
-                    if (mSelectedMailbox == null || !ReferenceEquals(pHandle.Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
+                    if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
+                    if (mSelectedMailbox == null || !ReferenceEquals(pMessageHandle.MessageCache, mSelectedMailbox.MessageCache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
+                    if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
                     return mSelectedMailbox;
                 }
 
-                public cSelectedMailbox CheckInSelectedMailbox(cMessageHandleList pHandles)
+                public cSelectedMailbox CheckInSelectedMailbox(cMessageHandleList pMessageHandles)
                 {
-                    if (pHandles == null) throw new ArgumentNullException(nameof(pHandles));
-                    if (pHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pHandles));
-                    if (mSelectedMailbox == null || !ReferenceEquals(pHandles[0].Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
+                    if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
+                    if (pMessageHandles.Count == 0) throw new ArgumentOutOfRangeException(nameof(pMessageHandles));
+                    if (mSelectedMailbox == null || !ReferenceEquals(pMessageHandles[0].MessageCache, mSelectedMailbox.MessageCache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
                     return mSelectedMailbox;
                 }
 
@@ -97,7 +98,7 @@ namespace work.bacome.imapclient
                 {
                     if (pFeedback == null) throw new ArgumentNullException(nameof(pFeedback));
                     if (pFeedback.Count == 0) throw new ArgumentOutOfRangeException(nameof(pFeedback));
-                    if (mSelectedMailbox == null || !ReferenceEquals(pFeedback[0].Handle.Cache, mSelectedMailbox.Cache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
+                    if (mSelectedMailbox == null || !ReferenceEquals(pFeedback[0].MessageHandle.MessageCache, mSelectedMailbox.MessageCache)) throw new InvalidOperationException(kInvalidOperationExceptionMessage.MailboxNotSelected);
                     return mSelectedMailbox;
                 }
 
@@ -140,7 +141,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(ResetStatus), pPattern, pSequence);
 
-                    iMailboxHandle lSelectedMailboxHandle = mSelectedMailbox?.Handle;
+                    iMailboxHandle lSelectedMailboxHandle = mSelectedMailbox?.MailboxHandle;
 
                     foreach (var lItem in mDictionary.Values)
                         if (lItem.Exists != false && lItem.MailboxName != null && pPattern.Matches(lItem.MailboxName.Path))
@@ -157,7 +158,7 @@ namespace work.bacome.imapclient
 
                     if (mSelectedMailbox == null) return;
 
-                    var lHandle = mSelectedMailbox.Handle;
+                    var lMailboxHandle = mSelectedMailbox.MailboxHandle;
 
                     fMailboxProperties lProperties = fMailboxProperties.isselected;
                     if (mSelectedMailbox.SelectedForUpdate) lProperties |= fMailboxProperties.isselectedforupdate;
@@ -166,20 +167,20 @@ namespace work.bacome.imapclient
                     mSelectedMailbox = null;
 
                     mSetState(eConnectionState.notselected, lContext);
-                    mSynchroniser.InvokeMailboxPropertiesChanged(lHandle, lProperties, lContext);
+                    mSynchroniser.InvokeMailboxPropertiesChanged(lMailboxHandle, lProperties, lContext);
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
                 }
 
-                public void Select(iMailboxHandle pHandle, bool pForUpdate, bool pAccessReadOnly, bool pUIDNotSticky, cFetchableFlags pFlags, cPermanentFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
+                public void Select(iMailboxHandle pMailboxHandle, bool pForUpdate, bool pAccessReadOnly, bool pUIDNotSticky, cFetchableFlags pFlags, cPermanentFlags pPermanentFlags, int pExists, int pRecent, uint pUIDNext, uint pUIDValidity, uint pHighestModSeq, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pHandle, pForUpdate, pAccessReadOnly, pUIDNotSticky, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
+                    var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(Select), pMailboxHandle, pForUpdate, pAccessReadOnly, pUIDNotSticky, pFlags, pPermanentFlags, pExists, pRecent, pUIDNext, pUIDValidity, pHighestModSeq);
 
                     if (mSelectedMailbox != null) throw new InvalidOperationException();
 
-                    if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                    if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
                     if (pFlags == null) throw new ArgumentNullException(nameof(pFlags));
 
-                    var lItem = CheckHandle(pHandle);
+                    var lItem = CheckHandle(pMailboxHandle);
 
                     if (pExists < 0) throw new ArgumentOutOfRangeException(nameof(pExists));
                     if (pRecent < 0) throw new ArgumentOutOfRangeException(nameof(pRecent));
@@ -193,17 +194,17 @@ namespace work.bacome.imapclient
                     if (pAccessReadOnly) lProperties |= fMailboxProperties.isaccessreadonly;
 
                     mSetState(eConnectionState.selected, lContext);
-                    mSynchroniser.InvokeMailboxPropertiesChanged(pHandle, lProperties, lContext);
+                    mSynchroniser.InvokeMailboxPropertiesChanged(pMailboxHandle, lProperties, lContext);
                     mSynchroniser.InvokePropertyChanged(nameof(cIMAPClient.SelectedMailbox), lContext);
                 }
 
-                public bool HasChildren(iMailboxHandle pHandle)
+                public bool HasChildren(iMailboxHandle pMailboxHandle)
                 {
-                    CheckHandle(pHandle);
+                    CheckHandle(pMailboxHandle);
 
-                    if (pHandle.MailboxName.Delimiter == null) return false;
+                    if (pMailboxHandle.MailboxName.Delimiter == null) return false;
 
-                    cMailboxPathPattern lPattern = new cMailboxPathPattern(pHandle.MailboxName.Path + pHandle.MailboxName.Delimiter, "*", pHandle.MailboxName.Delimiter);
+                    cMailboxPathPattern lPattern = new cMailboxPathPattern(pMailboxHandle.MailboxName.Path + pMailboxHandle.MailboxName.Delimiter, "*", pMailboxHandle.MailboxName.Delimiter);
 
                     foreach (var lItem in mDictionary.Values)
                         if (lItem.Exists == true && lItem.MailboxName != null && lPattern.Matches(lItem.MailboxName.Path))

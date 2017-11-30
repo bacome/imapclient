@@ -12,19 +12,19 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kDeleteCommandPart = new cTextCommandPart("DELETE ");
 
-            public async Task DeleteAsync(cMethodControl pMC, iMailboxHandle pHandle, cTrace.cContext pParentContext)
+            public async Task DeleteAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(DeleteAsync), pMC, pHandle);
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(DeleteAsync), pMC, pMailboxHandle);
 
                 if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
                 if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
-                if (pHandle == null) throw new ArgumentNullException(nameof(pHandle));
+                if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
 
-                var lItem = mMailboxCache.CheckHandle(pHandle);
+                var lItem = mMailboxCache.CheckHandle(pMailboxHandle);
 
                 using (var lBuilder = new cCommandDetailsBuilder())
                 {
-                    if (!mCapabilities.QResync) lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select if mailbox-data delivered during the command would be ambiguous
+                    if (!_Capabilities.QResync) lBuilder.Add(await mSelectExclusiveAccess.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // block select if mailbox-data delivered during the command would be ambiguous
                     lBuilder.Add(await mMSNUnsafeBlock.GetBlockAsync(pMC, lContext).ConfigureAwait(false)); // this command is msnunsafe
 
                     lBuilder.Add(kDeleteCommandPart, lItem.MailboxNameCommandPart);

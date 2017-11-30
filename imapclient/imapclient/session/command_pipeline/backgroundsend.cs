@@ -65,7 +65,7 @@ namespace work.bacome.imapclient
 
                             if (lCommand.State == eCommandState.queued)
                             {
-                                if (lCommand.UIDValidity != null && lCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.Cache.UIDValidity) lCommand.SetException(new cUIDValidityChangedException(lContext), lContext);
+                                if (lCommand.UIDValidity != null && lCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.MessageCache.UIDValidity) lCommand.SetException(new cUIDValidityException(lContext), lContext);
                                 else
                                 {
                                     mCurrentCommand = lCommand;

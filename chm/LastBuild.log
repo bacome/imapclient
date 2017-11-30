@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shfbBuild product="Sandcastle Help File Builder and Tools" version="2017.5.15.0" projectFile="C:\Users\barry\Documents\GitHub\imapclient\sandcastle\imapclient.chm.shfbproj" started="2017-11-30 16:02:44">
+<buildStep step="Initializing">
+Finding tools...
+The Sandcastle tools are located in &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\&#39;
+Searching for HTML Help 1 compiler...
+Found HTML Help 1 compiler in &#39;C:\Program Files (x86)\HTML Help Workshop\&#39;
+Locating components in the following folder(s):
+    C:\Users\barry\Documents\GitHub\imapclient\sandcastle
+    C:\ProgramData\EWSoftware\Sandcastle Help File Builder\Components and Plug-Ins\
+    C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\
+Using framework reflection data for &#39;.NET Framework 4.5&#39; located in &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\Data\.NETFramework&#39;
+Using presentation style &#39;VS2013&#39; located in &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013&#39;
+Loading and initializing plug-ins...
+Lightweight Website Style Version 2017.5.15.0
+Copyright &#169; 2006-2017, Eric Woodruff, All Rights Reserved
+Portions Copyright &#169; 2014, Sam Harwell, All Rights Reserved
+</buildStep>
+<buildStep step="ValidatingDocumentationSources">
+Validating and copying documentation source information
+Source: C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\imapclient.csproj
+    Found project &#39;C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\imapclient.csproj&#39;
+
+Parsing project files
+    Found assembly &#39;C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\bin\Debug\work.bacome.imapclient.dll&#39;
+SHFB: Warning BE0007: A project with a different or higher framework version was found.  Changing project FrameworkVersion property from &#39;.NET Framework 4.5&#39; to &#39;.NET Framework 4.5.2&#39; for the build.
+
+References to include (excluding framework assemblies):
+    None
+
+Copying XML comments files
+    C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\bin\Debug\work.bacome.imapclient.xml -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\work.bacome.imapclient.xml
+</buildStep>
+<buildStep step="GenerateSharedContent">
+Generating shared content files (en-US, English (United States))...
+<plugIn name="Lightweight Website Style" behavior="After" priority="1000">
+</plugIn>    Last step completed in 00:00:00.0240
+</buildStep>
+<buildStep step="GenerateApiFilter">
+Generating API filter for MRefBuilder...
+    Last step completed in 00:00:00.0065
+</buildStep>
+<buildStep step="GenerateReflectionInfo">
+Generating reflection information...
+[C:\Program Files (x86)\MSBuild\14.0\bin\amd64\MSBuild.exe - GenerateRefInfo.proj]
+Build started 2017-11-30 16:02:45.
+Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\GenerateRefInfo.proj&quot; on node 1 (default targets).
+PrepareForBuild:
+  Creating directory &quot;obj\Debug\&quot;.
+GenerateRefInfo:
+  MRefBuilder (v2017.5.15.0)
+  Copyright &#184; 2006-2017, Microsoft Corporation, All Rights Reserved.
+  Portions Copyright &#184; 2006-2016, Eric Woodruff, All Rights Reserved.
+  No source code context base path specified.  Source context information is unavailable.
+  Loaded 1 assemblies for reflection and 1 dependency assemblies.
+  Wrote information on 4 namespaces, 169 types, and 1376 members
+  Copying file from &quot;reflection.org&quot; to &quot;reflection.all&quot;.
+  XslTransform (v2017.5.15.0)
+  Copyright &#184; 2006-2017, Microsoft Corporation, All Rights Reserved.
+  Portions Copyright &#184; 2006-2016, Eric Woodruff, All Rights Reserved.
+  Applying XSL transformation &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\ProductionTransforms\MergeDuplicates.xsl&#39;.
+Done Building Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\GenerateRefInfo.proj&quot; (default targets).
+
+Build succeeded.
+
+Time Elapsed 00:00:01.28
+    Last step completed in 00:00:01.4012
+</buildStep>
+<buildStep step="TransformReflectionInfo">
+Transforming reflection output...
+[C:\Program Files (x86)\MSBuild\14.0\bin\amd64\MSBuild.exe - TransformManifest.proj]
+Build started 2017-11-30 16:02:46.
+Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\TransformManifest.proj&quot; on node 1 (default targets).
+TransformManifest:
+  XslTransform (v2017.5.15.0)
+  Copyright &#184; 2006-2017, Microsoft Corporation, All Rights Reserved.
+  Portions Copyright &#184; 2006-2016, Eric Woodruff, All Rights Reserved.
+  Applying XSL transformation &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\\ProductionTransforms\ApplyVSDocModel.xsl&#39;.
+  Copying file from &quot;reflection.xml&quot; to &quot;reflection.nofilenames&quot;.
+  XslTransform (v2017.5.15.0)
+  Copyright &#184; 2006-2017, Microsoft Corporation, All Rights Reserved.
+  Portions Copyright &#184; 2006-2016, Eric Woodruff, All Rights Reserved.
+  Applying XSL transformation &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\ProductionTransforms\AddFilenames.xsl&#39;.
+    Unique name M_work_bacome_async_cAwaiter__ctor_1 generated for M:work.bacome.async.cAwaiter.#ctor(work.bacome.async.cMethodControl)
+    Unique name M_work_bacome_async_cAwaiter_AwaitAll_1 generated for M:work.bacome.async.cAwaiter.AwaitAll(work.bacome.async.cMethodControl,System.Threading.Tasks.Task[])
+    Unique name M_work_bacome_async_cCancellationManager__ctor_1 generated for M:work.bacome.async.cCancellationManager.#ctor(System.Action{work.bacome.trace.cTrace.cContext})
+    Unique name M_work_bacome_imapclient_cAccountId_Equals_1 generated for M:work.bacome.imapclient.cAccountId.Equals(work.bacome.imapclient.cAccountId)
+    Unique name M_work_bacome_imapclient_cAttachment_Equals_1 generated for M:work.bacome.imapclient.cAttachment.Equals(work.bacome.imapclient.cAttachment)
+    Unique name M_work_bacome_imapclient_cBatchSizerConfiguration_Equals_1 generated for M:work.bacome.imapclient.cBatchSizerConfiguration.Equals(work.bacome.imapclient.cBatchSizerConfiguration)
+    Unique name M_work_bacome_imapclient_cBodyFetchConfiguration__ctor_1 generated for M:work.bacome.imapclient.cBodyFetchConfiguration.#ctor(System.Threading.CancellationToken,System.Action{System.Int32},work.bacome.imapclient.cBatchSizerConfiguration)
+    Unique name M_work_bacome_imapclient_cCacheItemFetchConfiguration__ctor_1 generated for M:work.bacome.imapclient.cCacheItemFetchConfiguration.#ctor(System.Threading.CancellationToken,System.Action{System.Int32})
+    Unique name M_work_bacome_imapclient_cFetchableFlagList__ctor_1 generated for M:work.bacome.imapclient.cFetchableFlagList.#ctor(System.Collections.Generic.IEnumerable{System.String})
+    Unique name M_work_bacome_imapclient_cFetchableFlagList__ctor_2 generated for M:work.bacome.imapclient.cFetchableFlagList.#ctor(System.String[])
+    Unique name M_work_bacome_imapclient_cFetchableFlagList__ctor_3 generated for M:work.bacome.imapclient.cFetchableFlagList.#ctor(work.bacome.imapclient.cFetchableFlagList)
+    Unique name M_work_bacome_imapclient_cFetchableFlags__ctor_1 generated for M:work.bacome.imapclient.cFetchableFlags.#ctor(System.String[])
+    Unique name M_work_bacome_imapclient_cFetchableFlags__ctor_2 generated for M:work.bacome.imapclient.cFetchableFlags.#ctor(work.bacome.imapclient.cFetchableFlagList)
+    Unique name M_work_bacome_imapclient_cFilter_FlagsContain_1 generated for M:work.bacome.imapclient.cFilter.FlagsContain(work.bacome.imapclient.cFetchableFlags)
+    Unique name M_work_bacome_imapclient_cFilterMSN_op_GreaterThan_1 generated for M:work.bacome.imapclient.cFilterMSN.op_GreaterThan(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cMessage)
+    Unique name M_work_bacome_imapclient_cFilterMSN_op_GreaterThanOrEqual_1 generated for M:work.bacome.imapclient.cFilterMSN.op_GreaterThanOrEqual(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cMessage)
+    Unique name M_work_bacome_imapclient_cFilterMSN_op_LessThan_1 generated for M:work.bacome.imapclient.cFilterMSN.op_LessThan(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cMessage)
+    Unique name M_work_bacome_imapclient_cFilterMSN_op_LessThanOrEqual_1 generated for M:work.bacome.imapclient.cFilterMSN.op_LessThanOrEqual(work.bacome.imapclient.cFilterMSN,work.bacome.imapclient.cMessage)
+    Unique name M_work_bacome_imapclient_cFilterSize_op_GreaterThan_1 generated for M:work.bacome.imapclient.cFilterSize.op_GreaterThan(work.bacome.imapclient.cFilterSize,System.UInt32)
+    Unique name M_work_bacome_imapclient_cFilterSize_op_LessThan_1 generated for M:work.bacome.imapclient.cFilterSize.op_LessThan(work.bacome.imapclient.cFilterSize,System.UInt32)
+    Unique name M_work_bacome_imapclient_cHeaderFieldNameList__ctor_1 generated for M:work.bacome.imapclient.cHeaderFieldNameList.#ctor(System.Collections.Generic.IEnumerable{System.String})
+    Unique name M_work_bacome_imapclient_cHeaderFieldNameList__ctor_2 generated for M:work.bacome.imapclient.cHeaderFieldNameList.#ctor(System.String[])
+    Unique name M_work_bacome_imapclient_cHeaderFieldNameList__ctor_3 generated for M:work.bacome.imapclient.cHeaderFieldNameList.#ctor(work.bacome.imapclient.cHeaderFieldNameList)
+    Unique name M_work_bacome_imapclient_cHeaderFieldNameList_Add_1 generated for M:work.bacome.imapclient.cHeaderFieldNameList.Add(System.String)
+    Unique name M_work_bacome_imapclient_cHeaderFieldNameList_Add_2 generated for M:work.bacome.imapclient.cHeaderFieldNameList.Add(System.String[])
+    Unique name M_work_bacome_imapclient_cHeaderFieldNameList_Contains_1 generated for M:work.bacome.imapclient.cHeaderFieldNameList.Contains(System.String)
+    Unique name M_work_bacome_imapclient_cHeaderFieldNameList_Contains_2 generated for M:work.bacome.imapclient.cHeaderFieldNameList.Contains(System.String[])
+    Unique name M_work_bacome_imapclient_cHeaderFieldNameList_Remove_1 generated for M:work.bacome.imapclient.cHeaderFieldNameList.Remove(System.String)
+    Unique name M_work_bacome_imapclient_cHeaderFieldNameList_Remove_2 generated for M:work.bacome.imapclient.cHeaderFieldNameList.Remove(System.String[])
+    Unique name M_work_bacome_imapclient_cHeaderFieldNames__ctor_1 generated for M:work.bacome.imapclient.cHeaderFieldNames.#ctor(System.String[])
+    Unique name M_work_bacome_imapclient_cHeaderFieldNames_Contains_1 generated for M:work.bacome.imapclient.cHeaderFieldNames.Contains(System.String)
+    Unique name M_work_bacome_imapclient_cHeaderFieldNames_Contains_2 generated for M:work.bacome.imapclient.cHeaderFieldNames.Contains(System.String[])
+    Unique name M_work_bacome_imapclient_cHeaderFieldNames_Equals_1 generated for M:work.bacome.imapclient.cHeaderFieldNames.Equals(work.bacome.imapclient.cHeaderFieldNames)
+    Unique name M_work_bacome_imapclient_cHeaderFields_Contains_1 generated for M:work.bacome.imapclient.cHeaderFields.Contains(work.bacome.imapclient.cHeaderFieldNames)
+    Unique name M_work_bacome_imapclient_cIdDictionary_Add_1 generated for M:work.bacome.imapclient.cIdDictionary.Add(System.String,System.String)
+    Unique name M_work_bacome_imapclient_cIdDictionary_Remove_1 generated for M:work.bacome.imapclient.cIdDictionary.Remove(System.String)
+    Unique name M_work_bacome_imapclient_cIdleConfiguration_Equals_1 generated for M:work.bacome.imapclient.cIdleConfiguration.Equals(work.bacome.imapclient.cIdleConfiguration)
+    Unique name M_work_bacome_imapclient_cIMAPClient_SetServer_1 generated for M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Boolean)
+    Unique name M_work_bacome_imapclient_cIMAPClient_SetServer_2 generated for M:work.bacome.imapclient.cIMAPClient.SetServer(System.String,System.Int32,System.Boolean)
+    Unique name M_work_bacome_imapclient_cMailbox_Equals_1 generated for M:work.bacome.imapclient.cMailbox.Equals(work.bacome.imapclient.cMailbox)
+    Unique name M_work_bacome_imapclient_cMailbox_Equals_2 generated for M:work.bacome.imapclient.cMailbox.Equals(work.bacome.imapclient.iMailboxContainer)
+    Unique name M_work_bacome_imapclient_cMailbox_Messages_1 generated for M:work.bacome.imapclient.cMailbox.Messages(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)
+    Unique name M_work_bacome_imapclient_cMailbox_Messages_2 generated for M:work.bacome.imapclient.cMailbox.Messages(work.bacome.imapclient.cFilter,work.bacome.imapclient.cSort,work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cMessageFetchConfiguration)
+    Unique name M_work_bacome_imapclient_cMailbox_MessagesAsync_1 generated for M:work.bacome.imapclient.cMailbox.MessagesAsync(System.Collections.Generic.IEnumerable{work.bacome.imapclient.support.iMessageHandle},work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cCacheItemFetchConfiguration)
+    Unique name M_work_bacome_imapclient_cMailbox_MessagesAsync_2 generated for M:work.bacome.imapclient.cMailbox.MessagesAsync(work.bacome.imapclient.cFilter,work.bacome.imapclient.cSort,work.bacome.imapclient.cMessageCacheItems,work.bacome.imapclient.cMessageFetchConfiguration)
+    Unique name M_work_bacome_imapclient_cMailbox_Rename_1 generated for M:work.bacome.imapclient.cMailbox.Rename(work.bacome.imapclient.iMailboxContainer,System.String)
+    Unique name M_work_bacome_imapclient_cMailbox_RenameAsync_1 generated for M:work.bacome.imapclient.cMailbox.RenameAsync(work.bacome.imapclient.iMailboxContainer,System.String)
+    Unique name M_work_bacome_imapclient_cMailbox_UIDCopy_1 generated for M:work.bacome.imapclient.cMailbox.UIDCopy(work.bacome.imapclient.cUID,work.bacome.imapclient.cMailbox)
+    Unique name M_work_bacome_imapclient_cMailbox_UIDCopyAsync_1 generated for M:work.bacome.imapclient.cMailbox.UIDCopyAsync(work.bacome.imapclient.cUID,work.bacome.imapclient.cMailbox)
+    Unique name M_work_bacome_imapclient_cMailbox_UIDStore_1 generated for M:work.bacome.imapclient.cMailbox.UIDStore(work.bacome.imapclient.cUID,work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cStorableFlags,System.Nullable{System.UInt64})
+    Unique name M_work_bacome_imapclient_cMailbox_UIDStoreAsync_1 generated for M:work.bacome.imapclient.cMailbox.UIDStoreAsync(work.bacome.imapclient.cUID,work.bacome.imapclient.eStoreOperation,work.bacome.imapclient.cStorableFlags,System.Nullable{System.UInt64})
+    Unique name M_work_bacome_imapclient_cMailboxName_Equals_1 generated for M:work.bacome.imapclient.cMailboxName.Equals(work.bacome.imapclient.cMailboxName)
+    Unique name M_work_bacome_imapclient_cMessage_Equals_1 generated for M:work.bacome.imapclient.cMessage.Equals(work.bacome.imapclient.cMessage)
+    Unique name M_work_bacome_imapclient_cMessage_Fetch_1 generated for M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection)
+    Unique name M_work_bacome_imapclient_cMessage_Fetch_2 generated for M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSection,work.bacome.imapclient.eDecodingRequired,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)
+    Unique name M_work_bacome_imapclient_cMessage_Fetch_3 generated for M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cSinglePartBody,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)
+    Unique name M_work_bacome_imapclient_cMessage_Fetch_4 generated for M:work.bacome.imapclient.cMessage.Fetch(work.bacome.imapclient.cTextBodyPart)
+    Unique name M_work_bacome_imapclient_cMessage_FetchAsync_1 generated for M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cSection)
+    Unique name M_work_bacome_imapclient_cMessage_FetchAsync_2 generated for M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cSection,work.bacome.imapclient.eDecodingRequired,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)
+    Unique name M_work_bacome_imapclient_cMessage_FetchAsync_3 generated for M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cSinglePartBody,System.IO.Stream,work.bacome.imapclient.cBodyFetchConfiguration)
+    Unique name M_work_bacome_imapclient_cMessage_FetchAsync_4 generated for M:work.bacome.imapclient.cMessage.FetchAsync(work.bacome.imapclient.cTextBodyPart)
+    Unique name M_work_bacome_imapclient_cMessageCacheItems__ctor_1 generated for M:work.bacome.imapclient.cMessageCacheItems.#ctor(work.bacome.imapclient.fMessageProperties)
+    Unique name M_work_bacome_imapclient_cMessageCacheItems_Equals_1 generated for M:work.bacome.imapclient.cMessageCacheItems.Equals(work.bacome.imapclient.cMessageCacheItems)
+    Unique name M_work_bacome_imapclient_cMessageCacheItems_op_Implicit_1 generated for M:work.bacome.imapclient.cMessageCacheItems.op_Implicit(work.bacome.imapclient.fMessageCacheAttributes)~work.bacome.imapclient.cMessageCacheItems
+    Unique name M_work_bacome_imapclient_cMessageCacheItems_op_Implicit_2 generated for M:work.bacome.imapclient.cMessageCacheItems.op_Implicit(work.bacome.imapclient.fMessageProperties)~work.bacome.imapclient.cMessageCacheItems
+    Unique name M_work_bacome_imapclient_cMessageFetchConfiguration__ctor_1 generated for M:work.bacome.imapclient.cMessageFetchConfiguration.#ctor(System.Threading.CancellationToken,System.Action{System.Int32},System.Action{System.Int32})
+    Unique name M_work_bacome_imapclient_cMessageFlagList_Add_1 generated for M:work.bacome.imapclient.cMessageFlagList.Add(System.String)
+    Unique name M_work_bacome_imapclient_cMessageFlagList_Add_2 generated for M:work.bacome.imapclient.cMessageFlagList.Add(System.String[])
+    Unique name M_work_bacome_imapclient_cMessageFlagList_Contains_1 generated for M:work.bacome.imapclient.cMessageFlagList.Contains(System.String)
+    Unique name M_work_bacome_imapclient_cMessageFlagList_Contains_2 generated for M:work.bacome.imapclient.cMessageFlagList.Contains(System.String[])
+    Unique name M_work_bacome_imapclient_cMessageFlagList_Remove_1 generated for M:work.bacome.imapclient.cMessageFlagList.Remove(System.String)
+    Unique name M_work_bacome_imapclient_cMessageFlagList_Remove_2 generated for M:work.bacome.imapclient.cMessageFlagList.Remove(System.String[])
+    Unique name M_work_bacome_imapclient_cMessageFlags_Contains_1 generated for M:work.bacome.imapclient.cMessageFlags.Contains(System.String)
+    Unique name M_work_bacome_imapclient_cMessageFlags_Contains_2 generated for M:work.bacome.imapclient.cMessageFlags.Contains(System.String[])
+    Unique name M_work_bacome_imapclient_cMessageFlags_Equals_1 generated for M:work.bacome.imapclient.cMessageFlags.Equals(work.bacome.imapclient.cMessageFlags)
+    Unique name M_work_bacome_imapclient_cNamespace_Equals_1 generated for M:work.bacome.imapclient.cNamespace.Equals(work.bacome.imapclient.cNamespace)
+    Unique name M_work_bacome_imapclient_cNamespace_Equals_2 generated for M:work.bacome.imapclient.cNamespace.Equals(work.bacome.imapclient.iMailboxContainer)
+    Unique name M_work_bacome_imapclient_cNamespaceName_Equals_1 generated for M:work.bacome.imapclient.cNamespaceName.Equals(work.bacome.imapclient.cNamespaceName)
+    Unique name M_work_bacome_imapclient_cSection__ctor_1 generated for M:work.bacome.imapclient.cSection.#ctor(System.String,work.bacome.imapclient.cHeaderFieldNames,System.Boolean)
+    Unique name M_work_bacome_imapclient_cSection__ctor_2 generated for M:work.bacome.imapclient.cSection.#ctor(System.String,work.bacome.imapclient.eSectionTextPart)
+    Unique name M_work_bacome_imapclient_cSection_Equals_1 generated for M:work.bacome.imapclient.cSection.Equals(work.bacome.imapclient.cSection)
+    Unique name M_work_bacome_imapclient_cServer__ctor_1 generated for M:work.bacome.imapclient.cServer.#ctor(System.String,System.Boolean)
+    Unique name M_work_bacome_imapclient_cServer__ctor_2 generated for M:work.bacome.imapclient.cServer.#ctor(System.String,System.Int32,System.Boolean)
+    Unique name M_work_bacome_imapclient_cServer_Equals_1 generated for M:work.bacome.imapclient.cServer.Equals(work.bacome.imapclient.cServer)
+    Unique name M_work_bacome_imapclient_cSort__ctor_1 generated for M:work.bacome.imapclient.cSort.#ctor(work.bacome.imapclient.cSortItem[])
+    Unique name M_work_bacome_imapclient_cSort_Compare_1 generated for M:work.bacome.imapclient.cSort.Compare(work.bacome.imapclient.support.iMessageHandle,work.bacome.imapclient.support.iMessageHandle)
+    Unique name M_work_bacome_imapclient_cSort_Equals_1 generated for M:work.bacome.imapclient.cSort.Equals(work.bacome.imapclient.cSort)
+    Unique name M_work_bacome_imapclient_cSortItem_Equals_1 generated for M:work.bacome.imapclient.cSortItem.Equals(work.bacome.imapclient.cSortItem)
+    Unique name M_work_bacome_imapclient_cStorableFlagList__ctor_1 generated for M:work.bacome.imapclient.cStorableFlagList.#ctor(System.Collections.Generic.IEnumerable{System.String})
+    Unique name M_work_bacome_imapclient_cStorableFlagList__ctor_2 generated for M:work.bacome.imapclient.cStorableFlagList.#ctor(System.String[])
+    Unique name M_work_bacome_imapclient_cStorableFlagList__ctor_3 generated for M:work.bacome.imapclient.cStorableFlagList.#ctor(work.bacome.imapclient.cStorableFlagList)
+    Unique name M_work_bacome_imapclient_cStorableFlags__ctor_1 generated for M:work.bacome.imapclient.cStorableFlags.#ctor(System.String[])
+    Unique name M_work_bacome_imapclient_cStorableFlags__ctor_2 generated for M:work.bacome.imapclient.cStorableFlags.#ctor(work.bacome.imapclient.cStorableFlagList)
+    Unique name M_work_bacome_imapclient_cUID_Equals_1 generated for M:work.bacome.imapclient.cUID.Equals(work.bacome.imapclient.cUID)
+    Unique name M_work_bacome_imapclient_cURI_Equals_1 generated for M:work.bacome.imapclient.cURI.Equals(work.bacome.imapclient.cURI)
+    Unique name M_work_bacome_imapclient_cURL_Equals_1 generated for M:work.bacome.imapclient.cURL.Equals(work.bacome.imapclient.cURL)
+    Unique name M_work_bacome_imapclient_support_cCharset_Contains_1 generated for M:work.bacome.imapclient.support.cCharset.Contains(System.Char)
+    Unique name M_work_bacome_trace_cTrace_cContext_NewGeneric_1 generated for M:work.bacome.trace.cTrace.cContext.NewGeneric(System.String,System.Object[])
+    Unique name M_work_bacome_trace_cTrace_cContext_NewMethod_1 generated for M:work.bacome.trace.cTrace.cContext.NewMethod(System.String,System.String,System.Object[])
+    Unique name M_work_bacome_trace_cTrace_cContext_NewMethodV_1 generated for M:work.bacome.trace.cTrace.cContext.NewMethodV(System.String,System.String,System.Int32,System.Object[])
+    Unique name M_work_bacome_trace_cTrace_cContext_NewObject_1 generated for M:work.bacome.trace.cTrace.cContext.NewObject(System.String,System.Object[])
+    Unique name M_work_bacome_trace_cTrace_cContext_NewObjectV_1 generated for M:work.bacome.trace.cTrace.cContext.NewObjectV(System.String,System.Int32,System.Object[])
+    Unique name M_work_bacome_trace_cTrace_cContext_NewRootMethod_1 generated for M:work.bacome.trace.cTrace.cContext.NewRootMethod(System.String,System.String)
+    Unique name M_work_bacome_trace_cTrace_cContext_NewRootObject_1 generated for M:work.bacome.trace.cTrace.cContext.NewRootObject(System.String)
+    Unique name M_work_bacome_trace_cTrace_cContext_NewSetProp_1 generated for M:work.bacome.trace.cTrace.cContext.NewSetProp(System.String,System.String,System.Object)
+    Unique name M_work_bacome_trace_cTrace_cContext_TraceException_1 generated for M:work.bacome.trace.cTrace.cContext.TraceException(System.Diagnostics.TraceEventType,System.String,System.Exception)
+    Unique name M_work_bacome_trace_cTrace_cContext_TraceException_2 generated for M:work.bacome.trace.cTrace.cContext.TraceException(System.Exception)
+    Unique name M_work_bacome_trace_cTrace_cContext_TraceException_3 generated for M:work.bacome.trace.cTrace.cContext.TraceException(System.String,System.Exception)
+  XslTransform (v2017.5.15.0)
+  Copyright &#184; 2006-2017, Microsoft Corporation, All Rights Reserved.
+  Portions Copyright &#184; 2006-2016, Eric Woodruff, All Rights Reserved.
+  Applying XSL transformation &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\ProductionTransforms\ReflectionToManifest.xsl&#39;.
+Done Building Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\TransformManifest.proj&quot; (default targets).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.96
+    Last step completed in 00:00:01.0366
+</buildStep>
+<buildStep step="GenerateNamespaceSummaries">
+Generating namespace summary information...
+    Last step completed in 00:00:00.0825
+</buildStep>
+<buildStep step="GenerateInheritedDocumentation">
+Generating inherited documentation...
+[C:\Program Files (x86)\MSBuild\14.0\bin\amd64\MSBuild.exe - GenerateInheritedDocs.proj]
+Sandcastle Help File Builder and Tools, version 2017.5.15.0
+Copyright &#184; 2006-2017, Eric Woodruff, All Rights Reserved
+E-Mail: Eric@EWoodruff.us
+
+Reflection information will be retrieved from &#39;reflection.xml&#39;
+Inherited documentation will be written to &#39;_InheritedDocs_.xml&#39;
+Indexing C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\*.xml
+Indexing C:\Users\barry\Documents\Sandcastle\imapclient\Work\work.bacome.imapclient.xml
+Indexed 157394 members in 125 file(s).  1 file(s) to scan for &lt;inheritdoc /&gt; tags.
+Merging inherited documentation...
+
+
+Documentation merged successfully
+    Last step completed in 00:00:01.6022
+</buildStep>
+<buildStep step="CopyAdditionalContent">
+Copying additional content files...
+No additional content to copy
+    Last step completed in 00:00:00.0000
+</buildStep>
+<buildStep step="MergeTablesOfContents">
+Merging conceptual and additional tables of contents...
+    Last step completed in 00:00:00.0000
+</buildStep>
+<buildStep step="GenerateIntermediateTableOfContents">
+Generating intermediate table of contents file...
+[C:\Program Files (x86)\MSBuild\14.0\bin\amd64\MSBuild.exe - GenerateIntermediateTOC.proj]
+Build started 2017-11-30 16:02:49.
+Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\GenerateIntermediateTOC.proj&quot; on node 1 (default targets).
+GenerateIntermediateTOC:
+  XslTransform (v2017.5.15.0)
+  Copyright &#184; 2006-2017, Microsoft Corporation, All Rights Reserved.
+  Portions Copyright &#184; 2006-2016, Eric Woodruff, All Rights Reserved.
+  Applying XSL transformation &#39;C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\\ProductionTransforms\CreateVSToc.xsl&#39;.
+Done Building Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\GenerateIntermediateTOC.proj&quot; (default targets).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.19
+Generating conceptual content intermediate TOC file...
+    Last step completed in 00:00:00.2660
+</buildStep>
+<buildStep step="CreateBuildAssemblerConfigs">
+Creating Sandcastle configuration files...
+    sandcastle.config
+    Last step completed in 00:00:00.2360
+</buildStep>
+<buildStep step="MergeCustomConfigs">
+Merging custom build component configurations
+C:\Users\barry\Documents\Sandcastle\imapclient\Work\sandcastle.config
+  Updating reference topic configurations.
+  No conceptual content.  Removing conceptual content components.
+    Last step completed in 00:00:00.0185
+</buildStep>
+<buildStep step="BuildTopics">
+Building help topics...
+[C:\Program Files (x86)\MSBuild\14.0\bin\amd64\MSBuild.exe - BuildTopics.proj]
+Build started 2017-11-30 16:02:49.
+Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\BuildTopics.proj&quot; on node 1 (default targets).
+BuildTopics:
+  BuildAssembler (v2017.5.15.0)
+  Copyright &#184; 2006-2017, Microsoft Corporation, All Rights Reserved.
+  Portions Copyright &#184; 2006-2016, Eric Woodruff, All Rights Reserved.
+  Loading configuration...
+  Processing topics...
+BuildAssembler : warning : ResolveReferenceLinksComponent: [T:work.bacome.imapclient.support.iMailboxHandle] Unknown reference link target &#39;T:work.bacome.imapclient.iSelectedMailboxDetails&#39;. [C:\Users\barry\Documents\Sandcastle\imapclient\Work\BuildTopics.proj]
+BuildAssembler : warning : ResolveReferenceLinksComponent: [T:work.bacome.imapclient.support.iMessageCache] Unknown reference link target &#39;T:work.bacome.imapclient.iSelectedMailboxDetails&#39;. [C:\Users\barry\Documents\Sandcastle\imapclient\Work\BuildTopics.proj]
+  Processed 1796 topic(s)
+  2 warning(s)
+  CopyFromIndexComponent: &quot;reflection&quot; in-memory cache entries used: 12 of 15.
+  CopyFromIndexComponent: &quot;comments&quot; in-memory cache entries used: 4 of 30.
+Done Building Project &quot;C:\Users\barry\Documents\Sandcastle\imapclient\Work\BuildTopics.proj&quot; (default targets).
+
+Build succeeded.
+
+Time Elapsed 00:00:14.39
+    Last step completed in 00:00:14.5178
+</buildStep>
+<buildStep step="CombiningIntermediateTocFiles">
+Combining conceptual and API intermediate TOC files...
+    Last step completed in 00:00:00.0100
+</buildStep>
+<buildStep step="ExtractingHtmlInfo">
+Extracting HTML info for HTML Help 1 and/or website...
+[C:\Program Files (x86)\MSBuild\14.0\bin\amd64\MSBuild.exe - ExtractHtmlInfo.proj]
+Sandcastle Help File Builder and Tools, version 2017.5.15.0
+Copyright &#184; 2006-2017, Eric Woodruff, All Rights Reserved
+E-Mail: Eric@EWoodruff.us
+
+Using LCID &#39;1033&#39;, code page &#39;65001&#39;, encoding charset &#39;UTF-8&#39;.
+
+Processing Help 1 files in C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1
+Processed 1796 HTML files
+Sorting keywords and generating See Also indices
+Saving HTML Help 1 keyword index to C:\Users\barry\Documents\Sandcastle\imapclient\Work\work.bacome.imapclient.hhk
+Saving HTML Help 1 table of contents to C:\Users\barry\Documents\Sandcastle\imapclient\Work\work.bacome.imapclient.hhc
+    Last step completed in 00:00:01.0081
+</buildStep>
+<buildStep step="CopyStandardHelpContent">
+Copying standard help content...
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\AlertCaution.png -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\AlertCaution.png
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\AlertNote.png -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\AlertNote.png
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\AlertSecurity.png -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\AlertSecurity.png
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\CFW.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\CFW.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\CodeExample.png -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\CodeExample.png
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\favicon.ico -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\favicon.ico
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\privclass.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\privclass.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\privdelegate.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\privdelegate.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\privenumeration.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\privenumeration.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\privevent.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\privevent.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\privextension.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\privextension.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\privfield.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\privfield.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\privinterface.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\privinterface.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\privmethod.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\privmethod.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\privproperty.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\privproperty.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\privstructure.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\privstructure.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\protclass.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\protclass.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\protdelegate.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\protdelegate.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\protenumeration.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\protenumeration.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\protevent.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\protevent.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\protextension.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\protextension.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\protfield.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\protfield.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\protinterface.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\protinterface.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\protmethod.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\protmethod.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\protoperator.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\protoperator.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\protproperty.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\protproperty.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\protstructure.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\protstructure.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\pubclass.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\pubclass.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\pubdelegate.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\pubdelegate.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\pubenumeration.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\pubenumeration.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\pubevent.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\pubevent.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\pubextension.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\pubextension.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\pubfield.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\pubfield.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\pubinterface.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\pubinterface.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\pubmethod.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\pubmethod.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\puboperator.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\puboperator.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\pubproperty.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\pubproperty.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\pubstructure.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\pubstructure.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\SectionCollapsed.png -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\SectionCollapsed.png
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\SectionExpanded.png -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\SectionExpanded.png
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\slMobile.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\slMobile.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\static.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\static.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\icons\xna.gif -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\icons\xna.gif
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\scripts\branding.js -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\scripts\branding.js
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-cs-CZ.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-cs-CZ.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-de-DE.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-de-DE.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-en-US.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-en-US.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-es-ES.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-es-ES.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-fr-FR.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-fr-FR.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-Help1.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-Help1.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-HelpViewer.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-HelpViewer.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-it-IT.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-it-IT.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-ja-JP.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-ja-JP.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-ko-KR.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-ko-KR.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-pl-PL.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-pl-PL.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-pt-BR.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-pt-BR.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-ru-RU.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-ru-RU.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-tr-TR.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-tr-TR.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-Website.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-Website.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-zh-CN.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-zh-CN.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding-zh-TW.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding-zh-TW.css
+C:\Program Files (x86)\EWSoftware\Sandcastle Help File Builder\PresentationStyles\VS2013\styles\branding.css -&gt; C:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\styles\branding.css
+    Last step completed in 00:00:00.2505
+</buildStep>
+<buildStep step="GenerateHelpFormatTableOfContents">
+Generating HTML Help 1 table of contents file...
+    Last step completed in 00:00:00.0000
+</buildStep>
+<buildStep step="GenerateHelpFileIndex">
+Generating HTML Help 1 index file...
+    Last step completed in 00:00:00.0005
+</buildStep>
+<buildStep step="GenerateHelpProject">
+Generating HTML Help 1 project file...
+    Last step completed in 00:00:00.0425
+</buildStep>
+<buildStep step="CompilingHelpFile">
+Compiling HTML Help 1 file...
+[C:\Program Files (x86)\MSBuild\14.0\bin\amd64\MSBuild.exe - Build1xHelpFile.proj]
+  Microsoft HTML Help Compiler 4.74.8702
+  
+  
+  
+  Compiling c:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\work.bacome.imapclient.chm
+  
+  
+  
+  
+  
+  Compile time: 0 minutes, 17 seconds
+  
+  1,798	Topics
+  
+  21,538	Local links
+  
+  5,407	Internet links
+  
+  0	Graphics
+  
+  
+  
+  
+  
+  Created c:\Users\barry\Documents\Sandcastle\imapclient\Work\Output\HtmlHelp1\work.bacome.imapclient.chm, 1,338,701 bytes
+  
+  Compression decreased file by 12,002,248 bytes.
+  
+    Last step completed in 00:00:18.9394
+</buildStep>
+<buildStep step="CleanIntermediates">
+Removing intermediate files...
+    Last step completed in 00:00:01.4032
+</buildStep>
+<buildStep step="Completed">
+
+Build completed successfully at 2017-11-30 16:03:25.  Total time: 00:00:41.3162
+
+</buildStep>
+</shfbBuild>

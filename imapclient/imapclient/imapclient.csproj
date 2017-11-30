@@ -7,8 +7,8 @@
     <ProjectGuid>{99043948-67B0-4136-B81F-B5F52D4259A3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>imapclient</RootNamespace>
-    <AssemblyName>imapclient</AssemblyName>
+    <RootNamespace>work.bacome.imapclient</RootNamespace>
+    <AssemblyName>work.bacome.imapclient</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -20,7 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\imapclient.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\work.bacome.imapclient.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="exposed_interfaces\other\eventsubscriptioncounts.cs" />
+    <Compile Include="session\imap_commands\not_authenticated\authenticated.cs" />
     <Compile Include="tools\apidocumentation.cs" />
     <Compile Include="client\base.cs" />
     <Compile Include="client\connect.cs" />
@@ -55,17 +56,17 @@
     <Compile Include="client\store.cs" />
     <Compile Include="client\uidcopy.cs" />
     <Compile Include="client\uidstore.cs" />
-    <Compile Include="exposed_interfaces\enums\mailboxdatasets.cs" />
+    <Compile Include="exposed_interfaces\enums\mailboxcachedatasets.cs" />
     <Compile Include="exposed_interfaces\enums\storeoperation.cs" />
-    <Compile Include="exposed_interfaces\message\messagecacheattributes.cs" />
-    <Compile Include="exposed_interfaces\message\headerfieldnames.cs" />
+    <Compile Include="exposed_interfaces\enums\messagecacheattributes.cs" />
+    <Compile Include="exposed_interfaces\other\headerfieldnames.cs" />
     <Compile Include="exposed_interfaces\message\headerfields.cs" />
-    <Compile Include="exposed_interfaces\message\importance.cs" />
-    <Compile Include="exposed_interfaces\other\copyfeedback.cs" />
-    <Compile Include="exposed_interfaces\other\fetchconfiguration.cs" />
+    <Compile Include="exposed_interfaces\enums\importance.cs" />
+    <Compile Include="exposed_interfaces\feedback\copyfeedback.cs" />
+    <Compile Include="exposed_interfaces\configuration\fetchconfiguration.cs" />
     <Compile Include="client\fetchcacheitems.cs" />
     <Compile Include="client\fetchbody.cs" />
-    <Compile Include="client\fetchmailboxdata.cs" />
+    <Compile Include="client\requestmailboxdata.cs" />
     <Compile Include="client\rename.cs" />
     <Compile Include="client\setunseencount.cs" />
     <Compile Include="client\subscribe.cs" />
@@ -75,21 +76,21 @@
     <Compile Include="client\poll.cs" />
     <Compile Include="client\messages.cs" />
     <Compile Include="client\select.cs" />
-    <Compile Include="exposed_interfaces\collections\messagehandlelist.cs" />
-    <Compile Include="exposed_interfaces\collections\strings.cs" />
+    <Compile Include="exposed_interfaces\other\messagehandlelist.cs" />
+    <Compile Include="exposed_interfaces\other\strings.cs" />
     <Compile Include="exposed_interfaces\connection\accountid.cs" />
     <Compile Include="exposed_interfaces\connection\capabilities.cs" />
     <Compile Include="exposed_interfaces\connection\credentials.cs" />
     <Compile Include="exposed_interfaces\connection\login.cs" />
     <Compile Include="exposed_interfaces\connection\server.cs" />
-    <Compile Include="exposed_interfaces\connection\tlsrequirement.cs" />
+    <Compile Include="exposed_interfaces\enums\tlsrequirement.cs" />
     <Compile Include="exposed_interfaces\enums\decodingrequired.cs" />
     <Compile Include="exposed_interfaces\enums\enableableextensions.cs" />
     <Compile Include="exposed_interfaces\enums\mailboxcachedataitems.cs" />
-    <Compile Include="exposed_interfaces\other\callbackexceptioneventargs.cs" />
-    <Compile Include="exposed_interfaces\other\networkreceiveeventargs.cs" />
-    <Compile Include="exposed_interfaces\other\networksendeventargs.cs" />
-    <Compile Include="exposed_interfaces\other\storefeedback.cs" />
+    <Compile Include="exposed_interfaces\eventargs\callbackexceptioneventargs.cs" />
+    <Compile Include="exposed_interfaces\eventargs\networkreceiveeventargs.cs" />
+    <Compile Include="exposed_interfaces\eventargs\networksendeventargs.cs" />
+    <Compile Include="exposed_interfaces\feedback\storefeedback.cs" />
     <Compile Include="exposed_interfaces\sasl\xoauth2.cs" />
     <Compile Include="support\bytescursor\rfc822\getdomain.cs" />
     <Compile Include="support\bytescursor\rfc822\getlocalpart.cs" />
@@ -97,15 +98,15 @@
     <Compile Include="support\bytescursor\rfc822\tests.cs" />
     <Compile Include="exposed_interfaces\support\listflags.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailbox.cs" />
-    <Compile Include="exposed_interfaces\other\childmailboxes.cs" />
-    <Compile Include="exposed_interfaces\message\messageproperties.cs" />
-    <Compile Include="support\charsets.cs" />
+    <Compile Include="exposed_interfaces\other\mailboxcontainer.cs" />
+    <Compile Include="exposed_interfaces\enums\messageproperties.cs" />
+    <Compile Include="support\encoding\charsets.cs" />
     <Compile Include="support\filter.cs" />
-    <Compile Include="support\listflags.cs" />
-    <Compile Include="support\mailboxpropertiies.cs" />
+    <Compile Include="support\enums\listflags.cs" />
+    <Compile Include="support\enums\mailboxpropertiies.cs" />
     <Compile Include="exposed_interfaces\support\lsubflags.cs" />
     <Compile Include="exposed_interfaces\support\messagecache.cs" />
-    <Compile Include="exposed_interfaces\support\selectedmailboxdetails.cs" />
+    <Compile Include="support\selectedmailboxdetails.cs" />
     <Compile Include="exposed_interfaces\support\mailboxhandle.cs" />
     <Compile Include="exposed_interfaces\support\mailboxselectedproperties.cs" />
     <Compile Include="session\command_pipeline\backgroundtask.cs" />
@@ -147,8 +148,8 @@
     <Compile Include="session\session\copy.cs" />
     <Compile Include="session\store\store.cs" />
     <Compile Include="session\store\storefeedbackcollector.cs" />
-    <Compile Include="support\permanentflags.cs" />
-    <Compile Include="support\progress.cs" />
+    <Compile Include="support\types\permanentflags.cs" />
+    <Compile Include="support\client\progress.cs" />
     <Compile Include="session\imap_commands\authenticated\create.cs" />
     <Compile Include="session\imap_commands\authenticated\delete.cs" />
     <Compile Include="session\imap_commands\authenticated\listdelimiter.cs" />
@@ -171,32 +172,32 @@
     <Compile Include="session\mailboxcache\mailboxcache.cs" />
     <Compile Include="support\commandpartfactory.cs" />
     <Compile Include="exposed_interfaces\mailbox\mailboxname.cs" />
-    <Compile Include="exposed_interfaces\mailbox\mailboxpropertychangedeventargs.cs" />
+    <Compile Include="exposed_interfaces\eventargs\mailboxpropertychangedeventargs.cs" />
     <Compile Include="exposed_interfaces\support\mailboxstatus.cs" />
-    <Compile Include="exposed_interfaces\mailbox\messagedeliveryeventargs.cs" />
+    <Compile Include="exposed_interfaces\eventargs\messagedeliveryeventargs.cs" />
     <Compile Include="exposed_interfaces\message\address.cs" />
     <Compile Include="exposed_interfaces\message\attachment.cs" />
     <Compile Include="exposed_interfaces\support\binarysizes.cs" />
     <Compile Include="exposed_interfaces\message\bodypart.cs" />
     <Compile Include="exposed_interfaces\message\envelope.cs" />
-    <Compile Include="exposed_interfaces\message\filter.cs" />
+    <Compile Include="exposed_interfaces\mailbox\filter.cs" />
     <Compile Include="exposed_interfaces\message\message.cs" />
-    <Compile Include="exposed_interfaces\message\messageflags.cs" />
+    <Compile Include="exposed_interfaces\other\messageflags.cs" />
     <Compile Include="exposed_interfaces\support\messagehandle.cs" />
-    <Compile Include="exposed_interfaces\message\messagecacheitems.cs" />
-    <Compile Include="exposed_interfaces\message\messagepropertychangedeventargs.cs" />
+    <Compile Include="exposed_interfaces\other\messagecacheitems.cs" />
+    <Compile Include="exposed_interfaces\eventargs\messagepropertychangedeventargs.cs" />
     <Compile Include="exposed_interfaces\message\section.cs" />
-    <Compile Include="exposed_interfaces\message\sort.cs" />
+    <Compile Include="exposed_interfaces\other\sort.cs" />
     <Compile Include="exposed_interfaces\message\uid.cs" />
     <Compile Include="exposed_interfaces\namespace\namespace.cs" />
     <Compile Include="exposed_interfaces\namespace\namespacename.cs" />
     <Compile Include="exposed_interfaces\namespace\namespaces.cs" />
     <Compile Include="exposed_interfaces\other\commandresult.cs" />
-    <Compile Include="exposed_interfaces\other\culturedstring.cs" />
+    <Compile Include="exposed_interfaces\message\culturedstring.cs" />
     <Compile Include="exposed_interfaces\other\exceptions.cs" />
-    <Compile Include="exposed_interfaces\other\batchsizerconfiguration.cs" />
-    <Compile Include="exposed_interfaces\other\id.cs" />
-    <Compile Include="exposed_interfaces\other\idleconfiguration.cs" />
+    <Compile Include="exposed_interfaces\configuration\batchsizerconfiguration.cs" />
+    <Compile Include="exposed_interfaces\connection\id.cs" />
+    <Compile Include="exposed_interfaces\configuration\idleconfiguration.cs" />
     <Compile Include="exposed_interfaces\other\responsetext.cs" />
     <Compile Include="exposed_interfaces\other\url.cs" />
     <Compile Include="exposed_interfaces\sasl\anonymous.cs" />
@@ -216,24 +217,24 @@
     <Compile Include="support\bytescursor\rfc822\getdatetime.cs" />
     <Compile Include="exposed_interfaces\support\bytes.cs" />
     <Compile Include="exposed_interfaces\support\byteslines.cs" />
-    <Compile Include="support\byteslist.cs" />
-    <Compile Include="support\uintlist.cs" />
-    <Compile Include="support\base64.cs" />
-    <Compile Include="support\modifiedutf7.cs" />
+    <Compile Include="support\collections\byteslist.cs" />
+    <Compile Include="support\collections\uintlist.cs" />
+    <Compile Include="support\encoding\base64.cs" />
+    <Compile Include="support\encoding\modifiedutf7.cs" />
     <Compile Include="exposed_interfaces\support\charactersets.cs" />
     <Compile Include="support\uriparts.cs" />
     <Compile Include="support\urlparts.cs" />
-    <Compile Include="support\listbuilder.cs" />
-    <Compile Include="support\tools.cs" />
-    <Compile Include="support\commandpart.cs" />
-    <Compile Include="support\extendedvalue.cs" />
-    <Compile Include="support\sequenceset.cs" />
+    <Compile Include="support\utilities\listbuilder.cs" />
+    <Compile Include="support\utilities\tools.cs" />
+    <Compile Include="support\types\commandpart.cs" />
+    <Compile Include="support\types\extendedvalue.cs" />
+    <Compile Include="support\types\sequenceset.cs" />
     <Compile Include="exposed_interfaces\other\uri.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="session\command\commandhook.cs" />
     <Compile Include="session\command_hooks\commandhookbasesearch.cs" />
     <Compile Include="session\imap_commands\selected\fetch\commandhookbody.cs" />
-    <Compile Include="support\namespacenames.cs" />
+    <Compile Include="support\types\namespacenames.cs" />
     <Compile Include="tools\cancellationmanager.cs" />
     <Compile Include="session\command_hooks\commandhooksearchextended.cs" />
     <Compile Include="session\command_hooks\commandhookselect.cs" />
@@ -274,20 +275,20 @@
     <Compile Include="session\selectedmailbox\selectedmailboxcache.cs" />
     <Compile Include="session\session\base.cs" />
     <Compile Include="session\session\connect.cs" />
-    <Compile Include="session\fetch\attributes.cs" />
+    <Compile Include="session\fetch\cacheitems.cs" />
     <Compile Include="session\fetch\body.cs" />
     <Compile Include="session\fetch\uidattributes.cs" />
     <Compile Include="session\command\commanddetailsbuilder.cs" />
     <Compile Include="session\command\commandtag.cs" />
-    <Compile Include="support\batchsizer.cs" />
+    <Compile Include="support\client\batchsizer.cs" />
     <Compile Include="session\support\messagecacheitem.cs" />
     <Compile Include="session\support\processors.cs" />
     <Compile Include="session\command_pipeline\responsetextprocessor.cs" />
-    <Compile Include="support\status.cs" />
-    <Compile Include="support\body.cs" />
-    <Compile Include="support\callbacksynchroniser.cs" />
-    <Compile Include="support\mailboxnamepattern.cs" />
-    <Compile Include="support\uidlist.cs" />
+    <Compile Include="support\types\status.cs" />
+    <Compile Include="support\client\body.cs" />
+    <Compile Include="support\client\callbacksynchroniser.cs" />
+    <Compile Include="support\client\mailboxnamepattern.cs" />
+    <Compile Include="support\collections\uidlist.cs" />
     <Compile Include="tests\tests.cs" />
     <Compile Include="tools\countdowntimer.cs" />
     <Compile Include="tools\exclusiveaccess.cs" />

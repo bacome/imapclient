@@ -73,7 +73,10 @@ namespace testharness2
                 gbxFlags.Enabled = false;
                 cmdStore.Enabled = false;
             }
+        }
 
+        private void frmMessage_Shown(object sender, EventArgs e)
+        {
             ZQueryAsync(true);
         }
 
@@ -502,8 +505,7 @@ namespace testharness2
                 if (mProgressBar)
                 {
                     lProgress = new frmProgress("image " + pPart.Section.Part + " [" + pSize + " bytes]", pSize);
-                    Program.Centre(lProgress, this);
-                    lProgress.Show();
+                    lProgress.ShowAndFocus(this);
                     lConfiguration = new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
                     mImageLoadProgress = lProgress; // so it can be cancelled from code
                 }
@@ -997,7 +999,7 @@ namespace testharness2
         {
             cMailbox lMailbox;
 
-            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mMessage.Client))
+            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mMessage.Client, false))
             {
                 if (lMailboxDialog.ShowDialog(this) != DialogResult.OK) return;
                 lMailbox = lMailboxDialog.Mailbox;
