@@ -620,7 +620,11 @@ namespace work.bacome.imapclient
         /// <para>
         /// When the mailbox is selected the library maintains the value of this property by monitoring responses from the server,
         /// but for the value to be up-to-date 
-        /// the responses have to be solicited (use <see cref="cIMAPClient.Poll"/> or allow idling using <see cref="cIMAPClient.IdleConfiguration"/>).
+        /// the responses have to be solicited - use <see cref="cIMAPClient.Poll"/>.
+        /// <note type="note">
+        /// The rules in RFC 7162 section 6 for maintaining the value of this property do not allow it to be updated during the RFC 2177 IDLE command
+        /// due to limitations in the IMAP protocol.
+        /// </note>
         /// </para>
         /// </remarks>
         public ulong? HighestModSeq

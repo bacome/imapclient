@@ -105,12 +105,12 @@ namespace work.bacome.imapclient
         //    0, 5, 2, 1 -> 0.5.2-alpha; 2017-NOV-30
 
         /**<summary>The version number of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
-        public static Version Version = new Version(0, 5, 2, 1);
+        public static Version Version = new Version(0, 5, 3, 1);
 
         // ......................................................................................................................... when changing the version here also change it in the assemblyinfo
 
         /**<summary>The release date of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
-        public static DateTime ReleaseDate = new DateTime(2017, 11, 30);
+        public static DateTime ReleaseDate = new DateTime(2017, 12, 01);
 
         /**<summary>The trace source name used when tracing. See <see cref="cTrace"/>.</summary>*/
         public const string TraceSourceName = "work.bacome.cIMAPClient";
@@ -190,7 +190,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Fired when the server sends response text.
+        /// Fired when server response text is received.
         /// </summary>
         /// <remarks>
         /// <para>The IMAP spec says that <see cref="eResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="cResponseTextEventArgs.Text"/>.</para>
@@ -206,7 +206,7 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Fired when the server sends a response.
+        /// Fired when a server response is received.
         /// </summary>
         /// <remarks>
         /// <para>This event is provided to aid in the debugging of the library.</para>

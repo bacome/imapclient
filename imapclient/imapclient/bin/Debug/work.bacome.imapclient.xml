@@ -92,7 +92,7 @@
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.ResponseText">
             <summary>
-            Fired when the server sends response text.
+            Fired when server response text is received.
             </summary>
             <remarks>
             <para>The IMAP spec says that <see cref="F:work.bacome.imapclient.eResponseTextCode.alert"/> text MUST be brought to the user's attention. See <see cref="F:work.bacome.imapclient.cResponseTextEventArgs.Text"/>.</para>
@@ -104,7 +104,7 @@
         </member>
         <member name="E:work.bacome.imapclient.cIMAPClient.NetworkReceive">
             <summary>
-            Fired when the server sends a response.
+            Fired when a server response is received.
             </summary>
             <remarks>
             <para>This event is provided to aid in the debugging of the library.</para>
@@ -574,7 +574,7 @@
               The client was able to try credentials from <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/>, but they didn't work.
               If the server explicitly rejected the credentials using one of the 
               <see cref="F:work.bacome.imapclient.eResponseTextCode.authenticationfailed"/>, <see cref="F:work.bacome.imapclient.eResponseTextCode.authorizationfailed"/> or <see cref="F:work.bacome.imapclient.eResponseTextCode.expired"/> codes,
-              then <see cref="F:work.bacome.imapclient.cCredentialsException.ResponseText"/> will contain the details (otherwise the <see cref="F:work.bacome.imapclient.cCredentialsException.ResponseText"/> will be <see langword="null"/>).
+              then <see cref="F:work.bacome.imapclient.cCredentialsException.ResponseText"/> will contain the details (otherwise <see cref="F:work.bacome.imapclient.cCredentialsException.ResponseText"/> will be <see langword="null"/>).
               </description>
             </item>
             <item>
@@ -3134,7 +3134,11 @@
             <para>
             When the mailbox is selected the library maintains the value of this property by monitoring responses from the server,
             but for the value to be up-to-date 
-            the responses have to be solicited (use <see cref="M:work.bacome.imapclient.cIMAPClient.Poll"/> or allow idling using <see cref="P:work.bacome.imapclient.cIMAPClient.IdleConfiguration"/>).
+            the responses have to be solicited - use <see cref="M:work.bacome.imapclient.cIMAPClient.Poll"/>.
+            <note type="note">
+            The rules in RFC 7162 section 6 for maintaining the value of this property do not allow it to be updated during the RFC 2177 IDLE command
+            due to limitations in the IMAP protocol.
+            </note>
             </para>
             </remarks>
         </member>

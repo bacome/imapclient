@@ -56,7 +56,7 @@ namespace work.bacome.imapclient
         ///   The client was able to try credentials from <see cref="Credentials"/>, but they didn't work.
         ///   If the server explicitly rejected the credentials using one of the 
         ///   <see cref="eResponseTextCode.authenticationfailed"/>, <see cref="eResponseTextCode.authorizationfailed"/> or <see cref="eResponseTextCode.expired"/> codes,
-        ///   then <see cref="cCredentialsException.ResponseText"/> will contain the details (otherwise the <see cref="cCredentialsException.ResponseText"/> will be <see langword="null"/>).
+        ///   then <see cref="cCredentialsException.ResponseText"/> will contain the details (otherwise <see cref="cCredentialsException.ResponseText"/> will be <see langword="null"/>).
         ///   </description>
         /// </item>
         /// <item>
