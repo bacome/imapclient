@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Initialises a new instance using the specified <see cref="cMessage"/> properties.
         /// </summary>
-        /// <param name="pProperties">The message properties to cache the backing data for.</param>
+        /// <param name="pProperties"></param>
         public cMessageCacheItems(fMessageProperties pProperties)
         {
             Attributes = 0;

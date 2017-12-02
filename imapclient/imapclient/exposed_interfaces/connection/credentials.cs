@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using work.bacome.trace;
 
 namespace work.bacome.imapclient
@@ -26,9 +27,14 @@ namespace work.bacome.imapclient
         public readonly string UserId;
 
         /// <summary>
-        /// The arguments to use with the IMAP LOGIN command for these credentials.
+        /// The arguments to use with the IMAP LOGIN command for these credentials. May be <see langword="null"/>.
         /// </summary>
         public readonly cLogin Login;
+
+        /// <summary>
+        /// Gets the set of SASL objects that can used used during <see cref="cIMAPClient.Connect"/>. May be <see langword="null"/> or empty.
+        /// </summary>
+        public readonly ReadOnlyCollection<cSASL> SASLs;
 
         /// <summary>
         /// Indicates whether all <see cref="SASLs"/> should be tried even if the server doesn't advertise the associated authentication mechanism.
@@ -36,48 +42,73 @@ namespace work.bacome.imapclient
         /// <seealso cref="cCapabilities.AuthenticationMechanisms"/>
         public readonly bool TryAllSASLs;
 
-        /**<summary></summary>*/
-        protected readonly List<cSASL> mSASLs = new List<cSASL>();
-
-        private cCredentials(eAccountType pType, cLogin pLogin, bool pTryAllSASLs = false)
+        private cCredentials()
         {
-            Type = pType;
+            Type = eAccountType.unknown;
+            UserId = null;
+            Login = null;
+            SASLs = null;
+            TryAllSASLs = false;
+        }
+
+        /// <summary>
+        /// Initialises a new instance with the anonymous account type and the specified <see cref="cLogin"/> and <see cref="cSASL"/> objects. 
+        /// </summary>
+        /// <param name="pLogin"></param>
+        /// <param name="pSASLs"></param>
+        /// <param name="pTryAllSASLs"></param>
+        public cCredentials(cLogin pLogin, IEnumerable<cSASL> pSASLs, bool pTryAllSASLs = false)
+        {
+            Type = eAccountType.anonymous;
             UserId = null;
             Login = pLogin;
+
+            var lSASLs = new List<cSASL>(from s in pSASLs where s != null select s);
+
+            if (lSASLs.Count == 0) SASLs = null;
+            else SASLs = lSASLs.AsReadOnly();
+
             TryAllSASLs = pTryAllSASLs;
         }
 
-        /**<summary></summary>*/
-        protected cCredentials(string pUserId, cLogin pLogin, bool pTryAllSASLs = false)
+        /// <summary>
+        /// Initialises a new instance with the specified userid, <see cref="cLogin"/> and <see cref="cSASL"/> objects.
+        /// </summary>
+        /// <param name="pUserId">The server account name that the <paramref name="pLogin"/> and <paramref name="pSASLs"/> give access to.</param>
+        /// <param name="pLogin"></param>
+        /// <param name="pSASLs"></param>
+        /// <param name="pTryAllSASLs">Indicates whether all <paramref name="pSASLs"/> should be tried even if the server doesn't advertise the associated authentication mechanism.</param>
+        public cCredentials(string pUserId, cLogin pLogin, IEnumerable<cSASL> pSASLs, bool pTryAllSASLs = false)
         {
             if (string.IsNullOrEmpty(pUserId)) throw new ArgumentOutOfRangeException(nameof(pUserId));
 
             Type = eAccountType.userid;
             UserId = pUserId;
             Login = pLogin;
+
+            var lSASLs = new List<cSASL>(from s in pSASLs where s != null select s);
+
+            if (lSASLs.Count == 0) SASLs = null;
+            else SASLs = lSASLs.AsReadOnly();
+
             TryAllSASLs = pTryAllSASLs;
         }
-
-        /// <summary>
-        /// Gets the set of SASL objects that can used used during <see cref="cIMAPClient.Connect"/>.
-        /// </summary>
-        public ReadOnlyCollection<cSASL> SASLs => mSASLs.AsReadOnly();
 
         /// <summary>
         /// An empty set of credentials. 
         /// </summary>
         /// <remarks>
-        /// Useful for testing.
-        /// Useful for pre-authorised connections.
+        /// Useful to retrieve the property values set during <see cref="cIMAPClient.Connect"/> without actually connecting.
+        /// Also useful when there is external authentication.
         /// </remarks>
-        public static readonly cCredentials None = new cCredentials(eAccountType.unknown, null);
+        public static readonly cCredentials None = new cCredentials();
     
         /// <summary>
         /// Returns a new set of anonymous credentials.
         /// </summary>
         /// <param name="pTrace">The trace information to be sent to the server.</param>
         /// <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
-        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if not advertised.</param>
+        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if it isn't advertised.</param>
         /// <returns></returns>
         /// <remarks>
         /// The credentials returned may fall back to IMAP LOGIN if SASL ANONYMOUS isn't available.
@@ -90,10 +121,7 @@ namespace work.bacome.imapclient
             cLogin.TryConstruct("anonymous", pTrace, pTLSRequirement, out var lLogin);
             cSASLAnonymous.TryConstruct(pTrace, pTLSRequirement, out var lSASL);
             if (lLogin == null && lSASL == null) throw new ArgumentOutOfRangeException(nameof(pTrace));
-
-            var lCredentials = new cCredentials(eAccountType.anonymous, lLogin, pTryAuthenticateEvenIfAnonymousIsntAdvertised);
-            if (lSASL != null) lCredentials.mSASLs.Add(lSASL);
-            return lCredentials;
+            return new cCredentials(lLogin, new cSASL[] { lSASL },  pTryAuthenticateEvenIfAnonymousIsntAdvertised);
         }
 
         /// <summary>
@@ -102,7 +130,7 @@ namespace work.bacome.imapclient
         /// <param name="pUserId"></param>
         /// <param name="pPassword"></param>
         /// <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
-        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if not advertised.</param>
+        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if it isn't advertised.</param>
         /// <returns></returns>
         /// <remarks>
         /// The credentials returned may fall back to IMAP LOGIN if SASL PLAIN isn't available.
@@ -114,12 +142,10 @@ namespace work.bacome.imapclient
             if (string.IsNullOrEmpty(pPassword)) throw new ArgumentOutOfRangeException(nameof(pPassword));
 
             cLogin.TryConstruct(pUserId, pPassword, pTLSRequirement, out var lLogin);
-            cSASLPlain.TryConstruct(pUserId, pPassword, pTLSRequirement, out var lPlain);
-            if (lLogin == null && lPlain == null) throw new ArgumentOutOfRangeException(); // argument_s_outofrange
+            cSASLPlain.TryConstruct(pUserId, pPassword, pTLSRequirement, out var lSASL);
+            if (lLogin == null && lSASL == null) throw new ArgumentOutOfRangeException(); // argument_s_outofrange
 
-            var lCredentials = new cCredentials(pUserId, lLogin, pTryAuthenticateEvenIfPlainIsntAdvertised);
-            if (lPlain != null) lCredentials.mSASLs.Add(lPlain);
-            return lCredentials;
+            return new cCredentials(pUserId, lLogin, new cSASL[] { lSASL }, pTryAuthenticateEvenIfPlainIsntAdvertised);
         }
 
         /* not tested yet
@@ -151,7 +177,7 @@ namespace work.bacome.imapclient
             if (lCredentials.Login == null || lCredentials.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
 
             lCredentials = Anonymous("fred@fred@fred.com");
-            if (lCredentials.Login == null || lCredentials.SASLs.Count != 0) throw new cTestsException("unexpected anon result");
+            if (lCredentials.Login == null || lCredentials.SASLs != null) throw new cTestsException("unexpected anon result");
 
             lCredentials = Anonymous("fred€fred.com");
             if (lCredentials.Login != null || lCredentials.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
@@ -160,7 +186,7 @@ namespace work.bacome.imapclient
             if (lCredentials.Login != null || lCredentials.SASLs.Count != 1) throw new cTestsException("unexpected anon result");
 
             lCredentials = Anonymous("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
-            if (lCredentials.Login == null || lCredentials.SASLs.Count != 0) throw new cTestsException("unexpected anon result");
+            if (lCredentials.Login == null || lCredentials.SASLs != null) throw new cTestsException("unexpected anon result");
 
             lFailed = false;
             try { lCredentials = Anonymous("fred€@fred@fred.com"); }

@@ -67,7 +67,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Creates a mailbox at the top level of hierarchy in the container.
         /// </summary>
-        /// <param name="pName">The mailbox name to use.</param>
+        /// <param name="pName"></param>
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <inheritdoc cref="cIMAPClient.Create(cMailboxName, bool)" select="remarks"/>
@@ -76,7 +76,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Asynchronously creates a mailbox at the top level of hierarchy in the container.
         /// </summary>
-        /// <param name="pName">The mailbox name to use.</param>
+        /// <param name="pName"></param>
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <inheritdoc cref="CreateChild(string, bool)" select="remarks"/>

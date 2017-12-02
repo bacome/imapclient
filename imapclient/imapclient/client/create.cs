@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Creates a new mailbox on the connected server.
         /// </summary>
-        /// <param name="pMailboxName">The mailbox name to use.</param>
+        /// <param name="pMailboxName"></param>
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <remarks>
@@ -43,7 +43,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Ansynchronously creates a new mailbox on the connected server.
         /// </summary>
-        /// <param name="pMailboxName">The mailbox name to use.</param>
+        /// <param name="pMailboxName"></param>
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <inheritdoc cref="Create(cMailboxName, bool)" select="remarks"/>

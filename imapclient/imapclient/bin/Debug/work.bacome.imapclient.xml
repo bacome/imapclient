@@ -228,6 +228,24 @@
             Set during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>.
             </remarks>
         </member>
+        <member name="P:work.bacome.imapclient.cIMAPClient.FailedSASLAuthentications">
+            <summary>
+            Gets the set of SASL authentication objects that failed during the last attempt to <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. May be <see langword="null"/> or empty.
+            </summary>
+            <remarks>
+            <para>
+            <see langword="null"/> indicates that the instance has never tried to <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>.
+            The collection will be empty if there were no failed SASL authentication attempts in the last attempt to <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>.
+            </para>
+            <para>
+            This property is provided to give access to authentication error detail that is specific to the authentication mechanism.
+            (For example: XOAUTH2 provides an 'Error Response' as part of a failed attempt to authenticate.)
+            </para>
+            <note type="note">
+            All objects in this collection will have been disposed.
+            </note>
+            </remarks>
+        </member>
         <member name="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities">
             <summary>
             Gets and sets the server capabilities that the instance should ignore.
@@ -309,7 +327,7 @@
             </summary>
             <param name="pTrace">The trace information to be sent to the server.</param>
             <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
-            <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if not advertised.</param>
+            <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if it isn't advertised.</param>
             <remarks>
             May only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             The credentials may fall back to IMAP LOGIN if SASL ANONYMOUS isn't available.
@@ -323,7 +341,7 @@
             <param name="pUserId"></param>
             <param name="pPassword"></param>
             <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
-            <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if not advertised.</param>
+            <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if it isn't advertised.</param>
             <remarks>
             May only be called while <see cref="P:work.bacome.imapclient.cIMAPClient.IsUnconnected"/>.
             The credentials may fall back to IMAP LOGIN if SASL PLAIN isn't available.
@@ -539,6 +557,7 @@
             <para>
             During the authentication part of connecting the <see cref="P:work.bacome.imapclient.cIMAPClient.Capabilities"/> will be set (most likely more than once).
             The <see cref="P:work.bacome.imapclient.cIMAPClient.IgnoreCapabilities"/> value is used to determine what capabilities offered by the server are actually used by the client.
+            Any attempted SASL authentications that fail will result in entries in the collection returned by <see cref="P:work.bacome.imapclient.cIMAPClient.FailedSASLAuthentications"/>.
             It is possible that the <see cref="P:work.bacome.imapclient.cIMAPClient.HomeServerReferral"/> will be set during authentication: this indicates that the connected server suggests that we disconnect and try a different server.
             If authentication is successful then <see cref="P:work.bacome.imapclient.cIMAPClient.ConnectedAccountId"/> will be set.
             </para>
@@ -552,7 +571,7 @@
             </list>
             </para>
             <para>
-            Normally only one of Namespace and LIST are used during connect, but under some strange circumstances both may be required.
+            Normally only one of NAMESPACE and LIST are used during connect, but under some strange circumstances both may be required.
             (The specific case is when the personal namespaces retrieved from the server do not contain the INBOX.)
             Once <see cref="P:work.bacome.imapclient.cIMAPClient.Namespaces"/> is known <see cref="P:work.bacome.imapclient.cIMAPClient.Inbox"/> is set.
             </para>
@@ -565,7 +584,7 @@
             <item>
               <term><see cref="T:work.bacome.imapclient.cConnectByeException"/></term>
               <description>
-              The server actively rejected the connection.
+              The server explicitly rejected the attempt to connect.
               </description>
             </item>
             <item>
@@ -581,13 +600,13 @@
               <term><see cref="T:work.bacome.imapclient.cAuthenticationMechanismsException"/></term>
               <description>
               The client was not able to try any credentials from <see cref="P:work.bacome.imapclient.cIMAPClient.Credentials"/>. 
-              If the TLS state was to blame for this then <see cref="F:work.bacome.imapclient.cAuthenticationMechanismsException.TLSIssue"/> will be set to <see langword="true"/>.
+              If the TLS state of the connection was to blame for this then <see cref="F:work.bacome.imapclient.cAuthenticationMechanismsException.TLSIssue"/> will be set to <see langword="true"/>.
               </description>
             </item>
             <item>
               <term><see cref="T:work.bacome.imapclient.cHomeServerReferralException"/></term>
               <description>
-              While connecting the server either refused to connect or refused to authenticate and suggested that we try a different server instead
+              While connecting the server explicitly rejected the attempt to connect or authenticate and as part of the rejection suggested that we try connecting to a different server instead
               (see <see cref="F:work.bacome.imapclient.cHomeServerReferralException.ResponseText"/> and the contained <see cref="F:work.bacome.imapclient.cResponseText.Arguments"/>).
               </description>
             </item>
@@ -608,7 +627,7 @@
             <summary>
             Creates a new mailbox on the connected server.
             </summary>
-            <param name="pMailboxName">The mailbox name to use.</param>
+            <param name="pMailboxName"></param>
             <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
             <remarks>
@@ -635,7 +654,7 @@
             <summary>
             Ansynchronously creates a new mailbox on the connected server.
             </summary>
-            <param name="pMailboxName">The mailbox name to use.</param>
+            <param name="pMailboxName"></param>
             <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
             <inheritdoc cref="M:work.bacome.imapclient.cIMAPClient.Create(work.bacome.imapclient.cMailboxName,System.Boolean)" select="remarks"/>
@@ -1944,33 +1963,44 @@
         </member>
         <member name="F:work.bacome.imapclient.cCredentials.Login">
             <summary>
-            The arguments to use with the IMAP LOGIN command for these credentials.
+            The arguments to use with the IMAP LOGIN command for these credentials. May be <see langword="null"/>.
+            </summary>
+        </member>
+        <member name="F:work.bacome.imapclient.cCredentials.SASLs">
+            <summary>
+            Gets the set of SASL objects that can used used during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>. May be <see langword="null"/> or empty.
             </summary>
         </member>
         <member name="F:work.bacome.imapclient.cCredentials.TryAllSASLs">
             <summary>
-            Indicates whether all <see cref="P:work.bacome.imapclient.cCredentials.SASLs"/> should be tried even if the server doesn't advertise the associated authentication mechanism.
+            Indicates whether all <see cref="F:work.bacome.imapclient.cCredentials.SASLs"/> should be tried even if the server doesn't advertise the associated authentication mechanism.
             </summary>
             <seealso cref="F:work.bacome.imapclient.cCapabilities.AuthenticationMechanisms"/>
         </member>
-        <member name="F:work.bacome.imapclient.cCredentials.mSASLs">
-            <summary></summary>
-        </member>
-        <member name="M:work.bacome.imapclient.cCredentials.#ctor(System.String,work.bacome.imapclient.cLogin,System.Boolean)">
-            <summary></summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cCredentials.SASLs">
+        <member name="M:work.bacome.imapclient.cCredentials.#ctor(work.bacome.imapclient.cLogin,System.Collections.Generic.IEnumerable{work.bacome.imapclient.cSASL},System.Boolean)">
             <summary>
-            Gets the set of SASL objects that can used used during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/>.
+            Initialises a new instance with the anonymous account type and the specified <see cref="T:work.bacome.imapclient.cLogin"/> and <see cref="T:work.bacome.imapclient.cSASL"/> objects. 
             </summary>
+            <param name="pLogin"></param>
+            <param name="pSASLs"></param>
+            <param name="pTryAllSASLs"></param>
+        </member>
+        <member name="M:work.bacome.imapclient.cCredentials.#ctor(System.String,work.bacome.imapclient.cLogin,System.Collections.Generic.IEnumerable{work.bacome.imapclient.cSASL},System.Boolean)">
+            <summary>
+            Initialises a new instance with the specified userid, <see cref="T:work.bacome.imapclient.cLogin"/> and <see cref="T:work.bacome.imapclient.cSASL"/> objects.
+            </summary>
+            <param name="pUserId">The server account name that the <paramref name="pLogin"/> and <paramref name="pSASLs"/> give access to.</param>
+            <param name="pLogin"></param>
+            <param name="pSASLs"></param>
+            <param name="pTryAllSASLs">Indicates whether all <paramref name="pSASLs"/> should be tried even if the server doesn't advertise the associated authentication mechanism.</param>
         </member>
         <member name="F:work.bacome.imapclient.cCredentials.None">
             <summary>
             An empty set of credentials. 
             </summary>
             <remarks>
-            Useful for testing.
-            Useful for pre-authorised connections.
+            Useful to retrieve the property values set during <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/> without actually connecting.
+            Also useful when there is external authentication.
             </remarks>
         </member>
         <member name="M:work.bacome.imapclient.cCredentials.Anonymous(System.String,work.bacome.imapclient.eTLSRequirement,System.Boolean)">
@@ -1979,7 +2009,7 @@
             </summary>
             <param name="pTrace">The trace information to be sent to the server.</param>
             <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
-            <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if not advertised.</param>
+            <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if it isn't advertised.</param>
             <returns></returns>
             <remarks>
             The credentials returned may fall back to IMAP LOGIN if SASL ANONYMOUS isn't available.
@@ -1993,7 +2023,7 @@
             <param name="pUserId"></param>
             <param name="pPassword"></param>
             <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
-            <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if not advertised.</param>
+            <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if it isn't advertised.</param>
             <returns></returns>
             <remarks>
             The credentials returned may fall back to IMAP LOGIN if SASL PLAIN isn't available.
@@ -3253,7 +3283,7 @@
             <summary>
             Creates a child mailbox of the mailbox.
             </summary>
-            <param name="pName">The mailbox name to use.</param>
+            <param name="pName"></param>
             <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
             <inheritdoc cref="M:work.bacome.imapclient.cIMAPClient.Create(work.bacome.imapclient.cMailboxName,System.Boolean)" select="remarks"/>
@@ -3262,7 +3292,7 @@
             <summary>
             Asynchronously creates a child mailbox of the mailbox.
             </summary>
-            <param name="pName">The mailbox name to use.</param>
+            <param name="pName"></param>
             <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <inheritdoc cref="M:work.bacome.imapclient.cMailbox.CreateChild(System.String,System.Boolean)" select="returns|remarks"/>
         </member>
@@ -3294,7 +3324,7 @@
             <summary>
             Changes the <see cref="P:work.bacome.imapclient.cMailbox.Name"/> of the mailbox.
             </summary>
-            <param name="pName">The new mailbox name.</param>
+            <param name="pName"></param>
             <returns></returns>
             <remarks>
             After renaming the current instance will continue to have the same <see cref="P:work.bacome.imapclient.cMailbox.Path"/>, which means that it will no longer represent a mailbox that <see cref="P:work.bacome.imapclient.cMailbox.Exists"/> on the server (unless the mailbox <see cref="P:work.bacome.imapclient.cMailbox.IsInbox"/>).
@@ -3340,7 +3370,7 @@
             <summary>
             Selects the mailbox.
             </summary>
-            <param name="pForUpdate">Indicates whether the mailbox should be selected for update or not</param>
+            <param name="pForUpdate">Indicates whether the mailbox should be selected for update or not.</param>
             <remarks>
             Selecting a mailbox un-selects the previously selected mailbox (if there was one).
             </remarks>
@@ -3349,7 +3379,7 @@
             <summary>
             Asynchronously selects the mailbox.
             </summary>
-            <param name="pForUpdate">Indicates whether the mailbox should be selected for update or not</param>
+            <param name="pForUpdate">Indicates whether the mailbox should be selected for update or not.</param>
             <returns></returns>
             <inheritdoc cref="M:work.bacome.imapclient.cMailbox.Select(System.Boolean)" select="remarks"/>
         </member>
@@ -3464,7 +3494,7 @@
             <summary>
             Gets a list of <see cref="T:work.bacome.imapclient.cMessage"/> from a set of <see cref="T:work.bacome.imapclient.cUID"/>. The mailbox must be selected.
             </summary>
-            <param name="pUIDs">.</param>
+            <param name="pUIDs"></param>
             <param name="pItems">The set of items to ensure are cached for the returned messages.</param>
             <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
             <returns></returns>
@@ -3701,7 +3731,7 @@
             <summary>
             Creates a mailbox at the top level of hierarchy in the container.
             </summary>
-            <param name="pName">The mailbox name to use.</param>
+            <param name="pName"></param>
             <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
             <inheritdoc cref="M:work.bacome.imapclient.cIMAPClient.Create(work.bacome.imapclient.cMailboxName,System.Boolean)" select="remarks"/>
@@ -3710,7 +3740,7 @@
             <summary>
             Asynchronously creates a mailbox at the top level of hierarchy in the container.
             </summary>
-            <param name="pName">The mailbox name to use.</param>
+            <param name="pName"></param>
             <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
             <inheritdoc cref="M:work.bacome.imapclient.iMailboxContainer.CreateChild(System.String,System.Boolean)" select="remarks"/>
@@ -4696,7 +4726,7 @@
             <summary>
             Returns the first parameter with the specified attribute name.
             </summary>
-            <param name="pName">The attribute name.</param>
+            <param name="pName"></param>
             <returns>The parameter if there is at least one with a matching name, otherwise <see langword="null"/>.</returns>
         </member>
         <member name="M:work.bacome.imapclient.cBodyStructureParameters.ToString">
@@ -5104,7 +5134,7 @@
             <summary>
             Returns a filter that passes back only messages that have a date less than the specified date.
             </summary>
-            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/></param>
+            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/>.</param>
             <param name="pDate"></param>
             <returns></returns>
         </member>
@@ -5112,7 +5142,7 @@
             <summary>
             Returns a filter that passes back only messages that have a date greater than the specified date.
             </summary>
-            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/></param>
+            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/>.</param>
             <param name="pDate"></param>
             <returns></returns>
         </member>
@@ -5120,7 +5150,7 @@
             <summary>
             Returns a filter that passes back only messages that have a date equal to the specified date.
             </summary>
-            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/></param>
+            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/>.</param>
             <param name="pDate"></param>
             <returns></returns>
         </member>
@@ -5128,7 +5158,7 @@
             <summary>
             Returns a filter that passes back only messages that have a date different to the specified date.
             </summary>
-            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/></param>
+            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/>.</param>
             <param name="pDate"></param>
             <returns></returns>
         </member>
@@ -5136,7 +5166,7 @@
             <summary>
             Returns a filter that passes back only messages that have a date greater than or equal to the specified date.
             </summary>
-            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/></param>
+            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/>.</param>
             <param name="pDate"></param>
             <returns></returns>
         </member>
@@ -5144,7 +5174,7 @@
             <summary>
             Returns a filter that passes back only messages that have a date less than or equal to the specified date.
             </summary>
-            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/></param>
+            <param name="pFilterDate"><see cref="F:work.bacome.imapclient.cFilter.Received"/> or <see cref="F:work.bacome.imapclient.cFilter.Sent"/>.</param>
             <param name="pDate"></param>
             <returns></returns>
         </member>
@@ -5534,7 +5564,7 @@
             <summary>
             Returns a message sequence number offset for use in message filtering. See <see cref="F:work.bacome.imapclient.cFilter.MSN"/>.
             </summary>
-            <param name="pOffset">The offset required from the message's sequence number.</param>
+            <param name="pOffset"></param>
             <returns></returns>
         </member>
         <member name="M:work.bacome.imapclient.cMessage.PlainText">
@@ -6062,7 +6092,7 @@
             <summary>
             Initialises a new instance using the specified <see cref="T:work.bacome.imapclient.cMessage"/> properties.
             </summary>
-            <param name="pProperties">The message properties to cache the backing data for.</param>
+            <param name="pProperties"></param>
         </member>
         <member name="P:work.bacome.imapclient.cMessageCacheItems.IsEmpty">
             <summary>
@@ -6191,7 +6221,7 @@
             <summary>
             Initialises a new instance so that it represents an entire body-part.
             </summary>
-            <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message</param>
+            <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message.</param>
             <remarks>
             <see cref="F:work.bacome.imapclient.cSection.TextPart"/> is set to <see cref="F:work.bacome.imapclient.eSectionTextPart.all"/>, <see cref="F:work.bacome.imapclient.cSection.Names"/> to <see langword="null"/>.
             </remarks>
@@ -6200,14 +6230,14 @@
             <summary>
             Initialises a new instance so that it represents a whole text part.
             </summary>
-            <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message</param>
+            <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message.</param>
             <param name="pTextPart">May be <see cref="F:work.bacome.imapclient.eSectionTextPart.all"/>, <see cref="F:work.bacome.imapclient.eSectionTextPart.header"/>, <see cref="F:work.bacome.imapclient.eSectionTextPart.text"/> or <see cref="F:work.bacome.imapclient.eSectionTextPart.mime"/> (<see cref="F:work.bacome.imapclient.eSectionTextPart.mime"/> only if <paramref name="pPart"/> is not <see langword="null"/>).</param>
         </member>
         <member name="M:work.bacome.imapclient.cSection.#ctor(System.String,work.bacome.imapclient.cHeaderFieldNames,System.Boolean)">
             <summary>
             Initialises a new instance so that it represents a subset of the <see cref="F:work.bacome.imapclient.eSectionTextPart.header"/>.
             </summary>
-            <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message</param>
+            <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message.</param>
             <param name="pNames">Must not be <see langword="null"/> nor empty.</param>
             <param name="pNot"><see langword="true"/> to represent all header fields except those specified, <see langword="false"/> to represent only the header fields specified.</param>
         </member>
@@ -6563,7 +6593,7 @@
             <summary>
             Creates a mailbox at the top level of hierarchy in the namespace.
             </summary>
-            <param name="pName">The mailbox name to use.</param>
+            <param name="pName"></param>
             <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
             <inheritdoc cref="M:work.bacome.imapclient.cIMAPClient.Create(work.bacome.imapclient.cMailboxName,System.Boolean)" select="remarks"/>
@@ -6572,7 +6602,7 @@
             <summary>
             Asynchronously creates a mailbox at the top level of hierarchy in the namespace.
             </summary>
-            <param name="pName">The mailbox name to use.</param>
+            <param name="pName"></param>
             <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
             <returns></returns>
             <inheritdoc cref="M:work.bacome.imapclient.cNamespace.CreateChild(System.String,System.Boolean)" select="remarks"/>
@@ -7714,14 +7744,6 @@
             <param name="pTLSRequirement"></param>
             <inheritdoc cref="T:work.bacome.imapclient.cSASLAnonymous" select="remarks"/>
         </member>
-        <member name="P:work.bacome.imapclient.cSASLAnonymous.MechanismName">
-            <summary>
-            Gets the value "ANONYMOUS"
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cSASLAnonymous.TLSRequirement">
-            <inheritdoc/>
-        </member>
         <member name="M:work.bacome.imapclient.cSASLAnonymous.GetAuthentication">
             <inheritdoc cref="M:work.bacome.imapclient.cSASL.GetAuthentication" select="summary"/>
         </member>
@@ -7732,15 +7754,22 @@
             <seealso cref="T:work.bacome.imapclient.cSASLAuthentication"/>
             <seealso cref="T:work.bacome.imapclient.cSASLSecurity"/>
         </member>
-        <member name="P:work.bacome.imapclient.cSASL.MechanismName">
+        <member name="F:work.bacome.imapclient.cSASL.MechanismName">
             <summary>
-            Gets the SASL mechanism name.
+            The SASL mechanism name.
             </summary>
         </member>
-        <member name="P:work.bacome.imapclient.cSASL.TLSRequirement">
+        <member name="F:work.bacome.imapclient.cSASL.TLSRequirement">
             <summary>
-            Gets the TSL requirement for the contained details to be used.
+            The TSL requirement for the contained details to be used.
             </summary>
+        </member>
+        <member name="M:work.bacome.imapclient.cSASL.#ctor(System.String,work.bacome.imapclient.eTLSRequirement)">
+            <summary>
+            Initialises a new instance with the specified mechanism name and TLS requirement.
+            </summary>
+            <param name="pMechanismName"></param>
+            <param name="pTLSRequirement"></param>
         </member>
         <member name="M:work.bacome.imapclient.cSASL.GetAuthentication">
             <summary>
@@ -7752,16 +7781,6 @@
             <see cref="M:work.bacome.imapclient.cSASLAuthentication.GetSecurity"/> must return <see langword="null"/> if no security layer was negotiated.
             The <see cref="T:work.bacome.imapclient.cSASLAuthentication"/> object will be disposed once authentication is complete (upon either of success or failure).
             Any <see cref="T:work.bacome.imapclient.cSASLSecurity"/> object obtained will be disposed when the underlying network connection closes.
-            </remarks>
-        </member>
-        <member name="P:work.bacome.imapclient.cSASL.LastAuthentication">
-            <summary>
-            Gets a reference to the <see cref="T:work.bacome.imapclient.cSASLAuthentication"/> object returned by <see cref="M:work.bacome.imapclient.cSASL.GetAuthentication"/> for use in the last <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/> attempt. May be <see langword="null"/>.
-            </summary>
-            <remarks>
-            This will return <see langword="null"/> if the instance was not used in the last <see cref="M:work.bacome.imapclient.cIMAPClient.Connect"/> attempt.
-            This property exists for mechanisms that have out of band error reporting (e.g. XOAUTH2) and provides a way for the out of band errors to be passed back to external code.
-            <note type="note">Any object returned will almost certainly have been disposed.</note>
             </remarks>
         </member>
         <member name="T:work.bacome.imapclient.cSASLAuthentication">
@@ -7823,11 +7842,11 @@
             <summary>
             Decodes data received from the server.
             </summary>
-            <param name="pBuffer">The data received from the server.</param>
+            <param name="pBuffer"></param>
             <returns>A buffer of decoded data or <see langword="null"/> if decoding cannot be completed until more input arrives.</returns>
             <remarks>
             Input buffers of encoded bytes are delivered to this method as they arrive.
-            Any bytes that cannot be decoded due to there being an 'uneven' number of bytes must be buffered.
+            Any bytes that cannot be decoded due to there being an 'uneven' number of bytes must be buffered by the implementation.
             If there is a decoding error then this method must throw: this will immediately terminate the connection to the server.
             </remarks>
         </member>
@@ -7835,8 +7854,8 @@
             <summary>
             Encodes client data for sending to the server.
             </summary>
-            <param name="pBuffer">The un-encoded data to be sent.</param>
-            <returns>The encoded data to be sent.</returns>
+            <param name="pBuffer"></param>
+            <returns></returns>
             <remarks>
             If there is a problem encoding the data this method should return <see langword="null"/> (or it may throw), this will immediately terminate the connection to the server.
             </remarks>
@@ -7862,14 +7881,7 @@
             <param name="pAuthenticationId"></param>
             <param name="pPassword"></param>
             <param name="pTLSRequirement"></param>
-        </member>
-        <member name="P:work.bacome.imapclient.cSASLPlain.MechanismName">
-            <summary>
-            Gets the value "PLAIN"
-            </summary>
-        </member>
-        <member name="P:work.bacome.imapclient.cSASLPlain.TLSRequirement">
-            <inheritdoc/>
+            <inheritdoc cref="T:work.bacome.imapclient.cSASLPlain" select="remarks"/>
         </member>
         <member name="M:work.bacome.imapclient.cSASLPlain.GetAuthentication">
             <inheritdoc/>
@@ -8031,7 +8043,7 @@
             <summary>
             Issues a disposable token object containing a <see cref="T:System.Threading.CancellationToken"/>.
             </summary>
-            <param name="pParentContext">Context for trace messages.</param>
+            <param name="pParentContext"></param>
             <returns></returns>
             <remarks>
             Issuing the token object increments <see cref="P:work.bacome.async.cCancellationManager.Count"/>.
@@ -8049,7 +8061,7 @@
             <summary>
             Cancels the current set of <see cref="T:System.Threading.CancellationToken"/> (if there are any token objects on issue) and starts a new set.
             </summary>
-            <param name="pParentContext">Context for trace messages.</param>
+            <param name="pParentContext"></param>
             <remarks>
             The <see cref="P:work.bacome.async.cCancellationManager.Count"/> is reset to zero. 
             </remarks>
@@ -8087,7 +8099,7 @@
             Initialises a new instance with the specified timer duration. The first countdown starts immediately.
             </summary>
             <param name="pTimeout">The duration of each successive countdown, in milliseconds.</param>
-            <param name="pParentContext">Context for trace messages.</param>
+            <param name="pParentContext"></param>
         </member>
         <member name="M:work.bacome.async.cCountdownTimer.GetAwaitCountdownTask">
             <summary>
@@ -8099,7 +8111,7 @@
             <summary>
             Starts a new countdown. 
             </summary>
-            <param name="pParentContext">Context for trace messages.</param>
+            <param name="pParentContext"></param>
             <remarks>
             If the current countdown is still running, this method will throw.
             </remarks>
@@ -8138,8 +8150,8 @@
             This method will not complete until the block is issued or it throws due to <see cref="T:work.bacome.async.cMethodControl"/>.
             Dispose the returned object to release the block.
             </summary>
-            <param name="pMC">Controls the execution of the method.</param>
-            <param name="pParentContext">Context for trace messages.</param>
+            <param name="pMC"></param>
+            <param name="pParentContext"></param>
             <returns></returns>
         </member>
         <member name="M:work.bacome.async.cExclusiveAccess.TryGetBlock(work.bacome.trace.cTrace.cContext)">
@@ -8148,7 +8160,7 @@
             This method will return a block if the exclusive access is not currently granted, otherwise it will return <see langword="null"/>.
             Dispose the returned object (if any) to release the block.
             </summary>
-            <param name="pParentContext">Context for trace messages.</param>
+            <param name="pParentContext"></param>
             <returns></returns>
         </member>
         <member name="M:work.bacome.async.cExclusiveAccess.GetTokenAsync(work.bacome.async.cMethodControl,work.bacome.trace.cTrace.cContext)">
@@ -8157,8 +8169,8 @@
             This method will not complete until the exclusive access is granted or it throws due to <see cref="T:work.bacome.async.cMethodControl"/>.
             Dispose the object to release the exclusive access.
             </summary>
-            <param name="pMC">Controls the execution of the method.</param>
-            <param name="pParentContext">Context for trace messages.</param>
+            <param name="pMC"></param>
+            <param name="pParentContext"></param>
             <returns></returns>
         </member>
         <member name="M:work.bacome.async.cExclusiveAccess.Dispose">
@@ -8257,34 +8269,34 @@
             <summary>
             Initialises a new instance with the specified name and cancellation token.
             </summary>
-            <param name="pName">A name to use when tracing.</param>
-            <param name="pCancellationToken">A cancellation token to use on the coordinating tasks, may not be <see cref="P:System.Threading.CancellationToken.None"/>, must be capable of being cancelled.</param>
+            <param name="pName">The name to use when tracing.</param>
+            <param name="pCancellationToken">The cancellation token to use on the coordinating tasks, may not be <see cref="P:System.Threading.CancellationToken.None"/>, must be capable of being cancelled.</param>
         </member>
         <member name="M:work.bacome.async.cReleaser.GetAwaitReleaseTask(work.bacome.trace.cTrace.cContext)">
             <summary>
             Gets the current coordinating task.
             </summary>
-            <param name="pParentContext">Context for trace messages.</param>
+            <param name="pParentContext"></param>
             <returns></returns>
         </member>
         <member name="M:work.bacome.async.cReleaser.Release(work.bacome.trace.cTrace.cContext)">
             <summary>
             Completes the current coordinating task.
             </summary>
-            <param name="pParentContext">Context for trace messages.</param>
+            <param name="pParentContext"></param>
         </member>
         <member name="M:work.bacome.async.cReleaser.IsReleased(work.bacome.trace.cTrace.cContext)">
             <summary>
             Indicates whether the current coordinating task is complete.
             </summary>
-            <param name="pParentContext">Context for trace messages.</param>
+            <param name="pParentContext"></param>
             <returns></returns>
         </member>
         <member name="M:work.bacome.async.cReleaser.Reset(work.bacome.trace.cTrace.cContext)">
             <summary>
             Disposes the current coordinating task if it is complete, allowing a new coordinating task to be started.
             </summary>
-            <param name="pParentContext">Context for trace messages.</param>
+            <param name="pParentContext"></param>
         </member>
         <member name="M:work.bacome.async.cReleaser.Dispose">
             <summary>
@@ -8409,7 +8421,7 @@
             Returns a new independent root-context.
             </summary>
             <param name="pInstanceName">The name to give the context.</param>
-            <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            <param name="pContextTraceDelay"></param>
             <returns></returns>
         </member>
         <member name="T:work.bacome.trace.cTrace.cContext">
@@ -8429,14 +8441,14 @@
             Returns a new root-context tied (in name only) to the root-context of this instance.
             </summary>
             <param name="pInstanceName">A string to use when creating the name of the new context.</param>
-            <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            <param name="pContextTraceDelay"></param>
             <returns></returns>
         </member>
         <member name="M:work.bacome.trace.cTrace.cContext.NewGeneric(System.Boolean,System.String,System.Object[])">
             <summary>
             Returns a new sub-context with a free format context-create trace message.
             </summary>
-            <param name="pContextTraceDelay">Whether writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            <param name="pContextTraceDelay"></param>
             <param name="pMessage">The context-create trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> format.</param>
             <param name="pArgs">The objects to place in the context-create trace message text.</param>
             <returns></returns>
@@ -8445,7 +8457,7 @@
             <summary>
             Returns a new sub-context with a context-create trace message in 'object constructor' format.
             </summary>
-            <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            <param name="pContextTraceDelay"></param>
             <param name="pClass">The name of the class.</param>
             <param name="pVersion">The version of the constructor.</param>
             <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
@@ -8456,7 +8468,7 @@
             <summary>
             Returns a new sub-context with a context-create trace message in 'property setter' format.
             </summary>
-            <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            <param name="pContextTraceDelay"></param>
             <param name="pClass">The name of the class.</param>
             <param name="pProperty">The name of the property.</param>
             <param name="pValue">The value being set.</param>
@@ -8467,7 +8479,7 @@
             <summary>
             Returns a new sub-context with a context-create trace message in 'method' format.
             </summary>
-            <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            <param name="pContextTraceDelay"></param>
             <param name="pClass">The name of the class.</param>
             <param name="pMethod">The name of the method.</param>
             <param name="pVersion">The version of the method.</param>
@@ -8481,7 +8493,7 @@
             <summary>
             Returns a new root-context with a context-create trace message in 'object constructor' format.
             </summary>
-            <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            <param name="pContextTraceDelay"></param>
             <param name="pClass">The name of the class.</param>
             <returns></returns>
             <remarks>
@@ -8492,7 +8504,7 @@
             <summary>
             Returns a new root-context with a context-create trace message in 'method' format.
             </summary>
-            <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            <param name="pContextTraceDelay"></param>
             <param name="pClass">The name of the class.</param>
             <param name="pMethod">The name of the method.</param>
             <returns></returns>
@@ -8523,7 +8535,7 @@
             <summary>
             Returns a new sub-context with a context-create trace message in 'object constructor' format.
             </summary>
-            <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            <param name="pContextTraceDelay"></param>
             <param name="pClass">The name of the class.</param>
             <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
             <returns></returns>
@@ -8571,7 +8583,7 @@
             <summary>
             Returns a new sub-context with a context-create trace message in 'method' format.
             </summary>
-            <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            <param name="pContextTraceDelay"></param>
             <param name="pClass">The name of the class.</param>
             <param name="pMethod">The name of the method.</param>
             <param name="pArgs">The parameters to the method that should be in the trace message.</param>
@@ -8624,7 +8636,7 @@
             <summary>
             Writes a trace message.
             </summary>
-            <param name="pTraceEventType">The trace event type.</param>
+            <param name="pTraceEventType"></param>
             <param name="pMessage">The trace message in <see cref="M:System.String.Format(System.String,System.Object[])"/> format.</param>
             <param name="pArgs">The objects to place in the trace message text.</param>
         </member>

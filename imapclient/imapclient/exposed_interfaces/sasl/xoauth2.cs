@@ -15,7 +15,7 @@ namespace work.bacome.imapclient
         private readonly string mUserId;
         private readonly string mAccessToken;
 
-        public cSASLXOAuth2(string pUserId, string pAccessToken)
+        public cSASLXOAuth2(string pUserId, string pAccessToken) : base(kName, eTLSRequirement.required)
         {
             if (string.IsNullOrEmpty(pUserId) || pUserId.IndexOf(cChar.CtrlA) != -1) throw new ArgumentOutOfRangeException(nameof(pUserId));
             if (string.IsNullOrEmpty(pAccessToken)) throw new ArgumentOutOfRangeException(nameof(pAccessToken));
@@ -24,8 +24,6 @@ namespace work.bacome.imapclient
             mAccessToken = pAccessToken;
         }
 
-        public override string MechanismName => kName;
-        public override eTLSRequirement TLSRequirement => eTLSRequirement.required;
         public override cSASLAuthentication GetAuthentication() => new cAuth(mUserId, mAccessToken);
 
         private class cAuth : cSASLAuthentication

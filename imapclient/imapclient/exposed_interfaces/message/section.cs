@@ -77,7 +77,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Initialises a new instance so that it represents an entire body-part.
         /// </summary>
-        /// <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message</param>
+        /// <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message.</param>
         /// <remarks>
         /// <see cref="TextPart"/> is set to <see cref="eSectionTextPart.all"/>, <see cref="Names"/> to <see langword="null"/>.
         /// </remarks>
@@ -92,7 +92,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Initialises a new instance so that it represents a whole text part.
         /// </summary>
-        /// <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message</param>
+        /// <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message.</param>
         /// <param name="pTextPart">May be <see cref="eSectionTextPart.all"/>, <see cref="eSectionTextPart.header"/>, <see cref="eSectionTextPart.text"/> or <see cref="eSectionTextPart.mime"/> (<see cref="eSectionTextPart.mime"/> only if <paramref name="pPart"/> is not <see langword="null"/>).</param>
         public cSection(string pPart, eSectionTextPart pTextPart)
         {
@@ -107,7 +107,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Initialises a new instance so that it represents a subset of the <see cref="eSectionTextPart.header"/>.
         /// </summary>
-        /// <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message</param>
+        /// <param name="pPart">A dot separated list of integers specifying the body-part, or <see langword="null"/> for the whole message.</param>
         /// <param name="pNames">Must not be <see langword="null"/> nor empty.</param>
         /// <param name="pNot"><see langword="true"/> to represent all header fields except those specified, <see langword="false"/> to represent only the header fields specified.</param>
         public cSection(string pPart, cHeaderFieldNames pNames, bool pNot = false)

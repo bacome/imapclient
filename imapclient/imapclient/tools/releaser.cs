@@ -39,8 +39,8 @@ namespace work.bacome.async
         /// <summary>
         /// Initialises a new instance with the specified name and cancellation token.
         /// </summary>
-        /// <param name="pName">A name to use when tracing.</param>
-        /// <param name="pCancellationToken">A cancellation token to use on the coordinating tasks, may not be <see cref="System.Threading.CancellationToken.None"/>, must be capable of being cancelled.</param>
+        /// <param name="pName">The name to use when tracing.</param>
+        /// <param name="pCancellationToken">The cancellation token to use on the coordinating tasks, may not be <see cref="System.Threading.CancellationToken.None"/>, must be capable of being cancelled.</param>
         public cReleaser(string pName, CancellationToken pCancellationToken)
         {
             if (!pCancellationToken.CanBeCanceled) throw new ArgumentOutOfRangeException(nameof(pCancellationToken));
@@ -65,7 +65,7 @@ namespace work.bacome.async
         /// <summary>
         /// Gets the current coordinating task.
         /// </summary>
-        /// <param name="pParentContext">Context for trace messages.</param>
+        /// <param name="pParentContext"></param>
         /// <returns></returns>
         public Task GetAwaitReleaseTask(cTrace.cContext pParentContext)
         {
@@ -77,7 +77,7 @@ namespace work.bacome.async
         /// <summary>
         /// Completes the current coordinating task.
         /// </summary>
-        /// <param name="pParentContext">Context for trace messages.</param>
+        /// <param name="pParentContext"></param>
         public void Release(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cReleaser), nameof(Release), mName, mInstance);
@@ -94,7 +94,7 @@ namespace work.bacome.async
         /// <summary>
         /// Indicates whether the current coordinating task is complete.
         /// </summary>
-        /// <param name="pParentContext">Context for trace messages.</param>
+        /// <param name="pParentContext"></param>
         /// <returns></returns>
         public bool IsReleased(cTrace.cContext pParentContext)
         {
@@ -106,7 +106,7 @@ namespace work.bacome.async
         /// <summary>
         /// Disposes the current coordinating task if it is complete, allowing a new coordinating task to be started.
         /// </summary>
-        /// <param name="pParentContext">Context for trace messages.</param>
+        /// <param name="pParentContext"></param>
         public void Reset(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cReleaser), nameof(Reset), mName, mInstance);

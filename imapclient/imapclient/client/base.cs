@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
 using System.Threading;
@@ -104,13 +105,17 @@ namespace work.bacome.imapclient
         //
         //    0, 5, 2, 1 -> 0.5.2-alpha; 2017-NOV-30
 
+        private const int kAlpha = 1;
+        private const int kBeta = 2;
+        private const int kRC = 3;
+
         /**<summary>The version number of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
-        public static Version Version = new Version(0, 5, 3, 1);
+        public static Version Version = new Version(0, 6, 0, kAlpha);
 
         // ......................................................................................................................... when changing the version here also change it in the assemblyinfo
 
         /**<summary>The release date of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
-        public static DateTime ReleaseDate = new DateTime(2017, 12, 01);
+        public static DateTime ReleaseDate = new DateTime(2017, 12, 02);
 
         /**<summary>The trace source name used when tracing. See <see cref="cTrace"/>.</summary>*/
         public const string TraceSourceName = "work.bacome.cIMAPClient";
@@ -145,6 +150,7 @@ namespace work.bacome.imapclient
         private Encoding mEncoding = Encoding.UTF8;
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
         private cClientIdUTF8 mClientIdUTF8 = null;
+        private ReadOnlyCollection<cSASLAuthentication> mFailedSASLAuthentications = null;
 
         /// <summary>
         /// Initialises a new instance.
@@ -369,6 +375,24 @@ namespace work.bacome.imapclient
         public cURL HomeServerReferral => mSession?.HomeServerReferral;
 
         /// <summary>
+        /// Gets the set of SASL authentication objects that failed during the last attempt to <see cref="Connect"/>. May be <see langword="null"/> or empty.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <see langword="null"/> indicates that the instance has never tried to <see cref="Connect"/>.
+        /// The collection will be empty if there were no failed SASL authentication attempts in the last attempt to <see cref="Connect"/>.
+        /// </para>
+        /// <para>
+        /// This property is provided to give access to authentication error detail that is specific to the authentication mechanism.
+        /// (For example: XOAUTH2 provides an 'Error Response' as part of a failed attempt to authenticate.)
+        /// </para>
+        /// <note type="note">
+        /// All objects in this collection will have been disposed.
+        /// </note>
+        /// </remarks>
+        public ReadOnlyCollection<cSASLAuthentication> FailedSASLAuthentications => mFailedSASLAuthentications;
+
+        /// <summary>
         /// Gets and sets the server capabilities that the instance should ignore.
         /// </summary>
         /// <remarks>
@@ -479,7 +503,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pTrace">The trace information to be sent to the server.</param>
         /// <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
-        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if not advertised.</param>
+        /// <param name="pTryAuthenticateEvenIfAnonymousIsntAdvertised">Indicates whether the SASL ANONYMOUS mechanism should be tried even if it isn't advertised.</param>
         /// <remarks>
         /// May only be called while <see cref="IsUnconnected"/>.
         /// The credentials may fall back to IMAP LOGIN if SASL ANONYMOUS isn't available.
@@ -493,7 +517,7 @@ namespace work.bacome.imapclient
         /// <param name="pUserId"></param>
         /// <param name="pPassword"></param>
         /// <param name="pTLSRequirement">The TLS requirement for the credentials to be used.</param>
-        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if not advertised.</param>
+        /// <param name="pTryAuthenticateEvenIfPlainIsntAdvertised">Indicates whether the SASL PLAIN mechanism should be tried even if it isn't advertised.</param>
         /// <remarks>
         /// May only be called while <see cref="IsUnconnected"/>.
         /// The credentials may fall back to IMAP LOGIN if SASL PLAIN isn't available.

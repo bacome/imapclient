@@ -6,7 +6,6 @@ namespace work.bacome.imapclient.support
     /// Represents an IMAP mailbox uniquely within a mailbox cache.
     /// </summary>
     /// <seealso cref="cMailbox.MailboxHandle"/>
-    /// <seealso cref="iSelectedMailboxDetails"/>
     /// <seealso cref="iMessageCache"/>
     /// <seealso cref="cMailboxPropertyChangedEventArgs"/>"/>
     /// <seealso cref="cMailboxMessageDeliveryEventArgs"/>"/>

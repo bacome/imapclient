@@ -11,14 +11,25 @@ namespace work.bacome.imapclient
     public abstract class cSASL
     {
         /// <summary>
-        /// Gets the SASL mechanism name.
+        /// The SASL mechanism name.
         /// </summary>
-        public abstract string MechanismName { get; }
+        public readonly string MechanismName;
 
         /// <summary>
-        /// Gets the TSL requirement for the contained details to be used.
+        /// The TSL requirement for the contained details to be used.
         /// </summary>
-        public abstract eTLSRequirement TLSRequirement { get; }
+        public readonly eTLSRequirement TLSRequirement;
+
+        /// <summary>
+        /// Initialises a new instance with the specified mechanism name and TLS requirement.
+        /// </summary>
+        /// <param name="pMechanismName"></param>
+        /// <param name="pTLSRequirement"></param>
+        protected cSASL(string pMechanismName, eTLSRequirement pTLSRequirement)
+        {
+            MechanismName = pMechanismName;
+            TLSRequirement = pTLSRequirement;
+        }
 
         /// <summary>
         /// Returns an object that can participate in the <see cref="cIMAPClient"/> authentication process.
@@ -31,16 +42,6 @@ namespace work.bacome.imapclient
         /// Any <see cref="cSASLSecurity"/> object obtained will be disposed when the underlying network connection closes.
         /// </remarks>
         public abstract cSASLAuthentication GetAuthentication();
-
-        /// <summary>
-        /// Gets a reference to the <see cref="cSASLAuthentication"/> object returned by <see cref="GetAuthentication"/> for use in the last <see cref="cIMAPClient.Connect"/> attempt. May be <see langword="null"/>.
-        /// </summary>
-        /// <remarks>
-        /// This will return <see langword="null"/> if the instance was not used in the last <see cref="cIMAPClient.Connect"/> attempt.
-        /// This property exists for mechanisms that have out of band error reporting (e.g. XOAUTH2) and provides a way for the out of band errors to be passed back to external code.
-        /// <note type="note">Any object returned will almost certainly have been disposed.</note>
-        /// </remarks>
-        public cSASLAuthentication LastAuthentication { get; internal set; }
     }
 
     /// <summary>
@@ -102,11 +103,11 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Decodes data received from the server.
         /// </summary>
-        /// <param name="pBuffer">The data received from the server.</param>
+        /// <param name="pBuffer"></param>
         /// <returns>A buffer of decoded data or <see langword="null"/> if decoding cannot be completed until more input arrives.</returns>
         /// <remarks>
         /// Input buffers of encoded bytes are delivered to this method as they arrive.
-        /// Any bytes that cannot be decoded due to there being an 'uneven' number of bytes must be buffered.
+        /// Any bytes that cannot be decoded due to there being an 'uneven' number of bytes must be buffered by the implementation.
         /// If there is a decoding error then this method must throw: this will immediately terminate the connection to the server.
         /// </remarks>
         public abstract byte[] Decode(byte[] pBuffer);
@@ -114,8 +115,8 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Encodes client data for sending to the server.
         /// </summary>
-        /// <param name="pBuffer">The un-encoded data to be sent.</param>
-        /// <returns>The encoded data to be sent.</returns>
+        /// <param name="pBuffer"></param>
+        /// <returns></returns>
         /// <remarks>
         /// If there is a problem encoding the data this method should return <see langword="null"/> (or it may throw), this will immediately terminate the connection to the server.
         /// </remarks>

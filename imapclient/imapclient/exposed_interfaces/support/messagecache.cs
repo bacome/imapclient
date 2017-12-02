@@ -7,7 +7,6 @@ namespace work.bacome.imapclient.support
     /// Represents a message cache.
     /// </summary>
     /// <seealso cref="iMessageHandle"/>
-    /// <seealso cref="iSelectedMailboxDetails"/>
     public interface iMessageCache : IReadOnlyList<iMessageHandle>
     {
         /**<summary>Gets the mailbox that this message cache belongs to.</summary>*/

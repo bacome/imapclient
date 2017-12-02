@@ -12,19 +12,15 @@ namespace work.bacome.imapclient
     /// </remarks>
     public class cSASLPlain : cSASL
     {
-        // rfc4616
-
         private const string kName = "PLAIN";
 
         private readonly string mAuthenticationId;
         private readonly string mPassword;
-        private readonly eTLSRequirement mTLSRequirement;
 
-        private cSASLPlain(string pAuthenticationId, string pPassword, eTLSRequirement pTLSRequirement, bool pPrechecked)
+        private cSASLPlain(string pAuthenticationId, string pPassword, eTLSRequirement pTLSRequirement, bool pPrechecked) : base(kName, pTLSRequirement)
         {
             mAuthenticationId = pAuthenticationId;
             mPassword = pPassword;
-            mTLSRequirement = pTLSRequirement;
         }
 
         /// <summary>
@@ -33,13 +29,13 @@ namespace work.bacome.imapclient
         /// <param name="pAuthenticationId"></param>
         /// <param name="pPassword"></param>
         /// <param name="pTLSRequirement"></param>
-        public cSASLPlain(string pAuthenticationId, string pPassword, eTLSRequirement pTLSRequirement)
+        /// <inheritdoc cref="cSASLPlain" select="remarks"/>
+        public cSASLPlain(string pAuthenticationId, string pPassword, eTLSRequirement pTLSRequirement) : base(kName, pTLSRequirement)
         {
             if (string.IsNullOrEmpty(pAuthenticationId) || pAuthenticationId.IndexOf(cChar.NUL) != -1) throw new ArgumentOutOfRangeException(nameof(pAuthenticationId));
             if (string.IsNullOrEmpty(pPassword) || pPassword.IndexOf(cChar.NUL) != -1) throw new ArgumentOutOfRangeException(nameof(pPassword));
             mAuthenticationId = pAuthenticationId;
             mPassword = pPassword;
-            mTLSRequirement = pTLSRequirement;
         }
 
         internal static bool TryConstruct(string pAuthenticationId, string pPassword, eTLSRequirement pTLSRequirement, out cSASLPlain rPlain)
@@ -56,14 +52,6 @@ namespace work.bacome.imapclient
             rPlain = null;
             return false;
         }
-
-        /// <summary>
-        /// Gets the value "PLAIN"
-        /// </summary>
-        public override string MechanismName => kName;
-
-        /// <inheritdoc/>
-        public override eTLSRequirement TLSRequirement => mTLSRequirement;
 
         /// <inheritdoc/>
         public override cSASLAuthentication GetAuthentication() => new cAuth(mAuthenticationId, mPassword);

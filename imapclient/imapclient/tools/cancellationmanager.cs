@@ -41,7 +41,7 @@ namespace work.bacome.async
         /// <summary>
         /// Issues a disposable token object containing a <see cref="CancellationToken"/>.
         /// </summary>
-        /// <param name="pParentContext">Context for trace messages.</param>
+        /// <param name="pParentContext"></param>
         /// <returns></returns>
         /// <remarks>
         /// Issuing the token object increments <see cref="Count"/>.
@@ -80,7 +80,7 @@ namespace work.bacome.async
         /// <summary>
         /// Cancels the current set of <see cref="CancellationToken"/> (if there are any token objects on issue) and starts a new set.
         /// </summary>
-        /// <param name="pParentContext">Context for trace messages.</param>
+        /// <param name="pParentContext"></param>
         /// <remarks>
         /// The <see cref="Count"/> is reset to zero. 
         /// </remarks>

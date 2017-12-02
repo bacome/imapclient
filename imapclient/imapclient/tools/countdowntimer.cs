@@ -23,7 +23,7 @@ namespace work.bacome.async
         /// Initialises a new instance with the specified timer duration. The first countdown starts immediately.
         /// </summary>
         /// <param name="pTimeout">The duration of each successive countdown, in milliseconds.</param>
-        /// <param name="pParentContext">Context for trace messages.</param>
+        /// <param name="pParentContext"></param>
         public cCountdownTimer(int pTimeout, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewObject(nameof(cCountdownTimer), pTimeout);
@@ -44,7 +44,7 @@ namespace work.bacome.async
         /// <summary>
         /// Starts a new countdown. 
         /// </summary>
-        /// <param name="pParentContext">Context for trace messages.</param>
+        /// <param name="pParentContext"></param>
         /// <remarks>
         /// If the current countdown is still running, this method will throw.
         /// </remarks>

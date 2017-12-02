@@ -491,7 +491,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Returns a filter that passes back only messages that have a date less than the specified date.
         /// </summary>
-        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/>.</param>
         /// <param name="pDate"></param>
         /// <returns></returns>
         public static cFilter operator <(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.before, pDate);
@@ -499,7 +499,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Returns a filter that passes back only messages that have a date greater than the specified date.
         /// </summary>
-        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/>.</param>
         /// <param name="pDate"></param>
         /// <returns></returns>
         public static cFilter operator >(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.since, pDate.AddDays(1));
@@ -508,7 +508,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Returns a filter that passes back only messages that have a date equal to the specified date.
         /// </summary>
-        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/>.</param>
         /// <param name="pDate"></param>
         /// <returns></returns>
         public static cFilter operator ==(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.on, pDate);
@@ -516,7 +516,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Returns a filter that passes back only messages that have a date different to the specified date.
         /// </summary>
-        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/>.</param>
         /// <param name="pDate"></param>
         /// <returns></returns>
         public static cFilter operator !=(cFilterDate pFilterDate, DateTime pDate) => new cFilterNot(new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.on, pDate));
@@ -524,7 +524,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Returns a filter that passes back only messages that have a date greater than or equal to the specified date.
         /// </summary>
-        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/>.</param>
         /// <param name="pDate"></param>
         /// <returns></returns>
         public static cFilter operator >=(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.since, pDate);
@@ -532,7 +532,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Returns a filter that passes back only messages that have a date less than or equal to the specified date.
         /// </summary>
-        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/></param>
+        /// <param name="pFilterDate"><see cref="cFilter.Received"/> or <see cref="cFilter.Sent"/>.</param>
         /// <param name="pDate"></param>
         /// <returns></returns>
         public static cFilter operator <=(cFilterDate pFilterDate, DateTime pDate) => new cFilterDateCompare(pFilterDate.Date, eFilterDateCompare.before, pDate.AddDays(1));

@@ -52,6 +52,7 @@ namespace testharness2
             else if (e.PropertyName == nameof(cIMAPClient.ServerId)) lValue = mClient.ServerId?.ToString();
             else if (e.PropertyName == nameof(cIMAPClient.Namespaces)) lValue = mClient.Namespaces?.ToString();
             else if (e.PropertyName == nameof(cIMAPClient.SelectedMailbox)) lValue = mClient.SelectedMailbox?.Path;
+            else if (e.PropertyName == nameof(cIMAPClient.FailedSASLAuthentications)) lValue = mClient.FailedSASLAuthentications?.Count.ToString();
             else lValue = null;
 
             mQueue.Enqueue($"{nameof(PropertyChangedEventArgs)}({e.PropertyName}) [='{lValue}']");

@@ -13,7 +13,19 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kAuthenticateCommandPartAuthenticate = new cTextCommandPart("AUTHENTICATE ");
             private static readonly cCommandPart kAuthenticateCommandPartEqual = new cTextCommandPart("=");
 
-            public async Task<Exception> AuthenticateAsync(cMethodControl pMC, cAccountId pAccountId, cSASL pSASL, cTrace.cContext pParentContext)
+            public class cAuthenticateFailureDetails
+            {
+                public readonly cSASLAuthentication Authentication;
+                public readonly Exception Exception;
+
+                public cAuthenticateFailureDetails(cSASLAuthentication pAuthentication, Exception pException)
+                {
+                    Authentication = pAuthentication ?? throw new ArgumentNullException(nameof(pAuthentication));
+                    Exception = pException;
+                }
+            }
+
+            public async Task<cAuthenticateFailureDetails> AuthenticateAsync(cMethodControl pMC, cAccountId pAccountId, cSASL pSASL, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(AuthenticateAsync), pMC, pAccountId, pSASL.MechanismName);
 
@@ -29,7 +41,6 @@ namespace work.bacome.imapclient
 
                     var lAuthentication = pSASL.GetAuthentication();
                     lBuilder.Add(lAuthentication);
-                    pSASL.LastAuthentication = lAuthentication;
 
                     if (_Capabilities.SASL_IR)
                     {
@@ -39,7 +50,7 @@ namespace work.bacome.imapclient
                         catch (Exception e)
                         {
                             lContext.TraceException("SASL authentication object threw when getting initial response", e);
-                            return null;
+                            return new cAuthenticateFailureDetails(lAuthentication, e);
                         }
 
                         if (lAuthenticationResponse != null)
@@ -68,17 +79,17 @@ namespace work.bacome.imapclient
                     {
                         lContext.TraceInformation("authenticate failed: {0}", lResult.ResponseText);
 
-                        if (ZSetHomeServerReferral(lResult.ResponseText, lContext)) return new cHomeServerReferralException(lResult.ResponseText, lContext);
+                        if (ZSetHomeServerReferral(lResult.ResponseText, lContext)) return new cAuthenticateFailureDetails(lAuthentication, new cHomeServerReferralException(lResult.ResponseText, lContext));
 
                         if (lResult.ResponseText.Code == eResponseTextCode.authenticationfailed || lResult.ResponseText.Code == eResponseTextCode.authorizationfailed || lResult.ResponseText.Code == eResponseTextCode.expired)
-                            return new cCredentialsException(lResult.ResponseText, lContext);
+                            return new cAuthenticateFailureDetails(lAuthentication, new cCredentialsException(lResult.ResponseText, lContext));
 
-                        return null;
+                        return new cAuthenticateFailureDetails(lAuthentication, null);
                     }
 
                     lContext.TraceInformation("authenticate cancelled");
 
-                    return null;
+                    return new cAuthenticateFailureDetails(lAuthentication, null);
                 }
             }
 

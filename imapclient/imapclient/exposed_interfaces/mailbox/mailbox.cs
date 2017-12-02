@@ -804,7 +804,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Creates a child mailbox of the mailbox.
         /// </summary>
-        /// <param name="pName">The mailbox name to use.</param>
+        /// <param name="pName"></param>
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <returns></returns>
         /// <inheritdoc cref="cIMAPClient.Create(cMailboxName, bool)" select="remarks"/>
@@ -813,7 +813,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Asynchronously creates a child mailbox of the mailbox.
         /// </summary>
-        /// <param name="pName">The mailbox name to use.</param>
+        /// <param name="pName"></param>
         /// <param name="pAsFutureParent">Indicates to the server that you intend to create child mailboxes in the new mailbox.</param>
         /// <inheritdoc cref="CreateChild(string, bool)" select="returns|remarks"/>
         public Task<cMailbox> CreateChildAsync(string pName, bool pAsFutureParent = false) => Client.CreateAsync(GetMailboxName(pName), pAsFutureParent);
@@ -845,7 +845,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Changes the <see cref="Name"/> of the mailbox.
         /// </summary>
-        /// <param name="pName">The new mailbox name.</param>
+        /// <param name="pName"></param>
         /// <returns></returns>
         /// <remarks>
         /// After renaming the current instance will continue to have the same <see cref="Path"/>, which means that it will no longer represent a mailbox that <see cref="Exists"/> on the server (unless the mailbox <see cref="IsInbox"/>).
@@ -911,7 +911,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Selects the mailbox.
         /// </summary>
-        /// <param name="pForUpdate">Indicates whether the mailbox should be selected for update or not</param>
+        /// <param name="pForUpdate">Indicates whether the mailbox should be selected for update or not.</param>
         /// <remarks>
         /// Selecting a mailbox un-selects the previously selected mailbox (if there was one).
         /// </remarks>
@@ -920,7 +920,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Asynchronously selects the mailbox.
         /// </summary>
-        /// <param name="pForUpdate">Indicates whether the mailbox should be selected for update or not</param>
+        /// <param name="pForUpdate">Indicates whether the mailbox should be selected for update or not.</param>
         /// <returns></returns>
         /// <inheritdoc cref="Select(bool)" select="remarks"/>
         public Task SelectAsync(bool pForUpdate = false) => Client.SelectAsync(MailboxHandle, pForUpdate);
@@ -1050,7 +1050,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets a list of <see cref="cMessage"/> from a set of <see cref="cUID"/>. The mailbox must be selected.
         /// </summary>
-        /// <param name="pUIDs">.</param>
+        /// <param name="pUIDs"></param>
         /// <param name="pItems">The set of items to ensure are cached for the returned messages.</param>
         /// <param name="pConfiguration">Operation specific timeout, cancellation token and progress callbacks.</param>
         /// <returns></returns>

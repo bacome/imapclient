@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.trace;
@@ -21,6 +22,7 @@ namespace work.bacome.imapclient
         /// <para>
         /// During the authentication part of connecting the <see cref="Capabilities"/> will be set (most likely more than once).
         /// The <see cref="IgnoreCapabilities"/> value is used to determine what capabilities offered by the server are actually used by the client.
+        /// Any attempted SASL authentications that fail will result in entries in the collection returned by <see cref="FailedSASLAuthentications"/>.
         /// It is possible that the <see cref="HomeServerReferral"/> will be set during authentication: this indicates that the connected server suggests that we disconnect and try a different server.
         /// If authentication is successful then <see cref="ConnectedAccountId"/> will be set.
         /// </para>
@@ -34,7 +36,7 @@ namespace work.bacome.imapclient
         /// </list>
         /// </para>
         /// <para>
-        /// Normally only one of Namespace and LIST are used during connect, but under some strange circumstances both may be required.
+        /// Normally only one of NAMESPACE and LIST are used during connect, but under some strange circumstances both may be required.
         /// (The specific case is when the personal namespaces retrieved from the server do not contain the INBOX.)
         /// Once <see cref="Namespaces"/> is known <see cref="Inbox"/> is set.
         /// </para>
@@ -47,7 +49,7 @@ namespace work.bacome.imapclient
         /// <item>
         ///   <term><see cref="cConnectByeException"/></term>
         ///   <description>
-        ///   The server actively rejected the connection.
+        ///   The server explicitly rejected the attempt to connect.
         ///   </description>
         /// </item>
         /// <item>
@@ -63,13 +65,13 @@ namespace work.bacome.imapclient
         ///   <term><see cref="cAuthenticationMechanismsException"/></term>
         ///   <description>
         ///   The client was not able to try any credentials from <see cref="Credentials"/>. 
-        ///   If the TLS state was to blame for this then <see cref="cAuthenticationMechanismsException.TLSIssue"/> will be set to <see langword="true"/>.
+        ///   If the TLS state of the connection was to blame for this then <see cref="cAuthenticationMechanismsException.TLSIssue"/> will be set to <see langword="true"/>.
         ///   </description>
         /// </item>
         /// <item>
         ///   <term><see cref="cHomeServerReferralException"/></term>
         ///   <description>
-        ///   While connecting the server either refused to connect or refused to authenticate and suggested that we try a different server instead
+        ///   While connecting the server explicitly rejected the attempt to connect or authenticate and as part of the rejection suggested that we try connecting to a different server instead
         ///   (see <see cref="cHomeServerReferralException.ResponseText"/> and the contained <see cref="cResponseText.Arguments"/>).
         ///   </description>
         /// </item>
@@ -123,9 +125,6 @@ namespace work.bacome.imapclient
                 mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
             }
 
-            // initialise the SASLs
-            foreach (var lSASL in lCredentials.SASLs) lSASL.LastAuthentication = null;
-
             mSession = new cSession(mSynchroniser, mIgnoreCapabilities, mMailboxCacheDataItems, mNetworkWriteConfiguration, mIdleConfiguration, mFetchCacheItemsConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
@@ -143,6 +142,10 @@ namespace work.bacome.imapclient
                 mSynchroniser.InvokePropertyChanged(nameof(SelectedMailbox), lContext);
                 mSynchroniser.InvokePropertyChanged(nameof(SelectedMailboxDetails), lContext);
             }
+
+            List<cSASLAuthentication> lFailedSASLAuthentications = new List<cSASLAuthentication>();
+            mFailedSASLAuthentications = lFailedSASLAuthentications.AsReadOnly();
+            mSynchroniser.InvokePropertyChanged(nameof(FailedSASLAuthentications), lContext);
 
             using (var lToken = mCancellationManager.GetToken(lContext))
             {
@@ -173,30 +176,26 @@ namespace work.bacome.imapclient
 
                         bool lTLSInstalled = lSession.TLSInstalled;
 
-                        if (lCredentials.TryAllSASLs)
+                        if (lCredentials.SASLs != null)
                         {
                             foreach (var lSASL in lCredentials.SASLs)
                             {
-                                if ((lSASL.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lSASL.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
-                                else
-                                {
-                                    lTriedCredentials = true;
-                                    lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
-                                    if (lSession.ConnectionState != eConnectionState.notauthenticated || lAuthenticateException != null) break;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            foreach (var lSASL in lCredentials.SASLs)
-                            {
-                                if (lCurrentCapabilities.AuthenticationMechanisms.Contains(lSASL.MechanismName)) // no case-invariance required because SASL (rfc 2222) says only uppercase is allowed
+                                if (lCredentials.TryAllSASLs || lCurrentCapabilities.AuthenticationMechanisms.Contains(lSASL.MechanismName)) // no case-invariance required because SASL (rfc 2222) says only uppercase is allowed
                                 {
                                     if ((lSASL.TLSRequirement == eTLSRequirement.required && !lTLSInstalled) || (lSASL.TLSRequirement == eTLSRequirement.disallowed && lTLSInstalled)) lTLSIssue = true;
                                     else
                                     {
                                         lTriedCredentials = true;
-                                        lAuthenticateException = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
+
+                                        var lAuthenticateResult = await lSession.AuthenticateAsync(lMC, lAccountId, lSASL, lContext).ConfigureAwait(false);
+
+                                        if (lAuthenticateResult != null)
+                                        {
+                                            lFailedSASLAuthentications.Add(lAuthenticateResult.Authentication);
+                                            mSynchroniser.InvokePropertyChanged(nameof(FailedSASLAuthentications), lContext);
+                                            lAuthenticateException = lAuthenticateResult.Exception;
+                                        }
+
                                         if (lSession.ConnectionState != eConnectionState.notauthenticated || lAuthenticateException != null) break;
                                     }
                                 }

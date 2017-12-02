@@ -1137,11 +1137,7 @@ namespace testharness2
 
         private class cTestAuth1Creds : cCredentials
         {
-            public cTestAuth1Creds(bool pTryAllSASLs) : base("fred", null, pTryAllSASLs)
-            {
-                mSASLs.Add(new cSASLPlain("fred", "angus", eTLSRequirement.indifferent));
-                mSASLs.Add(new cSASLAnonymous("fr€d", eTLSRequirement.indifferent));
-            }
+            public cTestAuth1Creds(bool pTryAllSASLs) : base("fred", null, new cSASL[] { new cSASLPlain("fred", "angus", eTLSRequirement.indifferent), new cSASLAnonymous("fr€d", eTLSRequirement.indifferent) }, pTryAllSASLs) { }
         }
 
         private static void ZTestAuth1(cTrace.cContext pParentContext)

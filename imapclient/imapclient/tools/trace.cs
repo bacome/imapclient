@@ -110,7 +110,7 @@ namespace work.bacome.trace
         /// Returns a new independent root-context.
         /// </summary>
         /// <param name="pInstanceName">The name to give the context.</param>
-        /// <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+        /// <param name="pContextTraceDelay"></param>
         /// <returns></returns>
         public cContext NewRoot(string pInstanceName, bool pContextTraceDelay = false)
         {
@@ -134,14 +134,14 @@ namespace work.bacome.trace
             /// Returns a new root-context tied (in name only) to the root-context of this instance.
             /// </summary>
             /// <param name="pInstanceName">A string to use when creating the name of the new context.</param>
-            /// <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            /// <param name="pContextTraceDelay"></param>
             /// <returns></returns>
             public abstract cContext NewRoot(string pInstanceName, bool pContextTraceDelay = false);
 
             /// <summary>
             /// Returns a new sub-context with a free format context-create trace message.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            /// <param name="pContextTraceDelay"></param>
             /// <param name="pMessage">The context-create trace message in <see cref="String.Format(string, object[])"/> format.</param>
             /// <param name="pArgs">The objects to place in the context-create trace message text.</param>
             /// <returns></returns>
@@ -150,7 +150,7 @@ namespace work.bacome.trace
             /// <summary>
             /// Returns a new sub-context with a context-create trace message in 'object constructor' format.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            /// <param name="pContextTraceDelay"></param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pVersion">The version of the constructor.</param>
             /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
@@ -161,7 +161,7 @@ namespace work.bacome.trace
             /// <summary>
             /// Returns a new sub-context with a context-create trace message in 'property setter' format.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            /// <param name="pContextTraceDelay"></param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pProperty">The name of the property.</param>
             /// <param name="pValue">The value being set.</param>
@@ -172,7 +172,7 @@ namespace work.bacome.trace
             /// <summary>
             /// Returns a new sub-context with a context-create trace message in 'method' format.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            /// <param name="pContextTraceDelay"></param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pMethod">The name of the method.</param>
             /// <param name="pVersion">The version of the method.</param>
@@ -186,7 +186,7 @@ namespace work.bacome.trace
             /// <summary>
             /// Returns a new root-context with a context-create trace message in 'object constructor' format.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            /// <param name="pContextTraceDelay"></param>
             /// <param name="pClass">The name of the class.</param>
             /// <returns></returns>
             /// <remarks>
@@ -197,7 +197,7 @@ namespace work.bacome.trace
             /// <summary>
             /// Returns a new root-context with a context-create trace message in 'method' format.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            /// <param name="pContextTraceDelay"></param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pMethod">The name of the method.</param>
             /// <returns></returns>
@@ -228,7 +228,7 @@ namespace work.bacome.trace
             /// <summary>
             /// Returns a new sub-context with a context-create trace message in 'object constructor' format.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            /// <param name="pContextTraceDelay"></param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pArgs">The parameters to the constructor that should be in the trace message.</param>
             /// <returns></returns>
@@ -276,7 +276,7 @@ namespace work.bacome.trace
             /// <summary>
             /// Returns a new sub-context with a context-create trace message in 'method' format.
             /// </summary>
-            /// <param name="pContextTraceDelay">Whether the writing of context-create trace messages should be delayed for the context and its sub-contexts.</param>
+            /// <param name="pContextTraceDelay"></param>
             /// <param name="pClass">The name of the class.</param>
             /// <param name="pMethod">The name of the method.</param>
             /// <param name="pArgs">The parameters to the method that should be in the trace message.</param>
@@ -328,7 +328,7 @@ namespace work.bacome.trace
             /// <summary>
             /// Writes a trace message.
             /// </summary>
-            /// <param name="pTraceEventType">The trace event type.</param>
+            /// <param name="pTraceEventType"></param>
             /// <param name="pMessage">The trace message in <see cref="String.Format(string, object[])"/> format.</param>
             /// <param name="pArgs">The objects to place in the trace message text.</param>
             [Conditional("TRACE")]

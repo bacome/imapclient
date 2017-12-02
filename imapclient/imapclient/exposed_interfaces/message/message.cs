@@ -658,7 +658,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Returns a message sequence number offset for use in message filtering. See <see cref="cFilter.MSN"/>.
         /// </summary>
-        /// <param name="pOffset">The offset required from the message's sequence number.</param>
+        /// <param name="pOffset"></param>
         /// <returns></returns>
         public cFilterMSNOffset MSNOffset(int pOffset) => new cFilterMSNOffset(MessageHandle, pOffset);
 

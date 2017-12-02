@@ -716,7 +716,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Returns the first parameter with the specified attribute name.
         /// </summary>
-        /// <param name="pName">The attribute name.</param>
+        /// <param name="pName"></param>
         /// <returns>The parameter if there is at least one with a matching name, otherwise <see langword="null"/>.</returns>
         public cBodyStructureParameter First(string pName) => this.FirstOrDefault(p => p.Name.Equals(pName, StringComparison.InvariantCultureIgnoreCase));
 
