@@ -140,7 +140,7 @@ namespace work.bacome.imapclient
         private cServer mServer = null;
         private cCredentials mCredentials = null;
         private bool mMailboxReferrals = false;
-        private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.unseencount;
+        private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidnext | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.unseencount;
         private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
         private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
@@ -554,12 +554,12 @@ namespace work.bacome.imapclient
                 mMailboxReferrals = value;
             }
         }
-    
+
         /// <summary>
         /// Gets and sets the set of optionally requested mailbox data items.
         /// </summary>
         /// <remarks>
-        /// The default set is <see cref="fMailboxCacheDataItems.messagecount"/> and <see cref="fMailboxCacheDataItems.unseencount"/>.
+        /// The default set is <see cref="fMailboxCacheDataItems.messagecount"/>, <see cref="fMailboxCacheDataItems.uidnext"/>, <see cref="fMailboxCacheDataItems.uidvalidity"/> and <see cref="fMailboxCacheDataItems.unseencount"/>.
         /// May only be set while <see cref="IsUnconnected"/>.
         /// <note type="note" >
         /// The mailbox data items that are actually requested depends on the <see cref="fMailboxCacheDataSets"/> value used at the time of the request.

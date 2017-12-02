@@ -1,6 +1,0 @@
-C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\obj\Debug\imapclient.csprojResolveAssemblyReference.cache
-C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\bin\Debug\work.bacome.imapclient.xml
-C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\bin\Debug\work.bacome.imapclient.dll
-C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\bin\Debug\work.bacome.imapclient.pdb
-C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\obj\Debug\work.bacome.imapclient.dll
-C:\Users\barry\Documents\GitHub\imapclient\imapclient\imapclient\obj\Debug\work.bacome.imapclient.pdb

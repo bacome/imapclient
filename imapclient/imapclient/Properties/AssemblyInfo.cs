@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
     "* Synchronous and asynchronous APIs with timeout and cancellation.\r\n" +
     "* Automatic idle processing to keep the client in sync with the server.\r\n" +
     "* Condstore support for 'mailbox as a message queue' applications.\r\n" +
-    "* Automatic IMAP command pipelining and pipelining safety.\r\n" +
+    "* Automatic safe IMAP command pipelining.\r\n" +
     "\r\n" +
     "As this is an alpha release;\r\n" +
     "* All the APIs are subject to change (however most aren't likely to do so), and\r\n" +
