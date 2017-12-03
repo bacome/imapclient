@@ -15,12 +15,20 @@ namespace usageexample2
         static void Main(string[] args)
         {
             WebVersion();
+
+            Console.WriteLine("press enter to continue");
+            Console.Read();
+
             return;
 
             try
             {
                 using (cIMAPClient lClient = new cIMAPClient())
                 {
+                    // show what the library is doing under the hood
+                    lClient.NetworkReceive += lClient_NetworkReceive;
+                    lClient.NetworkSend += lClient_NetworkSend;
+
                     // get the settings
 
                     var lConfig = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -49,8 +57,8 @@ namespace usageexample2
                     lClient.SetPlainCredentials(kUserId, kPassword, eTLSRequirement.indifferent); // if you are using this against a production server you will most likely want to require TLS (which is the default that I have overridden here)
                     lClient.Connect();
 
-                    // select the inbox
-                    lClient.Inbox.Select(true);
+                    // get the UIDNext of the inbox
+                    uint lUIDNext = lClient.Inbox.UIDNext.Value;
 
                     // get the UID we should inspect from
                     cUID lFromUID;
@@ -61,12 +69,12 @@ namespace usageexample2
                         uint.TryParse(lUIDSetting.Value, out var lUID)) lFromUID = new cUID(lUIDValidity, lUID);
                     else lFromUID = new cUID(lClient.Inbox.UIDValidity.Value, 1);
 
-                    // note the UIDNext for the next run
-                    uint lUIDNext = lClient.Inbox.UIDNext.Value;
-
-                    // no point doing anything if there are no more messages than last time
+                    // if there are (possibly) new messages available then select the mailbox and see
                     if (lUIDNext > lFromUID.UID)
-                    {
+                    { 
+                        // select the inbox
+                        lClient.Inbox.Select(true);
+
                         // this example is meant to demonstrate filtering, so here it is
                         var lFilter = cFilter.UID >= lFromUID & cFilter.From.Contains("imaptest2@dovecot.bacome.work") & !cFilter.Deleted;
 
@@ -104,6 +112,18 @@ namespace usageexample2
 
             Console.WriteLine("press enter to continue");
             Console.Read();
+        }
+
+        private static void lClient_NetworkReceive(object sender, cNetworkReceiveEventArgs e)
+        {
+            Console.WriteLine(e);
+            Console.WriteLine();
+        }
+
+        private static void lClient_NetworkSend(object sender, cNetworkSendEventArgs e)
+        {
+            Console.WriteLine(e);
+            Console.WriteLine();
         }
 
         static void WebVersion()
@@ -146,9 +166,10 @@ lClient.SetServer(kHost);
 lClient.SetPlainCredentials(kUserId, kPassword, eTLSRequirement.indifferent);
 lClient.Connect();
 
-// select the inbox for update
-lClient.Inbox.Select(true);
+// get the UIDNext of the inbox
+uint lUIDNext = lClient.Inbox.UIDNext.Value;
 
+// get the UID we should inspect from
 cUID lFromUID;
 
 // check the UIDValidity to make sure it hasn't changed
@@ -158,12 +179,12 @@ if (uint.TryParse(lUIDValiditySetting.Value, out var lUIDValidity) &&
      lFromUID = new cUID(lUIDValidity, lUID);
 else lFromUID = new cUID(lClient.Inbox.UIDValidity.Value, 1);
 
-// note the UIDNext for the next run
-uint lUIDNext = lClient.Inbox.UIDNext.Value;
-
-// only process if there are more messages than at the last run
+// if there are (possibly) new messages available then select the mailbox and see
 if (lUIDNext > lFromUID.UID)
 {
+    // select the inbox
+    lClient.Inbox.Select(true);
+
     // this example is meant to demonstrate building a filter, so here it is
     var lFilter = 
         cFilter.UID >= lFromUID &
