@@ -27,6 +27,10 @@ namespace work.bacome.imapclient
                     private bool mLastByteWasSecret = false;
                     private List<byte> mCurrentTraceBuffer = null;
 
+                    private bool mSecret = false;
+                    private cIncrementAccumulator mCurrentIncrementAccumulator = null;
+                    private readonly List<cIncrementAccumulator> mPendingIncrements = new List<cIncrementAccumulator>();
+
                     public cSendBuffer(cCallbackSynchroniser pSynchroniser, cConnection pConnection, CancellationToken pCancellationToken)
                     {
                         mSynchroniser = pSynchroniser ?? throw new ArgumentNullException(nameof(pSynchroniser));
@@ -104,13 +108,22 @@ namespace work.bacome.imapclient
                         mSendBuffer.Add(cASCII.LF);
                     }
 
-                    public void AddByte(bool pSecret, byte pByte)
+                    public void BeginAddBytes(bool pSecret, Action<int> pIncrement, int pIncrementTotal)
                     {
+                        if (mCurrentIncrementAccumulator != null) throw new InvalidOperationException();
+                        mSecret = pSecret;
+                        mCurrentIncrementAccumulator = new cIncrementAccumulator(pIncrement, pIncrementTotal);
+                    }
+
+                    public void AddByte(byte pByte)
+                    {
+                        if (mCurrentIncrementAccumulator == null) throw new InvalidOperationException();
+
                         mSendBuffer.Add(pByte);
 
                         if (mTracing)
                         {
-                            if (pSecret)
+                            if (mSecret)
                             {
                                 if (mLastByteWasSecret) return;
                                 mLastByteWasSecret = true;
@@ -122,6 +135,15 @@ namespace work.bacome.imapclient
                             if (mCurrentTraceBuffer == null) mCurrentTraceBuffer = new List<byte>();
                             mCurrentTraceBuffer.Add(pByte);
                         }
+
+                        if (!mSecret) mCurrentIncrementAccumulator.Accumulate();
+                    }
+
+                    public void EndAddBytes()
+                    {
+                        if (mCurrentIncrementAccumulator == null) throw new InvalidOperationException();
+                        if (mCurrentIncrementAccumulator.Accumulated > 0) mPendingIncrements.Add(mCurrentIncrementAccumulator);
+                        mCurrentIncrementAccumulator = null;
                     }
 
                     public int Count => mSendBuffer.Count;
@@ -154,6 +176,47 @@ namespace work.bacome.imapclient
 
                         await mConnection.WriteAsync(mSendBuffer.ToArray(), mCancellationToken, lContext).ConfigureAwait(false);
                         mSendBuffer.Clear();
+
+                        foreach (var lAccumulator in mPendingIncrements) lAccumulator.Increment(mSynchroniser, lContext);
+                        mPendingIncrements.Clear();
+
+                        if (mCurrentIncrementAccumulator != null) mCurrentIncrementAccumulator.Increment(mSynchroniser, lContext);
+                    }
+
+                    private class cIncrementAccumulator
+                    {
+                        private readonly Action<int> mIncrement; // can be null
+
+                        // the total that the count has to get to and can not exceed
+                        //  this is for append where a part may be converted to a URL
+                        //  to make sure that the progress bar advances the right amount this will be the value used for the total increment regardless of the number of bytes sent
+                        //   the assumption is that the caller of the library has no way of knowing if the part will be streamed or passed as a catenate URL
+                        //
+                        private int mTotal; 
+                        private int mAccumulated = 0;
+
+                        public cIncrementAccumulator(Action<int> pIncrement, int pTotal)
+                        {
+                            mIncrement = pIncrement;
+                            mTotal = pTotal;
+                        }
+
+                        public void Accumulate()
+                        {
+                            if (mTotal > 0)
+                            {
+                                mTotal--;
+                                mAccumulated++;
+                            }
+                        }
+
+                        public int Accumulated => mAccumulated;
+
+                        public void Increment(cCallbackSynchroniser pSynchroniser, cTrace.cContext pContext)
+                        {
+                            if (mAccumulated > 0) pSynchroniser.InvokeActionInt(mIncrement, mAccumulated, pContext);
+                            mAccumulated = 0;
+                        }
                     }
                 }
             }

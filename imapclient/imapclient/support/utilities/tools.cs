@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Mail;
 using System.Text;
 
 namespace work.bacome.imapclient
@@ -187,6 +188,13 @@ namespace work.bacome.imapclient
                 rString = null;
                 return false;
             }
+        }
+
+        public static bool MailMessageFormCanBeHandled(MailMessage pMessage, out string rError)
+        {
+            // checks that the mailmessage is in a form that I can handle
+            rError = "not implemented yet";
+            return false;
         }
     }
 }

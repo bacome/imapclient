@@ -619,6 +619,12 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
         public Task<bool> FetchAsync(cMessageCacheItems pItems) => Client.FetchAsync(MessageHandle, pItems);
 
+        internal bool Contains(cSinglePartBody pPart)
+        {
+            if (MessageHandle.BodyStructure == null) return false;
+            return ZContainsPart(MessageHandle.BodyStructure, pPart);
+        }
+
         private bool ZContainsPart(cBodyPart pPart, cSinglePartBody pSinglePart)
         {
             if (ReferenceEquals(pPart, pSinglePart)) return true;

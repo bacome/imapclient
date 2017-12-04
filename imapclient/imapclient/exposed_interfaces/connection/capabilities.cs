@@ -61,7 +61,11 @@ namespace work.bacome.imapclient
         /**<summary>RFC 7162 CONDSTORE</summary>*/
         condstore = 1 << 22,
         /**<summary>RFC 7162 QRESYNC</summary>*/
-        qresync = 1 << 23
+        qresync = 1 << 23,
+        /**<summary>RFC 3502 MULTIAPPEND</summary>*/
+        multiappend = 1 << 24,
+        /**<summary>RFC 4469 CATENATE</summary>*/
+        catenate = 1 << 25
 
         /* deimplemented pending a requirement to complete it
         threadorderedsubject = 1 << 22,
@@ -128,6 +132,8 @@ namespace work.bacome.imapclient
             //if (pCapabilities.Contains("Thread=References", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.threadreferences;
             if (pCapabilities.Contains("CondStore", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.condstore;
             if (pCapabilities.Contains("QResync", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.qresync | fCapabilities.condstore;
+            if (pCapabilities.Contains("MultiAppend", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.multiappend;
+            if (pCapabilities.Contains("Catenate", StringComparer.InvariantCultureIgnoreCase)) lCapabilities |= fCapabilities.catenate;
 
             EffectiveCapabilities = lCapabilities & ~pIgnoreCapabilities;
         }
@@ -182,6 +188,10 @@ namespace work.bacome.imapclient
         public bool CondStore => (EffectiveCapabilities & fCapabilities.condstore) != 0;
         /**<summary>Indicates whether RFC 7162 QRESYNC is in use.</summary>*/
         public bool QResync => (EffectiveCapabilities & fCapabilities.qresync) != 0;
+        /**<summary>Indicates whether RFC 3502 MULTIAPPEND is in use.</summary>*/
+        public bool MultiAppend => (EffectiveCapabilities & fCapabilities.multiappend) != 0;
+        /**<summary>Indicates whether RFC 4469 CATENATE is in use.</summary>*/
+        public bool Catenate => (EffectiveCapabilities & fCapabilities.catenate) != 0;
 
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cCapabilities)}({Capabilities},{AuthenticationMechanisms},{EffectiveCapabilities})";

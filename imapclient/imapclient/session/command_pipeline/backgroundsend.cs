@@ -104,7 +104,7 @@ namespace work.bacome.imapclient
 
                     do
                     {
-                        if (mCurrentCommand.CurrentPart() is cTextCommandPart lText) await ZBackgroundSendAppendDataAsync(lText.Secret, lText.Bytes, lText.Bytes.Count, lContext).ConfigureAwait(false);
+                        if (mCurrentCommand.CurrentPart() is cTextCommandPart lText) await ZBackgroundSendAppendDataAsync(lText, lText.Bytes, lText.Bytes.Count, lContext).ConfigureAwait(false);
                         else throw new cInternalErrorException();
                     }
                     while (mCurrentCommand.MoveNext());
@@ -120,12 +120,12 @@ namespace work.bacome.imapclient
                     {
                         case cTextCommandPart lText:
 
-                            await ZBackgroundSendAppendDataAsync(lText.Secret, lText.Bytes, lText.Bytes.Count, lContext).ConfigureAwait(false);
+                            await ZBackgroundSendAppendDataAsync(lText, lText.Bytes, lText.Bytes.Count, lContext).ConfigureAwait(false);
                             break;
 
                         case cLiteralCommandPart lLiteral:
 
-                            await ZBackgroundSendAppendDataAsync(lLiteral.Secret, lLiteral.Bytes, lLiteral.Bytes.Count, lContext).ConfigureAwait(false);
+                            await ZBackgroundSendAppendDataAsync(lLiteral, lLiteral.Bytes, lLiteral.Bytes.Count, lContext).ConfigureAwait(false);
                             break;
 
                         case cStreamCommandPart lStream:
@@ -153,7 +153,7 @@ namespace work.bacome.imapclient
                                     // store the time taken so the next read is a better size
                                     lReadSizer.AddSample(lCount, lStopwatch.ElapsedMilliseconds);
 
-                                    await ZBackgroundSendAppendDataAsync(lStream.Secret, lBuffer, lCount, lContext).ConfigureAwait(false);
+                                    await ZBackgroundSendAppendDataAsync(lStream, lBuffer, lCount, lContext).ConfigureAwait(false);
 
                                     lBytesRemaining -= lCount;
                                 }
@@ -189,10 +189,12 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                private async Task ZBackgroundSendAppendDataAsync(bool pSecret, IEnumerable<byte> pBytes, int pCount, cTrace.cContext pParentContext)
+                private async Task ZBackgroundSendAppendDataAsync(cCommandPart pPart, IEnumerable<byte> pBytes, int pCount, cTrace.cContext pParentContext)
                 {
                     // don't log details of the data (i.e. the length) - it may be secret
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAsync), pSecret);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAsync));
+
+                    mBackgroundSendBuffer.BeginAddBytes(pPart.Secret, pPart.Increment, pPart.IncrementTotal);
 
                     int lSize = mConnection.CurrentWriteSize;
 
@@ -206,8 +208,10 @@ namespace work.bacome.imapclient
                             lSize = mConnection.CurrentWriteSize;
                         }
 
-                        mBackgroundSendBuffer.AddByte(pSecret, lByte);
+                        mBackgroundSendBuffer.AddByte(lByte);
                     }
+
+                    mBackgroundSendBuffer.EndAddBytes();
                 }
             }
         }

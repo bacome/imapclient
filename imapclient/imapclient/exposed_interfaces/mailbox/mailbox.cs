@@ -1099,6 +1099,21 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Copy(IEnumerable{cMessage})" select="returns|remarks"/>
         public Task<cCopyFeedback> CopyAsync(IEnumerable<cMessage> pMessages) => Client.CopyAsync(cMessageHandleList.FromMessages(pMessages), MailboxHandle);
 
+
+
+
+
+        public cAppendFeedback Append(IEnumerable<cAppendData> pMessages, c)
+
+
+
+
+
+
+
+
+
+
         /// <summary>
         /// Fetches a section of a message into a stream. The mailbox must be selected.
         /// </summary>

@@ -18,11 +18,15 @@ namespace work.bacome.imapclient
 
         public readonly bool Secret;
         public readonly bool Encoded;
-
-        public cCommandPart(bool pSecret, bool pEncoded)
+        public readonly Action<int> Increment;
+        public readonly int IncrementTotal;
+    
+        public cCommandPart(bool pSecret, bool pEncoded, Action<int> pIncrement, int pIncrementTotal)
         {
             Secret = pSecret;
             Encoded = pEncoded;
+            Increment = pIncrement;
+            IncrementTotal = pIncrementTotal;
         }
     }
 
@@ -30,7 +34,7 @@ namespace work.bacome.imapclient
     {
         public readonly bool Binary;
 
-        public cLiteralCommandPartBase(bool pBinary, bool pSecret, bool pEncoded) : base(pSecret, pEncoded)
+        public cLiteralCommandPartBase(bool pBinary, bool pSecret, bool pEncoded, Action<int> pIncrement, int pIncrementTotal) : base(pSecret, pEncoded, pIncrement, pIncrementTotal)
         {
             Binary = pBinary;
         }
@@ -44,7 +48,7 @@ namespace work.bacome.imapclient
         private readonly int mLength;
         public readonly cBatchSizerConfiguration ReadConfiguration;
 
-        public cStreamCommandPart(Stream pStream, int pLength, bool pBinary, cBatchSizerConfiguration pReadConfiguration) : base(pBinary, false, false)
+        public cStreamCommandPart(Stream pStream, int pLength, bool pBinary, Action<int> pIncrement, int pIncrementTotal, cBatchSizerConfiguration pReadConfiguration) : base(pBinary, false, false, pIncrement, pIncrementTotal)
         {
             if (pStream == null) throw new ArgumentNullException(nameof(pStream));
             if (pReadConfiguration == null) throw new ArgumentNullException(nameof(pReadConfiguration));
@@ -60,7 +64,7 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             if (Secret) return $"{nameof(cStreamCommandPart)}({ReadConfiguration})";
-            else return $"{nameof(cStreamCommandPart)}({Length},{Binary},{Encoded},{ReadConfiguration})";
+            else return $"{nameof(cStreamCommandPart)}({Length},{Binary},{IncrementTotal},{ReadConfiguration})";
         }
     }
 
@@ -68,7 +72,7 @@ namespace work.bacome.imapclient
     {
         public readonly cBytes Bytes;
 
-        public cLiteralCommandPart(IList<byte> pBytes, bool pBinary = false, bool pSecret = false, bool pEncoded = false) : base(pBinary, pSecret, pEncoded)
+        public cLiteralCommandPart(IList<byte> pBytes, bool pBinary = false, bool pSecret = false, bool pEncoded = false, Action<int> pIncrement = null, int pIncrementTotal = 0) : base(pBinary, pSecret, pEncoded, pIncrement, pIncrementTotal)
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
             Bytes = new cBytes(pBytes);
@@ -79,7 +83,7 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             if (Secret) return $"{nameof(cLiteralCommandPart)}()";
-            else return $"{nameof(cLiteralCommandPart)}({Bytes},{Binary},{Encoded})";
+            else return $"{nameof(cLiteralCommandPart)}({Bytes},{Binary},{Encoded},{IncrementTotal})";
         }
     }
 
@@ -87,13 +91,13 @@ namespace work.bacome.imapclient
     {
         public readonly cBytes Bytes;
 
-        public cTextCommandPart(IList<byte> pBytes, bool pSecret = false, bool pEncoded = false) : base(pSecret, pEncoded)
+        public cTextCommandPart(IList<byte> pBytes, bool pSecret = false, bool pEncoded = false, Action<int> pIncrement = null, int pIncrementTotal = 0) : base(pSecret, pEncoded, pIncrement, pIncrementTotal)
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
             Bytes = new cBytes(pBytes);
         }
 
-        public cTextCommandPart(string pString, bool pSecret = false) : base(pSecret, false)
+        public cTextCommandPart(string pString, bool pSecret = false, Action<int> pIncrement = null, int pIncrementTotal = 0) : base(pSecret, false, pIncrement, pIncrementTotal)
         {
             if (string.IsNullOrEmpty(pString)) throw new ArgumentOutOfRangeException(nameof(pString));
 
@@ -108,21 +112,21 @@ namespace work.bacome.imapclient
             Bytes = new cBytes(lBytes);
         }
 
-        public cTextCommandPart(uint pNumber) : base(false, false)
+        public cTextCommandPart(uint pNumber) : base(false, false, null, 0)
         {
             var lBytes = cTools.UIntToBytesReverse(pNumber);
             lBytes.Reverse();
             Bytes = new cBytes(lBytes);
         }
 
-        public cTextCommandPart(ulong pNumber) : base(false, false)
+        public cTextCommandPart(ulong pNumber) : base(false, false, null, 0)
         {
             var lBytes = cTools.ULongToBytesReverse(pNumber);
             lBytes.Reverse();
             Bytes = new cBytes(lBytes);
         }
 
-        public cTextCommandPart(cSequenceSet pSequenceSet) : base(false, false)
+        public cTextCommandPart(cSequenceSet pSequenceSet) : base(false, false, null, 0)
         {
             cByteList lBytes = new cByteList();
             cByteList lTemp = new cByteList();
@@ -183,7 +187,7 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             if (Secret) return $"{nameof(cTextCommandPart)}()";
-            else return $"{nameof(cTextCommandPart)}({Bytes},{Encoded})";
+            else return $"{nameof(cTextCommandPart)}({Bytes},{Encoded},{IncrementTotal})";
         }
     }
 }
