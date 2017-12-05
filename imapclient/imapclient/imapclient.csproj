@@ -20,8 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>
-    </DocumentationFile>
+    <DocumentationFile>bin\Debug\work.bacome.imapclient.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -43,11 +42,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="client\append.cs" />
-    <Compile Include="exposed_interfaces\mailbox\appendconfiguration.cs" />
+    <Compile Include="exposed_interfaces\configuration\appendconfiguration.cs" />
     <Compile Include="exposed_interfaces\mailbox\appendfeedback.cs" />
     <Compile Include="exposed_interfaces\mailbox\appenddata.cs" />
     <Compile Include="exposed_interfaces\other\eventsubscriptioncounts.cs" />
+    <Compile Include="session\append\append.cs" />
+    <Compile Include="session\append\appenddata.cs" />
     <Compile Include="session\imap_commands\not_authenticated\authenticated.cs" />
+    <Compile Include="support\collections\appenddatalist.cs" />
     <Compile Include="tools\apidocumentation.cs" />
     <Compile Include="client\base.cs" />
     <Compile Include="client\connect.cs" />

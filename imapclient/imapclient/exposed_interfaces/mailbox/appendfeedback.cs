@@ -8,21 +8,21 @@ namespace work.bacome.imapclient
     public class cAppendFeedbackItem
     {
         public readonly cUID UID;
-        public readonly cCommandResult Failure;
+        public readonly Exception Exception;
 
         internal cAppendFeedbackItem(cUID pUID)
         {
             UID = pUID;
-            Failure = null;
+            Exception = null;
         }
 
-        internal cAppendFeedbackItem(cCommandResult pFailure)
+        internal cAppendFeedbackItem(Exception pException)
         {
-            Failure = pFailure ?? throw new ArgumentNullException(nameof(pFailure));
+            Exception = pException ?? throw new ArgumentNullException(nameof(pException));
             UID = null;
         }
 
-        public override string ToString() => $"{nameof(cAppendFeedbackItem)}({UID},{Failure})";
+        public override string ToString() => $"{nameof(cAppendFeedbackItem)}({UID},{Exception})";
     }
 
     public class cAppendFeedback : IReadOnlyList<cAppendFeedbackItem>
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
                 else if (lBatch is cAppendFeedbackFailedBatch lFailed)
                 {
                     FailedCount += lFailed.Count;
-                    for (int i = 0; i < lFailed.Count; i++) lItems.Add(new cAppendFeedbackItem(lFailed.Result));
+                    for (int i = 0; i < lFailed.Count; i++) lItems.Add(new cAppendFeedbackItem(lFailed.Exception));
                 }
                 else throw new cInternalErrorException();
             }
@@ -85,17 +85,17 @@ namespace work.bacome.imapclient
 
     internal class cAppendFeedbackFailedBatch : cAppendFeedbackBatch
     {
-        public readonly cCommandResult Result;
+        public readonly Exception Exception;
         public readonly int Count;
 
-        public cAppendFeedbackFailedBatch(cCommandResult pResult, int pCount)
+        public cAppendFeedbackFailedBatch(Exception pException, int pCount)
         {
-            Result = pResult ?? throw new ArgumentNullException(nameof(pResult));
+            Exception = pException ?? throw new ArgumentNullException(nameof(pException));
             if (pCount < 1) throw new ArgumentOutOfRangeException(nameof(pCount));
             Count = pCount;
         }
 
-        public override string ToString() => $"{nameof(cAppendFeedbackFailedBatch)}({Result},{Count})";
+        public override string ToString() => $"{nameof(cAppendFeedbackFailedBatch)}({Exception},{Count})";
     }
 
     internal class cAppendFeedbackSuccessfulBatch : cAppendFeedbackBatch

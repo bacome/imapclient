@@ -306,11 +306,7 @@ namespace work.bacome.imapclient
 
         private readonly List<string> mFlags;
     
-        /// <summary>
-        /// Initialises a new instance with the specified flag list.
-        /// </summary>
-        /// <param name="pFlags"></param>
-        public cMessageFlagList(List<string> pFlags)
+        internal cMessageFlagList(List<string> pFlags)
         {
             mFlags = pFlags ?? throw new ArgumentNullException(nameof(pFlags));
         }

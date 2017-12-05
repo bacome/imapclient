@@ -108,11 +108,11 @@ namespace work.bacome.imapclient
                         mSendBuffer.Add(cASCII.LF);
                     }
 
-                    public void BeginAddBytes(bool pSecret, Action<int> pIncrement, int pIncrementTotal)
+                    public void BeginAddBytes(bool pSecret, Action<int> pIncrement)
                     {
                         if (mCurrentIncrementAccumulator != null) throw new InvalidOperationException();
                         mSecret = pSecret;
-                        mCurrentIncrementAccumulator = new cIncrementAccumulator(pIncrement, pIncrementTotal);
+                        mCurrentIncrementAccumulator = new cIncrementAccumulator(pIncrement);
                     }
 
                     public void AddByte(byte pByte)
@@ -182,32 +182,20 @@ namespace work.bacome.imapclient
 
                         if (mCurrentIncrementAccumulator != null) mCurrentIncrementAccumulator.Increment(mSynchroniser, lContext);
                     }
-
+                
                     private class cIncrementAccumulator
                     {
                         private readonly Action<int> mIncrement; // can be null
-
-                        // the total that the count has to get to and can not exceed
-                        //  this is for append where a part may be converted to a URL
-                        //  to make sure that the progress bar advances the right amount this will be the value used for the total increment regardless of the number of bytes sent
-                        //   the assumption is that the caller of the library has no way of knowing if the part will be streamed or passed as a catenate URL
-                        //
-                        private int mTotal; 
                         private int mAccumulated = 0;
 
-                        public cIncrementAccumulator(Action<int> pIncrement, int pTotal)
+                        public cIncrementAccumulator(Action<int> pIncrement)
                         {
                             mIncrement = pIncrement;
-                            mTotal = pTotal;
                         }
 
                         public void Accumulate()
                         {
-                            if (mTotal > 0)
-                            {
-                                mTotal--;
-                                mAccumulated++;
-                            }
+                            mAccumulated++;
                         }
 
                         public int Accumulated => mAccumulated;

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading;
+using work.bacome.async;
+using work.bacome.imapclient.apidocumentation;
 
 namespace work.bacome.imapclient
 {
@@ -17,11 +19,11 @@ namespace work.bacome.imapclient
 
         /**<summary>The cancellation token for the operation. May be <see cref="CancellationToken.None"/>.</summary>*/
         public readonly CancellationToken CancellationToken;
-    
+
         /// <summary>
         /// The progress-increment callback for the operation. May be <see langword="null"/>. Invoked once for each batch of messages fetched, the argument specifies how many messages were fetched in the batch.
         /// </summary>
-        /// <inheritdoc cref="cCacheItemFetchConfiguration" select="remarks"/>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public readonly Action<int> Increment;
 
         /// <summary>
@@ -52,11 +54,11 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Contains an operation specific timeout, cancellation token, progress-increment callback and write-size configuration. Intended for use when fetching large message body parts into a stream.
     /// </summary>
+    /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
     /// <seealso cref="cMailbox.UIDFetch(cUID, cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
     /// <seealso cref="cMessage.Fetch(cSinglePartBody, System.IO.Stream, cBodyFetchConfiguration)"/>
     /// <seealso cref="cMessage.Fetch(cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
     /// <seealso cref="cAttachment.SaveAs(string, cBodyFetchConfiguration)"/>
-    /// <inheritdoc cref="cCacheItemFetchConfiguration" select="remarks"/>
     public class cBodyFetchConfiguration
     {
         /// <inheritdoc cref="cCacheItemFetchConfiguration.Timeout"/>
@@ -69,7 +71,7 @@ namespace work.bacome.imapclient
         public readonly Action<int> Increment;
 
         /// <summary>
-        /// The output-stream-write batch-size configuration. If <see langword="null"/> <see cref="cIMAPClient.FetchBodyWriteConfiguration"/> will be used.
+        /// The output-stream-write batch-size configuration. If <see langword="null"/> then <see cref="cIMAPClient.FetchBodyWriteConfiguration"/> will be used.
         /// </summary>
         public readonly cBatchSizerConfiguration Write;
 
@@ -100,19 +102,27 @@ namespace work.bacome.imapclient
             Increment = pIncrement;
             Write = pWrite;
         }
+
+        internal cBodyFetchConfiguration(cMethodControl pMC, cBatchSizerConfiguration pWrite)
+        {
+            Timeout = pMC.Timeout;
+            CancellationToken = pMC.CancellationToken;
+            Increment = null;
+            Write = pWrite;
+        }
     }
 
     /// <summary>
     /// Contains an operation specific timeout, cancellation token, progress-setcount and progress-increment callbacks. Intended for use when retrieving a large number of messages from the server.
     /// </summary>
-    /// <inheritdoc cref="cCacheItemFetchConfiguration" select="remarks"/>
+    /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
     /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
     public class cMessageFetchConfiguration : cCacheItemFetchConfiguration
     {
         /// <summary>
         /// The progress-setcount callback for the operation. May be <see langword="null"/>. Invoked once before any progress-increment invokes, the argument specifies how many messages are going to be fetched.
         /// </summary>
-        /// <inheritdoc cref="cCacheItemFetchConfiguration" select="remarks"/>
+        /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
         public readonly Action<int> SetCount;
 
         /// <inheritdoc cref="cCacheItemFetchConfiguration(int)"/>

@@ -12,7 +12,9 @@
     <summary>Intended for use in projects that need to deal with email presented by an IMAP server where the programmer does not want to learn the finer points of IMAP.</summary>
     <description>$description$</description>
     <releaseNotes>
-Breaking changes: Credentials and SASL models changed to make all objects immutable.
+Breaking changes:
+ Credentials and SASL models changed to make all objects immutable.
+ Various classes that could be subclassed outside the library now cannot be.
 
     </releaseNotes>
     <copyright>$copyright$</copyright>

@@ -27,5 +27,15 @@ namespace work.bacome.imapclient
             get => mDefaultSort;
             set => mDefaultSort = value ?? throw new ArgumentNullException();
         }
+
+        // TODO: see also
+
+        /// <summary>
+        /// Gets and sets the default flags used when appending messages. May be <see langword="null"/>.
+        /// </summary>
+        /// <remarks>
+        /// The default value is <see cref="cStorableFlags.Draft"/>.
+        /// </remarks>
+        public cStorableFlags DefaultAppendFlags { get; set; } = cStorableFlags.Draft;
     }
 }

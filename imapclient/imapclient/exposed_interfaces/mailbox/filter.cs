@@ -78,41 +78,25 @@ namespace work.bacome.imapclient
         internal readonly bool ContainsMessageHandles;
         internal readonly uint? UIDValidity;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        protected cFilter()
+        internal cFilter()
         {
             ContainsMessageHandles = false;
             UIDValidity = null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pUIDValidity"></param>
-        protected cFilter(uint pUIDValidity)
+        internal cFilter(uint pUIDValidity)
         {
             ContainsMessageHandles = false;
             UIDValidity = pUIDValidity;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pContainsMessageHandles"></param>
-        /// <param name="pUIDValidity"></param>
-        protected cFilter(bool pContainsMessageHandles, uint? pUIDValidity)
+        internal cFilter(bool pContainsMessageHandles, uint? pUIDValidity)
         {
             ContainsMessageHandles = pContainsMessageHandles;
             UIDValidity = pUIDValidity;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pParams"></param>
-        protected cFilter(sCTorParams pParams)
+        internal cFilter(sCTorParams pParams)
         {
             ContainsMessageHandles = pParams.ContainsMessageHandles;
             UIDValidity = pParams.UIDValidity;
@@ -197,7 +181,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// 
         /// </summary>
-        protected struct sCTorParams
+        internal struct sCTorParams
         {
             /**<summary></summary>*/
             public bool ContainsMessageHandles;

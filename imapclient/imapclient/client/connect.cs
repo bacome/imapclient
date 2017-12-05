@@ -125,7 +125,7 @@ namespace work.bacome.imapclient
                 mSynchroniser.InvokePropertyChanged(nameof(Inbox), lContext);
             }
 
-            mSession = new cSession(mSynchroniser, mIgnoreCapabilities, mMailboxCacheDataItems, mNetworkWriteConfiguration, mIdleConfiguration, mFetchCacheItemsConfiguration, mFetchBodyReadConfiguration, mEncoding, lContext);
+            mSession = new cSession(mSynchroniser, mIgnoreCapabilities, mMailboxCacheDataItems, mNetworkWriteConfiguration, mIdleConfiguration, mFetchCacheItemsConfiguration, mFetchBodyReadConfiguration, mAppendConfiguration, mEncoding, lContext);
             var lSession = mSession;
 
             if (lSessionReplaced)

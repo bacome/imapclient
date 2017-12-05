@@ -8,6 +8,8 @@ namespace work.bacome.imapclient.support
     /// </summary>
     public abstract class cCharset
     {
+        internal cCharset() { }
+
         private const string cListWildcards = "%*";
         private const string cQuotedSpecials = "\"\\";
         private const string cAtomSpecialsSome = "(){ "; // 'atom_specials' also includes CTL, ListWildCards, QuotedSpecials and RespSpecials

@@ -165,7 +165,10 @@ namespace work.bacome.imapclient
     /// <summary>
     /// Represents an element of additional IMAP BODYSTRUCTURE extension-data.
     /// </summary>
-    public abstract class cBodyPartExtensionValue { }
+    public abstract class cBodyPartExtensionValue
+    {
+        internal cBodyPartExtensionValue() { }
+    }
 
     /// <summary>
     /// Contains an element of additional IMAP BODYSTRUCTURE extension-data that is a string.

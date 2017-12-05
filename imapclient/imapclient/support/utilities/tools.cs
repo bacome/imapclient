@@ -189,12 +189,5 @@ namespace work.bacome.imapclient
                 return false;
             }
         }
-
-        public static bool MailMessageFormCanBeHandled(MailMessage pMessage, out string rError)
-        {
-            // checks that the mailmessage is in a form that I can handle
-            rError = "not implemented yet";
-            return false;
-        }
     }
 }

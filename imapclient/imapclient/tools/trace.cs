@@ -130,6 +130,8 @@ namespace work.bacome.trace
             /**<summary>A tracing context that does not create contexts or emit messages. Can be used to suppress tracing.</summary>*/
             public readonly static cContext None = new cNone();
 
+            internal cContext() { }
+
             /// <summary>
             /// Returns a new root-context tied (in name only) to the root-context of this instance.
             /// </summary>

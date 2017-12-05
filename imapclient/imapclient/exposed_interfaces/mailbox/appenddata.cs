@@ -7,14 +7,12 @@ using System.Net.Mail;
 
 namespace work.bacome.imapclient
 {
-    ;?; // tostring, implicit conversions
-
     public abstract class cAppendData
     {
-        public readonly cFetchableFlags Flags;
+        public readonly cStorableFlags Flags;
         public readonly DateTime? Received;
 
-        public cAppendData(cFetchableFlags pFlags, DateTime? pReceived)
+        internal cAppendData(cStorableFlags pFlags, DateTime? pReceived)
         {
             Flags = pFlags;
             Received = pReceived;
@@ -28,7 +26,7 @@ namespace work.bacome.imapclient
 
         public readonly cMessage Message;
 
-        public cMessageAppendData(cMessage pMessage, cFetchableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
+        public cMessageAppendData(cMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
         {
             Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
 
@@ -51,7 +49,7 @@ namespace work.bacome.imapclient
         public readonly cMessage Message;
         public readonly cMessageBodyPart Part;
 
-        public cMessagePartAppendData(cMessage pMessage, cMessageBodyPart pPart, cFetchableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
+        public cMessagePartAppendData(cMessage pMessage, cMessageBodyPart pPart, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
         {
             Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
 
@@ -73,10 +71,9 @@ namespace work.bacome.imapclient
         public readonly MailMessage Message;
         public readonly cBatchSizerConfiguration Configuration; // optional
 
-        public cMailMessageAppendData(MailMessage pMessage, cFetchableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pConfiguration = null) : base(pFlags, pReceived)
+        public cMailMessageAppendData(MailMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pConfiguration = null) : base(pFlags, pReceived)
         {
             Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
-            if (!cTools.MailMessageFormCanBeHandled(pMessage, out var lError)) throw new ArgumentOutOfRangeException(nameof(pMessage), lError);
             Configuration = pConfiguration;
         }
 
@@ -89,7 +86,7 @@ namespace work.bacome.imapclient
     {
         public readonly string String;
 
-        public cStringAppendData(string pString, cFetchableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
+        public cStringAppendData(string pString, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
         {
             String = pString ?? throw new ArgumentNullException(nameof(pString));
             if (String.Length == 0) throw new ArgumentOutOfRangeException(nameof(pString));
@@ -106,7 +103,7 @@ namespace work.bacome.imapclient
         public readonly int Length;
         public readonly cBatchSizerConfiguration Configuration; // optional
 
-        public cStreamAppendData(Stream pStream, cFetchableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pConfiguration = null) : base(pFlags, pReceived)
+        public cStreamAppendData(Stream pStream, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pConfiguration = null) : base(pFlags, pReceived)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
@@ -114,7 +111,7 @@ namespace work.bacome.imapclient
             Configuration = pConfiguration;
         }
 
-        public cStreamAppendData(Stream pStream, int pLength, cFetchableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pConfiguration = null) : base(pFlags, pReceived)
+        public cStreamAppendData(Stream pStream, int pLength, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pConfiguration = null) : base(pFlags, pReceived)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
@@ -132,7 +129,7 @@ namespace work.bacome.imapclient
     {
         public readonly ReadOnlyCollection<cAppendDataPart> Parts;
 
-        public cMultiPartAppendData(IEnumerable<cAppendDataPart> pParts, cFetchableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
+        public cMultiPartAppendData(IEnumerable<cAppendDataPart> pParts, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
         {
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
             Parts = new List<cAppendDataPart>(from p in pParts where p != null select p).AsReadOnly();
@@ -152,7 +149,10 @@ namespace work.bacome.imapclient
         public static implicit operator cMultiPartAppendData(List<cAppendDataPart> pParts) => new cMultiPartAppendData(pParts);
     }
 
-    public abstract class cAppendDataPart { }
+    public abstract class cAppendDataPart
+    {
+        internal cAppendDataPart() { }
+    }
 
     public class cMessageAppendDataPart : cAppendDataPart
     {
@@ -167,7 +167,9 @@ namespace work.bacome.imapclient
             if (!ReferenceEquals(pMessage.MessageHandle.MessageCache.MailboxHandle, pMessage.Client.SelectedMailboxDetails.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), "message must be in a selected mailbox");
         }
 
-        ;?;
+        public override string ToString() => $"{nameof(cMessageAppendDataPart)}({Message})";
+
+        public static implicit operator cMessageAppendDataPart(cMessage pMessage) => new cMessageAppendDataPart(pMessage);
     }
 
     public class cMessagePartAppendDataPart : cAppendDataPart
@@ -189,22 +191,23 @@ namespace work.bacome.imapclient
             if (!pMessage.Contains(pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
         }
 
-        ;?;
+        public override string ToString() => $"{nameof(cMessagePartAppendDataPart)}({Message},{Part})";
     }
 
     public class cMailMessageAppendDataPart : cAppendDataPart
     {
-        public readonly MailMessage MailMessage;
+        public readonly MailMessage Message;
         public readonly cBatchSizerConfiguration Configuration; // optional
 
-        public cMailMessageAppendDataPart(MailMessage pMailMessage, cBatchSizerConfiguration pConfiguration = null)
+        public cMailMessageAppendDataPart(MailMessage pMessage, cBatchSizerConfiguration pConfiguration = null)
         {
-            MailMessage = pMailMessage ?? throw new ArgumentNullException(nameof(pMailMessage));
-            if (!cTools.MailMessageFormCanBeHandled(pMailMessage, out var lError)) throw new ArgumentOutOfRangeException(nameof(pMailMessage), lError);
+            Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
             Configuration = pConfiguration;
         }
 
-        ;?;
+        public override string ToString() => $"{nameof(cMailMessageAppendDataPart)}({Message},{Configuration})";
+
+        public static implicit operator cMailMessageAppendDataPart(MailMessage pMessage) => new cMailMessageAppendDataPart(pMessage);
     }
 
     public class cStringAppendDataPart : cAppendDataPart
@@ -216,7 +219,9 @@ namespace work.bacome.imapclient
             String = pString ?? throw new ArgumentNullException(nameof(pString));
         }
 
-        ;?;
+        public override string ToString() => $"{nameof(cStringAppendDataPart)}({String})";
+
+        public static implicit operator cStringAppendDataPart(string pString) => new cStringAppendDataPart(pString);
     }
 
     public class cStreamAppendDataPart : cAppendDataPart
@@ -242,6 +247,8 @@ namespace work.bacome.imapclient
             Configuration = pConfiguration;
         }
 
-        ;?;
+        public override string ToString() => $"{nameof(cStreamAppendDataPart)}({Length},{Configuration})";
+
+        public static implicit operator cStreamAppendDataPart(Stream pStream) => new cStreamAppendDataPart(pStream);
     }
 }

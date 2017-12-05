@@ -24,6 +24,8 @@ namespace work.bacome.imapclient
         /// </summary>
         public bool WasNotUnchangedSince = false;
 
+        internal cStoreFeedbackItemBase() { }
+
         internal void IncrementSummary(iMessageHandle pMessageHandle, eStoreOperation pOperation, cStorableFlags pFlags, ref sStoreFeedbackSummary pSummary)
         {
             if (WasNotUnchangedSince)

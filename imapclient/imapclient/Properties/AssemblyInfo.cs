@@ -16,9 +16,7 @@ using System.Runtime.InteropServices;
     "* Condstore support for 'mailbox as a message queue' applications.\r\n" +
     "* Automatic safe IMAP command pipelining.\r\n" +
     "\r\n" +
-    "As this is an alpha release;\r\n" +
-    "* All the APIs are subject to change (however most aren't likely to do so), and\r\n" +
-    "* There is a significant (depending on your use case) missing feature: Append - the ability to upload mail to an IMAP server.\r\n" +
+    "As this is an alpha release all the APIs are subject to change (however most aren't likely to do so).\r\n" +
     "\r\n" +
     "High level documentation, API level documentation, examples and source code are available on/via the project site.\r\n" +
     "")]

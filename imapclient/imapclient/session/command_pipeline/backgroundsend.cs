@@ -194,7 +194,7 @@ namespace work.bacome.imapclient
                     // don't log details of the data (i.e. the length) - it may be secret
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAsync));
 
-                    mBackgroundSendBuffer.BeginAddBytes(pPart.Secret, pPart.Increment, pPart.IncrementTotal);
+                    mBackgroundSendBuffer.BeginAddBytes(pPart.Secret, pPart.Increment);
 
                     int lSize = mConnection.CurrentWriteSize;
 

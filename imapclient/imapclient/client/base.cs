@@ -143,10 +143,11 @@ namespace work.bacome.imapclient
         private fMailboxCacheDataItems mMailboxCacheDataItems = fMailboxCacheDataItems.messagecount | fMailboxCacheDataItems.uidnext | fMailboxCacheDataItems.uidvalidity | fMailboxCacheDataItems.unseencount;
         private cBatchSizerConfiguration mNetworkWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
-        private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mAppendConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
         private cClientIdUTF8 mClientIdUTF8 = null;
@@ -627,25 +628,6 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets and sets the default append-stream-read batch-size configuration. You might want to limit this to increase the speed with which you can terminate the instance.
-        /// </summary>
-        /// <remarks>
-        /// Limits the size of the buffer when reading from the client-side stream (e.g. when reading an attachment from local disk). Measured in bytes.
-        /// The default value is min=1000b, max=1000000b, maxtime=10s, initial=1000b.
-        /// </remarks>
-        public cBatchSizerConfiguration AppendStreamReadConfiguration
-        {
-            get => mAppendStreamReadConfiguration;
-
-            set
-            {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendStreamReadConfiguration), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mAppendStreamReadConfiguration = value ?? throw new ArgumentNullException();
-            }
-        }
-
-        /// <summary>
         /// Gets and sets the fetch-cache-items batch-size configuration. You might want to limit this to increase the speed with which you can cancel the fetch.
         /// </summary>
         /// <remarks>
@@ -715,6 +697,46 @@ namespace work.bacome.imapclient
                 var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(FetchBodyWriteConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 mFetchBodyWriteConfiguration = value ?? throw new ArgumentNullException();
+            }
+        }
+
+        /// <summary>
+        /// Gets and sets the append batch-size configuration. You might want to limit this to increase the speed with which you can cancel the append.
+        /// </summary>
+        /// <remarks>
+        /// Limits the size of batches used when appending. Measured in bytes.
+        /// The default value is min=1000b, max=1000000b, maxtime=10s, initial=1000b.
+        /// If <see cref="cCapabilities.MultiAppend"/> is in use, limits the number of messages sent in a single append, otherwise limits the number of pipelined appends.
+        /// </remarks>
+        public cBatchSizerConfiguration AppendConfiguration
+        {
+            get => mAppendConfiguration;
+
+            set
+            {
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendConfiguration), value);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                mAppendConfiguration = value ?? throw new ArgumentNullException();
+                mSession?.SetAppendConfiguration(value, lContext);
+            }
+        }
+
+        /// <summary>
+        /// Gets and sets the default append-stream-read batch-size configuration. You might want to limit this to increase the speed with which you can terminate the instance.
+        /// </summary>
+        /// <remarks>
+        /// Limits the size of the buffer when reading from the client-side stream (e.g. when reading an attachment from local disk). Measured in bytes.
+        /// The default value is min=1000b, max=1000000b, maxtime=10s, initial=1000b.
+        /// </remarks>
+        public cBatchSizerConfiguration AppendStreamReadConfiguration
+        {
+            get => mAppendStreamReadConfiguration;
+
+            set
+            {
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendStreamReadConfiguration), value);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                mAppendStreamReadConfiguration = value ?? throw new ArgumentNullException();
             }
         }
 

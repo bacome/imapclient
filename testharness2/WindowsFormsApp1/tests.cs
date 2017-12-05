@@ -19,7 +19,7 @@ namespace testharness2
             // quickly get to the test I'm working on
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(CurrentTest));
             //cIMAPClient._Tests(lContext);
-            ZTestPipelineCancellation(lContext);
+            ZTestPipelineCancellation(lContext);       
         }
 
         public static void Tests(bool pQuick, cTrace.cContext pParentContext)
