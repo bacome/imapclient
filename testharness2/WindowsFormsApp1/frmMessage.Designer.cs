@@ -67,6 +67,7 @@
             this.lblQueryError = new System.Windows.Forms.Label();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
             this.cmdCopyTo = new System.Windows.Forms.Button();
+            this.tpgStream = new System.Windows.Forms.TabPage();
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
@@ -372,6 +373,7 @@
             this.tabBodyStructure.Controls.Add(this.tpgSummary);
             this.tabBodyStructure.Controls.Add(this.tpgRaw);
             this.tabBodyStructure.Controls.Add(this.tpgDecoded);
+            this.tabBodyStructure.Controls.Add(this.tpgStream);
             this.tabBodyStructure.Location = new System.Drawing.Point(3, 0);
             this.tabBodyStructure.Name = "tabBodyStructure";
             this.tabBodyStructure.SelectedIndex = 0;
@@ -527,6 +529,15 @@
             this.cmdCopyTo.UseVisualStyleBackColor = true;
             this.cmdCopyTo.Click += new System.EventHandler(this.cmdCopyTo_Click);
             // 
+            // tpgStream
+            // 
+            this.tpgStream.Location = new System.Drawing.Point(4, 22);
+            this.tpgStream.Name = "tpgStream";
+            this.tpgStream.Size = new System.Drawing.Size(497, 474);
+            this.tpgStream.TabIndex = 3;
+            this.tpgStream.Text = "Message Stream";
+            this.tpgStream.UseVisualStyleBackColor = true;
+            // 
             // frmMessage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -608,5 +619,6 @@
         private System.Windows.Forms.CheckBox chkAnswered;
         private System.Windows.Forms.Button cmdStore;
         private System.Windows.Forms.Button cmdCopyTo;
+        private System.Windows.Forms.TabPage tpgStream;
     }
 }

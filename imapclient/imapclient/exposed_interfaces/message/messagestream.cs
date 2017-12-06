@@ -20,7 +20,7 @@ namespace work.bacome.imapclient
 
         private int mReadTimeout = Timeout.Infinite;
 
-        // disposables
+        // background fetch task
         private CancellationTokenSource mCancellationTokenSource = null;
         private Task mFetchTask = null;
         private cBuffer mBuffer = null;
@@ -137,7 +137,6 @@ namespace work.bacome.imapclient
 
             if (mFetchTask != null)
             {
-                // cancel
                 try { mFetchTask.Wait(); }
                 catch { }
                 mFetchTask.Dispose();
@@ -150,6 +149,8 @@ namespace work.bacome.imapclient
             }
 
             if (mBuffer != null) mBuffer.Dispose();
+
+            base.Dispose();
 
             mDisposed = true;
         }
@@ -166,7 +167,7 @@ namespace work.bacome.imapclient
             private readonly Queue<byte[]> mBuffers = new Queue<byte[]>();
             private byte[] mCurrentBuffer = null;
             private int mCurrentBufferPosition = 0;
-            private int mBufferSize = 0;
+            private int mTotalBufferSize = 0;
             private bool mComplete = false;
             private Exception mCompleteException = null;
 
@@ -223,21 +224,25 @@ namespace work.bacome.imapclient
 
                     if (mCurrentBuffer != null)
                     {
-                        int lCount = 0;
                         int lPosition = pOffset;
 
-                        ;?; // null the buffer when read it
-                        while (lCount < pCount && mCurrentBufferPosition < mCurrentBuffer.Length)
+                        while (lPosition < pBuffer.Length && mCurrentBufferPosition < mCurrentBuffer.Length)
                         {
                             pBuffer[lPosition++] = mCurrentBuffer[mCurrentBufferPosition++];
                         }
 
+                        int lBytesRead = lPosition - pOffset;
+
                         lock (mLock)
                         {
-                            mBufferSize -= lCount;
+                            mTotalBufferSize -= lBytesRead;
                         }
 
-                        return lCount;
+                        if (mCurrentBufferPosition == mCurrentBuffer.Length) mCurrentBuffer = null;
+
+                        if (mWriteSemaphore.CurrentCount == 0) mWriteSemaphore.Release();
+
+                        return lBytesRead;
                     }
 
                     if (!mReadSemaphore.Wait(pTimeout)) throw new TimeoutException();
@@ -248,7 +253,7 @@ namespace work.bacome.imapclient
             {
                 if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
                 if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
-                if (pCount < 0) throw new ArgumentOutOfRangeException(nameof(pCount));
+                if (pCount <= 0) throw new ArgumentOutOfRangeException(nameof(pCount));
                 if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
                 if (mDisposed) throw new ObjectDisposedException(nameof(cMessageStream));
                 if (mComplete) throw new InvalidOperationException();
@@ -259,12 +264,12 @@ namespace work.bacome.imapclient
                 lock (mLock)
                 {
                     mBuffers.Enqueue(lBuffer);
-                    mBufferSize += pCount;
+                    mTotalBufferSize += pCount;
                 }
 
                 if (mReadSemaphore.CurrentCount == 0) mReadSemaphore.Release();
 
-                while (mBufferSize > mMaxSize) mWriteSemaphore.Wait();
+                while (mTotalBufferSize > mMaxSize) mWriteSemaphore.Wait();
             }
 
             public void Complete(Exception pException)
@@ -291,6 +296,8 @@ namespace work.bacome.imapclient
                     try { mWriteSemaphore.Dispose(); }
                     catch { }
                 }
+
+                base.Dispose();
 
                 mDisposed = true;
             }

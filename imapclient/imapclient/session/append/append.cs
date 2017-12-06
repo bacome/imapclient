@@ -18,7 +18,9 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(AppendAsync), pMC, pMailboxHandle, pMessages);
 
-                //throw new NotImplementedException();
+                throw new NotImplementedException(); /*
+
+                
 
                 // the size of the append in bytes (for progress)
                 int lByteCount = 0;
@@ -147,6 +149,8 @@ namespace work.bacome.imapclient
                             throw new cInternalErrorException();
                     }
                 }
+
+                */
             }
         }
     }
