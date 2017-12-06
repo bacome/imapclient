@@ -102,14 +102,6 @@ namespace work.bacome.imapclient
             Increment = pIncrement;
             Write = pWrite;
         }
-
-        internal cBodyFetchConfiguration(cMethodControl pMC, cBatchSizerConfiguration pWrite)
-        {
-            Timeout = pMC.Timeout;
-            CancellationToken = pMC.CancellationToken;
-            Increment = null;
-            Write = pWrite;
-        }
     }
 
     /// <summary>

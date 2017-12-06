@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
-using work.bacome.async;
-using work.bacome.imapclient.support;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
@@ -25,7 +19,6 @@ namespace work.bacome.imapclient
                     Parts = pParts.AsReadOnly();
                 }
 
-                /// <inheritdoc />
                 public override string ToString()
                 {
                     cListBuilder lBuilder = new cListBuilder(nameof(cCatenateAppendData));

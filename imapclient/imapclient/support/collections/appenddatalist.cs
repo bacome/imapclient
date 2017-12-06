@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
 
             foreach (var lMessage in pMessages)
             {
-                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains nulls");
+                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
                 lResult.Add(lMessage);
             }
 

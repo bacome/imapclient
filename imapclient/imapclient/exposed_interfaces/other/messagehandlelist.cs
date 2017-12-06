@@ -69,9 +69,9 @@ namespace work.bacome.imapclient
 
             foreach (var lMessageHandle in pMessageHandles)
             {
-                if (lMessageHandle == null) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), "contains nulls");
+                if (lMessageHandle == null) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
                 if (lMessageCache == null) lMessageCache = lMessageHandle.MessageCache;
-                else if (!ReferenceEquals(lMessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), "contains mixed message caches");
+                else if (!ReferenceEquals(lMessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), kArgumentOutOfRangeExceptionMessage.ContainsMixedMessageCaches);
             }
 
             return new cMessageHandleList(pMessageHandles.Distinct());
@@ -86,9 +86,9 @@ namespace work.bacome.imapclient
 
             foreach (var lMessage in pMessages)
             {
-                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains nulls");
+                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
                 if (lMessageCache == null) lMessageCache = lMessage.MessageHandle.MessageCache;
-                else if (!ReferenceEquals(lMessage.MessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains mixed message caches");
+                else if (!ReferenceEquals(lMessage.MessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessages), kArgumentOutOfRangeExceptionMessage.ContainsMixedMessageCaches);
                 lMessageHandles.Add(lMessage.MessageHandle);
             }
 

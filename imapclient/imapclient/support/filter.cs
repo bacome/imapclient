@@ -148,7 +148,7 @@ namespace work.bacome.imapclient
 
             foreach (var lTerm in pTerms)
             {
-                if (lTerm == null) throw new ArgumentOutOfRangeException(nameof(pTerms), "null list elements");
+                if (lTerm == null) throw new ArgumentOutOfRangeException(nameof(pTerms), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
                 if (lTerm.ContainsMessageHandles) lParams.ContainsMessageHandles = true;
                 if (lParams.UIDValidity == null) lParams.UIDValidity = lTerm.UIDValidity;
                 else if (lTerm.UIDValidity != null && lTerm.UIDValidity != lParams.UIDValidity) throw new ArgumentOutOfRangeException(nameof(pTerms));

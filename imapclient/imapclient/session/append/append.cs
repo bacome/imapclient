@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using work.bacome.async;
 using work.bacome.imapclient.support;
@@ -19,7 +20,14 @@ namespace work.bacome.imapclient
 
                 //throw new NotImplementedException();
 
-                int lCount = 0;
+                // the size of the append in bytes (for progress)
+                int lByteCount = 0;
+
+                // URLs must be generated relative to any currently selected mailbox, which means that the selected mailbox can't change until the URLs have all been sent
+                //  (including from to to null)
+                //
+                iMailboxHandle lMailbox = mMailboxCache.SelectedMailboxDetails.MailboxHandle;
+                int lURLCount = 0;
 
                 List<cAppendData> lMessages = new List<cAppendData>();
 
@@ -31,39 +39,49 @@ namespace work.bacome.imapclient
                     {
                         case cMessageAppendData lWholeMessage:
 
-                            cStorableFlags lFlags;
-                            DateTime lReceived;
-
-                            if (lWholeMessage.Flags == null) lFlags = lWholeMessage.Message.Flags;
-                            else lFlags = lWholeMessage.Flags;
-
-                            if (lWholeMessage.Received == null) lReceived = lWholeMessage.Message.Received;
-                            else lReceived = lWholeMessage.Received.Value;
-
-                            // this checks that the message is in THIS instances selected mailbox
-                            //  what it should do is check that the message is in a client that is connected to the same account
-                            if (_Capabilities.Catenate && lWholeMessage.Message.Client.ConnectedAccountId == mconnec)
                             {
-                                // catenate using a URL
+                                cStorableFlags lFlags;
+                                DateTime lReceived;
+
+                                if (lWholeMessage.Flags == null) lFlags = new cStorableFlags(lWholeMessage.Message.Flags.Except(cFetchableFlags.Recent, StringComparer.InvariantCultureIgnoreCase));
+                                else lFlags = lWholeMessage.Flags;
+
+                                if (lWholeMessage.Received == null) lReceived = lWholeMessage.Message.Received;
+                                else lReceived = lWholeMessage.Received.Value;
+
+                                if (_Capabilities.Catenate && lWholeMessage.AllowCatenate && lWholeMessage.Message.Client.ConnectedAccountId == _ConnectedAccountId)
+                                {
+                                    // catenate using a URL
+                                    cURLAppendDataPart lURL = new cURLAppendDataPart();
 
 
+                                    lMessages.Add(new cCatenateAppendData(lFlags, lReceived, new cURLAppendDataPart()));
+                                }
+                                else
+                                {
+                                    ;?; // MAX BUFFER SIze
+                                    cMessageStream lStream = new cMessageStream(lWholeMessage.Message, cSection.All, eDecodingRequired.none, );
+                                    lMessages.Add(new cStreamAppendData(lStream, lWholeMessage.Message.Size, lFlags, lReceived));
+                                }
 
-                                lMessages.Add(new cCatenateAppendData(lFlags, lReceived, new cURLAppendDataPart()));
+                                lCount += lWholeMessage.Message.Size;
+                                break;
                             }
-                            else
-                            {
-                                cBodyFetchConfiguration lConfiguration = new cBodyFetchConfiguration(pMC, x); // x should be unlimited
-                                cMessageStream lStream = new cMessageStream(lWholeMessage.Message, cSection.All, eDecodingRequired.none, lConfiguration, mAppendMaxMessageStreamBufferSize);
-                                lMessages.Add(new cStreamAppendData(lStream, lWholeMessage.Message.Size, lFlags, lReceived));
-                            }
-
-                            lCount += lWholeMessage.Message.Size;
-                            break;
 
                         case cMessagePartAppendData lMessagePart:
 
-                            throw new cAppendDataNotSupportedException("message part");
-                            break;
+                            {
+                                DateTime lReceived;
+
+                                if (lMessagePart.Received == null) lReceived = lMessagePart.Message.Received;
+                                else lReceived = lMessagePart.Received.Value;
+
+
+
+
+                                throw new cAppendDataNotSupportedException("message part");
+                                break;
+                            }
 
                         case cMailMessageAppendData lMailMessage:
 
@@ -71,6 +89,14 @@ namespace work.bacome.imapclient
                             break;
 
                         case cStringAppendData lString:
+
+                            break;
+
+                        case cFileAppendData lFile:
+
+                            break;
+
+                        case cUIDAppendData lUID:
 
                             break;
 
@@ -99,6 +125,14 @@ namespace work.bacome.imapclient
                                         break;
 
                                     case cStringAppendDataPart lString:
+
+                                        break;
+
+                                    case cUIDAppendDataPart lUID:
+
+                                        break;
+
+                                    case cFileAppendDataPart lFile:
 
                                         break;
 

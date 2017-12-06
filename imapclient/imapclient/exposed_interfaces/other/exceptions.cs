@@ -29,6 +29,17 @@ namespace work.bacome.imapclient
         public const string BodyStructureHasNotBeenFetched = "bodystructure has not been fetched";
     }
 
+    internal static class kArgumentOutOfRangeExceptionMessage
+    {
+        public const string MessageMustBeInTheSelectedMailbox = "message must be in the selected mailbox";
+        public const string MailboxMustBeSelected = "mailbox must be selected";
+
+        public const string ContainsNulls = "contains nulls";
+        public const string ContainsMixedMessageCaches = "contains mixed message caches";
+        public const string ContainsMixedUIDValidities = "contains mixed uidvalidities";
+    }
+
+
     /// <summary>
     /// The <see langword="abstract"/> base class for all of the library's custom exceptions.
     /// </summary>

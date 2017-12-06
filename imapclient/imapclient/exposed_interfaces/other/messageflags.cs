@@ -261,6 +261,9 @@ namespace work.bacome.imapclient
     {
         // immutable (for passing in and out)
 
+        /** <summary>A fetchable-message-flag collection containing only <see cref="kMessageFlag.Recent"/>.</summary> */
+        public static readonly cFetchableFlags Recent = new cFetchableFlags(kMessageFlag.Recent);
+
         /// <summary>
         /// Initialises a new instance with a duplicate free (case insensitive) copy of the specified flags. Will throw if the specified flags aren't valid fetchable-message-flags.
         /// </summary>

@@ -32,9 +32,9 @@ namespace work.bacome.imapclient
 
             foreach (var lUID in pUIDs)
             {
-                if (lUID == null) throw new ArgumentOutOfRangeException(nameof(pUIDs), "contains nulls");
+                if (lUID == null) throw new ArgumentOutOfRangeException(nameof(pUIDs), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
                 if (lUIDValidity == 0) lUIDValidity = lUID.UIDValidity;
-                else if (lUID.UIDValidity != lUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDs), "contains mixed uidvalidities");
+                else if (lUID.UIDValidity != lUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDs), kArgumentOutOfRangeExceptionMessage.ContainsMixedUIDValidities);
             }
 
             return new cUIDList(pUIDs.Distinct());

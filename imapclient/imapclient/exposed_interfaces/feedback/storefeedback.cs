@@ -132,9 +132,9 @@ namespace work.bacome.imapclient
 
             foreach (var lMessageHandle in pMessageHandles)
             {
-                if (lMessageHandle == null) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), "contains nulls");
+                if (lMessageHandle == null) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
                 if (lMessageCache == null) lMessageCache = lMessageHandle.MessageCache;
-                else if (!ReferenceEquals(lMessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), "contains mixed message caches");
+                else if (!ReferenceEquals(lMessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessageHandles), kArgumentOutOfRangeExceptionMessage.ContainsMixedMessageCaches);
             }
 
             mItems = new List<cStoreFeedbackItem>(from lMessageHandle in pMessageHandles.Distinct() select new cStoreFeedbackItem(lMessageHandle));
@@ -153,10 +153,10 @@ namespace work.bacome.imapclient
 
             foreach (var lMessage in pMessages)
             {
-                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains nulls");
+                if (lMessage == null) throw new ArgumentOutOfRangeException(nameof(pMessages), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
                 var lMessageHandle = lMessage.MessageHandle;
                 if (lMessageCache == null) lMessageCache = lMessageHandle.MessageCache;
-                else if (!ReferenceEquals(lMessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessages), "contains mixed message caches");
+                else if (!ReferenceEquals(lMessageHandle.MessageCache, lMessageCache)) throw new ArgumentOutOfRangeException(nameof(pMessages), kArgumentOutOfRangeExceptionMessage.ContainsMixedMessageCaches);
                 lMessageHandles.Add(lMessageHandle);
 
             }
@@ -311,9 +311,9 @@ namespace work.bacome.imapclient
 
             foreach (var lUID in pUIDs)
             {
-                if (lUID == null) throw new ArgumentOutOfRangeException(nameof(pUIDs), "contains nulls");
+                if (lUID == null) throw new ArgumentOutOfRangeException(nameof(pUIDs), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
                 if (lUIDValidity == 0) lUIDValidity = lUID.UIDValidity;
-                else if (lUID.UIDValidity != lUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDs), "contains mixed uidvalidities");
+                else if (lUID.UIDValidity != lUIDValidity) throw new ArgumentOutOfRangeException(nameof(pUIDs), kArgumentOutOfRangeExceptionMessage.ContainsMixedUIDValidities);
             }
 
             mItems = new List<cUIDStoreFeedbackItem>(from lUID in pUIDs.Distinct() select new cUIDStoreFeedbackItem(lUID));
