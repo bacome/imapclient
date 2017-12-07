@@ -65,6 +65,17 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cMessagePartAppendData)}({Flags},{Received},{Message},{Part},{AllowCatenate})";
     }
 
+    public class mMessageSectionAppendData : cAppendData
+    {
+        // only useful if the caller knows that this section is a nicely formed message
+        public readonly cMailbox Mailbox;
+        public readonly cUID UID;
+        public readonly cSection Section;
+        public readonly bool AllowCatenate;
+
+        public mMessageSectionAppendData() { }
+    }
+
     public class cMailMessageAppendData : cAppendData
     {
         public readonly MailMessage Message;
@@ -240,6 +251,11 @@ namespace work.bacome.imapclient
         }
 
         public override string ToString() => $"{nameof(cMessagePartAppendDataPart)}({Message},{Part},{AllowCatenate})";
+    }
+
+    public class cMessageSectionAppendDataPart : cAppendDataPart
+    {
+        ;?; 
     }
 
     public class cMailMessageAppendDataPart : cAppendDataPart

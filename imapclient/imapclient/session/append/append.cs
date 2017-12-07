@@ -18,22 +18,23 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(AppendAsync), pMC, pMailboxHandle, pMessages);
 
-                throw new NotImplementedException(); /*
+                if (mDisposed) throw new ObjectDisposedException(nameof(cSession));
+                if (_ConnectionState != eConnectionState.notselected && _ConnectionState != eConnectionState.selected) throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
 
-                
+
+
+                // throw new NotImplementedException(); /*
+
+
+                // URLs must be generated relative to any currently selected mailbox, which means that the selected mailbox can't change until the URLs have all been sent
+                //
+                var lSelectedMailboxHandle = mMailboxCache.SelectedMailboxDetails.MailboxHandle;
+                int lURLCount = 0;
 
                 // the size of the append in bytes (for progress)
                 int lByteCount = 0;
 
-                // URLs must be generated relative to any currently selected mailbox, which means that the selected mailbox can't change until the URLs have all been sent
-                //  (including from to to null)
-                //
-                iMailboxHandle lMailbox = mMailboxCache.SelectedMailboxDetails.MailboxHandle;
-                int lURLCount = 0;
-
                 List<cAppendData> lMessages = new List<cAppendData>();
-
-                var lSelectedMailboxHandle = mMailboxCache.SelectedMailboxDetails.MailboxHandle;
 
                 foreach (var lMessage in pMessages)
                 {
@@ -56,17 +57,18 @@ namespace work.bacome.imapclient
                                     // catenate using a URL
                                     cURLAppendDataPart lURL = new cURLAppendDataPart();
 
+                                    ;?;
 
                                     lMessages.Add(new cCatenateAppendData(lFlags, lReceived, new cURLAppendDataPart()));
+                                    lURLCount++;
                                 }
                                 else
                                 {
-                                    ;?; // MAX BUFFER SIze
-                                    cMessageStream lStream = new cMessageStream(lWholeMessage.Message, cSection.All, eDecodingRequired.none, );
+                                    cMessageStream lStream = new cMessageStream(lWholeMessage.Message, cSection.All, eDecodingRequired.none, mAppendMessageStreamTargetBufferSize);
                                     lMessages.Add(new cStreamAppendData(lStream, lWholeMessage.Message.Size, lFlags, lReceived));
+                                    lByteCount += lWholeMessage.Message.Size;
                                 }
 
-                                lCount += lWholeMessage.Message.Size;
                                 break;
                             }
 
@@ -82,6 +84,14 @@ namespace work.bacome.imapclient
 
 
                                 throw new cAppendDataNotSupportedException("message part");
+                                break;
+                            }
+
+                        case cMessageSectionAppendData lSection:
+
+                            {
+                                ;?;
+
                                 break;
                             }
 
@@ -122,6 +132,10 @@ namespace work.bacome.imapclient
 
                                         break;
 
+                                    case cMessageSectionAppendDataPart lSection:
+
+                                        break;
+
                                     case cMailMessageAppendDataPart lMailMessage:
 
                                         break;
@@ -141,6 +155,10 @@ namespace work.bacome.imapclient
                                     case cStreamAppendDataPart lStream:
 
                                         break;
+
+                                    default:
+
+                                        throw new cInternalErrorException();
                                 }
                             }
 
@@ -150,7 +168,12 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                */
+                // NOTE that if the lURLCount == 0 then we don't need to check that the currently selected mailbox stays the same throughout the append
+                //  AND we should never suggest ignoring catentate on failure ...
+                if (lURLCount == 0) 
+
+
+                // */
             }
         }
     }
