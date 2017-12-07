@@ -17,6 +17,7 @@ namespace testharness2
         private const string kUsingDefault = "<using default>";
 
         private readonly cIMAPClient mClient;
+        private readonly Action<Form, Form> mAddChildForm;
         private readonly int mMaxMessages;
         private readonly int mMaxTextBytes;
         private readonly bool mTrackUIDNext;
@@ -30,9 +31,10 @@ namespace testharness2
         private cFilter mFilter = null;
         private cSort mOverrideSort = null;
 
-        public frmSelectedMailbox(cIMAPClient pClient, int pMaxMessages, int pMaxTextBytes, bool pTrackUIDNext, bool pTrackUnseen, bool pProgressBar)
+        public frmSelectedMailbox(cIMAPClient pClient, Action<Form, Form> pAddChildForm, int pMaxMessages, int pMaxTextBytes, bool pTrackUIDNext, bool pTrackUnseen, bool pProgressBar)
         {
             mClient = pClient;
+            mAddChildForm = pAddChildForm;
             mMaxMessages = pMaxMessages;
             mMaxTextBytes = pMaxTextBytes;
             mTrackUIDNext = pTrackUIDNext;
@@ -514,7 +516,7 @@ namespace testharness2
         {
             var lData = dgvMessages.Rows[e.RowIndex].DataBoundItem as cGridRowData;
             if (lData == null) return;
-            ZMessageFormAdd(new frmMessage(mClient.InstanceName, this, mProgressBar, mCurrentMailbox, mMaxTextBytes, lData.Message));
+            ZMessageFormAdd(new frmMessage(mClient.InstanceName, this, mAddChildForm, mProgressBar, mCurrentMailbox, mMaxTextBytes, lData.Message));
         }
 
         private void cmdOverrideSort_Click(object sender, EventArgs e)

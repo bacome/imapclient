@@ -62,12 +62,24 @@
             this.pbx = new System.Windows.Forms.PictureBox();
             this.cmdDownloadDecoded = new System.Windows.Forms.Button();
             this.rtxDecoded = new System.Windows.Forms.RichTextBox();
+            this.tpgMessageStream = new System.Windows.Forms.TabPage();
+            this.pnlMessageStream = new System.Windows.Forms.Panel();
+            this.gbxMSType = new System.Windows.Forms.GroupBox();
+            this.rdoMSTMessage = new System.Windows.Forms.RadioButton();
+            this.rdoMSTUID = new System.Windows.Forms.RadioButton();
+            this.cmdDownloadStream = new System.Windows.Forms.Button();
+            this.gbxDecoding = new System.Windows.Forms.GroupBox();
+            this.rdoMSDOther = new System.Windows.Forms.RadioButton();
+            this.rdoMSDBase64 = new System.Windows.Forms.RadioButton();
+            this.rdoMSDQuotedPrintable = new System.Windows.Forms.RadioButton();
+            this.rdoMSDNone = new System.Windows.Forms.RadioButton();
+            this.txtMSTargetBufferSize = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.tpgOther = new System.Windows.Forms.TabPage();
             this.rtxOther = new System.Windows.Forms.RichTextBox();
             this.lblQueryError = new System.Windows.Forms.Label();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
             this.cmdCopyTo = new System.Windows.Forms.Button();
-            this.tpgStream = new System.Windows.Forms.TabPage();
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
@@ -85,6 +97,10 @@
             this.tpgRaw.SuspendLayout();
             this.tpgDecoded.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbx)).BeginInit();
+            this.tpgMessageStream.SuspendLayout();
+            this.pnlMessageStream.SuspendLayout();
+            this.gbxMSType.SuspendLayout();
+            this.gbxDecoding.SuspendLayout();
             this.tpgOther.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
             this.SuspendLayout();
@@ -373,7 +389,7 @@
             this.tabBodyStructure.Controls.Add(this.tpgSummary);
             this.tabBodyStructure.Controls.Add(this.tpgRaw);
             this.tabBodyStructure.Controls.Add(this.tpgDecoded);
-            this.tabBodyStructure.Controls.Add(this.tpgStream);
+            this.tabBodyStructure.Controls.Add(this.tpgMessageStream);
             this.tabBodyStructure.Location = new System.Drawing.Point(3, 0);
             this.tabBodyStructure.Name = "tabBodyStructure";
             this.tabBodyStructure.SelectedIndex = 0;
@@ -483,6 +499,145 @@
             this.rtxDecoded.TabIndex = 1;
             this.rtxDecoded.Text = "";
             // 
+            // tpgMessageStream
+            // 
+            this.tpgMessageStream.Controls.Add(this.pnlMessageStream);
+            this.tpgMessageStream.Location = new System.Drawing.Point(4, 22);
+            this.tpgMessageStream.Name = "tpgMessageStream";
+            this.tpgMessageStream.Size = new System.Drawing.Size(497, 474);
+            this.tpgMessageStream.TabIndex = 3;
+            this.tpgMessageStream.Text = "Message Stream";
+            this.tpgMessageStream.UseVisualStyleBackColor = true;
+            // 
+            // pnlMessageStream
+            // 
+            this.pnlMessageStream.Controls.Add(this.gbxMSType);
+            this.pnlMessageStream.Controls.Add(this.cmdDownloadStream);
+            this.pnlMessageStream.Controls.Add(this.gbxDecoding);
+            this.pnlMessageStream.Controls.Add(this.txtMSTargetBufferSize);
+            this.pnlMessageStream.Controls.Add(this.label1);
+            this.pnlMessageStream.Location = new System.Drawing.Point(3, 3);
+            this.pnlMessageStream.Name = "pnlMessageStream";
+            this.pnlMessageStream.Size = new System.Drawing.Size(481, 193);
+            this.pnlMessageStream.TabIndex = 5;
+            // 
+            // gbxMSType
+            // 
+            this.gbxMSType.Controls.Add(this.rdoMSTMessage);
+            this.gbxMSType.Controls.Add(this.rdoMSTUID);
+            this.gbxMSType.Location = new System.Drawing.Point(3, 3);
+            this.gbxMSType.Name = "gbxMSType";
+            this.gbxMSType.Size = new System.Drawing.Size(389, 47);
+            this.gbxMSType.TabIndex = 0;
+            this.gbxMSType.TabStop = false;
+            this.gbxMSType.Text = "Stream Type";
+            // 
+            // rdoMSTMessage
+            // 
+            this.rdoMSTMessage.AutoSize = true;
+            this.rdoMSTMessage.Checked = true;
+            this.rdoMSTMessage.Location = new System.Drawing.Point(98, 19);
+            this.rdoMSTMessage.Name = "rdoMSTMessage";
+            this.rdoMSTMessage.Size = new System.Drawing.Size(68, 17);
+            this.rdoMSTMessage.TabIndex = 1;
+            this.rdoMSTMessage.TabStop = true;
+            this.rdoMSTMessage.Text = "Message";
+            this.rdoMSTMessage.UseVisualStyleBackColor = true;
+            // 
+            // rdoMSTUID
+            // 
+            this.rdoMSTUID.AutoSize = true;
+            this.rdoMSTUID.Location = new System.Drawing.Point(18, 19);
+            this.rdoMSTUID.Name = "rdoMSTUID";
+            this.rdoMSTUID.Size = new System.Drawing.Size(44, 17);
+            this.rdoMSTUID.TabIndex = 0;
+            this.rdoMSTUID.Text = "UID";
+            this.rdoMSTUID.UseVisualStyleBackColor = true;
+            // 
+            // cmdDownloadStream
+            // 
+            this.cmdDownloadStream.Location = new System.Drawing.Point(292, 111);
+            this.cmdDownloadStream.Name = "cmdDownloadStream";
+            this.cmdDownloadStream.Size = new System.Drawing.Size(100, 25);
+            this.cmdDownloadStream.TabIndex = 4;
+            this.cmdDownloadStream.Text = "Download";
+            this.cmdDownloadStream.UseVisualStyleBackColor = true;
+            this.cmdDownloadStream.Click += new System.EventHandler(this.cmdDownloadStream_Click);
+            // 
+            // gbxDecoding
+            // 
+            this.gbxDecoding.Controls.Add(this.rdoMSDOther);
+            this.gbxDecoding.Controls.Add(this.rdoMSDBase64);
+            this.gbxDecoding.Controls.Add(this.rdoMSDQuotedPrintable);
+            this.gbxDecoding.Controls.Add(this.rdoMSDNone);
+            this.gbxDecoding.Location = new System.Drawing.Point(3, 56);
+            this.gbxDecoding.Name = "gbxDecoding";
+            this.gbxDecoding.Size = new System.Drawing.Size(389, 47);
+            this.gbxDecoding.TabIndex = 1;
+            this.gbxDecoding.TabStop = false;
+            this.gbxDecoding.Text = "Decoding";
+            // 
+            // rdoMSDOther
+            // 
+            this.rdoMSDOther.AutoSize = true;
+            this.rdoMSDOther.Location = new System.Drawing.Point(18, 19);
+            this.rdoMSDOther.Name = "rdoMSDOther";
+            this.rdoMSDOther.Size = new System.Drawing.Size(51, 17);
+            this.rdoMSDOther.TabIndex = 3;
+            this.rdoMSDOther.Text = "Other";
+            this.rdoMSDOther.UseVisualStyleBackColor = true;
+            // 
+            // rdoMSDBase64
+            // 
+            this.rdoMSDBase64.AutoSize = true;
+            this.rdoMSDBase64.Location = new System.Drawing.Point(178, 19);
+            this.rdoMSDBase64.Name = "rdoMSDBase64";
+            this.rdoMSDBase64.Size = new System.Drawing.Size(61, 17);
+            this.rdoMSDBase64.TabIndex = 1;
+            this.rdoMSDBase64.Text = "Base64";
+            this.rdoMSDBase64.UseVisualStyleBackColor = true;
+            // 
+            // rdoMSDQuotedPrintable
+            // 
+            this.rdoMSDQuotedPrintable.AutoSize = true;
+            this.rdoMSDQuotedPrintable.Location = new System.Drawing.Point(258, 19);
+            this.rdoMSDQuotedPrintable.Name = "rdoMSDQuotedPrintable";
+            this.rdoMSDQuotedPrintable.Size = new System.Drawing.Size(104, 17);
+            this.rdoMSDQuotedPrintable.TabIndex = 2;
+            this.rdoMSDQuotedPrintable.Text = "Quoted-Printable";
+            this.rdoMSDQuotedPrintable.UseVisualStyleBackColor = true;
+            // 
+            // rdoMSDNone
+            // 
+            this.rdoMSDNone.AutoSize = true;
+            this.rdoMSDNone.Checked = true;
+            this.rdoMSDNone.Location = new System.Drawing.Point(98, 19);
+            this.rdoMSDNone.Name = "rdoMSDNone";
+            this.rdoMSDNone.Size = new System.Drawing.Size(51, 17);
+            this.rdoMSDNone.TabIndex = 0;
+            this.rdoMSDNone.TabStop = true;
+            this.rdoMSDNone.Text = "None";
+            this.rdoMSDNone.UseVisualStyleBackColor = true;
+            // 
+            // txtMSTargetBufferSize
+            // 
+            this.txtMSTargetBufferSize.Location = new System.Drawing.Point(101, 114);
+            this.txtMSTargetBufferSize.Name = "txtMSTargetBufferSize";
+            this.txtMSTargetBufferSize.Size = new System.Drawing.Size(68, 20);
+            this.txtMSTargetBufferSize.TabIndex = 3;
+            this.txtMSTargetBufferSize.Text = "1000000";
+            this.txtMSTargetBufferSize.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtMSTargetBufferSize.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(0, 117);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(92, 13);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "Target Buffer Size";
+            // 
             // tpgOther
             // 
             this.tpgOther.Controls.Add(this.rtxOther);
@@ -529,19 +684,11 @@
             this.cmdCopyTo.UseVisualStyleBackColor = true;
             this.cmdCopyTo.Click += new System.EventHandler(this.cmdCopyTo_Click);
             // 
-            // tpgStream
-            // 
-            this.tpgStream.Location = new System.Drawing.Point(4, 22);
-            this.tpgStream.Name = "tpgStream";
-            this.tpgStream.Size = new System.Drawing.Size(497, 474);
-            this.tpgStream.TabIndex = 3;
-            this.tpgStream.Text = "Message Stream";
-            this.tpgStream.UseVisualStyleBackColor = true;
-            // 
             // frmMessage
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
             this.ClientSize = new System.Drawing.Size(792, 573);
             this.Controls.Add(this.cmdCopyTo);
             this.Controls.Add(this.lblQueryError);
@@ -572,6 +719,13 @@
             this.tpgRaw.ResumeLayout(false);
             this.tpgDecoded.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pbx)).EndInit();
+            this.tpgMessageStream.ResumeLayout(false);
+            this.pnlMessageStream.ResumeLayout(false);
+            this.pnlMessageStream.PerformLayout();
+            this.gbxMSType.ResumeLayout(false);
+            this.gbxMSType.PerformLayout();
+            this.gbxDecoding.ResumeLayout(false);
+            this.gbxDecoding.PerformLayout();
             this.tpgOther.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();
             this.ResumeLayout(false);
@@ -619,6 +773,18 @@
         private System.Windows.Forms.CheckBox chkAnswered;
         private System.Windows.Forms.Button cmdStore;
         private System.Windows.Forms.Button cmdCopyTo;
-        private System.Windows.Forms.TabPage tpgStream;
+        private System.Windows.Forms.TabPage tpgMessageStream;
+        private System.Windows.Forms.Button cmdDownloadStream;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox txtMSTargetBufferSize;
+        private System.Windows.Forms.GroupBox gbxDecoding;
+        private System.Windows.Forms.RadioButton rdoMSDBase64;
+        private System.Windows.Forms.RadioButton rdoMSDQuotedPrintable;
+        private System.Windows.Forms.RadioButton rdoMSDNone;
+        private System.Windows.Forms.GroupBox gbxMSType;
+        private System.Windows.Forms.RadioButton rdoMSTMessage;
+        private System.Windows.Forms.RadioButton rdoMSTUID;
+        private System.Windows.Forms.Panel pnlMessageStream;
+        private System.Windows.Forms.RadioButton rdoMSDOther;
     }
 }

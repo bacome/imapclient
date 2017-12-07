@@ -18,6 +18,7 @@ namespace testharness2
 
         private readonly string mInstanceName;
         private readonly frmSelectedMailbox mParent; // for previous/next
+        private readonly Action<Form, Form> mAddChildForm;
         private readonly bool mProgressBar;
         private readonly cMailbox mMailbox;
         private readonly int mMaxTextBytes;
@@ -32,6 +33,7 @@ namespace testharness2
         private bool mSummaryDisplayed = false;
         private bool mRawDisplayed = false;
         private bool mDecodedDisplayed = false;
+        private bool mMessageStreamDisplayed = false;
         private string mRawSectionData = null;
 
         private bool mQueryingFlagCheckboxes = false;
@@ -40,10 +42,11 @@ namespace testharness2
 
         private List<Form> mDownloads = new List<Form>();
 
-        public frmMessage(string pInstanceName, frmSelectedMailbox pParent, bool pProgressBar, cMailbox pMailbox, int pMaxTextBytes, cMessage pMessage)
+        public frmMessage(string pInstanceName, frmSelectedMailbox pParent, Action<Form, Form> pAddChildForm, bool pProgressBar, cMailbox pMailbox, int pMaxTextBytes, cMessage pMessage)
         {
             mInstanceName = pInstanceName;
             mParent = pParent;
+            mAddChildForm = pAddChildForm;
             mProgressBar = pProgressBar;
             mMailbox = pMailbox;
             mMaxTextBytes = pMaxTextBytes;
@@ -317,6 +320,7 @@ namespace testharness2
                 mSummaryDisplayed = false;
                 mRawDisplayed = false;
                 mDecodedDisplayed = false;
+                mMessageStreamDisplayed = false;
                 mRawSectionData = null;
 
                 ZImageLoadCancel();
@@ -355,6 +359,15 @@ namespace testharness2
                 }
 
                 return;
+            }
+
+            if (ReferenceEquals(tabBodyStructure.SelectedTab, tpgMessageStream))
+            {
+                if (!mMessageStreamDisplayed)
+                {
+                    mMessageStreamDisplayed = true;
+                    ZQueryBodyStructureMessageStream();
+                }
             }
         }
 
@@ -403,6 +416,46 @@ namespace testharness2
             }
 
             ZQueryBodyStructureRawSectionDataAsync(lTag, pQueryBodyStructureDetailEntryNumber, rtxSummary);
+        }
+
+        private void ZQueryBodyStructureMessageStream()
+        {
+            if (tvwBodyStructure.SelectedNode == null)
+            {
+                pnlMessageStream.Enabled = false;
+                return;
+            }
+
+            pnlMessageStream.Enabled = true;
+
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+
+            if (lTag.BodyPart != null && lTag.BodyPart is cSinglePartBody lSinglePart)
+            {
+                switch (lSinglePart.DecodingRequired)
+                {
+                    case eDecodingRequired.none:
+
+                        rdoMSDNone.Checked = true;
+                        break;
+
+                    case eDecodingRequired.quotedprintable:
+
+                        rdoMSDQuotedPrintable.Checked = true;
+                        break;
+
+                    case eDecodingRequired.base64:
+
+                        rdoMSDBase64.Checked = true;
+                        break;
+
+                    default:
+
+                        rdoMSDOther.Checked = true;
+                        break;
+                }
+            }
+            else rdoMSDNone.Checked = true;
         }
 
         private void ZQueryBodyStructureRaw(int pQueryBodyStructureDetailEntryNumber)
@@ -1015,6 +1068,55 @@ namespace testharness2
             }
 
             if (!IsDisposed && lUID != null) MessageBox.Show(this, $"copied as {lUID}");
+        }
+
+        private void ZValTextBoxIsNumberOfBytes(object sender, CancelEventArgs e)
+        {
+            if (!(sender is TextBox lSender)) return;
+
+            if (!int.TryParse(lSender.Text, out var i) || i < 1 || i > 1000000)
+            {
+                e.Cancel = true;
+                erp.SetError(lSender, "number of bytes should be 1 .. 1000000");
+            }
+        }
+
+        private void ZValControlValidated(object sender, EventArgs e)
+        {
+            erp.SetError((Control)sender, null);
+        }
+
+        private void cmdDownloadStream_Click(object sender, EventArgs e)
+        {
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            int lTargetBufferSize = int.Parse(txtMSTargetBufferSize.Text.Trim());
+
+            if (tvwBodyStructure.SelectedNode == null) return;
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+
+            cSection lSection;
+
+            if (lTag.Section == null) lSection = lTag.BodyPart.Section;
+            else lSection = lTag.Section;
+
+            eDecodingRequired lDecoding;
+
+            if (rdoMSDNone.Checked) lDecoding = eDecodingRequired.none;
+            else if (rdoMSDBase64.Checked) lDecoding = eDecodingRequired.base64;
+            else if (rdoMSDQuotedPrintable.Checked) lDecoding = eDecodingRequired.quotedprintable;
+            else lDecoding = eDecodingRequired.other;
+
+            var lSaveFileDialog = new SaveFileDialog();
+            lSaveFileDialog.FileName = ZDownloadFileName(lSection) + ".dat";
+            if (lSaveFileDialog.ShowDialog() != DialogResult.OK) return;
+
+            frmMessageStream lMessageStream;
+
+            if (rdoMSTUID.Checked) lMessageStream = new frmMessageStream(mInstanceName, mMailbox, mMessage.UID, lSection, lDecoding, lTargetBufferSize, lSaveFileDialog.FileName);
+            else lMessageStream = new frmMessageStream(mInstanceName, mMessage, lSection, lDecoding, lTargetBufferSize, lSaveFileDialog.FileName);
+
+            mAddChildForm(lMessageStream, this);
         }
     }
 }

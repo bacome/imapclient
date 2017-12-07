@@ -16,7 +16,7 @@ namespace work.bacome.imapclient
 
         private readonly cSection mSection;
         private readonly eDecodingRequired mDecoding;
-        private readonly int mMaxBufferSize;
+        private readonly int mTargetBufferSize;
 
         private int mReadTimeout = Timeout.Infinite;
 
@@ -25,13 +25,13 @@ namespace work.bacome.imapclient
         private Task mFetchTask = null;
         private cBuffer mBuffer = null;
 
-        public cMessageStream(cMessage pMessage, cSection pSection, eDecodingRequired pDecoding, int pMaxBufferSize = 1000000)
+        public cMessageStream(cMessage pMessage, cSection pSection, eDecodingRequired pDecoding, int pTargetBufferSize = 1000000)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
 
             if (!ReferenceEquals(pMessage.MessageHandle.MessageCache.MailboxHandle, pMessage.Client.SelectedMailboxDetails.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
-            if (pMaxBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pMaxBufferSize));
+            if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
 
             mMessage = pMessage;
             mMailbox = null;
@@ -39,17 +39,17 @@ namespace work.bacome.imapclient
 
             mSection = pSection;
             mDecoding = pDecoding;
-            mMaxBufferSize = pMaxBufferSize;
+            mTargetBufferSize = pTargetBufferSize;
         }
 
-        public cMessageStream(cMailbox pMailbox, cUID pUID, cSection pSection, eDecodingRequired pDecoding, int pMaxBufferSize = 1000000)
+        public cMessageStream(cMailbox pMailbox, cUID pUID, cSection pSection, eDecodingRequired pDecoding, int pTargetBufferSize = 1000000)
         {
             if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
             if (pUID == null) throw new ArgumentNullException(nameof(pUID));
             if (pSection == null) throw new ArgumentNullException(nameof(pSection));
 
             if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
-            if (pMaxBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pMaxBufferSize));
+            if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
 
             mMessage = null;
             mMailbox = pMailbox;
@@ -57,8 +57,10 @@ namespace work.bacome.imapclient
 
             mSection = pSection;
             mDecoding = pDecoding;
-            mMaxBufferSize = pMaxBufferSize;
+            mTargetBufferSize = pTargetBufferSize;
         }
+
+        public int CurrentBufferSize => mBuffer?.CurrentSize ?? 0;
 
         public override bool CanRead => true;
 
@@ -93,9 +95,11 @@ namespace work.bacome.imapclient
         {
             if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
             if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
-            if (pCount <= 0) throw new ArgumentOutOfRangeException(nameof(pCount));
+            if (pCount < 0) throw new ArgumentOutOfRangeException(nameof(pCount));
             if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
             if (mDisposed) throw new ObjectDisposedException(nameof(cMessageStream));
+
+            if (pCount == 0) return 0;
 
             if (mFetchTask == null) mFetchTask = ZFetch();
 
@@ -107,7 +111,7 @@ namespace work.bacome.imapclient
         private async Task ZFetch()
         {
             mCancellationTokenSource = new CancellationTokenSource();
-            mBuffer = new cBuffer(mMaxBufferSize);
+            mBuffer = new cBuffer(mTargetBufferSize, mCancellationTokenSource.Token);
             cBodyFetchConfiguration lConfiguration = new cBodyFetchConfiguration(mCancellationTokenSource.Token, null);
 
             Exception lException = null;
@@ -160,22 +164,26 @@ namespace work.bacome.imapclient
             private static readonly byte[] kEndOfStream = new byte[0];
 
             private bool mDisposed = false;
-            private readonly int mMaxSize;
+            private readonly int mTargetSize;
+            private readonly CancellationToken mCancellationToken;
             private readonly SemaphoreSlim mReadSemaphore = new SemaphoreSlim(0);
             private readonly SemaphoreSlim mWriteSemaphore = new SemaphoreSlim(0);
             private readonly object mLock = new object();
             private readonly Queue<byte[]> mBuffers = new Queue<byte[]>();
             private byte[] mCurrentBuffer = null;
             private int mCurrentBufferPosition = 0;
-            private int mTotalBufferSize = 0;
+            private int mCurrentSize = 0;
             private bool mComplete = false;
             private Exception mCompleteException = null;
 
-            public cBuffer(int pMaxSize)
+            public cBuffer(int pTargetSize, CancellationToken pCancellationToken)
             {
-                if (pMaxSize < 1) throw new ArgumentOutOfRangeException(nameof(pMaxSize));
-                mMaxSize = pMaxSize;
+                if (pTargetSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetSize));
+                mTargetSize = pTargetSize;
+                mCancellationToken = pCancellationToken;
             }
+
+            public int CurrentSize => mCurrentSize;
 
             public override bool CanRead => false;
 
@@ -201,9 +209,11 @@ namespace work.bacome.imapclient
             {
                 if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
                 if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
-                if (pCount <= 0) throw new ArgumentOutOfRangeException(nameof(pCount));
+                if (pCount < 0) throw new ArgumentOutOfRangeException(nameof(pCount));
                 if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
                 if (mDisposed) throw new ObjectDisposedException(nameof(cMessageStream));
+
+                if (pCount == 0) return 0;
 
                 while (true)
                 {
@@ -235,7 +245,7 @@ namespace work.bacome.imapclient
 
                         lock (mLock)
                         {
-                            mTotalBufferSize -= lBytesRead;
+                            mCurrentSize -= lBytesRead;
                         }
 
                         if (mCurrentBufferPosition == mCurrentBuffer.Length) mCurrentBuffer = null;
@@ -245,7 +255,8 @@ namespace work.bacome.imapclient
                         return lBytesRead;
                     }
 
-                    if (!mReadSemaphore.Wait(pTimeout)) throw new TimeoutException();
+                    try { if (!mReadSemaphore.Wait(pTimeout, mCancellationToken)) throw new TimeoutException(); }
+                    catch (OperationCanceledException) { throw new IOException($"{nameof(cMessageStream)} closed"); }
                 }
             }
 
@@ -253,10 +264,12 @@ namespace work.bacome.imapclient
             {
                 if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
                 if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
-                if (pCount <= 0) throw new ArgumentOutOfRangeException(nameof(pCount));
+                if (pCount < 0) throw new ArgumentOutOfRangeException(nameof(pCount));
                 if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
                 if (mDisposed) throw new ObjectDisposedException(nameof(cMessageStream));
                 if (mComplete) throw new InvalidOperationException();
+
+                if (pCount == 0) return;
 
                 byte[] lBuffer = new byte[pCount];
                 for (int i = 0, j = pOffset; i < pCount; i++, j++) lBuffer[i] = pBuffer[j];
@@ -264,12 +277,16 @@ namespace work.bacome.imapclient
                 lock (mLock)
                 {
                     mBuffers.Enqueue(lBuffer);
-                    mTotalBufferSize += pCount;
+                    mCurrentSize += pCount;
                 }
 
                 if (mReadSemaphore.CurrentCount == 0) mReadSemaphore.Release();
 
-                while (mTotalBufferSize > mMaxSize) mWriteSemaphore.Wait();
+                while (mCurrentSize > mTargetSize)
+                {
+                    try { mWriteSemaphore.Wait(mCancellationToken); }
+                    catch (OperationCanceledException) { throw new IOException($"{nameof(cMessageStream)} closed"); }
+                }
             }
 
             public void Complete(Exception pException)

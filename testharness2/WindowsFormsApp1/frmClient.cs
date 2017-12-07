@@ -495,11 +495,11 @@ namespace testharness2
             gbxResponseTextCode.Enabled = lResponseText;
         }
 
-        private void ZUnnamedChildAdd(Form pForm)
+        private void ZUnnamedChildAdd(Form pForm, Form pCentreOnThis)
         {
             mUnnamedChildren.Add(pForm);
             pForm.FormClosed += ZUnnamedChildClosed;
-            Program.Centre(pForm, this, mUnnamedChildren);
+            Program.Centre(pForm, pCentreOnThis, mUnnamedChildren);
             pForm.Show();
         }
 
@@ -672,7 +672,7 @@ namespace testharness2
             if (chkMLSub.Checked) lDataSets |= fMailboxCacheDataSets.lsub;
             if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
 
-            ZUnnamedChildAdd(new frmMailboxes(mClient, false, lDataSets, ZDisplaySelectedMailbox, ZDisplayUID));
+            ZUnnamedChildAdd(new frmMailboxes(mClient, false, lDataSets, ZDisplaySelectedMailbox, ZDisplayUID), this);
         }
 
         private void cmdSubscriptions_Click(object sender, EventArgs e)
@@ -683,7 +683,7 @@ namespace testharness2
             if (chkMLSub.Checked) lDataSets |= fMailboxCacheDataSets.lsub;
             if (chkMStatus.Checked) lDataSets |= fMailboxCacheDataSets.status;
 
-            ZUnnamedChildAdd(new frmMailboxes(mClient, true, lDataSets, ZDisplaySelectedMailbox, ZDisplayUID));
+            ZUnnamedChildAdd(new frmMailboxes(mClient, true, lDataSets, ZDisplaySelectedMailbox, ZDisplayUID), this);
         }
 
         private void cmdSelectedMailbox_Click(object sender, EventArgs e)
@@ -694,7 +694,7 @@ namespace testharness2
         private void ZDisplaySelectedMailbox(Form pForm)
         {
             if (mNamedChildren.TryGetValue(nameof(frmSelectedMailbox), out var lForm)) Program.Focus(lForm);
-            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, int.Parse(txtSMMessages.Text), int.Parse(txtSMTextBytes.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked));
+            else if (ValidateChildren(ValidationConstraints.Enabled)) ZNamedChildAdd(new frmSelectedMailbox(mClient, ZUnnamedChildAdd, int.Parse(txtSMMessages.Text), int.Parse(txtSMTextBytes.Text), chkTrackUIDNext.Checked, chkTrackUnseen.Checked, chkProgressBar.Checked));
         }
 
         private void cmdUID_Click(object sender, EventArgs e)
