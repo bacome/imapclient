@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using work.bacome.async;
-using work.bacome.imapclient.support;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
@@ -14,6 +12,8 @@ namespace work.bacome.imapclient
             {
                 private bool mDisposed = false;
 
+                private readonly List<IDisposable> mDisposables = new List<IDisposable>();
+
                 private readonly List<cExclusiveAccess.cToken> mTokens = new List<cExclusiveAccess.cToken>();
                 private readonly List<cExclusiveAccess.cBlock> mBlocks = new List<cExclusiveAccess.cBlock>();
                 private int mExclusiveAccessSequence = -1;
@@ -21,6 +21,12 @@ namespace work.bacome.imapclient
                 private cSASLAuthentication mSASLAuthentication = null;
 
                 public cCommandDisposables() { }
+
+                public void Add(IDisposable pDisposable)
+                {
+                    if (pDisposable == null) throw new ArgumentNullException(nameof(pDisposable));
+                    mDisposables.Add(pDisposable);
+                }
 
                 public void Add(cExclusiveAccess.cToken pToken)
                 {
@@ -47,6 +53,12 @@ namespace work.bacome.imapclient
                 public void Dispose()
                 {
                     if (mDisposed) return;
+
+                    foreach (var lDisposable in mDisposables)
+                    {
+                        try { lDisposable.Dispose(); }
+                        catch { }
+                    }
 
                     foreach (var lToken in mTokens)
                     {

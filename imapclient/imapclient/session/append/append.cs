@@ -28,7 +28,7 @@ namespace work.bacome.imapclient
 
                 // URLs must be generated relative to any currently selected mailbox, which means that the selected mailbox can't change until the URLs have all been sent
                 //
-                var lSelectedMailboxHandle = mMailboxCache.SelectedMailboxDetails.MailboxHandle;
+                var lSelectedMailboxHandle = mMailboxCache.SelectedMailboxDetails?.MailboxHandle;
                 int lURLCount = 0;
 
                 // the size of the append in bytes (for progress)
@@ -43,30 +43,39 @@ namespace work.bacome.imapclient
                         case cMessageAppendData lWholeMessage:
 
                             {
-                                cStorableFlags lFlags;
-                                DateTime lReceived;
+                                bool lCatenate = _Capabilities.Catenate && lWholeMessage.AllowCatenate && lWholeMessage.Client.ConnectedAccountId == _ConnectedAccountId;
 
-                                if (lWholeMessage.Flags == null) lFlags = new cStorableFlags(lWholeMessage.Message.Flags.Except(cFetchableFlags.Recent, StringComparer.InvariantCultureIgnoreCase));
+                                fMessageCacheAttributes lAttributes = 0;
+                                if (lWholeMessage.Flags == null) lAttributes |= fMessageCacheAttributes.flags;
+                                if (lWholeMessage.Received == null) lAttributes |= fMessageCacheAttributes.received;
+                                if (lCatenate) lAttributes |= fMessageCacheAttributes.uid;
+                                else lAttributes |= fMessageCacheAttributes.size;
+
+                                if (!await lWholeMessage.Client.FetchAsync(lWholeMessage.MessageHandle, lAttributes))
+                                {
+                                    if (lWholeMessage.MessageHandle.Expunged) throw new cMessageExpungedException(lWholeMessage.MessageHandle);
+                                    else throw new cRequestedDataNotReturnedException(lContext);
+                                }
+
+                                cStorableFlags lFlags;
+                                DateTime? lReceived;
+
+                                if (lWholeMessage.Flags == null) lFlags = new cStorableFlags(lWholeMessage.MessageHandle.Flags.Except(cFetchableFlags.Recent, StringComparer.InvariantCultureIgnoreCase));
                                 else lFlags = lWholeMessage.Flags;
 
-                                if (lWholeMessage.Received == null) lReceived = lWholeMessage.Message.Received;
-                                else lReceived = lWholeMessage.Received.Value;
+                                if (lWholeMessage.Received == null) lReceived = lWholeMessage.MessageHandle.Received;
+                                else lReceived = lWholeMessage.Received;
 
-                                if (_Capabilities.Catenate && lWholeMessage.AllowCatenate && lWholeMessage.Message.Client.ConnectedAccountId == _ConnectedAccountId)
+                                if (lCatenate)
                                 {
-                                    // catenate using a URL
-                                    cURLAppendDataPart lURL = new cURLAppendDataPart();
-
-                                    ;?;
-
-                                    lMessages.Add(new cCatenateAppendData(lFlags, lReceived, new cURLAppendDataPart()));
+                                    cURLAppendDataPart lURL = new cURLAppendDataPart(lSelectedMailboxHandle, lWholeMessage.MessageHandle.MessageCache.MailboxHandle, lWholeMessage.MessageHandle.UID));
+                                    lMessages.Add(new cCatenateAppendData(lFlags, lReceived, lURL));
                                     lURLCount++;
                                 }
                                 else
                                 {
-                                    cMessageStream lStream = new cMessageStream(lWholeMessage.Message, cSection.All, eDecodingRequired.none, mAppendMessageStreamTargetBufferSize);
-                                    lMessages.Add(new cStreamAppendData(lStream, lWholeMessage.Message.Size, lFlags, lReceived));
-                                    lByteCount += lWholeMessage.Message.Size;
+                                    lMessages.Add(new cMessageAppendData(lWholeMessage.me));
+                                    lByteCount += (int)lWholeMessage.MessageHandle.Size.Value;
                                 }
 
                                 break;

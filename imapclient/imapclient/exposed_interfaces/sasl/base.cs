@@ -83,9 +83,13 @@ namespace work.bacome.imapclient
         /// </remarks>
         public abstract cSASLSecurity GetSecurity();
 
-        // implement disposable in a way that the sub classes' dispose can be done
         /**<summary></summary>*/
-        public void Dispose() => Dispose(true);
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         /**<summary></summary>*/
         protected virtual void Dispose(bool pDisposing) { }
     }
@@ -124,7 +128,12 @@ namespace work.bacome.imapclient
 
         // implement disposable in a way that the sub classes' dispose can be done
         /**<summary></summary>*/
-        public void Dispose() => Dispose(true);
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         /**<summary></summary>*/
         protected virtual void Dispose(bool pDisposing) { }
     }

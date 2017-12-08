@@ -147,7 +147,7 @@ namespace work.bacome.imapclient
         private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mAppendConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
-        private int mAppendMessageStreamTargetBufferSize = 1000000; ?; // todo
+        private int mAppendTargetBufferSize = cMessageDataStream.DefaultTargetBufferSize; ;?;
         private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
@@ -722,6 +722,20 @@ namespace work.bacome.imapclient
             }
         }
 
+        public int AppendTargetBufferSize
+        {
+            get => mAppendTargetBufferSize;
+
+            set
+            {
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendTargetBufferSize), value);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                if (value < 1) throw new ArgumentOutOfRangeException();
+                mAppendTargetBufferSize = value;
+                mSession?.SetAppendTargetBufferSize(value, lContext);
+            }
+        }
+
         /// <summary>
         /// Gets and sets the default append-stream-read batch-size configuration. You might want to limit this to increase the speed with which you can terminate the instance.
         /// </summary>
@@ -738,6 +752,7 @@ namespace work.bacome.imapclient
                 var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendStreamReadConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 mAppendStreamReadConfiguration = value ?? throw new ArgumentNullException();
+                mSession?.SetAppendStreamReadConfiguration(value, lContext);
             }
         }
 

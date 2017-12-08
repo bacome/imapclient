@@ -3,20 +3,26 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public sealed class cMessageStream : Stream
+    public class cMessageDataStream : Stream
     {
+        internal const int DefaultTargetBufferSize = 100000;
+
         private bool mDisposed = false;
 
-        private readonly cMessage mMessage;
-        private readonly cMailbox mMailbox;
-        private readonly cUID mUID;
+        public readonly cIMAPClient Client;
+        public readonly iMessageHandle MessageHandle;
+        public readonly iMailboxHandle MailboxHandle;
+        public readonly cUID UID;
+        public readonly cSection Section;
+        public readonly eDecodingRequired Decoding;
+        public readonly int TargetBufferSize;
 
-        private readonly cSection mSection;
-        private readonly eDecodingRequired mDecoding;
-        private readonly int mTargetBufferSize;
+        // for streams that may be appended by streaming OR catenated: the length is required in the streaming case as the library does not read to a temporary store
+        public readonly int? StreamLength;
 
         private int mReadTimeout = Timeout.Infinite;
 
@@ -25,39 +31,134 @@ namespace work.bacome.imapclient
         private Task mFetchTask = null;
         private cBuffer mBuffer = null;
 
-        public cMessageStream(cMessage pMessage, cSection pSection, eDecodingRequired pDecoding, int pTargetBufferSize = 1000000)
+        public cMessageDataStream(cMessage pMessage, int pTargetBufferSize = DefaultTargetBufferSize)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
 
-            if (!ReferenceEquals(pMessage.MessageHandle.MessageCache.MailboxHandle, pMessage.Client.SelectedMailboxDetails.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+            Client = pMessage.Client;
+            MessageHandle = pMessage.MessageHandle;
+
+            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+
+            MailboxHandle = null;
+            UID = null;
+
+            Section = cSection.All;
+            Decoding = eDecodingRequired.none;
+
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
+            TargetBufferSize = pTargetBufferSize;
 
-            mMessage = pMessage;
-            mMailbox = null;
-            mUID = null;
-
-            mSection = pSection;
-            mDecoding = pDecoding;
-            mTargetBufferSize = pTargetBufferSize;
+            StreamLength = pMessage.Size;
         }
 
-        public cMessageStream(cMailbox pMailbox, cUID pUID, cSection pSection, eDecodingRequired pDecoding, int pTargetBufferSize = 1000000)
+        public cMessageDataStream(cAttachment pAttachment, bool pDecoded = true, int pTargetBufferSize = DefaultTargetBufferSize)
+        {
+            if (pAttachment == null) throw new ArgumentNullException(nameof(pAttachment));
+
+            Client = pAttachment.Client;
+            MessageHandle = pAttachment.MessageHandle;
+
+            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pAttachment), kArgumentOutOfRangeExceptionMessage.AttachmentMustBeInTheSelectedMailbox);
+
+            MailboxHandle = null;
+            UID = null;
+
+            Section = pAttachment.Part.Section;
+
+            if (pDecoded) Decoding = pAttachment.Part.DecodingRequired;
+            else Decoding = eDecodingRequired.none;
+
+            if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
+            TargetBufferSize = pTargetBufferSize;
+
+            if (Decoding == eDecodingRequired.none) StreamLength = (int)pAttachment.Part.SizeInBytes;
+            else StreamLength = null;
+        }
+
+        public cMessageDataStream(cMessage pMessage, cSinglePartBody pPart, bool pDecoded = true, int pTargetBufferSize = DefaultTargetBufferSize)
+        {
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+
+            Client = pMessage.Client;
+            MessageHandle = pMessage.MessageHandle;
+
+            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+
+            MailboxHandle = null;
+            UID = null;
+
+            if (pPart == null) throw new ArgumentNullException(nameof(pPart));
+
+            Section = pPart.Section;
+
+            if (pDecoded) Decoding = pPart.DecodingRequired;
+            else Decoding = eDecodingRequired.none;
+
+            if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
+            TargetBufferSize = pTargetBufferSize;
+
+            if (Decoding == eDecodingRequired.none) StreamLength = (int)pPart.SizeInBytes;
+            else StreamLength = null;
+        }
+
+        public cMessageDataStream(cMessage pMessage, cSection pSection, eDecodingRequired pDecoding, int pTargetBufferSize = DefaultTargetBufferSize)
+        {
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+
+            Client = pMessage.Client;
+            MessageHandle = pMessage.MessageHandle;
+
+            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+
+            MailboxHandle = null;
+            UID = null;
+
+            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
+            Decoding = pDecoding;
+
+            if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
+            TargetBufferSize = pTargetBufferSize;
+
+            StreamLength = null;
+        }
+
+        public cMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, eDecodingRequired pDecoding, int pTargetBufferSize = DefaultTargetBufferSize)
         {
             if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
-            if (pUID == null) throw new ArgumentNullException(nameof(pUID));
-            if (pSection == null) throw new ArgumentNullException(nameof(pSection));
+
+            Client = pMailbox.Client;
+            MailboxHandle = pMailbox.MailboxHandle;
+
+            if (!ReferenceEquals(MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
+
+            MessageHandle = null;
 
             if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
 
-            mMessage = null;
-            mMailbox = pMailbox;
-            mUID = pUID;
+            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
+            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
+            Decoding = pDecoding;
 
-            mSection = pSection;
-            mDecoding = pDecoding;
-            mTargetBufferSize = pTargetBufferSize;
+            if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
+            TargetBufferSize = pTargetBufferSize;
+
+            StreamLength = null;
+        }
+
+        internal cMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart, int pTargetBufferSize)
+        {
+            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
+            MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
+            MailboxHandle = null;
+            UID = null;
+            if (pPart == null) Section = cSection.All;
+            else Section = pPart.Section;
+            Decoding = eDecodingRequired.none;
+            if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
+            TargetBufferSize = pTargetBufferSize;
+            StreamLength = null;
         }
 
         public int CurrentBufferSize => mBuffer?.CurrentSize ?? 0;
@@ -97,7 +198,7 @@ namespace work.bacome.imapclient
             if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
             if (pCount < 0) throw new ArgumentOutOfRangeException(nameof(pCount));
             if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
-            if (mDisposed) throw new ObjectDisposedException(nameof(cMessageStream));
+            if (mDisposed) throw new ObjectDisposedException(nameof(cMessageDataStream));
 
             if (pCount == 0) return 0;
 
@@ -111,15 +212,15 @@ namespace work.bacome.imapclient
         private async Task ZFetch()
         {
             mCancellationTokenSource = new CancellationTokenSource();
-            mBuffer = new cBuffer(mTargetBufferSize, mCancellationTokenSource.Token);
+            mBuffer = new cBuffer(TargetBufferSize, mCancellationTokenSource.Token);
             cBodyFetchConfiguration lConfiguration = new cBodyFetchConfiguration(mCancellationTokenSource.Token, null);
 
             Exception lException = null;
 
             try
             {
-                if (mMessage == null) await mMailbox.UIDFetchAsync(mUID, mSection, mDecoding, mBuffer, lConfiguration).ConfigureAwait(false);
-                else await mMessage.FetchAsync(mSection, mDecoding, mBuffer, lConfiguration).ConfigureAwait(false);
+                if (MessageHandle == null) await Client.UIDFetchAsync(MailboxHandle, UID, Section, Decoding, mBuffer, lConfiguration).ConfigureAwait(false);
+                else await Client.FetchAsync(MessageHandle, Section, Decoding, mBuffer, lConfiguration).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -129,34 +230,37 @@ namespace work.bacome.imapclient
             mBuffer.Complete(lException);
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool pDisposing)
         {
             if (mDisposed) return;
 
-            if (mCancellationTokenSource != null)
+            if (pDisposing)
             {
-                try { mCancellationTokenSource.Cancel(); }
-                catch { }
+                if (mCancellationTokenSource != null)
+                {
+                    try { mCancellationTokenSource.Cancel(); }
+                    catch { }
+                }
+
+                if (mFetchTask != null)
+                {
+                    try { mFetchTask.Wait(); }
+                    catch { }
+                    mFetchTask.Dispose();
+                }
+
+                if (mCancellationTokenSource != null)
+                {
+                    try { mCancellationTokenSource.Dispose(); }
+                    catch { }
+                }
+
+                if (mBuffer != null) mBuffer.Dispose();
             }
-
-            if (mFetchTask != null)
-            {
-                try { mFetchTask.Wait(); }
-                catch { }
-                mFetchTask.Dispose();
-            }
-
-            if (mCancellationTokenSource != null)
-            {
-                try { mCancellationTokenSource.Dispose(); }
-                catch { }
-            }
-
-            if (mBuffer != null) mBuffer.Dispose();
-
-            base.Dispose();
 
             mDisposed = true;
+
+            base.Dispose(pDisposing);
         }
 
         private sealed class cBuffer : Stream
@@ -211,7 +315,7 @@ namespace work.bacome.imapclient
                 if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
                 if (pCount < 0) throw new ArgumentOutOfRangeException(nameof(pCount));
                 if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
-                if (mDisposed) throw new ObjectDisposedException(nameof(cMessageStream));
+                if (mDisposed) throw new ObjectDisposedException(nameof(cMessageDataStream));
 
                 if (pCount == 0) return 0;
 
@@ -256,7 +360,7 @@ namespace work.bacome.imapclient
                     }
 
                     try { if (!mReadSemaphore.Wait(pTimeout, mCancellationToken)) throw new TimeoutException(); }
-                    catch (OperationCanceledException) { throw new IOException($"{nameof(cMessageStream)} closed"); }
+                    catch (OperationCanceledException) { throw new IOException($"{nameof(cMessageDataStream)} closed"); }
                 }
             }
 
@@ -266,7 +370,7 @@ namespace work.bacome.imapclient
                 if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
                 if (pCount < 0) throw new ArgumentOutOfRangeException(nameof(pCount));
                 if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
-                if (mDisposed) throw new ObjectDisposedException(nameof(cMessageStream));
+                if (mDisposed) throw new ObjectDisposedException(nameof(cMessageDataStream));
                 if (mComplete) throw new InvalidOperationException();
 
                 if (pCount == 0) return;
@@ -285,7 +389,7 @@ namespace work.bacome.imapclient
                 while (mCurrentSize > mTargetSize)
                 {
                     try { mWriteSemaphore.Wait(mCancellationToken); }
-                    catch (OperationCanceledException) { throw new IOException($"{nameof(cMessageStream)} closed"); }
+                    catch (OperationCanceledException) { throw new IOException($"{nameof(cMessageDataStream)} closed"); }
                 }
             }
 
@@ -298,25 +402,28 @@ namespace work.bacome.imapclient
                 if (mReadSemaphore.CurrentCount == 0) mReadSemaphore.Release();
             }
 
-            public new void Dispose()
+            protected override void Dispose(bool pDisposing)
             {
                 if (mDisposed) return;
 
-                if (mReadSemaphore != null)
+                if (pDisposing)
                 {
-                    try { mReadSemaphore.Dispose(); }
-                    catch { }
-                }
+                    if (mReadSemaphore != null)
+                    {
+                        try { mReadSemaphore.Dispose(); }
+                        catch { }
+                    }
 
-                if (mWriteSemaphore != null)
-                {
-                    try { mWriteSemaphore.Dispose(); }
-                    catch { }
+                    if (mWriteSemaphore != null)
+                    {
+                        try { mWriteSemaphore.Dispose(); }
+                        catch { }
+                    }
                 }
-
-                base.Dispose();
 
                 mDisposed = true;
+
+                base.Dispose(pDisposing);
             }
         }
     }

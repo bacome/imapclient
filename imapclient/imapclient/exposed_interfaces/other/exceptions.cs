@@ -31,6 +31,7 @@ namespace work.bacome.imapclient
 
     internal static class kArgumentOutOfRangeExceptionMessage
     {
+        public const string AttachmentMustBeInTheSelectedMailbox = "attachment must be in the selected mailbox";
         public const string MessageMustBeInTheSelectedMailbox = "message must be in the selected mailbox";
         public const string MailboxMustBeSelected = "mailbox must be selected";
 

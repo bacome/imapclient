@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private sealed class cCommandDetailsBuilder : IDisposable
+            private class cCommandDetailsBuilder : IDisposable
             {
                 // search
                 private static readonly cCommandPart kCommandPartCharsetSpace = new cTextCommandPart("CHARSET ");
@@ -98,6 +98,7 @@ namespace work.bacome.imapclient
                 private static readonly cCommandPart kCommandPartFlagsSpace = new cTextCommandPart("FLAGS ");
 
                 // members
+                private bool mDisposed = false;
                 public readonly cCommandTag Tag = new cCommandTag();
                 private readonly cCommandPartsBuilder mParts = new cCommandPartsBuilder();
                 private readonly cCommandDisposables mDisposables = new cCommandDisposables();
@@ -608,6 +609,12 @@ namespace work.bacome.imapclient
                     mParts.EndList();
                 }
 
+                public void Add(IDisposable pDisposable)
+                {
+                    if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
+                    mDisposables.Add(pDisposable);
+                }
+
                 public void Add(cExclusiveAccess.cToken pToken)
                 {
                     if (mEmitted) throw new InvalidOperationException(kInvalidOperationExceptionMessage.AlreadyEmitted);
@@ -649,8 +656,22 @@ namespace work.bacome.imapclient
 
                 public void Dispose()
                 {
-                    if (mEmitted) return;
-                    mDisposables.Dispose();
+                    Dispose(true);
+                    GC.SuppressFinalize(this);
+                }
+
+                protected virtual void Dispose(bool pDisposing)
+                {
+                    if (mDisposed) return;
+
+                    if (pDisposing)
+                    {
+                        if (mEmitted) return;
+                        mDisposables.Dispose();
+
+                    }
+
+                    mDisposed = true;
                 }
 
                 public override string ToString() => $"{nameof(cCommandDetailsBuilder)}({Tag},{mParts},{mUIDValidity},{mEmitted})";
@@ -833,6 +854,24 @@ namespace work.bacome.imapclient
 
                         return lBuilder.ToString();
                     }
+                }
+            }
+
+            private class cAppendCommandDetailsBuilder : cCommandDetailsBuilder
+            {
+                public readonly bool UTF8;
+                public readonly bool Binary;
+                public readonly int TargetBufferSize;
+                public readonly cBatchSizerConfiguration StreamReadConfiguration;
+                public readonly Action<int> Increment;
+
+                public cAppendCommandDetailsBuilder(bool pUTF8, bool pBinary, int pTargetBufferSize, cBatchSizerConfiguration pStreamReadConfiguration, Action<int> pIncrement)
+                {
+                    UTF8 = pUTF8;
+                    Binary = pBinary;
+                    TargetBufferSize = pTargetBufferSize;
+                    StreamReadConfiguration = pStreamReadConfiguration ?? throw new ArgumentNullException(nameof(pStreamReadConfiguration));
+                    Increment = pIncrement;
                 }
             }
         }

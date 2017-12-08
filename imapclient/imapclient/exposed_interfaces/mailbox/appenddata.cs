@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
@@ -21,38 +22,46 @@ namespace work.bacome.imapclient
 
     public class cMessageAppendData : cAppendData
     {
-        public readonly cMessage Message;
+        public readonly cIMAPClient Client;
+        public readonly iMessageHandle MessageHandle;
         public readonly bool AllowCatenate;
 
         public cMessageAppendData(cMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, bool pAllowCatenate = true) : base(pFlags, pReceived)
         {
-            Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+
+            Client = pMessage.Client;
+            MessageHandle = pMessage.MessageHandle;
 
             // check that the source message is in a selected mailbox (in case we have to stream it)
             //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!ReferenceEquals(pMessage.MessageHandle.MessageCache.MailboxHandle, pMessage.Client.SelectedMailboxDetails.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
 
             AllowCatenate = pAllowCatenate;
         }
 
-        public override string ToString() => $"{nameof(cMessageAppendData)}({Flags},{Received},{Message},{AllowCatenate})";
+        public override string ToString() => $"{nameof(cMessageAppendData)}({Flags},{Received},{MessageHandle},{AllowCatenate})";
 
         public static implicit operator cMessageAppendData(cMessage pMessage) => new cMessageAppendData(pMessage);
     }
 
     public class cMessagePartAppendData : cAppendData
     {
-        public readonly cMessage Message;
+        public readonly cIMAPClient Client;
+        public readonly iMessageHandle MessageHandle;
         public readonly cMessageBodyPart Part;
         public readonly bool AllowCatenate;
 
         public cMessagePartAppendData(cMessage pMessage, cMessageBodyPart pPart, cStorableFlags pFlags = null, DateTime? pReceived = null, bool pAllowCatenate = true) : base(pFlags, pReceived)
         {
-            Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+
+            Client = pMessage.Client;
+            MessageHandle = pMessage.MessageHandle;
 
             // check that the source message is in a selected mailbox (in case we have to stream it)
             //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!ReferenceEquals(pMessage.MessageHandle.MessageCache.MailboxHandle, pMessage.Client.SelectedMailboxDetails.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
 
             Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
 
@@ -62,32 +71,21 @@ namespace work.bacome.imapclient
             AllowCatenate = pAllowCatenate;
         }
 
-        public override string ToString() => $"{nameof(cMessagePartAppendData)}({Flags},{Received},{Message},{Part},{AllowCatenate})";
-    }
-
-    public class mMessageSectionAppendData : cAppendData
-    {
-        // only useful if the caller knows that this section is a nicely formed message
-        public readonly cMailbox Mailbox;
-        public readonly cUID UID;
-        public readonly cSection Section;
-        public readonly bool AllowCatenate;
-
-        public mMessageSectionAppendData() { }
+        public override string ToString() => $"{nameof(cMessagePartAppendData)}({Flags},{Received},{MessageHandle},{Part},{AllowCatenate})";
     }
 
     public class cMailMessageAppendData : cAppendData
-    {
+    { 
         public readonly MailMessage Message;
-        public readonly cBatchSizerConfiguration Configuration; // optional
+        public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
         public cMailMessageAppendData(MailMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pConfiguration = null) : base(pFlags, pReceived)
         {
             Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
-            Configuration = pConfiguration;
+            ReadConfiguration = pConfiguration;
         }
 
-        public override string ToString() => $"{nameof(cMailMessageAppendData)}({Flags},{Received},{Message},{Configuration})";
+        public override string ToString() => $"{nameof(cMailMessageAppendData)}({Flags},{Received},{Message},{ReadConfiguration})";
 
         public static implicit operator cMailMessageAppendData(MailMessage pMessage) => new cMailMessageAppendData(pMessage);
     }
@@ -111,8 +109,9 @@ namespace work.bacome.imapclient
     {
         public readonly string Path;
         public readonly int Length;
+        public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
-        public cFileAppendData(string pPath, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
+        public cFileAppendData(string pPath, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pReadConfiguration = null) : base(pFlags, pReceived)
         {
             if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
 
@@ -121,59 +120,38 @@ namespace work.bacome.imapclient
                 if (lStream.Length == 0) throw new ArgumentOutOfRangeException(nameof(pPath));
                 Length = (int)lStream.Length;
             }
+
+            ReadConfiguration = pReadConfiguration;
         }
 
-        public override string ToString() => $"{nameof(cStringAppendData)}({Flags},{Received},{Path},{Length})";
-    }
-
-    public class cUIDAppendData : cAppendData
-    {
-        public readonly cMailbox Mailbox;
-        public readonly cUID UID;
-        public readonly cSection Section;
-        public readonly int Length;
-
-        public cUIDAppendData(cMailbox pMailbox, cUID pUID, cSection pSection, int pLength, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
-        {
-            if (Mailbox == null) throw new ArgumentNullException(nameof(pMailbox));
-
-            if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
-
-            Mailbox = pMailbox;
-            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
-            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-
-            if (pLength <= 0) throw new ArgumentOutOfRangeException(nameof(pLength));
-        }
-
-        public override string ToString() => $"{nameof(cUIDAppendData)}({Flags},{Received},{Mailbox},{UID},{Section},{Length})";
+        public override string ToString() => $"{nameof(cFileAppendData)}({Flags},{Received},{Path},{Length},{ReadConfiguration})";
     }
 
     public class cStreamAppendData : cAppendData
     {
         public readonly Stream Stream;
         public readonly int Length;
-        public readonly cBatchSizerConfiguration Configuration; // optional
+        public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
-        public cStreamAppendData(Stream pStream, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pConfiguration = null) : base(pFlags, pReceived)
+        public cStreamAppendData(Stream pStream, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pReadConfiguration = null) : base(pFlags, pReceived)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead || !pStream.CanSeek || pStream.Length == 0) throw new ArgumentOutOfRangeException(nameof(pStream));
             pStream.Position = 0;
             Length = (int)(pStream.Length);
-            Configuration = pConfiguration;
+            ReadConfiguration = pReadConfiguration;
         }
 
-        public cStreamAppendData(Stream pStream, int pLength, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pConfiguration = null) : base(pFlags, pReceived)
+        public cStreamAppendData(Stream pStream, int pLength, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pReadConfiguration = null) : base(pFlags, pReceived)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
             if (pLength <= 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             Length = pLength;
-            Configuration = pConfiguration;
+            ReadConfiguration = pReadConfiguration;
         }
 
-        public override string ToString() => $"{nameof(cStreamAppendData)}({Flags},{Received},{Length},{Configuration})";
+        public override string ToString() => $"{nameof(cStreamAppendData)}({Flags},{Received},{Length},{ReadConfiguration})";
 
         public static implicit operator cStreamAppendData(Stream pStream) => new cStreamAppendData(pStream);
     }
@@ -189,7 +167,6 @@ namespace work.bacome.imapclient
             if (Parts.Count == 0) throw new ArgumentOutOfRangeException(nameof(pParts));
         }
 
-        /// <inheritdoc />
         public override string ToString()
         {
             cListBuilder lBuilder = new cListBuilder(nameof(cMultiPartAppendData));
@@ -209,38 +186,46 @@ namespace work.bacome.imapclient
 
     public class cMessageAppendDataPart : cAppendDataPart
     {
-        public readonly cMessage Message;
+        public readonly cIMAPClient Client;
+        public readonly iMessageHandle MessageHandle;
         public readonly bool AllowCatenate;
 
         public cMessageAppendDataPart(cMessage pMessage, bool pAllowCatenate = true)
         {
-            Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+
+            Client = pMessage.Client;
+            MessageHandle = pMessage.MessageHandle;
 
             // check that the source message is in a selected mailbox (in case we have to stream it)
             //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!ReferenceEquals(pMessage.MessageHandle.MessageCache.MailboxHandle, pMessage.Client.SelectedMailboxDetails.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
 
             AllowCatenate = pAllowCatenate;
         }
 
-        public override string ToString() => $"{nameof(cMessageAppendDataPart)}({Message},{AllowCatenate})";
+        public override string ToString() => $"{nameof(cMessageAppendDataPart)}({MessageHandle},{AllowCatenate})";
 
         public static implicit operator cMessageAppendDataPart(cMessage pMessage) => new cMessageAppendDataPart(pMessage);
     }
 
     public class cMessagePartAppendDataPart : cAppendDataPart
     {
-        public readonly cMessage Message;
+        public readonly cIMAPClient Client;
+        public readonly iMessageHandle MessageHandle;
         public readonly cSinglePartBody Part;
         public readonly bool AllowCatenate;
 
         public cMessagePartAppendDataPart(cMessage pMessage, cSinglePartBody pPart, bool pAllowCatenate = true)
         {
-            Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+
+            Client = pMessage.Client;
+            MessageHandle = pMessage.MessageHandle;
 
             // check that the source message is in a selected mailbox (in case we have to stream it)
             //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!ReferenceEquals(pMessage.MessageHandle.MessageCache.MailboxHandle, pMessage.Client.SelectedMailboxDetails.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
 
             Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
 
@@ -250,26 +235,65 @@ namespace work.bacome.imapclient
             AllowCatenate = pAllowCatenate;
         }
 
-        public override string ToString() => $"{nameof(cMessagePartAppendDataPart)}({Message},{Part},{AllowCatenate})";
+        public cMessagePartAppendDataPart(cAttachment pAttachment, bool pAllowCatenate = true)
+        {
+            if (pAttachment == null) throw new ArgumentNullException(nameof(pAttachment));
+
+            Client = pAttachment.Client;
+            MessageHandle = pAttachment.MessageHandle;
+            Part = pAttachment.Part;
+            AllowCatenate = pAllowCatenate;
+        }
+
+        public override string ToString() => $"{nameof(cMessagePartAppendDataPart)}({MessageHandle},{Part},{AllowCatenate})";
+
+        public static implicit operator cMessagePartAppendDataPart(cAttachment pAttachment) => new cMessagePartAppendDataPart(pAttachment);
     }
 
-    public class cMessageSectionAppendDataPart : cAppendDataPart
+    public class cUIDSectionAppendDataPart : cAppendDataPart
     {
-        ;?; 
+        // only useful if the caller knows that the section is a nicely formed message
+        public readonly cIMAPClient Client;
+        public readonly iMailboxHandle MailboxHandle;
+        public readonly cUID UID;
+        public readonly cSection Section;
+        public readonly int Length;
+        public readonly bool AllowCatenate;
+
+        public cUIDSectionAppendDataPart(cMailbox pMailbox, cUID pUID, cSection pSection, int pLength, bool pAllowCatenate = true)
+        {
+            if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
+
+            Client = pMailbox.Client;
+            MailboxHandle = pMailbox.MailboxHandle;
+
+            if (!ReferenceEquals(MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
+
+            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
+            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
+
+            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
+
+            Length = pLength;
+
+            AllowCatenate = pAllowCatenate;
+        }
+
+        public override string ToString() => $"{nameof(cUIDSectionAppendDataPart)}({MailboxHandle},{UID},{Section},{Length},{AllowCatenate})";
     }
 
     public class cMailMessageAppendDataPart : cAppendDataPart
     {
         public readonly MailMessage Message;
-        public readonly cBatchSizerConfiguration Configuration; // optional
+        public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
-        public cMailMessageAppendDataPart(MailMessage pMessage, cBatchSizerConfiguration pConfiguration = null)
+        public cMailMessageAppendDataPart(MailMessage pMessage, cBatchSizerConfiguration pReadConfiguration = null)
         {
             Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
-            Configuration = pConfiguration;
+            ReadConfiguration = pReadConfiguration;
         }
 
-        public override string ToString() => $"{nameof(cMailMessageAppendDataPart)}({Message},{Configuration})";
+        public override string ToString() => $"{nameof(cMailMessageAppendDataPart)}({Message},{ReadConfiguration})";
 
         public static implicit operator cMailMessageAppendDataPart(MailMessage pMessage) => new cMailMessageAppendDataPart(pMessage);
     }
@@ -292,8 +316,9 @@ namespace work.bacome.imapclient
     {
         public readonly string Path;
         public readonly int Length;
+        public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
-        public cFileAppendDataPart(string pPath)
+        public cFileAppendDataPart(string pPath, cBatchSizerConfiguration pReadConfiguration = null)
         {
             if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
 
@@ -301,59 +326,38 @@ namespace work.bacome.imapclient
             {
                 Length = (int)lStream.Length;
             }
+
+            ReadConfiguration = pReadConfiguration;
         }
 
-        public override string ToString() => $"{nameof(cStringAppendData)}({Path},{Length})";
-    }
-
-    public class cUIDAppendDataPart : cAppendDataPart
-    {
-        public readonly cMailbox Mailbox;
-        public readonly cUID UID;
-        public readonly cSection Section;
-        public readonly int Length;
-
-        public cUIDAppendDataPart(cMailbox pMailbox, cUID pUID, cSection pSection, int pLength)
-        {
-            if (Mailbox == null) throw new ArgumentNullException(nameof(pMailbox));
-
-            if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
-
-            Mailbox = pMailbox;
-            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
-            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
-
-            if (pLength <= 0) throw new ArgumentOutOfRangeException(nameof(pLength));
-        }
-
-        public override string ToString() => $"{nameof(cUIDAppendDataPart)}({Mailbox},{UID},{Section},{Length})";
+        public override string ToString() => $"{nameof(cFileAppendDataPart)}({Path},{Length},{ReadConfiguration})";
     }
 
     public class cStreamAppendDataPart : cAppendDataPart
     {
         public readonly Stream Stream;
         public readonly int Length;
-        public readonly cBatchSizerConfiguration Configuration; // optional
+        public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
-        public cStreamAppendDataPart(Stream pStream, cBatchSizerConfiguration pConfiguration = null)
+        public cStreamAppendDataPart(Stream pStream, cBatchSizerConfiguration pReadConfiguration = null)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
             pStream.Position = 0;
             Length = (int)pStream.Length;
-            Configuration = pConfiguration;
+            ReadConfiguration = pReadConfiguration;
         }
 
-        public cStreamAppendDataPart(Stream pStream, int pLength, cBatchSizerConfiguration pConfiguration = null)
+        public cStreamAppendDataPart(Stream pStream, int pLength, cBatchSizerConfiguration pReadConfiguration = null)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
             if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             Length = pLength;
-            Configuration = pConfiguration;
+            ReadConfiguration = pReadConfiguration;
         }
 
-        public override string ToString() => $"{nameof(cStreamAppendDataPart)}({Length},{Configuration})";
+        public override string ToString() => $"{nameof(cStreamAppendDataPart)}({Length},{ReadConfiguration})";
 
         public static implicit operator cStreamAppendDataPart(Stream pStream) => new cStreamAppendDataPart(pStream);
     }

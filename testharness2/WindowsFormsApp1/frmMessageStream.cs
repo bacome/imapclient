@@ -23,7 +23,7 @@ namespace testharness2
         private readonly int mTargetBufferSize;
         private readonly string mPath;
 
-        private cMessageStream mMessageStream = null;
+        private cMessageDataStream mMessageStream = null;
         private FileStream mFileStream = null;
         private bool mEOF = false;
 
@@ -62,8 +62,8 @@ namespace testharness2
         {
             try
             {
-                if (mMessage == null) mMessageStream = new cMessageStream(mMailbox, mUID, mSection, mDecoding, mTargetBufferSize);
-                else mMessageStream = new cMessageStream(mMessage, mSection, mDecoding, mTargetBufferSize);
+                if (mMessage == null) mMessageStream = new cMessageDataStream(mMailbox, mUID, mSection, mDecoding, mTargetBufferSize);
+                else mMessageStream = new cMessageDataStream(mMessage, mSection, mDecoding, mTargetBufferSize);
                 mFileStream = new FileStream(mPath, FileMode.Create);
             }
             catch (Exception ex)
