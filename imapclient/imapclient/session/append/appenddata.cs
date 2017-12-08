@@ -71,6 +71,7 @@ namespace work.bacome.imapclient
                 public cSessionBytesAppendData(cStorableFlags pFlags, DateTime? pReceived, cBytes pBytes) : base(pFlags, pReceived)
                 {
                     mBytes = pBytes ?? throw new ArgumentNullException(nameof(pBytes));
+                    if (mBytes.Count == 0) throw new ArgumentOutOfRangeException(nameof(pBytes));
                 }
 
                 public override int Length => mBytes.Count;
@@ -152,7 +153,6 @@ namespace work.bacome.imapclient
                 public override string ToString() => $"{nameof(cSessionStreamAppendData)}({Flags},{Received},{mLength},{mReadConfiguration})";
             }
 
-            // this is a non-catenated collection of parts; it will require a new commandparttype ...
             private class cSessionMultiPartAppendData : cSessionAppendData
             {
                 private readonly ReadOnlyCollection<cSessionAppendDataPart> mParts;
@@ -160,11 +160,20 @@ namespace work.bacome.imapclient
 
                 public cSessionMultiPartAppendData(cStorableFlags pFlags, DateTime? pReceived, IEnumerable<cSessionAppendDataPart> pParts) : base(pFlags, pReceived)
                 {
+                    if (pParts == null) throw new ArgumentNullException(nameof(pParts));
+
+                    List<cSessionAppendDataPart> lParts = new List<cSessionAppendDataPart>();
+
                     foreach (var lPart in pParts)
                     {
                         if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+                        lParts.Add(lPart);
                         mLength += lPart.Length;
                     }
+
+                    if (mLength == 0) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.);
+
+                    mParts = lParts.AsReadOnly();
                 }
             }
 
@@ -177,6 +186,10 @@ namespace work.bacome.imapclient
 
                 public cSessionCatenateAppendData(cStorableFlags pFlags, DateTime? pReceived, IEnumerable<cSessionAppendDataPart> pParts) : base(pFlags, pReceived)
                 {
+                    if (pParts == null) throw new ArgumentNullException(nameof(pParts));
+
+                    ;?; // copy the code above
+
                     foreach (var lPart in pParts)
                     {
                         if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
@@ -188,7 +201,7 @@ namespace work.bacome.imapclient
             private abstract class cSessionAppendDataPart
             {
                 public abstract int Length { get; }
-                ;?; // apis (2) to return either a full commandpart OR a commandpartpart
+                public abstract cSinglePartLiteralCommandPart CommandPart { get; }
             }
 
             private class cSessionMessageAppendDataPart : cSessionAppendDataPart

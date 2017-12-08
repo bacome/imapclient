@@ -104,7 +104,7 @@ namespace work.bacome.imapclient
 
                     do
                     {
-                        if (mCurrentCommand.CurrentPart() is cTextCommandPart lText) await ZBackgroundSendAppendDataAsync(lText, lText.Bytes, lText.Bytes.Count, lContext).ConfigureAwait(false);
+                        if (mCurrentCommand.CurrentPart() is cTextCommandPart lText) await ZBackgroundSendAppendDataAsync(lText.Secret, lText.Bytes, lText.Bytes.Count, null, lContext).ConfigureAwait(false);
                         else throw new cInternalErrorException();
                     }
                     while (mCurrentCommand.MoveNext());
@@ -120,45 +120,41 @@ namespace work.bacome.imapclient
                     {
                         case cTextCommandPart lText:
 
-                            await ZBackgroundSendAppendDataAsync(lText, lText.Bytes, lText.Bytes.Count, lContext).ConfigureAwait(false);
+                            await ZBackgroundSendAppendDataAsync(lText.Secret, lText.Bytes, lText.Bytes.Count, null, lContext).ConfigureAwait(false);
                             break;
 
                         case cLiteralCommandPart lLiteral:
 
-                            await ZBackgroundSendAppendDataAsync(lLiteral, lLiteral.Bytes, lLiteral.Bytes.Count, lContext).ConfigureAwait(false);
+                            await ZBackgroundSendAppendDataAsync(lLiteral.Secret, lLiteral.Bytes, lLiteral.Bytes.Count, lLiteral.Increment, lContext).ConfigureAwait(false);
                             break;
 
                         case cStreamCommandPart lStream:
 
-                            int lBytesRemaining = lStream.Length;
+                            await ZBackgroundSendAppendStreamDataAsync(lStream, lContext).ConfigureAwait(false);
+                            break;
 
-                            if (lBytesRemaining > 0)
+                        case cMultiPartLiteralCommandPart lMultiPart:
+
+                            foreach (var lPart in lMultiPart.Parts)
                             {
-                                Stopwatch lStopwatch = new Stopwatch();
-                                cBatchSizer lReadSizer = new cBatchSizer(lStream.ReadConfiguration);
-                                byte[] lBuffer = new byte[lReadSizer.Current];
-
-                                while (lBytesRemaining > 0)
+                                switch (lPart)
                                 {
-                                    int lReadSize = Math.Min(lReadSizer.Current, lBytesRemaining);
+                                    case cLiteralCommandPart lLiteral:
 
-                                    if (lReadSize > lBuffer.Length) lBuffer = new byte[lReadSize];
+                                        await ZBackgroundSendAppendDataAsync(lLiteral.Secret, lLiteral.Bytes, lLiteral.Bytes.Count, lLiteral.Increment, lContext).ConfigureAwait(false);
+                                        break;
 
-                                    if (!lStream.Secret) lContext.TraceVerbose("reading {0} bytes from stream", lReadSize);
+                                    case cStreamCommandPart lStream:
 
-                                    lStopwatch.Restart();
-                                    int lCount = await lStream.Stream.ReadAsync(lBuffer, 0, lReadSize, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false);
-                                    lStopwatch.Stop();
+                                        await ZBackgroundSendAppendStreamDataAsync(lStream, lContext).ConfigureAwait(false);
+                                        break;
 
-                                    // store the time taken so the next read is a better size
-                                    lReadSizer.AddSample(lCount, lStopwatch.ElapsedMilliseconds);
+                                    default:
 
-                                    await ZBackgroundSendAppendDataAsync(lStream, lBuffer, lCount, lContext).ConfigureAwait(false);
-
-                                    lBytesRemaining -= lCount;
+                                        throw new cInternalErrorException();
                                 }
                             }
-                            
+
                             break;
 
                         default:
@@ -189,12 +185,47 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                private async Task ZBackgroundSendAppendDataAsync(cCommandPart pPart, IEnumerable<byte> pBytes, int pCount, cTrace.cContext pParentContext)
+                private async Task ZBackgroundSendAppendStreamDataAsync(cStreamCommandPart pStream, cTrace.cContext pParentContext)
+                {
+                    // don't log details of the data (i.e. the length) - it may be secret
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendStreamDataAsync));
+
+                    int lBytesRemaining = pStream.Length;
+
+                    if (lBytesRemaining > 0)
+                    {
+                        Stopwatch lStopwatch = new Stopwatch();
+                        cBatchSizer lReadSizer = new cBatchSizer(pStream.ReadConfiguration);
+                        byte[] lBuffer = new byte[lReadSizer.Current];
+
+                        while (lBytesRemaining > 0)
+                        {
+                            int lReadSize = Math.Min(lReadSizer.Current, lBytesRemaining);
+
+                            if (lReadSize > lBuffer.Length) lBuffer = new byte[lReadSize];
+
+                            if (!pStream.Secret) lContext.TraceVerbose("reading {0} bytes from stream", lReadSize);
+
+                            lStopwatch.Restart();
+                            int lCount = await pStream.Stream.ReadAsync(lBuffer, 0, lReadSize, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false);
+                            lStopwatch.Stop();
+
+                            // store the time taken so the next read is a better size
+                            lReadSizer.AddSample(lCount, lStopwatch.ElapsedMilliseconds);
+
+                            await ZBackgroundSendAppendDataAsync(pStream.Secret, lBuffer, lCount, pStream.Increment, lContext).ConfigureAwait(false);
+
+                            lBytesRemaining -= lCount;
+                        }
+                    }
+                }
+
+                private async Task ZBackgroundSendAppendDataAsync(bool pSecret, IEnumerable<byte> pBytes, int pCount, Action<int> pIncrement, cTrace.cContext pParentContext)
                 {
                     // don't log details of the data (i.e. the length) - it may be secret
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAsync));
 
-                    mBackgroundSendBuffer.BeginAddBytes(pPart.Secret, pPart.Increment);
+                    mBackgroundSendBuffer.BeginAddBytes(pSecret, pIncrement);
 
                     int lSize = mConnection.CurrentWriteSize;
 

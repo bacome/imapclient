@@ -82,6 +82,10 @@ namespace work.bacome.imapclient
         public cMailMessageAppendData(MailMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pConfiguration = null) : base(pFlags, pReceived)
         {
             Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
+
+            // todo: do a check that some basic info is there
+            throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MailMessageFormNotSupported);
+
             ReadConfiguration = pConfiguration;
         }
 
@@ -163,8 +167,21 @@ namespace work.bacome.imapclient
         public cMultiPartAppendData(IEnumerable<cAppendDataPart> pParts, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
         {
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
-            Parts = new List<cAppendDataPart>(from p in pParts where p != null select p).AsReadOnly();
-            if (Parts.Count == 0) throw new ArgumentOutOfRangeException(nameof(pParts));
+
+            List<cAppendDataPart> lParts = new List<cAppendDataPart>();
+
+            bool lHasContent = false;
+
+            foreach (var lPart in pParts)
+            {
+                if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+                lParts.Add(lPart);
+                if (lPart.HasContent) lHasContent = true;
+            }
+
+            if (!lHasContent) throw new ArgumentOutOfRangeException(nameof(pParts));
+
+            Parts = lParts.AsReadOnly();
         }
 
         public override string ToString()
@@ -182,6 +199,7 @@ namespace work.bacome.imapclient
     public abstract class cAppendDataPart
     {
         internal cAppendDataPart() { }
+        public abstract bool HasContent { get; }
     }
 
     public class cMessageAppendDataPart : cAppendDataPart
@@ -203,6 +221,8 @@ namespace work.bacome.imapclient
 
             AllowCatenate = pAllowCatenate;
         }
+
+        public override bool HasContent => true;
 
         public override string ToString() => $"{nameof(cMessageAppendDataPart)}({MessageHandle},{AllowCatenate})";
 
@@ -245,6 +265,8 @@ namespace work.bacome.imapclient
             AllowCatenate = pAllowCatenate;
         }
 
+        public override bool HasContent => Part.SizeInBytes > 0;
+
         public override string ToString() => $"{nameof(cMessagePartAppendDataPart)}({MessageHandle},{Part},{AllowCatenate})";
 
         public static implicit operator cMessagePartAppendDataPart(cAttachment pAttachment) => new cMessagePartAppendDataPart(pAttachment);
@@ -279,6 +301,8 @@ namespace work.bacome.imapclient
             AllowCatenate = pAllowCatenate;
         }
 
+        public override bool HasContent => Length > 0;
+
         public override string ToString() => $"{nameof(cUIDSectionAppendDataPart)}({MailboxHandle},{UID},{Section},{Length},{AllowCatenate})";
     }
 
@@ -290,8 +314,14 @@ namespace work.bacome.imapclient
         public cMailMessageAppendDataPart(MailMessage pMessage, cBatchSizerConfiguration pReadConfiguration = null)
         {
             Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
+
+            // todo: do a check that some basic info is there
+            throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MailMessageFormNotSupported);
+
             ReadConfiguration = pReadConfiguration;
         }
+
+        public override bool HasContent => true;
 
         public override string ToString() => $"{nameof(cMailMessageAppendDataPart)}({Message},{ReadConfiguration})";
 
@@ -306,6 +336,8 @@ namespace work.bacome.imapclient
         {
             String = pString ?? throw new ArgumentNullException(nameof(pString));
         }
+
+        public override bool HasContent => String.Length > 0;
 
         public override string ToString() => $"{nameof(cStringAppendDataPart)}({String})";
 
@@ -329,6 +361,8 @@ namespace work.bacome.imapclient
 
             ReadConfiguration = pReadConfiguration;
         }
+
+        public override bool HasContent => Length > 0;
 
         public override string ToString() => $"{nameof(cFileAppendDataPart)}({Path},{Length},{ReadConfiguration})";
     }
@@ -356,6 +390,8 @@ namespace work.bacome.imapclient
             Length = pLength;
             ReadConfiguration = pReadConfiguration;
         }
+
+        public override bool HasContent => Length > 0;
 
         public override string ToString() => $"{nameof(cStreamAppendDataPart)}({Length},{ReadConfiguration})";
 

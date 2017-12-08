@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using work.bacome.imapclient.support;
 
@@ -18,13 +19,11 @@ namespace work.bacome.imapclient
 
         public readonly bool Secret;
         public readonly bool Encoded;
-        public readonly Action<int> Increment;
     
-        public cCommandPart(bool pSecret, bool pEncoded, Action<int> pIncrement)
+        public cCommandPart(bool pSecret, bool pEncoded)
         {
             Secret = pSecret;
             Encoded = pEncoded;
-            Increment = pIncrement;
         }
     }
 
@@ -32,7 +31,7 @@ namespace work.bacome.imapclient
     {
         public readonly bool Binary;
 
-        public cLiteralCommandPartBase(bool pBinary, bool pSecret, bool pEncoded, Action<int> pIncrement) : base(pSecret, pEncoded, pIncrement)
+        public cLiteralCommandPartBase(bool pBinary, bool pSecret, bool pEncoded) : base(pSecret, pEncoded)
         {
             Binary = pBinary;
         }
@@ -40,7 +39,17 @@ namespace work.bacome.imapclient
         public abstract int Length { get; }
     }
 
-    internal class cStreamCommandPart : cLiteralCommandPartBase
+    internal abstract class cSinglePartLiteralCommandPart : cLiteralCommandPartBase
+    {
+        public readonly Action<int> Increment;
+
+        public cSinglePartLiteralCommandPart(bool pBinary, bool pSecret, bool pEncoded, Action<int> pIncrement) : base(pBinary, pSecret, pEncoded)
+        {
+            Increment = pIncrement;
+        }
+    }
+
+    internal class cStreamCommandPart : cSinglePartLiteralCommandPart
     {
         public readonly Stream Stream;
         private readonly int mLength;
@@ -66,7 +75,7 @@ namespace work.bacome.imapclient
         }
     }
 
-    internal class cLiteralCommandPart : cLiteralCommandPartBase
+    internal class cLiteralCommandPart : cSinglePartLiteralCommandPart
     {
         public readonly cBytes Bytes;
 
@@ -85,17 +94,49 @@ namespace work.bacome.imapclient
         }
     }
 
+    internal class cMultiPartLiteralCommandPart : cLiteralCommandPartBase
+    {
+        public readonly ReadOnlyCollection<cSinglePartLiteralCommandPart> Parts;
+        private readonly int mLength = 0;
+
+        public cMultiPartLiteralCommandPart(bool pBinary, IEnumerable<cSinglePartLiteralCommandPart> pParts) : base(pBinary, false, false)
+        {
+            if (pParts == null) throw new ArgumentNullException(nameof(pParts));
+
+            List<cSinglePartLiteralCommandPart> lParts = new List<cSinglePartLiteralCommandPart>();
+            
+            foreach (var lPart in pParts)
+            {
+                if (lPart == null) throw new ArgumentOutOfRangeException(nameof(pParts), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+                lParts.Add(lPart);
+                mLength += lPart.Length;
+            }
+        }
+
+        public override int Length => mLength;
+
+        public override string ToString()
+        {
+            if (Secret) return $"{nameof(cMultiPartLiteralCommandPart)}()";
+
+            cListBuilder lBuilder = new cListBuilder(nameof(cMultiPartLiteralCommandPart));
+            lBuilder.Append(mLength);
+            foreach (var lPart in Parts) lBuilder.Append(lPart);
+            return lBuilder.ToString();
+        }
+    }
+
     internal class cTextCommandPart : cCommandPart
     {
         public readonly cBytes Bytes;
 
-        public cTextCommandPart(IList<byte> pBytes, bool pSecret = false, bool pEncoded = false, Action<int> pIncrement = null) : base(pSecret, pEncoded, pIncrement)
+        public cTextCommandPart(IList<byte> pBytes, bool pSecret = false, bool pEncoded = false) : base(pSecret, pEncoded)
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
             Bytes = new cBytes(pBytes);
         }
 
-        public cTextCommandPart(string pString, bool pSecret = false, Action<int> pIncrement = null) : base(pSecret, false, pIncrement)
+        public cTextCommandPart(string pString, bool pSecret = false) : base(pSecret, false)
         {
             if (string.IsNullOrEmpty(pString)) throw new ArgumentOutOfRangeException(nameof(pString));
 
@@ -110,21 +151,21 @@ namespace work.bacome.imapclient
             Bytes = new cBytes(lBytes);
         }
 
-        public cTextCommandPart(uint pNumber) : base(false, false, null)
+        public cTextCommandPart(uint pNumber) : base(false, false)
         {
             var lBytes = cTools.UIntToBytesReverse(pNumber);
             lBytes.Reverse();
             Bytes = new cBytes(lBytes);
         }
 
-        public cTextCommandPart(ulong pNumber) : base(false, false, null)
+        public cTextCommandPart(ulong pNumber) : base(false, false)
         {
             var lBytes = cTools.ULongToBytesReverse(pNumber);
             lBytes.Reverse();
             Bytes = new cBytes(lBytes);
         }
 
-        public cTextCommandPart(cSequenceSet pSequenceSet) : base(false, false, null)
+        public cTextCommandPart(cSequenceSet pSequenceSet) : base(false, false)
         {
             cByteList lBytes = new cByteList();
             cByteList lTemp = new cByteList();
