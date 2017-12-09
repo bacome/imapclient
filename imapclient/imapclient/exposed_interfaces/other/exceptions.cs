@@ -38,10 +38,7 @@ namespace work.bacome.imapclient
         public const string ContainsNulls = "contains nulls";
         public const string ContainsMixedMessageCaches = "contains mixed message caches";
         public const string ContainsMixedUIDValidities = "contains mixed uidvalidities";
-
-        public const string MailMessageFormNotSupported = "mail message form not supported";
     }
-
 
     /// <summary>
     /// The <see langword="abstract"/> base class for all of the library's custom exceptions.
@@ -119,6 +116,12 @@ namespace work.bacome.imapclient
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
         }
+    }
+
+    public class cMailMessageException : cIMAPException
+    {
+        internal cMailMessageException() { }
+        internal cMailMessageException(cTrace.cContext pContext) => pContext.TraceError(nameof(cMailMessageException));
     }
 
     /// <summary>

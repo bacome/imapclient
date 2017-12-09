@@ -84,7 +84,7 @@ namespace work.bacome.imapclient
             Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
 
             // todo: do a check that some basic info is there
-            throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MailMessageFormNotSupported);
+            throw new cMailMessageException();
 
             ReadConfiguration = pConfiguration;
         }
@@ -274,7 +274,6 @@ namespace work.bacome.imapclient
 
     public class cUIDSectionAppendDataPart : cAppendDataPart
     {
-        // only useful if the caller knows that the section is a nicely formed message
         public readonly cIMAPClient Client;
         public readonly iMailboxHandle MailboxHandle;
         public readonly cUID UID;
@@ -315,8 +314,8 @@ namespace work.bacome.imapclient
         {
             Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
 
-            // todo: do a check that some basic info is there
-            throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MailMessageFormNotSupported);
+            // todo: do a check that some basic info is there AND that it is a form
+            throw new cMailMessageException();
 
             ReadConfiguration = pReadConfiguration;
         }

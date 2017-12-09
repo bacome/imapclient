@@ -146,8 +146,8 @@ namespace work.bacome.imapclient
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
-        private cBatchSizerConfiguration mAppendConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
-        private int mAppendTargetBufferSize = cMessageDataStream.DefaultTargetBufferSize; ;?;
+        private cBatchSizerConfiguration mAppendConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
+        private int mAppendTargetBufferSize = cMessageDataStream.DefaultTargetBufferSize;
         private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
@@ -706,7 +706,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// Limits the size of batches used when appending. Measured in bytes.
-        /// The default value is min=1000b, max=1000000b, maxtime=10s, initial=1000b.
+        /// The default value is min=1000b, max=unlimited, maxtime=10s, initial=1000b.
         /// If <see cref="cCapabilities.MultiAppend"/> is in use, limits the number of messages sent in a single append, otherwise limits the number of pipelined appends.
         /// </remarks>
         public cBatchSizerConfiguration AppendConfiguration

@@ -873,6 +873,9 @@ namespace work.bacome.imapclient
                     StreamReadConfiguration = pStreamReadConfiguration ?? throw new ArgumentNullException(nameof(pStreamReadConfiguration));
                     Increment = pIncrement;
                 }
+
+                public bool AppendDataBinary => UTF8 || Binary;
+                public bool CatPartBinary => UTF8 || Binary; // TODO: check that binary works here: the RFCs imply not
             }
         }
     }
