@@ -54,7 +54,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("uid fetch body success");
-                        if (lHook.Body == null) throw new cRequestedDataNotReturnedException(lContext);
+                        if (lHook.Body == null) throw new cRequestedDataNotReturnedException(pMailboxHandle, pUID);
                         return lHook.Body;
                     }
 

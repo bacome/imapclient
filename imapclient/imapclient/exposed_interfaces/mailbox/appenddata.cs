@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
 using System.Net.Mail;
 using work.bacome.imapclient.support;
 
@@ -119,12 +118,11 @@ namespace work.bacome.imapclient
         {
             if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
 
-            using (var lStream = new FileStream(pPath, FileMode.Open))
-            {
-                if (lStream.Length == 0) throw new ArgumentOutOfRangeException(nameof(pPath));
-                Length = (int)lStream.Length;
-            }
+            var lFileInfo = new FileInfo(pPath);
+            if (!lFileInfo.Exists || (lFileInfo.Attributes | FileAttributes.Directory) != 0 || lFileInfo.Length == 0) throw new ArgumentOutOfRangeException(nameof(pPath));
 
+            Path = lFileInfo.FullName;
+            Length = (int)lFileInfo.Length;
             ReadConfiguration = pReadConfiguration;
         }
 
@@ -353,11 +351,11 @@ namespace work.bacome.imapclient
         {
             if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
 
-            using (var lStream = new FileStream(pPath, FileMode.Open))
-            {
-                Length = (int)lStream.Length;
-            }
+            var lFileInfo = new FileInfo(pPath);
+            if (!lFileInfo.Exists || (lFileInfo.Attributes | FileAttributes.Directory) != 0 || lFileInfo.Length == 0) throw new ArgumentOutOfRangeException(nameof(pPath));
 
+            Path = lFileInfo.FullName;
+            Length = (int)lFileInfo.Length;
             ReadConfiguration = pReadConfiguration;
         }
 

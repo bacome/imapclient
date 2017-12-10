@@ -118,21 +118,6 @@ namespace work.bacome.imapclient
         }
     }
 
-    public class cMailMessageException : cIMAPException
-    {
-        internal cMailMessageException() { }
-        internal cMailMessageException(cTrace.cContext pContext) => pContext.TraceError(nameof(cMailMessageException));
-    }
-
-    /// <summary>
-    /// Thrown when the requested data is not returned by the server. This is most likely because the message has been expunged.
-    /// </summary>
-    public class cRequestedDataNotReturnedException : cIMAPException
-    {
-        internal cRequestedDataNotReturnedException() { }
-        internal cRequestedDataNotReturnedException(cTrace.cContext pContext) => pContext.TraceError(nameof(cRequestedDataNotReturnedException));
-    }
-
     /// <summary>
     /// Thrown when something happens that shouldn't (according to my reading of the RFCs).
     /// </summary>
@@ -143,11 +128,6 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
-
-        internal cUnexpectedServerActionException(string pMessage) : base(pMessage)
-        {
-            TryIgnoring = 0;
-        }
 
         internal cUnexpectedServerActionException(fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
         {
@@ -398,13 +378,76 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// Thrown when the requested data is not returned by the server. This is most likely because the message has been expunged.
+    /// </summary>
+    /// <remarks>
+    /// Either the <see cref="MailboxHandle"/> and <see cref="UID"/> will be not <see langword="null"/> or the <see cref="MessageHandle"/> will be not <see langword="null"/>.
+    /// </remarks>
+    public class cRequestedDataNotReturnedException : cIMAPException
+    {
+        public readonly iMailboxHandle MailboxHandle;
+        public readonly cUID UID;
+
+        /// <summary>
+        /// The message concerned. May be <see langword="null"/>.
+        /// </summary>
+        public readonly iMessageHandle MessageHandle;
+
+        internal cRequestedDataNotReturnedException(iMailboxHandle pMailboxHandle, cUID pUID)
+        {
+            MailboxHandle = pMailboxHandle;
+            UID = pUID;
+            MessageHandle = null;
+        }
+
+        internal cRequestedDataNotReturnedException(iMessageHandle pMessageHandle)
+        {
+            MailboxHandle = null;
+            UID = null;
+            MessageHandle = pMessageHandle;
+        }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cRequestedDataNotReturnedException));
+            lBuilder.Append(MessageHandle);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
+    }
 
     /// <summary>
     /// Thrown when a single message store operation fails.
     /// </summary>
     public class cSingleMessageStoreException : cIMAPException
     {
-        internal cSingleMessageStoreException() { }
+        /// <summary>
+        /// The message concerned.
+        /// </summary>
+        public readonly iMessageHandle MessageHandle;
+
+        internal cSingleMessageStoreException(iMessageHandle pMessageHandle) { MessageHandle = pMessageHandle; }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cSingleMessageStoreException));
+            lBuilder.Append(MessageHandle);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
+    }
+
+    public class cMailMessageException : cIMAPException
+    {
+        internal cMailMessageException() { }
+    }
+
+    public class cStreamRanOutOfDataException : cIMAPException
+    {
+        internal cStreamRanOutOfDataException() { }
     }
 
     internal class cTestsException : Exception

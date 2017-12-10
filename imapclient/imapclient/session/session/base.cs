@@ -24,6 +24,7 @@ namespace work.bacome.imapclient
             private cBatchSizer mFetchBodyReadSizer;
             private cBatchSizer mAppendSizer;
 
+            private cStorableFlags mAppendDefaultFlags;
             private int mAppendTargetBufferSize;
             private cBatchSizerConfiguration mAppendStreamReadConfiguration;
 
@@ -47,7 +48,13 @@ namespace work.bacome.imapclient
             private readonly cExclusiveAccess mMSNUnsafeBlock = new cExclusiveAccess("msnunsafeblock", 200);
             // (note for when adding more: they need to be disposed)
 
-            public cSession(cCallbackSynchroniser pSynchroniser, fCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems, cBatchSizerConfiguration pNetworkWriteConfiguration, cIdleConfiguration pIdleConfiguration, cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyReadConfiguration, cBatchSizerConfiguration pAppendConfiguration, int pAppendTargetBufferSize, cBatchSizerConfiguration pAppendStreamReadConfiguration, Encoding pEncoding, cTrace.cContext pParentContext)
+            public cSession(
+                cCallbackSynchroniser pSynchroniser, fCapabilities pIgnoreCapabilities, fMailboxCacheDataItems pMailboxCacheDataItems, cBatchSizerConfiguration pNetworkWriteConfiguration,
+                cIdleConfiguration pIdleConfiguration, 
+                cBatchSizerConfiguration pFetchCacheItemsConfiguration, cBatchSizerConfiguration pFetchBodyReadConfiguration, cBatchSizerConfiguration pAppendConfiguration,
+                cStorableFlags pAppendDefaultFlags, int pAppendTargetBufferSize, cBatchSizerConfiguration pAppendStreamReadConfiguration,
+                Encoding pEncoding,
+                cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewObject(nameof(cSession), pIgnoreCapabilities, pMailboxCacheDataItems, pNetworkWriteConfiguration, pIdleConfiguration, pFetchCacheItemsConfiguration, pFetchBodyReadConfiguration, pAppendConfiguration, pAppendTargetBufferSize, pAppendStreamReadConfiguration);
 
@@ -61,6 +68,7 @@ namespace work.bacome.imapclient
                 mFetchBodyReadSizer = new cBatchSizer(pFetchBodyReadConfiguration);
                 mAppendSizer = new cBatchSizer(pAppendConfiguration);
 
+                mAppendDefaultFlags = pAppendDefaultFlags;
                 mAppendTargetBufferSize = pAppendTargetBufferSize;
                 mAppendStreamReadConfiguration = pAppendStreamReadConfiguration;
 
@@ -139,6 +147,12 @@ namespace work.bacome.imapclient
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetAppendConfiguration), pConfiguration);
                 if (pConfiguration == null) throw new ArgumentNullException(nameof(pConfiguration));
                 mAppendSizer = new cBatchSizer(pConfiguration);
+            }
+
+            public void SetAppendDefaultFlags(cStorableFlags pFlags, cTrace.cContext pParentContext)
+            {
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetAppendDefaultFlags), pFlags);
+                mAppendDefaultFlags = pFlags;
             }
 
             public void SetAppendTargetBufferSize(int pSize, cTrace.cContext pParentContext)

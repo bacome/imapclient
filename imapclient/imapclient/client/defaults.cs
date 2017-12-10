@@ -6,6 +6,7 @@ namespace work.bacome.imapclient
     {
         private cMessageCacheItems mDefaultMessageCacheItems = cMessageCacheItems.Empty;
         private cSort mDefaultSort = cSort.None;
+        private cStorableFlags mDefaultAppendFlags = cStorableFlags.Draft;
 
         /// <summary>
         /// Gets and sets the items that are cached by default when message lists are generated.
@@ -35,7 +36,19 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// The default value is <see cref="cStorableFlags.Draft"/>.
+        /// When the source of the appended data is <see cref="cMessageAppendData"/> the default flags come from the message being copied.
         /// </remarks>
-        public cStorableFlags DefaultAppendFlags { get; set; } = cStorableFlags.Draft;
+        public cStorableFlags DefaultAppendFlags
+        {
+            get => mDefaultAppendFlags;
+
+            set
+            {
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(DefaultAppendFlags), value);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                mDefaultAppendFlags = value;
+                mSession?.SetAppendDefaultFlags(value, lContext);
+            }
+        }
     }
 }

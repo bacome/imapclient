@@ -267,8 +267,6 @@ namespace work.bacome.imapclient
             return new cTextCommandPart(lBytes);
         }
 
-        public static cLiteralCommandPart AsLiteral8(IList<byte> pBytes) => new cLiteralCommandPart(pBytes, true);
-
         public static bool TryAsAtom(string pString, out cTextCommandPart rResult) => ZTryAsBytesInCharset(pString, cCharset.Atom, false, out rResult);
 
         public static cCommandPart AsAtom(string pString)

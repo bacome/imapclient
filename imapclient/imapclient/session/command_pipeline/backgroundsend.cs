@@ -209,6 +209,8 @@ namespace work.bacome.imapclient
                             int lCount = await pStream.ReadAsync(lBuffer, 0, lReadSize, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false);
                             lStopwatch.Stop();
 
+                            if (lCount == 0) throw new cStreamRanOutOfDataException();
+
                             // store the time taken so the next read is a better size
                             lReadSizer.AddSample(lCount, lStopwatch.ElapsedMilliseconds);
 

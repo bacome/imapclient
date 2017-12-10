@@ -98,11 +98,11 @@ namespace work.bacome.imapclient
             {
                 case eOperationType.fetch:
 
-                    throw new cRequestedDataNotReturnedException();
+                    throw new cRequestedDataNotReturnedException(MessageHandle);
 
                 case eOperationType.store:
 
-                    throw new cSingleMessageStoreException();
+                    throw new cSingleMessageStoreException(MessageHandle);
 
                 default:
 

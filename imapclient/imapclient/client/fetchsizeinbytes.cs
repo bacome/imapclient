@@ -54,7 +54,7 @@ namespace work.bacome.imapclient
                 if (pMessageHandle.BinarySizes.TryGetValue(pPart.Section.Part, out lSizeInBytes)) return (int)lSizeInBytes;
 
                 if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
-                else throw new cRequestedDataNotReturnedException();
+                else throw new cRequestedDataNotReturnedException(pMessageHandle);
             }
 
             return (int)pPart.SizeInBytes;
