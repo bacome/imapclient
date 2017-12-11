@@ -42,15 +42,13 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    var lProgress = new cProgress();
-                    return await lSession.AppendAsync(lMC, pMailboxHandle, pMessages, lProgress, lContext).ConfigureAwait(false);
+                    return await lSession.AppendAsync(lMC, pMailboxHandle, pMessages, null, null, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                var lProgress = new cProgress(mSynchroniser, pConfiguration.SetCount, pConfiguration.Increment);
-                return await lSession.AppendAsync(lMC, pMailboxHandle, pMessages, lProgress, lContext).ConfigureAwait(false);
+                return await lSession.AppendAsync(lMC, pMailboxHandle, pMessages, pConfiguration.SetCount, pConfiguration.Increment, lContext).ConfigureAwait(false);
             }
         }
     }

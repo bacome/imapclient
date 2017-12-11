@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pMessageHandles, cMessageCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
+            public async Task FetchCacheItemsAsync(cMethodControl pMC, cMessageHandleList pMessageHandles, cMessageCacheItems pItems, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchCacheItemsAsync), pMC, pMessageHandles, pItems);
 
@@ -20,22 +20,21 @@ namespace work.bacome.imapclient
 
                 if (pMessageHandles == null) throw new ArgumentNullException(nameof(pMessageHandles));
                 if (pItems == null) throw new ArgumentNullException(nameof(pItems));
-                if (pProgress == null) throw new ArgumentNullException(nameof(pProgress));
 
                 mMailboxCache.CheckInSelectedMailbox(pMessageHandles); // to be repeated inside the select lock
 
                 // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                foreach (var lGroup in ZFetchCacheItemsGroups(pMessageHandles, pItems)) await ZFetchCacheItemsAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
+                foreach (var lGroup in ZFetchCacheItemsGroups(pMessageHandles, pItems)) await ZFetchCacheItemsAsync(pMC, lGroup, pIncrement, lContext).ConfigureAwait(false);
             }
 
-            private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cFetchCacheItemsGroup pGroup, cProgress pProgress, cTrace.cContext pParentContext)
+            private async Task ZFetchCacheItemsAsync(cMethodControl pMC, cFetchCacheItemsGroup pGroup, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchCacheItemsAsync), pMC, pGroup);
 
                 if (pGroup.Items.IsEmpty)
                 {
                     // the group where we already have everything that we need
-                    pProgress.Increment(pGroup.MessageHandles.Count, lContext);
+                    mSynchroniser.InvokeActionInt(pIncrement, pGroup.MessageHandles.Count, lContext);
                     return; 
                 }
 
@@ -105,7 +104,7 @@ namespace work.bacome.imapclient
                         }
 
                         // update progress
-                        if (lExpungedCount > 0 || lMessageHandles.Count > 0) pProgress.Increment(lExpungedCount + lMessageHandles.Count, lContext);
+                        if (lExpungedCount > 0 || lMessageHandles.Count > 0) mSynchroniser.InvokeActionInt(pIncrement, lExpungedCount + lMessageHandles.Count, lContext);
                     }
                 }
 
@@ -118,13 +117,13 @@ namespace work.bacome.imapclient
                     else lUIDs.Add(lMessageHandle.UID);
                 }
 
-                if (lExpungedCount > 0) pProgress.Increment(lExpungedCount, lContext);
+                if (lExpungedCount > 0) mSynchroniser.InvokeActionInt(pIncrement, lExpungedCount, lContext);
 
                 if (lUIDs.Count == 0) return;
 
                 // uid fetch the remainder
                 var lMailboxHandle = pGroup.MessageHandles[0].MessageCache.MailboxHandle;
-                await ZUIDFetchCacheItemsAsync(pMC, lMailboxHandle, lUIDs, pGroup.Items, pProgress, lContext).ConfigureAwait(false);
+                await ZUIDFetchCacheItemsAsync(pMC, lMailboxHandle, lUIDs, pGroup.Items, pIncrement, lContext).ConfigureAwait(false);
             }
 
             private IEnumerable<cFetchCacheItemsGroup> ZFetchCacheItemsGroups(cMessageHandleList pMessageHandles, cMessageCacheItems pItems)

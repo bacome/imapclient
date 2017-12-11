@@ -50,6 +50,7 @@
     <Compile Include="exposed_interfaces\other\eventsubscriptioncounts.cs" />
     <Compile Include="session\append\append.cs" />
     <Compile Include="session\append\appenddata.cs" />
+    <Compile Include="session\imap_commands\authenticated\append.cs" />
     <Compile Include="session\imap_commands\not_authenticated\authenticated.cs" />
     <Compile Include="support\collections\appenddatalist.cs" />
     <Compile Include="tools\apidocumentation.cs" />
@@ -158,7 +159,6 @@
     <Compile Include="session\store\store.cs" />
     <Compile Include="session\store\storefeedbackcollector.cs" />
     <Compile Include="support\types\permanentflags.cs" />
-    <Compile Include="support\client\progress.cs" />
     <Compile Include="session\imap_commands\authenticated\create.cs" />
     <Compile Include="session\imap_commands\authenticated\delete.cs" />
     <Compile Include="session\imap_commands\authenticated\listdelimiter.cs" />

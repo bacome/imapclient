@@ -152,16 +152,16 @@ namespace work.bacome.imapclient
 
             if (pMessageHandles.TrueForAll(h => h.Contains(pItems))) return;
 
-            cProgress lProgress;
+            Action<int> lIncrement;
 
-            if (pConfiguration == null) lProgress = new cProgress();
+            if (pConfiguration == null) lIncrement = null;
             else
             {
                 mSynchroniser.InvokeActionInt(pConfiguration.SetCount, pMessageHandles.Count, lContext);
-                lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
+                lIncrement = pConfiguration.Increment;
             }
 
-            await pSession.FetchCacheItemsAsync(pMC, pMessageHandles, pItems, lProgress, lContext).ConfigureAwait(false);
+            await pSession.FetchCacheItemsAsync(pMC, pMessageHandles, pItems, lIncrement, lContext).ConfigureAwait(false);
         }
 
         private List<cMessage> ZMessagesFlatMessageList(cMessageHandleList pMessageHandles, cTrace.cContext pParentContext)

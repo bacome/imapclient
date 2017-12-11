@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
-using work.bacome.trace;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -16,6 +14,18 @@ namespace work.bacome.imapclient
             private static readonly cCommandPart kAppendDataUTF8SpaceLParen = new cTextCommandPart("UTF8 (");
 
             private static readonly cBatchSizerConfiguration kSessionAppendMessageReadConfiguration = new cBatchSizerConfiguration(100000, 100000, 1, 100000); // 100k chunks
+
+            private class cSessionAppendDataList : List<cSessionAppendData>
+            {
+                public cSessionAppendDataList() { }
+
+                public override string ToString()
+                {
+                    var lBuilder = new cListBuilder(nameof(cSessionAppendDataList));
+                    foreach (var lMessage in this) lBuilder.Append(lMessage);
+                    return lBuilder.ToString();
+                }
+            }
 
             private abstract class cSessionAppendData
             {
@@ -250,7 +260,7 @@ namespace work.bacome.imapclient
 
                 public static bool TryConstruct(iMessageHandle pMessageHandle, cSection pSection, cCommandPartFactory pFactory, out cCatenateURLAppendDataPart rPart)
                 {
-                    // always generates a url that starts with "/<mailbox>", but may not generate a URL if the messagehandle/ section aren't supported
+                    // always generates a url that starts with "/<mailboxname>", but may not generate a URL if the mailbox name/ section aren't supported
 
                     if (pMessageHandle == null) throw new ArgumentNullException(nameof(pMessageHandle));
                     if (pSection == null) throw new ArgumentNullException(nameof(pSection));
@@ -265,7 +275,7 @@ namespace work.bacome.imapclient
 
                 public static bool TryConstruct(iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, cCommandPartFactory pFactory, out cCatenateURLAppendDataPart rPart)
                 {
-                    // always generates a url that starts with "/<mailbox>", but may not generate a URL if the messagehandle/ section aren't supported
+                    // always generates a url that starts with "/<mailboxname>", but may not generate a URL if the mailbox name/ section aren't supported
 
                     if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
                     if (pUID == null) throw new ArgumentNullException(nameof(pUID));

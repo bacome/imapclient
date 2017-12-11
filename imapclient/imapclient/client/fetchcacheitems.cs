@@ -142,15 +142,13 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    var lProgress = new cProgress();
-                    await lSession.FetchCacheItemsAsync(lMC, pMessageHandles, pItems, lProgress, lContext).ConfigureAwait(false);
+                    await lSession.FetchCacheItemsAsync(lMC, pMessageHandles, pItems, null, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                var lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
-                await lSession.FetchCacheItemsAsync(lMC, pMessageHandles, pItems, lProgress, lContext).ConfigureAwait(false);
+                await lSession.FetchCacheItemsAsync(lMC, pMessageHandles, pItems, pConfiguration.Increment, lContext).ConfigureAwait(false);
             }
         }
     
@@ -177,15 +175,13 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    var lProgress = new cProgress();
-                    lMessageHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pMailboxHandle, pUIDs, pItems, lProgress, lContext).ConfigureAwait(false);
+                    lMessageHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pMailboxHandle, pUIDs, pItems, null, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                var lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
-                lMessageHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pMailboxHandle, pUIDs, pItems, lProgress, lContext).ConfigureAwait(false);
+                lMessageHandles = await lSession.UIDFetchCacheItemsAsync(lMC, pMailboxHandle, pUIDs, pItems, pConfiguration.Increment, lContext).ConfigureAwait(false);
             }
 
             List<cMessage> lMessages = new List<cMessage>(lMessageHandles.Count);

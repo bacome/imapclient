@@ -44,17 +44,15 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    var lProgress = new cProgress();
                     var lWriteSizer = new cBatchSizer(mFetchBodyWriteConfiguration);
-                    await lSession.FetchBodyAsync(lMC, pMessageHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
+                    await lSession.FetchBodyAsync(lMC, pMessageHandle, pSection, pDecoding, pStream, null, lWriteSizer, lContext).ConfigureAwait(false);
                 }
             }
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                var lProgress = new cProgress(mSynchroniser, pConfiguration.Increment);
                 var lWriteSizer = new cBatchSizer(pConfiguration.Write ?? mFetchBodyWriteConfiguration);
-                await lSession.FetchBodyAsync(lMC, pMessageHandle, pSection, pDecoding, pStream, lProgress, lWriteSizer, lContext).ConfigureAwait(false);
+                await lSession.FetchBodyAsync(lMC, pMessageHandle, pSection, pDecoding, pStream, pConfiguration.Increment, lWriteSizer, lContext).ConfigureAwait(false);
             }
         }
     }

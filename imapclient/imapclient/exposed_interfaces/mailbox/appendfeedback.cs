@@ -32,7 +32,7 @@ namespace work.bacome.imapclient
 
         private readonly ReadOnlyCollection<cAppendFeedbackItem> mItems;
 
-        internal cAppendFeedback(IEnumerable<cAppendFeedbackBatch> pBatches)
+        internal cAppendFeedback(IEnumerable<cAppendBatchFeedback> pBatches)
         {
             if (pBatches == null) throw new ArgumentNullException(nameof(pBatches));
 
@@ -42,12 +42,13 @@ namespace work.bacome.imapclient
             {
                 if (lBatch == null) throw new ArgumentOutOfRangeException(nameof(pBatches));
 
-                if (lBatch is cAppendFeedbackSuccessfulBatch lSuccess)
+                ;?;
+                if (lBatch is cAppendSuccessfulBatchFeedback lSuccess)
                 {
                     AppendedCount += lSuccess.UIDs.Count;
                     foreach (var lUID in lSuccess.UIDs) lItems.Add(new cAppendFeedbackItem(new cUID(lSuccess.UIDValidity, lUID)));
                 }
-                else if (lBatch is cAppendFeedbackFailedBatch lFailed)
+                else if (lBatch is cAppendFailedBatchFeedback lFailed)
                 {
                     FailedCount += lFailed.Count;
                     for (int i = 0; i < lFailed.Count; i++) lItems.Add(new cAppendFeedbackItem(lFailed.Exception));
@@ -81,24 +82,24 @@ namespace work.bacome.imapclient
         }
     }
 
-    internal abstract class cAppendFeedbackBatch { }
+    internal abstract class cAppendBatchFeedback { }
 
-    internal class cAppendFeedbackFailedBatch : cAppendFeedbackBatch
+    internal class cAppendFailedBatchFeedback : cAppendBatchFeedback
     {
         public readonly Exception Exception;
         public readonly int Count;
 
-        public cAppendFeedbackFailedBatch(Exception pException, int pCount)
+        public cAppendFailedBatchFeedback(Exception pException, int pCount)
         {
             Exception = pException ?? throw new ArgumentNullException(nameof(pException));
             if (pCount < 1) throw new ArgumentOutOfRangeException(nameof(pCount));
             Count = pCount;
         }
 
-        public override string ToString() => $"{nameof(cAppendFeedbackFailedBatch)}({Exception},{Count})";
+        public override string ToString() => $"{nameof(cAppendFailedBatchFeedback)}({Exception},{Count})";
     }
 
-    internal class cAppendFeedbackSuccessfulBatch : cAppendFeedbackBatch
+    internal class cAppendSuccessfulBatchFeedback : cAppendBatchFeedback
     {
         public readonly uint UIDValidity;
         public readonly cUIntList UIDs;
@@ -106,12 +107,12 @@ namespace work.bacome.imapclient
         ;?; // this'll need another constructor with just a count
 
 
-        public cAppendFeedbackSuccessfulBatch(uint pUIDValidity, cUIntList pUIDs)
+        public cAppendSuccessfulBatchFeedback(uint pUIDValidity, cUIntList pUIDs)
         {
             UIDValidity = pUIDValidity;
             UIDs = pUIDs ?? throw new ArgumentNullException(nameof(pUIDs));
         }
 
-        public override string ToString() => $"{nameof(cAppendFeedbackSuccessfulBatch)}({UIDValidity},{UIDs})";
+        public override string ToString() => $"{nameof(cAppendSuccessfulBatchFeedback)}({UIDValidity},{UIDs})";
     }
 }
