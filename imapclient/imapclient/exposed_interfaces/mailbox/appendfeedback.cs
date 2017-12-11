@@ -103,6 +103,9 @@ namespace work.bacome.imapclient
         public readonly uint UIDValidity;
         public readonly cUIntList UIDs;
 
+        ;?; // this'll need another constructor with just a count
+
+
         public cAppendFeedbackSuccessfulBatch(uint pUIDValidity, cUIntList pUIDs)
         {
             UIDValidity = pUIDValidity;

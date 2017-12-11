@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
         public readonly eDecodingRequired Decoding;
         public readonly int TargetBufferSize;
 
-        // for streams that may be appended by streaming OR catenated: the length is required in the streaming case as the library does not read to a temporary store
+        // for streams that may be appended via a mailmessage: the length is required 
         public readonly int? StreamLength;
 
         private int mReadTimeout = Timeout.Infinite;
@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            StreamLength = pMessage.Size;
+            StreamLength = null; // if the library requires the length it knows how to get it
         }
 
         public cMessageDataStream(cAttachment pAttachment, bool pDecoded = true, int pTargetBufferSize = DefaultTargetBufferSize)
@@ -123,19 +123,34 @@ namespace work.bacome.imapclient
             StreamLength = null;
         }
 
+        public cMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, int pLength, int pTargetBufferSize = DefaultTargetBufferSize)
+        {
+            if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
+            if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
+
+            Client = pMailbox.Client;
+            MessageHandle = null;
+            MailboxHandle = pMailbox.MailboxHandle;
+
+            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
+            Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
+            Decoding = eDecodingRequired.none;
+
+            if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
+            TargetBufferSize = pTargetBufferSize;
+
+            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
+            StreamLength = pLength;
+        }
+
         public cMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, eDecodingRequired pDecoding, int pTargetBufferSize = DefaultTargetBufferSize)
         {
             if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
+            if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
 
             Client = pMailbox.Client;
-            MailboxHandle = pMailbox.MailboxHandle;
-
-            if (!ReferenceEquals(MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
-
             MessageHandle = null;
-
-            if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
-            if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
+            MailboxHandle = pMailbox.MailboxHandle;
 
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
@@ -147,14 +162,26 @@ namespace work.bacome.imapclient
             StreamLength = null;
         }
 
-        internal cMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSinglePartBody pPart, int pTargetBufferSize)
+        internal cMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, int pTargetBufferSize)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
             MessageHandle = pMessageHandle ?? throw new ArgumentNullException(nameof(pMessageHandle));
             MailboxHandle = null;
             UID = null;
-            if (pPart == null) Section = cSection.All;
-            else Section = pPart.Section;
+            Section = pSection;
+            Decoding = eDecodingRequired.none;
+            if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
+            TargetBufferSize = pTargetBufferSize;
+            StreamLength = null;
+        }
+
+        internal cMessageDataStream(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, int pTargetBufferSize)
+        {
+            Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
+            MessageHandle = null;
+            MailboxHandle = pMailboxHandle ?? throw new ArgumentNullException(nameof(pMailboxHandle));
+            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
+            Section = pSection;
             Decoding = eDecodingRequired.none;
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;

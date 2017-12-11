@@ -17,6 +17,12 @@ namespace work.bacome.imapclient
             Flags = pFlags;
             Received = pReceived;
         }
+
+        public static implicit operator cAppendData(cMessage pMessage) => new cMessageAppendData(pMessage);
+        public static implicit operator cAppendData(string pString) => new cStringAppendData(pString);
+        public static implicit operator cAppendData(Stream pStream) => new cStreamAppendData(pStream);
+        public static implicit operator cAppendData(List<cAppendDataPart> pParts) => new cMultiPartAppendData(pParts);
+        public static implicit operator cAppendData(MailMessage pMessage) => new cMultiPartAppendData(pMessage);
     }
 
     public class cMessageAppendData : cAppendData
@@ -71,26 +77,6 @@ namespace work.bacome.imapclient
         }
 
         public override string ToString() => $"{nameof(cMessagePartAppendData)}({Flags},{Received},{MessageHandle},{Part},{AllowCatenate})";
-    }
-
-    public class cMailMessageAppendData : cAppendData
-    { 
-        public readonly MailMessage Message;
-        public readonly cBatchSizerConfiguration ReadConfiguration; // optional
-
-        public cMailMessageAppendData(MailMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pConfiguration = null) : base(pFlags, pReceived)
-        {
-            Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
-
-            // todo: do a check that some basic info is there
-            throw new cMailMessageException();
-
-            ReadConfiguration = pConfiguration;
-        }
-
-        public override string ToString() => $"{nameof(cMailMessageAppendData)}({Flags},{Received},{Message},{ReadConfiguration})";
-
-        public static implicit operator cMailMessageAppendData(MailMessage pMessage) => new cMailMessageAppendData(pMessage);
     }
 
     public class cStringAppendData : cAppendData
@@ -182,6 +168,15 @@ namespace work.bacome.imapclient
             Parts = lParts.AsReadOnly();
         }
 
+        public cMultiPartAppendData(MailMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
+        {
+            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+
+            // todo ...
+
+            throw new cMailMessageException();
+        }
+
         public override string ToString()
         {
             cListBuilder lBuilder = new cListBuilder(nameof(cMultiPartAppendData));
@@ -192,12 +187,17 @@ namespace work.bacome.imapclient
         }
 
         public static implicit operator cMultiPartAppendData(List<cAppendDataPart> pParts) => new cMultiPartAppendData(pParts);
+        public static implicit operator cMultiPartAppendData(MailMessage pMessage) => new cMultiPartAppendData(pMessage);
     }
 
     public abstract class cAppendDataPart
     {
         internal cAppendDataPart() { }
         public abstract bool HasContent { get; }
+        public static implicit operator cAppendDataPart(cMessage pMessage) => new cMessageAppendDataPart(pMessage);
+        public static implicit operator cAppendDataPart(cAttachment pAttachment) => new cMessagePartAppendDataPart(pAttachment);
+        public static implicit operator cAppendDataPart(string pString) => new cStringAppendDataPart(pString);
+        public static implicit operator cAppendDataPart(Stream pStream) => new cStreamAppendDataPart(pStream);
     }
 
     public class cMessageAppendDataPart : cAppendDataPart
@@ -292,7 +292,6 @@ namespace work.bacome.imapclient
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
 
             if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
-
             Length = pLength;
 
             AllowCatenate = pAllowCatenate;
@@ -301,28 +300,6 @@ namespace work.bacome.imapclient
         public override bool HasContent => Length > 0;
 
         public override string ToString() => $"{nameof(cUIDSectionAppendDataPart)}({MailboxHandle},{UID},{Section},{Length},{AllowCatenate})";
-    }
-
-    public class cMailMessageAppendDataPart : cAppendDataPart
-    {
-        public readonly MailMessage Message;
-        public readonly cBatchSizerConfiguration ReadConfiguration; // optional
-
-        public cMailMessageAppendDataPart(MailMessage pMessage, cBatchSizerConfiguration pReadConfiguration = null)
-        {
-            Message = pMessage ?? throw new ArgumentNullException(nameof(pMessage));
-
-            // todo: do a check that some basic info is there AND that it is a form
-            throw new cMailMessageException();
-
-            ReadConfiguration = pReadConfiguration;
-        }
-
-        public override bool HasContent => true;
-
-        public override string ToString() => $"{nameof(cMailMessageAppendDataPart)}({Message},{ReadConfiguration})";
-
-        public static implicit operator cMailMessageAppendDataPart(MailMessage pMessage) => new cMailMessageAppendDataPart(pMessage);
     }
 
     public class cStringAppendDataPart : cAppendDataPart
