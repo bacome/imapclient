@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using work.bacome.async;
 using work.bacome.imapclient.support;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
@@ -13,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cAppendFeedback> AppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cAppendDataList pMessages, cProgress pProgress, cTrace.cContext pParentContext)
+            public async Task<cAppendFeedback> AppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cAppendDataList pMessages, Action<int> pSetCount, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(AppendAsync), pMC, pMailboxHandle, pMessages);
 
@@ -22,7 +20,6 @@ namespace work.bacome.imapclient
 
                 if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
                 if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
-                if (pProgress == null) throw new ArgumentNullException(nameof(pProgress));
 
                 mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, null);
 
@@ -34,10 +31,10 @@ namespace work.bacome.imapclient
                 // initialise the progress
                 int lCount = 0;
                 foreach (var lMessage in lMessages) lCount += lMessage.Length;
-                pProgress.SetCount(lCount, lContext);
+                mSynchroniser.InvokeActionInt(pSetCount, lCount, lContext);
 
                 // append messages in batches
-                return await ZAppendInBatchesAsync(pMC, pMailboxHandle, lMessages, pProgress, lContext).ConfigureAwait(false);
+                return await ZAppendInBatchesAsync(pMC, pMailboxHandle, lMessages, pIncrement, lContext).ConfigureAwait(false);
             }
 
             private async Task<cSessionAppendDataList> ZAppendGetDataAsync(cAppendDataList pMessages)
@@ -306,7 +303,7 @@ namespace work.bacome.imapclient
                 return lMessages;
             }
 
-            private async Task<cAppendFeedback> ZAppendInBatchesAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cSessionAppendDataList pMessages, cProgress pProgress, cTrace.cContext pParentContext)
+            private async Task<cAppendFeedback> ZAppendInBatchesAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cSessionAppendDataList pMessages, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZAppendInBatchesAsync), pMC, pMailboxHandle, pMessages);
 
@@ -324,7 +321,7 @@ namespace work.bacome.imapclient
                     if (lTotalLength >= lTargetLength)
                     {
                         // append
-                        var lFeedback = await ZAppendBatchAsync(pMC, pMailboxHandle, lMessages, lTotalLength, pProgress, lContext).ConfigureAwait(false);
+                        var lFeedback = await ZAppendBatchAsync(pMC, pMailboxHandle, lMessages, lTotalLength, pIncrement, lContext).ConfigureAwait(false);
 
                         // store the feedback
                         lFeedbacks.Add(lFeedback);
@@ -340,12 +337,12 @@ namespace work.bacome.imapclient
                 }
 
                 // append the remaining messages if any
-                if (lMessages.Count > 0) lFeedbacks.Add(await ZAppendBatchAsync(pMC, pMailboxHandle, lMessages, lTotalLength, pProgress, lContext).ConfigureAwait(false));
+                if (lMessages.Count > 0) lFeedbacks.Add(await ZAppendBatchAsync(pMC, pMailboxHandle, lMessages, lTotalLength, pIncrement, lContext).ConfigureAwait(false));
 
                 return new cAppendFeedback(lFeedbacks);
             }
 
-            private async Task<cAppendFeedback> ZAppendBatchAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cSessionAppendDataList pMessages, int pTotalLength, cProgress pProgress, cTrace.cContext pParentContext)
+            private async Task<cAppendFeedback> ZAppendBatchAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cSessionAppendDataList pMessages, int pTotalLength, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZAppendBatchAsync), pMC, pMailboxHandle, pMessages);
 

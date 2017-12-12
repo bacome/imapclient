@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading;
-using work.bacome.async;
+using work.bacome.imapclient.support;
 using work.bacome.imapclient.apidocumentation;
 
 namespace work.bacome.imapclient

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using work.bacome.trace;
 
-namespace work.bacome.async
+namespace work.bacome.imapclient.support
 {
     /// <summary>
     /// Provides services for coordinating one worker task and many work creating tasks using coordinating tasks.

@@ -3,10 +3,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text;
 using System.Threading;
-using work.bacome.async;
 using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
@@ -306,16 +304,32 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the current number of cancellable operations.
+        /// Gets and sets the cancellation token for library calls where no operation specific value for a cancellation token can be (or has been) specified.
+        /// If this is set to <see cref="CancellationToken.None"/> then the library will use a cancellation token attached to an internal <see cref="CancellationTokenSource"/>.
         /// </summary>
-        /// <seealso cref="Cancel"/>
         /// <seealso cref="cCancellationManager"/>
+        /// <seealso cref="CancellableCount"/>
+        /// <seealso cref="Cancel"/>
+        public CancellationToken CancellationToken
+        {
+            get => mCancellationManager.CancellationToken;
+            set => mCancellationManager.CancellationToken = value;
+        }
+
+        /// <summary>
+        /// Gets the current number of cancellable operations attached to the current internal <see cref="CancellationTokenSource"/>.
+        /// </summary>
+        /// <seealso cref="cCancellationManager"/>
+        /// <seealso cref="CancellationToken"/>
+        /// <seealso cref="Cancel"/>
         public int CancellableCount => mCancellationManager.Count;
 
         /// <summary>
-        /// Cancels the current cancellable operations.
+        /// Cancels the current cancellable operations that are attached to the current internal <see cref="CancellationTokenSource"/>.
         /// </summary>
-        /// <seealso cref="cCancellationManager.Cancel(cTrace.cContext)"/>
+        /// <seealso cref="cCancellationManager"/>
+        /// <seealso cref="CancellationToken"/>
+        /// <seealso cref="CancellableCount"/>
         public void Cancel()
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(Cancel));

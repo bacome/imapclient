@@ -5,9 +5,7 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using work.bacome.async;
 using work.bacome.imapclient.support;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {

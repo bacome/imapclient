@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using work.bacome.imapclient.support;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {

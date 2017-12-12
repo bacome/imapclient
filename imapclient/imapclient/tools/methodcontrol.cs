@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 
-namespace work.bacome.async
+namespace work.bacome.imapclient.support
 {
     /// <summary>
     /// Represents controls on the execution of a potentially long running method. 

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using work.bacome.trace;
 
-namespace work.bacome.async
+namespace work.bacome.imapclient.support
 {
     /// <summary>
     /// Provides a sequence of countdown timer tasks.

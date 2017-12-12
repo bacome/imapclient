@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 
-namespace work.bacome.trace
+namespace work.bacome.imapclient.support
 {
     /// <summary>
     /// Provides services for writing trace events with indenting and nested context information.

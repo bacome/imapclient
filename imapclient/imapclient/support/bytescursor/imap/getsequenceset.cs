@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
-using work.bacome.trace;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {

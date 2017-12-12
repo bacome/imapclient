@@ -3,8 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using work.bacome.async;
-using work.bacome.trace;
+using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {

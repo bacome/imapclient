@@ -2,9 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using work.bacome.async;
 using work.bacome.imapclient.support;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
@@ -12,7 +10,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public Task FetchBodyAsync(cMethodControl pMC, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cProgress pProgress, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
+            public Task FetchBodyAsync(cMethodControl pMC, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, Action<int> pIncrement, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBodyAsync), pMC, pMessageHandle, pSection, pDecoding);
 
@@ -21,11 +19,11 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckInSelectedMailbox(pMessageHandle); // to be repeated inside the select lock
 
-                if (pMessageHandle.UID == null) return ZFetchBodyAsync(pMC, null, null, pMessageHandle, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
-                else return ZFetchBodyAsync(pMC, pMessageHandle.MessageCache.MailboxHandle, pMessageHandle.UID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
+                if (pMessageHandle.UID == null) return ZFetchBodyAsync(pMC, null, null, pMessageHandle, pSection, pDecoding, pStream, pIncrement, pWriteSizer, lContext);
+                else return ZFetchBodyAsync(pMC, pMessageHandle.MessageCache.MailboxHandle, pMessageHandle.UID, null, pSection, pDecoding, pStream, pIncrement, pWriteSizer, lContext);
             }
 
-            public Task UIDFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cProgress pProgress, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
+            public Task UIDFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, eDecodingRequired pDecoding, Stream pStream, Action<int> pIncrement, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBodyAsync), pMC, pMailboxHandle, pUID, pSection, pDecoding);
 
@@ -34,16 +32,15 @@ namespace work.bacome.imapclient
 
                 mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, pUID.UIDValidity); // to be repeated inside the select lock
 
-                return ZFetchBodyAsync(pMC, pMailboxHandle, pUID, null, pSection, pDecoding, pStream, pProgress, pWriteSizer, lContext);
+                return ZFetchBodyAsync(pMC, pMailboxHandle, pUID, null, pSection, pDecoding, pStream, pIncrement, pWriteSizer, lContext);
             }
 
-            private async Task ZFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, cProgress pProgress, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
+            private async Task ZFetchBodyAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, iMessageHandle pMessageHandle, cSection pSection, eDecodingRequired pDecoding, Stream pStream, Action<int> pIncrement, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZFetchBodyAsync), pMC, pMailboxHandle, pUID, pMessageHandle, pSection, pDecoding);
 
                 if (pSection == null) throw new ArgumentNullException(nameof(pSection));
                 if (pStream == null) throw new ArgumentNullException(nameof(pStream));
-                if (pProgress == null) throw new ArgumentNullException(nameof(pProgress));
                 if (pWriteSizer == null) throw new ArgumentNullException(nameof(pWriteSizer));
 
                 if (!pStream.CanWrite) throw new ArgumentOutOfRangeException(nameof(pStream));
@@ -86,7 +83,7 @@ namespace work.bacome.imapclient
                     await lDecoder.WriteAsync(pMC, lBody.Bytes, lOffset, pWriteSizer, lContext).ConfigureAwait(false);
 
                     // update progress
-                    pProgress.Increment(lBody.Bytes.Count - lOffset, lContext);
+                    mSynchroniser.InvokeActionInt(pIncrement, lBody.Bytes.Count - lOffset, lContext);
 
                     // if the body we got was the whole body, we are done
                     if (lBody.Origin == null) break;

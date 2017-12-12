@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using work.bacome.async;
 using work.bacome.imapclient.support;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
@@ -11,7 +9,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cMessageHandleList> UIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUIDList pUIDs, cMessageCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
+            public async Task<cMessageHandleList> UIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUIDList pUIDs, cMessageCacheItems pItems, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchCacheItemsAsync), pMC, pMailboxHandle, pUIDs, pItems);
 
@@ -21,7 +19,6 @@ namespace work.bacome.imapclient
                 if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
                 if (pUIDs == null) throw new ArgumentNullException(nameof(pUIDs));
                 if (pItems == null) throw new ArgumentNullException(nameof(pItems));
-                if (pProgress == null) throw new ArgumentNullException(nameof(pProgress));
 
                 if (pUIDs.Count == 0) throw new ArgumentOutOfRangeException(nameof(pUIDs));
                 if (pItems.IsEmpty) throw new ArgumentOutOfRangeException(nameof(pItems));
@@ -57,7 +54,7 @@ namespace work.bacome.imapclient
                 if (lMessageHandles.Count > 0)
                 {
                     // split the handles into groups based on what attributes need to be retrieved, for each group do the retrieval
-                    foreach (var lGroup in ZFetchCacheItemsGroups(lMessageHandles, pItems)) await ZFetchCacheItemsAsync(pMC, lGroup, pProgress, lContext).ConfigureAwait(false);
+                    foreach (var lGroup in ZFetchCacheItemsGroups(lMessageHandles, pItems)) await ZFetchCacheItemsAsync(pMC, lGroup, pIncrement, lContext).ConfigureAwait(false);
                 }
 
                 // for the messages only identified by UID or where I have to get all the items
@@ -65,7 +62,7 @@ namespace work.bacome.imapclient
 
                 if (lUIDs.Count > 0)
                 {
-                    await ZUIDFetchCacheItemsAsync(pMC, pMailboxHandle, lUIDs, pItems, pProgress, lContext).ConfigureAwait(false);
+                    await ZUIDFetchCacheItemsAsync(pMC, pMailboxHandle, lUIDs, pItems, pIncrement, lContext).ConfigureAwait(false);
 
                     // resolve uids -> handles whilst blocking select exclusive access
                     //
@@ -84,7 +81,7 @@ namespace work.bacome.imapclient
                 return lMessageHandles;
             }
 
-            private async Task ZUIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUIDList pUIDs, cMessageCacheItems pItems, cProgress pProgress, cTrace.cContext pParentContext)
+            private async Task ZUIDFetchCacheItemsAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUIDList pUIDs, cMessageCacheItems pItems, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZUIDFetchCacheItemsAsync), pMC, pMailboxHandle, pUIDs, pItems);
 
@@ -115,7 +112,7 @@ namespace work.bacome.imapclient
                     mFetchCacheItemsSizer.AddSample(lUIDs.Count, lStopwatch.ElapsedMilliseconds);
 
                     // update progress
-                    pProgress.Increment(lUIDs.Count, lContext);
+                    mSynchroniser.InvokeActionInt(pIncrement, lUIDs.Count, lContext);
                 }
             }
         }

@@ -4,7 +4,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace work.bacome.async
+namespace work.bacome.imapclient.support
 {
     /// <summary>
     /// Provides services for waiting on a number of tasks with timeout and/or cancellation.

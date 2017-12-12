@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using work.bacome.imapclient.apidocumentation;
 using work.bacome.imapclient.support;
-using work.bacome.trace;
 
 namespace work.bacome.imapclient
 {
