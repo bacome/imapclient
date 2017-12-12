@@ -4,53 +4,27 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace work.bacome.imapclient.support
+namespace work.bacome.imapclient
 {
-    /// <summary>
-    /// Provides services for waiting on a number of tasks with timeout and/or cancellation.
-    /// </summary>
-    /// <remarks>
-    /// If a timeout is specified then it runs from when the instance is created.
-    /// This class implements <see cref="IDisposable"/>, so you should dispose instances when you are finished with them.
-    /// </remarks>
-    public sealed class cAwaiter : IDisposable
+    internal sealed class cAwaiter : IDisposable
     {
         private bool mDisposed = false;
         private readonly CancellationTokenSource mDisposeCancellationTokenSource = new CancellationTokenSource();
         private readonly CancellationTokenSource mLinkedCancellationTokenSource;
         private readonly Task mTask;
 
-        /// <summary>
-        /// Initialises a new instance with the specified method control. 
-        /// </summary>
-        /// <param name="pMC"></param>
-        /// <remarks>If a timeout is specified then it runs from when the instance is created.</remarks>
         public cAwaiter(cMethodControl pMC)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pMC.CancellationToken);
             mTask = Task.Delay(pMC.Timeout, mLinkedCancellationTokenSource.Token);
         }
 
-        /// <summary>
-        /// Initialises a new instance with the specified cancellation token but no timeout.
-        /// </summary>
-        /// <param name="pCancellationToken"></param>
         public cAwaiter(CancellationToken pCancellationToken)
         {
             mLinkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisposeCancellationTokenSource.Token, pCancellationToken);
             mTask = Task.Delay(Timeout.Infinite, mLinkedCancellationTokenSource.Token);
         }
 
-        /// <summary>
-        /// Returns the first task to complete from the set of passed tasks OR throws if the instance times-out or is cancelled.
-        /// </summary>
-        /// <param name="pTask">A task, can't be <see langword="null"/>.</param>
-        /// <param name="pTasks">A set of tasks, any or all can be <see langword="null"/>.</param>
-        /// <returns>The task that completed.</returns>
-        /// <remarks>
-        /// If the task that completes did so because it failed (timed-out, was cancelled, or threw) then this method throws.
-        /// If the instance times-out or is cancelled before a task completes, then this method throws.
-        /// </remarks>
         public async Task<Task> AwaitAny(Task pTask, params Task[] pTasks)
         {
             if (pTask == null) throw new ArgumentNullException(nameof(pTask));
@@ -69,19 +43,8 @@ namespace work.bacome.imapclient.support
             return lTask;
         }
 
-        /// <summary>
-        /// Returns a task that completes when all of the passed tasks complete OR when the <see cref="cMethodControl"/> indicates timeout or cancellation.
-        /// </summary>
-        /// <param name="pMC"></param>
-        /// <param name="pTasks">The set of tasks to wait for. Tasks in the set can be <see langword="null"/>.</param>
-        /// <returns></returns>
-        /// <remarks>
-        /// If any of the passed tasks fail (times-out, was cancelled, or throws) then this method throws.
-        /// If the <see cref="cMethodControl"/> indicates timeout or cancellation before all the tasks complete then this method throws.
-        /// </remarks>
         public static Task AwaitAll(cMethodControl pMC, params Task[] pTasks) => ZAwaitAll(pMC, pTasks);
 
-        /// <inheritdoc cref="AwaitAll(cMethodControl, Task[])"/>
         public static Task AwaitAll(cMethodControl pMC, IEnumerable<Task> pTasks) => ZAwaitAll(pMC, pTasks);
 
         private static async Task ZAwaitAll(cMethodControl pMC, IEnumerable<Task> pTasks)
@@ -115,7 +78,6 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        /**<summary></summary>*/
         public void Dispose()
         {
             if (mDisposed) return;

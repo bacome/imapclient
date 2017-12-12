@@ -33,7 +33,7 @@ namespace work.bacome.imapclient
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
 
-            if (pMessages.Count == 0) throw new ArgumentOutOfRangeException(nameof(pMessages));
+            if (pMessages.Count == 0) return new cAppendFeedback();
 
             if (pConfiguration == null)
             {

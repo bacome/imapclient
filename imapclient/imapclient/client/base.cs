@@ -304,10 +304,12 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets and sets the cancellation token for library calls where no operation specific value for a cancellation token can be (or has been) specified.
-        /// If this is set to <see cref="CancellationToken.None"/> then the library will use a cancellation token attached to an internal <see cref="CancellationTokenSource"/>.
+        /// Gets and sets the cancellation token for library calls where no operation specific value for a cancellation token can be (or has been) specified. May be <see cref="CancellationToken.None"/>.
         /// </summary>
-        /// <seealso cref="cCancellationManager"/>
+        /// <remarks>
+        /// The default value is <see cref="CancellationToken.None"/>.
+        /// If this is <see cref="CancellationToken.None"/> then the library will use an internal cancellation mechanism instead, and active operations can be cancelled by <see cref="Cancel"/>.
+        /// </remarks>
         /// <seealso cref="CancellableCount"/>
         /// <seealso cref="Cancel"/>
         public CancellationToken CancellationToken
@@ -317,17 +319,15 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the current number of cancellable operations attached to the current internal <see cref="CancellationTokenSource"/>.
+        /// Gets the number of operations that will be cancelled by <see cref="Cancel"/>.
         /// </summary>
-        /// <seealso cref="cCancellationManager"/>
         /// <seealso cref="CancellationToken"/>
         /// <seealso cref="Cancel"/>
         public int CancellableCount => mCancellationManager.Count;
 
         /// <summary>
-        /// Cancels the current cancellable operations that are attached to the current internal <see cref="CancellationTokenSource"/>.
+        /// Cancels the operations that are using the internal cancellation mechanism.
         /// </summary>
-        /// <seealso cref="cCancellationManager"/>
         /// <seealso cref="CancellationToken"/>
         /// <seealso cref="CancellableCount"/>
         public void Cancel()

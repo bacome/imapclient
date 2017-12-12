@@ -21,17 +21,20 @@ namespace work.bacome.imapclient
                 if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
                 if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
 
-                mMailboxCache.CheckIsSelectedMailbox(pMailboxHandle, null);
+                mMailboxCache.CheckHandle(pMailboxHandle);
 
-                if (pMessages.Count == 0) return new cAppendFeedback();
+                if (pMessages.Count == 0) throw new ArgumentOutOfRangeException(nameof(pMessages));
 
                 // convert the messages to a form that we can use
                 cSessionAppendDataList lMessages = await ZAppendGetDataAsync(pMessages).ConfigureAwait(false);
 
-                // initialise the progress
-                int lCount = 0;
-                foreach (var lMessage in lMessages) lCount += lMessage.Length;
-                mSynchroniser.InvokeActionInt(pSetCount, lCount, lContext);
+                // initialise any progress system that might be in place
+                if (pSetCount != null)
+                {
+                    int lLength = 0;
+                    foreach (var lMessage in lMessages) lLength += lMessage.Length;
+                    mSynchroniser.InvokeActionInt(pSetCount, lLength, lContext);
+                }
 
                 // append messages in batches
                 return await ZAppendInBatchesAsync(pMC, pMailboxHandle, lMessages, pIncrement, lContext).ConfigureAwait(false);
@@ -358,7 +361,7 @@ namespace work.bacome.imapclient
                 {
                     // pipeline the bunch of appends
                     ;?;
-
+                    // use cawaiter 
                 }
 
                 lStopwatch.Stop();
