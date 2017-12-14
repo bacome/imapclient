@@ -50,6 +50,7 @@
     <Compile Include="exposed_interfaces\other\eventsubscriptioncounts.cs" />
     <Compile Include="session\append\append.cs" />
     <Compile Include="session\append\appenddata.cs" />
+    <Compile Include="session\append\appendresult.cs" />
     <Compile Include="session\imap_commands\authenticated\append.cs" />
     <Compile Include="session\imap_commands\not_authenticated\authenticated.cs" />
     <Compile Include="support\collections\appenddatalist.cs" />

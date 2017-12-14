@@ -1103,7 +1103,12 @@ namespace work.bacome.imapclient
         {
             var lFeedback = Client.Append(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration);
             if (lFeedback.Count != 1) throw new cInternalErrorException();
-            if (lFeedback.AppendedCount == 1) return lFeedback[0].UID;
+            var lFeedbackItem = lFeedback[0];
+            if (lFeedback.AppendedCount == 1) return lFeedbackItem.AppendedMessageUID;
+            if (lFeedback[0])
+
+
+
             throw lFeedback[0].Exception ?? new cInternalErrorException();
         }
 

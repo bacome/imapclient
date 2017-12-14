@@ -10,7 +10,7 @@ namespace work.bacome.imapclient
         {
             private static readonly cCommandPart kAppendCommandPart = new cTextCommandPart("APPEND ");
 
-            private async Task<cAppendBatchFeedback> ZAppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cSessionAppendDataList pMessages, Action<int> pIncrement, cTrace.cContext pParentContext)
+            private async Task<cAppendResult> ZAppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cSessionAppendDataList pMessages, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZAppendAsync), pMC, pMailboxHandle, pMessages);
 
@@ -61,11 +61,52 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("append success");
-                        return lHook.AppendBatchFeedback;
+
+                        if (lHook.AppendUID == null) return new cAppendSuccess(pMessages.Count);
+                        else return lHook.AppendUID;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no) return new cAppendFailedBatchFeedback(pMessages.Count, new cUnsuccessfulCompletionException(lResult.ResponseText, lTryIgnore, lContext));
-                    return new cAppendFailedBatchFeedback(pMessages.Count, new cProtocolErrorException(lResult, lTryIgnore, lContext));
+                    return new cAppendFailure(pMessages.Count, lResult, lTryIgnore);
+                }
+            }
+
+            private class cAppendCommandHook : cCommandHook
+            {
+                private static readonly cBytes kAppendUID = new cBytes("APPENDUID");
+
+                private int mExpectedCount;
+
+                public cAppendCommandHook(int pExpectedCount)
+                {
+                    mExpectedCount = pExpectedCount;
+                }
+
+                public cAppendUID AppendUID { get; private set; } = null;
+
+                public override void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
+                {
+                    var lContext = pParentContext.NewMethod(nameof(cAppendCommandHook), nameof(ProcessTextCode), pTextContext, pCode, pArguments);
+
+                    if (pTextContext == eResponseTextContext.success && pCode.Equals(kAppendUID))
+                    {
+                        if (pArguments != null)
+                        {
+                            cBytesCursor lCursor = new cBytesCursor(pArguments);
+
+                            if (lCursor.GetNZNumber(out _, out var lUIDValidity) &&
+                                lCursor.SkipByte(cASCII.SPACE) &&
+                                lCursor.GetSequenceSet(out var lUIDSet) &&
+                                lCursor.Position.AtEnd &&
+                                cUIntList.TryConstruct(lUIDSet, -1, false, out var lUIDs) &&
+                                lUIDs.Count == mExpectedCount)
+                            {
+                                AppendUID = new cAppendUID(lUIDValidity, lUIDs);
+                                return;
+                            }
+                        }
+
+                        lContext.TraceWarning("likely malformed appenduid response");
+                    }
                 }
             }
         }
