@@ -1099,25 +1099,19 @@ namespace work.bacome.imapclient
         /// <inheritdoc cref="Copy(IEnumerable{cMessage})" select="returns|remarks"/>
         public Task<cCopyFeedback> CopyAsync(IEnumerable<cMessage> pMessages) => Client.CopyAsync(cMessageHandleList.FromMessages(pMessages), MailboxHandle);
 
-        public cUID Append(cAppendData pMessage, cAppendConfiguration pConfiguration = null)
+        public cUID Append(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(Client.Append(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration));
+
+        public async Task<cUID> AppendAsync(cAppendData pMessage, cAppendConfiguration pConfiguration = null) => ZAppendResult(await Client.AppendAsync(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration).ConfigureAwait(false));
+
+        private cUID ZAppendResult(cAppendFeedback pFeedback)
         {
-            var lFeedback = Client.Append(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration);
-            if (lFeedback.Count != 1) throw new cInternalErrorException();
-            var lFeedbackItem = lFeedback[0];
-            if (lFeedback.AppendedCount == 1) return lFeedbackItem.AppendedMessageUID;
-            if (lFeedback[0])
-
-
-
-            throw lFeedback[0].Exception ?? new cInternalErrorException();
-        }
-
-        public async Task<cUID> AppendAsync(cAppendData pMessage, cAppendConfiguration pConfiguration = null)
-        {
-            var lFeedback = await Client.AppendAsync(MailboxHandle, cAppendDataList.FromMessage(pMessage), pConfiguration).ConfigureAwait(false);
-            if (lFeedback.Count != 1) throw new cInternalErrorException();
-            if (lFeedback.AppendedCount == 1) return lFeedback[0].UID;
-            throw lFeedback[0].Exception ?? new cInternalErrorException();
+            if (pFeedback.Count != 1) throw new cInternalErrorException();
+            var lFeedbackItem = pFeedback[0];
+            if (pFeedback.AppendedCount == 1) return lFeedbackItem.AppendedMessageUID;
+            var lResult = lFeedbackItem.FailedResult;
+            if (lResult == null) throw new cInternalErrorException();
+            if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lFeedbackItem.FailedTryIgnore);
+            throw new cProtocolErrorException(lResult, lFeedbackItem.FailedTryIgnore);
         }
 
         public cAppendFeedback Append(IEnumerable<cAppendData> pMessages, cAppendConfiguration pConfiguration = null) => Client.Append(MailboxHandle, cAppendDataList.FromMessages(pMessages), pConfiguration);

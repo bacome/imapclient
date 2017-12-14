@@ -47,9 +47,6 @@ namespace work.bacome.imapclient
                 //
                 await ZAppendInBatchesAsync(pMC, pMailboxHandle, lMessages, pIncrement, lResults, lContext).ConfigureAwait(false);
 
-                // sanity check
-                if (lResults.Count > pMessages.Count) throw new cInternalErrorException();
-
                 // convert the collected results to feedback
 
                 var lFeedbackItems = new List<cAppendFeedbackItem>();
@@ -79,8 +76,11 @@ namespace work.bacome.imapclient
                     }
                 }
 
+                // sanity check
+                if (lFeedbackItems.Count > pMessages.Count) throw new cInternalErrorException();
+
                 // add feedback for any appends we didn't attempt
-                for (int i = lResults.Count; i < pMessages.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(false));
+                for (int i = lFeedbackItems.Count; i < pMessages.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(false));
 
                 // done
                 return new cAppendFeedback(lFeedbackItems);

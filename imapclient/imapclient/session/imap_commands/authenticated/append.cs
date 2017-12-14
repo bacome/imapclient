@@ -61,12 +61,12 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("append success");
-
-                        if (lHook.AppendUID == null) return new cAppendSuccess(pMessages.Count);
+                        if (lHook.AppendUID == null) return new cAppended(pMessages.Count);
                         else return lHook.AppendUID;
                     }
 
-                    return new cAppendFailure(pMessages.Count, lResult, lTryIgnore);
+                    lContext.TraceInformation("append unsuccessful");
+                    return new cAppendFailed(pMessages.Count, lResult, lTryIgnore);
                 }
             }
 

@@ -65,6 +65,12 @@ namespace work.bacome.imapclient
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
+        internal cUnsuccessfulCompletionException(cResponseText pResponseText, fCapabilities pTryIgnoring)
+        {
+            ResponseText = pResponseText;
+            TryIgnoring = pTryIgnoring;
+        }
+
         internal cUnsuccessfulCompletionException(cResponseText pResponseText, fCapabilities pTryIgnoring, cTrace.cContext pContext)
         {
             ResponseText = pResponseText;
@@ -98,6 +104,12 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
+
+        internal cProtocolErrorException(cCommandResult pCommandResult, fCapabilities pTryIgnoring)
+        {
+            CommandResult = pCommandResult;
+            TryIgnoring = pTryIgnoring;
+        }
 
         internal cProtocolErrorException(cCommandResult pCommandResult, fCapabilities pTryIgnoring, cTrace.cContext pContext)
         {
