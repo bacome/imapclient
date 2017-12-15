@@ -159,16 +159,6 @@
             this.label5 = new System.Windows.Forms.Label();
             this.tabClient = new System.Windows.Forms.TabControl();
             this.tbpSettings = new System.Windows.Forms.TabPage();
-            this.gbxAppendStreamRead = new System.Windows.Forms.GroupBox();
-            this.cmdASSet = new System.Windows.Forms.Button();
-            this.label33 = new System.Windows.Forms.Label();
-            this.label34 = new System.Windows.Forms.Label();
-            this.label35 = new System.Windows.Forms.Label();
-            this.label36 = new System.Windows.Forms.Label();
-            this.txtASInitial = new System.Windows.Forms.TextBox();
-            this.txtASMaxTime = new System.Windows.Forms.TextBox();
-            this.txtASMax = new System.Windows.Forms.TextBox();
-            this.txtASMin = new System.Windows.Forms.TextBox();
             this.tbpDefaults = new System.Windows.Forms.TabPage();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -247,6 +237,18 @@
             this.txtResponseText = new System.Windows.Forms.TextBox();
             this.cmdResponseText = new System.Windows.Forms.Button();
             this.cmdPoll = new System.Windows.Forms.Button();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.gbxAppendStreamRead = new System.Windows.Forms.GroupBox();
+            this.cmdASSet = new System.Windows.Forms.Button();
+            this.label33 = new System.Windows.Forms.Label();
+            this.label34 = new System.Windows.Forms.Label();
+            this.label35 = new System.Windows.Forms.Label();
+            this.label36 = new System.Windows.Forms.Label();
+            this.txtASInitial = new System.Windows.Forms.TextBox();
+            this.txtASMaxTime = new System.Windows.Forms.TextBox();
+            this.txtASMax = new System.Windows.Forms.TextBox();
+            this.txtASMin = new System.Windows.Forms.TextBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -268,7 +270,6 @@
             this.gbxSelectedMailbox.SuspendLayout();
             this.tabClient.SuspendLayout();
             this.tbpSettings.SuspendLayout();
-            this.gbxAppendStreamRead.SuspendLayout();
             this.tbpDefaults.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -281,6 +282,8 @@
             this.tpgResponseText.SuspendLayout();
             this.gbxResponseTextCode.SuspendLayout();
             this.gbxResponseTextType.SuspendLayout();
+            this.tabPage4.SuspendLayout();
+            this.gbxAppendStreamRead.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbxServer
@@ -372,7 +375,7 @@
             this.gbxTLSRequirement.Controls.Add(this.rdoTLSDisallowed);
             this.gbxTLSRequirement.Location = new System.Drawing.Point(12, 106);
             this.gbxTLSRequirement.Name = "gbxTLSRequirement";
-            this.gbxTLSRequirement.Size = new System.Drawing.Size(294, 49);
+            this.gbxTLSRequirement.Size = new System.Drawing.Size(297, 49);
             this.gbxTLSRequirement.TabIndex = 9;
             this.gbxTLSRequirement.TabStop = false;
             this.gbxTLSRequirement.Text = "TLS Requirement";
@@ -879,9 +882,9 @@
             this.gbxFetchBodyWrite.Controls.Add(this.txtFWMaxTime);
             this.gbxFetchBodyWrite.Controls.Add(this.txtFWMax);
             this.gbxFetchBodyWrite.Controls.Add(this.txtFWMin);
-            this.gbxFetchBodyWrite.Location = new System.Drawing.Point(232, 156);
+            this.gbxFetchBodyWrite.Location = new System.Drawing.Point(235, 307);
             this.gbxFetchBodyWrite.Name = "gbxFetchBodyWrite";
-            this.gbxFetchBodyWrite.Size = new System.Drawing.Size(208, 142);
+            this.gbxFetchBodyWrite.Size = new System.Drawing.Size(205, 142);
             this.gbxFetchBodyWrite.TabIndex = 4;
             this.gbxFetchBodyWrite.TabStop = false;
             this.gbxFetchBodyWrite.Text = "Fetch Body Write";
@@ -985,7 +988,7 @@
             this.gbxFetchBodyRead.Controls.Add(this.txtFRMaxTime);
             this.gbxFetchBodyRead.Controls.Add(this.txtFRMax);
             this.gbxFetchBodyRead.Controls.Add(this.txtFRMin);
-            this.gbxFetchBodyRead.Location = new System.Drawing.Point(235, 6);
+            this.gbxFetchBodyRead.Location = new System.Drawing.Point(235, 159);
             this.gbxFetchBodyRead.Name = "gbxFetchBodyRead";
             this.gbxFetchBodyRead.Size = new System.Drawing.Size(205, 142);
             this.gbxFetchBodyRead.TabIndex = 3;
@@ -1091,9 +1094,9 @@
             this.gbxFetchCacheItems.Controls.Add(this.txtFAMaxTime);
             this.gbxFetchCacheItems.Controls.Add(this.txtFAMax);
             this.gbxFetchCacheItems.Controls.Add(this.txtFAMin);
-            this.gbxFetchCacheItems.Location = new System.Drawing.Point(6, 304);
+            this.gbxFetchCacheItems.Location = new System.Drawing.Point(235, 6);
             this.gbxFetchCacheItems.Name = "gbxFetchCacheItems";
-            this.gbxFetchCacheItems.Size = new System.Drawing.Size(208, 142);
+            this.gbxFetchCacheItems.Size = new System.Drawing.Size(205, 142);
             this.gbxFetchCacheItems.TabIndex = 2;
             this.gbxFetchCacheItems.TabStop = false;
             this.gbxFetchCacheItems.Text = "Fetch Cache Items";
@@ -1190,7 +1193,7 @@
             // 
             this.gbxTimeout.Controls.Add(this.cmdTimeoutSet);
             this.gbxTimeout.Controls.Add(this.txtTimeout);
-            this.gbxTimeout.Location = new System.Drawing.Point(6, 207);
+            this.gbxTimeout.Location = new System.Drawing.Point(6, 159);
             this.gbxTimeout.Name = "gbxTimeout";
             this.gbxTimeout.Size = new System.Drawing.Size(205, 83);
             this.gbxTimeout.TabIndex = 1;
@@ -1666,6 +1669,7 @@
             this.tabClient.Controls.Add(this.tbpDefaults);
             this.tabClient.Controls.Add(this.tbpWindows);
             this.tabClient.Controls.Add(this.tpgResponseText);
+            this.tabClient.Controls.Add(this.tabPage4);
             this.tabClient.Location = new System.Drawing.Point(383, 10);
             this.tabClient.Name = "tabClient";
             this.tabClient.SelectedIndex = 0;
@@ -1674,7 +1678,7 @@
             // 
             // tbpSettings
             // 
-            this.tbpSettings.Controls.Add(this.gbxAppendStreamRead);
+            this.tbpSettings.Controls.Add(this.button1);
             this.tbpSettings.Controls.Add(this.gbxIdle);
             this.tbpSettings.Controls.Add(this.gbxTimeout);
             this.tbpSettings.Controls.Add(this.gbxFetchBodyRead);
@@ -1687,112 +1691,6 @@
             this.tbpSettings.TabIndex = 0;
             this.tbpSettings.Text = "Settings";
             this.tbpSettings.UseVisualStyleBackColor = true;
-            // 
-            // gbxAppendStreamRead
-            // 
-            this.gbxAppendStreamRead.Controls.Add(this.cmdASSet);
-            this.gbxAppendStreamRead.Controls.Add(this.label33);
-            this.gbxAppendStreamRead.Controls.Add(this.label34);
-            this.gbxAppendStreamRead.Controls.Add(this.label35);
-            this.gbxAppendStreamRead.Controls.Add(this.label36);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASInitial);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASMaxTime);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASMax);
-            this.gbxAppendStreamRead.Controls.Add(this.txtASMin);
-            this.gbxAppendStreamRead.Location = new System.Drawing.Point(232, 304);
-            this.gbxAppendStreamRead.Name = "gbxAppendStreamRead";
-            this.gbxAppendStreamRead.Size = new System.Drawing.Size(208, 142);
-            this.gbxAppendStreamRead.TabIndex = 5;
-            this.gbxAppendStreamRead.TabStop = false;
-            this.gbxAppendStreamRead.Text = "Append Stream Read";
-            this.gbxAppendStreamRead.Validating += new System.ComponentModel.CancelEventHandler(this.gbxAppendStreamRead_Validating);
-            this.gbxAppendStreamRead.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // cmdASSet
-            // 
-            this.cmdASSet.Location = new System.Drawing.Point(15, 108);
-            this.cmdASSet.Name = "cmdASSet";
-            this.cmdASSet.Size = new System.Drawing.Size(100, 25);
-            this.cmdASSet.TabIndex = 8;
-            this.cmdASSet.Text = "Set";
-            this.cmdASSet.UseVisualStyleBackColor = true;
-            this.cmdASSet.Click += new System.EventHandler(this.cmdASSet_Click);
-            // 
-            // label33
-            // 
-            this.label33.AutoSize = true;
-            this.label33.Location = new System.Drawing.Point(12, 85);
-            this.label33.Name = "label33";
-            this.label33.Size = new System.Drawing.Size(31, 13);
-            this.label33.TabIndex = 6;
-            this.label33.Text = "Initial";
-            // 
-            // label34
-            // 
-            this.label34.AutoSize = true;
-            this.label34.Location = new System.Drawing.Point(12, 64);
-            this.label34.Name = "label34";
-            this.label34.Size = new System.Drawing.Size(53, 13);
-            this.label34.TabIndex = 4;
-            this.label34.Text = "Max Time";
-            // 
-            // label35
-            // 
-            this.label35.AutoSize = true;
-            this.label35.Location = new System.Drawing.Point(12, 43);
-            this.label35.Name = "label35";
-            this.label35.Size = new System.Drawing.Size(27, 13);
-            this.label35.TabIndex = 2;
-            this.label35.Text = "Max";
-            // 
-            // label36
-            // 
-            this.label36.AutoSize = true;
-            this.label36.Location = new System.Drawing.Point(12, 22);
-            this.label36.Name = "label36";
-            this.label36.Size = new System.Drawing.Size(24, 13);
-            this.label36.TabIndex = 0;
-            this.label36.Text = "Min";
-            // 
-            // txtASInitial
-            // 
-            this.txtASInitial.Location = new System.Drawing.Point(133, 82);
-            this.txtASInitial.Name = "txtASInitial";
-            this.txtASInitial.Size = new System.Drawing.Size(50, 20);
-            this.txtASInitial.TabIndex = 7;
-            this.txtASInitial.Text = "1000";
-            this.txtASInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtASInitial.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtASMaxTime
-            // 
-            this.txtASMaxTime.Location = new System.Drawing.Point(133, 61);
-            this.txtASMaxTime.Name = "txtASMaxTime";
-            this.txtASMaxTime.Size = new System.Drawing.Size(50, 20);
-            this.txtASMaxTime.TabIndex = 5;
-            this.txtASMaxTime.Text = "1000";
-            this.txtASMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
-            this.txtASMaxTime.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtASMax
-            // 
-            this.txtASMax.Location = new System.Drawing.Point(133, 40);
-            this.txtASMax.Name = "txtASMax";
-            this.txtASMax.Size = new System.Drawing.Size(50, 20);
-            this.txtASMax.TabIndex = 3;
-            this.txtASMax.Text = "1000";
-            this.txtASMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtASMax.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // txtASMin
-            // 
-            this.txtASMin.Location = new System.Drawing.Point(133, 19);
-            this.txtASMin.Name = "txtASMin";
-            this.txtASMin.Size = new System.Drawing.Size(50, 20);
-            this.txtASMin.TabIndex = 1;
-            this.txtASMin.Text = "1000";
-            this.txtASMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
-            this.txtASMin.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // tbpDefaults
             // 
@@ -2681,6 +2579,121 @@
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
             // 
+            // tabPage4
+            // 
+            this.tabPage4.Controls.Add(this.gbxAppendStreamRead);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(462, 452);
+            this.tabPage4.TabIndex = 4;
+            this.tabPage4.Text = "Append";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // gbxAppendStreamRead
+            // 
+            this.gbxAppendStreamRead.Controls.Add(this.cmdASSet);
+            this.gbxAppendStreamRead.Controls.Add(this.label33);
+            this.gbxAppendStreamRead.Controls.Add(this.label34);
+            this.gbxAppendStreamRead.Controls.Add(this.label35);
+            this.gbxAppendStreamRead.Controls.Add(this.label36);
+            this.gbxAppendStreamRead.Controls.Add(this.txtASInitial);
+            this.gbxAppendStreamRead.Controls.Add(this.txtASMaxTime);
+            this.gbxAppendStreamRead.Controls.Add(this.txtASMax);
+            this.gbxAppendStreamRead.Controls.Add(this.txtASMin);
+            this.gbxAppendStreamRead.Location = new System.Drawing.Point(127, 155);
+            this.gbxAppendStreamRead.Name = "gbxAppendStreamRead";
+            this.gbxAppendStreamRead.Size = new System.Drawing.Size(208, 142);
+            this.gbxAppendStreamRead.TabIndex = 6;
+            this.gbxAppendStreamRead.TabStop = false;
+            this.gbxAppendStreamRead.Text = "Append Stream Read";
+            // 
+            // cmdASSet
+            // 
+            this.cmdASSet.Location = new System.Drawing.Point(15, 108);
+            this.cmdASSet.Name = "cmdASSet";
+            this.cmdASSet.Size = new System.Drawing.Size(100, 25);
+            this.cmdASSet.TabIndex = 8;
+            this.cmdASSet.Text = "Set";
+            this.cmdASSet.UseVisualStyleBackColor = true;
+            // 
+            // label33
+            // 
+            this.label33.AutoSize = true;
+            this.label33.Location = new System.Drawing.Point(12, 85);
+            this.label33.Name = "label33";
+            this.label33.Size = new System.Drawing.Size(31, 13);
+            this.label33.TabIndex = 6;
+            this.label33.Text = "Initial";
+            // 
+            // label34
+            // 
+            this.label34.AutoSize = true;
+            this.label34.Location = new System.Drawing.Point(12, 64);
+            this.label34.Name = "label34";
+            this.label34.Size = new System.Drawing.Size(53, 13);
+            this.label34.TabIndex = 4;
+            this.label34.Text = "Max Time";
+            // 
+            // label35
+            // 
+            this.label35.AutoSize = true;
+            this.label35.Location = new System.Drawing.Point(12, 43);
+            this.label35.Name = "label35";
+            this.label35.Size = new System.Drawing.Size(27, 13);
+            this.label35.TabIndex = 2;
+            this.label35.Text = "Max";
+            // 
+            // label36
+            // 
+            this.label36.AutoSize = true;
+            this.label36.Location = new System.Drawing.Point(12, 22);
+            this.label36.Name = "label36";
+            this.label36.Size = new System.Drawing.Size(24, 13);
+            this.label36.TabIndex = 0;
+            this.label36.Text = "Min";
+            // 
+            // txtASInitial
+            // 
+            this.txtASInitial.Location = new System.Drawing.Point(133, 82);
+            this.txtASInitial.Name = "txtASInitial";
+            this.txtASInitial.Size = new System.Drawing.Size(50, 20);
+            this.txtASInitial.TabIndex = 7;
+            this.txtASInitial.Text = "1000";
+            // 
+            // txtASMaxTime
+            // 
+            this.txtASMaxTime.Location = new System.Drawing.Point(133, 61);
+            this.txtASMaxTime.Name = "txtASMaxTime";
+            this.txtASMaxTime.Size = new System.Drawing.Size(50, 20);
+            this.txtASMaxTime.TabIndex = 5;
+            this.txtASMaxTime.Text = "1000";
+            // 
+            // txtASMax
+            // 
+            this.txtASMax.Location = new System.Drawing.Point(133, 40);
+            this.txtASMax.Name = "txtASMax";
+            this.txtASMax.Size = new System.Drawing.Size(50, 20);
+            this.txtASMax.TabIndex = 3;
+            this.txtASMax.Text = "1000";
+            // 
+            // txtASMin
+            // 
+            this.txtASMin.Location = new System.Drawing.Point(133, 19);
+            this.txtASMin.Name = "txtASMin";
+            this.txtASMin.Size = new System.Drawing.Size(50, 20);
+            this.txtASMin.TabIndex = 1;
+            this.txtASMin.Text = "1000";
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(18, 262);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(100, 25);
+            this.button1.TabIndex = 5;
+            this.button1.Text = "Set";
+            this.button1.UseVisualStyleBackColor = true;
+            // 
             // frmClient
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -2732,8 +2745,6 @@
             this.gbxSelectedMailbox.PerformLayout();
             this.tabClient.ResumeLayout(false);
             this.tbpSettings.ResumeLayout(false);
-            this.gbxAppendStreamRead.ResumeLayout(false);
-            this.gbxAppendStreamRead.PerformLayout();
             this.tbpDefaults.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
@@ -2755,6 +2766,9 @@
             this.gbxResponseTextCode.PerformLayout();
             this.gbxResponseTextType.ResumeLayout(false);
             this.gbxResponseTextType.PerformLayout();
+            this.tabPage4.ResumeLayout(false);
+            this.gbxAppendStreamRead.ResumeLayout(false);
+            this.gbxAppendStreamRead.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2968,6 +2982,10 @@
         private System.Windows.Forms.TextBox txtNWMaxTime;
         private System.Windows.Forms.TextBox txtNWMax;
         private System.Windows.Forms.TextBox txtNWMin;
+        private System.Windows.Forms.CheckBox chkRTTPreAuthGreeting;
+        private System.Windows.Forms.CheckBox chkRTTByeGreeting;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.GroupBox gbxAppendStreamRead;
         private System.Windows.Forms.Button cmdASSet;
         private System.Windows.Forms.Label label33;
@@ -2978,7 +2996,5 @@
         private System.Windows.Forms.TextBox txtASMaxTime;
         private System.Windows.Forms.TextBox txtASMax;
         private System.Windows.Forms.TextBox txtASMin;
-        private System.Windows.Forms.CheckBox chkRTTPreAuthGreeting;
-        private System.Windows.Forms.CheckBox chkRTTByeGreeting;
     }
 }

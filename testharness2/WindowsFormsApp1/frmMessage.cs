@@ -1118,5 +1118,10 @@ namespace testharness2
 
             mAddChildForm(lMessageStream, this);
         }
+
+        private void cmdCopyToClipboard_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

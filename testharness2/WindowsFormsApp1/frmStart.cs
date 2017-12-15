@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using work.bacome.trace;
+using work.bacome.imapclient.support;
 
 namespace testharness2
 {
