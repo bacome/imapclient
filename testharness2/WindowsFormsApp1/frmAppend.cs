@@ -45,7 +45,7 @@ namespace testharness2
             mFlagsSet = dgv.Columns.Add(LButtonColumn("Set Flags"));
             mFlagsClear = dgv.Columns.Add(LButtonColumn("Clear Flags"));
             dgv.Columns.Add(LDisplayColumn(nameof(cGridRowData.Flags)));
-            dgv.Columns.Add(LColumn(nameof(cGridRowData.Received)));
+            dgv.Columns.Add(LDisplayColumn(nameof(cGridRowData.Received)));
             mDataPaste = dgv.Columns.Add(LButtonColumn("Paste Data"));
             mDataFile = dgv.Columns.Add(LButtonColumn("File Data"));
             mDataCompose = dgv.Columns.Add(LButtonColumn("Compose Data"));
@@ -57,16 +57,6 @@ namespace testharness2
             var lBindingSource = new BindingSource();
             lBindingSource.DataSource = typeof(cGridRowData);
             dgv.DataSource = lBindingSource;
-
-            DataGridViewColumn LColumn(string pName)
-            {
-                DataGridViewColumn lResult = new DataGridViewColumn();
-
-                lResult.DataPropertyName = pName;
-                lResult.HeaderCell.Value = pName;
-                lResult.CellTemplate = lDisplayColumnTemplate;
-                return lResult;
-            }
 
             DataGridViewColumn LDisplayColumn(string pName)
             {
@@ -210,17 +200,102 @@ namespace testharness2
             dgv.Rows[e.RowIndex].ErrorText = null;
         }
 
-        private void cmdAppend_Click(object sender, EventArgs e)
+        private async void cmdAppend_Click(object sender, EventArgs e)
         {
-            // check that there are rows
-            // check the rows all have data
-            // put up the select mailbox dialog
-            // append
+            if (!ValidateChildren(ValidationConstraints.Enabled))
+            {
+                MessageBox.Show(this, "data errors");
+                return;
+            }
+
+            if (!(dgv.DataSource is BindingSource lBindingSource))
+            {
+                MessageBox.Show(this, "internal error");
+                return;
+            }
+
+            if (lBindingSource.Count == 0)
+            {
+                MessageBox.Show(this, "nothing to append");
+                return;
+            }
+
+            cMailbox lMailbox;
+
+            using (frmMailboxDialog lMailboxDialog = new frmMailboxDialog(mClient, false))
+            {
+                if (lMailboxDialog.ShowDialog(this) != DialogResult.OK) return;
+                lMailbox = lMailboxDialog.Mailbox;
+            }
+
+            {
+                if (lBindingSource.Count == 1 && lBindingSource[0] is cGridRowData lRow && lRow.Flags == null && lRow.Received == null && lRow.Data is cAppendDataSourceString lString)
+                {
+                    // to demonstrate the simple API
+
+                    cUID lUID;
+
+                    try { lUID = await lMailbox.AppendAsync(lString.String); }
+                    catch (Exception ex)
+                    {
+                        if (!IsDisposed) MessageBox.Show(this, $"append error\n{ex}");
+                        return;
+                    }
+
+                    if (!IsDisposed) MessageBox.Show(this, $"appended {lUID}");
+
+                    return;
+                }
+            }
 
 
+            // DO THE mailmessage as a simple API example also ...
 
+            List<cAppendData> lMessages = new List<cAppendData>();
 
+            foreach (cGridRowData lRow in lBindingSource)
+            {
+                switch (lRow.Data)
+                {
+                    case cAppendDataSourceMessage lMessage:
 
+                        if (lRow.Flags == null && lRow.Received == null) lMessages.Add(lMessage.Message);
+                        else lMessages.Add(new cMessageAppendData(lMessage.Message, lRow.Flags, lRow.Received));
+                        break;
+
+                    case cAppendDataSourceMessagePart lPart:
+
+                        lMessages.Add(new cMessagePartAppendData(lPart.Message, lPart.Part as cMessageBodyPart, lRow.Flags, lRow.Received));
+                        break;
+
+                    case cAppendDataSourceString lString:
+
+                        if (lRow.Flags == null && lRow.Received == null) lMessages.Add(lString.String);
+                        else lMessages.Add(new cStringAppendData(lString.String, lRow.Flags, lRow.Received));
+                        break;
+
+                    case cAppendDataSourceFile lFile:
+
+                        lMessages.Add(new cFileAppendData(lFile.Path, lRow.Flags, lRow.Received));
+                        break;
+
+                    default:
+
+                        MessageBox.Show(this, "internal error");
+                        return;
+                }
+            }
+
+            cAppendFeedback lFeedback;
+
+            try { lFeedback = await lMailbox.AppendAsync(lMessages); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"append error\n{ex}");
+                return;
+            }
+
+            if (!IsDisposed) MessageBox.Show(this, $"appended {lFeedback}");
         }
 
 
@@ -251,7 +326,22 @@ namespace testharness2
                 }
             }
 
-            public string Received
+            public DateTime? Received => mReceived;
+
+            public cAppendDataSource Data
+            {
+                get => mData;
+
+                set
+                {
+                    mData = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayData)));
+                }
+            }
+
+            public string DisplayFlags => Flags?.ToString();
+
+            public string DisplayReceived
             {
                 get
                 {
@@ -267,18 +357,6 @@ namespace testharness2
                 }
             }
 
-            public cAppendDataSource Data
-            {
-                get => mData;
-
-                set
-                {
-                    mData = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayData)));
-                }
-            }
-
-            public string DisplayFlags => Flags?.ToString();
             public string DisplayData => Data?.ToString();
 
             public string Changed { get; set; }

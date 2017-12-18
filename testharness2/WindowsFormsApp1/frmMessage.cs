@@ -1073,7 +1073,7 @@ namespace testharness2
                 return;
             }
 
-            if (!IsDisposed && lUID != null) MessageBox.Show(this, $"copied as {lUID}");
+            if (!IsDisposed) MessageBox.Show(this, $"copied as {lUID}");
         }
 
         private void ZValTextBoxIsNumberOfBytes(object sender, CancelEventArgs e)

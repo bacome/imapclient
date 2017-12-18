@@ -673,7 +673,7 @@ namespace testharness2
                 return;
             }
 
-            if (!IsDisposed && lFeedback != null) MessageBox.Show(this, $"copied {lFeedback}");
+            if (!IsDisposed) MessageBox.Show(this, $"copied {lFeedback}");
         }
 
         private void frmSelectedMailbox_FormClosing(object sender, FormClosingEventArgs e)
