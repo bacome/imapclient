@@ -98,8 +98,6 @@
             // chkDraft
             // 
             this.chkDraft.AutoSize = true;
-            this.chkDraft.Checked = true;
-            this.chkDraft.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkDraft.Location = new System.Drawing.Point(222, 12);
             this.chkDraft.Name = "chkDraft";
             this.chkDraft.Size = new System.Drawing.Size(49, 17);

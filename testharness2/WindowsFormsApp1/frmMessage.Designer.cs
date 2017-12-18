@@ -80,7 +80,8 @@
             this.lblQueryError = new System.Windows.Forms.Label();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
             this.cmdCopyTo = new System.Windows.Forms.Button();
-            this.cmdCopyToClipboard = new System.Windows.Forms.Button();
+            this.cmdCopyForAppend = new System.Windows.Forms.Button();
+            this.cmdCopyPartForAppend = new System.Windows.Forms.Button();
             this.tab.SuspendLayout();
             this.tpgEnvelope.SuspendLayout();
             this.tpgText.SuspendLayout();
@@ -400,6 +401,7 @@
             // 
             // tpgSummary
             // 
+            this.tpgSummary.Controls.Add(this.cmdCopyPartForAppend);
             this.tpgSummary.Controls.Add(this.rtxSummary);
             this.tpgSummary.Location = new System.Drawing.Point(4, 22);
             this.tpgSummary.Name = "tpgSummary";
@@ -416,7 +418,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rtxSummary.Location = new System.Drawing.Point(3, 3);
             this.rtxSummary.Name = "rtxSummary";
-            this.rtxSummary.Size = new System.Drawing.Size(491, 468);
+            this.rtxSummary.Size = new System.Drawing.Size(491, 437);
             this.rtxSummary.TabIndex = 0;
             this.rtxSummary.Text = "";
             // 
@@ -685,16 +687,27 @@
             this.cmdCopyTo.UseVisualStyleBackColor = true;
             this.cmdCopyTo.Click += new System.EventHandler(this.cmdCopyTo_Click);
             // 
-            // cmdCopyToClipboard
+            // cmdCopyForAppend
             // 
-            this.cmdCopyToClipboard.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdCopyToClipboard.Location = new System.Drawing.Point(580, 5);
-            this.cmdCopyToClipboard.Name = "cmdCopyToClipboard";
-            this.cmdCopyToClipboard.Size = new System.Drawing.Size(100, 25);
-            this.cmdCopyToClipboard.TabIndex = 3;
-            this.cmdCopyToClipboard.Text = "Copy to clipboard";
-            this.cmdCopyToClipboard.UseVisualStyleBackColor = true;
-            this.cmdCopyToClipboard.Click += new System.EventHandler(this.cmdCopyToClipboard_Click);
+            this.cmdCopyForAppend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdCopyForAppend.Location = new System.Drawing.Point(580, 5);
+            this.cmdCopyForAppend.Name = "cmdCopyForAppend";
+            this.cmdCopyForAppend.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopyForAppend.TabIndex = 3;
+            this.cmdCopyForAppend.Text = "Copy for Append";
+            this.cmdCopyForAppend.UseVisualStyleBackColor = true;
+            this.cmdCopyForAppend.Click += new System.EventHandler(this.cmdCopyForAppend_Click);
+            // 
+            // cmdCopyPartForAppend
+            // 
+            this.cmdCopyPartForAppend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdCopyPartForAppend.Location = new System.Drawing.Point(394, 446);
+            this.cmdCopyPartForAppend.Name = "cmdCopyPartForAppend";
+            this.cmdCopyPartForAppend.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopyPartForAppend.TabIndex = 4;
+            this.cmdCopyPartForAppend.Text = "Copy for Append";
+            this.cmdCopyPartForAppend.UseVisualStyleBackColor = true;
+            this.cmdCopyPartForAppend.Click += new System.EventHandler(this.cmdCopyPartForAppend_Click);
             // 
             // frmMessage
             // 
@@ -702,7 +715,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
             this.ClientSize = new System.Drawing.Size(792, 573);
-            this.Controls.Add(this.cmdCopyToClipboard);
+            this.Controls.Add(this.cmdCopyForAppend);
             this.Controls.Add(this.cmdCopyTo);
             this.Controls.Add(this.lblQueryError);
             this.Controls.Add(this.tab);
@@ -799,6 +812,7 @@
         private System.Windows.Forms.RadioButton rdoMSTUID;
         private System.Windows.Forms.Panel pnlMessageStream;
         private System.Windows.Forms.RadioButton rdoMSDOther;
-        private System.Windows.Forms.Button cmdCopyToClipboard;
+        private System.Windows.Forms.Button cmdCopyForAppend;
+        private System.Windows.Forms.Button cmdCopyPartForAppend;
     }
 }

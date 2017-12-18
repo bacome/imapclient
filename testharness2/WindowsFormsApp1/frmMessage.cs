@@ -376,6 +376,7 @@ namespace testharness2
             if (tvwBodyStructure.SelectedNode == null)
             {
                 rtxSummary.Text = kNoNodeSelected;
+                cmdCopyPartForAppend.Enabled = false;
                 return;
             }
 
@@ -387,6 +388,7 @@ namespace testharness2
                 lBuilder.AppendLine("root");
                 lBuilder.AppendLine("message size: " + mMessage.Size);
                 rtxSummary.Text = lBuilder.ToString();
+                cmdCopyPartForAppend.Enabled = false;
                 return;
             }
 
@@ -409,13 +411,17 @@ namespace testharness2
 
                     if (lTag.BodyPart is cTextBodyPart lTextBodyPart) lBuilder.AppendLine($"Charset: {lTextBodyPart.Charset}");
                     else if (lTag.BodyPart is cMessageBodyPart lMessageBodyPart) ZAppendEnvelope(lBuilder, lMessageBodyPart.Envelope);
+
+                    cmdCopyPartForAppend.Enabled = true;
                 }
+                else cmdCopyPartForAppend.Enabled = false;
 
                 rtxSummary.Text = lBuilder.ToString();
                 return;
             }
 
             ZQueryBodyStructureRawSectionDataAsync(lTag, pQueryBodyStructureDetailEntryNumber, rtxSummary);
+            cmdCopyPartForAppend.Enabled = false;
         }
 
         private void ZQueryBodyStructureMessageStream()
@@ -1119,9 +1125,19 @@ namespace testharness2
             mAddChildForm(lMessageStream, this);
         }
 
-        private void cmdCopyToClipboard_Click(object sender, EventArgs e)
+        private void cmdCopyForAppend_Click(object sender, EventArgs e)
         {
+            Clipboard.Clear();
+            cAppendDataSource.CurrentData = new cAppendDataSourceMessage(mMessage);
+        }
 
+        private void cmdCopyPartForAppend_Click(object sender, EventArgs e)
+        {
+            if (tvwBodyStructure.SelectedNode == null) return;
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+            if (!(lTag.BodyPart is cSinglePartBody lPart)) return;
+            Clipboard.Clear();
+            cAppendDataSource.CurrentData = new cAppendDataSourceMessagePart(mMessage, lPart);
         }
     }
 }

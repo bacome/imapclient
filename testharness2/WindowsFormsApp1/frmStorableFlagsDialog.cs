@@ -13,14 +13,40 @@ namespace testharness2
 {
     public partial class frmStorableFlagsDialog : Form
     {
-        public frmStorableFlagsDialog()
+        private readonly cStorableFlags mFlags;
+
+        public frmStorableFlagsDialog(cStorableFlags pFlags)
         {
+            mFlags = pFlags;
             InitializeComponent();
         }
 
         private void frmStorableFlagsDialog_Load(object sender, EventArgs e)
         {
             Text = "imapclient testharness - storable flags dialog";
+
+            if (mFlags == null) return;
+
+            string lFlags = null;
+
+            foreach (var lFlag in mFlags)
+            {
+                if (lFlag.Equals(kMessageFlag.Answered, StringComparison.InvariantCultureIgnoreCase)) chkAnswered.Checked = true;
+                else if (lFlag.Equals(kMessageFlag.Deleted, StringComparison.InvariantCultureIgnoreCase)) chkDeleted.Checked = true;
+                else if (lFlag.Equals(kMessageFlag.Draft, StringComparison.InvariantCultureIgnoreCase)) chkDraft.Checked = true;
+                else if (lFlag.Equals(kMessageFlag.Flagged, StringComparison.InvariantCultureIgnoreCase)) chkFlagged.Checked = true;
+                else if (lFlag.Equals(kMessageFlag.Seen, StringComparison.InvariantCultureIgnoreCase)) chkSeen.Checked = true;
+                else if (lFlag.Equals(kMessageFlag.Forwarded, StringComparison.InvariantCultureIgnoreCase)) chkForwarded.Checked = true;
+                else if (lFlag.Equals(kMessageFlag.SubmitPending, StringComparison.InvariantCultureIgnoreCase)) chkSubmitPending.Checked = true;
+                else if (lFlag.Equals(kMessageFlag.Submitted, StringComparison.InvariantCultureIgnoreCase)) chkSubmitted.Checked = true;
+                else
+                {
+                    if (lFlags == null) lFlags = lFlag;
+                    else lFlags += " " + lFlag;
+                }
+            }
+
+            txtFlags.Text = lFlags;
         }
 
         public cStorableFlags Flags

@@ -144,7 +144,7 @@ namespace work.bacome.imapclient
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
-        private cBatchSizerConfiguration mAppendConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
+        private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
         private int mAppendTargetBufferSize = cMessageDataStream.DefaultTargetBufferSize;
         private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
@@ -723,16 +723,16 @@ namespace work.bacome.imapclient
         /// The default value is min=1000b, max=unlimited, maxtime=10s, initial=1000b.
         /// If <see cref="cCapabilities.MultiAppend"/> is in use, limits the number of messages sent in a single append, otherwise limits the number of pipelined appends.
         /// </remarks>
-        public cBatchSizerConfiguration AppendConfiguration
+        public cBatchSizerConfiguration AppendBatchConfiguration
         {
-            get => mAppendConfiguration;
+            get => mAppendBatchConfiguration;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendConfiguration), value);
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(AppendBatchConfiguration), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mAppendConfiguration = value ?? throw new ArgumentNullException();
-                mSession?.SetAppendConfiguration(value, lContext);
+                mAppendBatchConfiguration = value ?? throw new ArgumentNullException();
+                mSession?.SetAppendBatchConfiguration(value, lContext);
             }
         }
 

@@ -248,7 +248,28 @@
             this.txtASMaxTime = new System.Windows.Forms.TextBox();
             this.txtASMax = new System.Windows.Forms.TextBox();
             this.txtASMin = new System.Windows.Forms.TextBox();
-            this.button1 = new System.Windows.Forms.Button();
+            this.cmdCTSAllocate = new System.Windows.Forms.Button();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.cmdCTSCancel = new System.Windows.Forms.Button();
+            this.cmdCTSDispose = new System.Windows.Forms.Button();
+            this.gbxAppendBatch = new System.Windows.Forms.GroupBox();
+            this.cmdABSet = new System.Windows.Forms.Button();
+            this.label37 = new System.Windows.Forms.Label();
+            this.label38 = new System.Windows.Forms.Label();
+            this.label39 = new System.Windows.Forms.Label();
+            this.label40 = new System.Windows.Forms.Label();
+            this.txtABInitial = new System.Windows.Forms.TextBox();
+            this.txtABMaxTime = new System.Windows.Forms.TextBox();
+            this.txtABMax = new System.Windows.Forms.TextBox();
+            this.txtABMin = new System.Windows.Forms.TextBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.cmdATSet = new System.Windows.Forms.Button();
+            this.txtAppendTargetBufferSize = new System.Windows.Forms.TextBox();
+            this.cmdAppend = new System.Windows.Forms.Button();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.cmdDefaultFlags = new System.Windows.Forms.Button();
+            this.lblDefaultFlags = new System.Windows.Forms.Label();
+            this.cmdDefaultFlagsClear = new System.Windows.Forms.Button();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -284,6 +305,10 @@
             this.gbxResponseTextType.SuspendLayout();
             this.tabPage4.SuspendLayout();
             this.gbxAppendStreamRead.SuspendLayout();
+            this.groupBox1.SuspendLayout();
+            this.gbxAppendBatch.SuspendLayout();
+            this.groupBox2.SuspendLayout();
+            this.groupBox3.SuspendLayout();
             this.SuspendLayout();
             // 
             // gbxServer
@@ -882,10 +907,10 @@
             this.gbxFetchBodyWrite.Controls.Add(this.txtFWMaxTime);
             this.gbxFetchBodyWrite.Controls.Add(this.txtFWMax);
             this.gbxFetchBodyWrite.Controls.Add(this.txtFWMin);
-            this.gbxFetchBodyWrite.Location = new System.Drawing.Point(235, 307);
+            this.gbxFetchBodyWrite.Location = new System.Drawing.Point(217, 307);
             this.gbxFetchBodyWrite.Name = "gbxFetchBodyWrite";
-            this.gbxFetchBodyWrite.Size = new System.Drawing.Size(205, 142);
-            this.gbxFetchBodyWrite.TabIndex = 4;
+            this.gbxFetchBodyWrite.Size = new System.Drawing.Size(227, 142);
+            this.gbxFetchBodyWrite.TabIndex = 5;
             this.gbxFetchBodyWrite.TabStop = false;
             this.gbxFetchBodyWrite.Text = "Fetch Body Write";
             this.gbxFetchBodyWrite.Validating += new System.ComponentModel.CancelEventHandler(this.gbxFetchBodyWrite_Validating);
@@ -941,7 +966,7 @@
             // 
             this.txtFWInitial.Location = new System.Drawing.Point(133, 82);
             this.txtFWInitial.Name = "txtFWInitial";
-            this.txtFWInitial.Size = new System.Drawing.Size(50, 20);
+            this.txtFWInitial.Size = new System.Drawing.Size(70, 20);
             this.txtFWInitial.TabIndex = 7;
             this.txtFWInitial.Text = "1000";
             this.txtFWInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
@@ -951,7 +976,7 @@
             // 
             this.txtFWMaxTime.Location = new System.Drawing.Point(133, 61);
             this.txtFWMaxTime.Name = "txtFWMaxTime";
-            this.txtFWMaxTime.Size = new System.Drawing.Size(50, 20);
+            this.txtFWMaxTime.Size = new System.Drawing.Size(70, 20);
             this.txtFWMaxTime.TabIndex = 5;
             this.txtFWMaxTime.Text = "1000";
             this.txtFWMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
@@ -961,7 +986,7 @@
             // 
             this.txtFWMax.Location = new System.Drawing.Point(133, 40);
             this.txtFWMax.Name = "txtFWMax";
-            this.txtFWMax.Size = new System.Drawing.Size(50, 20);
+            this.txtFWMax.Size = new System.Drawing.Size(70, 20);
             this.txtFWMax.TabIndex = 3;
             this.txtFWMax.Text = "1000";
             this.txtFWMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
@@ -971,7 +996,7 @@
             // 
             this.txtFWMin.Location = new System.Drawing.Point(133, 19);
             this.txtFWMin.Name = "txtFWMin";
-            this.txtFWMin.Size = new System.Drawing.Size(50, 20);
+            this.txtFWMin.Size = new System.Drawing.Size(70, 20);
             this.txtFWMin.TabIndex = 1;
             this.txtFWMin.Text = "1000";
             this.txtFWMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
@@ -988,10 +1013,10 @@
             this.gbxFetchBodyRead.Controls.Add(this.txtFRMaxTime);
             this.gbxFetchBodyRead.Controls.Add(this.txtFRMax);
             this.gbxFetchBodyRead.Controls.Add(this.txtFRMin);
-            this.gbxFetchBodyRead.Location = new System.Drawing.Point(235, 159);
+            this.gbxFetchBodyRead.Location = new System.Drawing.Point(217, 159);
             this.gbxFetchBodyRead.Name = "gbxFetchBodyRead";
-            this.gbxFetchBodyRead.Size = new System.Drawing.Size(205, 142);
-            this.gbxFetchBodyRead.TabIndex = 3;
+            this.gbxFetchBodyRead.Size = new System.Drawing.Size(227, 142);
+            this.gbxFetchBodyRead.TabIndex = 4;
             this.gbxFetchBodyRead.TabStop = false;
             this.gbxFetchBodyRead.Text = "Fetch Body Read";
             this.gbxFetchBodyRead.Validating += new System.ComponentModel.CancelEventHandler(this.gbxFetchBodyRead_Validating);
@@ -1047,7 +1072,7 @@
             // 
             this.txtFRInitial.Location = new System.Drawing.Point(133, 82);
             this.txtFRInitial.Name = "txtFRInitial";
-            this.txtFRInitial.Size = new System.Drawing.Size(50, 20);
+            this.txtFRInitial.Size = new System.Drawing.Size(70, 20);
             this.txtFRInitial.TabIndex = 7;
             this.txtFRInitial.Text = "1000";
             this.txtFRInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
@@ -1057,7 +1082,7 @@
             // 
             this.txtFRMaxTime.Location = new System.Drawing.Point(133, 61);
             this.txtFRMaxTime.Name = "txtFRMaxTime";
-            this.txtFRMaxTime.Size = new System.Drawing.Size(50, 20);
+            this.txtFRMaxTime.Size = new System.Drawing.Size(70, 20);
             this.txtFRMaxTime.TabIndex = 5;
             this.txtFRMaxTime.Text = "1000";
             this.txtFRMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
@@ -1067,7 +1092,7 @@
             // 
             this.txtFRMax.Location = new System.Drawing.Point(133, 40);
             this.txtFRMax.Name = "txtFRMax";
-            this.txtFRMax.Size = new System.Drawing.Size(50, 20);
+            this.txtFRMax.Size = new System.Drawing.Size(70, 20);
             this.txtFRMax.TabIndex = 3;
             this.txtFRMax.Text = "1000";
             this.txtFRMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
@@ -1077,7 +1102,7 @@
             // 
             this.txtFRMin.Location = new System.Drawing.Point(133, 19);
             this.txtFRMin.Name = "txtFRMin";
-            this.txtFRMin.Size = new System.Drawing.Size(50, 20);
+            this.txtFRMin.Size = new System.Drawing.Size(70, 20);
             this.txtFRMin.TabIndex = 1;
             this.txtFRMin.Text = "1000";
             this.txtFRMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
@@ -1094,10 +1119,10 @@
             this.gbxFetchCacheItems.Controls.Add(this.txtFAMaxTime);
             this.gbxFetchCacheItems.Controls.Add(this.txtFAMax);
             this.gbxFetchCacheItems.Controls.Add(this.txtFAMin);
-            this.gbxFetchCacheItems.Location = new System.Drawing.Point(235, 6);
+            this.gbxFetchCacheItems.Location = new System.Drawing.Point(217, 6);
             this.gbxFetchCacheItems.Name = "gbxFetchCacheItems";
-            this.gbxFetchCacheItems.Size = new System.Drawing.Size(205, 142);
-            this.gbxFetchCacheItems.TabIndex = 2;
+            this.gbxFetchCacheItems.Size = new System.Drawing.Size(203, 142);
+            this.gbxFetchCacheItems.TabIndex = 3;
             this.gbxFetchCacheItems.TabStop = false;
             this.gbxFetchCacheItems.Text = "Fetch Cache Items";
             this.gbxFetchCacheItems.Validating += new System.ComponentModel.CancelEventHandler(this.gbxFetchCacheItems_Validating);
@@ -1475,7 +1500,7 @@
             this.gbxNetworkWrite.Controls.Add(this.txtNWMin);
             this.gbxNetworkWrite.Location = new System.Drawing.Point(6, 6);
             this.gbxNetworkWrite.Name = "gbxNetworkWrite";
-            this.gbxNetworkWrite.Size = new System.Drawing.Size(208, 111);
+            this.gbxNetworkWrite.Size = new System.Drawing.Size(227, 111);
             this.gbxNetworkWrite.TabIndex = 4;
             this.gbxNetworkWrite.TabStop = false;
             this.gbxNetworkWrite.Text = "Network Write";
@@ -1522,7 +1547,7 @@
             // 
             this.txtNWInitial.Location = new System.Drawing.Point(133, 82);
             this.txtNWInitial.Name = "txtNWInitial";
-            this.txtNWInitial.Size = new System.Drawing.Size(50, 20);
+            this.txtNWInitial.Size = new System.Drawing.Size(70, 20);
             this.txtNWInitial.TabIndex = 7;
             this.txtNWInitial.Text = "1000";
             this.txtNWInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
@@ -1532,7 +1557,7 @@
             // 
             this.txtNWMaxTime.Location = new System.Drawing.Point(133, 61);
             this.txtNWMaxTime.Name = "txtNWMaxTime";
-            this.txtNWMaxTime.Size = new System.Drawing.Size(50, 20);
+            this.txtNWMaxTime.Size = new System.Drawing.Size(70, 20);
             this.txtNWMaxTime.TabIndex = 5;
             this.txtNWMaxTime.Text = "1000";
             this.txtNWMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
@@ -1542,7 +1567,7 @@
             // 
             this.txtNWMax.Location = new System.Drawing.Point(133, 40);
             this.txtNWMax.Name = "txtNWMax";
-            this.txtNWMax.Size = new System.Drawing.Size(50, 20);
+            this.txtNWMax.Size = new System.Drawing.Size(70, 20);
             this.txtNWMax.TabIndex = 3;
             this.txtNWMax.Text = "1000";
             this.txtNWMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
@@ -1552,7 +1577,7 @@
             // 
             this.txtNWMin.Location = new System.Drawing.Point(133, 19);
             this.txtNWMin.Name = "txtNWMin";
-            this.txtNWMin.Size = new System.Drawing.Size(50, 20);
+            this.txtNWMin.Size = new System.Drawing.Size(70, 20);
             this.txtNWMin.TabIndex = 1;
             this.txtNWMin.Text = "1000";
             this.txtNWMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
@@ -1585,7 +1610,7 @@
             this.gbxSelectedMailbox.Controls.Add(this.cmdSelectedMailbox);
             this.gbxSelectedMailbox.Location = new System.Drawing.Point(6, 143);
             this.gbxSelectedMailbox.Name = "gbxSelectedMailbox";
-            this.gbxSelectedMailbox.Size = new System.Drawing.Size(451, 127);
+            this.gbxSelectedMailbox.Size = new System.Drawing.Size(461, 127);
             this.gbxSelectedMailbox.TabIndex = 3;
             this.gbxSelectedMailbox.TabStop = false;
             this.gbxSelectedMailbox.Text = "Selected Mailbox";
@@ -1603,7 +1628,7 @@
             // 
             this.txtSMTextBytes.Location = new System.Drawing.Point(133, 41);
             this.txtSMTextBytes.Name = "txtSMTextBytes";
-            this.txtSMTextBytes.Size = new System.Drawing.Size(50, 20);
+            this.txtSMTextBytes.Size = new System.Drawing.Size(70, 20);
             this.txtSMTextBytes.TabIndex = 3;
             this.txtSMTextBytes.Text = "10000";
             this.txtSMTextBytes.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
@@ -1673,12 +1698,12 @@
             this.tabClient.Location = new System.Drawing.Point(383, 10);
             this.tabClient.Name = "tabClient";
             this.tabClient.SelectedIndex = 0;
-            this.tabClient.Size = new System.Drawing.Size(470, 478);
+            this.tabClient.Size = new System.Drawing.Size(525, 478);
             this.tabClient.TabIndex = 1;
             // 
             // tbpSettings
             // 
-            this.tbpSettings.Controls.Add(this.button1);
+            this.tbpSettings.Controls.Add(this.groupBox1);
             this.tbpSettings.Controls.Add(this.gbxIdle);
             this.tbpSettings.Controls.Add(this.gbxTimeout);
             this.tbpSettings.Controls.Add(this.gbxFetchBodyRead);
@@ -1687,7 +1712,7 @@
             this.tbpSettings.Location = new System.Drawing.Point(4, 22);
             this.tbpSettings.Name = "tbpSettings";
             this.tbpSettings.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpSettings.Size = new System.Drawing.Size(462, 452);
+            this.tbpSettings.Size = new System.Drawing.Size(472, 452);
             this.tbpSettings.TabIndex = 0;
             this.tbpSettings.Text = "Settings";
             this.tbpSettings.UseVisualStyleBackColor = true;
@@ -1699,7 +1724,7 @@
             this.tbpDefaults.Location = new System.Drawing.Point(4, 22);
             this.tbpDefaults.Name = "tbpDefaults";
             this.tbpDefaults.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpDefaults.Size = new System.Drawing.Size(462, 452);
+            this.tbpDefaults.Size = new System.Drawing.Size(517, 452);
             this.tbpDefaults.TabIndex = 3;
             this.tbpDefaults.Text = "Defaults";
             this.tbpDefaults.UseVisualStyleBackColor = true;
@@ -1713,7 +1738,7 @@
             this.tabControl1.Location = new System.Drawing.Point(6, 88);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(451, 311);
+            this.tabControl1.Size = new System.Drawing.Size(506, 311);
             this.tabControl1.TabIndex = 2;
             // 
             // tabPage1
@@ -1862,7 +1887,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(443, 285);
+            this.tabPage2.Size = new System.Drawing.Size(498, 285);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Message Cache Items by Property";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -2073,7 +2098,7 @@
             this.gbxDefaultSort.Controls.Add(this.lblSort);
             this.gbxDefaultSort.Location = new System.Drawing.Point(6, 6);
             this.gbxDefaultSort.Name = "gbxDefaultSort";
-            this.gbxDefaultSort.Size = new System.Drawing.Size(451, 76);
+            this.gbxDefaultSort.Size = new System.Drawing.Size(506, 76);
             this.gbxDefaultSort.TabIndex = 0;
             this.gbxDefaultSort.TabStop = false;
             this.gbxDefaultSort.Text = "Sort";
@@ -2108,7 +2133,7 @@
             this.tbpWindows.Location = new System.Drawing.Point(4, 22);
             this.tbpWindows.Name = "tbpWindows";
             this.tbpWindows.Padding = new System.Windows.Forms.Padding(3);
-            this.tbpWindows.Size = new System.Drawing.Size(462, 452);
+            this.tbpWindows.Size = new System.Drawing.Size(472, 452);
             this.tbpWindows.TabIndex = 1;
             this.tbpWindows.Text = "Windows";
             this.tbpWindows.UseVisualStyleBackColor = true;
@@ -2173,7 +2198,7 @@
             this.gbxEvents.Controls.Add(this.txtEvents);
             this.gbxEvents.Controls.Add(this.label24);
             this.gbxEvents.Controls.Add(this.cmdEvents);
-            this.gbxEvents.Location = new System.Drawing.Point(252, 56);
+            this.gbxEvents.Location = new System.Drawing.Point(262, 56);
             this.gbxEvents.Name = "gbxEvents";
             this.gbxEvents.Size = new System.Drawing.Size(205, 81);
             this.gbxEvents.TabIndex = 2;
@@ -2206,7 +2231,7 @@
             this.gbxNetworkActivity.Controls.Add(this.cmdNetworkActivity);
             this.gbxNetworkActivity.Location = new System.Drawing.Point(6, 56);
             this.gbxNetworkActivity.Name = "gbxNetworkActivity";
-            this.gbxNetworkActivity.Size = new System.Drawing.Size(205, 81);
+            this.gbxNetworkActivity.Size = new System.Drawing.Size(203, 81);
             this.gbxNetworkActivity.TabIndex = 1;
             this.gbxNetworkActivity.TabStop = false;
             this.gbxNetworkActivity.Text = "Network Activity";
@@ -2240,7 +2265,7 @@
             this.tpgResponseText.Location = new System.Drawing.Point(4, 22);
             this.tpgResponseText.Name = "tpgResponseText";
             this.tpgResponseText.Padding = new System.Windows.Forms.Padding(3);
-            this.tpgResponseText.Size = new System.Drawing.Size(462, 452);
+            this.tpgResponseText.Size = new System.Drawing.Size(472, 452);
             this.tpgResponseText.TabIndex = 2;
             this.tpgResponseText.Text = "Response Text Window";
             this.tpgResponseText.UseVisualStyleBackColor = true;
@@ -2581,11 +2606,15 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.groupBox3);
+            this.tabPage4.Controls.Add(this.cmdAppend);
+            this.tabPage4.Controls.Add(this.groupBox2);
+            this.tabPage4.Controls.Add(this.gbxAppendBatch);
             this.tabPage4.Controls.Add(this.gbxAppendStreamRead);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(462, 452);
+            this.tabPage4.Size = new System.Drawing.Size(517, 452);
             this.tabPage4.TabIndex = 4;
             this.tabPage4.Text = "Append";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -2601,12 +2630,14 @@
             this.gbxAppendStreamRead.Controls.Add(this.txtASMaxTime);
             this.gbxAppendStreamRead.Controls.Add(this.txtASMax);
             this.gbxAppendStreamRead.Controls.Add(this.txtASMin);
-            this.gbxAppendStreamRead.Location = new System.Drawing.Point(127, 155);
+            this.gbxAppendStreamRead.Location = new System.Drawing.Point(261, 88);
             this.gbxAppendStreamRead.Name = "gbxAppendStreamRead";
-            this.gbxAppendStreamRead.Size = new System.Drawing.Size(208, 142);
-            this.gbxAppendStreamRead.TabIndex = 6;
+            this.gbxAppendStreamRead.Size = new System.Drawing.Size(229, 142);
+            this.gbxAppendStreamRead.TabIndex = 2;
             this.gbxAppendStreamRead.TabStop = false;
             this.gbxAppendStreamRead.Text = "Append Stream Read";
+            this.gbxAppendStreamRead.Validating += new System.ComponentModel.CancelEventHandler(this.gbxAppendStreamRead_Validating);
+            this.gbxAppendStreamRead.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // cmdASSet
             // 
@@ -2616,6 +2647,7 @@
             this.cmdASSet.TabIndex = 8;
             this.cmdASSet.Text = "Set";
             this.cmdASSet.UseVisualStyleBackColor = true;
+            this.cmdASSet.Click += new System.EventHandler(this.cmdASSet_Click);
             // 
             // label33
             // 
@@ -2657,49 +2689,280 @@
             // 
             this.txtASInitial.Location = new System.Drawing.Point(133, 82);
             this.txtASInitial.Name = "txtASInitial";
-            this.txtASInitial.Size = new System.Drawing.Size(50, 20);
+            this.txtASInitial.Size = new System.Drawing.Size(70, 20);
             this.txtASInitial.TabIndex = 7;
             this.txtASInitial.Text = "1000";
+            this.txtASInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtASInitial.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // txtASMaxTime
             // 
             this.txtASMaxTime.Location = new System.Drawing.Point(133, 61);
             this.txtASMaxTime.Name = "txtASMaxTime";
-            this.txtASMaxTime.Size = new System.Drawing.Size(50, 20);
+            this.txtASMaxTime.Size = new System.Drawing.Size(70, 20);
             this.txtASMaxTime.TabIndex = 5;
             this.txtASMaxTime.Text = "1000";
+            this.txtASMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
+            this.txtASMaxTime.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // txtASMax
             // 
             this.txtASMax.Location = new System.Drawing.Point(133, 40);
             this.txtASMax.Name = "txtASMax";
-            this.txtASMax.Size = new System.Drawing.Size(50, 20);
+            this.txtASMax.Size = new System.Drawing.Size(70, 20);
             this.txtASMax.TabIndex = 3;
             this.txtASMax.Text = "1000";
+            this.txtASMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtASMax.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // txtASMin
             // 
             this.txtASMin.Location = new System.Drawing.Point(133, 19);
             this.txtASMin.Name = "txtASMin";
-            this.txtASMin.Size = new System.Drawing.Size(50, 20);
+            this.txtASMin.Size = new System.Drawing.Size(70, 20);
             this.txtASMin.TabIndex = 1;
             this.txtASMin.Text = "1000";
+            this.txtASMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtASMin.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
-            // button1
+            // cmdCTSAllocate
             // 
-            this.button1.Location = new System.Drawing.Point(18, 262);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(100, 25);
-            this.button1.TabIndex = 5;
-            this.button1.Text = "Set";
-            this.button1.UseVisualStyleBackColor = true;
+            this.cmdCTSAllocate.Location = new System.Drawing.Point(12, 20);
+            this.cmdCTSAllocate.Name = "cmdCTSAllocate";
+            this.cmdCTSAllocate.Size = new System.Drawing.Size(100, 25);
+            this.cmdCTSAllocate.TabIndex = 5;
+            this.cmdCTSAllocate.Text = "Allocate";
+            this.cmdCTSAllocate.UseVisualStyleBackColor = true;
+            this.cmdCTSAllocate.Click += new System.EventHandler(this.cmdCTSAllocate_Click);
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.cmdCTSDispose);
+            this.groupBox1.Controls.Add(this.cmdCTSCancel);
+            this.groupBox1.Controls.Add(this.cmdCTSAllocate);
+            this.groupBox1.Location = new System.Drawing.Point(6, 248);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(204, 116);
+            this.groupBox1.TabIndex = 2;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Cancellation";
+            // 
+            // cmdCTSCancel
+            // 
+            this.cmdCTSCancel.Location = new System.Drawing.Point(12, 51);
+            this.cmdCTSCancel.Name = "cmdCTSCancel";
+            this.cmdCTSCancel.Size = new System.Drawing.Size(100, 25);
+            this.cmdCTSCancel.TabIndex = 6;
+            this.cmdCTSCancel.Text = "Cancel";
+            this.cmdCTSCancel.UseVisualStyleBackColor = true;
+            this.cmdCTSCancel.Click += new System.EventHandler(this.cmdCTSCancel_Click);
+            // 
+            // cmdCTSDispose
+            // 
+            this.cmdCTSDispose.Location = new System.Drawing.Point(12, 82);
+            this.cmdCTSDispose.Name = "cmdCTSDispose";
+            this.cmdCTSDispose.Size = new System.Drawing.Size(100, 25);
+            this.cmdCTSDispose.TabIndex = 7;
+            this.cmdCTSDispose.Text = "Dispose";
+            this.cmdCTSDispose.UseVisualStyleBackColor = true;
+            this.cmdCTSDispose.Click += new System.EventHandler(this.cmdCTSDispose_Click);
+            // 
+            // gbxAppendBatch
+            // 
+            this.gbxAppendBatch.Controls.Add(this.cmdABSet);
+            this.gbxAppendBatch.Controls.Add(this.label37);
+            this.gbxAppendBatch.Controls.Add(this.label38);
+            this.gbxAppendBatch.Controls.Add(this.label39);
+            this.gbxAppendBatch.Controls.Add(this.label40);
+            this.gbxAppendBatch.Controls.Add(this.txtABInitial);
+            this.gbxAppendBatch.Controls.Add(this.txtABMaxTime);
+            this.gbxAppendBatch.Controls.Add(this.txtABMax);
+            this.gbxAppendBatch.Controls.Add(this.txtABMin);
+            this.gbxAppendBatch.Location = new System.Drawing.Point(6, 88);
+            this.gbxAppendBatch.Name = "gbxAppendBatch";
+            this.gbxAppendBatch.Size = new System.Drawing.Size(229, 142);
+            this.gbxAppendBatch.TabIndex = 1;
+            this.gbxAppendBatch.TabStop = false;
+            this.gbxAppendBatch.Text = "Append Batch";
+            this.gbxAppendBatch.Validating += new System.ComponentModel.CancelEventHandler(this.gbxAppendBatch_Validating);
+            this.gbxAppendBatch.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // cmdABSet
+            // 
+            this.cmdABSet.Location = new System.Drawing.Point(15, 108);
+            this.cmdABSet.Name = "cmdABSet";
+            this.cmdABSet.Size = new System.Drawing.Size(100, 25);
+            this.cmdABSet.TabIndex = 8;
+            this.cmdABSet.Text = "Set";
+            this.cmdABSet.UseVisualStyleBackColor = true;
+            this.cmdABSet.Click += new System.EventHandler(this.cmdABSet_Click);
+            // 
+            // label37
+            // 
+            this.label37.AutoSize = true;
+            this.label37.Location = new System.Drawing.Point(12, 85);
+            this.label37.Name = "label37";
+            this.label37.Size = new System.Drawing.Size(31, 13);
+            this.label37.TabIndex = 6;
+            this.label37.Text = "Initial";
+            // 
+            // label38
+            // 
+            this.label38.AutoSize = true;
+            this.label38.Location = new System.Drawing.Point(12, 64);
+            this.label38.Name = "label38";
+            this.label38.Size = new System.Drawing.Size(53, 13);
+            this.label38.TabIndex = 4;
+            this.label38.Text = "Max Time";
+            // 
+            // label39
+            // 
+            this.label39.AutoSize = true;
+            this.label39.Location = new System.Drawing.Point(12, 43);
+            this.label39.Name = "label39";
+            this.label39.Size = new System.Drawing.Size(27, 13);
+            this.label39.TabIndex = 2;
+            this.label39.Text = "Max";
+            // 
+            // label40
+            // 
+            this.label40.AutoSize = true;
+            this.label40.Location = new System.Drawing.Point(12, 22);
+            this.label40.Name = "label40";
+            this.label40.Size = new System.Drawing.Size(24, 13);
+            this.label40.TabIndex = 0;
+            this.label40.Text = "Min";
+            // 
+            // txtABInitial
+            // 
+            this.txtABInitial.Location = new System.Drawing.Point(133, 82);
+            this.txtABInitial.Name = "txtABInitial";
+            this.txtABInitial.Size = new System.Drawing.Size(70, 20);
+            this.txtABInitial.TabIndex = 7;
+            this.txtABInitial.Text = "1000";
+            this.txtABInitial.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtABInitial.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtABMaxTime
+            // 
+            this.txtABMaxTime.Location = new System.Drawing.Point(133, 61);
+            this.txtABMaxTime.Name = "txtABMaxTime";
+            this.txtABMaxTime.Size = new System.Drawing.Size(70, 20);
+            this.txtABMaxTime.TabIndex = 5;
+            this.txtABMaxTime.Text = "1000";
+            this.txtABMaxTime.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsMilliseconds);
+            this.txtABMaxTime.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtABMax
+            // 
+            this.txtABMax.Location = new System.Drawing.Point(133, 40);
+            this.txtABMax.Name = "txtABMax";
+            this.txtABMax.Size = new System.Drawing.Size(70, 20);
+            this.txtABMax.TabIndex = 3;
+            this.txtABMax.Text = "1000";
+            this.txtABMax.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtABMax.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // txtABMin
+            // 
+            this.txtABMin.Location = new System.Drawing.Point(133, 19);
+            this.txtABMin.Name = "txtABMin";
+            this.txtABMin.Size = new System.Drawing.Size(70, 20);
+            this.txtABMin.TabIndex = 1;
+            this.txtABMin.Text = "1000";
+            this.txtABMin.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtABMin.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.cmdATSet);
+            this.groupBox2.Controls.Add(this.txtAppendTargetBufferSize);
+            this.groupBox2.Location = new System.Drawing.Point(6, 236);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(229, 79);
+            this.groupBox2.TabIndex = 3;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Target Buffer Size";
+            // 
+            // cmdATSet
+            // 
+            this.cmdATSet.Location = new System.Drawing.Point(15, 45);
+            this.cmdATSet.Name = "cmdATSet";
+            this.cmdATSet.Size = new System.Drawing.Size(100, 25);
+            this.cmdATSet.TabIndex = 1;
+            this.cmdATSet.Text = "Set";
+            this.cmdATSet.UseVisualStyleBackColor = true;
+            this.cmdATSet.Click += new System.EventHandler(this.cmdATSet_Click);
+            // 
+            // txtAppendTargetBufferSize
+            // 
+            this.txtAppendTargetBufferSize.Location = new System.Drawing.Point(15, 19);
+            this.txtAppendTargetBufferSize.Name = "txtAppendTargetBufferSize";
+            this.txtAppendTargetBufferSize.Size = new System.Drawing.Size(70, 20);
+            this.txtAppendTargetBufferSize.TabIndex = 0;
+            this.txtAppendTargetBufferSize.Text = "1000";
+            this.txtAppendTargetBufferSize.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNumberOfBytes);
+            this.txtAppendTargetBufferSize.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // cmdAppend
+            // 
+            this.cmdAppend.Location = new System.Drawing.Point(21, 354);
+            this.cmdAppend.Name = "cmdAppend";
+            this.cmdAppend.Size = new System.Drawing.Size(100, 25);
+            this.cmdAppend.TabIndex = 4;
+            this.cmdAppend.Text = "Append ...";
+            this.cmdAppend.UseVisualStyleBackColor = true;
+            this.cmdAppend.Click += new System.EventHandler(this.cmdAppend_Click);
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox3.Controls.Add(this.cmdDefaultFlagsClear);
+            this.groupBox3.Controls.Add(this.cmdDefaultFlags);
+            this.groupBox3.Controls.Add(this.lblDefaultFlags);
+            this.groupBox3.Location = new System.Drawing.Point(6, 6);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(506, 76);
+            this.groupBox3.TabIndex = 0;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Default Flags";
+            // 
+            // cmdDefaultFlags
+            // 
+            this.cmdDefaultFlags.Location = new System.Drawing.Point(15, 40);
+            this.cmdDefaultFlags.Name = "cmdDefaultFlags";
+            this.cmdDefaultFlags.Size = new System.Drawing.Size(100, 25);
+            this.cmdDefaultFlags.TabIndex = 2;
+            this.cmdDefaultFlags.Text = "Set";
+            this.cmdDefaultFlags.UseVisualStyleBackColor = true;
+            this.cmdDefaultFlags.Click += new System.EventHandler(this.cmdDefaultFlags_Click);
+            // 
+            // lblDefaultFlags
+            // 
+            this.lblDefaultFlags.AutoSize = true;
+            this.lblDefaultFlags.Location = new System.Drawing.Point(12, 16);
+            this.lblDefaultFlags.Name = "lblDefaultFlags";
+            this.lblDefaultFlags.Size = new System.Drawing.Size(130, 13);
+            this.lblDefaultFlags.TabIndex = 0;
+            this.lblDefaultFlags.Text = "<default flags description>";
+            // 
+            // cmdDefaultFlagsClear
+            // 
+            this.cmdDefaultFlagsClear.Location = new System.Drawing.Point(121, 40);
+            this.cmdDefaultFlagsClear.Name = "cmdDefaultFlagsClear";
+            this.cmdDefaultFlagsClear.Size = new System.Drawing.Size(100, 25);
+            this.cmdDefaultFlagsClear.TabIndex = 3;
+            this.cmdDefaultFlagsClear.Text = "Clear";
+            this.cmdDefaultFlagsClear.UseVisualStyleBackColor = true;
+            this.cmdDefaultFlagsClear.Click += new System.EventHandler(this.cmdDefaultFlagsClear_Click);
             // 
             // frmClient
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(856, 544);
+            this.ClientSize = new System.Drawing.Size(911, 544);
             this.Controls.Add(this.tabClient);
             this.Controls.Add(this.gbxConnect);
             this.Controls.Add(this.cmdPoll);
@@ -2769,6 +3032,13 @@
             this.tabPage4.ResumeLayout(false);
             this.gbxAppendStreamRead.ResumeLayout(false);
             this.gbxAppendStreamRead.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.gbxAppendBatch.ResumeLayout(false);
+            this.gbxAppendBatch.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -2984,7 +3254,7 @@
         private System.Windows.Forms.TextBox txtNWMin;
         private System.Windows.Forms.CheckBox chkRTTPreAuthGreeting;
         private System.Windows.Forms.CheckBox chkRTTByeGreeting;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button cmdCTSAllocate;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.GroupBox gbxAppendStreamRead;
         private System.Windows.Forms.Button cmdASSet;
@@ -2996,5 +3266,26 @@
         private System.Windows.Forms.TextBox txtASMaxTime;
         private System.Windows.Forms.TextBox txtASMax;
         private System.Windows.Forms.TextBox txtASMin;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button cmdCTSDispose;
+        private System.Windows.Forms.Button cmdCTSCancel;
+        private System.Windows.Forms.GroupBox gbxAppendBatch;
+        private System.Windows.Forms.Button cmdABSet;
+        private System.Windows.Forms.Label label37;
+        private System.Windows.Forms.Label label38;
+        private System.Windows.Forms.Label label39;
+        private System.Windows.Forms.Label label40;
+        private System.Windows.Forms.TextBox txtABInitial;
+        private System.Windows.Forms.TextBox txtABMaxTime;
+        private System.Windows.Forms.TextBox txtABMax;
+        private System.Windows.Forms.TextBox txtABMin;
+        private System.Windows.Forms.Button cmdAppend;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.Button cmdATSet;
+        private System.Windows.Forms.TextBox txtAppendTargetBufferSize;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.Button cmdDefaultFlags;
+        private System.Windows.Forms.Label lblDefaultFlags;
+        private System.Windows.Forms.Button cmdDefaultFlagsClear;
     }
 }

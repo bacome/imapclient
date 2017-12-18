@@ -95,6 +95,8 @@ namespace testharness2
 
         private void dgv_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            if (e.ColumnIndex < 0 || e.RowIndex < 0) return;
+
             string lDataPropertyName = dgv.Columns[e.ColumnIndex].DataPropertyName;
 
             if (lDataPropertyName == nameof(cGridRowData.Rank))

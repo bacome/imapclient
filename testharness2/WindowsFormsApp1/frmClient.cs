@@ -17,6 +17,7 @@ namespace testharness2
         private readonly cIMAPClient mClient;
         private readonly Dictionary<string, Form> mNamedChildren = new Dictionary<string, Form>();
         private readonly List<Form> mUnnamedChildren = new List<Form>();
+        private CancellationTokenSource mCTS = null;
 
         public frmClient(string pInstanceName)
         {
@@ -72,6 +73,19 @@ namespace testharness2
             {
                 cmdMailboxes.Enabled = true;
                 cmdSubscriptions.Enabled = true;
+            }
+
+            if (mCTS == null)
+            {
+                cmdCTSAllocate.Enabled = true;
+                cmdCTSCancel.Enabled = false;
+                cmdCTSDispose.Enabled = false;
+            }
+            else
+            {
+                cmdCTSAllocate.Enabled = false;
+                cmdCTSCancel.Enabled = !mCTS.IsCancellationRequested;
+                cmdCTSDispose.Enabled = true;
             }
         }
 
@@ -246,10 +260,10 @@ namespace testharness2
         {
             if (!(sender is TextBox lSender)) return;
 
-            if (!int.TryParse(lSender.Text, out var i) || i < 1 || i > 1000000)
+            if (!int.TryParse(lSender.Text, out var i) || i < 1)
             {
                 e.Cancel = true;
-                erp.SetError(lSender, "number of bytes should be 1 .. 1000000");
+                erp.SetError(lSender, "number of bytes should be 1 .. " + int.MaxValue);
             }
         }
 
@@ -351,7 +365,6 @@ namespace testharness2
             ZLoadBatchSizerConfiguration(mClient.FetchCacheItemsConfiguration, txtFAMin, txtFAMax, txtFAMaxTime, txtFAInitial);
             ZLoadBatchSizerConfiguration(mClient.FetchBodyReadConfiguration, txtFRMin, txtFRMax, txtFRMaxTime, txtFRInitial);
             ZLoadBatchSizerConfiguration(mClient.FetchBodyWriteConfiguration, txtFWMin, txtFWMax, txtFWMaxTime, txtFWInitial);
-            ZLoadBatchSizerConfiguration(mClient.AppendStreamReadConfiguration, txtASMin, txtASMax, txtASMaxTime, txtASInitial);
 
             ZSortDescriptionSet();
 
@@ -363,6 +376,12 @@ namespace testharness2
             chkAHModSeq.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
             chkAHBodyStructure.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
             txtAHHeaderFieldNames.Text = ZHeaderFieldNames(mClient.DefaultMessageCacheItems.Names);
+
+            ZDefaultFlagsDescriptionSet();
+
+            ZLoadBatchSizerConfiguration(mClient.AppendBatchConfiguration, txtABMin, txtABMax, txtABMaxTime, txtABInitial);
+            txtAppendTargetBufferSize.Text = mClient.AppendTargetBufferSize.ToString();
+            ZLoadBatchSizerConfiguration(mClient.AppendStreamReadConfiguration, txtASMin, txtASMax, txtASMaxTime, txtASInitial);
         }
 
         private void ZLoadBatchSizerConfiguration(cBatchSizerConfiguration pConfig, TextBox pMin, TextBox pMax, TextBox pMaxTime, TextBox pInitial)
@@ -404,6 +423,12 @@ namespace testharness2
             if (mClient != null)
             {
                 try { mClient.Dispose(); }
+                catch { }
+            }
+
+            if (mCTS != null)
+            {
+                try { mCTS.Dispose(); }
                 catch { }
             }
         }
@@ -725,6 +750,11 @@ namespace testharness2
             lblSort.Text = mClient.DefaultSort.ToString();
         }
 
+        private void ZDefaultFlagsDescriptionSet()
+        {
+            lblDefaultFlags.Text = mClient.DefaultAppendFlags?.ToString();
+        }
+
         private void cmdAHSet_Click(object sender, EventArgs e)
         {
             if (!ValidateChildren(ValidationConstraints.Enabled)) return;
@@ -767,6 +797,85 @@ namespace testharness2
             if (chkPImportance.Checked) lProperties |= fMessageProperties.importance;
 
             mClient.DefaultMessageCacheItems = lProperties;
+        }
+
+        private void cmdCTSAllocate_Click(object sender, EventArgs e)
+        {
+            mCTS = new CancellationTokenSource();
+            mClient.CancellationToken = mCTS.Token;
+            ZSetControlState();
+        }
+
+        private void cmdCTSCancel_Click(object sender, EventArgs e)
+        {
+            mCTS.Cancel();
+            ZSetControlState();
+        }
+
+        private void cmdCTSDispose_Click(object sender, EventArgs e)
+        {
+            try { mCTS.Dispose(); }
+            catch { }
+            mClient.CancellationToken = CancellationToken.None;
+            mCTS = null;
+            ZSetControlState();
+        }
+
+        private void cmdABSet_Click(object sender, EventArgs e)
+        {
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            try
+            {
+                mClient.AppendBatchConfiguration = new cBatchSizerConfiguration(int.Parse(txtABMin.Text), int.Parse(txtABMax.Text), int.Parse(txtABMaxTime.Text), int.Parse(txtABInitial.Text));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Set append batch error\n{ex}");
+            }
+        }
+
+        private void gbxAppendBatch_Validating(object sender, CancelEventArgs e)
+        {
+            ZValBatchSizerConfiguration(gbxFetchCacheItems, txtABMin, txtABMax, txtABInitial, e);
+        }
+
+        private void cmdATSet_Click(object sender, EventArgs e)
+        {
+            if (!ValidateChildren(ValidationConstraints.Enabled)) return;
+
+            try
+            {
+                mClient.AppendTargetBufferSize = int.Parse(txtAppendTargetBufferSize.Text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Set timeout error\n{ex}");
+            }
+        }
+
+        private void cmdAppend_Click(object sender, EventArgs e)
+        {
+            if (mNamedChildren.TryGetValue(nameof(frmAppend), out var lForm)) Program.Focus(lForm);
+            else ZNamedChildAdd(new frmAppend(mClient));
+        }
+
+        private void cmdDefaultFlags_Click(object sender, EventArgs e)
+        {
+            using (frmStorableFlagsDialog lFlagsDialog = new frmStorableFlagsDialog(mClient.DefaultAppendFlags))
+            {
+                if (lFlagsDialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    mClient.DefaultAppendFlags = lFlagsDialog.Flags;
+                    ZDefaultFlagsDescriptionSet();
+                }
+            }
+        }
+
+        private void cmdDefaultFlagsClear_Click(object sender, EventArgs e)
+        {
+            mClient.DefaultAppendFlags = null;
+            ZDefaultFlagsDescriptionSet();
         }
     }
 }

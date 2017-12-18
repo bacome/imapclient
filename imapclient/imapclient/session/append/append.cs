@@ -356,7 +356,7 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZAppendInBatchesAsync), pMC, pMailboxHandle, pMessages);
 
-                int lTargetLength = mAppendSizer.Current;
+                int lTargetLength = mAppendBatchSizer.Current;
                 cSessionAppendDataList lMessages = new cSessionAppendDataList();
                 int lTotalLength = 0;
 
@@ -370,7 +370,7 @@ namespace work.bacome.imapclient
                         if (!await ZAppendBatchAsync(pMC, pMailboxHandle, lMessages, lTotalLength, pIncrement, pResults, lContext).ConfigureAwait(false)) return;
 
                         // start a new batch
-                        lTargetLength = mAppendSizer.Current;
+                        lTargetLength = mAppendBatchSizer.Current;
                         lMessages.Clear();
                         lTotalLength = 0;
                     }
@@ -418,7 +418,7 @@ namespace work.bacome.imapclient
                 lStopwatch.Stop();
 
                 // store the time taken so the next append is a better size
-                mAppendSizer.AddSample(pTotalLength, lStopwatch.ElapsedMilliseconds);
+                mAppendBatchSizer.AddSample(pTotalLength, lStopwatch.ElapsedMilliseconds);
 
                 // done
                 return lAllOK;

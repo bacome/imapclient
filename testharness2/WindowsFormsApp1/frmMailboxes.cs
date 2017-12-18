@@ -545,12 +545,5 @@ namespace testharness2
                 else State = eState.neverexpanded;
             }
         }
-
-        private void cmdAppend_Click(object sender, EventArgs e)
-        {
-            ;?;
-            var lAppend = new frmAppend(mClient.InstanceName, mSubscribedMailbox);
-            lAppend.Show();
-        }
     }
 }

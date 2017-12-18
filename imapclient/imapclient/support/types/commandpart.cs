@@ -105,6 +105,8 @@ namespace work.bacome.imapclient
                 lParts.Add(lPart);
                 mLength += lPart.Length;
             }
+
+            Parts = lParts.AsReadOnly();
         }
 
         public override int Length => mLength;
