@@ -155,7 +155,7 @@ namespace work.bacome.imapclient
             if (pConfiguration == null) lIncrement = null;
             else
             {
-                mSynchroniser.InvokeActionInt(pConfiguration.SetCount, pMessageHandles.Count, lContext);
+                mSynchroniser.InvokeActionInt(pConfiguration.SetMaximum, pMessageHandles.Count, lContext);
                 lIncrement = pConfiguration.Increment;
             }
 

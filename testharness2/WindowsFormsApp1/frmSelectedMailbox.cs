@@ -320,7 +320,7 @@ namespace testharness2
                     if (lProgress == null) lCIFConfiguration = null;
                     else
                     {
-                        lProgress.SetCount(lMessages.Count);
+                        lProgress.SetMaximum(lMessages.Count);
                         lCIFConfiguration = new cCacheItemFetchConfiguration(lProgress.CancellationToken, lProgress.Increment);
                     }
 
@@ -332,7 +332,7 @@ namespace testharness2
                     cMessageFetchConfiguration lConfiguration;
 
                     if (lProgress == null) lConfiguration = null;
-                    else lConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, lProgress.SetCount, lProgress.Increment);
+                    else lConfiguration = new cMessageFetchConfiguration(lProgress.CancellationToken, lProgress.SetMaximum, lProgress.Increment);
 
                     lMessages = await mCurrentMailbox.MessagesAsync(mFilter, mOverrideSort, null, lConfiguration); // demonstrate the full API (note that we could have specified non default message properties if required)
                 }

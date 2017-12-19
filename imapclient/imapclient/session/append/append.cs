@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cAppendFeedback> AppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cAppendDataList pMessages, Action<int> pSetCount, Action<int> pIncrement, cTrace.cContext pParentContext)
+            public async Task<cAppendFeedback> AppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cAppendDataList pMessages, Action<int> pSetMaximum, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(AppendAsync), pMC, pMailboxHandle, pMessages);
 
@@ -32,11 +32,11 @@ namespace work.bacome.imapclient
                 if (lMessages.Count != pMessages.Count) throw new cInternalErrorException();
 
                 // initialise any progress system that might be in place
-                if (pSetCount != null)
+                if (pSetMaximum != null)
                 {
                     int lLength = 0;
                     foreach (var lMessage in lMessages) lLength += lMessage.Length;
-                    mSynchroniser.InvokeActionInt(pSetCount, lLength, lContext);
+                    mSynchroniser.InvokeActionInt(pSetMaximum, lLength, lContext);
                 }
 
                 // result collector

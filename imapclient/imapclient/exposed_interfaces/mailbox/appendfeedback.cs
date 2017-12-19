@@ -83,6 +83,8 @@ namespace work.bacome.imapclient
                         throw new cInternalErrorException();
                 }
             }
+
+            mItems = pItems.AsReadOnly();
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Indexer(int)"/>

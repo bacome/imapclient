@@ -102,7 +102,12 @@ namespace work.bacome.imapclient
         useattr, 
 
         /**<summary>RFC 3516 UNKNOWNCTE: the server can't decode the content.</summary>*/
-        unknowncte
+        unknowncte,
+
+        /**<summary>RFC 4469 BADURL.</summary>*/
+        badurl,
+        /**<summary>RFC 4469 TOOBIG: the resulting message is too big.</summary>*/
+        toobig
     }
 
     /// <summary>

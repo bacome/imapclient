@@ -228,6 +228,7 @@ namespace work.bacome.imapclient
                     DateTime? lSent;
 
                     if (lDateBytes == null || lDateBytes.Count == 0) lSent = null;
+                    else
                     {
                         // rfc 5256 says quite a lot about how this date should be parsed: please note that I haven't done what it says at this stage (TODO?)
                         var lCursor = new cBytesCursor(lDateBytes);

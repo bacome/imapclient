@@ -29,7 +29,7 @@ namespace testharness2
         private void frmProgress_Load(object sender, EventArgs e)
         {
             Text = mTitle;
-            SetCount(mCount);
+            SetMaximum(mCount);
         }
 
         public void ShowAndFocus(Form pCentringOnThis)
@@ -41,12 +41,12 @@ namespace testharness2
 
         public CancellationToken CancellationToken => mCancellationTokenSource.Token;
 
-        public void SetCount(int pCount)
+        public void SetMaximum(int pMaximum)
         {
-            if (pCount == 0) prg.Style = ProgressBarStyle.Marquee;
+            if (pMaximum == 0) prg.Style = ProgressBarStyle.Marquee;
             else
             {
-                prg.Maximum = pCount;
+                prg.Maximum = pMaximum;
                 prg.Value = mTotal;
                 prg.Style = ProgressBarStyle.Continuous;
             }

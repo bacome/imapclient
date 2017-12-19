@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
                         }
                         else ZBackgroundSendTerminateCommand(lContext);
                     }
-
+                
                     await mBackgroundSendBuffer.WriteAsync(lContext).ConfigureAwait(false);
                 }
 
@@ -206,7 +206,11 @@ namespace work.bacome.imapclient
                             if (!pSecret) lContext.TraceVerbose("reading {0} bytes from stream", lReadSize);
 
                             lStopwatch.Restart();
-                            int lCount = await pStream.ReadAsync(lBuffer, 0, lReadSize, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false);
+
+                            int lCount = -1;
+                            try { lCount = await pStream.ReadAsync(lBuffer, 0, lReadSize, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false); }
+                            finally { if (!pSecret) lContext.TraceVerbose("read {0} bytes from stream", lCount); }
+                            
                             lStopwatch.Stop();
 
                             if (lCount == 0) throw new cStreamRanOutOfDataException();

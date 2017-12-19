@@ -40,7 +40,7 @@ namespace work.bacome.imapclient
 
                 // this is the length that is used  
                 //  1) to determine the batch size for groups of append 
-                //  2) in the progress-setcount
+                //  2) in the progress-setmaximum
                 //
                 // so it has to match the number of bytes that we are going to emit progress-increments for
                 //  it should not include the bytes of command text NOR the bytes of URLs
@@ -214,7 +214,7 @@ namespace work.bacome.imapclient
 
                 // this is the length that is used  
                 //  1) to determine the batch size for groups of append 
-                //  2) in the progress-setcount
+                //  2) in the progress-setmaximum
                 //
                 // so it has to match the number of bytes that we are going to emit progress-increments for
                 //  it should not include the bytes of command text NOR the bytes of URLs
@@ -329,7 +329,7 @@ namespace work.bacome.imapclient
 
                     if (pSection != cSection.All)
                     {
-                        lBytes.AddRange(kSemicolonUIDVALIDITYEquals);
+                        lBytes.AddRange(kSlashSemicolonSECTIONEquals);
 
                         if (pSection.Part != null)
                         {
@@ -525,7 +525,7 @@ namespace work.bacome.imapclient
             {
                 // this is the length that is used  
                 //  1) to determine the batch size for groups of append 
-                //  2) in the progress-setcount
+                //  2) in the progress-setmaximum
                 //
                 // so it has to match the number of bytes that we are going to emit progress-increments for
                 //  it should not include the bytes of command text

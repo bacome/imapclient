@@ -105,33 +105,33 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Contains an operation specific timeout, cancellation token, progress-setcount and progress-increment callbacks. Intended for use when retrieving a large number of messages from the server.
+    /// Contains an operation specific timeout, cancellation token, progress-setmaximum and progress-increment callbacks. Intended for use when retrieving a large number of messages from the server.
     /// </summary>
     /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
     /// <seealso cref="cMailbox.Messages(cFilter, cSort, cMessageCacheItems, cMessageFetchConfiguration)"/>
     public class cMessageFetchConfiguration : cCacheItemFetchConfiguration
     {
         /// <summary>
-        /// The progress-setcount callback for the operation. May be <see langword="null"/>. Invoked once before any progress-increment invokes, the argument specifies how many messages are going to be fetched.
+        /// The progress-setmaximum callback for the operation. May be <see langword="null"/>. Invoked once before any progress-increment invokes, the argument specifies how many messages are going to be fetched.
         /// </summary>
         /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
-        public readonly Action<int> SetCount;
+        public readonly Action<int> SetMaximum;
 
         /// <inheritdoc cref="cCacheItemFetchConfiguration(int)"/>
         public cMessageFetchConfiguration(int pTimeout) : base(pTimeout)
         {
-            SetCount = null;
+            SetMaximum = null;
         }
 
         /// <summary>
-        /// Initialises a new instance with the specified cancellation token, progress-setcount and progress-increment callbacks. Intended for use with asynchronous APIs.
+        /// Initialises a new instance with the specified cancellation token, progress-setmaximum and progress-increment callbacks. Intended for use with asynchronous APIs.
         /// </summary>
         /// <param name="pCancellationToken">May be <see cref="CancellationToken.None"/>.</param>
-        /// <param name="pSetCount">May be <see langword="null"/>.</param>
+        /// <param name="pSetMaximum">May be <see langword="null"/>.</param>
         /// <param name="pIncrement">May be <see langword="null"/>.</param>
-        public cMessageFetchConfiguration(CancellationToken pCancellationToken, Action<int> pSetCount, Action<int> pIncrement) : base(pCancellationToken, pIncrement)
+        public cMessageFetchConfiguration(CancellationToken pCancellationToken, Action<int> pSetMaximum, Action<int> pIncrement) : base(pCancellationToken, pIncrement)
         {
-            SetCount = pSetCount;
+            SetMaximum = pSetMaximum;
         }
     }
 }

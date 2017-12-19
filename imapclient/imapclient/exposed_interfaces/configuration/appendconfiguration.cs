@@ -4,7 +4,7 @@ using System.Threading;
 namespace work.bacome.imapclient
 {
     /// <summary>
-    /// Contains an operation specific timeout, cancellation token, progress-setcount and progress-increment callbacks and multiappend batch-size configuration.
+    /// Contains an operation specific timeout, cancellation token, progress-setmaximum and progress-increment callbacks.
     /// </summary>
     /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
     /// <seealso cref="cMailbox.Append(cAppendData, cAppendConfiguration)"/>
@@ -18,10 +18,10 @@ namespace work.bacome.imapclient
         public readonly CancellationToken CancellationToken;
 
         /// <summary>
-        /// The progress-setcount callback for the operation. May be <see langword="null"/>. Invoked once before any progress-increment invokes, the argument specifies how many bytes are going to be sent in total.
+        /// The progress-setmaximum callback for the operation. May be <see langword="null"/>. Invoked once before any progress-increment invokes, the argument specifies how many bytes are going to be sent in total.
         /// </summary>
         /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
-        public readonly Action<int> SetCount;
+        public readonly Action<int> SetMaximum;
 
         /// <summary>
         /// The progress-increment callback for the operation. May be <see langword="null"/>. Invoked once for each batch of bytes sent to the server, the argument specifies how many bytes were sent in the batch.
@@ -38,21 +38,21 @@ namespace work.bacome.imapclient
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             Timeout = pTimeout;
             CancellationToken = CancellationToken.None;
-            SetCount = null;
+            SetMaximum = null;
             Increment = null;
         }
 
         /// <summary>
-        /// Initialises a new instance with the specified cancellation token, progress-setcount and progress-increment callbacks and optional multiappend batch-size configuration. Intended for use with asynchronous APIs.
+        /// Initialises a new instance with the specified cancellation token, progress-setmaximum and progress-increment callbacks. Intended for use with asynchronous APIs.
         /// </summary>
         /// <param name="pCancellationToken">May be <see cref="CancellationToken.None"/>.</param>
-        /// <param name="pSetCount">May be <see langword="null"/>.</param>
+        /// <param name="pSetMaximum">May be <see langword="null"/>.</param>
         /// <param name="pIncrement">May be <see langword="null"/>.</param>
-        public cAppendConfiguration(CancellationToken pCancellationToken, Action<int> pSetCount, Action<int> pIncrement)
+        public cAppendConfiguration(CancellationToken pCancellationToken, Action<int> pSetMaximum, Action<int> pIncrement)
         {
             Timeout = -1;
             CancellationToken = pCancellationToken;
-            SetCount = pSetCount;
+            SetMaximum = pSetMaximum;
             Increment = pIncrement;
         }
     }

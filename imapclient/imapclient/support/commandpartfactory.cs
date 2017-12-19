@@ -227,7 +227,7 @@ namespace work.bacome.imapclient
 
         public static cTextCommandPart AsDateTime(DateTime pDate)
         {
-            var lBytes = new cByteList(26);
+            var lBytes = new cByteList(27);
 
             lBytes.Add(cASCII.DQUOTE);
 
@@ -263,6 +263,8 @@ namespace work.bacome.imapclient
 
                 foreach (var lChar in lOffsetChars) lBytes.Add((byte)lChar);
             }
+
+            lBytes.Add(cASCII.DQUOTE);
 
             return new cTextCommandPart(lBytes);
         }

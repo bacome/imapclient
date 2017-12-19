@@ -173,6 +173,9 @@ namespace testharness2
                 //if (chkIgnoreThreadReferences.Checked) lKnownCapabilities |= fCapabilities.threadreferences;
                 if (chkIgnoreESort.Checked) lKnownCapabilities |= fCapabilities.esort;
 
+                if (chkIgnoreMultiAppend.Checked) lKnownCapabilities |= fCapabilities.multiappend;
+                if (chkIgnoreCatenate.Checked) lKnownCapabilities |= fCapabilities.catenate;
+
                 mClient.IgnoreCapabilities = lKnownCapabilities;
 
                 mClient.MailboxReferrals = chkMailboxReferrals.Checked;

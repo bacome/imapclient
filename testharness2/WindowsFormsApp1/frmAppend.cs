@@ -34,6 +34,22 @@ namespace testharness2
         {
             Text = "imapclient testharness - append - " + mClient.InstanceName;
             ZInitialiseGrid();
+            mClient.PropertyChanged += mClient_PropertyChanged;
+        }
+
+        private void frmAppend_Shown(object sender, EventArgs e)
+        {
+            ZEnable();
+        }
+
+        private void mClient_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(cIMAPClient.IsConnected)) ZEnable();
+        }
+
+        private void ZEnable()
+        {
+            cmdAppend.Enabled = mClient.IsConnected;
         }
 
         private void ZInitialiseGrid()
@@ -50,7 +66,11 @@ namespace testharness2
             mDataFile = dgv.Columns.Add(LButtonColumn("File Data"));
             mDataCompose = dgv.Columns.Add(LButtonColumn("Compose Data"));
             dgv.Columns.Add(LDisplayColumn(nameof(cGridRowData.Data)));
-            mChanged = dgv.Columns.Add(LInvisibleColumn(nameof(cGridRowData.Changed)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_Type)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_UID)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_Result)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_TryIgnore)));
+            mChanged = dgv.Columns.Add(LInvisibleColumn(nameof(cGridRowData.Changed))); // so rows don't get lost because the grid doesn't know they've been edited
 
             dgv.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.ColumnHeader);
 
@@ -63,6 +83,16 @@ namespace testharness2
                 DataGridViewColumn lResult = new DataGridViewColumn();
 
                 lResult.DataPropertyName = "Display" + pName;
+                lResult.HeaderCell.Value = pName;
+                lResult.CellTemplate = lDisplayColumnTemplate;
+                return lResult;
+            }
+
+            DataGridViewColumn LColumn(string pName)
+            {
+                DataGridViewColumn lResult = new DataGridViewColumn();
+
+                lResult.DataPropertyName = pName;
                 lResult.HeaderCell.Value = pName;
                 lResult.CellTemplate = lDisplayColumnTemplate;
                 return lResult;
@@ -174,25 +204,29 @@ namespace testharness2
             {
                 var lOpenFileDialog = new OpenFileDialog();
                 if (lOpenFileDialog.ShowDialog() != DialogResult.OK) return;
-                lData.Data = new cAppendDataSourceString(lOpenFileDialog.FileName);
+                lData.Data = new cAppendDataSourceFile(lOpenFileDialog.FileName);
                 dgv.Rows[e.RowIndex].Cells[mChanged].Value = mChangeNumber++;
             }
         }
 
         private void dgv_RowValidating(object sender, DataGridViewCellCancelEventArgs e)
         {
-            // TODO: a check is required here for: edit a few rows, have an error on the last one; then press esc. (Can't believe that this is required ...)
+            // the try/catch is here for: edit a few rows, have an error on the last one; then press esc.
 
-            if (!(dgv.Rows[e.RowIndex].DataBoundItem is cGridRowData lRowData)) return;
-
-            string lErrorText = lRowData.ErrorText;
-
-            if (lErrorText != null)
+            try
             {
-                e.Cancel = true;
-                dgv.Rows[e.RowIndex].ErrorText = lErrorText;
-            }
+                // this fails with an index out of range error
+                if (!(dgv.Rows[e.RowIndex].DataBoundItem is cGridRowData lRowData)) return;
 
+                string lErrorText = lRowData.ErrorText;
+
+                if (lErrorText != null)
+                {
+                    e.Cancel = true;
+                    dgv.Rows[e.RowIndex].ErrorText = lErrorText;
+                }
+            }
+            catch { }
         }
 
         private void dgv_RowValidated(object sender, DataGridViewCellEventArgs e)
@@ -235,6 +269,7 @@ namespace testharness2
 
                     cUID lUID;
 
+
                     try { lUID = await lMailbox.AppendAsync(lString.String); }
                     catch (Exception ex)
                     {
@@ -243,59 +278,81 @@ namespace testharness2
                     }
 
                     if (!IsDisposed) MessageBox.Show(this, $"appended {lUID}");
-
                     return;
                 }
             }
 
 
-            // DO THE mailmessage as a simple API example also ...
+            // TODO THE mailmessage as a simple API example also ...
 
+            List<cGridRowData> lRows = new List<cGridRowData>();
             List<cAppendData> lMessages = new List<cAppendData>();
 
-            foreach (cGridRowData lRow in lBindingSource)
+            try
             {
-                switch (lRow.Data)
+                foreach (cGridRowData lRow in lBindingSource)
                 {
-                    case cAppendDataSourceMessage lMessage:
+                    lRows.Add(lRow);
 
-                        if (lRow.Flags == null && lRow.Received == null) lMessages.Add(lMessage.Message);
-                        else lMessages.Add(new cMessageAppendData(lMessage.Message, lRow.Flags, lRow.Received));
-                        break;
+                    switch (lRow.Data)
+                    {
+                        case cAppendDataSourceMessage lMessage:
 
-                    case cAppendDataSourceMessagePart lPart:
+                            if (lRow.Flags == null && lRow.Received == null) lMessages.Add(lMessage.Message);
+                            else lMessages.Add(new cMessageAppendData(lMessage.Message, lRow.Flags, lRow.Received));
+                            break;
 
-                        lMessages.Add(new cMessagePartAppendData(lPart.Message, lPart.Part as cMessageBodyPart, lRow.Flags, lRow.Received));
-                        break;
+                        case cAppendDataSourceMessagePart lPart:
 
-                    case cAppendDataSourceString lString:
+                            lMessages.Add(new cMessagePartAppendData(lPart.Message, lPart.Part as cMessageBodyPart, lRow.Flags, lRow.Received));
+                            break;
 
-                        if (lRow.Flags == null && lRow.Received == null) lMessages.Add(lString.String);
-                        else lMessages.Add(new cStringAppendData(lString.String, lRow.Flags, lRow.Received));
-                        break;
+                        case cAppendDataSourceString lString:
 
-                    case cAppendDataSourceFile lFile:
+                            if (lRow.Flags == null && lRow.Received == null) lMessages.Add(lString.String);
+                            else lMessages.Add(new cStringAppendData(lString.String, lRow.Flags, lRow.Received));
+                            break;
 
-                        lMessages.Add(new cFileAppendData(lFile.Path, lRow.Flags, lRow.Received));
-                        break;
+                        case cAppendDataSourceFile lFile:
 
-                    default:
+                            lMessages.Add(new cFileAppendData(lFile.Path, lRow.Flags, lRow.Received));
+                            break;
 
-                        MessageBox.Show(this, "internal error");
-                        return;
+                        default:
+
+                            MessageBox.Show(this, "internal error");
+                            return;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"data conversion error\n{ex}");
+                return;
             }
 
             cAppendFeedback lFeedback;
 
-            try { lFeedback = await lMailbox.AppendAsync(lMessages); }
-            catch (Exception ex)
+            using (frmProgress lProgress = new frmProgress("appending"))
             {
-                if (!IsDisposed) MessageBox.Show(this, $"append error\n{ex}");
-                return;
+                lProgress.ShowAndFocus(this);
+
+                cAppendConfiguration lConfiguration = new cAppendConfiguration(lProgress.CancellationToken, lProgress.SetMaximum, lProgress.Increment);
+
+                try { lFeedback = await lMailbox.AppendAsync(lMessages, lConfiguration); }
+                catch (OperationCanceledException) { return; }
+                catch (Exception ex)
+                {
+                    if (!IsDisposed) MessageBox.Show(this, $"append error\n{ex}");
+                    return;
+                }
             }
 
-            if (!IsDisposed) MessageBox.Show(this, $"appended {lFeedback}");
+            if (!IsDisposed)
+            {
+                for (int i = 0; i < Math.Min(lFeedback.Count, lMessages.Count); i++) lRows[i].Feedback = lFeedback[i];
+                MessageBox.Show(this, $"appended {lFeedback.AppendedCount} messages, {lFeedback.FailedCount} failed, {lFeedback.NotAttemptedCount} didn't try");
+            }
         }
 
 
@@ -310,6 +367,7 @@ namespace testharness2
             private cStorableFlags mFlags = null;
             private DateTime? mReceived = null;
             private cAppendDataSource mData = null;
+            private cAppendFeedbackItem mFeedback = null;
 
             public event PropertyChangedEventHandler PropertyChanged;
 
@@ -339,6 +397,20 @@ namespace testharness2
                 }
             }
 
+            public cAppendFeedbackItem Feedback
+            {
+                get => mFeedback;
+
+                set
+                {
+                    mFeedback = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Fb_Type)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Fb_UID)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Fb_Result)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Fb_TryIgnore)));
+                }
+            }
+
             public string DisplayFlags => Flags?.ToString();
 
             public string DisplayReceived
@@ -358,6 +430,11 @@ namespace testharness2
             }
 
             public string DisplayData => Data?.ToString();
+
+            public string Fb_Type => mFeedback?.Type.ToString();
+            public string Fb_UID => mFeedback?.AppendedMessageUID?.ToString();
+            public string Fb_Result => mFeedback?.FailedResult?.ToString();
+            public string Fb_TryIgnore => mFeedback?.FailedTryIgnore.ToString();
 
             public string Changed { get; set; }
 

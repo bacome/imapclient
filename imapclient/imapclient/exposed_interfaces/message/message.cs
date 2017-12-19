@@ -628,6 +628,7 @@ namespace work.bacome.imapclient
         private bool ZContainsPart(cBodyPart pPart, cSinglePartBody pSinglePart)
         {
             if (ReferenceEquals(pPart, pSinglePart)) return true;
+            if (pPart is cMessageBodyPart lMessagePart) return ZContainsPart(lMessagePart.BodyStructure, pSinglePart);
             if (pPart is cMultiPartBody lMultiPart) foreach (var lPart in lMultiPart.Parts) if (ZContainsPart(lPart, pSinglePart)) return true;
             return false;
         }

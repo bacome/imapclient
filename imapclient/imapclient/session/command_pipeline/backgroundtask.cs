@@ -108,6 +108,7 @@ namespace work.bacome.imapclient
                         lContext.TraceVerbose("waiting for send to complete");
                         try { await lBackgroundSendTask.ConfigureAwait(false); }
                         catch (Exception e) { lContext.TraceException("send reported an exception at pipeline stop", e); }
+                        lContext.TraceVerbose("send is complete");
                         lBackgroundSendTask.Dispose();
                     }
 

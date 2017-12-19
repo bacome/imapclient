@@ -48,6 +48,11 @@ namespace work.bacome.imapclient
                     // rfc 3516
                     private static readonly cBytes kUnknownCTE = new cBytes("UNKNOWN-CTE");
 
+                    // rfc 4469
+                    private static readonly cBytes kBadURL = new cBytes("BADURL");
+                    private static readonly cBytes kTooBig = new cBytes("TOOBIG");
+
+
                     private readonly cCallbackSynchroniser mSynchroniser;
                     private readonly List<iResponseTextCodeParser> mResponseTextCodeParsers = new List<iResponseTextCodeParser>();
                     private cMailboxCache mMailboxCache = null;
@@ -107,6 +112,7 @@ namespace work.bacome.imapclient
                                     else if (lCodeBytes.Equals(kBadCharset)) lCode = eResponseTextCode.badcharset;
                                     else if (lCodeBytes.Equals(kUseAttr)) lCode = eResponseTextCode.useattr;
                                     else if (lCodeBytes.Equals(kUnknownCTE)) lCode = eResponseTextCode.unknowncte;
+                                    else if (lCodeBytes.Equals(kTooBig)) lCode = eResponseTextCode.toobig;
                                     else
                                     {
                                         lCode = eResponseTextCode.other;
@@ -129,6 +135,11 @@ namespace work.bacome.imapclient
                                     {
                                         lCode = eResponseTextCode.referral;
                                         lArguments = ZProcessReferrals(lArgumentsBytes, lContext);
+                                    }
+                                    else if (lCodeBytes.Equals(kBadURL))
+                                    {
+                                        lCode = eResponseTextCode.badurl;
+                                        lArguments = new cStrings(new string[] { cTools.UTF8BytesToString(lArgumentsBytes) });
                                     }
                                     else
                                     {

@@ -105,7 +105,7 @@ namespace work.bacome.imapclient
             if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
 
             var lFileInfo = new FileInfo(pPath);
-            if (!lFileInfo.Exists || (lFileInfo.Attributes | FileAttributes.Directory) != 0 || lFileInfo.Length == 0) throw new ArgumentOutOfRangeException(nameof(pPath));
+            if (!lFileInfo.Exists || (lFileInfo.Attributes & FileAttributes.Directory) != 0 || lFileInfo.Length == 0) throw new ArgumentOutOfRangeException(nameof(pPath));
 
             Path = lFileInfo.FullName;
             Length = (int)lFileInfo.Length;

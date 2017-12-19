@@ -68,6 +68,7 @@
             this.Name = "frmAppend";
             this.Text = "frmAppend";
             this.Load += new System.EventHandler(this.frmAppend_Load);
+            this.Shown += new System.EventHandler(this.frmAppend_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();
             this.ResumeLayout(false);
 

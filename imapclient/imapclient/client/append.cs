@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                return await lSession.AppendAsync(lMC, pMailboxHandle, pMessages, pConfiguration.SetCount, pConfiguration.Increment, lContext).ConfigureAwait(false);
+                return await lSession.AppendAsync(lMC, pMailboxHandle, pMessages, pConfiguration.SetMaximum, pConfiguration.Increment, lContext).ConfigureAwait(false);
             }
         }
     }
