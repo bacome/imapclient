@@ -33,7 +33,76 @@ namespace work.bacome.imapclient
             if (pMailboxHandle == null) throw new ArgumentNullException(nameof(pMailboxHandle));
             if (pMessages == null) throw new ArgumentNullException(nameof(pMessages));
 
+            // special case
             if (pMessages.Count == 0) return new cAppendFeedback();
+
+            // verify that the appenddata will be readable during the append ...
+            //  the problem is that anything that is a (or anything that might be converted to a) stream that needs to be served by this client will not work
+            //   we will attempt to read from the stream while sending the data => there will be a deadlock 
+            //    (the fetch will be queued on the command pipeline while the command pipeline is in the middle of sending the append
+            //      the append will wait for the results of the fetch, but the fetch can't be sent until the append has finished)
+            //
+            // the way this should be done is by connecting a separate client to the same account and using a message instance from the separate client
+            //  (this is the best/safest design as it will work with or without catenate)
+            //
+            // alternatively, read into a temporary file and then use the file as the source of the data (this will obviously never use catenate).
+            //
+            foreach (var lMessage in pMessages)
+            {
+                switch (lMessage)
+                {
+                    case cMessageAppendData lWholeMessage:
+
+                        if (ReferenceEquals(lWholeMessage.Client, this)) throw new cAppendDataClientException(lMessage);
+                        break;
+
+                    case cMessagePartAppendData lMessagePart:
+
+                        if (ReferenceEquals(lMessagePart.Client, this)) throw new cAppendDataClientException(lMessage);
+                        break;
+
+                    case cStreamAppendData lStream:
+
+                        {
+                            if (lStream.Stream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this)) throw new cAppendDataClientException(lMessage);
+                            break;
+                        }
+
+                    case cMultiPartAppendData lMultiPart:
+
+                        foreach (var lPart in lMultiPart.Parts)
+                        {
+                            switch (lPart)
+                            {
+                                case cMessageAppendDataPart lWholeMessage:
+
+                                    if (ReferenceEquals(lWholeMessage.Client, this)) throw new cAppendDataClientException(lMessage);
+                                    break;
+
+                                case cMessagePartAppendDataPart lMessagePart:
+
+                                    if (ReferenceEquals(lMessagePart.Client, this)) throw new cAppendDataClientException(lMessage);
+                                    break;
+
+                                case cUIDSectionAppendDataPart lSection:
+
+                                    if (ReferenceEquals(lSection.Client, this)) throw new cAppendDataClientException(lMessage);
+                                    break;
+
+                                case cStreamAppendDataPart lStream:
+
+                                    {
+                                        if (lStream.Stream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this)) throw new cAppendDataClientException(lMessage);
+                                        break;
+                                    }
+                            }
+                        }
+
+                        break;
+                }
+            }
+
+            // do the append
 
             if (pConfiguration == null)
             {

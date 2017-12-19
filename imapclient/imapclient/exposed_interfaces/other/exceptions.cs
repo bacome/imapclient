@@ -451,6 +451,33 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// Thrown when an <see cref="cAppendData"/> instance references the <see cref="cIMAPClient"/> instance that the data is being appended through.
+    /// </summary>
+    /// <remarks>
+    /// This situation will lead to a deadlock if the data needs to be served via a stream.
+    /// Either use another <see cref="cIMAPClient"/> instance with the same <see cref="cIMAPClient.ConnectedAccountId"/> as the source of the data
+    /// or read and cache the data locally (e.g. in a file) before appending it.
+    /// </remarks>
+    public class cAppendDataClientException : cIMAPException
+    {
+        /// <summary>
+        /// The append data concerned.
+        /// </summary>
+        public readonly cAppendData AppendData;
+
+        internal cAppendDataClientException(cAppendData pAppendData) { AppendData = pAppendData; }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cAppendDataClientException));
+            lBuilder.Append(AppendData);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
+    }
+
     public class cMailMessageException : cIMAPException
     {
         internal cMailMessageException() { }

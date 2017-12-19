@@ -221,17 +221,27 @@ namespace work.bacome.imapclient
 
         public override int Read(byte[] pBuffer, int pOffset, int pCount)
         {
+            if (pCount == 0) return 0;
+            ZReadInit(pBuffer, pOffset, pCount);
+            return mBuffer.Read(pBuffer, pOffset, pCount, mReadTimeout);
+        }
+
+        public override async Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, CancellationToken pCancellationToken)
+        {
+            if (pCount == 0) return 0;
+            ZReadInit(pBuffer, pOffset, pCount);
+            return await mBuffer.ReadAsync(pBuffer, pOffset, pCount, mReadTimeout, pCancellationToken);
+        }
+
+        private void ZReadInit(byte[] pBuffer, int pOffset, int pCount)
+        {
             if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
             if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
             if (pCount < 0) throw new ArgumentOutOfRangeException(nameof(pCount));
             if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
             if (mDisposed) throw new ObjectDisposedException(nameof(cMessageDataStream));
 
-            if (pCount == 0) return 0;
-
             if (mFetchTask == null) mFetchTask = ZFetch();
-
-            return mBuffer.Read(pBuffer, pOffset, pCount, mReadTimeout);
         }
 
         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
@@ -338,57 +348,73 @@ namespace work.bacome.imapclient
 
             public int Read(byte[] pBuffer, int pOffset, int pCount, int pTimeout)
             {
-                if (pBuffer == null) throw new ArgumentNullException(nameof(pBuffer));
-                if (pOffset < 0) throw new ArgumentOutOfRangeException(nameof(pOffset));
-                if (pCount < 0) throw new ArgumentOutOfRangeException(nameof(pCount));
-                if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
-                if (mDisposed) throw new ObjectDisposedException(nameof(cMessageDataStream));
-
-                if (pCount == 0) return 0;
-
                 while (true)
                 {
-                    if (mCurrentBuffer == null)
-                    {
-                        lock (mLock)
-                        {
-                            if (mBuffers.Count > 0) mCurrentBuffer = mBuffers.Dequeue();
-                            mCurrentBufferPosition = 0;
-                        }
-                    }
-
-                    if (ReferenceEquals(mCurrentBuffer, kEndOfStream))
-                    {
-                        if (mCompleteException != null) throw new IOException("fetch failed", mCompleteException);
-                        else return 0;
-                    }
-
-                    if (mCurrentBuffer != null)
-                    {
-                        int lPosition = pOffset;
-
-                        while (lPosition < pBuffer.Length && mCurrentBufferPosition < mCurrentBuffer.Length)
-                        {
-                            pBuffer[lPosition++] = mCurrentBuffer[mCurrentBufferPosition++];
-                        }
-
-                        int lBytesRead = lPosition - pOffset;
-
-                        lock (mLock)
-                        {
-                            mCurrentSize -= lBytesRead;
-                        }
-
-                        if (mCurrentBufferPosition == mCurrentBuffer.Length) mCurrentBuffer = null;
-
-                        if (mWriteSemaphore.CurrentCount == 0) mWriteSemaphore.Release();
-
-                        return lBytesRead;
-                    }
-
+                    if (ZTryRead(pBuffer, pOffset, pCount, out var lBytesRead)) return lBytesRead;
                     try { if (!mReadSemaphore.Wait(pTimeout, mCancellationToken)) throw new TimeoutException(); }
                     catch (OperationCanceledException) { throw new IOException($"{nameof(cMessageDataStream)} closed"); }
                 }
+            }
+
+            public async Task<int> ReadAsync(byte[] pBuffer, int pOffset, int pCount, int pTimeout, CancellationToken pCancellationToken)
+            {
+                using (var lCTS = CancellationTokenSource.CreateLinkedTokenSource(pCancellationToken, mCancellationToken))
+                {
+                    while (true)
+                    {
+                        if (ZTryRead(pBuffer, pOffset, pCount, out var lBytesRead)) return lBytesRead;
+                        try { if (!await mReadSemaphore.WaitAsync(pTimeout, lCTS.Token)) throw new TimeoutException(); }
+                        catch (OperationCanceledException) { throw new IOException($"{nameof(cMessageDataStream)} closed"); }
+                    }
+                }
+            }
+
+            private bool ZTryRead(byte[] pBuffer, int pOffset, int pCount, out int rBytesRead)
+            {
+                if (mCurrentBuffer == null)
+                {
+                    lock (mLock)
+                    {
+                        if (mBuffers.Count > 0) mCurrentBuffer = mBuffers.Dequeue();
+                        mCurrentBufferPosition = 0;
+                    }
+                }
+
+                if (ReferenceEquals(mCurrentBuffer, kEndOfStream))
+                {
+                    if (mCompleteException != null) throw new IOException("fetch failed", mCompleteException);
+                    else
+                    {
+                        rBytesRead = 0;
+                        return true;
+                    }
+                }
+
+                if (mCurrentBuffer != null)
+                {
+                    int lPosition = pOffset;
+
+                    while (lPosition < pBuffer.Length && mCurrentBufferPosition < mCurrentBuffer.Length)
+                    {
+                        pBuffer[lPosition++] = mCurrentBuffer[mCurrentBufferPosition++];
+                    }
+
+                    rBytesRead = lPosition - pOffset;
+
+                    lock (mLock)
+                    {
+                        mCurrentSize -= rBytesRead;
+                    }
+
+                    if (mCurrentBufferPosition == mCurrentBuffer.Length) mCurrentBuffer = null;
+
+                    if (mWriteSemaphore.CurrentCount == 0) mWriteSemaphore.Release();
+
+                    return true;
+                }
+
+                rBytesRead = 0;
+                return false;
             }
 
             public override void Write(byte[] pBuffer, int pOffset, int pCount)
