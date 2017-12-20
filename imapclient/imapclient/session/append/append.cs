@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task<cAppendFeedback> AppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cAppendDataList pMessages, Action<int> pSetMaximum, Action<int> pIncrement, cTrace.cContext pParentContext)
+            public async Task<cAppendFeedback> AppendAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cAppendDataList pMessages, Action<long> pSetMaximum, Action<int> pIncrement, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(AppendAsync), pMC, pMailboxHandle, pMessages);
 
@@ -34,9 +34,9 @@ namespace work.bacome.imapclient
                 // initialise any progress system that might be in place
                 if (pSetMaximum != null)
                 {
-                    int lLength = 0;
+                    long lLength = 0;
                     foreach (var lMessage in lMessages) lLength += lMessage.Length;
-                    mSynchroniser.InvokeActionInt(pSetMaximum, lLength, lContext);
+                    mSynchroniser.InvokeActionLong(pSetMaximum, lLength, lContext);
                 }
 
                 // result collector
@@ -134,7 +134,7 @@ namespace work.bacome.imapclient
                                 else lReceived = lWholeMessage.Received;
 
                                 if (lCatenate) lMessages.Add(new cCatenateAppendData(lFlags, lReceived, new cCatenateURLAppendDataPart[] { lURLPart }));
-                                else lMessages.Add(new cSessionMessageAppendData(lFlags, lReceived, lWholeMessage.Client, lWholeMessage.MessageHandle, cSection.All, (int)lWholeMessage.MessageHandle.Size));
+                                else lMessages.Add(new cSessionMessageAppendData(lFlags, lReceived, lWholeMessage.Client, lWholeMessage.MessageHandle, cSection.All, lWholeMessage.MessageHandle.Size.Value));
 
                                 break;
                             }
@@ -168,7 +168,7 @@ namespace work.bacome.imapclient
                                 else lReceived = lMessagePart.Received.Value;
 
                                 if (lCatenate) lMessages.Add(new cCatenateAppendData(lFlags, lReceived, new cCatenateURLAppendDataPart[] { lURLPart }));
-                                else lMessages.Add(new cSessionMessageAppendData(lFlags, lReceived, lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, (int)lMessagePart.Part.SizeInBytes));
+                                else lMessages.Add(new cSessionMessageAppendData(lFlags, lReceived, lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, lMessagePart.Part.SizeInBytes));
 
                                 break;
                             }
@@ -233,7 +233,7 @@ namespace work.bacome.imapclient
                                                     }
 
                                                     if (lCatenate) lParts.Add(lURLPart);
-                                                    else lParts.Add(new cCatenateMessageAppendDataPart(lWholeMessage.Client, lWholeMessage.MessageHandle, cSection.All, (int)lWholeMessage.MessageHandle.Size));
+                                                    else lParts.Add(new cCatenateMessageAppendDataPart(lWholeMessage.Client, lWholeMessage.MessageHandle, cSection.All, lWholeMessage.MessageHandle.Size.Value));
 
                                                     break;
                                                 }
@@ -250,7 +250,7 @@ namespace work.bacome.imapclient
                                                     }
 
                                                     if (lCatenate && cCatenateURLAppendDataPart.TryConstruct(lMessagePart.MessageHandle, lMessagePart.Part.Section, mCommandPartFactory, out var lURLPart)) lParts.Add(lURLPart);
-                                                    else lParts.Add(new cCatenateMessageAppendDataPart(lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, (int)lMessagePart.Part.SizeInBytes));
+                                                    else lParts.Add(new cCatenateMessageAppendDataPart(lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, lMessagePart.Part.SizeInBytes));
 
                                                     break;
                                                 }
@@ -289,6 +289,7 @@ namespace work.bacome.imapclient
                                 else
                                 {
                                     List<cSessionAppendDataPart> lParts = new List<cSessionAppendDataPart>();
+                                    long lLength = 0;
 
                                     foreach (var lPart in lMultiPart.Parts)
                                     {
@@ -302,33 +303,40 @@ namespace work.bacome.imapclient
                                                     else throw new cRequestedDataNotReturnedException(lWholeMessage.MessageHandle);
                                                 }
 
-                                                lParts.Add(new cSessionMessageAppendDataPart(lWholeMessage.Client, lWholeMessage.MessageHandle, cSection.All, (int)lWholeMessage.MessageHandle.Size));
+                                                lParts.Add(new cSessionMessageAppendDataPart(lWholeMessage.Client, lWholeMessage.MessageHandle, cSection.All, lWholeMessage.MessageHandle.Size.Value));
+                                                lLength += lWholeMessage.MessageHandle.Size.Value;
 
                                                 break;
 
                                             case cMessagePartAppendDataPart lMessagePart:
 
-                                                lParts.Add(new cSessionMessageAppendDataPart(lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, (int)lMessagePart.Part.SizeInBytes));
+                                                lParts.Add(new cSessionMessageAppendDataPart(lMessagePart.Client, lMessagePart.MessageHandle, lMessagePart.Part.Section, lMessagePart.Part.SizeInBytes));
+                                                lLength += lMessagePart.Part.SizeInBytes;
                                                 break;
 
                                             case cUIDSectionAppendDataPart lSection:
 
                                                 lParts.Add(new cSessionMessageAppendDataPart(lSection.Client, lSection.MailboxHandle, lSection.UID, lSection.Section, lSection.Length));
+                                                lLength += lSection.Length;
                                                 break;
 
                                             case cStringAppendDataPart lString:
 
-                                                lParts.Add(new cSessionBytesAppendDataPart(lString.String));
+                                                var lBytes = new cSessionBytesAppendDataPart(lString.String);
+                                                lParts.Add(lBytes);
+                                                lLength += lBytes.Length;
                                                 break;
 
                                             case cFileAppendDataPart lFile:
 
                                                 lParts.Add(new cSessionFileAppendDataPart(lFile.Path, lFile.Length, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
+                                                lLength += lFile.Length;
                                                 break;
 
                                             case cStreamAppendDataPart lStream:
 
                                                 lParts.Add(new cSessionStreamAppendDataPart(lStream.Stream, lStream.Length, lStream.ReadConfiguration ?? mAppendStreamReadConfiguration));
+                                                lLength += lStream.Length;
                                                 break;
 
                                             default:
@@ -336,6 +344,8 @@ namespace work.bacome.imapclient
                                                 throw new cInternalErrorException();
                                         }
                                     }
+
+                                    if (lLength > uint.MaxValue) throw new cAppendDataSizeException(lMultiPart);
 
                                     lMessages.Add(new cSessionMultiPartAppendData(lFlags, lMultiPart.Received, lParts));
                                 }
@@ -356,9 +366,9 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZAppendInBatchesAsync), pMC, pMailboxHandle, pMessages);
 
-                int lTargetLength = mAppendBatchSizer.Current;
+                long lTargetLength = mAppendBatchSizer.Current;
                 cSessionAppendDataList lMessages = new cSessionAppendDataList();
-                int lTotalLength = 0;
+                long lTotalLength = 0;
 
                 foreach (var lMessage in pMessages)
                 {
@@ -379,7 +389,7 @@ namespace work.bacome.imapclient
                 if (lMessages.Count > 0) await ZAppendBatchAsync(pMC, pMailboxHandle, lMessages, lTotalLength, pIncrement, pResults, lContext).ConfigureAwait(false);
             }
 
-            private async Task<bool> ZAppendBatchAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cSessionAppendDataList pMessages, int pTotalLength, Action<int> pIncrement, List<cAppendResult> pResults, cTrace.cContext pParentContext)
+            private async Task<bool> ZAppendBatchAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cSessionAppendDataList pMessages, long pTotalLength, Action<int> pIncrement, List<cAppendResult> pResults, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZAppendBatchAsync), pMC, pMailboxHandle, pMessages, pTotalLength);
 

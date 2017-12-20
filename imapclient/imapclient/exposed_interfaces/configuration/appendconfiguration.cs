@@ -21,7 +21,7 @@ namespace work.bacome.imapclient
         /// The progress-setmaximum callback for the operation. May be <see langword="null"/>. Invoked once before any progress-increment invokes, the argument specifies how many bytes are going to be sent in total.
         /// </summary>
         /// <inheritdoc cref="cAPIDocumentationTemplate.Event" select="remarks"/>
-        public readonly Action<int> SetMaximum;
+        public readonly Action<long> SetMaximum;
 
         /// <summary>
         /// The progress-increment callback for the operation. May be <see langword="null"/>. Invoked once for each batch of bytes sent to the server, the argument specifies how many bytes were sent in the batch.
@@ -48,7 +48,7 @@ namespace work.bacome.imapclient
         /// <param name="pCancellationToken">May be <see cref="CancellationToken.None"/>.</param>
         /// <param name="pSetMaximum">May be <see langword="null"/>.</param>
         /// <param name="pIncrement">May be <see langword="null"/>.</param>
-        public cAppendConfiguration(CancellationToken pCancellationToken, Action<int> pSetMaximum, Action<int> pIncrement)
+        public cAppendConfiguration(CancellationToken pCancellationToken, Action<long> pSetMaximum, Action<int> pIncrement)
         {
             Timeout = -1;
             CancellationToken = pCancellationToken;

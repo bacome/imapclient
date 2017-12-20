@@ -74,7 +74,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets the size in bytes of the encoded attachement.
         /// </summary>
-        public int PartSizeInBytes => (int)Part.SizeInBytes;
+        public uint PartSizeInBytes => Part.SizeInBytes;
 
         /// <summary>
         /// Gets the MD5 value of the attachment. May be <see langword="null"/>.
@@ -104,7 +104,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets the approximate size of the attachment in bytes. May be <see langword="null"/>.
         /// </summary>
-        public int? ApproximateFileSizeInBytes => Part.Disposition?.Size;
+        public uint? ApproximateFileSizeInBytes => Part.Disposition?.Size;
 
         /// <summary>
         /// Gets the language(s) of the attachment. May be <see langword="null"/>.
@@ -119,13 +119,13 @@ namespace work.bacome.imapclient
         /// This may be smaller than <see cref="PartSizeInBytes"/> if <see cref="DecodingRequired"/>) isn't <see cref="eDecodingRequired.none"/> and <see cref="cCapabilities.Binary"/> is in use.
         /// The size may have to be fetched from the server, but once fetched it will be cached.
         /// </remarks>
-        public int SaveSizeInBytes() => Client.FetchSizeInBytes(MessageHandle, Part);
+        public uint SaveSizeInBytes() => Client.FetchSizeInBytes(MessageHandle, Part);
 
         /// <summary>
         /// Asynchronously gets the number of bytes that will have to come over the network from the server to save the attachment
         /// </summary>
         /// <inheritdoc cref="SaveSizeInBytes" select="returns|remarks"/>
-        public Task<int> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(MessageHandle, Part);
+        public Task<uint> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(MessageHandle, Part);
 
         /// <summary>
         /// Saves the attachment to the specified path.

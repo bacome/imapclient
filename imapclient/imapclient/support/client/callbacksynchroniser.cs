@@ -268,6 +268,15 @@ namespace work.bacome.imapclient
                 ZInvokeAndForget(lContext);
             }
 
+            public void InvokeActionLong(Action<long> pAction, long pLong, cTrace.cContext pParentContext)
+            {
+                if (pAction == null) return;
+                var lContext = pParentContext.NewMethod(nameof(cCallbackSynchroniser), nameof(InvokeActionLong), pLong);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cCallbackSynchroniser));
+                ZInvokeAndForget(new cActionLongEventArgs(pAction, pLong), lContext);
+                // NOTE the event is fired by parallel code in the ZInvokeEvents routine: when adding an event you must put code there also
+            }
+
             public void InvokeActionInt(Action<int> pAction, int pInt, cTrace.cContext pParentContext)
             {
                 if (pAction == null) return;
@@ -393,6 +402,11 @@ namespace work.bacome.imapclient
                                 MailboxMessageDelivery?.Invoke(mSender, lEventArgs);
                                 break;
 
+                            case cActionLongEventArgs lEventArgs:
+
+                                lEventArgs.Action(lEventArgs.Long);
+                                break;
+
                             case cActionIntEventArgs lEventArgs:
 
                                 lEventArgs.Action(lEventArgs.Int);
@@ -506,6 +520,20 @@ namespace work.bacome.imapclient
                     EventArgs = pEventArgs;
                     Releaser = pReleaser;
                 }
+            }
+
+            private class cActionLongEventArgs : EventArgs
+            {
+                public readonly Action<long> Action;
+                public readonly long Long;
+
+                public cActionLongEventArgs(Action<long> pAction, long pLong)
+                {
+                    Action = pAction ?? throw new ArgumentNullException(nameof(pAction));
+                    Long = pLong;
+                }
+
+                public override string ToString() => $"{nameof(cActionLongEventArgs)}({Long})";
             }
 
             private class cActionIntEventArgs : EventArgs

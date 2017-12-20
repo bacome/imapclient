@@ -186,42 +186,41 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                private async Task ZBackgroundSendAppendStreamDataAsync(bool pSecret, Stream pStream, int pLength, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cTrace.cContext pParentContext)
+                private async Task ZBackgroundSendAppendStreamDataAsync(bool pSecret, Stream pStream, uint pLength, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration, cTrace.cContext pParentContext)
                 {
                     // don't log details of the data (i.e. the length) - it may be secret
                     var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendStreamDataAsync));
 
-                    if (pLength > 0)
+                    if (pLength == 0) return;
+
+                    long lBytesToGo = pLength;
+
+                    Stopwatch lStopwatch = new Stopwatch();
+                    cBatchSizer lReadSizer = new cBatchSizer(pReadConfiguration);
+                    byte[] lBuffer = new byte[lReadSizer.Current];
+
+                    while (lBytesToGo > 0)
                     {
-                        Stopwatch lStopwatch = new Stopwatch();
-                        cBatchSizer lReadSizer = new cBatchSizer(pReadConfiguration);
-                        byte[] lBuffer = new byte[lReadSizer.Current];
+                        int lReadSize = (int)Math.Min(lReadSizer.Current, lBytesToGo);
 
-                        while (pLength > 0)
-                        {
-                            int lReadSize = Math.Min(lReadSizer.Current, pLength);
+                        if (lReadSize > lBuffer.Length) lBuffer = new byte[lReadSize];
 
-                            if (lReadSize > lBuffer.Length) lBuffer = new byte[lReadSize];
+                        if (!pSecret) lContext.TraceVerbose("reading {0} bytes from stream", lReadSize);
 
-                            if (!pSecret) lContext.TraceVerbose("reading {0} bytes from stream", lReadSize);
+                        lStopwatch.Restart();
 
-                            lStopwatch.Restart();
-
-                            int lCount = -1;
-                            try { lCount = await pStream.ReadAsync(lBuffer, 0, lReadSize, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false); }
-                            finally { if (!pSecret) lContext.TraceVerbose("read {0} bytes from stream", lCount); }
+                        int lBytesRead = await pStream.ReadAsync(lBuffer, 0, lReadSize, mBackgroundCancellationTokenSource.Token).ConfigureAwait(false);
                             
-                            lStopwatch.Stop();
+                        lStopwatch.Stop();
 
-                            if (lCount == 0) throw new cStreamRanOutOfDataException();
+                        if (lBytesRead == 0) throw new cStreamRanOutOfDataException();
 
-                            // store the time taken so the next read is a better size
-                            lReadSizer.AddSample(lCount, lStopwatch.ElapsedMilliseconds);
+                        // store the time taken so the next read is a better size
+                        lReadSizer.AddSample(lBytesRead, lStopwatch.ElapsedMilliseconds);
 
-                            await ZBackgroundSendAppendDataAsync(pSecret, lBuffer, lCount, pIncrement, lContext).ConfigureAwait(false);
+                        await ZBackgroundSendAppendDataAsync(pSecret, lBuffer, lBytesRead, pIncrement, lContext).ConfigureAwait(false);
 
-                            pLength -= lCount;
-                        }
+                        lBytesToGo -= lBytesRead;
                     }
                 }
 

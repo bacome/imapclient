@@ -97,7 +97,7 @@ namespace work.bacome.imapclient
     public class cFileAppendData : cAppendData
     {
         public readonly string Path;
-        public readonly int Length;
+        public readonly uint Length;
         public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
         public cFileAppendData(string pPath, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pReadConfiguration = null) : base(pFlags, pReceived)
@@ -105,10 +105,10 @@ namespace work.bacome.imapclient
             if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
 
             var lFileInfo = new FileInfo(pPath);
-            if (!lFileInfo.Exists || (lFileInfo.Attributes & FileAttributes.Directory) != 0 || lFileInfo.Length == 0) throw new ArgumentOutOfRangeException(nameof(pPath));
+            if (!lFileInfo.Exists || (lFileInfo.Attributes & FileAttributes.Directory) != 0 || lFileInfo.Length == 0 || lFileInfo.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pPath));
 
             Path = lFileInfo.FullName;
-            Length = (int)lFileInfo.Length;
+            Length = (uint)lFileInfo.Length;
             ReadConfiguration = pReadConfiguration;
         }
 
@@ -118,23 +118,23 @@ namespace work.bacome.imapclient
     public class cStreamAppendData : cAppendData
     {
         public readonly Stream Stream;
-        public readonly int Length;
+        public readonly uint Length;
         public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
         public cStreamAppendData(Stream pStream, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pReadConfiguration = null) : base(pFlags, pReceived)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!pStream.CanRead || !pStream.CanSeek || pStream.Length == 0) throw new ArgumentOutOfRangeException(nameof(pStream));
+            if (!pStream.CanRead || !pStream.CanSeek || pStream.Length == 0 || pStream.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
             pStream.Position = 0;
-            Length = (int)(pStream.Length);
+            Length = (uint)(pStream.Length);
             ReadConfiguration = pReadConfiguration;
         }
 
-        public cStreamAppendData(Stream pStream, int pLength, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pReadConfiguration = null) : base(pFlags, pReceived)
+        public cStreamAppendData(Stream pStream, uint pLength, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pReadConfiguration = null) : base(pFlags, pReceived)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
-            if (pLength <= 0) throw new ArgumentOutOfRangeException(nameof(pLength));
+            if (pLength == 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             Length = pLength;
             ReadConfiguration = pReadConfiguration;
         }
@@ -263,7 +263,7 @@ namespace work.bacome.imapclient
             AllowCatenate = pAllowCatenate;
         }
 
-        public override bool HasContent => Part.SizeInBytes > 0;
+        public override bool HasContent => Part.SizeInBytes != 0;
 
         public override string ToString() => $"{nameof(cMessagePartAppendDataPart)}({MessageHandle},{Part},{AllowCatenate})";
 
@@ -276,10 +276,10 @@ namespace work.bacome.imapclient
         public readonly iMailboxHandle MailboxHandle;
         public readonly cUID UID;
         public readonly cSection Section;
-        public readonly int Length;
+        public readonly uint Length;
         public readonly bool AllowCatenate;
 
-        public cUIDSectionAppendDataPart(cMailbox pMailbox, cUID pUID, cSection pSection, int pLength, bool pAllowCatenate = true)
+        public cUIDSectionAppendDataPart(cMailbox pMailbox, cUID pUID, cSection pSection, uint pLength, bool pAllowCatenate = true)
         {
             if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
 
@@ -291,13 +291,12 @@ namespace work.bacome.imapclient
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
 
-            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             Length = pLength;
 
             AllowCatenate = pAllowCatenate;
         }
 
-        public override bool HasContent => Length > 0;
+        public override bool HasContent => Length != 0;
 
         public override string ToString() => $"{nameof(cUIDSectionAppendDataPart)}({MailboxHandle},{UID},{Section},{Length},{AllowCatenate})";
     }
@@ -321,7 +320,7 @@ namespace work.bacome.imapclient
     public class cFileAppendDataPart : cAppendDataPart
     {
         public readonly string Path;
-        public readonly int Length;
+        public readonly uint Length;
         public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
         public cFileAppendDataPart(string pPath, cBatchSizerConfiguration pReadConfiguration = null)
@@ -329,14 +328,14 @@ namespace work.bacome.imapclient
             if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
 
             var lFileInfo = new FileInfo(pPath);
-            if (!lFileInfo.Exists || (lFileInfo.Attributes | FileAttributes.Directory) != 0 || lFileInfo.Length == 0) throw new ArgumentOutOfRangeException(nameof(pPath));
+            if (!lFileInfo.Exists || (lFileInfo.Attributes | FileAttributes.Directory) != 0 || lFileInfo.Length == 0 || lFileInfo.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pPath));
 
             Path = lFileInfo.FullName;
-            Length = (int)lFileInfo.Length;
+            Length = (uint)lFileInfo.Length;
             ReadConfiguration = pReadConfiguration;
         }
 
-        public override bool HasContent => Length > 0;
+        public override bool HasContent => Length != 0;
 
         public override string ToString() => $"{nameof(cFileAppendDataPart)}({Path},{Length},{ReadConfiguration})";
     }
@@ -344,28 +343,27 @@ namespace work.bacome.imapclient
     public class cStreamAppendDataPart : cAppendDataPart
     {
         public readonly Stream Stream;
-        public readonly int Length;
+        public readonly uint Length;
         public readonly cBatchSizerConfiguration ReadConfiguration; // optional
 
         public cStreamAppendDataPart(Stream pStream, cBatchSizerConfiguration pReadConfiguration = null)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
+            if (!pStream.CanRead || !pStream.CanSeek || pStream.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
             pStream.Position = 0;
-            Length = (int)pStream.Length;
+            Length = (uint)pStream.Length;
             ReadConfiguration = pReadConfiguration;
         }
 
-        public cStreamAppendDataPart(Stream pStream, int pLength, cBatchSizerConfiguration pReadConfiguration = null)
+        public cStreamAppendDataPart(Stream pStream, uint pLength, cBatchSizerConfiguration pReadConfiguration = null)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
-            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             Length = pLength;
             ReadConfiguration = pReadConfiguration;
         }
 
-        public override bool HasContent => Length > 0;
+        public override bool HasContent => Length != 0;
 
         public override string ToString() => $"{nameof(cStreamAppendDataPart)}({Length},{ReadConfiguration})";
 

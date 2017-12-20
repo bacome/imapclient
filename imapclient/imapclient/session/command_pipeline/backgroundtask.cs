@@ -156,7 +156,7 @@ namespace work.bacome.imapclient
 
                         if (mCurrentCommand != null && ZBackgroundTaskProcessCommandCompletion(lCursor, mCurrentCommand, lContext))
                         {
-                            if (mCurrentCommand.IsAuthentication) mCurrentCommand = null;
+                            if (mCurrentCommand.IsAuthentication || mCurrentCommand.WaitingForContinuationRequest) mCurrentCommand = null;
                             return;
                         }
                     }

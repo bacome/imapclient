@@ -6,7 +6,7 @@ namespace work.bacome.imapclient
 {
     public partial class cIMAPClient
     {
-        internal int FetchSizeInBytes(iMessageHandle pMessageHandle, cSinglePartBody pPart)
+        internal uint FetchSizeInBytes(iMessageHandle pMessageHandle, cSinglePartBody pPart)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchSizeInBytes));
             var lTask = ZFetchSizeInBytesAsync(pMessageHandle, pPart, lContext);
@@ -14,13 +14,13 @@ namespace work.bacome.imapclient
             return lTask.Result;
         }
 
-        internal Task<int> FetchSizeInBytesAsync(iMessageHandle pMessageHandle, cSinglePartBody pPart)
+        internal Task<uint> FetchSizeInBytesAsync(iMessageHandle pMessageHandle, cSinglePartBody pPart)
         {
             var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(FetchSizeInBytesAsync));
             return ZFetchSizeInBytesAsync(pMessageHandle, pPart, lContext);
         }
 
-        private async Task<int> ZFetchSizeInBytesAsync(iMessageHandle pMessageHandle, cSinglePartBody pPart, cTrace.cContext pParentContext)
+        private async Task<uint> ZFetchSizeInBytesAsync(iMessageHandle pMessageHandle, cSinglePartBody pPart, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cIMAPClient), nameof(ZFetchSizeInBytesAsync), pMessageHandle, pPart);
 
@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
             {
                 uint lSizeInBytes;
 
-                if (pMessageHandle.BinarySizes.TryGetValue(pPart.Section.Part, out lSizeInBytes)) return (int)lSizeInBytes;
+                if (pMessageHandle.BinarySizes.TryGetValue(pPart.Section.Part, out lSizeInBytes)) return lSizeInBytes;
 
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
@@ -49,13 +49,13 @@ namespace work.bacome.imapclient
                     }
                 }
 
-                if (pMessageHandle.BinarySizes.TryGetValue(pPart.Section.Part, out lSizeInBytes)) return (int)lSizeInBytes;
+                if (pMessageHandle.BinarySizes.TryGetValue(pPart.Section.Part, out lSizeInBytes)) return lSizeInBytes;
 
                 if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
                 else throw new cRequestedDataNotReturnedException(pMessageHandle);
             }
 
-            return (int)pPart.SizeInBytes;
+            return pPart.SizeInBytes;
         }
     }
 }

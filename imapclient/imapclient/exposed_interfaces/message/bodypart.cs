@@ -432,15 +432,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets the approximate size in bytes. May be <see langword="null"/>.
         /// </summary>
-        public int? Size
-        {
-            get
-            {
-                uint? lSize = Parameters?.First("size")?.UIntValue;
-                if (lSize == null) return null;
-                return (int)lSize.Value;
-            }
-        }
+        public uint? Size => Parameters?.First("size")?.UIntValue;
 
         /// <inheritdoc />
         public override string ToString() => $"{nameof(cBodyPartDisposition)}({Type},{Parameters},{TypeCode})";

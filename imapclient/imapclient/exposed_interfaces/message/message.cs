@@ -424,12 +424,12 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// If the message cache does not contain the <see cref="fMessageCacheAttributes.size"/> of the message, it will be fetched from the server.
         /// </remarks>
-        public int Size
+        public uint Size
         {
             get
             {
                 if (!Client.Fetch(MessageHandle, kSize)) ZThrowFailure(eOperationType.fetch);
-                return (int)MessageHandle.Size.Value;
+                return MessageHandle.Size.Value;
             }
         }
 
@@ -519,6 +519,7 @@ namespace work.bacome.imapclient
 
             return lResult;
         }
+
         /// <summary>
         /// Gets the size in bytes of the plain text of the message. May be zero.
         /// </summary>
@@ -528,13 +529,13 @@ namespace work.bacome.imapclient
         /// If there are alternate versions of a body-part only one of the alternates is considered to be part of the plain text (the first one).
         /// The size returned is the encoded size of the body-parts.
         /// </remarks>
-        public int PlainTextSizeInBytes
+        public uint PlainTextSizeInBytes
         {
             get
             {
                 if (!Client.Fetch(MessageHandle, kBodyStructure)) ZThrowFailure(eOperationType.fetch);
-                int lSize = 0;
-                foreach (var lPart in ZPlainTextParts(MessageHandle.BodyStructure)) lSize += (int)lPart.SizeInBytes;
+                uint lSize = 0;
+                foreach (var lPart in ZPlainTextParts(MessageHandle.BodyStructure)) lSize += lPart.SizeInBytes;
                 return lSize;
             }
         }
@@ -643,7 +644,7 @@ namespace work.bacome.imapclient
         /// The result may be smaller than <see cref="cSinglePartBody.SizeInBytes"/> if <see cref="cSinglePartBody.DecodingRequired"/> isn't <see cref="eDecodingRequired.none"/> and <see cref="cCapabilities.Binary"/> is in use.
         /// The size may have to be fetched from the server, but once fetched it will be cached.
         /// </remarks>
-        public int FetchSizeInBytes(cSinglePartBody pPart)
+        public uint FetchSizeInBytes(cSinglePartBody pPart)
         {
             if (MessageHandle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
             if (!ZContainsPart(MessageHandle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
@@ -655,7 +656,7 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <param name="pPart"></param>
         /// <inheritdoc cref="Fetch(cMessageCacheItems)" select="returns|remarks"/>
-        public Task<int> FetchSizeInBytesAsync(cSinglePartBody pPart)
+        public Task<uint> FetchSizeInBytesAsync(cSinglePartBody pPart)
         {
             if (MessageHandle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
             if (!ZContainsPart(MessageHandle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));

@@ -19,7 +19,7 @@ namespace testharness2
             // quickly get to the test I'm working on
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(CurrentTest));
             //cIMAPClient._Tests(lContext);
-            ZTestPipelineCancellation(lContext);       
+            ZTestEarlyTermination(lContext);       
         }
 
         public static void Tests(bool pQuick, cTrace.cContext pParentContext)
@@ -69,6 +69,8 @@ namespace testharness2
                 ZTestBadCharsetUIDNotSticky(lContext);
 
                 ZTestPipelineCancellation(lContext);
+
+                ZTestEarlyTermination(lContext);
             }
             catch (Exception e) when (lContext.TraceException(e)) { }
         }
@@ -2641,6 +2643,54 @@ namespace testharness2
                 ZFinally(lServer, lClient, lTask);
             }
         }
+
+
+
+
+        private static void ZTestEarlyTermination(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestEarlyTermination));
+
+            cServer lServer = new cServer();
+            lServer.AddSendData("* OK [CAPABILITY IMAP4rev1] this is the text\r\n");
+
+            lServer.AddExpectTagged("LOGIN {4}\r\n");
+            lServer.AddSendData("+ ready\r\n");
+            lServer.AddExpectData("fred {5}\r\n");
+            lServer.AddSendTagged("NO we don't like you fred\r\n");
+
+            lServer.AddExpectTagged("LOGOUT\r\n");
+            lServer.AddSendData("* BYE logging out\r\n");
+            lServer.AddSendTagged("OK logged out\r\n");
+            lServer.AddClose();
+
+            cIMAPClient lClient = new cIMAPClient("ZTestEarlyTermination_cIMAPClient");
+            lClient.SetServer("localhost");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+
+            Task lTask = null;
+
+            try
+            {
+                lTask = lServer.RunAsync(lContext);
+
+                bool lFailed = false;
+                try { lClient.Connect(); }
+                catch (cCredentialsException) { lFailed = true; }
+                if (!lFailed) throw new cTestsException("expected connect to fail");
+
+                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
+                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+            }
+            finally
+            {
+                ZFinally(lServer, lClient, lTask);
+            }
+        }
+
+
+
+
 
 
 

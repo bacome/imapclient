@@ -30,7 +30,6 @@
         {
             this.prg = new System.Windows.Forms.ProgressBar();
             this.cmdCancel = new System.Windows.Forms.Button();
-            this.lblTotal = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // prg
@@ -54,23 +53,12 @@
             this.cmdCancel.UseVisualStyleBackColor = true;
             this.cmdCancel.Click += new System.EventHandler(this.cmdCancel_Click);
             // 
-            // lblTotal
-            // 
-            this.lblTotal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.lblTotal.AutoSize = true;
-            this.lblTotal.Location = new System.Drawing.Point(12, 37);
-            this.lblTotal.Name = "lblTotal";
-            this.lblTotal.Size = new System.Drawing.Size(48, 13);
-            this.lblTotal.TabIndex = 2;
-            this.lblTotal.Text = "Progress";
-            // 
             // frmProgress
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(294, 57);
             this.ControlBox = false;
-            this.Controls.Add(this.lblTotal);
             this.Controls.Add(this.cmdCancel);
             this.Controls.Add(this.prg);
             this.Name = "frmProgress";
@@ -80,7 +68,6 @@
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmProgress_FormClosed);
             this.Load += new System.EventHandler(this.frmProgress_Load);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -88,6 +75,5 @@
 
         private System.Windows.Forms.ProgressBar prg;
         private System.Windows.Forms.Button cmdCancel;
-        private System.Windows.Forms.Label lblTotal;
     }
 }

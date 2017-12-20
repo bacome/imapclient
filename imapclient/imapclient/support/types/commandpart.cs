@@ -36,17 +36,17 @@ namespace work.bacome.imapclient
             Binary = pBinary;
         }
 
-        public abstract int Length { get; }
+        public abstract uint Length { get; }
     }
 
     internal class cStreamCommandPart : cLiteralCommandPartBase
     {
         public readonly Stream Stream;
-        private readonly int mLength;
+        private readonly uint mLength;
         public readonly Action<int> Increment;
         public readonly cBatchSizerConfiguration ReadConfiguration;
 
-        public cStreamCommandPart(Stream pStream, int pLength, bool pBinary, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration) : base(pBinary, false, false)
+        public cStreamCommandPart(Stream pStream, uint pLength, bool pBinary, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration) : base(pBinary, false, false)
         {
             if (pStream == null) throw new ArgumentNullException(nameof(pStream));
             if (pReadConfiguration == null) throw new ArgumentNullException(nameof(pReadConfiguration));
@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
             ReadConfiguration = pReadConfiguration;
         }
 
-        public override int Length => mLength;
+        public override uint Length => mLength;
 
         public override string ToString()
         {
@@ -79,7 +79,7 @@ namespace work.bacome.imapclient
             Increment = pIncrement;
         }
 
-        public override int Length => Bytes.Count;
+        public override uint Length => (uint)Bytes.Count;
 
         public override string ToString()
         {
@@ -91,7 +91,7 @@ namespace work.bacome.imapclient
     internal class cMultiPartLiteralCommandPart : cLiteralCommandPartBase
     {
         public readonly ReadOnlyCollection<cMultiPartLiteralPartBase> Parts;
-        private readonly int mLength = 0;
+        private readonly uint mLength = 0;
 
         public cMultiPartLiteralCommandPart(bool pBinary, IEnumerable<cMultiPartLiteralPartBase> pParts) : base(pBinary, false, false)
         {
@@ -109,7 +109,7 @@ namespace work.bacome.imapclient
             Parts = lParts.AsReadOnly();
         }
 
-        public override int Length => mLength;
+        public override uint Length => mLength;
 
         public override string ToString()
         {
@@ -124,17 +124,17 @@ namespace work.bacome.imapclient
 
     internal abstract class cMultiPartLiteralPartBase
     {
-        public abstract int Length { get; }
+        public abstract uint Length { get; }
     }
 
     internal class cMultiPartLiteralStreamPart : cMultiPartLiteralPartBase
     {
         public readonly Stream Stream;
-        private readonly int mLength;
+        private readonly uint mLength;
         public readonly Action<int> Increment;
         public readonly cBatchSizerConfiguration ReadConfiguration;
 
-        public cMultiPartLiteralStreamPart(Stream pStream, int pLength, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration)
+        public cMultiPartLiteralStreamPart(Stream pStream, uint pLength, Action<int> pIncrement, cBatchSizerConfiguration pReadConfiguration)
         {
             if (pStream == null) throw new ArgumentNullException(nameof(pStream));
             if (pReadConfiguration == null) throw new ArgumentNullException(nameof(pReadConfiguration));
@@ -146,7 +146,7 @@ namespace work.bacome.imapclient
             ReadConfiguration = pReadConfiguration;
         }
 
-        public override int Length => mLength;
+        public override uint Length => mLength;
 
         public override string ToString() => $"{nameof(cMultiPartLiteralStreamPart)}({Length},{ReadConfiguration})";
     }
@@ -163,7 +163,7 @@ namespace work.bacome.imapclient
             Increment = pIncrement;
         }
 
-        public override int Length => Bytes.Count;
+        public override uint Length => (uint)Bytes.Count;
 
         public override string ToString() => $"{nameof(cMultiPartLiteralPart)}({Bytes})";
     }

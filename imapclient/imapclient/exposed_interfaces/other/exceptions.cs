@@ -478,6 +478,31 @@ namespace work.bacome.imapclient
         }
     }
 
+    /// <summary>
+    /// Thrown when an <see cref="cAppendData"/> instance is larger than <see cref="uint.MaxValue"/>.
+    /// </summary>
+    /// <remarks>
+    /// The maximum size of an IMAP message is <see cref="uint.MaxValue"/>.
+    /// </remarks>
+    public class cAppendDataSizeException : cIMAPException
+    {
+        /// <summary>
+        /// The append data concerned.
+        /// </summary>
+        public readonly cAppendData AppendData;
+
+        internal cAppendDataSizeException(cAppendData pAppendData) { AppendData = pAppendData; }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            var lBuilder = new cListBuilder(nameof(cAppendDataClientException));
+            lBuilder.Append(AppendData);
+            lBuilder.Append(base.ToString());
+            return lBuilder.ToString();
+        }
+    }
+
     public class cMailMessageException : cIMAPException
     {
         internal cMailMessageException() { }

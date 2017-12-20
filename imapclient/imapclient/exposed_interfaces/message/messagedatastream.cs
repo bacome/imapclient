@@ -22,7 +22,7 @@ namespace work.bacome.imapclient
         public readonly int TargetBufferSize;
 
         // for streams that may be appended via a mailmessage: the length is required 
-        public readonly int? StreamLength;
+        public readonly uint? StreamLength;
 
         private int mReadTimeout = Timeout.Infinite;
 
@@ -72,7 +72,7 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            if (Decoding == eDecodingRequired.none) StreamLength = (int)pAttachment.Part.SizeInBytes;
+            if (Decoding == eDecodingRequired.none) StreamLength = pAttachment.Part.SizeInBytes;
             else StreamLength = null;
         }
 
@@ -98,7 +98,7 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            if (Decoding == eDecodingRequired.none) StreamLength = (int)pPart.SizeInBytes;
+            if (Decoding == eDecodingRequired.none) StreamLength = pPart.SizeInBytes;
             else StreamLength = null;
         }
 
@@ -123,7 +123,7 @@ namespace work.bacome.imapclient
             StreamLength = null;
         }
 
-        public cMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, int pLength, int pTargetBufferSize = DefaultTargetBufferSize)
+        public cMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, uint pLength, int pTargetBufferSize = DefaultTargetBufferSize)
         {
             if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
             if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
@@ -139,7 +139,7 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            if (pLength < 0) throw new ArgumentOutOfRangeException(nameof(pLength));
+            if (pLength == 0) throw new ArgumentOutOfRangeException(nameof(pLength));
             StreamLength = pLength;
         }
 

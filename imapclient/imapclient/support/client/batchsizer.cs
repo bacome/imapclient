@@ -37,7 +37,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            public void AddSample(int pN, long pTime)
+            public void AddSample(long pN, long pTime)
             {
                 if (pN < 0) throw new ArgumentOutOfRangeException(nameof(pN));
                 if (pTime < 0) throw new ArgumentOutOfRangeException(nameof(pTime));
@@ -56,12 +56,14 @@ namespace work.bacome.imapclient
                         double lTotalTime = mSamples[i].TotalTime;
 
                         int lThisNewCurrent;
+
                         if (lTotalTime == 0) lThisNewCurrent = Configuration.Max;
                         else
                         {
                             var lThisNewCurrentd = mSamples[i].TotalN * (mMaxTime / lTotalTime);
+
                             if (lThisNewCurrentd > int.MaxValue) lThisNewCurrent = int.MaxValue;
-                            else lThisNewCurrent = (int)(mSamples[i].TotalN * (mMaxTime / lTotalTime));
+                            else lThisNewCurrent = (int)lThisNewCurrentd;
                         }
 
                         if (i == 0) lNewCurrent = lThisNewCurrent;
@@ -88,7 +90,7 @@ namespace work.bacome.imapclient
 
                 public int MaxSamples => mMaxSamples;
 
-                public void AddSample(int pN, long pTime)
+                public void AddSample(long pN, long pTime)
                 {
                     if (mSamples.Count == mMaxSamples)
                     {

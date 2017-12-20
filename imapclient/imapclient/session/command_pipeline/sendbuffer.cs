@@ -60,9 +60,9 @@ namespace work.bacome.imapclient
                         mSendBuffer.Add(cASCII.SPACE);
                     }
 
-                    public void AddLiteralHeader(bool pSecret, bool pBinary, int pLength, bool pSynchronising)
+                    public void AddLiteralHeader(bool pSecret, bool pBinary, uint pLength, bool pSynchronising)
                     {
-                        cByteList lLengthBytes = cTools.IntToBytesReverse(pLength);
+                        cByteList lLengthBytes = cTools.UIntToBytesReverse(pLength);
                         lLengthBytes.Reverse();
 
                         if (mTracing)

@@ -14,22 +14,24 @@ namespace testharness2
     public partial class frmProgress : Form
     {
         private readonly string mTitle;
-        private readonly int mCount;
+        private readonly double mInitialMaximum;
         private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
-        private int mTotal = 0;
+
+        private double mMaximum = 0;
+        private double mValue = 0;
         private bool mComplete = false;
 
-        public frmProgress(string pTitle, int pCount = 0)
+        public frmProgress(string pTitle, double pInitialMaximum = 0)
         {
             mTitle = pTitle;
-            mCount = pCount;
+            mInitialMaximum = pInitialMaximum;
             InitializeComponent();
         }
 
         private void frmProgress_Load(object sender, EventArgs e)
         {
             Text = mTitle;
-            SetMaximum(mCount);
+            SetMaximum(mInitialMaximum);
         }
 
         public void ShowAndFocus(Form pCentringOnThis)
@@ -41,22 +43,41 @@ namespace testharness2
 
         public CancellationToken CancellationToken => mCancellationTokenSource.Token;
 
-        public void SetMaximum(int pMaximum)
+        public void SetMaximum(double pMaximum)
         {
-            if (pMaximum == 0) prg.Style = ProgressBarStyle.Marquee;
+            mMaximum = pMaximum;
+
+            if (mMaximum <= 0) prg.Style = ProgressBarStyle.Marquee;
             else
             {
-                prg.Maximum = pMaximum;
-                prg.Value = mTotal;
+                prg.Maximum = 100;
                 prg.Style = ProgressBarStyle.Continuous;
             }
+
+            ZSetValue();
         }
 
-        public void Increment(int pCount)
+        public void SetMaximum(int pMaximum) => SetMaximum((double)pMaximum);
+        public void SetMaximum(long pMaximum) => SetMaximum((double)pMaximum);
+
+        public void Increment(int pIncrement)
         {
-            mTotal += pCount;
-            lblTotal.Text = mTotal.ToString();
-            if (prg.Style != ProgressBarStyle.Marquee) prg.Increment(pCount);
+            mValue += pIncrement;
+            ZSetValue();
+        }
+
+        private void ZSetValue()
+        {
+            if (mMaximum <= 0) Text = mTitle + " - " + mValue.ToString();
+            else
+            {
+                double lValue = mValue / mMaximum;
+
+                if (lValue > 1) prg.Value = 100;
+                else prg.Value = (int)(lValue * 100);
+
+                Text = mTitle + " - " + lValue.ToString("##0.0%");
+            }
         }
 
         public void Cancel()
