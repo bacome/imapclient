@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         {
             private partial class cCommandPipeline
             {
-                private enum eCommandState { queued, current, active, complete }
+                private enum eCommandState { queued, current_cansend, current_waiting, active, complete }
 
                 private class cCommand
                 {
@@ -77,20 +77,25 @@ namespace work.bacome.imapclient
                         var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(SetCurrent), Tag);
                         if (mState != eCommandState.queued) throw new InvalidOperationException();
                         Hook.CommandStarted(lContext);
-                        mState = eCommandState.current;
+                        mState = eCommandState.current_cansend;
+                    }
+
+                    public void SetWaiting(cTrace.cContext pParentContext)
+                    {
+                        ;?;
                     }
 
                     public cCommandPart CurrentPart()
                     {
                         // note that complete is allowed to cater for early termination
-                        if (mState != eCommandState.current && mState != eCommandState.complete) throw new InvalidOperationException();
+                        if (mState != eCommandState.current_cansend && mState != eCommandState.complete) throw new InvalidOperationException();
                         return mParts[mCurrentPart];
                     }
 
                     public bool MoveNext()
                     {
                         // note that complete is allowed to cater for early termination
-                        if (mState != eCommandState.current && mState != eCommandState.complete) throw new InvalidOperationException();
+                        if (mState != eCommandState.current_cansend && mState != eCommandState.complete) throw new InvalidOperationException();
                         return ++mCurrentPart < mParts.Count;
                     }
 
@@ -100,6 +105,7 @@ namespace work.bacome.imapclient
 
                         set
                         {
+                            ;?;
                             // note that complete is allowed to cater for early termination
                             if (mState != eCommandState.current && mState != eCommandState.complete) throw new InvalidOperationException();
                             if (value == mWaitingForContinuationRequest) throw new InvalidOperationException();
