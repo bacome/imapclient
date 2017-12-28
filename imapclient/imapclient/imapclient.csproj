@@ -51,6 +51,8 @@
     <Compile Include="session\append\append.cs" />
     <Compile Include="session\append\appenddata.cs" />
     <Compile Include="session\append\appendresult.cs" />
+    <Compile Include="session\command_pipeline\backgroundsend.cs" />
+    <Compile Include="session\command_pipeline\backgroundtask.cs" />
     <Compile Include="session\imap_commands\authenticated\append.cs" />
     <Compile Include="session\imap_commands\not_authenticated\authenticated.cs" />
     <Compile Include="support\collections\appenddatalist.cs" />
@@ -120,7 +122,6 @@
     <Compile Include="support\selectedmailboxdetails.cs" />
     <Compile Include="exposed_interfaces\support\mailboxhandle.cs" />
     <Compile Include="exposed_interfaces\support\mailboxselectedproperties.cs" />
-    <Compile Include="session\command_pipeline\backgroundtask.cs" />
     <Compile Include="session\command_pipeline\command.cs" />
     <Compile Include="session\command\commanddetails.cs" />
     <Compile Include="session\command\commanddisposables.cs" />
@@ -130,7 +131,6 @@
     <Compile Include="session\command_hooks\commandhooklsub.cs" />
     <Compile Include="session\command_pipeline\processresponse.cs" />
     <Compile Include="session\command_pipeline\idle.cs" />
-    <Compile Include="session\command_pipeline\backgroundsend.cs" />
     <Compile Include="session\command_pipeline\initialisation.cs" />
     <Compile Include="session\command_pipeline\sendbuffer.cs" />
     <Compile Include="session\response\data\access.cs" />

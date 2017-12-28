@@ -148,7 +148,7 @@ namespace work.bacome.imapclient
                     {
                         lock (mPipelineLock)
                         {
-                            if (lCommand.State == eCommandState.queued) lCommand.SetComplete(lContext);
+                            if (lCommand.State == eCommandState.queued) lCommand.SetCancelled(lContext);
                         }
                     }
                 }

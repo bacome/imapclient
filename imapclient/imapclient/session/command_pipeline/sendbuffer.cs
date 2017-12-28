@@ -60,6 +60,31 @@ namespace work.bacome.imapclient
                         mSendBuffer.Add(cASCII.SPACE);
                     }
 
+                    public void AddText(bool pSecret, cBytes pBytes)
+                    {
+                        if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
+
+                        mSendBuffer.AddRange(pBytes);
+
+                        if (mTracing)
+                        {
+                            if (mCurrentTraceBuffer == null) mCurrentTraceBuffer = new List<byte>();
+
+                            if (pSecret)
+                            {
+                                if (mLastByteWasSecret) return;
+
+                                mLastByteWasSecret = true;
+                                mContainsSecrets = true;
+                                mCurrentTraceBuffer.Add(cASCII.NUL);
+                                return;
+                            }
+
+                            mLastByteWasSecret = false;
+                            mCurrentTraceBuffer.AddRange(pBytes);
+                        }
+                    }
+
                     public void AddLiteralHeader(bool pSecret, bool pBinary, uint pLength, bool pSynchronising)
                     {
                         cByteList lLengthBytes = cTools.UIntToBytesReverse(pLength);
@@ -67,6 +92,8 @@ namespace work.bacome.imapclient
 
                         if (mTracing)
                         {
+                            if (mCurrentTraceBuffer == null) mCurrentTraceBuffer = new List<byte>();
+
                             if (pBinary) mCurrentTraceBuffer.Add(cASCII.TILDA);
 
                             mCurrentTraceBuffer.Add(cASCII.LBRACE);
@@ -97,6 +124,8 @@ namespace work.bacome.imapclient
                     {
                         if (mTracing)
                         {
+                            if (mCurrentTraceBuffer == null) mCurrentTraceBuffer = new List<byte>();
+
                             mCurrentTraceBuffer.Add(cASCII.CR);
                             mCurrentTraceBuffer.Add(cASCII.LF);
 
@@ -150,7 +179,7 @@ namespace work.bacome.imapclient
                     public async Task WriteAsync(cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cSendBuffer), nameof(WriteAsync));
-
+                        
                         if (mSendBuffer.Count == 0) throw new InvalidOperationException();
 
                         if (mTracing)

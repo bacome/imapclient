@@ -149,7 +149,7 @@ namespace work.bacome.imapclient
                         lContext.TraceVerbose("sending cancellation");
                         lBuffer = new byte[] { cASCII.ASTERISK, cASCII.CR, cASCII.LF };
                         mSynchroniser.InvokeNetworkSend(kSASLAsterisk, lContext);
-                        mCurrentCommand.WaitingForContinuationRequest = false;
+                        mCurrentCommand.ResetAwaitingContinuation(lContext);
                     }
                     else
                     {

@@ -17,113 +17,153 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewRootMethod(true, nameof(cCommandPipeline), nameof(ZBackgroundSendAsync));
 
+                    // initialise the send buffer
                     mBackgroundSendBuffer.SetTracing(lContext);
 
-                    if (mCurrentCommand != null) await ZBackgroundSendAppendDataAndMoveNextAsync(lContext).ConfigureAwait(false);
+                    // send the literal data that has just been requested (if any)
 
-                    while (true)
-                    {
-                        if (mCurrentCommand == null)
-                        {
-                            ZBackgroundSendDequeueAndAppendTag(lContext);
-                            if (mCurrentCommand == null) break;
-
-                            if (mCurrentCommand.IsAuthentication)
-                            {
-                                await ZBackgroundSendAppendAllTextPartsAsync(lContext).ConfigureAwait(false);
-                                mCurrentCommand.WaitingForContinuationRequest = true;
-                                break;
-                            }
-                        }
-
-                        if (mCurrentCommand.State == eCommandState.current)
-                        {
-                            if (ZBackgroundSendAppendLiteralHeader())
-                            {
-                                mCurrentCommand.WaitingForContinuationRequest = true;
-                                break;
-                            }
-
-                            await ZBackgroundSendAppendDataAndMoveNextAsync(lContext).ConfigureAwait(false);
-                        }
-                        else ZBackgroundSendTerminateCommand(lContext);
-                    }
-                
-                    await mBackgroundSendBuffer.WriteAsync(lContext).ConfigureAwait(false);
-                }
-
-                private void ZBackgroundSendDequeueAndAppendTag(cTrace.cContext pParentContext)
-                {
-                    // gets the next command (if there is one) appends the tag part and returns true if it did
-
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendDequeueAndAppendTag));
+                    cLiteralCommandPartBase lLiteral;
 
                     lock (mPipelineLock)
                     {
-                        while (mQueuedCommands.Count > 0)
+                        if (mCurrentCommand == null) lLiteral = null;
+                        else
                         {
-                            var lCommand = mQueuedCommands.Dequeue();
-
-                            if (lCommand.State == eCommandState.queued)
-                            {
-                                if (lCommand.UIDValidity != null && lCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.MessageCache.UIDValidity) lCommand.SetException(new cUIDValidityException(lContext), lContext);
-                                else
-                                {
-                                    mCurrentCommand = lCommand;
-                                    lCommand.SetCurrent(lContext);
-                                    break;
-                                }
-                            }
+                            lLiteral = mCurrentCommand.GetCurrentPart() as cLiteralCommandPartBase;
+                            if (lLiteral == null) throw new cInternalErrorException();
                         }
                     }
 
-                    if (mCurrentCommand == null) return;
+                    if (lLiteral != null) await ZBackgroundSendAppendLiteralDataAsync(lLiteral, lContext).ConfigureAwait(false);
 
-                    mBackgroundSendBuffer.AddTag(mCurrentCommand.Tag);
+                    // main processing
+                    await ZBackgroundSendWorkerAsync(lContext);
+                
+                    // send any bytes that are remaining in the buffer
+                    if (mBackgroundSendBuffer.Count > 0) await mBackgroundSendBuffer.WriteAsync(lContext).ConfigureAwait(false);
                 }
 
-                private bool ZBackgroundSendAppendLiteralHeader()
+                private async Task ZBackgroundSendWorkerAsync(cTrace.cContext pParentContext)
                 {
-                    // if the current part is a literal, appends the literal header
-                    //  if the current part is a synchronising literal, returns true
+                    var lContext = pParentContext.NewRootMethod(true, nameof(cCommandPipeline), nameof(ZBackgroundSendWorkerAsync));
 
-                    if (!(mCurrentCommand.CurrentPart() is cLiteralCommandPartBase lLiteral)) return false;
-
-                    bool lSynchronising;
-
-                    if (mLiteralPlus || mLiteralMinus && lLiteral.Length < 4097) lSynchronising = false;
-                    else lSynchronising = true;
-
-                    mBackgroundSendBuffer.AddLiteralHeader(lLiteral.Secret, lLiteral.Binary, lLiteral.Length, lSynchronising);
-
-                    return lSynchronising;
-                }
-
-                private async Task ZBackgroundSendAppendAllTextPartsAsync(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendAllTextPartsAsync));
-
-                    do
+                    // outer loop is for sending literal data outside the pipeline lock (required because we want this to be done in parallel with the receive)
+                    //
+                    while (true)
                     {
-                        if (mCurrentCommand.CurrentPart() is cTextCommandPart lText) await ZBackgroundSendAppendDataAsync(lText.Secret, lText.Bytes, lText.Bytes.Count, null, lContext).ConfigureAwait(false);
-                        else throw new cInternalErrorException();
+                        cLiteralCommandPartBase lLiteral;
+
+                        lock (mPipelineLock)
+                        {
+                            // inner loop is for advancing to the next command part to send
+                            //
+                            while (true)
+                            {
+                                cCommandPart lPart;
+
+                                if (mCurrentCommand == null)
+                                {
+                                    // try to get another command to send (there might not be one available)
+                                    //
+                                    while (mQueuedCommands.Count > 0)
+                                    {
+                                        var lCommand = mQueuedCommands.Dequeue();
+
+                                        // the command may have been cancelled by the enqueuer
+                                        if (lCommand.State == eCommandState.queued)
+                                        {
+                                            // the uidvalidity may have changed                                        
+                                            if (lCommand.UIDValidity != null && lCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.MessageCache.UIDValidity) lCommand.SetException(new cUIDValidityException(lContext), lContext);
+                                            else
+                                            {
+                                                // found a command to send
+                                                lCommand.SetSending(lContext);
+                                                mCurrentCommand = lCommand;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (mCurrentCommand == null) return; // nothing else to send
+
+                                    // add the command tag to the send buffer
+                                    mBackgroundSendBuffer.AddTag(mCurrentCommand.Tag);
+
+                                    // get the first part
+                                    lPart = mCurrentCommand.GetCurrentPart();
+                                }
+                                else
+                                {
+                                    // check if the server has completed the command before we have finished sending it
+                                    if (mCurrentCommand.HasResult)
+                                    {
+                                        // terminate the current command line
+                                        mBackgroundSendBuffer.AddCRLF();
+                                        mCurrentCommand = null;
+                                        continue;
+                                    }
+                                    
+                                    // check if we have sent everything that there is to send
+                                    if (!mCurrentCommand.MoveNext())
+                                    {
+                                        // terminate the current command line
+                                        mBackgroundSendBuffer.AddCRLF();
+
+                                        // authentication is a special case ... the challenge response mechanism is in the background task
+                                        if (mCurrentCommand.IsAuthentication)
+                                        {
+                                            mCurrentCommand.SetAwaitingContinuation(lContext);
+                                            return;
+                                        }
+
+                                        // put the command in the list of active commands 
+                                        mCurrentCommand.SetSent(lContext);
+                                        mActiveCommands.Add(mCurrentCommand);
+                                        mCurrentCommand = null;
+                                        continue;
+                                    }
+
+                                    lPart = mCurrentCommand.GetCurrentPart();
+                                }
+
+                                if (lPart is cTextCommandPart lText)
+                                {
+                                    mBackgroundSendBuffer.AddText(lText.Secret, lText.Bytes);
+                                    continue;
+                                }
+
+                                lLiteral = lPart as cLiteralCommandPartBase;
+
+                                if (lLiteral == null) throw new cInternalErrorException();
+
+                                bool lSynchronising;
+
+                                if (mLiteralPlus || mLiteralMinus && lLiteral.Length < 4097) lSynchronising = false;
+                                else lSynchronising = true;
+
+                                mBackgroundSendBuffer.AddLiteralHeader(lLiteral.Secret, lLiteral.Binary, lLiteral.Length, lSynchronising);
+
+                                if (lSynchronising)
+                                {
+                                    mCurrentCommand.SetAwaitingContinuation(lContext);
+                                    return;
+                                }
+
+                                break;
+                            }
+                        }
+
+                        // send literal data
+                        await ZBackgroundSendAppendLiteralDataAsync(lLiteral, lContext).ConfigureAwait(false);
                     }
-                    while (mCurrentCommand.MoveNext());
-
-                    mBackgroundSendBuffer.AddCRLF();
                 }
 
-                private async Task ZBackgroundSendAppendDataAndMoveNextAsync(cTrace.cContext pParentContext)
+                private async Task ZBackgroundSendAppendLiteralDataAsync(cLiteralCommandPartBase pLiteral, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAndMoveNextAsync));
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendAppendDataAsync), pLiteral);
 
-                    switch (mCurrentCommand.CurrentPart())
+                    switch (pLiteral)
                     {
-                        case cTextCommandPart lText:
-
-                            await ZBackgroundSendAppendDataAsync(lText.Secret, lText.Bytes, lText.Bytes.Count, null, lContext).ConfigureAwait(false);
-                            break;
-
                         case cLiteralCommandPart lLiteral:
 
                             await ZBackgroundSendAppendDataAsync(lLiteral.Secret, lLiteral.Bytes, lLiteral.Bytes.Count, lLiteral.Increment, lContext).ConfigureAwait(false);
@@ -161,28 +201,6 @@ namespace work.bacome.imapclient
                         default:
 
                             throw new cInternalErrorException();
-                    }
-
-                    if (mCurrentCommand.MoveNext()) return;
-
-                    ZBackgroundSendTerminateCommand(lContext);
-                }
-
-                private void ZBackgroundSendTerminateCommand(cTrace.cContext pParentContext)
-                {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZBackgroundSendTerminateCommand));
-
-                    mBackgroundSendBuffer.AddCRLF();
-
-                    lock (mPipelineLock)
-                    {
-                        if (mCurrentCommand.State == eCommandState.current)
-                        {
-                            mActiveCommands.Add(mCurrentCommand);
-                            mCurrentCommand.SetActive(lContext);
-                        }
-
-                        mCurrentCommand = null;
                     }
                 }
 

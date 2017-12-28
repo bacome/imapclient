@@ -14,14 +14,14 @@ namespace testharness2
     public partial class frmProgress : Form
     {
         private readonly string mTitle;
-        private readonly double mInitialMaximum;
+        private readonly long mInitialMaximum;
         private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
 
-        private double mMaximum = 0;
-        private double mValue = 0;
+        private long mMaximum = 0;
+        private long mValue = 0;
         private bool mComplete = false;
 
-        public frmProgress(string pTitle, double pInitialMaximum = 0)
+        public frmProgress(string pTitle, long pInitialMaximum = 0)
         {
             mTitle = pTitle;
             mInitialMaximum = pInitialMaximum;
@@ -43,7 +43,7 @@ namespace testharness2
 
         public CancellationToken CancellationToken => mCancellationTokenSource.Token;
 
-        public void SetMaximum(double pMaximum)
+        public void SetMaximum(long pMaximum)
         {
             mMaximum = pMaximum;
 
@@ -57,8 +57,7 @@ namespace testharness2
             ZSetValue();
         }
 
-        public void SetMaximum(int pMaximum) => SetMaximum((double)pMaximum);
-        public void SetMaximum(long pMaximum) => SetMaximum((double)pMaximum);
+        public void SetMaximum(int pMaximum) => SetMaximum((long)pMaximum);
 
         public void Increment(int pIncrement)
         {
@@ -71,7 +70,7 @@ namespace testharness2
             if (mMaximum <= 0) Text = mTitle + " - " + mValue.ToString();
             else
             {
-                double lValue = mValue / mMaximum;
+                double lValue = (double)mValue / (double)mMaximum;
 
                 if (lValue > 1) prg.Value = 100;
                 else prg.Value = (int)(lValue * 100);

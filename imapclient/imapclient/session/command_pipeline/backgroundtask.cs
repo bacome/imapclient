@@ -30,11 +30,14 @@ namespace work.bacome.imapclient
                                 lBackgroundSendTask = null;
                             }
 
-                            if (lBackgroundSendTask == null &&
-                                ((mCurrentCommand == null && mQueuedCommands.Count > 0) ||
-                                 (mCurrentCommand != null && !mCurrentCommand.IsAuthentication && !mCurrentCommand.WaitingForContinuationRequest)
-                                )
-                               ) lBackgroundSendTask = ZBackgroundSendAsync(lContext);
+                            lock (mPipelineLock)
+                            {
+                                if (lBackgroundSendTask == null &&
+                                    ((mCurrentCommand == null && mQueuedCommands.Count > 0) ||
+                                     (mCurrentCommand != null && mCurrentCommand.State == eCommandState.sending && !mCurrentCommand.AwaitingContinuation && !mCurrentCommand.IsAuthentication)
+                                    )
+                                   ) lBackgroundSendTask = ZBackgroundSendAsync(lContext);
+                            }
 
                             if (lBackgroundSendTask == null && mCurrentCommand == null && mActiveCommands.Count == 0)
                             {
@@ -134,29 +137,32 @@ namespace work.bacome.imapclient
 
                     if (lCursor.SkipBytes(kPlusSpace))
                     {
-                        var lCurrentCommand = mCurrentCommand;
-
-                        if (lCurrentCommand == null || !lCurrentCommand.WaitingForContinuationRequest) throw new cUnexpectedServerActionException(0, "unexpected continuation request", lContext);
-
-                        if (lCurrentCommand.IsAuthentication) await ZProcessChallengeAsync(lCursor, lContext).ConfigureAwait(false);
-                        else
+                        lock (mPipelineLock)
                         {
-                            mResponseTextProcessor.Process(eResponseTextContext.continuerequest, lCursor, lCurrentCommand.Hook, lContext);
-                            lCurrentCommand.WaitingForContinuationRequest = false;
+                            if (mCurrentCommand == null || !mCurrentCommand.AwaitingContinuation) throw new cUnexpectedServerActionException(0, "unexpected continuation request", lContext);
+
+                            if (!mCurrentCommand.IsAuthentication) 
+                            {
+                                mResponseTextProcessor.Process(eResponseTextContext.continuerequest, lCursor, mCurrentCommand.Hook, lContext);
+                                mCurrentCommand.ResetAwaitingContinuation(lContext);
+                                return;
+                            }
                         }
 
+                        // we are doing authentication
+                        await ZProcessChallengeAsync(lCursor, lContext).ConfigureAwait(false);
                         return;
                     }
 
+                    if (ZProcessDataResponse(lCursor, lContext)) return;
+
                     lock (mPipelineLock)
                     {
-                        if (ZProcessDataResponse(lCursor, lContext)) return;
-
                         if (ZBackgroundTaskProcessActiveCommandCompletion(lCursor, lContext)) return;
 
                         if (mCurrentCommand != null && ZBackgroundTaskProcessCommandCompletion(lCursor, mCurrentCommand, lContext))
                         {
-                            if (mCurrentCommand.IsAuthentication || mCurrentCommand.WaitingForContinuationRequest) mCurrentCommand = null;
+                            if (mCurrentCommand.IsAuthentication || mCurrentCommand.AwaitingContinuation) mCurrentCommand = null;
                             return;
                         }
                     }
