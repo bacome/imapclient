@@ -95,7 +95,7 @@ namespace work.bacome.imapclient
                                 else
                                 {
                                     // check if the server has completed the command before we have finished sending it
-                                    if (mCurrentCommand.HasResult)
+                                    if (mCurrentCommand.State == eCommandState.complete)
                                     {
                                         // terminate the current command line
                                         mBackgroundSendBuffer.AddCRLF();

@@ -129,6 +129,11 @@ namespace work.bacome.imapclient
         }
     }
 
+    public class cCommandResultUnknownException : cIMAPException
+    {
+        internal cCommandResultUnknownException(string pMessage, Exception pInner, cTrace.cContext pContext) : base(pMessage, pInner) => pContext.TraceError("{0}: {1}\n{2}", nameof(cCommandResultUnknownException), pMessage, pInner);
+    }
+
     /// <summary>
     /// Thrown when something happens that shouldn't (according to my reading of the RFCs).
     /// </summary>

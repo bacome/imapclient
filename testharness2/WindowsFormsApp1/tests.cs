@@ -19,7 +19,7 @@ namespace testharness2
             // quickly get to the test I'm working on
             var lContext = pParentContext.NewMethod(nameof(cTests), nameof(CurrentTest));
             //cIMAPClient._Tests(lContext);
-            ZTestEarlyTermination(lContext);       
+            ZTestEarlyTermination2(lContext);       
         }
 
         public static void Tests(bool pQuick, cTrace.cContext pParentContext)
@@ -70,7 +70,8 @@ namespace testharness2
 
                 ZTestPipelineCancellation(lContext);
 
-                ZTestEarlyTermination(lContext);
+                ZTestEarlyTermination1(lContext);
+                ZTestEarlyTermination2(lContext);
             }
             catch (Exception e) when (lContext.TraceException(e)) { }
         }
@@ -2644,12 +2645,9 @@ namespace testharness2
             }
         }
 
-
-
-
-        private static void ZTestEarlyTermination(cTrace.cContext pParentContext)
+        private static void ZTestEarlyTermination1(cTrace.cContext pParentContext)
         {
-            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestEarlyTermination));
+            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestEarlyTermination1));
 
             cServer lServer = new cServer();
             lServer.AddSendData("* OK [CAPABILITY IMAP4rev1] this is the text\r\n");
@@ -2688,6 +2686,65 @@ namespace testharness2
             }
         }
 
+        private static void ZTestEarlyTermination2(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestEarlyTermination2));
+
+            // this test has a race condition, so run it 10 times hoping for a success ...
+
+            for (int i = 0; i < 10; i++)
+            {
+                bool lFailed = false;
+                try { ZTestEarlyTermination2Worker(lContext); }
+                catch { lFailed = true; }
+                if (!lFailed) return;
+            }
+
+            throw new cTestsException("ZTestEarlyTermination2");
+        }
+
+
+
+        private static void ZTestEarlyTermination2Worker(cTrace.cContext pParentContext)
+        {
+            var lContext = pParentContext.NewMethod(nameof(cTests), nameof(ZTestEarlyTermination2Worker));
+
+            cServer lServer = new cServer();
+            lServer.AddSendData("* OK [CAPABILITY LITERAL- IMAP4rev1] this is the text\r\n");
+
+            lServer.AddExpectTagged("LOGIN {4+}\r\n");
+            lServer.AddSendTagged("NO shutting down\r\n");
+            lServer.AddExpectData("fred\r\n");
+
+            lServer.AddExpectTagged("LOGOUT\r\n");
+            lServer.AddSendData("* BYE logging out\r\n");
+            lServer.AddSendTagged("OK logged out\r\n");
+            lServer.AddClose();
+
+            cIMAPClient lClient = new cIMAPClient("ZTestEarlyTermination_cIMAPClient");
+            lClient.SetServer("localhost");
+            lClient.SetPlainCredentials("fred", "angus", eTLSRequirement.indifferent);
+            lClient.NetworkWriteConfiguration = new cBatchSizerConfiguration(1, 1, 10000, 1);
+
+            Task lTask = null;
+
+            try
+            {
+                lTask = lServer.RunAsync(lContext);
+
+                bool lFailed = false;
+                try { lClient.Connect(); }
+                catch (cCredentialsException) { lFailed = true; }
+                if (!lFailed) throw new cTestsException("expected connect to fail");
+
+                if (!lTask.Wait(1000)) throw new cTestsException("session should be complete", lContext);
+                if (lTask.IsFaulted) throw new cTestsException("server failed", lTask.Exception, lContext);
+            }
+            finally
+            {
+                ZFinally(lServer, lClient, lTask);
+            }
+        }
 
 
 

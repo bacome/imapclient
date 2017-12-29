@@ -73,25 +73,22 @@ namespace work.bacome.imapclient
                     if (lTask == 0) break; // pAsyncTask is finished
                 }
 
-                if (pAsyncTask.Exception == null)
+                if (pAsyncTask.IsFaulted)
                 {
-                    // the operation cancelled exception, if thrown in the task, is not stored in the task's exception property
-                    //
-                    if (pAsyncTask.IsCanceled)
-                    {
-                        lContext.TraceVerbose("task was cancelled");
-                        throw new OperationCanceledException();
-                    }
-
-                    lContext.TraceVerbose("task completed successfully");
-                    return;
+                    lContext.TraceException(TraceEventType.Verbose, "task completed with exception", pAsyncTask.Exception);
+                    var lException = pAsyncTask.Exception.Flatten();
+                    if (lException.InnerExceptions.Count == 1) throw lException.InnerExceptions[0];
+                    throw pAsyncTask.Exception;
                 }
 
-                lContext.TraceException(TraceEventType.Verbose, "task completed with exception", pAsyncTask.Exception);
+                if (pAsyncTask.IsCanceled)
+                {
+                    lContext.TraceVerbose("task was cancelled");
+                    throw new OperationCanceledException();
+                }
 
-                var lException = pAsyncTask.Exception.Flatten();
-                if (lException.InnerExceptions.Count == 1) throw lException.InnerExceptions[0];
-                throw pAsyncTask.Exception;
+                lContext.TraceVerbose("task completed successfully");
+                return;
             }
 
             public sEventSubscriptionCounts EventSubscriptionCounts

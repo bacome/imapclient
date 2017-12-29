@@ -69,7 +69,8 @@ namespace testharness2
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_Type)));
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_UID)));
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_Result)));
-            dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_TryIgnore)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_TryIgnoring)));
+            dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_Exception)));
             mChanged = dgv.Columns.Add(LInvisibleColumn(nameof(cGridRowData.Changed))); // so rows don't get lost because the grid doesn't know they've been edited
 
             dgv.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.ColumnHeader);
@@ -351,7 +352,7 @@ namespace testharness2
             if (!IsDisposed)
             {
                 for (int i = 0; i < Math.Min(lFeedback.Count, lMessages.Count); i++) lRows[i].Feedback = lFeedback[i];
-                MessageBox.Show(this, $"appended {lFeedback.AppendedCount} messages, {lFeedback.FailedCount} failed, {lFeedback.NotAttemptedCount} didn't try");
+                MessageBox.Show(this, $"appended {lFeedback.SucceededCount} messages, {lFeedback.FailedWithResultCount + lFeedback.FailedWithExceptionCount} failed, {lFeedback.ResultUnknownCount} unknown, {lFeedback.NotAttemptedCount} didn't try");
             }
         }
 
@@ -407,7 +408,8 @@ namespace testharness2
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Fb_Type)));
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Fb_UID)));
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Fb_Result)));
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Fb_TryIgnore)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Fb_TryIgnoring)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Fb_Exception)));
                 }
             }
 
@@ -432,9 +434,10 @@ namespace testharness2
             public string DisplayData => Data?.ToString();
 
             public string Fb_Type => mFeedback?.Type.ToString();
-            public string Fb_UID => mFeedback?.AppendedMessageUID?.ToString();
-            public string Fb_Result => mFeedback?.FailedResult?.ToString();
-            public string Fb_TryIgnore => mFeedback?.FailedTryIgnore.ToString();
+            public string Fb_UID => mFeedback?.UID?.ToString();
+            public string Fb_Result => mFeedback?.Result?.ToString();
+            public string Fb_TryIgnoring => mFeedback?.TryIgnoring.ToString();
+            public string Fb_Exception => mFeedback?.Exception?.ToString();
 
             public string Changed { get; set; }
 

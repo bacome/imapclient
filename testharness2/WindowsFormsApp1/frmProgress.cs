@@ -6,7 +6,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace testharness2
@@ -17,7 +16,7 @@ namespace testharness2
         private readonly long mInitialMaximum;
         private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
 
-        private long mMaximum = 0;
+        private double mMaximum = 0;
         private long mValue = 0;
         private bool mComplete = false;
 
@@ -70,7 +69,7 @@ namespace testharness2
             if (mMaximum <= 0) Text = mTitle + " - " + mValue.ToString();
             else
             {
-                double lValue = (double)mValue / (double)mMaximum;
+                double lValue = mValue / mMaximum;
 
                 if (lValue > 1) prg.Value = 100;
                 else prg.Value = (int)(lValue * 100);

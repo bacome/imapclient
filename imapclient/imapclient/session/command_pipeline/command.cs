@@ -13,7 +13,7 @@ namespace work.bacome.imapclient
         {
             private partial class cCommandPipeline
             {
-                private enum eCommandState { queued, cancelled, sending, sent }
+                private enum eCommandState { queued, cancelled, sending, sent, complete }
 
                 private class cCommand
                 {
@@ -45,7 +45,6 @@ namespace work.bacome.imapclient
 
                     public eCommandState State => mState;
                     public bool AwaitingContinuation => mAwaitingContinuation;
-                    public bool HasResult => mResult != null || mException != null;
 
                     public async Task<cCommandResult> WaitAsync(cMethodControl pMC, cTrace.cContext pParentContext)
                     {
@@ -86,14 +85,14 @@ namespace work.bacome.imapclient
                     public void SetAwaitingContinuation(cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(SetAwaitingContinuation), Tag);
-                        if (mState != eCommandState.sending || mAwaitingContinuation || HasResult) throw new InvalidOperationException();
+                        if (mState != eCommandState.sending || mAwaitingContinuation) throw new InvalidOperationException();
                         mAwaitingContinuation = true;
                     }
 
                     public void ResetAwaitingContinuation(cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(ResetAwaitingContinuation), Tag);
-                        if (mState != eCommandState.sending || !mAwaitingContinuation || HasResult) throw new InvalidOperationException();
+                        if (mState != eCommandState.sending || !mAwaitingContinuation) throw new InvalidOperationException();
                         mAwaitingContinuation = false;
                     }
 
@@ -105,7 +104,7 @@ namespace work.bacome.imapclient
 
                     public bool MoveNext()
                     {
-                        if (mState != eCommandState.sending || mAwaitingContinuation || HasResult) throw new InvalidOperationException();
+                        if (mState != eCommandState.sending || mAwaitingContinuation) throw new InvalidOperationException();
                         return ++mCurrentPart < mParts.Count;
                     }
 
@@ -113,14 +112,14 @@ namespace work.bacome.imapclient
 
                     public IList<byte> GetAuthenticationResponse(cByteList pChallenge)
                     {
-                        if (mState != eCommandState.sending || !mAwaitingContinuation || HasResult || mSASLAuthentication == null) throw new InvalidOperationException();
+                        if (mState != eCommandState.sending || !mAwaitingContinuation || mSASLAuthentication == null) throw new InvalidOperationException();
                         return mSASLAuthentication.GetResponse(pChallenge);
                     }
 
                     public void SetSent(cTrace.cContext pParentContext)
                     {
                         var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(SetSent), Tag);
-                        if (mState != eCommandState.sending || mAwaitingContinuation || HasResult || mSASLAuthentication != null) throw new InvalidOperationException();
+                        if (mState != eCommandState.sending || mAwaitingContinuation || mSASLAuthentication != null) throw new InvalidOperationException();
                         mState = eCommandState.sent;
                     }
 
@@ -128,12 +127,14 @@ namespace work.bacome.imapclient
                     {
                         var lContext = pParentContext.NewMethod(nameof(cCommand), nameof(SetResult), Tag, pResult);
 
-                        if (mState == eCommandState.queued || mState == eCommandState.cancelled || HasResult) throw new InvalidOperationException();
+                        if (mState == eCommandState.queued || mState == eCommandState.cancelled || mState == eCommandState.complete) throw new InvalidOperationException();
 
                         mResult = pResult ?? throw new ArgumentNullException(nameof(pResult));
 
                         Hook.CommandCompleted(pResult, lContext);
                         mDisposables.Dispose();
+
+                        mState = eCommandState.complete;
 
                         // will throw objectdisposed if the wait finishes before the command does
                         try { mSemaphore.Release(); }
@@ -147,6 +148,8 @@ namespace work.bacome.imapclient
                         mException = pException ?? throw new ArgumentNullException(nameof(pException));
 
                         mDisposables.Dispose();
+
+                        mState = eCommandState.complete;
 
                         // will throw objectdisposed if the wait finishes before the command does
                         try { mSemaphore.Release(); }

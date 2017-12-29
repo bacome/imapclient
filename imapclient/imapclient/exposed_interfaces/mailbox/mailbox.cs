@@ -1107,11 +1107,12 @@ namespace work.bacome.imapclient
         {
             if (pFeedback.Count != 1) throw new cInternalErrorException();
             var lFeedbackItem = pFeedback[0];
-            if (pFeedback.AppendedCount == 1) return lFeedbackItem.AppendedMessageUID;
-            var lResult = lFeedbackItem.FailedResult;
+            if (pFeedback.SucceededCount == 1) return lFeedbackItem.UID;
+            if (lFeedbackItem.Exception != null) throw lFeedbackItem.Exception;
+            var lResult = lFeedbackItem.Result;
             if (lResult == null) throw new cInternalErrorException();
-            if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lFeedbackItem.FailedTryIgnore);
-            throw new cProtocolErrorException(lResult, lFeedbackItem.FailedTryIgnore);
+            if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, lFeedbackItem.TryIgnoring);
+            throw new cProtocolErrorException(lResult, lFeedbackItem.TryIgnoring);
         }
 
         public cAppendFeedback Append(IEnumerable<cAppendData> pMessages, cAppendConfiguration pConfiguration = null) => Client.Append(MailboxHandle, cAppendDataList.FromMessages(pMessages), pConfiguration);

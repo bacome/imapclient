@@ -132,7 +132,7 @@ namespace work.bacome.imapclient
 
                 public override fCapabilities AddAppendData(cAppendCommandDetailsBuilder pBuilder)
                 {
-                    FileStream lStream = new FileStream(mPath, FileMode.Open);
+                    FileStream lStream = new FileStream(mPath, FileMode.Open, FileAccess.Read);
                     pBuilder.Add(lStream); // this is what disposes the stream
                     return YAddAppendData(pBuilder, new cStreamCommandPart(lStream, mLength, pBuilder.AppendDataBinary, pBuilder.Increment, mReadConfiguration));
                 }
@@ -449,7 +449,7 @@ namespace work.bacome.imapclient
 
                 public override fCapabilities AddCatPart(cAppendCommandDetailsBuilder pBuilder)
                 {
-                    FileStream lStream = new FileStream(mPath, FileMode.Open);
+                    FileStream lStream = new FileStream(mPath, FileMode.Open, FileAccess.Read);
                     pBuilder.Add(lStream); // this is what disposes the stream
                     return YAddCatPart(pBuilder, new cStreamCommandPart(lStream, mLength, pBuilder.CatPartBinary, pBuilder.Increment, mReadConfiguration));
                 }
@@ -624,7 +624,7 @@ namespace work.bacome.imapclient
 
                 public override void AddPart(cAppendCommandDetailsBuilder pBuilder, List<cMultiPartLiteralPartBase> pParts)
                 {
-                    FileStream lStream = new FileStream(mPath, FileMode.Open);
+                    FileStream lStream = new FileStream(mPath, FileMode.Open, FileAccess.Read);
                     pBuilder.Add(lStream); // this is what disposes the stream
                     pParts.Add(new cMultiPartLiteralStreamPart(lStream, mLength, pBuilder.Increment, mReadConfiguration));
                 }

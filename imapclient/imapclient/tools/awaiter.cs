@@ -36,13 +36,14 @@ namespace work.bacome.imapclient
 
             Task lTask = await Task.WhenAny(lTasks).ConfigureAwait(false);
 
-            if (lTask.Exception != null) ExceptionDispatchInfo.Capture(lTask.Exception).Throw();
+            if (lTask.IsFaulted) ExceptionDispatchInfo.Capture(lTask.Exception).Throw();
             if (lTask.IsCanceled) throw new OperationCanceledException();
             if (ReferenceEquals(lTask, mTask)) throw new TimeoutException();
 
             return lTask;
         }
 
+        /*
         public static Task AwaitAll(cMethodControl pMC, params Task[] pTasks) => ZAwaitAll(pMC, pTasks);
 
         public static Task AwaitAll(cMethodControl pMC, IEnumerable<Task> pTasks) => ZAwaitAll(pMC, pTasks);
@@ -56,6 +57,7 @@ namespace work.bacome.imapclient
 
             using (var lAwaiter = new cAwaiter(pMC))
             {
+                ;?; // if re-instating this code: whenall fails if any of the tasks fail, so the code below needs revision
                 Task lCompleted = await Task.WhenAny(lAwaiter.mTask, Task.WhenAll(lTasks)).ConfigureAwait(false);
 
                 if (ReferenceEquals(lCompleted, lAwaiter.mTask))
@@ -76,7 +78,7 @@ namespace work.bacome.imapclient
                 if (lExceptions.Count == 1) throw lExceptions[0];
                 throw new AggregateException(lExceptions);
             }
-        }
+        } */
 
         public void Dispose()
         {

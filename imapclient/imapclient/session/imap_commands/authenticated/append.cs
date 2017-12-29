@@ -29,9 +29,9 @@ namespace work.bacome.imapclient
 
                     lBuilder.Add(kAppendCommandPart, lItem.MailboxNameCommandPart);
 
-                    fCapabilities lTryIgnore;
-                    if (pMessages.Count > 1) lTryIgnore = fCapabilities.multiappend;
-                    else lTryIgnore = 0;
+                    fCapabilities lTryIgnoring;
+                    if (pMessages.Count > 1) lTryIgnoring = fCapabilities.multiappend;
+                    else lTryIgnoring = 0;
 
                     foreach (var lMessage in pMessages)
                     {
@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
                         }
 
                         lBuilder.Add(cCommandPart.Space);
-                        lTryIgnore |= lMessage.AddAppendData(lBuilder);
+                        lTryIgnoring |= lMessage.AddAppendData(lBuilder);
                     }
 
                     var lHook = new cAppendCommandHook(pMessages.Count);
@@ -61,12 +61,12 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("append success");
-                        if (lHook.AppendUID == null) return new cAppended(pMessages.Count);
-                        else return lHook.AppendUID;
+                        if (lHook.UIDs == null) return new cAppendSucceeded(pMessages.Count);
+                        else return lHook.UIDs;
                     }
 
-                    lContext.TraceInformation("append unsuccessful");
-                    return new cAppendFailed(pMessages.Count, lResult, lTryIgnore);
+                    lContext.TraceInformation("append failed");
+                    return new cAppendFailedWithResult(pMessages.Count, lResult, lTryIgnoring);
                 }
             }
 
@@ -81,7 +81,7 @@ namespace work.bacome.imapclient
                     mExpectedCount = pExpectedCount;
                 }
 
-                public cAppendUID AppendUID { get; private set; } = null;
+                public cAppendSucceededWithUIDs UIDs { get; private set; } = null;
 
                 public override void ProcessTextCode(eResponseTextContext pTextContext, cByteList pCode, cByteList pArguments, cTrace.cContext pParentContext)
                 {
@@ -100,7 +100,7 @@ namespace work.bacome.imapclient
                                 cUIntList.TryConstruct(lUIDSet, -1, false, out var lUIDs) &&
                                 lUIDs.Count == mExpectedCount)
                             {
-                                AppendUID = new cAppendUID(lUIDValidity, lUIDs);
+                                UIDs = new cAppendSucceededWithUIDs(lUIDValidity, lUIDs);
                                 return;
                             }
                         }

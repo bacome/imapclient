@@ -55,19 +55,29 @@ namespace work.bacome.imapclient
                 {
                     switch (lResult)
                     {
-                        case cAppended lAppended:
+                        case cAppendSucceeded lSucceeded:
 
-                            for (int i = 0; i < lAppended.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(true));
+                            for (int i = 0; i < lSucceeded.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(true));
                             break;
 
-                        case cAppendUID lAppendUID:
+                        case cAppendSucceededWithUIDs lUIDs:
 
-                            foreach (var lUID in lAppendUID.UIDs) lFeedbackItems.Add(new cAppendFeedbackItem(new cUID(lAppendUID.UIDValidity, lUID)));
+                            foreach (var lUID in lUIDs.UIDs) lFeedbackItems.Add(new cAppendFeedbackItem(new cUID(lUIDs.UIDValidity, lUID)));
                             break;
 
-                        case cAppendFailed lFailed:
+                        case cAppendFailedWithResult lFailedResult:
 
-                            for (int i = 0; i < lFailed.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(lFailed.Result, lFailed.TryIgnore));
+                            for (int i = 0; i < lFailedResult.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(lFailedResult.Result, lFailedResult.TryIgnoring));
+                            break;
+
+                        case cAppendFailedWithException lFailedException:
+
+                            for (int i = 0; i < lFailedException.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(lFailedException.Exception));
+                            break;
+
+                        case cAppendCancelled lCancelled:
+
+                            for (int i = 0; i < lCancelled.Count; i++) lFeedbackItems.Add(new cAppendFeedbackItem(false));
                             break;
 
                         default:
@@ -393,35 +403,62 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(ZAppendBatchAsync), pMC, pMailboxHandle, pMessages, pTotalLength);
 
-                Stopwatch lStopwatch = Stopwatch.StartNew();
+                bool lAllAppendedOK;
 
-                bool lAllOK;
+                Stopwatch lStopwatch = Stopwatch.StartNew();
 
                 if (_Capabilities.MultiAppend)
                 {
-                    var lResult = await ZAppendAsync(pMC, pMailboxHandle, pMessages, pIncrement, lContext).ConfigureAwait(false);
-                    pResults.Add(lResult);
-                    lAllOK = !(lResult is cAppendFailed);
+                    try
+                    {
+                        var lResult = await ZAppendAsync(pMC, pMailboxHandle, pMessages, pIncrement, lContext).ConfigureAwait(false);
+                        pResults.Add(lResult);
+                        if (lResult is cAppendFailedWithResult) lAllAppendedOK = false;
+                        else lAllAppendedOK = true;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        pResults.Add(new cAppendCancelled(pMessages.Count));
+                        lAllAppendedOK = false;
+                    }
+                    catch (Exception e)
+                    {
+                        pResults.Add(new cAppendFailedWithException(pMessages.Count, e));
+                        lAllAppendedOK = false;
+                    }
                 }
                 else
                 {
-                    List<Task<cAppendResult>> lResults = new List<Task<cAppendResult>>();
+                    List<Task<cAppendResult>> lTasks = new List<Task<cAppendResult>>();
 
                     foreach (var lMessage in pMessages)
                     {
                         cSessionAppendDataList lMessages = new cSessionAppendDataList();
                         lMessages.Add(lMessage);
-                        lResults.Add(ZAppendAsync(pMC, pMailboxHandle, lMessages, pIncrement, lContext));
+                        lTasks.Add(ZAppendAsync(pMC, pMailboxHandle, lMessages, pIncrement, lContext));
                     }
 
-                    await cAwaiter.AwaitAll(pMC, lResults).ConfigureAwait(false);
-
-                    lAllOK = true;
-
-                    foreach (var lResult in lResults)
+                    try
                     {
-                        pResults.Add(lResult.Result);
-                        if (lResult.Result is cAppendFailed) lAllOK = false;
+                        await Task.WhenAll(lTasks).ConfigureAwait(false);
+                        lAllAppendedOK = true; // might be all ok; have to inspect the individual results in the loop below
+                    }
+                    catch (Exception)
+                    {
+                        // at least one task faulted or was cancelled
+                        lAllAppendedOK = false;
+                    }
+
+                    foreach (var lTask in lTasks)
+                    {
+                        if (lTask.IsFaulted) pResults.Add(new cAppendFailedWithException(lTask.Exception));
+                        else if (lTask.IsCanceled) pResults.Add(cAppendResult.Cancelled);
+                        else
+                        {
+                            var lResult = lTask.Result;
+                            pResults.Add(lResult);
+                            if (lResult is cAppendFailedWithResult) lAllAppendedOK = false;
+                        }
                     }
                 }
 
@@ -431,7 +468,7 @@ namespace work.bacome.imapclient
                 mAppendBatchSizer.AddSample(pTotalLength, lStopwatch.ElapsedMilliseconds);
 
                 // done
-                return lAllOK;
+                return lAllAppendedOK;
             }
         }
     }

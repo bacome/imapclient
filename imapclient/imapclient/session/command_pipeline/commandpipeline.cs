@@ -117,13 +117,13 @@ namespace work.bacome.imapclient
 
                     if (mDisposed)
                     {
-                        pCommandDetails.Disposables?.Dispose();
+                        pCommandDetails.Disposables.Dispose();
                         throw new ObjectDisposedException(nameof(cCommandPipeline));
                     }
 
                     if (mState < eState.connected)
                     {
-                        pCommandDetails.Disposables?.Dispose();
+                        pCommandDetails.Disposables.Dispose();
                         throw new InvalidOperationException(kInvalidOperationExceptionMessage.NotConnected);
                     }
 
@@ -144,12 +144,20 @@ namespace work.bacome.imapclient
                     }
 
                     try { return await lCommand.WaitAsync(pMC, lContext).ConfigureAwait(false); }
-                    finally
+                    catch (Exception e)
                     {
                         lock (mPipelineLock)
                         {
-                            if (lCommand.State == eCommandState.queued) lCommand.SetCancelled(lContext);
+                            if (lCommand.State == eCommandState.queued)
+                            {
+                                lCommand.SetCancelled(lContext);
+                                throw;
+                            }
+
+                            if (lCommand.State == eCommandState.complete) throw;
                         }
+
+                        throw new cCommandResultUnknownException(null, e, lContext);
                     }
                 }
 

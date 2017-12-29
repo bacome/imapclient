@@ -6,50 +6,89 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            private abstract class cAppendResult { }
+            private abstract class cAppendResult
+            {
+                public static readonly cAppendCancelled Cancelled = new cAppendCancelled(1);
+            }
 
-            private class cAppended : cAppendResult
+            private class cAppendSucceeded : cAppendResult
             {
                 public readonly int Count;
 
-                public cAppended(int pCount)
+                public cAppendSucceeded(int pCount)
                 {
                     if (pCount < 1) throw new ArgumentOutOfRangeException(nameof(pCount));
                     Count = pCount;
                 }
 
-                public override string ToString() => $"{nameof(cAppended)}({Count})";
+                public override string ToString() => $"{nameof(cAppendSucceeded)}({Count})";
             }
 
-            private class cAppendUID : cAppendResult
+            private class cAppendSucceededWithUIDs : cAppendResult
             {
                 public readonly uint UIDValidity;
                 public readonly cUIntList UIDs;
 
-                public cAppendUID(uint pUIDValidity, cUIntList pUIDs)
+                public cAppendSucceededWithUIDs(uint pUIDValidity, cUIntList pUIDs)
                 {
                     UIDValidity = pUIDValidity;
                     UIDs = pUIDs ?? throw new ArgumentNullException(nameof(pUIDs));
                 }
 
-                public override string ToString() => $"{nameof(cAppendUID)}({UIDValidity},{UIDs})";
+                public override string ToString() => $"{nameof(cAppendSucceededWithUIDs)}({UIDValidity},{UIDs})";
             }
 
-            private class cAppendFailed : cAppendResult
+            private class cAppendFailedWithResult : cAppendResult
             {
                 public readonly int Count;
                 public readonly cCommandResult Result;
-                public readonly fCapabilities TryIgnore;
+                public readonly fCapabilities TryIgnoring;
 
-                public cAppendFailed(int pCount, cCommandResult pResult, fCapabilities pTryIgnore)
+                public cAppendFailedWithResult(int pCount, cCommandResult pResult, fCapabilities pTryIgnoring)
                 {
                     if (pCount < 1) throw new ArgumentOutOfRangeException(nameof(pCount));
                     Count = pCount;
                     Result = pResult ?? throw new ArgumentNullException(nameof(pResult));
-                    TryIgnore = pTryIgnore;
+                    TryIgnoring = pTryIgnoring;
                 }
 
-                public override string ToString() => $"{nameof(cAppendFailed)}({Count},{Result},{TryIgnore})";
+                public override string ToString() => $"{nameof(cAppendFailedWithResult)}({Count},{Result},{TryIgnoring})";
+            }
+
+            private class cAppendFailedWithException : cAppendResult
+            {
+                public readonly int Count;
+                public readonly Exception Exception;
+
+                ;?; // note: must unbust the aggreate exception: need a common for this
+
+                public cAppendFailedWithException(Exception pException)
+                {
+                    Count = 1;
+                    Exception = pException ?? throw new ArgumentNullException(nameof(pException));
+                }
+
+                public cAppendFailedWithException(int pCount, Exception pException)
+                {
+                    if (pCount < 1) throw new ArgumentOutOfRangeException(nameof(pCount));
+                    Count = pCount;
+                    Exception = pException ?? throw new ArgumentNullException(nameof(pException));
+                }
+
+                public override string ToString() => $"{nameof(cAppendFailedWithResult)}({Count},{Exception})";
+            }
+
+            private class cAppendCancelled : cAppendResult
+            {
+                public readonly int Count;
+
+                public cAppendCancelled(int pCount)
+                {
+                    if (pCount < 1) throw new ArgumentOutOfRangeException(nameof(pCount));
+                    Count = pCount;
+                }
+
+                public override string ToString() => $"{nameof(cAppendCancelled)}({Count})";
             }
         }
     }

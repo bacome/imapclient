@@ -5,48 +5,74 @@ using System.Collections.ObjectModel;
 
 namespace work.bacome.imapclient
 {
-    public enum eAppendFeedbackType { appended, failed, notattempted }
+    public enum eAppendFeedbackType { succeeded, failedwithresult, failedwithexception, resultunknown, notattempted }
 
     public class cAppendFeedbackItem
     {
         public readonly eAppendFeedbackType Type;
-        public readonly cUID AppendedMessageUID;
-        public readonly cCommandResult FailedResult;
-        public readonly fCapabilities FailedTryIgnore;
+        public readonly cUID UID;
+        public readonly cCommandResult Result;
+        public readonly fCapabilities TryIgnoring;
+        public readonly Exception Exception;
 
-        internal cAppendFeedbackItem(bool pAppended)
+        internal cAppendFeedbackItem(bool pSucceeded)
         {
-            if (pAppended) Type = eAppendFeedbackType.appended;
+            if (pSucceeded) Type = eAppendFeedbackType.succeeded;
             else Type = eAppendFeedbackType.notattempted;
 
-            AppendedMessageUID = null;
-            FailedResult = null;
-            FailedTryIgnore = 0;
+            UID = null;
+            Result = null;
+            TryIgnoring = 0;
+            Exception = null;
         }
 
-        internal cAppendFeedbackItem(cUID pAppendedMessageUID)
+        internal cAppendFeedbackItem(cUID pUID)
         {
-            Type = eAppendFeedbackType.appended;
-            AppendedMessageUID = pAppendedMessageUID ?? throw new ArgumentNullException(nameof(pAppendedMessageUID));
-            FailedResult = null;
-            FailedTryIgnore = 0;
+            Type = eAppendFeedbackType.succeeded;
+            UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
+            Result = null;
+            TryIgnoring = 0;
+            Exception = null;
         }
 
-        internal cAppendFeedbackItem(cCommandResult pFailedResult, fCapabilities pFailedTryIgnore)
+        internal cAppendFeedbackItem(cCommandResult pResult, fCapabilities pTryIgnoring)
         {
-            Type = eAppendFeedbackType.failed;
-            AppendedMessageUID = null;
-            FailedResult = pFailedResult ?? throw new ArgumentNullException(nameof(pFailedResult));
-            FailedTryIgnore = pFailedTryIgnore;
+            Type = eAppendFeedbackType.failedwithresult;
+            UID = null;
+            Result = pResult ?? throw new ArgumentNullException(nameof(pResult));
+            TryIgnoring = pTryIgnoring;
+            Exception = null;
         }
 
-        public override string ToString() => $"{nameof(cAppendFeedbackItem)}({Type},{AppendedMessageUID},{FailedResult},{FailedTryIgnore})";
+        internal cAppendFeedbackItem(Exception pException)
+        {
+            if (pException is cCommandResultUnknownException lResultUnknown)
+            {
+                Type = eAppendFeedbackType.resultunknown;
+                UID = null;
+                Result = null;
+                TryIgnoring = 0;
+                Exception = lResultUnknown.InnerException;
+            }
+            else
+            {
+                Type = eAppendFeedbackType.failedwithexception;
+                UID = null;
+                Result = null;
+                TryIgnoring = 0;
+                Exception = pException;
+            }
+        }
+
+        public override string ToString() => $"{nameof(cAppendFeedbackItem)}({Type},{UID},{Result},{TryIgnoring},{Exception})";
     }
 
     public class cAppendFeedback : IReadOnlyList<cAppendFeedbackItem>
     {
-        public readonly int AppendedCount = 0;
-        public readonly int FailedCount = 0;
+        public readonly int SucceededCount = 0;
+        public readonly int FailedWithResultCount = 0;
+        public readonly int FailedWithExceptionCount = 0;
+        public readonly int ResultUnknownCount = 0;
         public readonly int NotAttemptedCount = 0;
         private readonly ReadOnlyCollection<cAppendFeedbackItem> mItems;
 
@@ -63,14 +89,24 @@ namespace work.bacome.imapclient
             {
                 switch (lItem.Type)
                 {
-                    case eAppendFeedbackType.appended:
+                    case eAppendFeedbackType.succeeded:
 
-                        AppendedCount++;
+                        SucceededCount++;
                         break;
 
-                    case eAppendFeedbackType.failed:
+                    case eAppendFeedbackType.failedwithresult:
 
-                        FailedCount++;
+                        FailedWithResultCount++;
+                        break;
+
+                    case eAppendFeedbackType.failedwithexception:
+
+                        FailedWithExceptionCount++;
+                        break;
+
+                    case eAppendFeedbackType.resultunknown:
+
+                        ResultUnknownCount++;
                         break;
 
                     case eAppendFeedbackType.notattempted:
@@ -101,8 +137,10 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             cListBuilder lBuilder = new cListBuilder(nameof(cAppendFeedback));
-            lBuilder.Append(AppendedCount);
-            lBuilder.Append(FailedCount);
+            lBuilder.Append(SucceededCount);
+            lBuilder.Append(FailedWithResultCount);
+            lBuilder.Append(FailedWithExceptionCount);
+            lBuilder.Append(ResultUnknownCount);
             lBuilder.Append(NotAttemptedCount);
             foreach (var lItem in mItems) lBuilder.Append(lItem);
             return lBuilder.ToString();
