@@ -9,13 +9,16 @@ namespace work.bacome.imapclient
     {
         private bool mDisposed = false;
         private readonly int mTimeout;
-        private readonly CancellationTokenSource mCancellationTokenSource = new CancellationTokenSource();
+
+        private CancellationTokenSource mCancellationTokenSource;
         private Task mTask;
 
         public cCountdownTimer(int pTimeout, cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewObject(nameof(cCountdownTimer), pTimeout);
             mTimeout = pTimeout;
+
+            mCancellationTokenSource = new CancellationTokenSource();
             mTask = Task.Delay(mTimeout, mCancellationTokenSource.Token);
         }
 
@@ -28,9 +31,22 @@ namespace work.bacome.imapclient
         public void Restart(cTrace.cContext pParentContext)
         {
             var lContext = pParentContext.NewMethod(nameof(cCountdownTimer), nameof(Restart));
+
             if (mDisposed) throw new ObjectDisposedException(nameof(cCountdownTimer));
-            if (mTask == null || !mTask.IsCompleted) throw new InvalidOperationException("current countdown not complete");
-            mTask.Dispose();
+
+            if (mTask.IsCompleted) mTask.Dispose();
+            {
+                mCancellationTokenSource.Cancel();
+
+                try { mTask.Wait(); }
+                catch { }
+
+                mTask.Dispose();
+                mCancellationTokenSource.Dispose();
+
+                mCancellationTokenSource = new CancellationTokenSource();
+            }
+
             mTask = Task.Delay(mTimeout, mCancellationTokenSource.Token);
         }
 

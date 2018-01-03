@@ -76,9 +76,7 @@ namespace work.bacome.imapclient
                 if (pAsyncTask.IsFaulted)
                 {
                     lContext.TraceException(TraceEventType.Verbose, "task completed with exception", pAsyncTask.Exception);
-                    var lException = pAsyncTask.Exception.Flatten();
-                    if (lException.InnerExceptions.Count == 1) throw lException.InnerExceptions[0];
-                    throw pAsyncTask.Exception;
+                    throw cTools.Flatten(pAsyncTask.Exception);
                 }
 
                 if (pAsyncTask.IsCanceled)

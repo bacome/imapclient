@@ -70,10 +70,10 @@ namespace work.bacome.imapclient
                 mAppendTargetBufferSize = pAppendTargetBufferSize;
                 mAppendStreamReadConfiguration = pAppendStreamReadConfiguration;
 
-                mCommandPartFactory = new cCommandPartFactory(false, null);
+                mCommandPartFactory = new cCommandPartFactory(false, null, eURLMailboxEncoding.utf8);
 
                 if (pEncoding == null) mEncodingPartFactory = mCommandPartFactory;
-                else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
+                else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding, eURLMailboxEncoding.utf8);
             }
 
             public bool TLSInstalled => mPipeline.TLSInstalled;
@@ -89,7 +89,7 @@ namespace work.bacome.imapclient
 
                 if (lUTF8Enabled)
                 {
-                    mCommandPartFactory = new cCommandPartFactory(true, null);
+                    mCommandPartFactory = new cCommandPartFactory(true, null, eURLMailboxEncoding.utf8);
                     mEncodingPartFactory = mCommandPartFactory;
                 }
 
@@ -170,7 +170,7 @@ namespace work.bacome.imapclient
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetEncoding), pEncoding.WebName);
                 if ((EnabledExtensions & fEnableableExtensions.utf8) != 0 || pEncoding == null) mEncodingPartFactory = mCommandPartFactory;
-                else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
+                else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding, eURLMailboxEncoding.utf8);
             }
 
             public eConnectionState ConnectionState => _ConnectionState;

@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
 
                     using (cCountdownTimer lCountdownTimer = new cCountdownTimer(pDelay, lContext))
                     {
-                        return (await ZIdleProcessResponsesAsync(true, lCountdownTimer.GetAwaitCountdownTask(), null, false, lContext).ConfigureAwait(false) == eIdleProcessResponsesTerminatedBy.countdowntask);
+                        return (await ZIdleProcessResponsesAsync(true, false, lCountdownTimer.GetAwaitCountdownTask(), null, false, lContext).ConfigureAwait(false) == eIdleProcessResponsesTerminatedBy.countdowntask);
                     }
                 }
 
@@ -59,11 +59,11 @@ namespace work.bacome.imapclient
                             mSynchroniser.InvokeNetworkSend(mIdleBuffer, lContext);
                             await mConnection.WriteAsync(mIdleBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
 
-                            if (await ZIdleProcessResponsesAsync(false, null, lTag, true, lContext).ConfigureAwait(false) != eIdleProcessResponsesTerminatedBy.continuerequest) throw new cUnexpectedServerActionException(fCapabilities.idle, "idle completed before done sent", lContext);
+                            if (await ZIdleProcessResponsesAsync(false, false, null, lTag, true, lContext).ConfigureAwait(false) != eIdleProcessResponsesTerminatedBy.continuerequest) throw new cUnexpectedServerActionException(null, "idle completed before done sent", fCapabilities.idle, lContext);
 
-                            var lProcessResponsesTerminatedBy = await ZIdleProcessResponsesAsync(true, lCountdownTimer.GetAwaitCountdownTask(), lTag, false, lContext).ConfigureAwait(false);
+                            var lProcessResponsesTerminatedBy = await ZIdleProcessResponsesAsync(true, true, lCountdownTimer.GetAwaitCountdownTask(), lTag, false, lContext).ConfigureAwait(false);
 
-                            if (lProcessResponsesTerminatedBy == eIdleProcessResponsesTerminatedBy.commandcompletion) throw new cUnexpectedServerActionException(fCapabilities.idle, "idle completed before done sent", lContext);
+                            if (lProcessResponsesTerminatedBy == eIdleProcessResponsesTerminatedBy.commandcompletion) throw new cUnexpectedServerActionException(null, "idle completed before done sent", fCapabilities.idle, lContext);
 
                             mIdleBuffer.Clear();
 
@@ -75,7 +75,7 @@ namespace work.bacome.imapclient
                             mSynchroniser.InvokeNetworkSend(mIdleBuffer, lContext);
                             await mConnection.WriteAsync(mIdleBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
 
-                            await ZIdleProcessResponsesAsync(false, null, lTag, false, lContext).ConfigureAwait(false);
+                            await ZIdleProcessResponsesAsync(false, false, null, lTag, false, lContext).ConfigureAwait(false);
 
                             if (lProcessResponsesTerminatedBy == eIdleProcessResponsesTerminatedBy.backgroundreleaser) return;
 
@@ -95,7 +95,7 @@ namespace work.bacome.imapclient
                     {
                         while (true)
                         {
-                            if (mMailboxCache?.SelectedMailboxDetails != null)
+                            if (mMailboxCache.SelectedMailboxDetails != null)
                             {
                                 await ZIdlePollCommandAsync(kIdleCheck, lContext).ConfigureAwait(false);
 
@@ -116,11 +116,9 @@ namespace work.bacome.imapclient
 
                             lContext.TraceVerbose("waiting");
 
-                            if (await ZIdleProcessResponsesAsync(true, lCountdownTimer.GetAwaitCountdownTask(), null, false, lContext).ConfigureAwait(false) == eIdleProcessResponsesTerminatedBy.backgroundreleaser)
-                            {
-                                lContext.TraceVerbose("idle terminated during poll delay");
-                                return;
-                            }
+                            var lProcessResponsesTerminatedBy = await ZIdleProcessResponsesAsync(true, true, lCountdownTimer.GetAwaitCountdownTask(), null, false, lContext).ConfigureAwait(false);
+
+                            if (lProcessResponsesTerminatedBy == eIdleProcessResponsesTerminatedBy.backgroundreleaser) return;
 
                             lCountdownTimer.Restart(lContext);
                         }
@@ -145,14 +143,14 @@ namespace work.bacome.imapclient
                     mSynchroniser.InvokeNetworkSend(mIdleBuffer, lContext);
                     await mConnection.WriteAsync(mIdleBuffer.ToArray(), mBackgroundCancellationTokenSource.Token, lContext).ConfigureAwait(false);
 
-                    await ZIdleProcessResponsesAsync(false, null, lTag, false, lContext).ConfigureAwait(false);
+                    await ZIdleProcessResponsesAsync(false, false, null, lTag, false, lContext).ConfigureAwait(false);
                 }
 
-                private enum eIdleProcessResponsesTerminatedBy { backgroundreleaser, countdowntask, commandcompletion, continuerequest }
+                private enum eIdleProcessResponsesTerminatedBy { backgroundreleaser, countdowntask, commandcompletion, continuerequest, pendingmodseq }
 
-                private async Task<eIdleProcessResponsesTerminatedBy> ZIdleProcessResponsesAsync(bool pMonitorBackgroundReleaser, Task pCountdownTask, cCommandTag pTag, bool pExpectContinueRequest, cTrace.cContext pParentContext)
+                private async Task<eIdleProcessResponsesTerminatedBy> ZIdleProcessResponsesAsync(bool pMonitorBackgroundReleaser, bool pMonitorPendingModSeq, Task pCountdownTask, cCommandTag pTag, bool pExpectContinueRequest, cTrace.cContext pParentContext)
                 {
-                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZIdleProcessResponsesAsync), pMonitorBackgroundReleaser, pTag, pExpectContinueRequest);
+                    var lContext = pParentContext.NewMethod(nameof(cCommandPipeline), nameof(ZIdleProcessResponsesAsync), pMonitorBackgroundReleaser, pMonitorPendingModSeq, pTag, pExpectContinueRequest);
 
                     Task lBackgroundReleaserTask;
                     if (pMonitorBackgroundReleaser) lBackgroundReleaserTask = mBackgroundReleaser.GetAwaitReleaseTask(lContext);
@@ -160,6 +158,8 @@ namespace work.bacome.imapclient
 
                     while (true)
                     {
+                        if (pMonitorPendingModSeq && mMailboxCache.HasPendingHighestModSeq()) return eIdleProcessResponsesTerminatedBy.pendingmodseq;
+
                         Task lBuildResponseTask = mConnection.GetBuildResponseTask(lContext);
 
                         Task lTask = await mBackgroundAwaiter.AwaitAny(lBuildResponseTask, lBackgroundReleaserTask, pCountdownTask).ConfigureAwait(false);
@@ -173,7 +173,7 @@ namespace work.bacome.imapclient
 
                         if (lCursor.SkipBytes(kPlusSpace))
                         {
-                            if (!pExpectContinueRequest) throw new cUnexpectedServerActionException(fCapabilities.idle, "unexpected continuation request", lContext);
+                            if (!pExpectContinueRequest) throw new cUnexpectedServerActionException(null, "unexpected continuation request", fCapabilities.idle, lContext);
                             mResponseTextProcessor.Process(eResponseTextContext.continuerequest, lCursor, null, lContext);
                             return eIdleProcessResponsesTerminatedBy.continuerequest;
                         }

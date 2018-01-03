@@ -110,6 +110,12 @@ namespace work.bacome.imapclient
                 public int UnseenUnknownCount => mUnseenUnknownCount;
                 public ulong HighestModSeq => mHighestModSeq;
 
+                public bool HasPendingHighestModSeq()
+                {
+                    if (mNoModSeq) throw new InvalidOperationException();
+                    return mPendingHighestModSeq > mHighestModSeq;
+                }
+
                 public void UpdateHighestModSeq(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(UpdateHighestModSeq));
@@ -202,7 +208,7 @@ namespace work.bacome.imapclient
                 {
                     var lContext = pParentContext.NewMethod(nameof(cSelectedMailboxCache), nameof(ZExists), pMessageCount);
 
-                    if (pMessageCount < mItems.Count) throw new cUnexpectedServerActionException(0, "count should only go up", lContext);
+                    if (pMessageCount < mItems.Count) throw new cUnexpectedServerActionException(null, "count should only go up", 0, lContext);
 
                     int lToAdd = pMessageCount - mItems.Count;
 

@@ -421,6 +421,11 @@ namespace work.bacome.imapclient
                         pResults.Add(new cAppendCancelled(pMessages.Count));
                         lAllAppendedOK = false;
                     }
+                    catch (AggregateException e)
+                    {
+                        pResults.Add(new cAppendFailedWithException(pMessages.Count, cTools.Flatten(e)));
+                        lAllAppendedOK = false;
+                    }
                     catch (Exception e)
                     {
                         pResults.Add(new cAppendFailedWithException(pMessages.Count, e));
@@ -451,7 +456,7 @@ namespace work.bacome.imapclient
 
                     foreach (var lTask in lTasks)
                     {
-                        if (lTask.IsFaulted) pResults.Add(new cAppendFailedWithException(lTask.Exception));
+                        if (lTask.IsFaulted) pResults.Add(new cAppendFailedWithException(cTools.Flatten(lTask.Exception)));
                         else if (lTask.IsCanceled) pResults.Add(cAppendResult.Cancelled);
                         else
                         {

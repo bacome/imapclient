@@ -31,6 +31,7 @@ namespace work.bacome.imapclient
                 public bool AccessReadOnly => mAccessReadOnly;
                 public iMessageCache MessageCache => mCache;
 
+                public bool HasPendingHighestModSeq() => mCache.HasPendingHighestModSeq();
                 public void UpdateHighestModSeq(cTrace.cContext pParentContext) => mCache.UpdateHighestModSeq(pParentContext);
 
                 public iMessageHandle GetHandle(uint pMSN) => mCache.GetHandle(pMSN); // this should only be called from a commandcompletion

@@ -32,7 +32,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("logout success");
-                        if (!lHook.GotBye) throw new cUnexpectedServerActionException(0, "bye not received", lContext);
+                        if (!lHook.GotBye) throw new cUnexpectedServerActionException(lResult, "bye not received", 0, lContext);
                         Disconnect(lContext);
                         return;
                     }

@@ -36,7 +36,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("extended setunseencount success");
-                        if (lHook.MessageHandles == null) throw new cUnexpectedServerActionException(fCapabilities.esearch, "results not received on a successful extended setunseencount", lContext);
+                        if (lHook.MessageHandles == null) throw new cUnexpectedServerActionException(lResult, "results not received on a successful extended setunseencount", fCapabilities.esearch, lContext);
                         return lHook.MessageHandles;
                     }
 

@@ -46,7 +46,7 @@ namespace work.bacome.imapclient
                     if (lResult.ResultType == eCommandResultType.ok)
                     {
                         lContext.TraceInformation("search success");
-                        if (lHook.MessageHandles == null) throw new cUnexpectedServerActionException(0, "results not received on a successful search", lContext);
+                        if (lHook.MessageHandles == null) throw new cUnexpectedServerActionException(lResult, "results not received on a successful search", 0, lContext);
                         return lHook.MessageHandles;
                     }
 

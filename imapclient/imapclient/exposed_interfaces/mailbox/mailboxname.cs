@@ -221,7 +221,7 @@ namespace work.bacome.imapclient
             IList<byte> lEncodedMailboxPath;
             cMailboxName lMailboxName;
 
-            lFactory = new cCommandPartFactory(false, null);
+            lFactory = new cCommandPartFactory(false, null, eURLMailboxEncoding.utf7);
 
             if (!lFactory.TryAsMailbox(pMailboxPath, '/', out lCommandPart, out _)) throw new cTestsException($"mailboxname conversion failed on '{pMailboxPath}'");
             cTextCommandPart lTCP = lCommandPart as cTextCommandPart;
@@ -241,7 +241,7 @@ namespace work.bacome.imapclient
 
             if (lMailboxName.Path != pMailboxPath) throw new cTestsException($"mailboxname conversion failed on '{pMailboxPath}' -> {lTCP.Bytes} -> '{lMailboxName}'", lContext);
 
-            lFactory = new cCommandPartFactory(true, null);
+            lFactory = new cCommandPartFactory(true, null, eURLMailboxEncoding.utf7);
             lFactory.TryAsMailbox(pMailboxPath, '/', out lCommandPart, out _);
             lTCP = lCommandPart as cTextCommandPart;
             lCursor = new cBytesCursor(lTCP.Bytes);

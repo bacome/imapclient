@@ -295,12 +295,7 @@ namespace work.bacome.imapclient
 
                     var lMailboxName = pMailboxHandle.MailboxName;
 
-                    // should the transmitted value include the quotes? the RFC seems clear - mailbox does include quotes if they are required
-                    //  HOWEVER: then you have to ask: should it include the literal header (the {length}) and then, should it include the binary, literal+/- etc?
-                    //  at this stage then I've assumed then that it should include the content only and none of the decoration that is required to get it over the wire 
-                    //  BUT: this still leaves the UTF7 conversion, which I've assumed is required
-                    //
-                    if (!pFactory.TryAsMailbox(lMailboxName.Path, lMailboxName.Delimiter, out _, out var lEncodedMailboxPath)) { rPart = null; return false; }
+                    if (!pFactory.TryAsURLMailbox(lMailboxName.Path, lMailboxName.Delimiter, out var lEncodedMailboxPath)) { rPart = null; return false; }
 
                     foreach (byte lByte in Encoding.UTF8.GetBytes(lEncodedMailboxPath))
                     {

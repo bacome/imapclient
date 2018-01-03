@@ -140,13 +140,19 @@ namespace work.bacome.imapclient
     public class cUnexpectedServerActionException : cIMAPException
     {
         /// <summary>
+        /// The command result associated with the unexpected action. May be <see langword="null"/>.
+        /// </summary>
+        public readonly cCommandResult Result;
+
+        /// <summary>
         /// Indicates that ignoring these capabilities may prevent the problem.
         /// </summary>
         /// <seealso cref="cIMAPClient.IgnoreCapabilities"/>
         public readonly fCapabilities TryIgnoring;
 
-        internal cUnexpectedServerActionException(fCapabilities pTryIgnoring, string pMessage, cTrace.cContext pContext) : base(pMessage)
+        internal cUnexpectedServerActionException(cCommandResult pResult, string pMessage, fCapabilities pTryIgnoring, cTrace.cContext pContext) : base(pMessage)
         {
+            Result = pResult;
             TryIgnoring = pTryIgnoring;
             pContext.TraceError("{0}: {1}", nameof(cUnexpectedServerActionException), pMessage);
         }
@@ -155,6 +161,7 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             var lBuilder = new cListBuilder(nameof(cUnexpectedServerActionException));
+            lBuilder.Append(Result);
             lBuilder.Append(TryIgnoring);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();
@@ -356,8 +363,27 @@ namespace work.bacome.imapclient
     /// </summary>
     public class cUIDValidityException : cIMAPException
     {
-        internal cUIDValidityException() { }
-        internal cUIDValidityException(cTrace.cContext pContext) => pContext.TraceError(nameof(cUIDValidityException));
+        /// <summary>
+        /// The command result associated with the exception. May be <see langword="null"/>.
+        /// </summary>
+        public readonly cCommandResult Result;
+
+        internal cUIDValidityException()
+        {
+            Result = null;
+        }
+
+        internal cUIDValidityException(cTrace.cContext pContext)
+        {
+            Result = null;
+            pContext.TraceError(nameof(cUIDValidityException));
+        }
+
+        internal cUIDValidityException(cCommandResult pResult, cTrace.cContext pContext)
+        {
+            Result = pResult;
+            pContext.TraceError(nameof(cUIDValidityException));
+        }
     }
 
     /// <summary>

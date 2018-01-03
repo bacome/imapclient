@@ -31,7 +31,7 @@ namespace work.bacome.imapclient
 
                     lContext.TraceInformation("capability success");
 
-                    if (ReferenceEquals(lCapabilities, mPipeline.Capabilities)) throw new cUnexpectedServerActionException(0, "capability not received", lContext);
+                    if (ReferenceEquals(lCapabilities, mPipeline.Capabilities)) throw new cUnexpectedServerActionException(lResult, "capability not received", 0, lContext);
 
                     ZSetCapabilities(mPipeline.Capabilities, mPipeline.AuthenticationMechanisms, lContext);
                 }

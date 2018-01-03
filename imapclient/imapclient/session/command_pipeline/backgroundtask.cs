@@ -93,9 +93,7 @@ namespace work.bacome.imapclient
                     catch (AggregateException e)
                     {
                         lContext.TraceException("the pipeline is stopping due to an unexpected exception", e);
-                        var lException = e.Flatten();
-                        if (lException.InnerExceptions.Count == 1) mBackgroundTaskException = new cPipelineStoppedException(lException.InnerExceptions[0], lContext);
-                        else mBackgroundTaskException = new cPipelineStoppedException(e, lContext);
+                        mBackgroundTaskException = new cPipelineStoppedException(cTools.Flatten(e), lContext);
                     }
                     catch (Exception e)
                     {
@@ -139,7 +137,7 @@ namespace work.bacome.imapclient
                     {
                         lock (mPipelineLock)
                         {
-                            if (mCurrentCommand == null || !mCurrentCommand.AwaitingContinuation) throw new cUnexpectedServerActionException(0, "unexpected continuation request", lContext);
+                            if (mCurrentCommand == null || !mCurrentCommand.AwaitingContinuation) throw new cUnexpectedServerActionException(null, "unexpected continuation request", 0, lContext);
 
                             if (!mCurrentCommand.IsAuthentication) 
                             {
@@ -195,9 +193,29 @@ namespace work.bacome.imapclient
                     var lResult = ZProcessCommandCompletionResponse(pCursor, pCommand.Tag, pCommand.IsAuthentication, pCommand.Hook, lContext);
                     if (lResult == null) return false;
 
-                    if (pCommand.UIDValidity != null && pCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.MessageCache.UIDValidity) pCommand.SetException(new cUIDValidityException(lContext), lContext);
-                    else pCommand.SetResult(lResult, lContext);
+                    if (lResult.ResultType == eCommandResultType.ok)
+                    {
+                        // if the UID validity changed while the command was running and the command depends on the UID not changing, something bad could have happened
+                        //  (like updating the wrong message)
+                        //
+                        if (pCommand.UIDValidity != null && pCommand.UIDValidity != mMailboxCache?.SelectedMailboxDetails?.MessageCache.UIDValidity)
+                        {
+                            pCommand.SetException(new cUIDValidityException(lResult, lContext), lContext);
+                            return true;
+                        }
 
+                        // gmail responds with an OK [CANNOT] to a CREATE with a name it doesn't like
+                        //  OK means command success, CANNOT means the operation can never succeed
+                        //  what should the library do?
+                        //
+                        if (lResult.ResponseText.CodeIsAlwaysAnError)
+                        {
+                            pCommand.SetException(new cUnexpectedServerActionException(lResult, "ok status response combined with error response code", 0, lContext), lContext);
+                            return true;
+                        }
+                    }
+
+                    pCommand.SetResult(lResult, lContext);
                     return true;
                 }
             }

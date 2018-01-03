@@ -825,7 +825,7 @@ namespace work.bacome.imapclient
                     {
                         StringBuilder lBuilder = new StringBuilder();
                         var lCommandBuilder = new cCommandDetailsBuilder();
-                        cCommandPartFactory lFactory = new cCommandPartFactory(pUTF8Enabled, pEncoding);
+                        cCommandPartFactory lFactory = new cCommandPartFactory(pUTF8Enabled, pEncoding, eURLMailboxEncoding.utf7);
                         lCommandBuilder.Add(pFilter, pSelectedMailbox, pCharsetMandatory, lFactory);
                         var lDetails = lCommandBuilder.EmitCommandDetails();
 

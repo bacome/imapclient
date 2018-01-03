@@ -151,6 +151,8 @@ namespace work.bacome.imapclient
         /// The response text.
         /// </summary>
         public readonly string Text;
+    
+        internal readonly bool CodeIsAlwaysAnError;
 
         internal cResponseText(string pText)
         {
@@ -159,24 +161,27 @@ namespace work.bacome.imapclient
             Code = eResponseTextCode.none;
             Arguments = null;
             Text = pText;
+            CodeIsAlwaysAnError = false;
         }
 
-        internal cResponseText(IList<byte> pCodeText, eResponseTextCode pCode, string pText)
+        internal cResponseText(IList<byte> pCodeText, eResponseTextCode pCode, bool pCodeIsAlwaysAnError, string pText)
         {
             CodeText = cTools.ASCIIBytesToString(pCodeText);
             ArgumentsText = null;
             Code = pCode;
             Arguments = null;
             Text = pText;
+            CodeIsAlwaysAnError = pCodeIsAlwaysAnError;
         }
 
-        internal cResponseText(IList<byte> pCodeText, IList<byte> pArgumentsText, eResponseTextCode pCode, cStrings pArguments, string pText)
+        internal cResponseText(IList<byte> pCodeText, IList<byte> pArgumentsText, eResponseTextCode pCode, bool pCodeIsAlwaysAnError, cStrings pArguments, string pText)
         {
             CodeText = cTools.ASCIIBytesToString(pCodeText);
             ArgumentsText = cTools.UTF8BytesToString(pArgumentsText);
             Code = pCode;
             Arguments = pArguments;
             Text = pText;
+            CodeIsAlwaysAnError = pCodeIsAlwaysAnError;
         }
 
         /// <inheritdoc/>

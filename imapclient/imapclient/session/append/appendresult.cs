@@ -60,8 +60,6 @@ namespace work.bacome.imapclient
                 public readonly int Count;
                 public readonly Exception Exception;
 
-                ;?; // note: must unbust the aggreate exception: need a common for this
-
                 public cAppendFailedWithException(Exception pException)
                 {
                     Count = 1;

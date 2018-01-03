@@ -189,5 +189,12 @@ namespace work.bacome.imapclient
                 return false;
             }
         }
+
+        public static Exception Flatten(AggregateException pException)
+        {
+            var lException = pException.Flatten();
+            if (lException.InnerExceptions.Count == 1) return lException.InnerExceptions[0];
+            return pException;
+        }
     }
 }

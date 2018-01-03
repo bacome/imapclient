@@ -59,6 +59,13 @@ namespace work.bacome.imapclient
                     return lItem;
                 }
 
+                public bool HasPendingHighestModSeq()
+                {
+                    if (mSelectedMailbox == null) return false;
+                    if (mSelectedMailbox.MessageCache.NoModSeq) return false;
+                    return mSelectedMailbox.HasPendingHighestModSeq();
+                }
+
                 public void CommandCompletion(cTrace.cContext pParentContext)
                 {
                     var lContext = pParentContext.NewMethod(nameof(cMailboxCache), nameof(CommandCompletion));
