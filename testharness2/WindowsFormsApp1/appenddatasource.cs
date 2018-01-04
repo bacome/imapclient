@@ -57,4 +57,18 @@ namespace testharness2
 
         public override string ToString() => Path;
     }
+
+    public class cAppendDataSourceStream : cAppendDataSource
+    {
+        public readonly cMessageDataStream Stream;
+        public readonly uint Length;
+
+        public cAppendDataSourceStream(cMessageDataStream pStream, uint pLength)
+        {
+            Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
+            Length = pLength;
+        }
+
+        public override string ToString() => $"{Stream.ToString()},{Length}";
+    }
 }

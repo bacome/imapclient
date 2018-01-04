@@ -51,14 +51,18 @@
             this.txtPart = new System.Windows.Forms.TextBox();
             this.txtUID = new System.Windows.Forms.TextBox();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.cmdStore = new System.Windows.Forms.Button();
+            this.cmdCopy = new System.Windows.Forms.Button();
             this.label5 = new System.Windows.Forms.Label();
             this.dgv = new System.Windows.Forms.DataGridView();
             this.label1 = new System.Windows.Forms.Label();
             this.txtUIDValidity = new System.Windows.Forms.TextBox();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
             this.lblSelectedMailbox = new System.Windows.Forms.Label();
-            this.cmdCopy = new System.Windows.Forms.Button();
-            this.cmdStore = new System.Windows.Forms.Button();
+            this.cmdCopyAsStreamForAppend = new System.Windows.Forms.Button();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.txtLength = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.tab.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -66,6 +70,7 @@
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
+            this.groupBox3.SuspendLayout();
             this.SuspendLayout();
             // 
             // tab
@@ -78,11 +83,12 @@
             this.tab.Location = new System.Drawing.Point(2, 54);
             this.tab.Name = "tab";
             this.tab.SelectedIndex = 0;
-            this.tab.Size = new System.Drawing.Size(540, 233);
+            this.tab.Size = new System.Drawing.Size(540, 296);
             this.tab.TabIndex = 1;
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.groupBox3);
             this.tabPage1.Controls.Add(this.cmdDisplay);
             this.tabPage1.Controls.Add(this.label4);
             this.tabPage1.Controls.Add(this.label3);
@@ -96,7 +102,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(532, 207);
+            this.tabPage1.Size = new System.Drawing.Size(532, 270);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Fetch";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -298,7 +304,7 @@
             this.txtUID.Name = "txtUID";
             this.txtUID.Size = new System.Drawing.Size(100, 20);
             this.txtUID.TabIndex = 3;
-            this.txtUID.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsUID);
+            this.txtUID.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNZUInt);
             this.txtUID.Validated += new System.EventHandler(this.ZValControlValidated);
             // 
             // tabPage2
@@ -310,10 +316,30 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(532, 207);
+            this.tabPage2.Size = new System.Drawing.Size(532, 270);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Copy, Store, Expunge";
             this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // cmdStore
+            // 
+            this.cmdStore.Location = new System.Drawing.Point(260, 40);
+            this.cmdStore.Name = "cmdStore";
+            this.cmdStore.Size = new System.Drawing.Size(100, 25);
+            this.cmdStore.TabIndex = 5;
+            this.cmdStore.Text = "Store ...";
+            this.cmdStore.UseVisualStyleBackColor = true;
+            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
+            // 
+            // cmdCopy
+            // 
+            this.cmdCopy.Location = new System.Drawing.Point(260, 9);
+            this.cmdCopy.Name = "cmdCopy";
+            this.cmdCopy.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopy.TabIndex = 4;
+            this.cmdCopy.Text = "Copy ...";
+            this.cmdCopy.UseVisualStyleBackColor = true;
+            this.cmdCopy.Click += new System.EventHandler(this.cmdCopy_Click);
             // 
             // label5
             // 
@@ -331,7 +357,7 @@
             this.dgv.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgv.Location = new System.Drawing.Point(74, 9);
             this.dgv.Name = "dgv";
-            this.dgv.Size = new System.Drawing.Size(180, 192);
+            this.dgv.Size = new System.Drawing.Size(180, 255);
             this.dgv.TabIndex = 0;
             this.dgv.RowValidated += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_RowValidated);
             this.dgv.RowValidating += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgv_RowValidating);
@@ -367,32 +393,52 @@
             this.lblSelectedMailbox.TabIndex = 0;
             this.lblSelectedMailbox.Text = "No selected mailbox";
             // 
-            // cmdCopy
+            // cmdCopyAsStreamForAppend
             // 
-            this.cmdCopy.Location = new System.Drawing.Point(260, 9);
-            this.cmdCopy.Name = "cmdCopy";
-            this.cmdCopy.Size = new System.Drawing.Size(100, 25);
-            this.cmdCopy.TabIndex = 4;
-            this.cmdCopy.Text = "Copy ...";
-            this.cmdCopy.UseVisualStyleBackColor = true;
-            this.cmdCopy.Click += new System.EventHandler(this.cmdCopy_Click);
+            this.cmdCopyAsStreamForAppend.Location = new System.Drawing.Point(255, 18);
+            this.cmdCopyAsStreamForAppend.Name = "cmdCopyAsStreamForAppend";
+            this.cmdCopyAsStreamForAppend.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopyAsStreamForAppend.TabIndex = 2;
+            this.cmdCopyAsStreamForAppend.Text = "Copy";
+            this.cmdCopyAsStreamForAppend.UseVisualStyleBackColor = true;
+            this.cmdCopyAsStreamForAppend.Click += new System.EventHandler(this.cmdCopyAsStreamForAppend_Click);
             // 
-            // cmdStore
+            // groupBox3
             // 
-            this.cmdStore.Location = new System.Drawing.Point(260, 40);
-            this.cmdStore.Name = "cmdStore";
-            this.cmdStore.Size = new System.Drawing.Size(100, 25);
-            this.cmdStore.TabIndex = 5;
-            this.cmdStore.Text = "Store ...";
-            this.cmdStore.UseVisualStyleBackColor = true;
-            this.cmdStore.Click += new System.EventHandler(this.cmdStore_Click);
+            this.groupBox3.Controls.Add(this.label6);
+            this.groupBox3.Controls.Add(this.txtLength);
+            this.groupBox3.Controls.Add(this.cmdCopyAsStreamForAppend);
+            this.groupBox3.Location = new System.Drawing.Point(74, 215);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(436, 48);
+            this.groupBox3.TabIndex = 13;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Copy as Stream for Append";
+            // 
+            // txtLength
+            // 
+            this.txtLength.Location = new System.Drawing.Point(106, 21);
+            this.txtLength.Name = "txtLength";
+            this.txtLength.Size = new System.Drawing.Size(99, 20);
+            this.txtLength.TabIndex = 1;
+            this.txtLength.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNZUInt);
+            this.txtLength.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(48, 24);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(40, 13);
+            this.label6.TabIndex = 0;
+            this.label6.Text = "Length";
             // 
             // frmUID
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
-            this.ClientSize = new System.Drawing.Size(543, 288);
+            this.ClientSize = new System.Drawing.Size(543, 351);
             this.Controls.Add(this.lblSelectedMailbox);
             this.Controls.Add(this.tab);
             this.Controls.Add(this.txtUIDValidity);
@@ -413,6 +459,8 @@
             this.tabPage2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -450,5 +498,9 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Button cmdStore;
         private System.Windows.Forms.Button cmdCopy;
+        private System.Windows.Forms.Button cmdCopyAsStreamForAppend;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox txtLength;
     }
 }

@@ -119,13 +119,17 @@ namespace work.bacome.imapclient
         /// This may be smaller than <see cref="PartSizeInBytes"/> if <see cref="DecodingRequired"/>) isn't <see cref="eDecodingRequired.none"/> and <see cref="cCapabilities.Binary"/> is in use.
         /// The size may have to be fetched from the server, but once fetched it will be cached.
         /// </remarks>
-        public uint SaveSizeInBytes() => Client.FetchSizeInBytes(MessageHandle, Part);
+        public uint FetchSizeInBytes() => Client.FetchSizeInBytes(MessageHandle, Part);
 
         /// <summary>
         /// Asynchronously gets the number of bytes that will have to come over the network from the server to save the attachment
         /// </summary>
-        /// <inheritdoc cref="SaveSizeInBytes" select="returns|remarks"/>
-        public Task<uint> SaveSizeInBytesAsync() => Client.FetchSizeInBytesAsync(MessageHandle, Part);
+        /// <inheritdoc cref="FetchSizeInBytes" select="returns|remarks"/>
+        public Task<uint> FetchSizeInBytesAsync() => Client.FetchSizeInBytesAsync(MessageHandle, Part);
+
+        public uint? DecodedSizeInBytes() => Client.DecodedSizeInBytes(MessageHandle, Part);
+
+        public Task<uint?> DecodedSizeInBytesAsync() => Client.DecodedSizeInBytesAsync(MessageHandle, Part);
 
         /// <summary>
         /// Saves the attachment to the specified path.

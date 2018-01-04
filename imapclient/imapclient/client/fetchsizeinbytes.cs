@@ -41,11 +41,12 @@ namespace work.bacome.imapclient
                 using (var lToken = mCancellationManager.GetToken(lContext))
                 {
                     var lMC = new cMethodControl(mTimeout, lToken.CancellationToken);
-                    if (pMessageHandle.UID == null) await lSession.FetchBinarySizeAsync(lMC, pMessageHandle, pPart.Section.Part, lContext).ConfigureAwait(false);
+
+                    if (pMessageHandle.UID == null) await lSession.FetchBinarySizeAsync(lMC, pMessageHandle, pPart.Section.Part, true, lContext).ConfigureAwait(false);
                     else
                     {
                         if (pMessageHandle.Expunged) throw new cMessageExpungedException(pMessageHandle);
-                        await lSession.UIDFetchBinarySizeAsync(lMC, pMessageHandle.MessageCache.MailboxHandle, pMessageHandle.UID, pPart.Section.Part, lContext).ConfigureAwait(false);
+                        await lSession.UIDFetchBinarySizeAsync(lMC, pMessageHandle.MessageCache.MailboxHandle, pMessageHandle.UID, pPart.Section.Part, true, lContext).ConfigureAwait(false);
                     }
                 }
 

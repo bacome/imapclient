@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="client\append.cs" />
+    <Compile Include="client\decodedsizeinbytes.cs" />
     <Compile Include="exposed_interfaces\configuration\appendconfiguration.cs" />
     <Compile Include="exposed_interfaces\mailbox\appendfeedback.cs" />
     <Compile Include="exposed_interfaces\mailbox\appenddata.cs" />

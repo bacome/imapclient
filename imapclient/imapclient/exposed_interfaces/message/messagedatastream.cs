@@ -300,6 +300,8 @@ namespace work.bacome.imapclient
             base.Dispose(pDisposing);
         }
 
+        public override string ToString() => $"{nameof(cMessageDataStream)}({MessageHandle},{MailboxHandle},{UID},{Section},{Decoding},{StreamLength})";
+
         private sealed class cBuffer : Stream
         {
             private static readonly byte[] kEndOfStream = new byte[0];

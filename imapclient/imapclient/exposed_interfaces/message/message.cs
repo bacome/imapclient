@@ -663,6 +663,20 @@ namespace work.bacome.imapclient
             return Client.FetchSizeInBytesAsync(MessageHandle, pPart);
         }
 
+        public uint? DecodedSizeInBytes(cSinglePartBody pPart)
+        {
+            if (MessageHandle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
+            if (!ZContainsPart(MessageHandle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            return Client.DecodedSizeInBytes(MessageHandle, pPart);
+        }
+
+        public Task<uint?> DecodedSizeInBytesAsync(cSinglePartBody pPart)
+        {
+            if (MessageHandle.BodyStructure == null) throw new InvalidOperationException(kInvalidOperationExceptionMessage.BodyStructureHasNotBeenFetched);
+            if (!ZContainsPart(MessageHandle.BodyStructure, pPart)) throw new ArgumentOutOfRangeException(nameof(pPart));
+            return Client.DecodedSizeInBytesAsync(MessageHandle, pPart);
+        }
+
         /// <summary>
         /// Returns a message sequence number offset for use in message filtering. See <see cref="cFilter.MSN"/>.
         /// </summary>

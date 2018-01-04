@@ -22,6 +22,8 @@ namespace testharness2
         private readonly bool mProgressBar;
         private readonly cMailbox mMailbox;
         private readonly int mMaxTextBytes;
+        private int mCopyAttachmentAsStreamForAppendRaw;
+        private int mCopyAttachmentAsStreamForAppendDecoded;
         private cMessage mMessage;
         private bool mSubscribed = false;
         private bool mEnvelopeDisplayed = false;
@@ -85,7 +87,8 @@ namespace testharness2
 
         private void ZGridInitialise()
         {
-            var lTemplate = new DataGridViewTextBoxCell();
+            var lDisplayColumnTemplate = new DataGridViewTextBoxCell();
+            var lButtonColumnTemplate = new DataGridViewButtonCell();
 
             dgv.AutoGenerateColumns = false;
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Type)));
@@ -93,13 +96,24 @@ namespace testharness2
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Description)));
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Size)));
             dgv.Columns.Add(LColumn(nameof(cGridRowData.FileName)));
+            mCopyAttachmentAsStreamForAppendRaw = dgv.Columns.Add(LButtonColumn("Stream Copy Raw"));
+            mCopyAttachmentAsStreamForAppendDecoded = dgv.Columns.Add(LButtonColumn("Stream Copy Decoded"));
 
             DataGridViewColumn LColumn(string pName)
             {
                 DataGridViewColumn lResult = new DataGridViewColumn();
                 lResult.DataPropertyName = pName;
                 lResult.HeaderCell.Value = pName;
-                lResult.CellTemplate = lTemplate;
+                lResult.CellTemplate = lDisplayColumnTemplate;
+                return lResult;
+            }
+
+            DataGridViewColumn LButtonColumn(string pName)
+            {
+                DataGridViewColumn lResult = new DataGridViewColumn();
+
+                lResult.HeaderCell.Value = pName;
+                lResult.CellTemplate = lButtonColumnTemplate;
                 return lResult;
             }
         }
@@ -470,11 +484,13 @@ namespace testharness2
             {
                 rtxRaw.Text = kNoNodeSelected;
                 cmdDownloadRaw.Enabled = false;
+                gbxCopyAsStreamForAppendRaw.Enabled = false;
                 return;
             }
 
             rtxRaw.Text = kLoading;
             cmdDownloadRaw.Enabled = true;
+            gbxCopyAsStreamForAppendRaw.Enabled = true;
 
             var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
             ZQueryBodyStructureRawSectionDataAsync(lTag, pQueryBodyStructureDetailEntryNumber, rtxRaw);
@@ -488,6 +504,7 @@ namespace testharness2
                 rtxDecoded.Visible = true;
                 pbx.Visible = false;
                 cmdDownloadDecoded.Enabled = false;
+                gbxCopyAsStreamForAppendDecoded.Enabled = false;
                 return;
             }
 
@@ -495,6 +512,7 @@ namespace testharness2
             rtxDecoded.Visible = true;
             pbx.Visible = false;
             cmdDownloadDecoded.Enabled = true;
+            gbxCopyAsStreamForAppendDecoded.Enabled = true;
 
             var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
 
@@ -796,7 +814,7 @@ namespace testharness2
 
             try
             {
-                uint lSize = lAttachment.SaveSizeInBytes();
+                uint lSize = lAttachment.FetchSizeInBytes();
                 lProgress = new frmProgress("saving " + lSaveFileDialog.FileName, lSize);
                 ZDownloadAdd(lProgress);
                 await lAttachment.SaveAsAsync(lSaveFileDialog.FileName, new cBodyFetchConfiguration(lProgress.CancellationToken, lProgress.Increment));
@@ -809,6 +827,38 @@ namespace testharness2
             finally
             {
                 if (lProgress != null) lProgress.Complete();
+            }
+        }
+
+        private void dgv_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            var lData = dgv.Rows[e.RowIndex].DataBoundItem as cGridRowData;
+            if (lData == null) return;
+
+            if (e.ColumnIndex == mCopyAttachmentAsStreamForAppendRaw)
+            {
+                Clipboard.Clear();
+                cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(lData.Attachment, false), lData.Attachment.PartSizeInBytes);
+                return;
+            }
+
+            if (e.ColumnIndex == mCopyAttachmentAsStreamForAppendDecoded)
+            {
+                Clipboard.Clear();
+
+                uint? lLength = lData.Attachment.DecodedSizeInBytes();
+
+                if (lLength == null)
+                {
+                    MessageBox.Show(this, "cannot calculate the length");
+                    return;
+                }
+
+                cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(lData.Attachment), lLength.Value);
+
+                return;
             }
         }
 
@@ -1135,9 +1185,95 @@ namespace testharness2
         {
             if (tvwBodyStructure.SelectedNode == null) return;
             var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+            ;?;
             if (!(lTag.BodyPart is cSinglePartBody lPart)) return;
             Clipboard.Clear();
             cAppendDataSource.CurrentData = new cAppendDataSourceMessagePart(mMessage, lPart);
+        }
+
+        private void cmdCopyAsStreamForAppend_Click(object sender, EventArgs e)
+        {
+            Clipboard.Clear();
+            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage), mMessage.Size);
+        }
+
+        private void cmdCopyPartAsStreamForAppendRaw_Click(object sender, EventArgs e)
+        {
+            Clipboard.Clear();
+
+            if (tvwBodyStructure.SelectedNode == null) return;
+
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+
+            uint lLength;
+
+            if (string.IsNullOrWhiteSpace(txtLengthRaw.Text))
+            {
+                ;?;
+                if (lTag.BodyPart is cSinglePartBody lSinglePart) lLength = lSinglePart.SizeInBytes;
+                else
+                {
+                    MessageBox.Show(this, "you must enter a valid length if it is a multi-part part");
+                    return;
+                }
+            }
+            else
+            {
+                if (!uint.TryParse(txtLengthRaw.Text, out lLength))
+                {
+                    MessageBox.Show(this, "you must enter a valid length");
+                    return;
+                }
+            }
+
+            ;?;
+            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage, lTag.BodyPart.Section, eDecodingRequired.none), lLength);
+        }
+
+        private void cmdCopyAsStreamForAppendDecoded_Click(object sender, EventArgs e)
+        {
+            Clipboard.Clear();
+
+            if (tvwBodyStructure.SelectedNode == null) return;
+
+            var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
+
+            ;?;
+            var lSinglePart = lTag.BodyPart as cSinglePartBody;
+
+            eDecodingRequired lDecoding;
+
+            if (lSinglePart == null) lDecoding = eDecodingRequired.none;
+            else lDecoding = lSinglePart.DecodingRequired;
+
+            uint lLength;
+
+            if (string.IsNullOrWhiteSpace(txtLengthDecoded.Text))
+            {
+                uint? lPartLength;
+
+                if (lSinglePart == null) lPartLength = null;
+                else lPartLength = mMessage.DecodedSizeInBytes(lSinglePart);
+
+                if (lPartLength == null)
+                { 
+                    MessageBox.Show(this, "you must enter a valid length if it is a multi-part part or it needs decoding and binary is not in use");
+                    return;
+                }
+
+                lLength = lPartLength.Value;
+            }
+            else
+            {
+                if (!uint.TryParse(txtLengthRaw.Text, out lLength))
+                {
+                    MessageBox.Show(this, "you must enter a valid length");
+                    return;
+                }
+            }
+
+            ;?;
+            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage, lTag.BodyPart.Section, lDecoding), lLength);
         }
     }
 }

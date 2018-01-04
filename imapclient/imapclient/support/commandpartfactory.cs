@@ -5,20 +5,17 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    internal enum eURLMailboxEncoding { utf7, utf8 }
-
     internal class cCommandPartFactory
     {
-        public static readonly cCommandPartFactory Validation = new cCommandPartFactory(false, null, eURLMailboxEncoding.utf8);
+        public static readonly cCommandPartFactory Validation = new cCommandPartFactory(false, null);
 
         private static readonly cBytes UTC = new cBytes("+0000");
 
         public readonly bool UTF8Enabled;
         public readonly Encoding Encoding;
-        public readonly eURLMailboxEncoding URLMailboxEncoding;
         public readonly cTextCommandPart CharsetName;
 
-        public cCommandPartFactory(bool pUTF8Enabled, Encoding pEncoding, eURLMailboxEncoding pURLMailboxEncoding)
+        public cCommandPartFactory(bool pUTF8Enabled, Encoding pEncoding)
         {
             UTF8Enabled = pUTF8Enabled;
 
@@ -29,8 +26,6 @@ namespace work.bacome.imapclient
                 if (pEncoding == null) CharsetName = null;
                 else if (!TryAsCharsetName(pEncoding.WebName, out CharsetName)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
             }
-
-            URLMailboxEncoding = pURLMailboxEncoding;
         }
 
         public bool TryAsString(string pString, bool pSecret, out cCommandPart rResult)
@@ -220,42 +215,26 @@ namespace work.bacome.imapclient
 
         public bool TryAsURLMailbox(string pMailboxPath, char? pDelimiter, out string rEncodedMailboxPath)
         {
-            // should the transmitted value include the quotes? the RFC seems clear - mailbox does include quotes if they are required
-            //  HOWEVER: then you have to ask: should it include the literal header (the {length}) and then, should it include the binary, literal+/- etc?
-            //  at this stage then I've assumed then that it should include the content only and none of the decoration that is required to get it over the wire 
-            //  BUT: this still leaves the UTF7 conversion, which I had assumed would be required
-            //  however it seems that Dovecot at least doesn't like the UTF7 encoded mailbox name. At this stage I don't know if this is "standard" behaviour or not
+            // I had assumed that UTF7 encoding would be required, however Dovecot at least doesn't like it.
+            // If this needs to be an option, it would have to be a user selected one via a property on cIMAPClient that reflects a value in instances of this class.
 
             if (pMailboxPath == null) { rEncodedMailboxPath = null; return false; }
             if (pDelimiter != null && !cTools.IsValidDelimiter(pDelimiter.Value)) { rEncodedMailboxPath = null; return false; }
 
-            switch (URLMailboxEncoding)
+            if (pMailboxPath.Equals(cMailboxName.InboxString, StringComparison.InvariantCultureIgnoreCase))
             {
-                case eURLMailboxEncoding.utf7:
-
-                    return ZTryAsMailbox(pMailboxPath, pDelimiter, cCharset.AString, out _, out rEncodedMailboxPath);
-
-                case eURLMailboxEncoding.utf8:
-
-                    if (pMailboxPath.Equals(cMailboxName.InboxString, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        rEncodedMailboxPath = cMailboxName.InboxString;
-                        return true;
-                    }
-
-                    if (ZTryAsBytesInCharset(pMailboxPath, cCharset.AString, false, out _) || ZTryAsQuotedUTF8(pMailboxPath, false, out _))
-                    {
-                        rEncodedMailboxPath = pMailboxPath;
-                        return true;
-                    }
-
-                    rEncodedMailboxPath = null;
-                    return false;
-
-                default:
-
-                    throw new cInternalErrorException();
+                rEncodedMailboxPath = cMailboxName.InboxString;
+                return true;
             }
+
+            if (ZTryAsBytesInCharset(pMailboxPath, cCharset.AString, false, out _) || ZTryAsQuotedUTF8(pMailboxPath, false, out _))
+            {
+                rEncodedMailboxPath = pMailboxPath;
+                return true;
+            }
+
+            rEncodedMailboxPath = null;
+            return false;
         }
 
         public static cTextCommandPart AsDate(DateTime pDate)

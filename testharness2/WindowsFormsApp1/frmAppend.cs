@@ -177,6 +177,14 @@ namespace testharness2
                                 }
 
                                 break;
+
+                            case cAppendDataSourceStream lStream:
+
+                                // no check whether this is a validly formed message - you'd better be sure
+
+                                lData.Data = cAppendDataSource.CurrentData;
+                                dgv.Rows[e.RowIndex].Cells[mChanged].Value = mChangeNumber++;
+                                return;
                         }
                     }
                 }
@@ -317,6 +325,11 @@ namespace testharness2
                         case cAppendDataSourceFile lFile:
 
                             lMessages.Add(new cFileAppendData(lFile.Path, lRow.Flags, lRow.Received));
+                            break;
+
+                        case cAppendDataSourceStream lStream:
+
+                            lMessages.Add(new cStreamAppendData(lStream.Stream, lStream.Length));
                             break;
 
                         default:

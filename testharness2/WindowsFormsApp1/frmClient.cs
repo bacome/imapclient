@@ -22,6 +22,7 @@ namespace testharness2
         public frmClient(string pInstanceName)
         {
             mClient = new cIMAPClient(pInstanceName);
+            mClient.DefaultMessageCacheItems = fMessageCacheAttributes.envelope | fMessageCacheAttributes.flags | fMessageCacheAttributes.received | fMessageCacheAttributes.uid;
             InitializeComponent();
         }
 
@@ -373,11 +374,11 @@ namespace testharness2
 
             chkAHEnvelope.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.envelope) != 0;
             chkAHFlags.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
-            chkAHReceived.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
-            chkAHSize.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
-            chkAHUID.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
-            chkAHModSeq.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
-            chkAHBodyStructure.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.flags) != 0;
+            chkAHReceived.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.received) != 0;
+            chkAHSize.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.size) != 0;
+            chkAHUID.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.uid) != 0;
+            chkAHModSeq.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.modseq) != 0;
+            chkAHBodyStructure.Checked = (mClient.DefaultMessageCacheItems.Attributes & fMessageCacheAttributes.bodystructure) != 0;
             txtAHHeaderFieldNames.Text = ZHeaderFieldNames(mClient.DefaultMessageCacheItems.Names);
 
             ZDefaultFlagsDescriptionSet();

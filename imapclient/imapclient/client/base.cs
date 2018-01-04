@@ -54,13 +54,6 @@ namespace work.bacome.imapclient
     {
         // code checks
         //  check all awaits use configureawait(false)  quick and dirty: search for: await (?!.*\.ConfigureAwait\(false\).*\r?$) (this misses awaits with awaited parameters)   or this await [^(]*?\([^)]*\)[^.]
-        //  ensure all changes to the 'state' property are done after the object is in the new state (so the event is fired with the object in a consistent state)
-        //  check all 'Z' routines are private
-        //  check that all async routines actually need to be: they don't if they can return the result of a called async routine
-        //  check that the events are not fired directly in code
-        //  check that all async methods on the imapclient increment and decrement the taskcounter
-        //  check that all constants are named after the module that they are in: private static k<module>...
-        //  when there is a message event and a mailbox event, the message event should fire before the mailbox event (this is just for consistency)
 
         // notes: (so I don't forget why)
         //
@@ -68,6 +61,7 @@ namespace work.bacome.imapclient
         //   the problem is that if a command (other than FETCH, STORE, SEARCH - msnsafe commands) is in progress the server is allowed to send expunges: these invalidate message sequence numbers, 
         //    so the resolution of a message to its MSN has to take place while no msnUNsafe command is in progress and the resolved numbers have to be sent to the server before any msnUNsafe command is run
         //   we also don't want expunges or fetches arriving whilst selecting (do they apply to the old mailbox or the new one?)
+        //    (note that this problem is mitigated by the rfc 7162 [CLOSED] response code)
         //  another problem is that if a command is in progress a UIDValidityChange can be sent by the server
         //   if we subsequently send (and note that this includes cases where the messages cross paths on the wire) an MSN or UID to the server, it may refer to the wrong message
         //   [note that this problem implies absolute single threading when dealing with message numbers,
@@ -78,13 +72,6 @@ namespace work.bacome.imapclient
         //   locks can't be released in the caller because the caller may time out AFTER the command is submitted (and the lock needs to be held until the server completes the command)
         //  the select lock is to make sure that the currently selected mailbox can be checked safely and to single thread select operations (so that the state on the client side is the same as the state on the server side)
 
-        // notes on namepsaces
-        //
-        //  imapclient contains the classes and enums that I expect the user of the library will want to use
-        //  imapclient.support contains the other things that have to be public but that aren't really intended for use outside the library
-        //  trace is the tracing 
-        //  async is generic async tools
-
         // notes on MDNSent
         //
         //  to implement MDNSent I need to not just recognise the MDNSent flag but also the fact that an MDN is required
@@ -94,7 +81,6 @@ namespace work.bacome.imapclient
         //    or there are errors (like duplicate headers)
         //   so at this stage the MDNSent features are commented out as they aren't useful by themselves
 
-
         // ......................................................................................................................... when changing the version here also change it in the assemblyinfo
         //  the convention for this is that it match the AssemblyInformationalVersion in the assemblyinfo.cs , with 
         //   revision matching the pre-release version: -alpha (1) -beta (2) -rc (3) 
@@ -102,14 +88,14 @@ namespace work.bacome.imapclient
         //    bug fixes to the general release would be x.y.z.0
         //
         //    0, 5, 2, 1 -> 0.5.2-alpha; 2017-NOV-30
-
+        //
         private const int kAlpha = 1;
         private const int kBeta = 2;
         private const int kRC = 3;
-
+        //
         /**<summary>The version number of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/
         public static Version Version = new Version(0, 6, 0, kAlpha);
-
+        //
         // ......................................................................................................................... when changing the version here also change it in the assemblyinfo
 
         /**<summary>The release date of the library. Used in the default value of <see cref="ClientId"/>.</summary>*/

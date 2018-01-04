@@ -8,7 +8,7 @@ namespace work.bacome.imapclient
     {
         private partial class cSession
         {
-            public async Task FetchBinarySizeAsync(cMethodControl pMC, iMessageHandle pMessageHandle, string pPart, cTrace.cContext pParentContext)
+            public async Task FetchBinarySizeAsync(cMethodControl pMC, iMessageHandle pMessageHandle, string pPart, bool pThrowOnUnknownCTE, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(FetchBinarySizeAsync), pMC, pMessageHandle, pPart);
 
@@ -53,12 +53,22 @@ namespace work.bacome.imapclient
                         return;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.binary, lContext);
+                    if (lResult.ResultType == eCommandResultType.no)
+                    {
+                        if (lResult.ResponseText.Code == eResponseTextCode.unknowncte && !pThrowOnUnknownCTE)
+                        {
+                            lContext.TraceInformation("fetch binary.size failure due to unknown-cte");
+                            return;
+                        }
+
+                        throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.binary, lContext);
+                    }
+
                     throw new cProtocolErrorException(lResult, fCapabilities.binary, lContext);
                 }
             }
 
-            public async Task UIDFetchBinarySizeAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, string pPart, cTrace.cContext pParentContext)
+            public async Task UIDFetchBinarySizeAsync(cMethodControl pMC, iMailboxHandle pMailboxHandle, cUID pUID, string pPart, bool pThrowOnUnknownCTE, cTrace.cContext pParentContext)
             {
                 var lContext = pParentContext.NewMethod(nameof(cSession), nameof(UIDFetchBinarySizeAsync), pMC, pMailboxHandle, pUID, pPart);
 
@@ -94,7 +104,17 @@ namespace work.bacome.imapclient
                         return;
                     }
 
-                    if (lResult.ResultType == eCommandResultType.no) throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.binary, lContext);
+                    if (lResult.ResultType == eCommandResultType.no)
+                    {
+                        if (lResult.ResponseText.Code == eResponseTextCode.unknowncte && !pThrowOnUnknownCTE)
+                        {
+                            lContext.TraceInformation("uid fetch binary.size failure due to unknown-cte");
+                            return;
+                        }
+
+                        throw new cUnsuccessfulCompletionException(lResult.ResponseText, fCapabilities.binary, lContext);
+                    }
+
                     throw new cProtocolErrorException(lResult, fCapabilities.binary, lContext);
                 }
             }

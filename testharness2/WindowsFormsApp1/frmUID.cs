@@ -103,7 +103,7 @@ namespace testharness2
             }
         }
 
-        private void ZValTextBoxIsUID(object sender, CancelEventArgs e)
+        private void ZValTextBoxIsNZUInt(object sender, CancelEventArgs e)
         {
             if (!(sender is TextBox lSender)) return;
 
@@ -112,7 +112,7 @@ namespace testharness2
             if (!uint.TryParse(lSender.Text, out var u) || u == 0)
             {
                 e.Cancel = true;
-                erp.SetError(lSender, "ID should be a non-zero uint");
+                erp.SetError(lSender, "should be a non-zero uint");
             }
         }
 
@@ -365,6 +365,21 @@ namespace testharness2
             }
 
             ZChildAdd(new frmMessageData(lUID, lSection, lDecoding, lData));
+        }
+
+        private void cmdCopyAsStreamForAppend_Click(object sender, EventArgs e)
+        {
+            Clipboard.Clear();
+
+            if (!ZFetchParameters(out var lUID, out var lSection, out var lDecoding)) return;
+
+            if (string.IsNullOrWhiteSpace(txtLength.Text))
+            {
+                MessageBox.Show(this, "you must enter a length");
+                return;
+            }
+
+            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mClient.SelectedMailbox, lUID, lSection, lDecoding), uint.Parse(txtLength.Text));
         }
 
         private async void cmdSaveAs_Click(object sender, EventArgs e)
