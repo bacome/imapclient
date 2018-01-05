@@ -527,7 +527,7 @@ namespace work.bacome.imapclient
         /// <inheritdoc/>
         public override string ToString()
         {
-            var lBuilder = new cListBuilder(nameof(cAppendDataClientException));
+            var lBuilder = new cListBuilder(nameof(cAppendDataSizeException));
             lBuilder.Append(AppendData);
             lBuilder.Append(base.ToString());
             return lBuilder.ToString();

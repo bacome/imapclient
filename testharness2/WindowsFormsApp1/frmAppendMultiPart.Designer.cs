@@ -1,6 +1,6 @@
 ﻿namespace testharness2
 {
-    partial class frmAppend
+    partial class frmAppendMultiPart
     {
         /// <summary>
         /// Required designer variable.
@@ -29,8 +29,7 @@
         private void InitializeComponent()
         {
             this.dgv = new System.Windows.Forms.DataGridView();
-            this.cmdAppend = new System.Windows.Forms.Button();
-            this.cmdMultiPart = new System.Windows.Forms.Button();
+            this.cmdCopy = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).BeginInit();
             this.SuspendLayout();
             // 
@@ -42,46 +41,33 @@
             this.dgv.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgv.Location = new System.Drawing.Point(3, 3);
             this.dgv.Name = "dgv";
-            this.dgv.Size = new System.Drawing.Size(586, 337);
+            this.dgv.Size = new System.Drawing.Size(387, 337);
             this.dgv.TabIndex = 0;
             this.dgv.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_CellContentClick);
             this.dgv.RowValidated += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_RowValidated);
             this.dgv.RowValidating += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgv_RowValidating);
             // 
-            // cmdAppend
+            // cmdCopy
             // 
-            this.cmdAppend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmdAppend.Location = new System.Drawing.Point(489, 346);
-            this.cmdAppend.Name = "cmdAppend";
-            this.cmdAppend.Size = new System.Drawing.Size(100, 25);
-            this.cmdAppend.TabIndex = 2;
-            this.cmdAppend.Text = "Append ...";
-            this.cmdAppend.UseVisualStyleBackColor = true;
-            this.cmdAppend.Click += new System.EventHandler(this.cmdAppend_Click);
+            this.cmdCopy.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmdCopy.Location = new System.Drawing.Point(290, 346);
+            this.cmdCopy.Name = "cmdCopy";
+            this.cmdCopy.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopy.TabIndex = 1;
+            this.cmdCopy.Text = "Copy";
+            this.cmdCopy.UseVisualStyleBackColor = true;
+            this.cmdCopy.Click += new System.EventHandler(this.cmdCopy_Click);
             // 
-            // cmdMultiPart
-            // 
-            this.cmdMultiPart.Location = new System.Drawing.Point(3, 346);
-            this.cmdMultiPart.Name = "cmdMultiPart";
-            this.cmdMultiPart.Size = new System.Drawing.Size(100, 25);
-            this.cmdMultiPart.TabIndex = 1;
-            this.cmdMultiPart.Text = "Multi Part";
-            this.cmdMultiPart.UseVisualStyleBackColor = true;
-            this.cmdMultiPart.Click += new System.EventHandler(this.cmdMultiPart_Click);
-            // 
-            // frmAppend
+            // frmAppendMultiPart
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(592, 373);
-            this.Controls.Add(this.cmdMultiPart);
-            this.Controls.Add(this.cmdAppend);
+            this.ClientSize = new System.Drawing.Size(392, 373);
+            this.Controls.Add(this.cmdCopy);
             this.Controls.Add(this.dgv);
-            this.Name = "frmAppend";
-            this.Text = "frmAppend";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmAppend_FormClosed);
-            this.Load += new System.EventHandler(this.frmAppend_Load);
-            this.Shown += new System.EventHandler(this.frmAppend_Shown);
+            this.Name = "frmAppendMultiPart";
+            this.Text = "frmAppendMultiPart";
+            this.Load += new System.EventHandler(this.frmAppendMultiPart_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();
             this.ResumeLayout(false);
 
@@ -90,7 +76,6 @@
         #endregion
 
         private System.Windows.Forms.DataGridView dgv;
-        private System.Windows.Forms.Button cmdAppend;
-        private System.Windows.Forms.Button cmdMultiPart;
+        private System.Windows.Forms.Button cmdCopy;
     }
 }

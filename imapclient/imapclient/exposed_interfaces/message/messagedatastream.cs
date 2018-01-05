@@ -22,8 +22,9 @@ namespace work.bacome.imapclient
         public readonly int TargetBufferSize;
 
         // for streams that may be appended via a mailmessage: the length is required 
-        public readonly uint? StreamLength;
+        public readonly bool HasKnownLength;
 
+        private uint mLength;
         private int mReadTimeout = Timeout.Infinite;
 
         // background fetch task
@@ -49,7 +50,8 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            StreamLength = null; // if the library requires the length it knows how to get it
+            HasKnownLength = true;
+            mLength = MessageHandle.Size ?? 0;
         }
 
         public cMessageDataStream(cAttachment pAttachment, bool pDecoded = true, int pTargetBufferSize = DefaultTargetBufferSize)
@@ -72,8 +74,16 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            if (Decoding == eDecodingRequired.none) StreamLength = pAttachment.Part.SizeInBytes;
-            else StreamLength = null;
+            if (Decoding == eDecodingRequired.none)
+            {
+                HasKnownLength = true;
+                mLength = pAttachment.Part.SizeInBytes;
+            }
+            else
+            {
+                HasKnownLength = false;
+                mLength = 0;
+            }
         }
 
         public cMessageDataStream(cMessage pMessage, cSinglePartBody pPart, bool pDecoded = true, int pTargetBufferSize = DefaultTargetBufferSize)
@@ -98,8 +108,16 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            if (Decoding == eDecodingRequired.none) StreamLength = pPart.SizeInBytes;
-            else StreamLength = null;
+            if (Decoding == eDecodingRequired.none)
+            {
+                HasKnownLength = true;
+                mLength = pPart.SizeInBytes;
+            }
+            else
+            {
+                HasKnownLength = false;
+                mLength = 0;
+            }
         }
 
         public cMessageDataStream(cMessage pMessage, cSection pSection, eDecodingRequired pDecoding, int pTargetBufferSize = DefaultTargetBufferSize)
@@ -120,7 +138,8 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            StreamLength = null;
+            HasKnownLength = false;
+            mLength = 0;
         }
 
         public cMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, uint pLength, int pTargetBufferSize = DefaultTargetBufferSize)
@@ -139,8 +158,10 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
+            HasKnownLength = true;
+
             if (pLength == 0) throw new ArgumentOutOfRangeException(nameof(pLength));
-            StreamLength = pLength;
+            mLength = pLength;
         }
 
         public cMessageDataStream(cMailbox pMailbox, cUID pUID, cSection pSection, eDecodingRequired pDecoding, int pTargetBufferSize = DefaultTargetBufferSize)
@@ -159,7 +180,8 @@ namespace work.bacome.imapclient
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
 
-            StreamLength = null;
+            HasKnownLength = false;
+            mLength = 0;
         }
 
         internal cMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, int pTargetBufferSize)
@@ -172,7 +194,8 @@ namespace work.bacome.imapclient
             Decoding = eDecodingRequired.none;
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
-            StreamLength = null;
+            HasKnownLength = false;
+            mLength = 0;
         }
 
         internal cMessageDataStream(cIMAPClient pClient, iMailboxHandle pMailboxHandle, cUID pUID, cSection pSection, int pTargetBufferSize)
@@ -185,12 +208,33 @@ namespace work.bacome.imapclient
             Decoding = eDecodingRequired.none;
             if (pTargetBufferSize < 1) throw new ArgumentOutOfRangeException(nameof(pTargetBufferSize));
             TargetBufferSize = pTargetBufferSize;
-            StreamLength = null;
+            HasKnownLength = false;
+            mLength = 0;
+        }
+
+        public uint GetKnownLength()
+        {
+            if (!HasKnownLength) throw new InvalidOperationException();
+
+            if (mLength > 0) return mLength;
+
+            if (MessageHandle != null && Section == cSection.All && Decoding == eDecodingRequired.none)
+            {
+                if (!Client.Fetch(MessageHandle, fMessageCacheAttributes.size))
+                {
+                    if (MessageHandle.Expunged) throw new cMessageExpungedException(MessageHandle);
+                    throw new cRequestedDataNotReturnedException(MessageHandle);
+                }
+
+                return MessageHandle.Size.Value;
+            }
+
+            throw new cInternalErrorException();
         }
 
         public int CurrentBufferSize => mBuffer?.CurrentSize ?? 0;
 
-        public override bool CanRead => true;
+        public override bool CanRead => !mDisposed;
 
         public override bool CanSeek => false;
 
@@ -300,7 +344,7 @@ namespace work.bacome.imapclient
             base.Dispose(pDisposing);
         }
 
-        public override string ToString() => $"{nameof(cMessageDataStream)}({MessageHandle},{MailboxHandle},{UID},{Section},{Decoding},{StreamLength})";
+        public override string ToString() => $"{nameof(cMessageDataStream)}({MessageHandle},{MailboxHandle},{UID},{Section},{Decoding},{mLength})";
 
         private sealed class cBuffer : Stream
         {
@@ -396,7 +440,7 @@ namespace work.bacome.imapclient
                 {
                     int lPosition = pOffset;
 
-                    while (lPosition < pBuffer.Length && mCurrentBufferPosition < mCurrentBuffer.Length)
+                    while (lPosition < pOffset + pCount && mCurrentBufferPosition < mCurrentBuffer.Length)
                     {
                         pBuffer[lPosition++] = mCurrentBuffer[mCurrentBufferPosition++];
                     }

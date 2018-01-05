@@ -31,6 +31,10 @@
             this.components = new System.ComponentModel.Container();
             this.tab = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.txtLength = new System.Windows.Forms.TextBox();
+            this.cmdCopyAsStreamForAppend = new System.Windows.Forms.Button();
             this.cmdDisplay = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -59,18 +63,15 @@
             this.txtUIDValidity = new System.Windows.Forms.TextBox();
             this.erp = new System.Windows.Forms.ErrorProvider(this.components);
             this.lblSelectedMailbox = new System.Windows.Forms.Label();
-            this.cmdCopyAsStreamForAppend = new System.Windows.Forms.Button();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.txtLength = new System.Windows.Forms.TextBox();
-            this.label6 = new System.Windows.Forms.Label();
+            this.cmdCopyForAppend = new System.Windows.Forms.Button();
             this.tab.SuspendLayout();
             this.tabPage1.SuspendLayout();
+            this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).BeginInit();
-            this.groupBox3.SuspendLayout();
             this.SuspendLayout();
             // 
             // tab
@@ -106,6 +107,47 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Fetch";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.cmdCopyForAppend);
+            this.groupBox3.Controls.Add(this.label6);
+            this.groupBox3.Controls.Add(this.txtLength);
+            this.groupBox3.Controls.Add(this.cmdCopyAsStreamForAppend);
+            this.groupBox3.Location = new System.Drawing.Point(74, 215);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(436, 48);
+            this.groupBox3.TabIndex = 13;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Copy for Append";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(6, 24);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(40, 13);
+            this.label6.TabIndex = 0;
+            this.label6.Text = "Length";
+            // 
+            // txtLength
+            // 
+            this.txtLength.Location = new System.Drawing.Point(52, 21);
+            this.txtLength.Name = "txtLength";
+            this.txtLength.Size = new System.Drawing.Size(99, 20);
+            this.txtLength.TabIndex = 1;
+            this.txtLength.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNZUInt);
+            this.txtLength.Validated += new System.EventHandler(this.ZValControlValidated);
+            // 
+            // cmdCopyAsStreamForAppend
+            // 
+            this.cmdCopyAsStreamForAppend.Location = new System.Drawing.Point(282, 18);
+            this.cmdCopyAsStreamForAppend.Name = "cmdCopyAsStreamForAppend";
+            this.cmdCopyAsStreamForAppend.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopyAsStreamForAppend.TabIndex = 3;
+            this.cmdCopyAsStreamForAppend.Text = "Stream Append";
+            this.cmdCopyAsStreamForAppend.UseVisualStyleBackColor = true;
+            this.cmdCopyAsStreamForAppend.Click += new System.EventHandler(this.cmdCopyAsStreamForAppend_Click);
             // 
             // cmdDisplay
             // 
@@ -197,6 +239,7 @@
             this.rdoNone.TabStop = true;
             this.rdoNone.Text = "None";
             this.rdoNone.UseVisualStyleBackColor = true;
+            this.rdoNone.CheckedChanged += new System.EventHandler(this.rdoNone_CheckedChanged);
             // 
             // groupBox1
             // 
@@ -393,45 +436,15 @@
             this.lblSelectedMailbox.TabIndex = 0;
             this.lblSelectedMailbox.Text = "No selected mailbox";
             // 
-            // cmdCopyAsStreamForAppend
+            // cmdCopyForAppend
             // 
-            this.cmdCopyAsStreamForAppend.Location = new System.Drawing.Point(255, 18);
-            this.cmdCopyAsStreamForAppend.Name = "cmdCopyAsStreamForAppend";
-            this.cmdCopyAsStreamForAppend.Size = new System.Drawing.Size(100, 25);
-            this.cmdCopyAsStreamForAppend.TabIndex = 2;
-            this.cmdCopyAsStreamForAppend.Text = "Copy";
-            this.cmdCopyAsStreamForAppend.UseVisualStyleBackColor = true;
-            this.cmdCopyAsStreamForAppend.Click += new System.EventHandler(this.cmdCopyAsStreamForAppend_Click);
-            // 
-            // groupBox3
-            // 
-            this.groupBox3.Controls.Add(this.label6);
-            this.groupBox3.Controls.Add(this.txtLength);
-            this.groupBox3.Controls.Add(this.cmdCopyAsStreamForAppend);
-            this.groupBox3.Location = new System.Drawing.Point(74, 215);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(436, 48);
-            this.groupBox3.TabIndex = 13;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Copy as Stream for Append";
-            // 
-            // txtLength
-            // 
-            this.txtLength.Location = new System.Drawing.Point(106, 21);
-            this.txtLength.Name = "txtLength";
-            this.txtLength.Size = new System.Drawing.Size(99, 20);
-            this.txtLength.TabIndex = 1;
-            this.txtLength.Validating += new System.ComponentModel.CancelEventHandler(this.ZValTextBoxIsNZUInt);
-            this.txtLength.Validated += new System.EventHandler(this.ZValControlValidated);
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(48, 24);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(40, 13);
-            this.label6.TabIndex = 0;
-            this.label6.Text = "Length";
+            this.cmdCopyForAppend.Location = new System.Drawing.Point(176, 18);
+            this.cmdCopyForAppend.Name = "cmdCopyForAppend";
+            this.cmdCopyForAppend.Size = new System.Drawing.Size(100, 25);
+            this.cmdCopyForAppend.TabIndex = 2;
+            this.cmdCopyForAppend.Text = "Copy for Append";
+            this.cmdCopyForAppend.UseVisualStyleBackColor = true;
+            this.cmdCopyForAppend.Click += new System.EventHandler(this.cmdCopyForAppend_Click);
             // 
             // frmUID
             // 
@@ -451,6 +464,8 @@
             this.tab.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage1.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.groupBox1.ResumeLayout(false);
@@ -459,8 +474,6 @@
             this.tabPage2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.erp)).EndInit();
-            this.groupBox3.ResumeLayout(false);
-            this.groupBox3.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -502,5 +515,6 @@
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox txtLength;
+        private System.Windows.Forms.Button cmdCopyForAppend;
     }
 }

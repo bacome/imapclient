@@ -22,6 +22,7 @@ namespace testharness2
         private readonly bool mProgressBar;
         private readonly cMailbox mMailbox;
         private readonly int mMaxTextBytes;
+        private int mCopyAttachmentForAppend;
         private int mCopyAttachmentAsStreamForAppendRaw;
         private int mCopyAttachmentAsStreamForAppendDecoded;
         private cMessage mMessage;
@@ -96,8 +97,9 @@ namespace testharness2
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Description)));
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Size)));
             dgv.Columns.Add(LColumn(nameof(cGridRowData.FileName)));
-            mCopyAttachmentAsStreamForAppendRaw = dgv.Columns.Add(LButtonColumn("Stream Copy Raw"));
-            mCopyAttachmentAsStreamForAppendDecoded = dgv.Columns.Add(LButtonColumn("Stream Copy Decoded"));
+            mCopyAttachmentForAppend = dgv.Columns.Add(LButtonColumn("Copy for Append"));
+            mCopyAttachmentAsStreamForAppendRaw = dgv.Columns.Add(LButtonColumn("Stream Append Raw"));
+            mCopyAttachmentAsStreamForAppendDecoded = dgv.Columns.Add(LButtonColumn("Stream Append Decoded"));
 
             DataGridViewColumn LColumn(string pName)
             {
@@ -837,6 +839,13 @@ namespace testharness2
             var lData = dgv.Rows[e.RowIndex].DataBoundItem as cGridRowData;
             if (lData == null) return;
 
+            if (e.ColumnIndex == mCopyAttachmentForAppend)
+            {
+                Clipboard.Clear();
+                cAppendDataSource.CurrentData = new cAppendDataSourceAttachment(lData.Attachment);
+                return;
+            }
+
             if (e.ColumnIndex == mCopyAttachmentAsStreamForAppendRaw)
             {
                 Clipboard.Clear();
@@ -870,7 +879,7 @@ namespace testharness2
             return lFileName;
         }
 
-        private async void ZDownloadRaw(cSection pSection, int pSize)
+        private async void ZDownloadRaw(cSection pSection, uint pSize)
         {
             var lSaveFileDialog = new SaveFileDialog();
             lSaveFileDialog.FileName = ZDownloadFileName(pSection) + ".txt";
@@ -905,18 +914,19 @@ namespace testharness2
             var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
 
             cSection lSection;
-            int lSize;
+            uint lSize;
 
             if (lTag.Section == null)
             {
                 lSection = lTag.BodyPart.Section;
-                if (lTag.BodyPart is cSinglePartBody lSinglePart) lSize = (int)lSinglePart.SizeInBytes;
+                if (lTag.BodyPart is cSinglePartBody lSinglePart) lSize = lSinglePart.SizeInBytes;
                 else lSize = 0;
             }
             else
             {
                 lSection = lTag.Section;
-                lSize = 0;
+                if (lTag.Section == cSection.All) lSize = mMessage.Size;
+                else lSize = 0;
             }
 
             ZDownloadRaw(lSection, lSize);
@@ -1185,7 +1195,6 @@ namespace testharness2
         {
             if (tvwBodyStructure.SelectedNode == null) return;
             var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
-            ;?;
             if (!(lTag.BodyPart is cSinglePartBody lPart)) return;
             Clipboard.Clear();
             cAppendDataSource.CurrentData = new cAppendDataSourceMessagePart(mMessage, lPart);
@@ -1202,32 +1211,42 @@ namespace testharness2
             Clipboard.Clear();
 
             if (tvwBodyStructure.SelectedNode == null) return;
-
             var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
 
-            uint lLength;
+            cSection lSection;
+            uint lSize;
+
+            if (lTag.Section == null)
+            {
+                lSection = lTag.BodyPart.Section;
+                if (lTag.BodyPart is cSinglePartBody lSinglePart) lSize = lSinglePart.SizeInBytes;
+                else lSize = 0;
+            }
+            else
+            {
+                lSection = lTag.Section;
+                if (lTag.Section == cSection.All) lSize = mMessage.Size;
+                else lSize = 0;
+            }
 
             if (string.IsNullOrWhiteSpace(txtLengthRaw.Text))
             {
-                ;?;
-                if (lTag.BodyPart is cSinglePartBody lSinglePart) lLength = lSinglePart.SizeInBytes;
-                else
+                if (lSize == 0)
                 {
-                    MessageBox.Show(this, "you must enter a valid length if it is a multi-part part");
+                    MessageBox.Show(this, "you must enter a length for this kind of message section");
                     return;
                 }
             }
             else
             {
-                if (!uint.TryParse(txtLengthRaw.Text, out lLength))
+                if (!uint.TryParse(txtLengthRaw.Text, out lSize))
                 {
                     MessageBox.Show(this, "you must enter a valid length");
                     return;
                 }
             }
 
-            ;?;
-            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage, lTag.BodyPart.Section, eDecodingRequired.none), lLength);
+            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage, lSection, eDecodingRequired.none), lSize);
         }
 
         private void cmdCopyAsStreamForAppendDecoded_Click(object sender, EventArgs e)
@@ -1235,45 +1254,54 @@ namespace testharness2
             Clipboard.Clear();
 
             if (tvwBodyStructure.SelectedNode == null) return;
-
             var lTag = tvwBodyStructure.SelectedNode.Tag as cNodeTag;
 
-            ;?;
-            var lSinglePart = lTag.BodyPart as cSinglePartBody;
-
+            cSection lSection;
             eDecodingRequired lDecoding;
+            uint lSize;
 
-            if (lSinglePart == null) lDecoding = eDecodingRequired.none;
-            else lDecoding = lSinglePart.DecodingRequired;
-
-            uint lLength;
-
-            if (string.IsNullOrWhiteSpace(txtLengthDecoded.Text))
+            if (lTag.Section == null)
             {
-                uint? lPartLength;
+                lSection = lTag.BodyPart.Section;
 
-                if (lSinglePart == null) lPartLength = null;
-                else lPartLength = mMessage.DecodedSizeInBytes(lSinglePart);
-
-                if (lPartLength == null)
-                { 
-                    MessageBox.Show(this, "you must enter a valid length if it is a multi-part part or it needs decoding and binary is not in use");
-                    return;
+                if (lTag.BodyPart is cSinglePartBody lSinglePart)
+                {
+                    lDecoding = lSinglePart.DecodingRequired;
+                    lSize = lSinglePart.SizeInBytes;
                 }
-
-                lLength = lPartLength.Value;
+                else
+                {
+                    lDecoding = eDecodingRequired.none;
+                    lSize = 0;
+                }
             }
             else
             {
-                if (!uint.TryParse(txtLengthRaw.Text, out lLength))
+                lSection = lTag.Section;
+                lDecoding = eDecodingRequired.none;
+
+                if (lTag.Section == cSection.All) lSize = mMessage.Size;
+                else lSize = 0;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtLengthRaw.Text))
+            {
+                if (lSize == 0)
+                {
+                    MessageBox.Show(this, "you must enter a length for this kind of message section");
+                    return;
+                }
+            }
+            else
+            {
+                if (!uint.TryParse(txtLengthRaw.Text, out lSize))
                 {
                     MessageBox.Show(this, "you must enter a valid length");
                     return;
                 }
             }
 
-            ;?;
-            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage, lTag.BodyPart.Section, lDecoding), lLength);
+            cAppendDataSource.CurrentData = new cAppendDataSourceStream(new cMessageDataStream(mMessage, lSection, lDecoding), lSize);
         }
     }
 }

@@ -174,6 +174,8 @@ namespace work.bacome.imapclient
 
             // todo ...
 
+            throw new NotImplementedException();
+
             throw new cMailMessageException();
         }
 

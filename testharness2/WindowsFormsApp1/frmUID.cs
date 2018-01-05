@@ -367,6 +367,21 @@ namespace testharness2
             ZChildAdd(new frmMessageData(lUID, lSection, lDecoding, lData));
         }
 
+        private void cmdCopyForAppend_Click(object sender, EventArgs e)
+        {
+            Clipboard.Clear();
+
+            if (!ZFetchParameters(out var lUID, out var lSection, out var lDecoding)) return;
+
+            if (string.IsNullOrWhiteSpace(txtLength.Text))
+            {
+                MessageBox.Show(this, "you must enter a length");
+                return;
+            }
+
+            cAppendDataSource.CurrentData = new cAppendDataSourceUIDSection(mClient.SelectedMailbox, lUID, lSection, uint.Parse(txtLength.Text));
+        }
+
         private void cmdCopyAsStreamForAppend_Click(object sender, EventArgs e)
         {
             Clipboard.Clear();
@@ -592,6 +607,11 @@ namespace testharness2
             }
 
             public static bool operator !=(cUIDsRowData pA, cUIDsRowData pB) => !(pA == pB);
+        }
+
+        private void rdoNone_CheckedChanged(object sender, EventArgs e)
+        {
+            cmdCopyForAppend.Enabled = rdoNone.Checked;
         }
     }
 }

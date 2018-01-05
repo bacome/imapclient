@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,10 +20,12 @@ namespace testharness2
         private int mFlagsClear;
         private int mDataPaste;
         private int mDataFile;
-        private int mDataCompose;
+        private int mDataFileAsStream;
         private int mChanged;
 
         private int mChangeNumber = 1;
+
+        private readonly List<Form> mMultiPartForms = new List<Form>();
 
         public frmAppend(cIMAPClient pClient)
         {
@@ -64,7 +67,7 @@ namespace testharness2
             dgv.Columns.Add(LDisplayColumn(nameof(cGridRowData.Received)));
             mDataPaste = dgv.Columns.Add(LButtonColumn("Paste Data"));
             mDataFile = dgv.Columns.Add(LButtonColumn("File Data"));
-            mDataCompose = dgv.Columns.Add(LButtonColumn("Compose Data"));
+            mDataFileAsStream = dgv.Columns.Add(LButtonColumn("File as stream"));
             dgv.Columns.Add(LDisplayColumn(nameof(cGridRowData.Data)));
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_Type)));
             dgv.Columns.Add(LColumn(nameof(cGridRowData.Fb_UID)));
@@ -162,6 +165,7 @@ namespace testharness2
                         switch (cAppendDataSource.CurrentData)
                         {
                             case cAppendDataSourceMessage lMessage:
+                            case cAppendDataSourceStream lStream:
 
                                 lData.Data = cAppendDataSource.CurrentData;
                                 dgv.Rows[e.RowIndex].Cells[mChanged].Value = mChangeNumber++;
@@ -177,14 +181,6 @@ namespace testharness2
                                 }
 
                                 break;
-
-                            case cAppendDataSourceStream lStream:
-
-                                // no check whether this is a validly formed message - you'd better be sure
-
-                                lData.Data = cAppendDataSource.CurrentData;
-                                dgv.Rows[e.RowIndex].Cells[mChanged].Value = mChangeNumber++;
-                                return;
                         }
                     }
                 }
@@ -209,11 +205,11 @@ namespace testharness2
                 return;
             }
 
-            if (e.ColumnIndex == mDataFile)
+            if (e.ColumnIndex == mDataFile || e.ColumnIndex == mDataFileAsStream)
             {
                 var lOpenFileDialog = new OpenFileDialog();
                 if (lOpenFileDialog.ShowDialog() != DialogResult.OK) return;
-                lData.Data = new cAppendDataSourceFile(lOpenFileDialog.FileName);
+                lData.Data = new cAppendDataSourceFile(lOpenFileDialog.FileName, e.ColumnIndex == mDataFileAsStream);
                 dgv.Rows[e.RowIndex].Cells[mChanged].Value = mChangeNumber++;
             }
         }
@@ -241,6 +237,45 @@ namespace testharness2
         private void dgv_RowValidated(object sender, DataGridViewCellEventArgs e)
         {
             dgv.Rows[e.RowIndex].ErrorText = null;
+        }
+
+        private void ZMultiPartFormAdd(frmAppendMultiPart pForm)
+        {
+            mMultiPartForms.Add(pForm);
+            pForm.FormClosed += ZMultiPartFormClosed;
+            Program.Centre(pForm, this, mMultiPartForms);
+            pForm.Show();
+        }
+
+        private void ZMultiPartFormClosed(object sender, EventArgs e)
+        {
+            if (!(sender is frmMessage lForm)) return;
+            lForm.FormClosed -= ZMultiPartFormClosed;
+            mMultiPartForms.Remove(lForm);
+        }
+
+        private void ZMultiPartFormsClose()
+        {
+            List<Form> lForms = new List<Form>();
+
+            foreach (var lForm in mMultiPartForms)
+            {
+                lForms.Add(lForm);
+                lForm.FormClosed -= ZMultiPartFormClosed;
+            }
+
+            mMultiPartForms.Clear();
+
+            foreach (var lForm in lForms)
+            {
+                try { lForm.Close(); }
+                catch { }
+            }
+        }
+
+        private void cmdMultiPart_Click(object sender, EventArgs e)
+        {
+            ZMultiPartFormAdd(new frmAppendMultiPart(mClient.InstanceName));
         }
 
         private async void cmdAppend_Click(object sender, EventArgs e)
@@ -293,9 +328,13 @@ namespace testharness2
 
 
             // TODO THE mailmessage as a simple API example also ...
+            //  don't forget to dispose any streams in it
 
             List<cGridRowData> lRows = new List<cGridRowData>();
             List<cAppendData> lMessages = new List<cAppendData>();
+            List<cMessageDataStream> lMessageDataStreams = new List<cMessageDataStream>();
+            List<FileStream> lFileStreams = new List<FileStream>();
+
 
             try
             {
@@ -324,13 +363,23 @@ namespace testharness2
 
                         case cAppendDataSourceFile lFile:
 
-                            lMessages.Add(new cFileAppendData(lFile.Path, lRow.Flags, lRow.Received));
+                            if (lFile.AsStream)
+                            {
+                                FileStream lStream = new FileStream(lFile.Path, FileMode.Open, FileAccess.Read);
+                                lFileStreams.Add(lStream);
+                                lMessages.Add(new cStreamAppendData(lStream, lRow.Flags, lRow.Received));
+                            }
+                            else lMessages.Add(new cFileAppendData(lFile.Path, lRow.Flags, lRow.Received));
+
                             break;
 
                         case cAppendDataSourceStream lStream:
 
                             lMessages.Add(new cStreamAppendData(lStream.Stream, lStream.Length));
+                            lMessageDataStreams.Add(lStream.Stream); 
                             break;
+
+                        // when implementing multipart, don't forget the dispose requirement
 
                         default:
 
@@ -342,6 +391,7 @@ namespace testharness2
             catch (Exception ex)
             {
                 MessageBox.Show(this, $"data conversion error\n{ex}");
+                foreach (var lStream in lFileStreams) lStream.Dispose();
                 return;
             }
 
@@ -360,6 +410,11 @@ namespace testharness2
                     if (!IsDisposed) MessageBox.Show(this, $"append error\n{ex}");
                     return;
                 }
+                finally
+                {
+                    foreach (var lStream in lMessageDataStreams) lStream.Dispose();
+                    foreach (var lStream in lFileStreams) lStream.Dispose();
+                }
             }
 
             if (!IsDisposed)
@@ -369,6 +424,10 @@ namespace testharness2
             }
         }
 
+        private void frmAppend_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            ZMultiPartFormsClose();
+        }
 
 
 
