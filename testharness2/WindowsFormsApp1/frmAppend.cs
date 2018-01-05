@@ -164,8 +164,9 @@ namespace testharness2
                     {
                         switch (cAppendDataSource.CurrentData)
                         {
-                            case cAppendDataSourceMessage lMessage:
-                            case cAppendDataSourceStream lStream:
+                            case cAppendDataSourceMessage _:
+                            case cAppendDataSourceStream _:
+                            case cAppendDataSourceMultiPart _:
 
                                 lData.Data = cAppendDataSource.CurrentData;
                                 dgv.Rows[e.RowIndex].Cells[mChanged].Value = mChangeNumber++;
@@ -366,8 +367,11 @@ namespace testharness2
                             if (lFile.AsStream)
                             {
                                 FileStream lStream = new FileStream(lFile.Path, FileMode.Open, FileAccess.Read);
+
                                 lFileStreams.Add(lStream);
-                                lMessages.Add(new cStreamAppendData(lStream, lRow.Flags, lRow.Received));
+
+                                if (lRow.Flags == null && lRow.Received == null) lMessages.Add(lStream);
+                                else lMessages.Add(new cStreamAppendData(lStream, lRow.Flags, lRow.Received));
                             }
                             else lMessages.Add(new cFileAppendData(lFile.Path, lRow.Flags, lRow.Received));
 
@@ -375,16 +379,79 @@ namespace testharness2
 
                         case cAppendDataSourceStream lStream:
 
-                            lMessages.Add(new cStreamAppendData(lStream.Stream, lStream.Length));
-                            lMessageDataStreams.Add(lStream.Stream); 
+                            lMessageDataStreams.Add(lStream.Stream);
+                            lMessages.Add(new cStreamAppendData(lStream.Stream, lStream.Length, lRow.Flags, lRow.Received));
                             break;
 
-                        // when implementing multipart, don't forget the dispose requirement
+                        case cAppendDataSourceMultiPart lMultiPart:
+
+                            // don't forget the dispose requirement for file as stream and message stream ...
+
+                            List<cAppendDataPart> lParts = new List<cAppendDataPart>();
+
+                            foreach (var lPart in lMultiPart.Parts)
+                            {
+                                switch (lPart)
+                                {
+                                    case cAppendDataSourceMessage lMessage:
+
+                                        lParts.Add(lMessage.Message);
+                                        break;
+
+                                    case cAppendDataSourceMessagePart lMessagePart:
+
+                                        lParts.Add(new cMessagePartAppendDataPart(lMessagePart.Message, lMessagePart.Part));
+                                        break;
+
+                                    case cAppendDataSourceAttachment lAttachment:
+
+                                        lParts.Add(lAttachment.Attachment);
+                                        break;
+
+                                    case cAppendDataSourceUIDSection lUIDSection:
+
+                                        lParts.Add(new cUIDSectionAppendDataPart(lUIDSection.Mailbox, lUIDSection.UID, lUIDSection.Section, lUIDSection.Length));
+                                        break;
+
+                                    case cAppendDataSourceString lString:
+
+                                        lParts.Add(lString.String);
+                                        break;
+
+                                    case cAppendDataSourceFile lFile:
+
+                                        if (lFile.AsStream)
+                                        {
+                                            FileStream lStream = new FileStream(lFile.Path, FileMode.Open, FileAccess.Read);
+                                            lFileStreams.Add(lStream);
+                                            lParts.Add(lStream);
+                                        }
+                                        else lParts.Add(new cFileAppendDataPart(lFile.Path));
+
+                                        break;
+
+                                    case cAppendDataSourceStream lStream:
+
+                                        lMessageDataStreams.Add(lStream.Stream);
+                                        lParts.Add(new cStreamAppendDataPart(lStream.Stream, lStream.Length));
+                                        break;
+
+                                    default:
+
+                                        throw new Exception("internal error");
+                                }
+                            }
+
+                            if (lRow.Flags == null && lRow.Received == null) lMessages.Add(lParts);
+                            else lMessages.Add(new cMultiPartAppendData(lParts, lRow.Flags, lRow.Received));
+
+                            break;
+
+                        // mailmessage to do WITH and without flags
 
                         default:
 
-                            MessageBox.Show(this, "internal error");
-                            return;
+                            throw new Exception("internal error");
                     }
                 }
             }

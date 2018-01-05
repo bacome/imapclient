@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using work.bacome.imapclient;
 
 namespace testharness2
@@ -103,5 +105,17 @@ namespace testharness2
         }
 
         public override string ToString() => $"{Mailbox},{UID},{Section}";
+    }
+
+    public class cAppendDataSourceMultiPart : cAppendDataSource
+    {
+        public readonly ReadOnlyCollection<cAppendDataSource> Parts;
+
+        public cAppendDataSourceMultiPart(IList<cAppendDataSource> pParts)
+        {
+            if (pParts == null) throw new ArgumentNullException(nameof(pParts));
+            if (pParts.Count == 0) throw new ArgumentOutOfRangeException(nameof(pParts));
+            Parts = new ReadOnlyCollection<cAppendDataSource>(pParts);
+        }
     }
 }

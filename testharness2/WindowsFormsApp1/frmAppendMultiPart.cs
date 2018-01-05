@@ -176,6 +176,8 @@ namespace testharness2
 
         private void cmdCopy_Click(object sender, EventArgs e)
         {
+            Clipboard.Clear();
+
             if (!ValidateChildren(ValidationConstraints.Enabled))
             {
                 MessageBox.Show(this, "data errors");
@@ -194,7 +196,9 @@ namespace testharness2
                 return;
             }
 
-            ;?;
+            List<cAppendDataSource> lParts = new List<cAppendDataSource>();
+            foreach (cGridRowData lRow in lBindingSource) lParts.Add(lRow.Data);
+            cAppendDataSource.CurrentData = new cAppendDataSourceMultiPart(lParts);
         }
 
 

@@ -46,8 +46,6 @@ namespace work.bacome.imapclient
         }
 
         public override string ToString() => $"{nameof(cMessageAppendData)}({Flags},{Received},{MessageHandle},{AllowCatenate})";
-
-        public static implicit operator cMessageAppendData(cMessage pMessage) => new cMessageAppendData(pMessage);
     }
 
     public class cMessagePartAppendData : cAppendData
@@ -90,8 +88,6 @@ namespace work.bacome.imapclient
         }
 
         public override string ToString() => $"{nameof(cStringAppendData)}({Flags},{Received},{String})";
-
-        public static implicit operator cStringAppendData(string pString) => new cStringAppendData(pString);
     }
 
     public class cFileAppendData : cAppendData
@@ -124,9 +120,10 @@ namespace work.bacome.imapclient
         public cStreamAppendData(Stream pStream, cStorableFlags pFlags = null, DateTime? pReceived = null, cBatchSizerConfiguration pReadConfiguration = null) : base(pFlags, pReceived)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!pStream.CanRead || !pStream.CanSeek || pStream.Length == 0 || pStream.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
-            pStream.Position = 0;
-            Length = (uint)(pStream.Length);
+            if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
+            long lLength = pStream.Length - pStream.Position;
+            if (lLength == 0 || lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
+            Length = (uint)(lLength);
             ReadConfiguration = pReadConfiguration;
         }
 
@@ -140,8 +137,6 @@ namespace work.bacome.imapclient
         }
 
         public override string ToString() => $"{nameof(cStreamAppendData)}({Flags},{Received},{Length},{ReadConfiguration})";
-
-        public static implicit operator cStreamAppendData(Stream pStream) => new cStreamAppendData(pStream);
     }
 
     public class cMultiPartAppendData : cAppendData
@@ -187,9 +182,6 @@ namespace work.bacome.imapclient
             foreach (var lPart in Parts) lBuilder.Append(lPart);
             return lBuilder.ToString();
         }
-
-        public static implicit operator cMultiPartAppendData(List<cAppendDataPart> pParts) => new cMultiPartAppendData(pParts);
-        public static implicit operator cMultiPartAppendData(MailMessage pMessage) => new cMultiPartAppendData(pMessage);
     }
 
     public abstract class cAppendDataPart
@@ -225,8 +217,6 @@ namespace work.bacome.imapclient
         public override bool HasContent => true;
 
         public override string ToString() => $"{nameof(cMessageAppendDataPart)}({MessageHandle},{AllowCatenate})";
-
-        public static implicit operator cMessageAppendDataPart(cMessage pMessage) => new cMessageAppendDataPart(pMessage);
     }
 
     public class cMessagePartAppendDataPart : cAppendDataPart
@@ -268,8 +258,6 @@ namespace work.bacome.imapclient
         public override bool HasContent => Part.SizeInBytes != 0;
 
         public override string ToString() => $"{nameof(cMessagePartAppendDataPart)}({MessageHandle},{Part},{AllowCatenate})";
-
-        public static implicit operator cMessagePartAppendDataPart(cAttachment pAttachment) => new cMessagePartAppendDataPart(pAttachment);
     }
 
     public class cUIDSectionAppendDataPart : cAppendDataPart
@@ -315,8 +303,6 @@ namespace work.bacome.imapclient
         public override bool HasContent => String.Length > 0;
 
         public override string ToString() => $"{nameof(cStringAppendDataPart)}({String})";
-
-        public static implicit operator cStringAppendDataPart(string pString) => new cStringAppendDataPart(pString);
     }
 
     public class cFileAppendDataPart : cAppendDataPart
@@ -351,9 +337,10 @@ namespace work.bacome.imapclient
         public cStreamAppendDataPart(Stream pStream, cBatchSizerConfiguration pReadConfiguration = null)
         {
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
-            if (!pStream.CanRead || !pStream.CanSeek || pStream.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
-            pStream.Position = 0;
-            Length = (uint)pStream.Length;
+            if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
+            long lLength = pStream.Length - pStream.Position;
+            if (lLength < 0 || lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
+            Length = (uint)lLength;
             ReadConfiguration = pReadConfiguration;
         }
 
@@ -368,7 +355,5 @@ namespace work.bacome.imapclient
         public override bool HasContent => Length != 0;
 
         public override string ToString() => $"{nameof(cStreamAppendDataPart)}({Length},{ReadConfiguration})";
-
-        public static implicit operator cStreamAppendDataPart(Stream pStream) => new cStreamAppendDataPart(pStream);
     }
 }
