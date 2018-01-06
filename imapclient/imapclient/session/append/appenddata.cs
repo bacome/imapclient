@@ -191,9 +191,21 @@ namespace work.bacome.imapclient
                 public override fCapabilities AddAppendData(cAppendCommandDetailsBuilder pBuilder)
                 {
                     fCapabilities lCapabilities = fCapabilities.catenate;
+
                     pBuilder.Add(kCATENATESpaceLParen);
-                    foreach (var lPart in mParts) lCapabilities |= lPart.AddCatPart(pBuilder);
+
+                    bool lFirst = true;
+
+                    foreach (var lPart in mParts)
+                    {
+                        if (lFirst) lFirst = false;
+                        else pBuilder.Add(cCommandPart.Space);
+
+                        lCapabilities |= lPart.AddCatPart(pBuilder);
+                    }
+
                     pBuilder.Add(cCommandPart.RParen);
+
                     return lCapabilities;
                 }
 

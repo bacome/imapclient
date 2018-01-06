@@ -111,6 +111,8 @@ namespace work.bacome.imapclient
         /// </summary>
         public cStrings Languages => Part.ExtensionData?.Languages;
 
+        public bool IsValid() => ReferenceEquals(Client.SelectedMailboxDetails?.MessageCache, MessageHandle.MessageCache);
+
         /// <summary>
         /// Gets the number of bytes that will have to come over the network from the server to save the attachment.
         /// </summary>

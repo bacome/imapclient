@@ -117,5 +117,7 @@ namespace testharness2
             if (pParts.Count == 0) throw new ArgumentOutOfRangeException(nameof(pParts));
             Parts = new ReadOnlyCollection<cAppendDataSource>(pParts);
         }
+
+        public override string ToString() => $"{nameof(cAppendDataSourceMultiPart)}({Parts.Count})";
     }
 }

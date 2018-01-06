@@ -35,11 +35,10 @@ namespace work.bacome.imapclient
         public cMessageDataStream(cMessage pMessage, int pTargetBufferSize = DefaultTargetBufferSize)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
 
             Client = pMessage.Client;
             MessageHandle = pMessage.MessageHandle;
-
-            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
 
             MailboxHandle = null;
             UID = null;
@@ -57,11 +56,10 @@ namespace work.bacome.imapclient
         public cMessageDataStream(cAttachment pAttachment, bool pDecoded = true, int pTargetBufferSize = DefaultTargetBufferSize)
         {
             if (pAttachment == null) throw new ArgumentNullException(nameof(pAttachment));
+            if (!pAttachment.IsValid()) throw new ArgumentOutOfRangeException(nameof(pAttachment), kArgumentOutOfRangeExceptionMessage.IsInvalid);
 
             Client = pAttachment.Client;
             MessageHandle = pAttachment.MessageHandle;
-
-            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pAttachment), kArgumentOutOfRangeExceptionMessage.AttachmentMustBeInTheSelectedMailbox);
 
             MailboxHandle = null;
             UID = null;
@@ -89,11 +87,10 @@ namespace work.bacome.imapclient
         public cMessageDataStream(cMessage pMessage, cSinglePartBody pPart, bool pDecoded = true, int pTargetBufferSize = DefaultTargetBufferSize)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
 
             Client = pMessage.Client;
             MessageHandle = pMessage.MessageHandle;
-
-            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
 
             MailboxHandle = null;
             UID = null;
@@ -123,11 +120,10 @@ namespace work.bacome.imapclient
         public cMessageDataStream(cMessage pMessage, cSection pSection, eDecodingRequired pDecoding, int pTargetBufferSize = DefaultTargetBufferSize)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
 
             Client = pMessage.Client;
             MessageHandle = pMessage.MessageHandle;
-
-            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
 
             MailboxHandle = null;
             UID = null;

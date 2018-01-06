@@ -250,6 +250,7 @@ namespace work.bacome.imapclient
 
             public cNamespaceNames NamespaceNames => mNamespaceDataProcessor?.NamespaceNames;
 
+            public object MailboxCache => mMailboxCache;
             public iSelectedMailboxDetails SelectedMailboxDetails => mMailboxCache?.SelectedMailboxDetails;
 
             public iMailboxHandle GetMailboxHandle(cMailboxName pMailboxName)

@@ -65,7 +65,7 @@
             this.cmdMultiPart.Name = "cmdMultiPart";
             this.cmdMultiPart.Size = new System.Drawing.Size(100, 25);
             this.cmdMultiPart.TabIndex = 1;
-            this.cmdMultiPart.Text = "Multi Part";
+            this.cmdMultiPart.Text = "Multi Part ...";
             this.cmdMultiPart.UseVisualStyleBackColor = true;
             this.cmdMultiPart.Click += new System.EventHandler(this.cmdMultiPart_Click);
             // 

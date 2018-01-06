@@ -858,6 +858,7 @@ namespace work.bacome.imapclient
         /// </remarks>
         public cMailbox Inbox => mInbox;
 
+        internal object MailboxCache => mSession?.MailboxCache;
         internal iSelectedMailboxDetails SelectedMailboxDetails => mSession?.SelectedMailboxDetails;
 
         /// <summary>

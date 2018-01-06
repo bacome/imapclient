@@ -35,13 +35,12 @@ namespace work.bacome.imapclient
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
 
-            Client = pMessage.Client;
-            MessageHandle = pMessage.MessageHandle;
-
             // check that the source message is in a selected mailbox (in case we have to stream it)
             //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
 
+            Client = pMessage.Client;
+            MessageHandle = pMessage.MessageHandle;
             AllowCatenate = pAllowCatenate;
         }
 
@@ -59,12 +58,12 @@ namespace work.bacome.imapclient
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
 
-            Client = pMessage.Client;
-            MessageHandle = pMessage.MessageHandle;
-
             // check that the source message is in a selected mailbox (in case we have to stream it)
             //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
+
+            Client = pMessage.Client;
+            MessageHandle = pMessage.MessageHandle;
 
             Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
 
@@ -204,13 +203,12 @@ namespace work.bacome.imapclient
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
 
-            Client = pMessage.Client;
-            MessageHandle = pMessage.MessageHandle;
-
             // check that the source message is in a selected mailbox (in case we have to stream it)
             //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
 
+            Client = pMessage.Client;
+            MessageHandle = pMessage.MessageHandle;
             AllowCatenate = pAllowCatenate;
         }
 
@@ -230,12 +228,12 @@ namespace work.bacome.imapclient
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
 
-            Client = pMessage.Client;
-            MessageHandle = pMessage.MessageHandle;
-
             // check that the source message is in a selected mailbox (in case we have to stream it)
             //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
-            if (!ReferenceEquals(MessageHandle.MessageCache.MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.MessageMustBeInTheSelectedMailbox);
+            if (!pMessage.IsValid()) throw new ArgumentOutOfRangeException(nameof(pMessage), kArgumentOutOfRangeExceptionMessage.IsInvalid);
+
+            Client = pMessage.Client;
+            MessageHandle = pMessage.MessageHandle;
 
             Part = pPart ?? throw new ArgumentNullException(nameof(pPart));
 
@@ -273,10 +271,12 @@ namespace work.bacome.imapclient
         {
             if (pMailbox == null) throw new ArgumentNullException(nameof(pMailbox));
 
+            // check that the mailbox is selected (in case we have to stream it)
+            //  (note that this is just a sanity check; the mailbox could become un-selected before we get a chance to get the message data which will cause a throw)
+            if (!pMailbox.IsSelected) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
+
             Client = pMailbox.Client;
             MailboxHandle = pMailbox.MailboxHandle;
-
-            if (!ReferenceEquals(MailboxHandle, Client.SelectedMailboxDetails?.MailboxHandle)) throw new ArgumentOutOfRangeException(nameof(pMailbox), kArgumentOutOfRangeExceptionMessage.MailboxMustBeSelected);
 
             UID = pUID ?? throw new ArgumentNullException(nameof(pUID));
             Section = pSection ?? throw new ArgumentNullException(nameof(pSection));
@@ -316,7 +316,7 @@ namespace work.bacome.imapclient
             if (string.IsNullOrWhiteSpace(pPath)) throw new ArgumentOutOfRangeException(nameof(pPath));
 
             var lFileInfo = new FileInfo(pPath);
-            if (!lFileInfo.Exists || (lFileInfo.Attributes | FileAttributes.Directory) != 0 || lFileInfo.Length == 0 || lFileInfo.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pPath));
+            if (!lFileInfo.Exists || (lFileInfo.Attributes & FileAttributes.Directory) != 0 || lFileInfo.Length == 0 || lFileInfo.Length > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pPath));
 
             Path = lFileInfo.FullName;
             Length = (uint)lFileInfo.Length;

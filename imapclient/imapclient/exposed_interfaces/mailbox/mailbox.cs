@@ -753,6 +753,8 @@ namespace work.bacome.imapclient
             }
         }
 
+        public bool IsValid() => ReferenceEquals(Client.MailboxCache, MailboxHandle.MailboxCache);
+
         /// <summary>
         /// Gets the mailbox's child mailboxes.
         /// </summary>
