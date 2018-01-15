@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
 
@@ -185,8 +186,11 @@ namespace work.bacome.imapclient
 
                         case cStringAppendData lString:
 
-                            lMessages.Add(new cSessionBytesAppendData(lString.Flags ?? mAppendDefaultFlags, lString.Received, lString.String));
-                            break;
+                            {
+                                var lEncoding = lString.Encoding ?? mEncoding;
+                                lMessages.Add(new cSessionBytesAppendData(lString.Flags ?? mAppendDefaultFlags, lString.Received, lEncoding.GetBytes(lString.String)));
+                                break;
+                            }
 
                         case cFileAppendData lFile:
 
@@ -275,7 +279,20 @@ namespace work.bacome.imapclient
 
                                             case cStringAppendDataPart lString:
 
-                                                lParts.Add(new cCatenateBytesAppendDataPart(lString.String));
+                                                {
+                                                    var lEncoding = lString.Encoding ?? mEncoding;
+                                                    lParts.Add(new cCatenateBytesAppendDataPart(lEncoding.GetBytes(lString.String)));
+                                                    break;
+                                                }
+
+                                            case cEncodedWordAppendDataPart lEncodedWord:
+
+                                                lParts.Add(new cCatenateBytesAppendDataPart(lEncodedWord.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding)));
+                                                break;
+
+                                            case cMimeParameterAppendDataPart lMimeParameter:
+
+                                                lParts.Add(new cCatenateBytesAppendDataPart(lMimeParameter.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding)));
                                                 break;
 
                                             case cFileAppendDataPart lFile:
@@ -332,10 +349,31 @@ namespace work.bacome.imapclient
 
                                             case cStringAppendDataPart lString:
 
-                                                var lBytes = new cSessionBytesAppendDataPart(lString.String);
-                                                lParts.Add(lBytes);
-                                                lLength += lBytes.Length;
-                                                break;
+                                                {
+                                                    var lEncoding = lString.Encoding ?? mEncoding;
+                                                    var lBytes = new cSessionBytesAppendDataPart(lEncoding.GetBytes(lString.String));
+                                                    lParts.Add(lBytes);
+                                                    lLength += lBytes.Length;
+                                                    break;
+                                                }
+
+                                            case cEncodedWordAppendDataPart lEncodedWord:
+
+                                                {
+                                                    var lBytes = new cSessionBytesAppendDataPart(lEncodedWord.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding));
+                                                    lParts.Add(lBytes);
+                                                    lLength += lBytes.Length;
+                                                    break;
+                                                }
+
+                                            case cMimeParameterAppendDataPart lMimeParameter:
+
+                                                {
+                                                    var lBytes = new cSessionBytesAppendDataPart(lMimeParameter.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding));
+                                                    lParts.Add(lBytes);
+                                                    lLength += lBytes.Length;
+                                                    break;
+                                                }
 
                                             case cFileAppendDataPart lFile:
 

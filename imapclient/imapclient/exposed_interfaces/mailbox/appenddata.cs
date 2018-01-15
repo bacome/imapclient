@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Net.Mail;
+using System.Text;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -79,14 +80,17 @@ namespace work.bacome.imapclient
     public class cStringAppendData : cAppendData
     {
         public readonly string String;
+        public readonly Encoding Encoding;
 
-        public cStringAppendData(string pString, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
+        public cStringAppendData(string pString, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null) : base(pFlags, pReceived)
         {
             String = pString ?? throw new ArgumentNullException(nameof(pString));
             if (String.Length == 0) throw new ArgumentOutOfRangeException(nameof(pString));
+            if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
+            Encoding = pEncoding;
         }
 
-        public override string ToString() => $"{nameof(cStringAppendData)}({Flags},{Received},{String})";
+        public override string ToString() => $"{nameof(cStringAppendData)}({Flags},{Received},{String},{Encoding?.WebName})";
     }
 
     public class cFileAppendData : cAppendData
@@ -141,8 +145,9 @@ namespace work.bacome.imapclient
     public class cMultiPartAppendData : cAppendData
     {
         public readonly ReadOnlyCollection<cAppendDataPart> Parts;
+        public readonly Encoding Encoding; // for encoded words and mime parameters, nullable (if null the client's encoding is used if required)
 
-        public cMultiPartAppendData(IEnumerable<cAppendDataPart> pParts, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
+        public cMultiPartAppendData(IEnumerable<cAppendDataPart> pParts, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null) : base(pFlags, pReceived)
         {
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
@@ -158,19 +163,26 @@ namespace work.bacome.imapclient
             }
 
             if (!lHasContent) throw new ArgumentOutOfRangeException(nameof(pParts));
+            if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
 
             Parts = lParts.AsReadOnly();
+            Encoding = pEncoding;
         }
 
-        public cMultiPartAppendData(MailMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
+        public cMultiPartAppendData(MailMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null) : base(pFlags, pReceived)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
 
-            // todo ...
+            List<cAppendDataPart> lParts = new List<cAppendDataPart>();
 
+            // todo ... convert pMessage to lParts
             throw new NotImplementedException();
+            // if can't convert ... throw new ArgumentOutOfRangeException(nameof(pMessage)); 
 
-            throw new cMailMessageException();
+            if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
+
+            Parts = lParts.AsReadOnly();
+            Encoding = pEncoding;
         }
 
         public override string ToString()
@@ -178,6 +190,7 @@ namespace work.bacome.imapclient
             cListBuilder lBuilder = new cListBuilder(nameof(cMultiPartAppendData));
             lBuilder.Append(Flags);
             lBuilder.Append(Received);
+            if (Encoding != null) lBuilder.Append(Encoding.WebName);
             foreach (var lPart in Parts) lBuilder.Append(lPart);
             return lBuilder.ToString();
         }
@@ -294,15 +307,148 @@ namespace work.bacome.imapclient
     public class cStringAppendDataPart : cAppendDataPart
     {
         public readonly string String;
+        public readonly Encoding Encoding; // nullable (if null the multipart's encoding is used)
 
-        public cStringAppendDataPart(string pString)
+        public cStringAppendDataPart(string pString, Encoding pEncoding = null)
         {
             String = pString ?? throw new ArgumentNullException(nameof(pString));
+            if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
+            Encoding = pEncoding;
         }
 
-        public override bool HasContent => String.Length > 0;
+        public override bool HasContent => String.Length > 0; // the assumption here is that the encoding will produce something
 
-        public override string ToString() => $"{nameof(cStringAppendDataPart)}({String})";
+        public override string ToString() => $"{nameof(cStringAppendDataPart)}({String},{Encoding?.WebName})";
+    }
+
+    public enum eEncodedWordLocation { text, comment, word }
+
+    public class cEncodedWordAppendDataPart : cAppendDataPart
+    {
+        public readonly int BytesAlreadyOnLine;
+        public readonly eEncodedWordLocation Location;
+        public readonly string String;
+        public readonly Encoding Encoding; // nullable (if null the multipart's encoding is used)
+
+        public cEncodedWordAppendDataPart(int pBytesAlreadyOnLine, eEncodedWordLocation pLocation, string pString, Encoding pEncoding = null)
+        {
+            if (pBytesAlreadyOnLine < 0) throw new ArgumentOutOfRangeException(nameof(pBytesAlreadyOnLine));
+            BytesAlreadyOnLine = pBytesAlreadyOnLine;
+            String = pString ?? throw new ArgumentNullException(nameof(pString));
+            if (pString.Length < 1) throw new ArgumentOutOfRangeException(nameof(pString));
+            if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
+            String = pString;
+            Encoding = pEncoding;
+        }
+
+        public override bool HasContent => true;
+
+        internal List<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
+        {
+            if (pDefaultEncoding == null) throw new ArgumentNullException(nameof(pDefaultEncoding));
+
+            List<byte> lResult = new List<byte>();
+
+            if (pUTF8Enabled)
+            {
+                ;?; // note that this can produce 'blank' lines, if the text ends with white space it will add it => could generate a blank line at end if it folds just before 
+
+                var lStringBytes = Encoding.UTF8.GetBytes(String);
+
+                int lBytesOnCurrentLine = BytesAlreadyOnLine;
+                int lFirstByteOnLine = 0;
+                int lLastWSP = -1;
+                int lLastNonWSP = -1;
+
+                for (int i = 0; i < lStringBytes.Length; i++)
+                {
+                    var lByte = lStringBytes[i];
+
+                    if (lByte == cASCII.TAB || lByte == cASCII.SPACE) lLastWSP = i;
+                    else llastnonWSP = i;
+
+                    if (lBytesOnCurrentLine >= 78 && lLastWSP >= 0)
+                    {
+                        for (int j = lFirstByteOnLine; j < lLastWSP; j++) lResult.Add(lStringBytes[j]);
+
+                        lResult.Add(cASCII.CR);
+                        lResult.Add(cASCII.LF);
+
+                        lBytesOnCurrentLine = 1;
+                        lFirstByteOnLine = lLastWSP;
+                        lLastWSP = -1;
+                    }
+                    else lBytesOnCurrentLine++;
+                }
+
+                for (int j = lFirstByteOnLine; j < lStringBytes.Length; j++) lResult.Add(lStringBytes[j]);
+
+                return lResult;
+            }
+
+            var lEncoding = Encoding ?? pDefaultEncoding;
+
+            ;?;
+        }
+
+        public override string ToString() => $"{nameof(cEncodedWordAppendDataPart)}({BytesAlreadyOnLine},{String},{Encoding?.WebName})";
+
+        internal static void _Tests(cTrace.cContext pParentContext)
+        {
+            ZTestUTF8Enabled(0, "a", "a");
+            ZTestUTF8Enabled(0, " ", " ");
+            //                      abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                         x                
+            //                      abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                        
+            //ZTestUTF8Enabled(0,  "12345678901234567890123456789012345678901234567890123456789012345678901234567890")
+            ZTestUTF8Enabled(  0 , "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+            ZTestUTF8Enabled(  23, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+            ZTestUTF8Enabled(  24, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+            ZTestUTF8Enabled(  25, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+            ZTestUTF8Enabled(  26, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz");
+
+            ;?; // probably going to coalese white space and trim from the end so these need revision
+
+            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz  abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz  abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz  \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                         abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                        \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                          abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                         \r\n  abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+
+
+
+
+
+            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz  abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz  abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+
+        }
+    }
+
+    public class cMimeParameterAppendDataPart : cAppendDataPart
+    {
+        public readonly string Attribute;
+        public readonly string Value; // nullable (then the value must be encoded as a quoted-string
+        public readonly Encoding Encoding; // nullable (if null the multipart's encoding is used)
+
+        public cMimeParameterAppendDataPart(string pAttribute, string pValue, Encoding pEncoding = null)
+        {
+            if (pAttribute == null) throw new ArgumentNullException(nameof(pAttribute));
+            if (pAttribute.Length == 0) throw new ArgumentOutOfRangeException(nameof(pAttribute));
+            if (!cCharset.RFC2047Token.ContainsAll(pAttribute)) throw new ArgumentOutOfRangeException(nameof(pAttribute));
+            if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
+            Attribute = pAttribute;
+            Value = pValue;
+            Encoding = pEncoding;
+        }
+
+        public override bool HasContent => true;
+
+        internal List<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
+        {
+
+        }
+
+        public override string ToString() => $"{nameof(cMimeParameterAppendDataPart)}({Attribute},{Value},{Encoding?.WebName})";
     }
 
     public class cFileAppendDataPart : cAppendDataPart

@@ -25,6 +25,7 @@ namespace work.bacome.imapclient
             private cStorableFlags mAppendDefaultFlags;
             private int mAppendTargetBufferSize;
             private cBatchSizerConfiguration mAppendStreamReadConfiguration;
+            private Encoding mEncoding;
 
             private cCommandPartFactory mCommandPartFactory;
             private cCommandPartFactory mEncodingPartFactory;
@@ -68,12 +69,11 @@ namespace work.bacome.imapclient
 
                 mAppendDefaultFlags = pAppendDefaultFlags;
                 mAppendTargetBufferSize = pAppendTargetBufferSize;
-                mAppendStreamReadConfiguration = pAppendStreamReadConfiguration;
+                mAppendStreamReadConfiguration = pAppendStreamReadConfiguration ?? throw new ArgumentNullException(nameof(pAppendStreamReadConfiguration));
+                mEncoding = pEncoding ?? throw new ArgumentNullException(nameof(pEncoding));
 
                 mCommandPartFactory = new cCommandPartFactory(false, null);
-
-                if (pEncoding == null) mEncodingPartFactory = mCommandPartFactory;
-                else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
+                mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
             }
 
             public bool TLSInstalled => mPipeline.TLSInstalled;
@@ -168,8 +168,9 @@ namespace work.bacome.imapclient
 
             public void SetEncoding(Encoding pEncoding, cTrace.cContext pParentContext)
             {
-                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetEncoding), pEncoding.WebName);
-                if ((EnabledExtensions & fEnableableExtensions.utf8) != 0 || pEncoding == null) mEncodingPartFactory = mCommandPartFactory;
+                var lContext = pParentContext.NewMethod(nameof(cSession), nameof(SetEncoding), pEncoding);
+                mEncoding = pEncoding ?? throw new ArgumentNullException(nameof(pEncoding));
+                if ((EnabledExtensions & fEnableableExtensions.utf8) != 0) mEncodingPartFactory = mCommandPartFactory;
                 else mEncodingPartFactory = new cCommandPartFactory(false, pEncoding);
             }
 

@@ -533,11 +533,6 @@ namespace work.bacome.imapclient
         }
     }
 
-    public class cMailMessageException : cIMAPException
-    {
-        internal cMailMessageException() { }
-    }
-
     public class cStreamRanOutOfDataException : cIMAPException
     {
         internal cStreamRanOutOfDataException() { }

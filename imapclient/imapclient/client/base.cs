@@ -761,8 +761,9 @@ namespace work.bacome.imapclient
         /// </summary>
         /// <remarks>
         /// The default value is <see cref="Encoding.UTF8"/>.
-        /// Only used when filtering by message content.
-        /// If the connected server does not support the encoding it will reject filters that use it and the library will throw <see cref="cUnsuccessfulCompletionException"/> with <see cref="eResponseTextCode.badcharset"/>.
+        /// Used when filtering by message content and when appending message data.
+        /// When filtering, if the connected server does not support the encoding it will reject filters that use it and the library will throw <see cref="cUnsuccessfulCompletionException"/> with <see cref="eResponseTextCode.badcharset"/>.
+        /// When appending, if an encoding is not specified for string append data and <see cref="fEnableableExtensions.utf8"/> is not enabled, then this encoding is used.
         /// </remarks>
         /// <seealso cref="cFilterPart"/>
         /// <seealso cref="cFilter.HeaderFieldContains(string, string)"/>
@@ -770,15 +771,17 @@ namespace work.bacome.imapclient
         /// <seealso cref="cUnsuccessfulCompletionException.ResponseText"/>
         /// <seealso cref="cResponseText.Code"/>
         /// <seealso cref="cResponseText.Arguments"/>
+        /// <seealso cref="cStringAppendData"/>
+        /// <seealso cref="cStringAppendDataPart"/>
         public Encoding Encoding
         {
             get => mEncoding;
 
             set
             {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(Encoding), value.WebName);
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(Encoding), value);
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                if (!cCommandPartFactory.TryAsCharsetName(value.WebName, out _)) throw new ArgumentOutOfRangeException();
+                if (!cCommandPartFactory.TryAsCharsetName(value, out _)) throw new ArgumentOutOfRangeException();
                 mEncoding = value;
                 mSession?.SetEncoding(value, lContext);
             }

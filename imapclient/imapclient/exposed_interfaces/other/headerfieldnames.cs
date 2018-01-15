@@ -329,8 +329,7 @@ namespace work.bacome.imapclient
         {
             if (pName == null) return false;
             if (pName.Length == 0) return false;
-            foreach (char lChar in pName) if (!cCharset.FText.Contains(lChar)) return false;
-            return true;
+            return cCharset.FText.ContainsAll(pName);
         }
 
         internal static bool TryConstruct(IEnumerable<string> pNames, out cHeaderFieldNameList rNames)

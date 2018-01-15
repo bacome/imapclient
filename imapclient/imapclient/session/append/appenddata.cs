@@ -101,10 +101,11 @@ namespace work.bacome.imapclient
             {
                 private cBytes mBytes;
 
-                public cSessionBytesAppendData(cStorableFlags pFlags, DateTime? pReceived, string pString) : base(pFlags, pReceived)
+                public cSessionBytesAppendData(cStorableFlags pFlags, DateTime? pReceived, byte[] pBytes) : base(pFlags, pReceived)
                 {
-                    mBytes = new cBytes(Encoding.UTF8.GetBytes(pString));
-                    if (mBytes.Count == 0) throw new ArgumentOutOfRangeException(nameof(pString));
+                    if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
+                    if (pBytes.Length == 0) throw new ArgumentOutOfRangeException(nameof(pBytes));
+                    mBytes = new cBytes(pBytes);
                 }
 
                 public override uint Length => (uint)mBytes.Count;
@@ -425,10 +426,10 @@ namespace work.bacome.imapclient
             {
                 private cBytes mBytes;
 
-                public cCatenateBytesAppendDataPart(string pString)
+                public cCatenateBytesAppendDataPart(IList<byte> pBytes)
                 {
-                    if (pString == null) throw new ArgumentNullException(nameof(pString));
-                    mBytes = new cBytes(Encoding.UTF8.GetBytes(pString));
+                    if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
+                    mBytes = new cBytes(pBytes);
                 }
 
                 public override uint Length => (uint)mBytes.Count;
@@ -600,10 +601,10 @@ namespace work.bacome.imapclient
             {
                 private cBytes mBytes;
 
-                public cSessionBytesAppendDataPart(string pString)
+                public cSessionBytesAppendDataPart(IList<byte> pBytes)
                 {
-                    if (pString == null) throw new ArgumentNullException(nameof(pString));
-                    mBytes = new cBytes(Encoding.UTF8.GetBytes(pString));
+                    if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
+                    mBytes = new cBytes(pBytes);
                 }
 
                 public override uint Length => (uint)mBytes.Count;

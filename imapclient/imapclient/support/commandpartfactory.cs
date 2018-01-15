@@ -24,7 +24,7 @@ namespace work.bacome.imapclient
             {
                 Encoding = pEncoding;
                 if (pEncoding == null) CharsetName = null;
-                else if (!TryAsCharsetName(pEncoding.WebName, out CharsetName)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
+                else if (!TryAsCharsetName(pEncoding, out CharsetName)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
             }
         }
 
@@ -365,13 +365,21 @@ namespace work.bacome.imapclient
             throw new ArgumentOutOfRangeException(nameof(pString));
         }
 
-        public static bool TryAsCharsetName(string pString, out cTextCommandPart rResult)
+        public static bool TryAsCharsetName(Encoding pEncoding, out cTextCommandPart rResult)
         {
-            // rfc 3501 says a charset can be an astring; rfc 5256 says a charset can be an atom or a quoted string
-            //  I'm going with the latter here ...
-            //
-            if (TryAsAtom(pString, out rResult)) return true;
-            if (ZTryAsQuotedASCII(pString, false, out rResult)) return true;
+            // rfc 3501 says a charset can be an astring;
+            //  rfc 5256 says a charset can be an atom or a quoted string
+            //  rfc 2047 says a charset can be a 'token'
+
+            if (pEncoding == null || string.IsNullOrWhiteSpace(pEncoding.WebName)) { rResult = null; return false; }
+
+            // rfc 2047 restrictions
+            if (!cCharset.RFC2047Token.ContainsAll(pEncoding.WebName)) { rResult = null; return false; }
+
+            // rfc 5256 restrictions
+            if (TryAsAtom(pEncoding.WebName, out rResult)) return true;
+            if (ZTryAsQuotedASCII(pEncoding.WebName, false, out rResult)) return true;
+
             return false;
         }
 
