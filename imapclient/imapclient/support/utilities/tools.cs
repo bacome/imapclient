@@ -196,5 +196,27 @@ namespace work.bacome.imapclient
             if (lException.InnerExceptions.Count == 1) return lException.InnerExceptions[0];
             return pException;
         }
+
+        public static List<byte> CharsetName(Encoding pEncoding)
+        {
+            if (pEncoding == null) throw new ArgumentNullException(nameof(pEncoding));
+            List<byte> lResult = new List<byte>();
+            foreach (char lChar in pEncoding.WebName) lResult.Add((byte)lChar);
+            return lResult;
+        }
+
+        public static byte[] ByteToHexBytes(byte pByte)
+        {
+            byte[] lResult = new byte[2];
+            lResult[0] = LHexDigit(pByte >> 4);
+            lResult[1] = LHexDigit(pByte & 0b1111);
+            return lResult;
+
+            byte LHexDigit(int pNibble)
+            {
+                if (pNibble < 10) return (byte)(cASCII.ZERO + pNibble);
+                return (byte)(cASCII.A + pNibble - 10);
+            }
+        }
     }
 }

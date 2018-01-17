@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
             cHeaderFieldNameList._Tests(lContext);
             cHeaderFields._Tests(lContext);
             cStorableFlagList._Tests(lContext);
-            cEncodedWordAppendDataPart._Tests(lContext);
+            cEncodedWordsAppendDataPart._Tests(lContext);
         }
 
         private partial class cSession

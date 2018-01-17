@@ -315,8 +315,7 @@ namespace work.bacome.imapclient
                         if (lByte == cASCII.SLASH || !cCharset.BChar.Contains(lByte))
                         {
                             lBytes.Add(cASCII.PERCENT);
-                            LAddHexDigit(lByte >> 4);
-                            LAddHexDigit(lByte & 0b1111);
+                            lBytes.AddRange(cTools.ByteToHexBytes(lByte));
                         }
                         else lBytes.Add(lByte);
                     }
@@ -352,14 +351,6 @@ namespace work.bacome.imapclient
                     // done
                     rPart = new cCatenateURLAppendDataPart(new cTextCommandPart(lBytes));
                     return true;
-
-                    void LAddHexDigit(int pNibble)
-                    {
-                        if (pNibble < 10) lBytes.Add((byte)(cASCII.ZERO + pNibble));
-                        else if (pNibble < 16) lBytes.Add((byte)(cASCII.A + pNibble - 10));
-                        else throw new cInternalErrorException();
-                    }
-
                 }
 
                 public override uint Length => 0;

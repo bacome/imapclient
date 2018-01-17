@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Net.Mail;
 using System.Text;
@@ -321,19 +322,26 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cStringAppendDataPart)}({String},{Encoding?.WebName})";
     }
 
-    public enum eEncodedWordLocation { text, comment, word }
+    public enum eEncodedWordsLocation { unstructured, ccontent, qcontent }
 
-    public class cEncodedWordAppendDataPart : cAppendDataPart
+    public class cEncodedWordsAppendDataPart : cAppendDataPart
     {
-        public readonly int BytesAlreadyOnLine;
-        public readonly eEncodedWordLocation Location;
+        // designed to handle UTF8 on or off, nothing else
+        //  in particular: it does not make an arbitrary string safe to be used in the location specified: this is the responsibility of the composing code
+        //  all this class does is convert words containing non-ascii characters to either unadorned UTF8 (if UTF8 is in use) or encoded words
+        //  it is the caller's job to make sure that the ascii characters in the string are safe to use in the location 
+
+        // qcontent ... if the byte sequence is \\ or \" then this must pass through
+        // ccontent ... ditto
+        // 
+
+        public readonly eEncodedWordsLocation Location;
         public readonly string String;
         public readonly Encoding Encoding; // nullable (if null the multipart's encoding is used)
 
-        public cEncodedWordAppendDataPart(int pBytesAlreadyOnLine, eEncodedWordLocation pLocation, string pString, Encoding pEncoding = null)
+        public cEncodedWordsAppendDataPart(eEncodedWordsLocation pLocation, string pString, Encoding pEncoding = null)
         {
-            if (pBytesAlreadyOnLine < 0) throw new ArgumentOutOfRangeException(nameof(pBytesAlreadyOnLine));
-            BytesAlreadyOnLine = pBytesAlreadyOnLine;
+            Location = pLocation;
             String = pString ?? throw new ArgumentNullException(nameof(pString));
             if (pString.Length < 1) throw new ArgumentOutOfRangeException(nameof(pString));
             if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
@@ -343,84 +351,289 @@ namespace work.bacome.imapclient
 
         public override bool HasContent => true;
 
-        internal List<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
+        internal IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
         {
             if (pDefaultEncoding == null) throw new ArgumentNullException(nameof(pDefaultEncoding));
 
+            if (pUTF8Enabled) return Encoding.UTF8.GetBytes(String);
+
             List<byte> lResult = new List<byte>();
 
-            if (pUTF8Enabled)
+            var lEncoding = Encoding ?? pDefaultEncoding;
+            var lCharsetName = cTools.CharsetName(lEncoding);
+
+            char lChar;
+            List<char> lWSPChars = new List<char>();
+            List<char> lWordChars = new List<char>();
+            List<char> lEncodeableWordChars = new List<char>(); // the word chars less the quotes on quoted pairs
+            bool lWordHasNonASCIIChars = false;
+            List<char> lCharsToEncode = new List<char>();
+            bool lLastWordWasAnEncodedWord = false;
+
+            // loop through the lines
+
+            int lStartIndex = 0;
+
+            while (true)
             {
-                ;?; // note that this can produce 'blank' lines, if the text ends with white space it will add it => could generate a blank line at end if it folds just before 
+                int lIndex = String.IndexOf("\r\n", lStartIndex);
 
-                var lStringBytes = Encoding.UTF8.GetBytes(String);
+                string lLine;
 
-                int lBytesOnCurrentLine = BytesAlreadyOnLine;
-                int lFirstByteOnLine = 0;
-                int lLastWSP = -1;
-                int lLastNonWSP = -1;
+                if (lIndex == -1) lLine = String.Substring(lStartIndex);
+                else if (lIndex == lStartIndex) lLine = string.Empty;
+                else lLine = String.Substring(lStartIndex, lIndex - lStartIndex);
 
-                for (int i = 0; i < lStringBytes.Length; i++)
+                // loop through the words
+
+                int lPosition = 0;
+
+                while (lPosition < lLine.Length)
                 {
-                    var lByte = lStringBytes[i];
+                    // extract optional white space
 
-                    if (lByte == cASCII.TAB || lByte == cASCII.SPACE) lLastWSP = i;
-                    else llastnonWSP = i;
-
-                    if (lBytesOnCurrentLine >= 78 && lLastWSP >= 0)
+                    while (lPosition < lLine.Length)
                     {
-                        for (int j = lFirstByteOnLine; j < lLastWSP; j++) lResult.Add(lStringBytes[j]);
+                        lChar = lLine[lPosition];
 
-                        lResult.Add(cASCII.CR);
-                        lResult.Add(cASCII.LF);
+                        if (lChar != '\t' && lChar != ' ') break;
 
-                        lBytesOnCurrentLine = 1;
-                        lFirstByteOnLine = lLastWSP;
-                        lLastWSP = -1;
+                        lWSPChars.Add(lChar);
+                        lPosition++;
                     }
-                    else lBytesOnCurrentLine++;
+
+                    // extract optional word
+
+                    bool lInQuotedPair = false;
+
+                    while (lPosition < lLine.Length)
+                    {
+                        lChar = lLine[lPosition];
+
+                        if (lInQuotedPair)
+                        {
+                            lWordChars.Add(lChar);
+                            lEncodeableWordChars.Add(lChar);
+                            lInQuotedPair = false;
+                        }
+                        else
+                        {
+                            if (lChar == '\t' || lChar == ' ') break;
+
+                            lWordChars.Add(lChar);
+
+                            if (lChar == '\\' && Location != eEncodedWordsLocation.unstructured) lInQuotedPair = true;
+                            else lEncodeableWordChars.Add(lChar);
+                        }
+
+                        if (lChar > cChar.DEL) lWordHasNonASCIIChars = true;
+
+                        lPosition++;
+                    }
+
+                    // process the white space and word
+
+                    if (lWordHasNonASCIIChars || ZLooksLikeAnEncodedWord(lWordChars))
+                    {
+                        if (lCharsToEncode.Count == 0 && lWSPChars.Count > 0) lResult.AddRange(ZToASCIIBytes(lWSPChars));
+                        if (lCharsToEncode.Count > 0 || lLastWordWasAnEncodedWord) lCharsToEncode.Add(' ');
+                        lCharsToEncode.AddRange(lEncodeableWordChars);
+                    }
+                    else
+                    {
+                        if (lCharsToEncode.Count > 0)
+                        {
+                            lResult.AddRange(ZToEncodedWordBytes(lCharsToEncode, lEncoding, lCharsetName));
+                            lLastWordWasAnEncodedWord = true;
+                            lCharsToEncode.Clear();
+                        }
+
+                        if (lWSPChars.Count > 0) lResult.AddRange(ZToASCIIBytes(lWSPChars));
+
+                        if (lWordChars.Count > 0)
+                        {
+                            lResult.AddRange(ZToASCIIBytes(lWordChars));
+                            lLastWordWasAnEncodedWord = false;
+                        }
+                    }
+
+                    // prepare for next wsp word pair
+
+                    lWSPChars.Clear();
+                    lWordChars.Clear();
+                    lEncodeableWordChars.Clear();
+                    lWordHasNonASCIIChars = false;
                 }
 
-                for (int j = lFirstByteOnLine; j < lStringBytes.Length; j++) lResult.Add(lStringBytes[j]);
+                if (lCharsToEncode.Count > 0)
+                {
+                    lResult.AddRange(ZToEncodedWordBytes(lCharsToEncode, lEncoding, lCharsetName));
+                    lLastWordWasAnEncodedWord = true;
+                    lCharsToEncode.Clear();
+                }
 
-                return lResult;
+                // line and loop termination
+
+                if (lIndex == -1) break;
+
+                lResult.Add(cASCII.CR);
+                lResult.Add(cASCII.LF);
+
+                lStartIndex = lIndex + 2;
+
+                if (lStartIndex == String.Length) break;
             }
 
-            var lEncoding = Encoding ?? pDefaultEncoding;
-
-            ;?;
+            return lResult;
         }
 
-        public override string ToString() => $"{nameof(cEncodedWordAppendDataPart)}({BytesAlreadyOnLine},{String},{Encoding?.WebName})";
+        private bool ZLooksLikeAnEncodedWord(List<char> pChars)
+        {
+            if (pChars.Count < 9) return false;
+            if (pChars[0] == '=' && pChars[1] == '?' && pChars[pChars.Count - 2] == '?' && pChars[pChars.Count - 1] == '=') return true;
+            return false;
+        }
+
+        private List<byte> ZToASCIIBytes(List<char> pChars)
+        {
+            List<byte> lResult = new List<byte>(pChars.Count);
+            foreach (char lChar in pChars) lResult.Add((byte)lChar);
+            return lResult;
+        }
+
+        private List<byte> ZToEncodedWordBytes(List<char> pChars, Encoding pEncoding, List<byte> pCharsetName)
+        {
+            StringInfo lString = new StringInfo(new string(pChars.ToArray()));
+
+            int lMaxEncodedByteCount = 75 - 7 - pCharsetName.Count;
+
+            List<byte> lResult = new List<byte>();
+
+            int lFromTextElement = 0;
+            int lTextElementCount = 1;
+
+            int lLastTextElementCount = 0;
+            byte lLastEncoding = cASCII.NUL;
+            List<byte> lLastEncodedText = null;
+
+            while (lFromTextElement + lTextElementCount <= lString.LengthInTextElements)
+            {
+                var lBytes = pEncoding.GetBytes(lString.SubstringByTextElements(lFromTextElement, lTextElementCount));
+
+                var lQEncodedText = ZQEncode(lBytes);
+                var lBEncodedText = cBase64.Encode(lBytes);
+
+                if (lTextElementCount == 1 || lQEncodedText.Count <= lMaxEncodedByteCount || lBEncodedText.Count <= lMaxEncodedByteCount)
+                {
+                    lLastTextElementCount = lTextElementCount;
+
+                    if (lQEncodedText.Count < lBEncodedText.Count)
+                    {
+                        lLastEncoding = cASCII.q;
+                        lLastEncodedText = lQEncodedText;
+                    }
+                    else
+                    {
+                        lLastEncoding = cASCII.b;
+                        lLastEncodedText = lBEncodedText;
+                    }
+                }
+
+                if (lQEncodedText.Count > lMaxEncodedByteCount && lBEncodedText.Count > lMaxEncodedByteCount)
+                {
+                    lResult.AddRange(ZToEncodedWord(lFromTextElement == 0, pCharsetName, lLastEncoding, lLastEncodedText));
+
+                    lFromTextElement = lFromTextElement + lTextElementCount;
+                    lTextElementCount = 1;
+                }
+                else lTextElementCount++;
+            }
+
+            if (lFromTextElement < lString.LengthInTextElements) lResult.AddRange(ZToEncodedWord(lFromTextElement == 0, pCharsetName, lLastEncoding, lLastEncodedText));
+
+            return lResult;
+        }
+
+        private List<byte> ZQEncode(byte[] pBytes)
+        {
+            List<byte> lResult = new List<byte>();
+
+            foreach (var lByte in pBytes)
+            {
+                bool lEncode;
+
+                if (lByte <= cASCII.SPACE || lByte == cASCII.EQUALS || lByte == cASCII.QUESTIONMARK || lByte == cASCII.UNDERSCORE || lByte >= cASCII.DEL) lEncode = true;
+                else if (Location == eEncodedWordsLocation.ccontent) lEncode = lByte == cASCII.LPAREN || lByte == cASCII.RPAREN || lByte == cASCII.BACKSL;
+                else if (Location == eEncodedWordsLocation.qcontent)
+                {
+                    if (lByte == cASCII.EXCLAMATION || lByte == cASCII.ASTERISK || lByte == cASCII.PLUS || lByte == cASCII.HYPEN || lByte == cASCII.SLASH) lEncode = false;
+                    else if (lByte < cASCII.ZERO) lEncode = true;
+                    else if (lByte <= cASCII.NINE) lEncode = false;
+                    else if (lByte < cASCII.A) lEncode = true;
+                    else if (lByte <= cASCII.Z) lEncode = false;
+                    else if (lByte < cASCII.a) lEncode = true;
+                    else if (lByte <= cASCII.z) lEncode = false;
+                    else lEncode = true;
+                }
+                else lEncode = false;
+
+                if (lEncode)
+                {
+                    lResult.Add(cASCII.EQUALS);
+                    lResult.AddRange(cTools.ByteToHexBytes(lByte));
+                }
+                else lResult.Add(lByte);
+            }
+
+            return lResult;
+        }
+
+        private List<byte> ZToEncodedWord(bool pFirst, List<byte> pCharsetName, byte pEncoding, List<byte> pEncodedText)
+        {
+            List<byte> lBytes = new List<byte>(75);
+            lBytes.Add(cASCII.EQUALS);
+            lBytes.Add(cASCII.QUESTIONMARK);
+            lBytes.AddRange(pCharsetName);
+            lBytes.Add(cASCII.QUESTIONMARK);
+            lBytes.Add(pEncoding);
+            lBytes.Add(cASCII.QUESTIONMARK);
+            lBytes.AddRange(pEncodedText);
+            lBytes.Add(cASCII.QUESTIONMARK);
+            lBytes.Add(cASCII.EQUALS);
+            return lBytes;
+        }
+
+        public override string ToString() => $"{nameof(cEncodedWordsAppendDataPart)}({Location},{String},{Encoding?.WebName})";
 
         internal static void _Tests(cTrace.cContext pParentContext)
         {
-            ZTestUTF8Enabled(0, "a", "a");
-            ZTestUTF8Enabled(0, " ", " ");
-            //                      abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                         x                
-            //                      abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                        
-            //ZTestUTF8Enabled(0,  "12345678901234567890123456789012345678901234567890123456789012345678901234567890")
-            ZTestUTF8Enabled(  0 , "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
-            ZTestUTF8Enabled(  23, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
-            ZTestUTF8Enabled(  24, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
-            ZTestUTF8Enabled(  25, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
-            ZTestUTF8Enabled(  26, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz\r\n abcdefghijklmnopqrstuvwxyz");
+            ZTest("8.1.1", eEncodedWordsLocation.qcontent, "Keld Jørn Simonsen", "Keld =?iso-8859-1?q?J=F8rn?= Simonsen", "ISO-8859-1");
+            ZTest("8.1.2", eEncodedWordsLocation.qcontent, "Keld Jøørn Simonsen", "Keld =?iso-8859-1?b?Svj4cm4=?= Simonsen", "ISO-8859-1"); // should switch to base64
+            ZTest("8.1.3", eEncodedWordsLocation.qcontent, "Keld Jørn Simonsen", "Keld =?utf-8?b?SsO4cm4=?= Simonsen"); // should use utf8
 
-            ;?; // probably going to coalese white space and trim from the end so these need revision
+            ;?; // more tests to do
+        }
 
-            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz  abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
-            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz  abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
-            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz   abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz  \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
-            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                         abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                        \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
-            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                          abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz                         \r\n  abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
+        private static void ZTest(string pTestName, eEncodedWordsLocation pLocation, string pString, string pExpected = null, string pCharsetName = null)
+        {
+            Encoding lEncoding;
+            if (pCharsetName == null) lEncoding = null;
+            else lEncoding = Encoding.GetEncoding(pCharsetName);
+            cEncodedWordsAppendDataPart lEW = new cEncodedWordsAppendDataPart(pLocation, pString, lEncoding);
+            var lBytes = lEW.GetBytes(false, Encoding.UTF8);
 
+            cCulturedString lCS = new cCulturedString(lBytes);
+            string lString;
+            
+            
+            lString = lCS.ToString();
+            if (lString != pString) throw new cTestsException($"{nameof(cEncodedWordsAppendDataPart)}({pTestName}.s : {lString})");
 
+            lString = cTools.ASCIIBytesToString(lBytes);
 
+            if (pExpected == null) return;
 
-
-            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz  abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
-            ZTestUTF8Enabled(   0, "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz  abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz \r\n abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz");
-
+            if (lString != pExpected) throw new cTestsException($"{nameof(cEncodedWordsAppendDataPart)}({pTestName}.e : {lString})");
         }
     }
 
@@ -445,7 +658,8 @@ namespace work.bacome.imapclient
 
         internal List<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
         {
-
+            throw new NotImplementedException();
+            // TODO!
         }
 
         public override string ToString() => $"{nameof(cMimeParameterAppendDataPart)}({Attribute},{Value},{Encoding?.WebName})";

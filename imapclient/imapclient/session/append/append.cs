@@ -285,9 +285,9 @@ namespace work.bacome.imapclient
                                                     break;
                                                 }
 
-                                            case cEncodedWordAppendDataPart lEncodedWord:
+                                            case cEncodedWordsAppendDataPart lEncodedWords:
 
-                                                lParts.Add(new cCatenateBytesAppendDataPart(lEncodedWord.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding)));
+                                                lParts.Add(new cCatenateBytesAppendDataPart(lEncodedWords.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding)));
                                                 break;
 
                                             case cMimeParameterAppendDataPart lMimeParameter:
@@ -357,10 +357,10 @@ namespace work.bacome.imapclient
                                                     break;
                                                 }
 
-                                            case cEncodedWordAppendDataPart lEncodedWord:
+                                            case cEncodedWordsAppendDataPart lEncodedWords:
 
                                                 {
-                                                    var lBytes = new cSessionBytesAppendDataPart(lEncodedWord.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding));
+                                                    var lBytes = new cSessionBytesAppendDataPart(lEncodedWords.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding));
                                                     lParts.Add(lBytes);
                                                     lLength += lBytes.Length;
                                                     break;

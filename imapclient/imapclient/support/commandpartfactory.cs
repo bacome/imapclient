@@ -383,10 +383,10 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        public static cCommandPart AsCharsetName(string pString)
+        public static cCommandPart AsCharsetName(Encoding pEncoding)
         {
-            if (TryAsCharsetName(pString, out var lResult)) return lResult;
-            throw new ArgumentOutOfRangeException(nameof(pString));
+            if (TryAsCharsetName(pEncoding, out var lResult)) return lResult;
+            throw new ArgumentOutOfRangeException(nameof(pEncoding));
         }
 
         private static cByteList ZIntToBytes(int pNumber, int pMinLength)
