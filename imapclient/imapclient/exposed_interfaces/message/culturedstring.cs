@@ -17,6 +17,11 @@ namespace work.bacome.imapclient
     /// <seealso cref="cSinglePartBody.Description"/>
     public class cCulturedString
     {
+        private static byte[] kSpace = new byte[] { cASCII.SPACE };
+        private static byte[] kCRLFSPACE = new byte[] { cASCII.CR, cASCII.LF, cASCII.SPACE };
+        private static byte[] kTab = new byte[] { cASCII.TAB };
+        private static byte[] kCRLFTAB = new byte[] { cASCII.CR, cASCII.LF, cASCII.TAB };
+
         /// <summary>
         /// The parts of the string. May be <see langword="null"/>.
         /// </summary>
@@ -36,13 +41,42 @@ namespace work.bacome.imapclient
 
             List<cCulturedStringPart> lParts = new List<cCulturedStringPart>();
             cByteList lBytes = new cByteList();
-            bool lPendingSpace = false;
+            byte[] lPendingWSP = null;
 
             while (!lCursor.Position.AtEnd)
             {
                 var lBookmark = lCursor.Position;
 
-                if (lCursor.ProcessEncodedWord(out var lString, out var lLanguageTag) && (lCursor.Position.AtEnd || lCursor.SkipByte(cASCII.SPACE)))
+                bool lFoundEncodedWord;
+
+                if (lCursor.ProcessEncodedWord(out var lString, out var lLanguageTag))
+                {
+                    if (lCursor.Position.AtEnd) lFoundEncodedWord = true;
+                    else if (lCursor.SkipByte(cASCII.SPACE))
+                    {
+                        lFoundEncodedWord = true;
+                        lPendingWSP = kSpace;
+                    }
+                    else if (lCursor.SkipBytes(kCRLFSPACE))
+                    {
+                        lFoundEncodedWord = true;
+                        lPendingWSP = kCRLFSPACE;
+                    }
+                    else if (lCursor.SkipByte(cASCII.TAB))
+                    {
+                        lFoundEncodedWord = true;
+                        lPendingWSP = kTab;
+                    }
+                    else if (lCursor.SkipBytes(kCRLFTAB))
+                    {
+                        lFoundEncodedWord = true;
+                        lPendingWSP = kCRLFTAB;
+                    }
+                    else lFoundEncodedWord = false;
+                }
+                else lFoundEncodedWord = false;
+
+                if (lFoundEncodedWord)
                 {
                     if (lBytes.Count > 0)
                     {
@@ -51,17 +85,15 @@ namespace work.bacome.imapclient
                     }
 
                     lParts.Add(new cCulturedStringPart(lString, lLanguageTag));
-
-                    lPendingSpace = true;
                 }
                 else
                 {
                     lCursor.Position = lBookmark;
 
-                    if (lPendingSpace)
+                    if (lPendingWSP != null)
                     {
-                        lBytes.Add(cASCII.SPACE);
-                        lPendingSpace = false;
+                        lBytes.AddRange(lPendingWSP);
+                        lPendingWSP = null;
                     }
 
                     if (!lCursor.GetByte(out var lByte)) break;

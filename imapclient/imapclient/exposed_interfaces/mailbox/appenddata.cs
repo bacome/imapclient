@@ -331,10 +331,6 @@ namespace work.bacome.imapclient
         //  all this class does is convert words containing non-ascii characters to either unadorned UTF8 (if UTF8 is in use) or encoded words
         //  it is the caller's job to make sure that the ascii characters in the string are safe to use in the location 
 
-        // qcontent ... if the byte sequence is \\ or \" then this must pass through
-        // ccontent ... ditto
-        // 
-
         public readonly eEncodedWordsLocation Location;
         public readonly string String;
         public readonly Encoding Encoding; // nullable (if null the multipart's encoding is used)
@@ -541,15 +537,15 @@ namespace work.bacome.imapclient
 
                 if (lQEncodedText.Count > lMaxEncodedByteCount && lBEncodedText.Count > lMaxEncodedByteCount)
                 {
-                    lResult.AddRange(ZToEncodedWord(lFromTextElement == 0, pCharsetName, lLastEncoding, lLastEncodedText));
+                    lResult.AddRange(ZToEncodedWord(lFromTextElement, pCharsetName, lLastEncoding, lLastEncodedText));
 
-                    lFromTextElement = lFromTextElement + lTextElementCount;
+                    lFromTextElement = lFromTextElement + lLastTextElementCount;
                     lTextElementCount = 1;
                 }
                 else lTextElementCount++;
             }
 
-            if (lFromTextElement < lString.LengthInTextElements) lResult.AddRange(ZToEncodedWord(lFromTextElement == 0, pCharsetName, lLastEncoding, lLastEncodedText));
+            if (lFromTextElement < lString.LengthInTextElements) lResult.AddRange(ZToEncodedWord(lFromTextElement, pCharsetName, lLastEncoding, lLastEncodedText));
 
             return lResult;
         }
@@ -564,17 +560,7 @@ namespace work.bacome.imapclient
 
                 if (lByte <= cASCII.SPACE || lByte == cASCII.EQUALS || lByte == cASCII.QUESTIONMARK || lByte == cASCII.UNDERSCORE || lByte >= cASCII.DEL) lEncode = true;
                 else if (Location == eEncodedWordsLocation.ccontent) lEncode = lByte == cASCII.LPAREN || lByte == cASCII.RPAREN || lByte == cASCII.BACKSL;
-                else if (Location == eEncodedWordsLocation.qcontent)
-                {
-                    if (lByte == cASCII.EXCLAMATION || lByte == cASCII.ASTERISK || lByte == cASCII.PLUS || lByte == cASCII.HYPEN || lByte == cASCII.SLASH) lEncode = false;
-                    else if (lByte < cASCII.ZERO) lEncode = true;
-                    else if (lByte <= cASCII.NINE) lEncode = false;
-                    else if (lByte < cASCII.A) lEncode = true;
-                    else if (lByte <= cASCII.Z) lEncode = false;
-                    else if (lByte < cASCII.a) lEncode = true;
-                    else if (lByte <= cASCII.z) lEncode = false;
-                    else lEncode = true;
-                }
+                else if (Location == eEncodedWordsLocation.qcontent) lEncode = lByte == cASCII.DQUOTE || lByte == cASCII.BACKSL;
                 else lEncode = false;
 
                 if (lEncode)
@@ -588,9 +574,10 @@ namespace work.bacome.imapclient
             return lResult;
         }
 
-        private List<byte> ZToEncodedWord(bool pFirst, List<byte> pCharsetName, byte pEncoding, List<byte> pEncodedText)
+        private List<byte> ZToEncodedWord(int pFromTextElement, List<byte> pCharsetName, byte pEncoding, List<byte> pEncodedText)
         {
-            List<byte> lBytes = new List<byte>(75);
+            List<byte> lBytes = new List<byte>(76);
+            if (pFromTextElement > 0) lBytes.Add(cASCII.SPACE);
             lBytes.Add(cASCII.EQUALS);
             lBytes.Add(cASCII.QUESTIONMARK);
             lBytes.AddRange(pCharsetName);
@@ -607,14 +594,50 @@ namespace work.bacome.imapclient
 
         internal static void _Tests(cTrace.cContext pParentContext)
         {
-            ZTest("8.1.1", eEncodedWordsLocation.qcontent, "Keld Jørn Simonsen", "Keld =?iso-8859-1?q?J=F8rn?= Simonsen", "ISO-8859-1");
-            ZTest("8.1.2", eEncodedWordsLocation.qcontent, "Keld Jøørn Simonsen", "Keld =?iso-8859-1?b?Svj4cm4=?= Simonsen", "ISO-8859-1"); // should switch to base64
+            ZTest("8.1.1", eEncodedWordsLocation.qcontent, "Keld Jørn Simonsen", "Keld =?iso-8859-1?q?J=F8rn?= Simonsen", null, "ISO-8859-1");
+            ZTest("8.1.2", eEncodedWordsLocation.qcontent, "Keld Jøørn Simonsen", "Keld =?iso-8859-1?b?Svj4cm4=?= Simonsen", null, "ISO-8859-1"); // should switch to base64
             ZTest("8.1.3", eEncodedWordsLocation.qcontent, "Keld Jørn Simonsen", "Keld =?utf-8?b?SsO4cm4=?= Simonsen"); // should use utf8
 
-            ;?; // more tests to do
+            // adjacent words that need to be encoded are encoded together with one space between them
+            ZTest("joins.1", eEncodedWordsLocation.qcontent, "    A𠈓C A𠈓C fred fr€d fr€d fred  fr€d    fr€d    fred    fred ", "    =?utf-8?b?QfCgiJNDIEHwoIiTQw==?= fred =?utf-8?b?ZnLigqxkIGZy4oKsZA==?= fred  =?utf-8?b?ZnLigqxkIGZy4oKsZA==?=    fred    fred ", "    A𠈓C A𠈓C fred fr€d fr€d fred  fr€d fr€d    fred    fred ");
+
+            // if a line ends with an encoded word and the next line begins with an encoded word, a space is added to the beginning of the second encoded word to prevent them being joined on decoding
+            ZTest("spaces.1", eEncodedWordsLocation.qcontent, "    A𠈓C\r\n A𠈓C\r\n fred\r\n fr€d fr€d fred  fr€d fr€d    fred \r\n   fred ", null, "    A𠈓C A𠈓C\r\n fred\r\n fr€d fr€d fred  fr€d fr€d    fred \r\n   fred ");
+
+            // check that adjacent encoded words are in fact joined
+            ZTest("long.1", eEncodedWordsLocation.qcontent,
+                " 12345678901234567890123456789012345678901234567890123456789012345678901234567890\r\n 1234567890123456789012345678901234567890€12345678901234\r\n 1234567890123456789012345678901234567890€12345678901\r\n 1234567890123456789012345678901234567890€123456789012",
+                null,
+                " 12345678901234567890123456789012345678901234567890123456789012345678901234567890\r\n 1234567890123456789012345678901234567890€12345678901234 1234567890123456789012345678901234567890€12345678901 1234567890123456789012345678901234567890€123456789012"
+                );
+
+            // check that each encoded word is a whole number of characters
+            ZTest("charcounting.1", eEncodedWordsLocation.qcontent, " 𠈓𠈓𠈓𠈓𠈓a𠈓𠈓𠈓𠈓𠈓𠈓 fred 𠈓𠈓𠈓𠈓𠈓ab𠈓𠈓𠈓𠈓𠈓𠈓\r\n \r\n", " =?utf-8?b?8KCIk/CgiJPwoIiT8KCIk/CgiJNh8KCIk/CgiJPwoIiT8KCIk/CgiJPwoIiT?= fred =?utf-8?b?8KCIk/CgiJPwoIiT8KCIk/CgiJNhYvCgiJPwoIiT8KCIk/CgiJPwoIiT?= =?utf-8?b?8KCIkw==?=\r\n \r\n");
+
+            // q-encoding rule checks
+            
+            //  unstructured - e.g. subject
+            ZTest("q.1", eEncodedWordsLocation.unstructured, "Keld J\"#$%&'(),.:;<>@[\\]^`{|}~ørn Simonsen", "Keld =?iso-8859-1?q?J\"#$%&'(),.:;<>@[\\]^`{|}~=F8rn?= Simonsen", null, "ISO-8859-1");
+
+            //  ccontent - in a comment
+            ZTest("q.2", eEncodedWordsLocation.ccontent, "Keld J\"#$%&'(),.:;<>@[\\\\]^`{|}~ørn Simonsen", "Keld =?iso-8859-1?q?J\"#$%&'=28=29,.:;<>@[=5C]^`{|}~=F8rn?= Simonsen", "Keld J\"#$%&'(),.:;<>@[\\]^`{|}~ørn Simonsen", "ISO-8859-1");
+
+            //  qcontent - in a quoted string
+            ZTest("q.3", eEncodedWordsLocation.qcontent, "Keld J\"#$%&'(),.:;<>@[\\\\]^`{|}~ørn Simonsen", "Keld =?iso-8859-1?q?J=22#$%&'(),.:;<>@[=5C]^`{|}~=F8rn?= Simonsen", "Keld J\"#$%&'(),.:;<>@[\\]^`{|}~ørn Simonsen", "ISO-8859-1");
+
+            // check that a word that looks like an encoded word gets encoded
+            ;?;
+
+
+
+
+            //ZTest("8.1.1", eEncodedWordsLocation.qcontent, "Keld Jørn Simonsen", "Keld =?iso-8859-1?q?J=F8rn?= Simonsen", null, "ISO-8859-1");
+
+
+            //;?; // more tests to do
         }
 
-        private static void ZTest(string pTestName, eEncodedWordsLocation pLocation, string pString, string pExpected = null, string pCharsetName = null)
+        private static void ZTest(string pTestName, eEncodedWordsLocation pLocation, string pString, string pExpectedI = null, string pExpectedF = null, string pCharsetName = null)
         {
             Encoding lEncoding;
             if (pCharsetName == null) lEncoding = null;
@@ -623,17 +646,19 @@ namespace work.bacome.imapclient
             var lBytes = lEW.GetBytes(false, Encoding.UTF8);
 
             cCulturedString lCS = new cCulturedString(lBytes);
-            string lString;
-            
-            
-            lString = lCS.ToString();
-            if (lString != pString) throw new cTestsException($"{nameof(cEncodedWordsAppendDataPart)}({pTestName}.s : {lString})");
 
+            string lString;
+
+            // for stepping through
             lString = cTools.ASCIIBytesToString(lBytes);
 
-            if (pExpected == null) return;
+            lString = lCS.ToString();
+            if (lString != (pExpectedF ?? pString)) throw new cTestsException($"{nameof(cEncodedWordsAppendDataPart)}({pTestName}.f : {lString})");
 
-            if (lString != pExpected) throw new cTestsException($"{nameof(cEncodedWordsAppendDataPart)}({pTestName}.e : {lString})");
+            if (pExpectedI == null) return;
+
+            lString = cTools.ASCIIBytesToString(lBytes);
+            if (lString != pExpectedI) throw new cTestsException($"{nameof(cEncodedWordsAppendDataPart)}({pTestName}.i : {lString})");
         }
     }
 
