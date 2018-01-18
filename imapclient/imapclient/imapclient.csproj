@@ -47,6 +47,7 @@
     <Compile Include="exposed_interfaces\configuration\appendconfiguration.cs" />
     <Compile Include="exposed_interfaces\mailbox\appendfeedback.cs" />
     <Compile Include="exposed_interfaces\mailbox\appenddata.cs" />
+    <Compile Include="exposed_interfaces\mailbox\appendnonasciitext.cs" />
     <Compile Include="exposed_interfaces\message\messagedatastream.cs" />
     <Compile Include="exposed_interfaces\other\eventsubscriptioncounts.cs" />
     <Compile Include="session\append\append.cs" />
