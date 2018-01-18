@@ -20,9 +20,7 @@ namespace work.bacome.imapclient
             mEncoding = pEncoding;
         }
 
-        internal override bool HasContent => true;
-
-        protected internal abstract IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding);
+        internal abstract IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding);
 
         protected List<byte> YGetTextBytes(string pText, Encoding pDefaultEncoding, bool pHandleQuotedPairs, dNeedsEncoding pNeedsEncoding, dGetBytesForNonEncodedWord pGetBytesForNonEncodedWord, eQEncodingRestriction pQEncodingRestriction)
         {
@@ -278,15 +276,57 @@ namespace work.bacome.imapclient
 
     public class cUnstructuredTextAppendDataPart : cNonASCIITextAppendDataPart
     {
+        // the text must be valid RFC 5322/6532 unstructured (excluding obs-unstruct)
+        //  simply converts VCHAR that is UTF8 to encoded words if UTF8 is not in use
+
         private readonly string mText;
 
         public cUnstructuredTextAppendDataPart(string pText, Encoding pEncoding = null) : base(pEncoding)
         {
             mText = pText ?? throw new ArgumentNullException(nameof(pText));
-            if (pText.Length < 1) throw new ArgumentOutOfRangeException(nameof(pText));
+
+            int lFWSStage = 0;
+            bool lLastWasFWS = false;
+
+            foreach (char lChar in pText)
+            {
+                switch (lFWSStage)
+                {
+                    case 0:
+
+                        if (lChar == '\r')
+                        {
+                            lFWSStage = 1;
+                            break;
+                        }
+
+                        if (lChar < ' ' || lChar == cChar.DEL) throw new ArgumentOutOfRangeException(nameof(pText));
+
+                        if (lChar != ' ') lLastWasFWS = false;
+
+                        break;
+
+                    case 1:
+
+                        if (lChar != '\n') throw new ArgumentOutOfRangeException(nameof(pText));
+                        lFWSStage = 2;
+                        break;
+
+                    case 2:
+
+                        if (lChar != '\t' && lChar != ' ') throw new ArgumentOutOfRangeException(nameof(pText));
+                        lFWSStage = 0;
+                        lLastWasFWS = true;
+                        break;
+                }
+            }
+
+            if (lFWSStage != 0 || lLastWasFWS) throw new ArgumentOutOfRangeException(nameof(pText));
         }
 
-        protected internal override IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
+        internal override bool HasContent => mText.Length > 0;
+
+        internal override IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
         {
             if (pDefaultEncoding == null) throw new ArgumentNullException(nameof(pDefaultEncoding));
 
@@ -301,15 +341,68 @@ namespace work.bacome.imapclient
 
     public class cCommentTextAppendDataPart : cNonASCIITextAppendDataPart
     {
+        // the text is the text of the comment, without the surrounding ()
+        //  the text must be valid RFC 5322 FWS or 5234/6532 VCHAR; quoted-pair and embedded comments (these should be separated out into separate cCommentTextAppendDataPart objects at a higher level) are not allowed 
+        //  simply converts ctext that is UTF8 to encoded words if UTF8 is not in use
+
         private readonly string mText;
 
         public cCommentTextAppendDataPart(string pText, Encoding pEncoding = null) : base(pEncoding)
         {
+            ;?; // nah mate. 
+            ;?; //  do the quoting as the string is read in
+            ;?; //  quote (, ) and \
+
             mText = pText ?? throw new ArgumentNullException(nameof(pText));
-            if (pText.Length < 1) throw new ArgumentOutOfRangeException(nameof(pText));
+
+            int lFWSStage = 0;
+            bool lInQP = false;
+
+            foreach (char lChar in pText)
+            {
+                switch (lFWSStage)
+                {
+                    case 0:
+
+                        if (!lInQP && lChar == '\r')
+                        {
+                            lFWSStage = 1;
+                            break;
+                        }
+
+                        if (lInQP && lChar == '\t')
+                        {
+                            lInQP = false;
+                            break;
+                        }
+
+                        if (lChar < ' ' || lChar == cChar.DEL) throw new ArgumentOutOfRangeException(nameof(pText));
+
+                        if (lInQP) lInQP = false;
+                        else if (lChar == '\\') lInQP = true;
+
+                        break;
+
+                    case 1:
+
+                        if (lChar != '\n') throw new ArgumentOutOfRangeException(nameof(pText));
+                        lFWSStage = 2;
+                        break;
+
+                    case 2:
+
+                        if (lChar != '\t' && lChar != ' ') throw new ArgumentOutOfRangeException(nameof(pText));
+                        lFWSStage = 0;
+                        break;
+                }
+            }
+
+            if (lFWSStage != 0 || lInQP) throw new ArgumentOutOfRangeException(nameof(pText));
         }
 
-        protected internal override IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
+        internal override bool HasContent => mText.Length > 0;
+
+        internal override IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
         {
             if (pDefaultEncoding == null) throw new ArgumentNullException(nameof(pDefaultEncoding));
 
@@ -322,19 +415,65 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cCommentTextAppendDataPart)}({mText},{mEncoding?.WebName})";
     }
 
-    public class cPhraseAppendDataPart : cNonASCIITextAppendDataPart
+    public class cPhraseTextAppendDataPart : cNonASCIITextAppendDataPart
     {
+        // the text is the text of (part of) a phrase: embedded comments are not allowed and should be separated out into separate cCommentTextAppendDataPart objects at a higher level
+        //  the text should just be the plain text without any 'quoted-string's, i.e. RFC 5322 FWS or 5234/6532 VCHAR; quoted-pair and embedded comments (as noted above) are not allowed 
+        //  converts "words" in the text to atoms, quoted-strings and, if utf8 is not in use, encoded-words
+
         private readonly string mText;
 
-        public cPhraseAppendDataPart(string pText, Encoding pEncoding = null) : base(pEncoding)
+        public cPhraseTextAppendDataPart(string pText, Encoding pEncoding = null) : base(pEncoding)
         {
             mText = pText ?? throw new ArgumentNullException(nameof(pText));
-            if (pText.Length < 1) throw new ArgumentOutOfRangeException(nameof(pText));
+
+            int lFWSStage = 0;
+            bool lHasContent = false;
+
+            foreach (char lChar in pText)
+            {
+                switch (lFWSStage)
+                {
+                    case 0:
+
+                        if (lChar == '\r')
+                        {
+                            lFWSStage = 1;
+                            break;
+                        }
+
+                        if (lChar < ' ' || lChar == cChar.DEL) throw new ArgumentOutOfRangeException(nameof(pText));
+
+                        ;?;
+
+                        if (lChar != ' ') lHasContent = true;
+
+                        break;
+
+                    case 1:
+
+                        if (lChar != '\n') throw new ArgumentOutOfRangeException(nameof(pText));
+                        lFWSStage = 2;
+                        break;
+
+                    case 2:
+
+                        if (lChar != '\t' && lChar != ' ') throw new ArgumentOutOfRangeException(nameof(pText));
+                        lFWSStage = 0;
+                        break;
+                }
+            }
+
+            if (lFWSStage != 0 || !lHasContent) throw new ArgumentOutOfRangeException(nameof(pText));
         }
+
+        internal override bool HasContent => true; // can't be empty
 
         protected internal override IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
         {
             if (pDefaultEncoding == null) throw new ArgumentNullException(nameof(pDefaultEncoding));
+
+            ;?; // even for utf8 processing is required ... 
 
             if (pUTF8Enabled) return YGetTextBytes(mText, pDefaultEncoding, false, ZUTF8NeedsEncoding, ZCharsToBytes, eQEncodingRestriction.none);
             return YGetTextBytes(mText, pDefaultEncoding, false, ZASCIINeedsEncoding, ZCharsToBytes, eQEncodingRestriction.phrase);
@@ -738,7 +877,7 @@ namespace work.bacome.imapclient
         }
     }
 
-    public class cMimeParameterAppendDataPart : cAppendDataPart
+    public class cMimeParameterAppendDataPartx : cNonASCIITextAppendDataPart
     {
         public readonly string Attribute;
         public readonly string Value; // nullable (then the value must be encoded as a quoted-string

@@ -555,7 +555,7 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        private class cCText : cCharset
+        private class cObsCText : cCharset
         {
             private const string cCTextDisallowed = "\0\t\n\r ()\\";
             private static readonly cBytes aCTextDisallowed = new cBytes(cCTextDisallowed);
@@ -575,7 +575,7 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        private class cAText : cCharset
+        private class cObsAText : cCharset
         {
             private const string cATextSome = "!#$%&'*+-/=?^_`{|}~";
             private static readonly cBytes aATextSome = new cBytes(cATextSome);
@@ -599,7 +599,7 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        private class cQText : cCharset
+        private class cObsQText : cCharset
         {
             private const string cQTextDisallowed = "\0\t\n\r \"\\";
             private static readonly cBytes aQTextDisallowed = new cBytes(cQTextDisallowed);
@@ -619,7 +619,7 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        private class cDText : cCharset
+        private class cObsDText : cCharset
         {
             private const string cDTextDisallowed = "\0\t\n\r [\\]";
             private static readonly cBytes aDTextDisallowed = new cBytes(cDTextDisallowed);
@@ -723,19 +723,24 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset Base64 = new cBase64();
         /**<summary>Represents the characters used in RFC 2047 Quoted-Printable.</summary>*/
         public static readonly cCharset QEncoding = new cQEncoding();
-        /**<summary>Represents the characters used in RFC 6532 'ctext'.</summary>*/
-        public static readonly cCharset CText = new cCText();
-        /**<summary>Represents the characters used in RFC 6532 'atext'.</summary>*/
-        public static readonly cCharset AText = new cAText();
-        /**<summary>Represents the characters used in RFC 6532 'qtext'.</summary>*/
-        public static readonly cCharset QText = new cQText();
-        /**<summary>Represents the characters used in RFC 6532 'dtext'.</summary>*/
-        public static readonly cCharset DText = new cDText();
+        /**<summary>Represents the characters used in RFC 6532 'obs-ctext'.</summary>*/
+        public static readonly cCharset ObsCText = new cObsCText();
+        /**<summary>Represents the characters used in RFC 6532 'obs-atext'.</summary>*/
+        public static readonly cCharset ObsAText = new cObsAText();
+        /**<summary>Represents the characters used in RFC 6532 'obs-qtext'.</summary>*/
+        public static readonly cCharset ObsQText = new cObsQText();
+        /**<summary>Represents the characters used in RFC 6532 'obs-dtext'.</summary>*/
+        public static readonly cCharset ObsDText = new cObsDText();
         /**<summary>Represents the characters used in RFC 5322 'ftext'.</summary>*/
         public static readonly cCharset FText = new cFText();
         /**<summary>Represents the characters used in RFC 6749 'VSCHAR'.</summary>*/
         public static readonly cCharset VSChar = new cVSChar();
         /**<summary>Represents the characters used in RFC 2047 'token'.</summary>*/
         public static readonly cCharset RFC2047Token = new cRFC2047Token();
+
+        // /**<summary>Represents the characters used in RFC 6532 'atext' less the RFC 5322 'obs-atext'.</summary>*/
+        // public static readonly cCharset GenAText = new cGenAText();
+        // /**<summary>Represents the characters used in RFC 6532 'qtext' less the RFC 5322 'obs-qtext'.</summary>*/
+        // public static readonly cCharset GenQText = new cGenQText(); 
     }
 }
