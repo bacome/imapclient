@@ -33,6 +33,8 @@ namespace work.bacome.imapclient
             mText = pText ?? throw new ArgumentNullException(nameof(pText));
         }
 
+        internal override bool HasContent => mText.Length > 0;
+
         protected bool YValidateText(bool pAllowToEndWithFWS)
         {
             // returns true if there was any non-wsp 
@@ -348,8 +350,6 @@ namespace work.bacome.imapclient
             if (lFWSStage != 0 || lLastWasFWS) throw new ArgumentOutOfRangeException(nameof(pText));
         }
 
-        internal override bool HasContent => mText.Length > 0;
-
         internal override IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
         {
             if (pDefaultEncoding == null) throw new ArgumentNullException(nameof(pDefaultEncoding));
@@ -409,8 +409,6 @@ namespace work.bacome.imapclient
 
             if (lFWSStage != 0) throw new ArgumentOutOfRangeException(nameof(pText));
         }
-
-        internal override bool HasContent => mText.Length > 0;
 
         internal override IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
         {
@@ -478,8 +476,6 @@ namespace work.bacome.imapclient
 
             if (lFWSStage != 0 || !lHasContent) throw new ArgumentOutOfRangeException(nameof(pText));
         }
-
-        internal override bool HasContent => true; // can't be empty
 
         protected internal override IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding)
         {
