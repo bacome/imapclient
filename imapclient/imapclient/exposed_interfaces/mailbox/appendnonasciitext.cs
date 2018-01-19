@@ -8,8 +8,6 @@ namespace work.bacome.imapclient
 {
     public abstract class cNonASCIITextAppendDataPart : cAppendDataPart
     {
-        protected delegate bool dNeedsEncoding(List<char> pWordChars);
-        protected delegate List<byte> dGetBytesForNonEncodedWord(List<char> pWordChars);
         protected enum eQEncodingRestriction { none, comment, phrase }
 
         protected readonly Encoding mEncoding; // nullable (if null the multipart's encoding is used)
@@ -21,6 +19,26 @@ namespace work.bacome.imapclient
         }
 
         internal abstract IList<byte> GetBytes(bool pUTF8Enabled, Encoding pDefaultEncoding);
+    }
+
+    public abstract class cEncodedWordAppendDataPart : cNonASCIITextAppendDataPart
+    {
+        protected delegate bool dNeedsEncoding(List<char> pWordChars);
+        protected delegate List<byte> dGetBytesForNonEncodedWord(List<char> pWordChars);
+
+        protected readonly string mText;
+
+        internal cEncodedWordAppendDataPart(string pText, Encoding pEncoding) : base(pEncoding)
+        {
+            mText = pText ?? throw new ArgumentNullException(nameof(pText));
+        }
+
+        protected bool YValidateText(bool pAllowToEndWithFWS)
+        {
+            // returns true if there was any non-wsp 
+
+            ;?;
+        }
 
         protected List<byte> YGetTextBytes(string pText, Encoding pDefaultEncoding, bool pHandleQuotedPairs, dNeedsEncoding pNeedsEncoding, dGetBytesForNonEncodedWord pGetBytesForNonEncodedWord, eQEncodingRestriction pQEncodingRestriction)
         {
@@ -114,7 +132,7 @@ namespace work.bacome.imapclient
 
                         if (lWSPChars.Count > 0) lResult.AddRange(YCharsToASCIIBytes(lWSPChars));
 
-                        if (lWordChars.Count > 0) 
+                        if (lWordChars.Count > 0)
                         {
                             lResult.AddRange(pGetBytesForNonEncodedWord(lWordChars));
                             lLastWordWasAnEncodedWord = false;
@@ -163,12 +181,15 @@ namespace work.bacome.imapclient
             return false;
         }
 
-        protected List<byte> YCharsToASCIIBytes(List<char> pChars)
+        protected List<byte> YCharsToASCIIBytes(List<char> pChars, List<char> pQuoteTheseChars)
         {
             List<byte> lResult = new List<byte>(pChars.Count);
+            ;?; // implement quoting
             foreach (char lChar in pChars) lResult.Add((byte)lChar);
             return lResult;
         }
+
+        ;?; // bytes to ascii bytes with quoting
 
         private List<byte> ZToEncodedWordBytes(List<char> pChars, Encoding pEncoding, eQEncodingRestriction pQEncodingRestriction, List<byte> pCharsetName)
         {
@@ -274,16 +295,19 @@ namespace work.bacome.imapclient
         }
     }
 
-    public class cUnstructuredTextAppendDataPart : cNonASCIITextAppendDataPart
+    public class cUnstructuredTextAppendDataPart : cEncodedWordAppendDataPart
     {
         // the text must be valid RFC 5322/6532 unstructured (excluding obs-unstruct)
-        //  simply converts VCHAR that is UTF8 to encoded words if UTF8 is not in use
+        //  converts the text to UTF8 or encoded words (where required) if UTF8 is not in use
 
-        private readonly string mText;
 
         public cUnstructuredTextAppendDataPart(string pText, Encoding pEncoding = null) : base(pEncoding)
         {
             mText = pText ?? throw new ArgumentNullException(nameof(pText));
+
+
+            ;?; // commonise the validation with an option to allow FWS at the end
+            ;?;  // return if there was non-wsp 
 
             int lFWSStage = 0;
             bool lLastWasFWS = false;
@@ -339,24 +363,19 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cUnstructuredTextAppendDataPart)}({mText},{mEncoding?.WebName})";
     }
 
-    public class cCommentTextAppendDataPart : cNonASCIITextAppendDataPart
+    public class cCommentTextAppendDataPart : cEncodedWordAppendDataPart
     {
         // the text is the text of the comment, without the surrounding ()
-        //  the text must be valid RFC 5322 FWS or 5234/6532 VCHAR; quoted-pair and embedded comments (these should be separated out into separate cCommentTextAppendDataPart objects at a higher level) are not allowed 
-        //  simply converts ctext that is UTF8 to encoded words if UTF8 is not in use
+        //  the text must be valid RFC 5322 FWS or 5234/6532 VCHARs; embedded comments (including the surrounding ()) should not be in the text (these should be separated out into other appenddata objects at a higher level) 
+        //  adds 'quoted-pair's where required (for () and \ characters) and converts the text to UTF8 or encoded words (where required) if UTF8 is not in use
 
         private readonly string mText;
 
         public cCommentTextAppendDataPart(string pText, Encoding pEncoding = null) : base(pEncoding)
         {
-            ;?; // nah mate. 
-            ;?; //  do the quoting as the string is read in
-            ;?; //  quote (, ) and \
-
             mText = pText ?? throw new ArgumentNullException(nameof(pText));
 
             int lFWSStage = 0;
-            bool lInQP = false;
 
             foreach (char lChar in pText)
             {
@@ -364,22 +383,13 @@ namespace work.bacome.imapclient
                 {
                     case 0:
 
-                        if (!lInQP && lChar == '\r')
+                        if (lChar == '\r')
                         {
                             lFWSStage = 1;
                             break;
                         }
 
-                        if (lInQP && lChar == '\t')
-                        {
-                            lInQP = false;
-                            break;
-                        }
-
                         if (lChar < ' ' || lChar == cChar.DEL) throw new ArgumentOutOfRangeException(nameof(pText));
-
-                        if (lInQP) lInQP = false;
-                        else if (lChar == '\\') lInQP = true;
 
                         break;
 
@@ -397,7 +407,7 @@ namespace work.bacome.imapclient
                 }
             }
 
-            if (lFWSStage != 0 || lInQP) throw new ArgumentOutOfRangeException(nameof(pText));
+            if (lFWSStage != 0) throw new ArgumentOutOfRangeException(nameof(pText));
         }
 
         internal override bool HasContent => mText.Length > 0;
@@ -406,20 +416,22 @@ namespace work.bacome.imapclient
         {
             if (pDefaultEncoding == null) throw new ArgumentNullException(nameof(pDefaultEncoding));
 
-            if (pUTF8Enabled) return Encoding.UTF8.GetBytes(mText);
-            return YGetTextBytes(mText, pDefaultEncoding, false, ZNeedsEncoding, YCharsToASCIIBytes, eQEncodingRestriction.comment);
+            if (pUTF8Enabled) return Encoding.UTF8.GetBytes(mText); // nonono => quoted pairs (same routine)
+            return YGetTextBytes(mText, pDefaultEncoding, false, ZNeedsEncoding, nonono, eQEncodingRestriction.comment); // nonono => routine to add quoted pairs
         }
 
         private bool ZNeedsEncoding(List<char> pWordChars) => YCharsContainNonASCII(pWordChars) || YLooksLikeAnEncodedWord(pWordChars);
 
+
+
         public override string ToString() => $"{nameof(cCommentTextAppendDataPart)}({mText},{mEncoding?.WebName})";
     }
 
-    public class cPhraseTextAppendDataPart : cNonASCIITextAppendDataPart
+    public class cPhraseTextAppendDataPart : cEncodedWordAppendDataPart
     {
-        // the text is the text of (part of) a phrase: embedded comments are not allowed and should be separated out into separate cCommentTextAppendDataPart objects at a higher level
-        //  the text should just be the plain text without any 'quoted-string's, i.e. RFC 5322 FWS or 5234/6532 VCHAR; quoted-pair and embedded comments (as noted above) are not allowed 
-        //  converts "words" in the text to atoms, quoted-strings and, if utf8 is not in use, encoded-words
+        // the text is the text of (part of) the phrase
+        //  the text must be valid RFC 5322 FWS or 5234/6532 VCHARs; embedded comments (including the surrounding ()) should not be in the text (these should be separated out into other appenddata objects at a higher level) 
+        //  converts the text into atoms, 'quoted-string's (with 'quoted-pair's where required for \ and " characters) in UTF8 or encoded word format if UTF8 is not in use
 
         private readonly string mText;
 
