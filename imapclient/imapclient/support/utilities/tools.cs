@@ -197,7 +197,7 @@ namespace work.bacome.imapclient
             return pException;
         }
 
-        public static List<byte> CharsetName(Encoding pEncoding)
+        public static List<byte> CharsetNameBytes(Encoding pEncoding)
         {
             if (pEncoding == null) throw new ArgumentNullException(nameof(pEncoding));
             List<byte> lResult = new List<byte>();

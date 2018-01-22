@@ -104,9 +104,9 @@ namespace work.bacome.imapclient.support
         public abstract bool Contains(char pChar);
 
 
-        public bool ContainsAll(string pString)
+        public bool ContainsAll(IEnumerable<char> pChars)
         {
-            foreach (char lChar in pString) if (!Contains(lChar)) return false;
+            foreach (char lChar in pChars) if (!Contains(lChar)) return false;
             return true;
         }
 
@@ -575,7 +575,7 @@ namespace work.bacome.imapclient.support
             }
         }
 
-        private class cObsAText : cCharset
+        private class cAText : cCharset
         {
             private const string cATextSome = "!#$%&'*+-/=?^_`{|}~";
             private static readonly cBytes aATextSome = new cBytes(cATextSome);
@@ -725,8 +725,8 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset QEncoding = new cQEncoding();
         /**<summary>Represents the characters used in RFC 6532 'obs-ctext'.</summary>*/
         public static readonly cCharset ObsCText = new cObsCText();
-        /**<summary>Represents the characters used in RFC 6532 'obs-atext'.</summary>*/
-        public static readonly cCharset ObsAText = new cObsAText();
+        /**<summary>Represents the characters used in RFC 6532 'atext'.</summary>*/
+        public static readonly cCharset AText = new cAText();
         /**<summary>Represents the characters used in RFC 6532 'obs-qtext'.</summary>*/
         public static readonly cCharset ObsQText = new cObsQText();
         /**<summary>Represents the characters used in RFC 6532 'obs-dtext'.</summary>*/
@@ -737,10 +737,5 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset VSChar = new cVSChar();
         /**<summary>Represents the characters used in RFC 2047 'token'.</summary>*/
         public static readonly cCharset RFC2047Token = new cRFC2047Token();
-
-        // /**<summary>Represents the characters used in RFC 6532 'atext' less the RFC 5322 'obs-atext'.</summary>*/
-        // public static readonly cCharset GenAText = new cGenAText();
-        // /**<summary>Represents the characters used in RFC 6532 'qtext' less the RFC 5322 'obs-qtext'.</summary>*/
-        // public static readonly cCharset GenQText = new cGenQText(); 
     }
 }
