@@ -44,10 +44,14 @@
   <ItemGroup>
     <Compile Include="client\append.cs" />
     <Compile Include="client\decodedsizeinbytes.cs" />
+    <Compile Include="exposed_interfaces\appenddata\headerfieldparts.cs" />
+    <Compile Include="exposed_interfaces\support\headerfieldvaluepart.cs" />
+    <Compile Include="exposed_interfaces\appenddata\literalappenddatapart.cs" />
+    <Compile Include="exposed_interfaces\appenddata\appenddata.cs" />
     <Compile Include="exposed_interfaces\configuration\appendconfiguration.cs" />
-    <Compile Include="exposed_interfaces\mailbox\appendfeedback.cs" />
-    <Compile Include="exposed_interfaces\mailbox\appenddata.cs" />
-    <Compile Include="exposed_interfaces\mailbox\appendnonasciitext.cs" />
+    <Compile Include="exposed_interfaces\feedback\appendfeedback.cs" />
+    <Compile Include="exposed_interfaces\appenddata\appenddatapart.cs" />
+    <Compile Include="junkyard\appendnonasciitext.cs" />
     <Compile Include="exposed_interfaces\message\messagedatastream.cs" />
     <Compile Include="exposed_interfaces\other\eventsubscriptioncounts.cs" />
     <Compile Include="session\append\append.cs" />
@@ -58,6 +62,7 @@
     <Compile Include="session\imap_commands\authenticated\append.cs" />
     <Compile Include="session\imap_commands\not_authenticated\authenticated.cs" />
     <Compile Include="support\collections\appenddatalist.cs" />
+    <Compile Include="support\headerfieldvaluepart.cs" />
     <Compile Include="tools\apidocumentation.cs" />
     <Compile Include="client\base.cs" />
     <Compile Include="client\connect.cs" />

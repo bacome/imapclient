@@ -184,14 +184,6 @@ namespace work.bacome.imapclient
                                 break;
                             }
 
-                        case cStringAppendData lString:
-
-                            {
-                                var lEncoding = lString.Encoding ?? mEncoding;
-                                lMessages.Add(new cSessionBytesAppendData(lString.Flags ?? mAppendDefaultFlags, lString.Received, lEncoding.GetBytes(lString.String)));
-                                break;
-                            }
-
                         case cFileAppendData lFile:
 
                             lMessages.Add(new cSessionFileAppendData(lFile.Flags ?? mAppendDefaultFlags, lFile.Received, lFile.Path, lFile.Length, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
@@ -277,24 +269,6 @@ namespace work.bacome.imapclient
                                                     break;
                                                 }
 
-                                            case cStringAppendDataPart lString:
-
-                                                {
-                                                    var lEncoding = lString.Encoding ?? mEncoding;
-                                                    lParts.Add(new cCatenateBytesAppendDataPart(lEncoding.GetBytes(lString.String)));
-                                                    break;
-                                                }
-
-                                            case cEncodedWordsAppendDataPart lEncodedWords:
-
-                                                lParts.Add(new cCatenateBytesAppendDataPart(lEncodedWords.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding)));
-                                                break;
-
-                                            case cMimeParameterAppendDataPart lMimeParameter:
-
-                                                lParts.Add(new cCatenateBytesAppendDataPart(lMimeParameter.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding)));
-                                                break;
-
                                             case cFileAppendDataPart lFile:
 
                                                 lParts.Add(new cCatenateFileAppendDataPart(lFile.Path, lFile.Length, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
@@ -303,6 +277,15 @@ namespace work.bacome.imapclient
                                             case cStreamAppendDataPart lStream:
 
                                                 lParts.Add(new cCatenateStreamAppendDataPart(lStream.Stream, lStream.Length, lStream.ReadConfiguration ?? mAppendStreamReadConfiguration));
+                                                break;
+
+                                            case cLiteralAppendDataPartBase lLiteral:
+
+                                                Encoding lEncoding;
+                                                if ((EnabledExtensions & fEnableableExtensions.utf8) == 0) lEncoding = lMultiPart.Encoding ?? mEncoding;
+                                                else lEncoding = null;
+
+                                                lParts.Add(new cCatenateBytesAppendDataPart(lLiteral.GetBytes(lEncoding)));
                                                 break;
 
                                             default:
@@ -347,34 +330,6 @@ namespace work.bacome.imapclient
                                                 lLength += lSection.Length;
                                                 break;
 
-                                            case cStringAppendDataPart lString:
-
-                                                {
-                                                    var lEncoding = lString.Encoding ?? mEncoding;
-                                                    var lBytes = new cSessionBytesAppendDataPart(lEncoding.GetBytes(lString.String));
-                                                    lParts.Add(lBytes);
-                                                    lLength += lBytes.Length;
-                                                    break;
-                                                }
-
-                                            case cEncodedWordsAppendDataPart lEncodedWords:
-
-                                                {
-                                                    var lBytes = new cSessionBytesAppendDataPart(lEncodedWords.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding));
-                                                    lParts.Add(lBytes);
-                                                    lLength += lBytes.Length;
-                                                    break;
-                                                }
-
-                                            case cMimeParameterAppendDataPart lMimeParameter:
-
-                                                {
-                                                    var lBytes = new cSessionBytesAppendDataPart(lMimeParameter.GetBytes((EnabledExtensions & fEnableableExtensions.utf8) != 0, mEncoding));
-                                                    lParts.Add(lBytes);
-                                                    lLength += lBytes.Length;
-                                                    break;
-                                                }
-
                                             case cFileAppendDataPart lFile:
 
                                                 lParts.Add(new cSessionFileAppendDataPart(lFile.Path, lFile.Length, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
@@ -385,6 +340,15 @@ namespace work.bacome.imapclient
 
                                                 lParts.Add(new cSessionStreamAppendDataPart(lStream.Stream, lStream.Length, lStream.ReadConfiguration ?? mAppendStreamReadConfiguration));
                                                 lLength += lStream.Length;
+                                                break;
+
+                                            case cLiteralAppendDataPartBase lLiteral:
+
+                                                Encoding lEncoding;
+                                                if ((EnabledExtensions & fEnableableExtensions.utf8) == 0) lEncoding = lMultiPart.Encoding ?? mEncoding;
+                                                else lEncoding = null;
+
+                                                lParts.Add(new cSessionBytesAppendDataPart(lLiteral.GetBytes(lEncoding)));
                                                 break;
 
                                             default:

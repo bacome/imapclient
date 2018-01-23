@@ -10,6 +10,8 @@ namespace work.bacome.imapclient.support
     /// <seealso cref="cNetworkSendEventArgs"/>
     public class cBytes : ReadOnlyCollection<byte>
     {
+        internal static readonly cBytes Empty = new cBytes(new byte[] { });
+
         internal cBytes(IList<byte> pBytes) : base(pBytes) { }
 
         internal cBytes(string pString) : base(ZCtor(pString)) { } // required for static constants

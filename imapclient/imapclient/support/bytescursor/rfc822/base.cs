@@ -99,7 +99,7 @@ namespace work.bacome.imapclient
 
                     lByte = Position.BytesLine[Position.Byte];
                 }
-                else if (!cCharset.CText.Contains(lByte)) return lResult;
+                else if (!cCharset.ObsCText.Contains(lByte)) return lResult;
 
                 lResult = true;
                 ZAdvance(ref Position);
@@ -179,7 +179,7 @@ namespace work.bacome.imapclient
                     if (Position.AtEnd || Position.BytesLine.Literal) { Position = lBookmark; rString = null; return false; }
                     lByte = Position.BytesLine[Position.Byte];
                 }
-                else if (!cCharset.QText.Contains(lByte)) break;
+                else if (!cCharset.ObsQText.Contains(lByte)) break;
 
                 lResult.Add(lByte);
 
@@ -263,7 +263,7 @@ namespace work.bacome.imapclient
                     if (Position.AtEnd || Position.BytesLine.Literal) { Position = lBookmark; rDomainLiteral = null; return false; }
                     lByte = Position.BytesLine[Position.Byte];
                 }
-                else if (!cCharset.DText.Contains(lByte)) break;
+                else if (!cCharset.ObsDText.Contains(lByte)) break;
 
                 if (lSpace) lResult.Add(cASCII.SPACE);
 
