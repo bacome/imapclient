@@ -359,7 +359,7 @@ namespace testharness2
                         case cAppendDataSourceString lString:
 
                             if (lRow.Flags == null && lRow.Received == null) lMessages.Add(lString.String);
-                            else lMessages.Add(new cStringAppendData(lString.String, lRow.Flags, lRow.Received));
+                            else lMessages.Add(new cLiteralAppendData(lString.String, lRow.Flags, lRow.Received));
                             break;
 
                         case cAppendDataSourceFile lFile:

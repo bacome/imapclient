@@ -97,22 +97,22 @@ namespace work.bacome.imapclient
                 public override string ToString() => $"{nameof(cSessionMessageAppendData)}({Flags},{Received},{mMessageHandle},{mSection},{mLength})";
             }
 
-            private class cSessionBytesAppendData : cSessionAppendData
+            private class cSessionLiteralAppendData : cSessionAppendData
             {
                 private cBytes mBytes;
 
-                public cSessionBytesAppendData(cStorableFlags pFlags, DateTime? pReceived, byte[] pBytes) : base(pFlags, pReceived)
+                public cSessionLiteralAppendData(cStorableFlags pFlags, DateTime? pReceived, cBytes pBytes) : base(pFlags, pReceived)
                 {
                     if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
-                    if (pBytes.Length == 0) throw new ArgumentOutOfRangeException(nameof(pBytes));
-                    mBytes = new cBytes(pBytes);
+                    if (pBytes.Count == 0) throw new ArgumentOutOfRangeException(nameof(pBytes));
+                    mBytes = pBytes;
                 }
 
                 public override uint Length => (uint)mBytes.Count;
 
                 public override fCapabilities AddAppendData(cAppendCommandDetailsBuilder pBuilder) => YAddAppendData(pBuilder, new cLiteralCommandPart(mBytes, pBuilder.AppendDataBinary, false, false, pBuilder.Increment));
 
-                public override string ToString() => $"{nameof(cSessionBytesAppendData)}({Flags},{Received},{mBytes})";
+                public override string ToString() => $"{nameof(cSessionLiteralAppendData)}({Flags},{Received},{mBytes})";
             }
 
             private class cSessionFileAppendData : cSessionAppendData
@@ -413,11 +413,11 @@ namespace work.bacome.imapclient
                 public override string ToString() => $"{nameof(cCatenateMessageAppendDataPart)}({mMessageHandle},{mMailboxHandle},{mUID},{mSection},{mLength})";
             }
 
-            private class cCatenateBytesAppendDataPart : cCatenateAppendDataPart
+            private class cCatenateLiteralAppendDataPart : cCatenateAppendDataPart
             {
                 private cBytes mBytes;
 
-                public cCatenateBytesAppendDataPart(IList<byte> pBytes)
+                public cCatenateLiteralAppendDataPart(IList<byte> pBytes)
                 {
                     if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
                     mBytes = new cBytes(pBytes);
@@ -427,7 +427,7 @@ namespace work.bacome.imapclient
 
                 public override fCapabilities AddCatPart(cAppendCommandDetailsBuilder pBuilder) => YAddCatPart(pBuilder, new cLiteralCommandPart(mBytes, pBuilder.CatPartBinary, false, false, pBuilder.Increment));
 
-                public override string ToString() => $"{nameof(cCatenateBytesAppendDataPart)}({mBytes})";
+                public override string ToString() => $"{nameof(cCatenateLiteralAppendDataPart)}({mBytes})";
             }
 
             private class cCatenateFileAppendDataPart : cCatenateAppendDataPart
@@ -588,11 +588,11 @@ namespace work.bacome.imapclient
                 public override string ToString() => $"{nameof(cSessionMessageAppendDataPart)}({mMessageHandle},{mMailboxHandle},{mUID},{mSection},{mLength})";
             }
 
-            private class cSessionBytesAppendDataPart : cSessionAppendDataPart
+            private class cSessionLiteralAppendDataPart : cSessionAppendDataPart
             {
                 private cBytes mBytes;
 
-                public cSessionBytesAppendDataPart(IList<byte> pBytes)
+                public cSessionLiteralAppendDataPart(IList<byte> pBytes)
                 {
                     if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
                     mBytes = new cBytes(pBytes);
@@ -602,7 +602,7 @@ namespace work.bacome.imapclient
 
                 public override void AddPart(cAppendCommandDetailsBuilder pBuilder, List<cMultiPartLiteralPartBase> pParts) => pParts.Add(new cMultiPartLiteralPart(mBytes, pBuilder.Increment));
 
-                public override string ToString() => $"{nameof(cSessionBytesAppendDataPart)}({mBytes})";
+                public override string ToString() => $"{nameof(cSessionLiteralAppendDataPart)}({mBytes})";
             }
 
             private class cSessionFileAppendDataPart : cSessionAppendDataPart

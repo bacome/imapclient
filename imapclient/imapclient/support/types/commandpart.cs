@@ -72,6 +72,12 @@ namespace work.bacome.imapclient
         public readonly cBytes Bytes;
         public readonly Action<int> Increment;
 
+        public cLiteralCommandPart(cBytes pBytes, bool pBinary = false, bool pSecret = false, bool pEncoded = false, Action<int> pIncrement = null) : base(pBinary, pSecret, pEncoded)
+        {
+            Bytes = pBytes ?? throw new ArgumentNullException(nameof(pBytes));
+            Increment = pIncrement;
+        }
+
         public cLiteralCommandPart(IList<byte> pBytes, bool pBinary = false, bool pSecret = false, bool pEncoded = false, Action<int> pIncrement = null) : base(pBinary, pSecret, pEncoded)
         {
             if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
@@ -156,10 +162,9 @@ namespace work.bacome.imapclient
         public readonly cBytes Bytes;
         public readonly Action<int> Increment;
 
-        public cMultiPartLiteralPart(IList<byte> pBytes, Action<int> pIncrement = null)
+        public cMultiPartLiteralPart(cBytes pBytes, Action<int> pIncrement = null)
         {
-            if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
-            Bytes = new cBytes(pBytes);
+            Bytes = pBytes ?? throw new ArgumentNullException(nameof(pBytes));
             Increment = pIncrement;
         }
 

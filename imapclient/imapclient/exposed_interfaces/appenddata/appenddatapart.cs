@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
-using System.Net.Mail;
-using System.Text;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -14,6 +10,7 @@ namespace work.bacome.imapclient
         internal abstract bool HasContent { get; }
         public static implicit operator cAppendDataPart(cMessage pMessage) => new cMessageAppendDataPart(pMessage);
         public static implicit operator cAppendDataPart(cAttachment pAttachment) => new cMessagePartAppendDataPart(pAttachment);
+        public static implicit operator cAppendDataPart(string pString) => new cLiteralAppendDataPart(pString);
         public static implicit operator cAppendDataPart(Stream pStream) => new cStreamAppendDataPart(pStream);
     }
 

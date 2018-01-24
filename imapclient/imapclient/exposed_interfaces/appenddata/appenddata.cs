@@ -20,6 +20,7 @@ namespace work.bacome.imapclient
         }
 
         public static implicit operator cAppendData(cMessage pMessage) => new cMessageAppendData(pMessage);
+        public static implicit operator cAppendData(string pString) => new cLiteralAppendData(pString);
         public static implicit operator cAppendData(Stream pStream) => new cStreamAppendData(pStream);
         public static implicit operator cAppendData(List<cAppendDataPart> pParts) => new cMultiPartAppendData(pParts);
         public static implicit operator cAppendData(MailMessage pMessage) => new cMultiPartAppendData(pMessage);
@@ -74,6 +75,29 @@ namespace work.bacome.imapclient
         }
 
         public override string ToString() => $"{nameof(cMessagePartAppendData)}({Flags},{Received},{MessageHandle},{Part},{AllowCatenate})";
+    }
+
+    public class cLiteralAppendData : cAppendData
+    {
+        public readonly cBytes Bytes;
+
+        public cLiteralAppendData(IEnumerable<byte> pBytes, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
+        {
+            if (pBytes == null) throw new ArgumentNullException(nameof(pBytes));
+            var lBytes = new List<byte>(pBytes);
+            if (lBytes.Count == 0) throw new ArgumentOutOfRangeException(nameof(pBytes));
+            Bytes = new cBytes(lBytes);
+        }
+
+        public cLiteralAppendData(string pString, cStorableFlags pFlags = null, DateTime? pReceived = null) : base(pFlags, pReceived)
+        {
+            if (pString == null) throw new ArgumentNullException(nameof(pString));
+            var lBytes = Encoding.UTF8.GetBytes(pString);
+            if (lBytes.Length == 0) throw new ArgumentOutOfRangeException(nameof(pString));
+            Bytes = new cBytes(lBytes);
+        }
+
+        public override string ToString() => $"{nameof(cLiteralAppendDataPart)}({Flags},{Received},{Bytes})";
     }
 
     public class cFileAppendData : cAppendData

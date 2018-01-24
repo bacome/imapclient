@@ -8,15 +8,13 @@ namespace work.bacome.imapclient
     internal abstract class cHeaderFieldEncodedWordsPart : cHeaderFieldValuePart
     {
         private readonly string mText;
-        protected readonly bool mHasContent = false; // for phrase -> a blank phrase must output '""'
         private readonly eQEncodingRestriction mQEncodingRestriction;
 
-        public cHeaderFieldEncodedWordsPart(string pText, bool pAllowToEndWithFWS, eQEncodingRestriction pQEncodingRestriction)
+        public cHeaderFieldEncodedWordsPart(string pText, eQEncodingRestriction pQEncodingRestriction)
         {
             mText = pText ?? throw new ArgumentNullException(nameof(pText));
 
             int lFWSStage = 0;
-            bool lLastWasFWS = false;
 
             foreach (char lChar in mText)
             {
@@ -30,31 +28,27 @@ namespace work.bacome.imapclient
                             break;
                         }
 
-                        if (lChar == '\t' || lChar == ' ') break;
-                        if (lChar < ' ' || lChar == cChar.DEL) throw new ArgumentOutOfRangeException("pText");
+                        if (lChar == '\t') break;
 
-                        mHasContent = true;
-                        lLastWasFWS = false;
+                        if (lChar < ' ' || lChar == cChar.DEL) throw new ArgumentOutOfRangeException(nameof(pText));
 
                         break;
 
                     case 1:
 
-                        if (lChar != '\n') throw new ArgumentOutOfRangeException("pText");
+                        if (lChar != '\n') throw new ArgumentOutOfRangeException(nameof(pText));
                         lFWSStage = 2;
                         break;
 
                     case 2:
 
-                        if (lChar != '\t' && lChar != ' ') throw new ArgumentOutOfRangeException("pText");
+                        if (lChar != '\t' && lChar != ' ') throw new ArgumentOutOfRangeException(nameof(pText));
                         lFWSStage = 0;
-                        lLastWasFWS = true;
                         break;
                 }
             }
 
-            if (lFWSStage != 0) throw new ArgumentOutOfRangeException("pText");
-            if (lLastWasFWS && !pAllowToEndWithFWS) throw new ArgumentOutOfRangeException("pText");
+            if (lFWSStage != 0) throw new ArgumentOutOfRangeException(nameof(pText));
 
             mQEncodingRestriction = pQEncodingRestriction;
         }
@@ -89,7 +83,10 @@ namespace work.bacome.imapclient
 
                 while (lPosition < lInput.Length)
                 {
-                    // extract optional white space
+                    // extract leading white space (if any)
+
+                    lLeadingWSPChars.Clear();
+
                     while (lPosition < lInput.Length)
                     {
                         lChar = lInput[lPosition];
@@ -100,7 +97,10 @@ namespace work.bacome.imapclient
                         lPosition++;
                     }
 
-                    // extract optional non-wsp
+                    // extract word (if there is one)
+
+                    lWordChars.Clear();
+
                     while (lPosition < lInput.Length)
                     {
                         lChar = lInput[lPosition];
@@ -111,12 +111,12 @@ namespace work.bacome.imapclient
                         lPosition++;
                     }
 
-                    // if there isn't a word, don't output the white space
+                    // nothing left on this line
                     if (lWordChars.Count == 0) break;
 
                     // process the white space and word
-
-                    if (pBytes.Encoding != null && (ZWordContainsNonASCII(lWordChars) || ZLooksLikeAnEncodedWord(lWordChars)))
+                    //
+                    if (ZLooksLikeAnEncodedWord(lWordChars) || (!pBytes.UTF8Allowed && ZWordContainsNonASCII(lWordChars)))
                     {
                         if (lEncodedWordWordChars.Count == 0) lEncodedWordLeadingWSPChars.AddRange(lLeadingWSPChars);
                         if (lEncodedWordWordChars.Count > 0 || pBytes.LastWordWasAnEncodedWord) lEncodedWordWordChars.Add(' ');
@@ -133,15 +133,10 @@ namespace work.bacome.imapclient
 
                         pBytes.AddNonEncodedWord(lLeadingWSPChars, lWordChars.Count, GetBytesForNonEncodedWord(lWordChars));
                     }
-
-                    // prepare for next wsp word pair
-
-                    lLeadingWSPChars.Clear();
-                    lWordChars.Clear();
                 }
 
                 // output the cached encoded word chars if any
-
+                //
                 if (lEncodedWordWordChars.Count > 0)
                 {
                     pBytes.AddEncodedWords(lEncodedWordLeadingWSPChars, lEncodedWordWordChars, mQEncodingRestriction);
@@ -149,15 +144,12 @@ namespace work.bacome.imapclient
                     lEncodedWordWordChars.Clear();
                 }
 
-                // line and loop termination
-
+                // nothing left on this line
                 if (lIndex == -1) break;
 
+                // next line
                 pBytes.AddNewLine();
-
                 lStartIndex = lIndex + 2;
-
-                if (lStartIndex == mText.Length) break;
             }
         }
 
@@ -179,13 +171,13 @@ namespace work.bacome.imapclient
 
     internal class cHeaderFieldUnstructuredPart : cHeaderFieldEncodedWordsPart
     {
-        public cHeaderFieldUnstructuredPart(string pText) : base(pText, false, eQEncodingRestriction.none) { }
+        public cHeaderFieldUnstructuredPart(string pText) : base(pText, eQEncodingRestriction.none) { }
         protected override byte[] GetBytesForNonEncodedWord(List<char> pWordChars) => Encoding.UTF8.GetBytes(pWordChars.ToArray());
     }
 
     internal class cHeaderFieldCommentPart : cHeaderFieldEncodedWordsPart
     {
-        public cHeaderFieldCommentPart(string pText) : base(pText, true, eQEncodingRestriction.comment) { }
+        public cHeaderFieldCommentPart(string pText) : base(pText, eQEncodingRestriction.comment) { }
 
         protected override byte[] GetBytesForNonEncodedWord(List<char> pWordChars)
         {
@@ -203,7 +195,7 @@ namespace work.bacome.imapclient
 
     internal class cHeaderFieldPhrasePart : cHeaderFieldEncodedWordsPart
     {
-        public cHeaderFieldPhrasePart(string pText) : base(pText, false, eQEncodingRestriction.phrase) { }
+        public cHeaderFieldPhrasePart(string pText) : base(pText, eQEncodingRestriction.phrase) { }
 
         protected override byte[] GetBytesForNonEncodedWord(List<char> pWordChars)
         {

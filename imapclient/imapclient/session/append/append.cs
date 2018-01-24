@@ -184,6 +184,11 @@ namespace work.bacome.imapclient
                                 break;
                             }
 
+                        case cLiteralAppendData lLiteral:
+
+                            lMessages.Add(new cSessionLiteralAppendData(lLiteral.Flags ?? mAppendDefaultFlags, lLiteral.Received, lLiteral.Bytes));
+                            break;
+
                         case cFileAppendData lFile:
 
                             lMessages.Add(new cSessionFileAppendData(lFile.Flags ?? mAppendDefaultFlags, lFile.Received, lFile.Path, lFile.Length, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
@@ -285,7 +290,7 @@ namespace work.bacome.imapclient
                                                 if ((EnabledExtensions & fEnableableExtensions.utf8) == 0) lEncoding = lMultiPart.Encoding ?? mEncoding;
                                                 else lEncoding = null;
 
-                                                lParts.Add(new cCatenateBytesAppendDataPart(lLiteral.GetBytes(lEncoding)));
+                                                lParts.Add(new cCatenateLiteralAppendDataPart(lLiteral.GetBytes(lEncoding)));
                                                 break;
 
                                             default:
@@ -348,7 +353,7 @@ namespace work.bacome.imapclient
                                                 if ((EnabledExtensions & fEnableableExtensions.utf8) == 0) lEncoding = lMultiPart.Encoding ?? mEncoding;
                                                 else lEncoding = null;
 
-                                                lParts.Add(new cSessionBytesAppendDataPart(lLiteral.GetBytes(lEncoding)));
+                                                lParts.Add(new cSessionLiteralAppendDataPart(lLiteral.GetBytes(lEncoding)));
                                                 break;
 
                                             default:

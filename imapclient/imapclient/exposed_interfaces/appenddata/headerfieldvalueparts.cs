@@ -6,18 +6,15 @@ namespace work.bacome.imapclient
 {
     public class cHeaderFieldComment : cHeaderFieldValuePart
     {
-        private static readonly cBytes kLParen = new cBytes("(");
-        private static readonly cBytes kRParen = new cBytes(")");
-
         private List<cHeaderFieldValuePart> mParts = new List<cHeaderFieldValuePart>();
 
         public cHeaderFieldComment() { }
 
         internal override void GetBytes(cHeaderFieldBytes pBytes)
         {
-            pBytes.AddNonEncodedWord(cHeaderFieldBytes.SingleSpace, 1, kLParen);
+            pBytes.AddToken(cASCII.LPAREN);
             foreach (var lPart in mParts) lPart.GetBytes(pBytes);
-            pBytes.AddNonEncodedWord(cHeaderFieldBytes.SingleSpace, 1, kRParen);
+            pBytes.AddToken(cASCII.RPAREN);
         }
 
         public void Add(string pText)
