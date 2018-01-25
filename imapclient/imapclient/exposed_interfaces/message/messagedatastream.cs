@@ -180,6 +180,20 @@ namespace work.bacome.imapclient
             mLength = 0;
         }
 
+        public cMessageDataStream(cMessageDataStream pStream)
+        {
+            Client = pStream.Client;
+            MessageHandle = pStream.MessageHandle;
+            MailboxHandle = pStream.MailboxHandle;
+            UID = pStream.UID;
+            Section = pStream.Section;
+            Decoding = pStream.Decoding;
+            TargetBufferSize = pStream.TargetBufferSize;
+            HasKnownLength = pStream.HasKnownLength;
+            mLength = pStream.mLength;
+            mReadTimeout = pStream.mReadTimeout;
+        }
+
         internal cMessageDataStream(cIMAPClient pClient, iMessageHandle pMessageHandle, cSection pSection, int pTargetBufferSize)
         {
             Client = pClient ?? throw new ArgumentNullException(nameof(pClient));
@@ -207,6 +221,8 @@ namespace work.bacome.imapclient
             HasKnownLength = false;
             mLength = 0;
         }
+
+        public bool Unread => mFetchTask == null;
 
         public uint GetKnownLength()
         {

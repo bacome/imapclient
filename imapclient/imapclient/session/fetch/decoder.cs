@@ -54,14 +54,14 @@ namespace work.bacome.imapclient
                     mCount = 0;
                 }
 
-                public abstract Task WriteAsync(cMethodControl pMC, cBytes pBytes, int pOffset, cBatchSizer pWriteSizer, cTrace.cContext pContext);
+                public abstract Task WriteAsync(cMethodControl pMC, IList<byte> pBytes, int pOffset, cBatchSizer pWriteSizer, cTrace.cContext pContext);
                 public abstract Task FlushAsync(cMethodControl pMC, cBatchSizer pWriteSizer, cTrace.cContext pContext);
             }
 
             private class cIdentityDecoder : cDecoder
             {
                 public cIdentityDecoder(Stream pStream) : base(pStream) { }
-                public override Task WriteAsync(cMethodControl pMC, cBytes pBytes, int pOffset, cBatchSizer pWriteSizer, cTrace.cContext pContext) => YWriteAsync(pMC, pBytes, pOffset, pWriteSizer, pContext);
+                public override Task WriteAsync(cMethodControl pMC, IList<byte> pBytes, int pOffset, cBatchSizer pWriteSizer, cTrace.cContext pContext) => YWriteAsync(pMC, pBytes, pOffset, pWriteSizer, pContext);
                 public override Task FlushAsync(cMethodControl pMC, cBatchSizer pWriteSizer, cTrace.cContext pContext) => YFlushAsync(pMC, pWriteSizer, pContext);
             }
 
@@ -72,7 +72,7 @@ namespace work.bacome.imapclient
 
                 public cLineDecoder(Stream pStream) : base(pStream) { }
 
-                public async sealed override Task WriteAsync(cMethodControl pMC, cBytes pBytes, int pOffset, cBatchSizer pWriteSizer, cTrace.cContext pContext)
+                public async sealed override Task WriteAsync(cMethodControl pMC, IList<byte> pBytes, int pOffset, cBatchSizer pWriteSizer, cTrace.cContext pContext)
                 {
                     while (pOffset < pBytes.Count)
                     {

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Net.Mail;
 using System.Text;
 using work.bacome.imapclient.support;
 
@@ -23,7 +22,6 @@ namespace work.bacome.imapclient
         public static implicit operator cAppendData(string pString) => new cLiteralAppendData(pString);
         public static implicit operator cAppendData(Stream pStream) => new cStreamAppendData(pStream);
         public static implicit operator cAppendData(List<cAppendDataPart> pParts) => new cMultiPartAppendData(pParts);
-        public static implicit operator cAppendData(MailMessage pMessage) => new cMultiPartAppendData(pMessage);
     }
 
     public class cMessageAppendData : cAppendData
@@ -132,7 +130,7 @@ namespace work.bacome.imapclient
             Stream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!pStream.CanRead || !pStream.CanSeek) throw new ArgumentOutOfRangeException(nameof(pStream));
             long lLength = pStream.Length - pStream.Position;
-            if (lLength == 0 || lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
+            if (lLength <= 0 || lLength > uint.MaxValue) throw new ArgumentOutOfRangeException(nameof(pStream));
             Length = (uint)(lLength);
             ReadConfiguration = pReadConfiguration;
         }
@@ -149,12 +147,24 @@ namespace work.bacome.imapclient
         public override string ToString() => $"{nameof(cStreamAppendData)}({Flags},{Received},{Length},{ReadConfiguration})";
     }
 
-    public class cMultiPartAppendData : cAppendData
+    public abstract class cMultiPartAppendDataBase : cAppendData
     {
-        public readonly ReadOnlyCollection<cAppendDataPart> Parts;
         public readonly Encoding Encoding; // for encoded words and mime parameters, nullable (if null the client's encoding is used if required)
 
-        public cMultiPartAppendData(IEnumerable<cAppendDataPart> pParts, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null) : base(pFlags, pReceived)
+        internal cMultiPartAppendDataBase(cStorableFlags pFlags, DateTime? pReceived, Encoding pEncoding) : base(pFlags, pReceived)
+        {
+            if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
+            Encoding = pEncoding;
+        }
+
+        public abstract ReadOnlyCollection<cAppendDataPart> Parts { get; }
+    }
+
+    public class cMultiPartAppendData : cMultiPartAppendDataBase
+    {
+        private readonly ReadOnlyCollection<cAppendDataPart> mParts;
+
+        public cMultiPartAppendData(IEnumerable<cAppendDataPart> pParts, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null) : base(pFlags, pReceived, pEncoding)
         {
             if (pParts == null) throw new ArgumentNullException(nameof(pParts));
 
@@ -170,27 +180,11 @@ namespace work.bacome.imapclient
             }
 
             if (!lHasContent) throw new ArgumentOutOfRangeException(nameof(pParts));
-            if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
 
-            Parts = lParts.AsReadOnly();
-            Encoding = pEncoding;
+            mParts = lParts.AsReadOnly();
         }
 
-        public cMultiPartAppendData(MailMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null) : base(pFlags, pReceived)
-        {
-            if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
-
-            List<cAppendDataPart> lParts = new List<cAppendDataPart>();
-
-            // todo ... convert pMessage to lParts
-            throw new NotImplementedException();
-            // if can't convert ... throw new ArgumentOutOfRangeException(nameof(pMessage)); 
-
-            if (pEncoding != null && !cCommandPartFactory.TryAsCharsetName(pEncoding, out _)) throw new ArgumentOutOfRangeException(nameof(pEncoding));
-
-            Parts = lParts.AsReadOnly();
-            Encoding = pEncoding;
-        }
+        public override ReadOnlyCollection<cAppendDataPart> Parts => mParts;
 
         public override string ToString()
         {

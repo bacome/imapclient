@@ -67,7 +67,7 @@ namespace work.bacome.imapclient
                             break;
                         }
 
-                    case cMultiPartAppendData lMultiPart:
+                    case cMultiPartAppendDataBase lMultiPart:
 
                         foreach (var lPart in lMultiPart.Parts)
                         {

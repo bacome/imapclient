@@ -199,7 +199,7 @@ namespace work.bacome.imapclient
                             lMessages.Add(new cSessionStreamAppendData(lStream.Flags ?? mAppendDefaultFlags, lStream.Received, lStream.Stream, lStream.Length, lStream.ReadConfiguration ?? mAppendStreamReadConfiguration));
                             break;
 
-                        case cMultiPartAppendData lMultiPart:
+                        case cMultiPartAppendDataBase lMultiPart:
 
                             {
                                 cStorableFlags lFlags;
@@ -276,7 +276,7 @@ namespace work.bacome.imapclient
 
                                             case cFileAppendDataPart lFile:
 
-                                                lParts.Add(new cCatenateFileAppendDataPart(lFile.Path, lFile.Length, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
+                                                lParts.Add(new cCatenateFileAppendDataPart(lFile.Path, lFile.Length, lFile.Base64Encode, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
                                                 break;
 
                                             case cStreamAppendDataPart lStream:
@@ -337,15 +337,21 @@ namespace work.bacome.imapclient
 
                                             case cFileAppendDataPart lFile:
 
-                                                lParts.Add(new cSessionFileAppendDataPart(lFile.Path, lFile.Length, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
-                                                lLength += lFile.Length;
-                                                break;
+                                                {
+                                                    var lSessionPart = new cSessionFileAppendDataPart(lFile.Path, lFile.Length, lFile.Base64Encode, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration);
+                                                    lParts.Add(lSessionPart);
+                                                    lLength += lSessionPart.Length;
+                                                    break;
+                                                }
 
                                             case cStreamAppendDataPart lStream:
 
-                                                lParts.Add(new cSessionStreamAppendDataPart(lStream.Stream, lStream.Length, lStream.ReadConfiguration ?? mAppendStreamReadConfiguration));
-                                                lLength += lStream.Length;
-                                                break;
+                                                {
+                                                    var lSessionPart = new cSessionStreamAppendDataPart(lStream.Stream, lStream.Length, lStream.ReadConfiguration ?? mAppendStreamReadConfiguration);
+                                                    lParts.Add(lSessionPart);
+                                                    lLength += lSessionPart.Length;
+                                                    break;
+                                                }
 
                                             case cLiteralAppendDataPartBase lLiteral:
 

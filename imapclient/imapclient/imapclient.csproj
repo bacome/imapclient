@@ -45,6 +45,8 @@
     <Compile Include="client\append.cs" />
     <Compile Include="client\decodedsizeinbytes.cs" />
     <Compile Include="exposed_interfaces\appenddata\headerfieldvalueparts.cs" />
+    <Compile Include="client\quotedprintableencoder.cs" />
+    <Compile Include="exposed_interfaces\appenddata\mailmessageappenddata.cs" />
     <Compile Include="exposed_interfaces\support\appenddata.cs" />
     <Compile Include="exposed_interfaces\appenddata\literalappenddatapart.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddata.cs" />
@@ -61,6 +63,7 @@
     <Compile Include="session\command_pipeline\backgroundtask.cs" />
     <Compile Include="session\imap_commands\authenticated\append.cs" />
     <Compile Include="session\imap_commands\not_authenticated\authenticated.cs" />
+    <Compile Include="support\append\base64encoder.cs" />
     <Compile Include="support\append\headerfieldbytes.cs" />
     <Compile Include="support\collections\appenddatalist.cs" />
     <Compile Include="support\enums\qencodingrestriction.cs" />

@@ -200,10 +200,8 @@ namespace work.bacome.imapclient
             // phrase
             lPart = new cHeaderFieldAppendDataPart("x");
             //lPart.AddPhrase("Keld J\"#$%&'(),.:;<>@[\\]^`{|}~orn J\"#$%&'(),.^`{|}~ørn12345678901234567890123456 J#$%&':;<>@^`{|}~ørn12345678901234567890123456 J#$%&'[\\]^`{|}~ørn12345678901234567890123456 Simonsen");
-            ////                      x_____xxxxxxxxxx xx______   ^  x     xxxx                                   ^      xxxxx                                   ^      x xx
-            lPart.AddPhrase("Keld J\"#$%&'(),.:;<>@[\\]^`{|}~orn J#$%&'^`{|}~ørn12345678901234567890123456 Simonsen");
-            //                      x_____xxxxxxxxxx xx______   ^                                          ^      xxxxx                                   ^      x xx
-            //ZTest("q.3", lPart, null, "ISO-8859-1", "x:Keld \"J\\\"#$%&'(),.:;<>@[\\\\]^`{|}~orn\" =?iso-8859-1?q?J\"#$%&'=28=29,.:;<>@[=5C]^`{|}~=F8rn?= Simonsen)");
+            lPart.AddPhrase("Keld J\"#$%&'(),.:;<>@[\\]^`{|}~orn J\"#$%&ørn4567890123456789012345678901234567890 Simonsen");
+            ZTest("q.3", lPart, null, "ISO-8859-1", "x:Keld \"J\\\"#$%&'(),.:;<>@[\\\\]^`{|}~orn\" =?iso-8859-1?q?J\"#$%&'=28=29,.:;<>@[=5C]^`{|}~=F8rn?= Simonsen)");
 
 
 

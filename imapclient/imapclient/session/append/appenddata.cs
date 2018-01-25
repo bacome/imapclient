@@ -434,13 +434,15 @@ namespace work.bacome.imapclient
             {
                 private readonly string mPath;
                 private readonly uint mLength;
+                private readonly bool mBase64Encode;
                 private readonly cBatchSizerConfiguration mReadConfiguration;
 
-                public cCatenateFileAppendDataPart(string pPath, uint pLength, cBatchSizerConfiguration pReadConfiguration)
+                public cCatenateFileAppendDataPart(string pPath, uint pLength, bool pBase64Encode, cBatchSizerConfiguration pReadConfiguration)
                 {
                     mPath = pPath;
                     if (pLength == 0) throw new ArgumentOutOfRangeException(nameof(pLength));
                     mLength = pLength;
+                    mBase64Encode = pBase64Encode;
                     mReadConfiguration = pReadConfiguration ?? throw new ArgumentNullException(nameof(pReadConfiguration));
                 }
 
@@ -448,12 +450,13 @@ namespace work.bacome.imapclient
 
                 public override fCapabilities AddCatPart(cAppendCommandDetailsBuilder pBuilder)
                 {
-                    FileStream lStream = new FileStream(mPath, FileMode.Open, FileAccess.Read);
+                    Stream lStream = new FileStream(mPath, FileMode.Open, FileAccess.Read);
                     pBuilder.Add(lStream); // this is what disposes the stream
+                    if (mBase64Encode) lStream = new cBase64Encoder(lStream);
                     return YAddCatPart(pBuilder, new cStreamCommandPart(lStream, mLength, pBuilder.CatPartBinary, pBuilder.Increment, mReadConfiguration));
                 }
 
-                public override string ToString() => $"{nameof(cCatenateFileAppendDataPart)}({mPath},{mLength},{mReadConfiguration})";
+                public override string ToString() => $"{nameof(cCatenateFileAppendDataPart)}({mPath},{mLength},{mBase64Encode},{mReadConfiguration})";
             }
 
             private class cCatenateStreamAppendDataPart : cCatenateAppendDataPart
@@ -609,13 +612,15 @@ namespace work.bacome.imapclient
             {
                 private readonly string mPath;
                 private readonly uint mLength;
+                private readonly bool mBase64Encode;
                 private readonly cBatchSizerConfiguration mReadConfiguration;
 
-                public cSessionFileAppendDataPart(string pPath, uint pLength, cBatchSizerConfiguration pReadConfiguration)
+                public cSessionFileAppendDataPart(string pPath, uint pLength, bool pBase64Encode, cBatchSizerConfiguration pReadConfiguration)
                 {
                     mPath = pPath;
                     if (pLength == 0) throw new ArgumentOutOfRangeException(nameof(pLength));
                     mLength = pLength;
+                    mBase64Encode = pBase64Encode;
                     mReadConfiguration = pReadConfiguration ?? throw new ArgumentNullException(nameof(pReadConfiguration));
                 }
 
@@ -623,12 +628,13 @@ namespace work.bacome.imapclient
 
                 public override void AddPart(cAppendCommandDetailsBuilder pBuilder, List<cMultiPartLiteralPartBase> pParts)
                 {
-                    FileStream lStream = new FileStream(mPath, FileMode.Open, FileAccess.Read);
+                    Stream lStream = new FileStream(mPath, FileMode.Open, FileAccess.Read);
                     pBuilder.Add(lStream); // this is what disposes the stream
+                    if (mBase64Encode) lStream = new cBase64Encoder(lStream);
                     pParts.Add(new cMultiPartLiteralStreamPart(lStream, mLength, pBuilder.Increment, mReadConfiguration));
                 }
 
-                public override string ToString() => $"{nameof(cSessionFileAppendDataPart)}({mPath},{mLength},{mReadConfiguration})";
+                public override string ToString() => $"{nameof(cSessionFileAppendDataPart)}({mPath},{mLength},{mBase64Encode},{mReadConfiguration})";
             }
 
             private class cSessionStreamAppendDataPart : cSessionAppendDataPart

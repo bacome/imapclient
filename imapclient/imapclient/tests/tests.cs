@@ -31,6 +31,7 @@ namespace work.bacome.imapclient
             cHeaderFields._Tests(lContext);
             cStorableFlagList._Tests(lContext);
             cHeaderFieldAppendDataPart._Tests(lContext);
+            cBase64Encoder._Tests(lContext);
         }
 
         private partial class cSession
