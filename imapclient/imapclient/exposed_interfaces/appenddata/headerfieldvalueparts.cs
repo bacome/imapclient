@@ -28,6 +28,13 @@ namespace work.bacome.imapclient
             mParts.Add(pComment);
         }
 
+        public void AddComment(string pText)
+        {
+            cHeaderFieldComment lComment = new cHeaderFieldComment();
+            lComment.Add(pText);
+            mParts.Add(lComment);
+        }
+
         public override string ToString()
         {
             cListBuilder lBuilder = new cListBuilder(nameof(cHeaderFieldComment));

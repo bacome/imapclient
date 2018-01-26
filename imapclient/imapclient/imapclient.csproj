@@ -264,7 +264,7 @@
     <Compile Include="session\command_pipeline\activecommands.cs" />
     <Compile Include="session\command_pipeline\connection.cs" />
     <Compile Include="session\command_pipeline\responsebuilder.cs" />
-    <Compile Include="session\fetch\decoder.cs" />
+    <Compile Include="support\decoder.cs" />
     <Compile Include="session\imap_commands\not_authenticated\authenticate.cs" />
     <Compile Include="session\imap_commands\any_state\capability.cs" />
     <Compile Include="session\imap_commands\selected\check.cs" />
@@ -302,7 +302,7 @@
     <Compile Include="session\fetch\uidattributes.cs" />
     <Compile Include="session\command\commanddetailsbuilder.cs" />
     <Compile Include="session\command\commandtag.cs" />
-    <Compile Include="support\client\batchsizer.cs" />
+    <Compile Include="support\batchsizer.cs" />
     <Compile Include="session\support\messagecacheitem.cs" />
     <Compile Include="session\support\processors.cs" />
     <Compile Include="session\command_pipeline\responsetextprocessor.cs" />

@@ -452,7 +452,7 @@ namespace work.bacome.imapclient
                 {
                     Stream lStream = new FileStream(mPath, FileMode.Open, FileAccess.Read);
                     pBuilder.Add(lStream); // this is what disposes the stream
-                    if (mBase64Encode) lStream = new cBase64Encoder(lStream);
+                    if (mBase64Encode) lStream = new cBase64Encoder(lStream, mReadConfiguration);
                     return YAddCatPart(pBuilder, new cStreamCommandPart(lStream, mLength, pBuilder.CatPartBinary, pBuilder.Increment, mReadConfiguration));
                 }
 
@@ -630,7 +630,7 @@ namespace work.bacome.imapclient
                 {
                     Stream lStream = new FileStream(mPath, FileMode.Open, FileAccess.Read);
                     pBuilder.Add(lStream); // this is what disposes the stream
-                    if (mBase64Encode) lStream = new cBase64Encoder(lStream);
+                    if (mBase64Encode) lStream = new cBase64Encoder(lStream, mReadConfiguration);
                     pParts.Add(new cMultiPartLiteralStreamPart(lStream, mLength, pBuilder.Increment, mReadConfiguration));
                 }
 

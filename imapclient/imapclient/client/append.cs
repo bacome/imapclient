@@ -63,6 +63,7 @@ namespace work.bacome.imapclient
                     case cStreamAppendData lStream:
 
                         {
+                            // if the stream where wrapped in another stream this check wouldn't work
                             if (lStream.Stream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this)) throw new cAppendDataClientException(lMessage);
                             break;
                         }
@@ -91,6 +92,7 @@ namespace work.bacome.imapclient
                                 case cStreamAppendDataPart lStream:
 
                                     {
+                                        // if the stream where wrapped in another stream this check wouldn't work
                                         if (lStream.Stream is cMessageDataStream lMessageDataStream && ReferenceEquals(lMessageDataStream.Client, this)) throw new cAppendDataClientException(lMessage);
                                         break;
                                     }

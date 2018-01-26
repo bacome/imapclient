@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -53,7 +52,7 @@ namespace work.bacome.imapclient
             mQEncodingRestriction = pQEncodingRestriction;
         }
 
-        protected abstract byte[] GetBytesForNonEncodedWord(List<char> pWordChars);
+        protected abstract List<char> GetNonEncodedWordChars(List<char> pWordChars);
 
         internal override void GetBytes(cHeaderFieldBytes pBytes)
         {
@@ -131,7 +130,7 @@ namespace work.bacome.imapclient
                             lEncodedWordWordChars.Clear();
                         }
 
-                        pBytes.AddNonEncodedWord(lLeadingWSPChars, lWordChars.Count, GetBytesForNonEncodedWord(lWordChars));
+                        pBytes.AddNonEncodedWord(lLeadingWSPChars, GetNonEncodedWordChars(lWordChars));
                     }
                 }
 
@@ -172,14 +171,14 @@ namespace work.bacome.imapclient
     internal class cHeaderFieldUnstructuredPart : cHeaderFieldEncodedWordsPart
     {
         public cHeaderFieldUnstructuredPart(string pText) : base(pText, eQEncodingRestriction.none) { }
-        protected override byte[] GetBytesForNonEncodedWord(List<char> pWordChars) => Encoding.UTF8.GetBytes(pWordChars.ToArray());
+        protected override List<char> GetNonEncodedWordChars(List<char> pWordChars) => pWordChars;
     }
 
     internal class cHeaderFieldCommentPart : cHeaderFieldEncodedWordsPart
     {
         public cHeaderFieldCommentPart(string pText) : base(pText, eQEncodingRestriction.comment) { }
 
-        protected override byte[] GetBytesForNonEncodedWord(List<char> pWordChars)
+        protected override List<char> GetNonEncodedWordChars(List<char> pWordChars)
         {
             List<char> lWordChars = new List<char>();
 
@@ -189,7 +188,7 @@ namespace work.bacome.imapclient
                 lWordChars.Add(lChar);
             }
 
-            return Encoding.UTF8.GetBytes(lWordChars.ToArray());
+            return lWordChars;
         }
     }
 
@@ -197,9 +196,9 @@ namespace work.bacome.imapclient
     {
         public cHeaderFieldPhrasePart(string pText) : base(pText, eQEncodingRestriction.phrase) { }
 
-        protected override byte[] GetBytesForNonEncodedWord(List<char> pWordChars)
+        protected override List<char> GetNonEncodedWordChars(List<char> pWordChars)
         {
-            if (cCharset.AText.ContainsAll(pWordChars)) return Encoding.UTF8.GetBytes(pWordChars.ToArray());
+            if (cCharset.AText.ContainsAll(pWordChars)) return pWordChars;
 
             List<char> lWordChars = new List<char>();
 
@@ -213,7 +212,7 @@ namespace work.bacome.imapclient
 
             lWordChars.Add('"');
 
-            return Encoding.UTF8.GetBytes(lWordChars.ToArray());
+            return lWordChars;
         }
     }
 }

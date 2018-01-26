@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -279,10 +280,18 @@ namespace work.bacome.imapclient
                                                 lParts.Add(new cCatenateFileAppendDataPart(lFile.Path, lFile.Length, lFile.Base64Encode, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
                                                 break;
 
-                                            case cStreamAppendDataPart lStream:
+                                            case cStreamAppendDataPart lStreamPart:
 
-                                                lParts.Add(new cCatenateStreamAppendDataPart(lStream.Stream, lStream.Length, lStream.ReadConfiguration ?? mAppendStreamReadConfiguration));
-                                                break;
+                                                {
+                                                    cBatchSizerConfiguration lConfiguration = lStreamPart.ReadConfiguration ?? mAppendStreamReadConfiguration;
+
+                                                    Stream lStream;
+                                                    if (lStreamPart.Base64Encode) lStream = new cBase64Encoder(lStreamPart.Stream, lConfiguration);
+                                                    else lStream = lStreamPart.Stream;
+
+                                                    lParts.Add(new cCatenateStreamAppendDataPart(lStreamPart.Stream, lStreamPart.Length, lConfiguration));
+                                                    break;
+                                                }
 
                                             case cLiteralAppendDataPartBase lLiteral:
 
@@ -337,19 +346,21 @@ namespace work.bacome.imapclient
 
                                             case cFileAppendDataPart lFile:
 
-                                                {
-                                                    var lSessionPart = new cSessionFileAppendDataPart(lFile.Path, lFile.Length, lFile.Base64Encode, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration);
-                                                    lParts.Add(lSessionPart);
-                                                    lLength += lSessionPart.Length;
-                                                    break;
-                                                }
+                                                lParts.Add(new cSessionFileAppendDataPart(lFile.Path, lFile.Length, lFile.Base64Encode, lFile.ReadConfiguration ?? mAppendStreamReadConfiguration));
+                                                lLength += lFile.Length;
+                                                break;
 
-                                            case cStreamAppendDataPart lStream:
+                                            case cStreamAppendDataPart lStreamPart:
 
                                                 {
-                                                    var lSessionPart = new cSessionStreamAppendDataPart(lStream.Stream, lStream.Length, lStream.ReadConfiguration ?? mAppendStreamReadConfiguration);
-                                                    lParts.Add(lSessionPart);
-                                                    lLength += lSessionPart.Length;
+                                                    cBatchSizerConfiguration lConfiguration = lStreamPart.ReadConfiguration ?? mAppendStreamReadConfiguration;
+
+                                                    Stream lStream;
+                                                    if (lStreamPart.Base64Encode) lStream = new cBase64Encoder(lStreamPart.Stream, lConfiguration);
+                                                    else lStream = lStreamPart.Stream;
+
+                                                    lParts.Add(new cSessionStreamAppendDataPart(lStream, lStreamPart.Length, lConfiguration));
+                                                    lLength += lStreamPart.Length;
                                                     break;
                                                 }
 

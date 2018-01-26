@@ -71,6 +71,28 @@ namespace work.bacome.imapclient
             mParts.Add(pPhrase);
         }
 
+        public void AddParameter(string pAttribute, string pValue)
+        {
+            ;?; // validate that the attribute name is a token
+            ;?; // validate that value is printable-ascii or WSP OR utf-8 (regardless of the utf8 setting)
+
+            //  note utf-8 can be placed in the quoted string if utf8 is on 
+            // output a single word of the form ';ATTR={value as token or value as quoted-string}' IFF VALUE is all printable ascii WSP (or utf8 is on) AND ";ATTR=value" (including all quoting (both the " and the \ quoting)) is 77 chars or less
+            //  else
+            //   if the value is all printable ascii and WSP (or utf8 is on)
+            //    output multiple words all starting with ;ATTR*<n>={value as token or q-s} where n = 0.. and each word is 77 chars or less (quoting or not quoting depends on the data in the part being output in the word
+            //   else
+            //    <here only if utf8 is off and there are utf8 chars>
+            //    output 
+            //     a single word of the form ";ATTR*=<charset>''valuepart" where valuepart is in PEform (% encode bytes that are <= ' ', del, *, ', %, tspecials from rfc2045)
+            //     then other parts of the value in either ;ATTR*<n>={value as token or q-s} if all chars are printable ascii and WSP OR
+            //                                             ;ATTR*<n>*=valuepart in PEform otherwise 
+            //                (PEform should have the whole char rule)
+
+            ;?;
+        }
+
+
         internal override bool HasContent => true;
 
         internal override IList<byte> GetBytes(Encoding pEncoding)
@@ -200,33 +222,84 @@ namespace work.bacome.imapclient
             // phrase
             lPart = new cHeaderFieldAppendDataPart("x");
             //lPart.AddPhrase("Keld J\"#$%&'(),.:;<>@[\\]^`{|}~orn J\"#$%&'(),.^`{|}~ørn12345678901234567890123456 J#$%&':;<>@^`{|}~ørn12345678901234567890123456 J#$%&'[\\]^`{|}~ørn12345678901234567890123456 Simonsen");
-            lPart.AddPhrase("Keld J\"#$%&'(),.:;<>@[\\]^`{|}~orn J\"#$%&ørn4567890123456789012345678901234567890 Simonsen");
-            ZTest("q.3", lPart, null, "ISO-8859-1", "x:Keld \"J\\\"#$%&'(),.:;<>@[\\\\]^`{|}~orn\" =?iso-8859-1?q?J\"#$%&'=28=29,.:;<>@[=5C]^`{|}~=F8rn?= Simonsen)");
+            lPart.AddPhrase("Keld J\"#$%&'(),.:;<>@[\\]^`{|}~orn J\"#$%&ørn4567890123456789012345678901234567890 J'(),.ørn4567890123456789012345678901234567 J:;<>@ørn4567890123456789012345678901234567 J[\\]^`ørn4567890123456789012345678901234567 J{|}~ørn4567890123456789012345678901234567 Simonsen");
+            //                                                                                        1234567890123456789012345678901234567890123456789012345678901234567890123456
+            ZTest("q.3", lPart, null, 
+                "ISO-8859-1", "x:Keld \"J\\\"#$%&'(),.:;<>@[\\\\]^`{|}~orn\"\r\n" + 
+                " =?iso-8859-1?q?J=22=23=24=25=26=F8rn4567890123456789012345678901234567890?=\r\n" + 
+                " =?iso-8859-1?q?=20J=27=28=29=2C=2E=F8rn4567890123456789012345678901234567?=\r\n" +
+                " =?iso-8859-1?q?=20J=3A=3B=3C=3E=40=F8rn4567890123456789012345678901234567?=\r\n" +
+                " =?iso-8859-1?q?=20J=5B=5C=5D=5E=60=F8rn4567890123456789012345678901234567?=\r\n" +
+                " =?iso-8859-1?q?=20J=7B=7C=7D=7E=F8rn4567890123456789012345678901234567?=\r\n" +
+                " Simonsen");
+
+            // looks like an encoded word
+            ZTestUnstructured("e.1", "mary had =?x?q?x?= little lamb", null, "utf-8", "mary had =?utf-8?b?PT94P3E/eD89?= little lamb");
+            ZTestUnstructured("e.1", "mary had =?x?q?x!= little lamb", null, "utf-8", "mary had =?x?q?x!= little lamb");
+
+            // phrase
+            ZTestPhrase("p.1", "atom str.ng encod€d word", true, "atom \"str.ng\" encod€d word", "atom \"str.ng\" encod€d word");
+            ZTestPhrase("p.2", "atom str.ng encod€d word", false, "atom \"str.ng\" encod€d word", "atom \"str.ng\" =?utf-8?b?ZW5jb2Tigqxk?= word");
+
+            // 
+            lPart = new cHeaderFieldAppendDataPart("x");
+
+            cHeaderFieldPhrase lPhrase = new cHeaderFieldPhrase();
+            lPhrase.Add("phrase is only ");
+            cHeaderFieldComment lComment = new cHeaderFieldComment();
+            lComment.Add("not really");
+            lComment.AddComment("sorry");
+            lPhrase.Add(lComment);
+            lPhrase.Add("used in display name");
+
+            lPart.Add(lPhrase);
+            lPart.AddUnstructured("<Muhammed.");
+            lPart.AddComment("I am the greatest");
+            lPart.AddUnstructured(" Ali @");
+            lPart.AddComment("the");
+            lPart.AddUnstructured("Vegas.WBA>");
+
+            //                     123456789012345678901234567890123456789012345678901234567890123456789012345678
+            ZTest("ccp.1", lPart, "x:phrase is only(not really(sorry))used in display name <Muhammed.(I am the\r\n greatest) Ali @(the)Vegas.WBA>");
 
 
 
-            //  ccontent - in a comment
-            //ZTest("q.2", eEncodedWordsLocation.ccontent, "Keld J\"#$%&'(),.:;<>@[\\\\]^`{|}~ørn Simonsen", "Keld =?iso-8859-1?q?J\"#$%&'=28=29,.:;<>@[=5C]^`{|}~=F8rn?= Simonsen", "Keld J\"#$%&'(),.:;<>@[\\]^`{|}~ørn Simonsen", "ISO-8859-1");
 
-            //  qcontent - in a quoted string
-            //ZTest("q.3", eEncodedWordsLocation.qcontent, "Keld J\"#$%&'(),.:;<>@[\\\\]^`{|}~ørn Simonsen", "Keld =?iso-8859-1?q?J=22#$%&'(),.:;<>@[=5C]^`{|}~=F8rn?= Simonsen", "Keld J\"#$%&'(),.:;<>@[\\]^`{|}~ørn Simonsen", "ISO-8859-1");
+            lPart = new cHeaderFieldAppendDataPart("x");
+            lPart.AddComment("ts is a really long comment with one utf8 wørd in it (the word is the only one that should be \"treated\" differently if utf8 is on or off)");
+            //                                                                                                                                                                                     12345678901234567890123456789012345678901234567890123456 7890123456789012345678    12345678901234567890 12345678 90123456789012345678901234567890123456789012345678
+            ZTest("cc.1", lPart, "x:(ts is a really long comment with one utf8 wørd in it \\(the word is the only\r\n one that should be \"treated\" differently if utf8 is on or off\\))", null, "x:(ts is a really long comment with one utf8 wørd in it \\(the word is the only\r\n one that should be \"treated\" differently if utf8 is on or off\\))");
+            ZTest("cc.2", lPart, "x:(ts is a really long comment with one utf8 wørd in it\r\n \\(the word is the only one that should be \"treated\" differently if utf8 is on\r\n or off\\))", "utf-8",
+            //   1234567890123456789012345678901234567890123456789012345678901234567890123451 234567890123456789012345678901234567890123 45678901 234567890123456789012345678
+                "x:(ts is a really long comment with one utf8 =?utf-8?b?d8O4cmQ=?= in it\r\n \\(the word is the only one that should be \"treated\" differently if utf8 is on\r\n or off\\))");
 
-            // check that a word that looks like an encoded word gets encoded
-            //;?;
-
-
-            // properly check 76 char limit and 78 char limit
-
-            //ZTest("8.1.1", eEncodedWordsLocation.qcontent, "Keld Jørn Simonsen", "Keld =?iso-8859-1?q?J=F8rn?= Simonsen", null, "ISO-8859-1");
-
-
-            // utf-8 checks ;?;
-
-            // check the phrase 
+            lPart = new cHeaderFieldAppendDataPart("x");
+            lPart.AddComment("tis is a really long comment with one utf8 wørd in it (the word is the only one that should be \"treated\" differently if utf8 is on or off)");
+            //                                                                                                                                                                                      12345678901234567890123456789012345678901234567890123456 789012345678901234    1234567890123456789012345 67890123 456789012345678901234567890123456789012345678
+            ZTest("cc.3", lPart, "x:(tis is a really long comment with one utf8 wørd in it \\(the word is the\r\n only one that should be \"treated\" differently if utf8 is on or off\\))", null, "x:(tis is a really long comment with one utf8 wørd in it \\(the word is the\r\n only one that should be \"treated\" differently if utf8 is on or off\\))");
 
 
 
-            //;?; // more tests to do
+            // test blank line suppression
+            ZTestUnstructured("b.1", "here is\r\n \r\n a test\r\n \r\n ", "here is\r\n a test");
+
+            // test insertion of space
+
+            lPart = new cHeaderFieldAppendDataPart("x");
+            lPart.AddUnstructured("here is");
+            lPart.AddUnstructured("a test");
+            lPart.AddComment("this is a comment");
+            lPart.AddUnstructured("followed by text");
+            lPart.AddPhrase("an.d a ph.rase");
+
+            ZTest("sp.1", lPart, "x:here is a test(this is a comment)followed by text \"an.d\" a \"ph.rase\"");
+
+
+            lPart = new cHeaderFieldAppendDataPart("12345678901234567890123456789012345678901234567890123456789012345678901234567890");
+            lPart.AddUnstructured(".");
+
+            ZTest("long.1", lPart, "12345678901234567890123456789012345678901234567890123456789012345678901234567890:\r\n .");
+
         }
 
         private static void ZTestUnstructured(string pTestName, string pString, string pExpectedF = null, string pCharsetName = null, string pExpectedI = null)
@@ -245,6 +318,26 @@ namespace work.bacome.imapclient
             ZTest("unstructured." + pTestName, lPart, lExpectedF, pCharsetName, lExpectedI);
         }
 
+
+        private static void ZTestPhrase(string pTestName, string pString, bool pUTF8, string pExpectedF, string pExpectedI = null)
+        {
+            cHeaderFieldAppendDataPart lPart = new cHeaderFieldAppendDataPart("x");
+            lPart.AddPhrase(pString);
+
+            string lExpectedI;
+            if (pExpectedI == null) lExpectedI = null;
+            else lExpectedI = "x:" + pExpectedI;
+
+            string lExpectedF;
+            if (pExpectedF == null) lExpectedF = "x:" + pString;
+            else lExpectedF = "x:" + pExpectedF;
+
+            string lCharsetName;
+            if (pUTF8) lCharsetName = null;
+            else lCharsetName = "utf-8";
+
+            ZTest("phrase." + pTestName, lPart, lExpectedF, lCharsetName, lExpectedI);
+        }
 
         private static void ZTest(string pTestName, cHeaderFieldAppendDataPart pPart, string pExpectedF, string pCharsetName = null, string pExpectedI = null)
         {
@@ -265,12 +358,4 @@ namespace work.bacome.imapclient
         }
 
     }
-
-    /*
-    public class cMIMEParameterAppendDataPart : cLiteralAppendDataPartBase
-    {
-
-
-        public override string ToString()
-    } */
 }

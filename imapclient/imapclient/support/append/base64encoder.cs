@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -11,22 +12,27 @@ namespace work.bacome.imapclient
     internal class cBase64Encoder : Stream
     {
         private readonly Stream mStream;
+        private readonly cBatchSizer mReadSizer;
 
-        private readonly Queue<byte> mEncodedBytesBuffer = new Queue<byte>();
-        private readonly Queue<byte> mUnencodedBytesBuffer = new Queue<byte>();
+        private readonly Queue<byte> mOutputBytesBuffer = new Queue<byte>();
+        private readonly Queue<byte> mInputBytesBuffer = new Queue<byte>();
+
+        private readonly Stopwatch mStopwatch = new Stopwatch();
 
         private bool mReadStreamToEnd = false;
-        private int mUnencodedBytesOnCurrentLine = 0; // will be a multiple of 3 < 57
+        private int mInputBytesOnCurrentOutputLine = 0;
 
-        private readonly byte[] mReadBuffer = new byte[57];
+        private byte[] mReadBuffer = null;
         private int mBytesReadIntoReadBuffer = 0;
+        private int mBytesReadOutOfReadBuffer = 0;
 
         private readonly List<byte> mBytesToEncode = new List<byte>(57);
 
-        public cBase64Encoder(Stream pStream)
+        public cBase64Encoder(Stream pStream, cBatchSizerConfiguration pConfiguration)
         {
             mStream = pStream ?? throw new ArgumentNullException(nameof(pStream));
             if (!mStream.CanRead) throw new ArgumentOutOfRangeException(nameof(pStream));
+            mReadSizer = new cBatchSizer(pConfiguration);
         }
 
         public override bool CanRead => true;
@@ -63,15 +69,16 @@ namespace work.bacome.imapclient
 
             while (true)
             {
-                lBytesRead += ZReadFromEncodedBytesBuffer(pBuffer, ref pOffset, ref pCount);
+                lBytesRead += ZReadFromOutputBytesBuffer(pBuffer, ref pOffset, ref pCount);
                 if (pCount == 0) return lBytesRead;
 
                 while (true)
                 {
-                    if (ZEncodeSomeBytes()) break;
+                    if (ZGenerateSomeOutputBytes()) break;
                     if (mReadStreamToEnd) return lBytesRead;
+                    ZPrepareForReadIntoReadBuffer();
                     mBytesReadIntoReadBuffer = mStream.Read(mReadBuffer, 0, mReadBuffer.Length);
-                    ZCopyReadBufferToUnencodedBytesBuffer();
+                    ZReadBytesIntoReadBuffer();
                 }
             }
         }
@@ -86,15 +93,16 @@ namespace work.bacome.imapclient
 
             while (true)
             {
-                lBytesRead += ZReadFromEncodedBytesBuffer(pBuffer, ref pOffset, ref pCount);
+                lBytesRead += ZReadFromOutputBytesBuffer(pBuffer, ref pOffset, ref pCount);
                 if (pCount == 0) return lBytesRead;
 
                 while (true)
                 {
-                    if (ZEncodeSomeBytes()) break;
+                    if (ZGenerateSomeOutputBytes()) break;
                     if (mReadStreamToEnd) return lBytesRead;
+                    ZPrepareForReadIntoReadBuffer();
                     mBytesReadIntoReadBuffer = await mStream.ReadAsync(mReadBuffer, 0, mReadBuffer.Length, pCancellationToken);
-                    ZCopyReadBufferToUnencodedBytesBuffer();
+                    ZReadBytesIntoReadBuffer();
                 }
             }
         }
@@ -107,13 +115,13 @@ namespace work.bacome.imapclient
             if (pOffset + pCount > pBuffer.Length) throw new ArgumentException();
         }
 
-        private int ZReadFromEncodedBytesBuffer(byte[] pBuffer, ref int pOffset, ref int pCount)
+        private int ZReadFromOutputBytesBuffer(byte[] pBuffer, ref int pOffset, ref int pCount)
         {
             int lBytesRead = 0;
 
-            while (pCount > 0 && mEncodedBytesBuffer.Count > 0)
+            while (pCount > 0 && mOutputBytesBuffer.Count > 0)
             {
-                pBuffer[pOffset++] = mEncodedBytesBuffer.Dequeue();
+                pBuffer[pOffset++] = mOutputBytesBuffer.Dequeue();
                 pCount--;
                 lBytesRead++;
             }
@@ -121,53 +129,78 @@ namespace work.bacome.imapclient
             return lBytesRead;
         }
 
-        private void ZCopyReadBufferToUnencodedBytesBuffer()
+        private void ZPrepareForReadIntoReadBuffer()
         {
+            int lCurrent = mReadSizer.Current;
+            if (mReadBuffer == null || lCurrent > mReadBuffer.Length) mReadBuffer = new byte[lCurrent];
+            mStopwatch.Restart();
+        }
+
+        private void ZReadBytesIntoReadBuffer()
+        {
+            mStopwatch.Stop();
+
+            mBytesReadOutOfReadBuffer = 0;
+
             if (mBytesReadIntoReadBuffer == 0)
             {
                 mReadStreamToEnd = true;
                 return;
             }
 
-            for (int i = 0; i < mBytesReadIntoReadBuffer; i++) mUnencodedBytesBuffer.Enqueue(mReadBuffer[i]);
+            mReadSizer.AddSample(mBytesReadIntoReadBuffer, mStopwatch.ElapsedMilliseconds);
         }
 
-        private bool ZEncodeSomeBytes()
+        private bool ZGenerateSomeOutputBytes()
         {
-            bool lResult = false;
+            bool lGeneratedSomeOutputBytes = false;
 
+            // transfer bytes from the current read buffer to the input buffer until the input buffer has 57 bytes or we run out of data
+            while (mInputBytesBuffer.Count < 57 && mBytesReadOutOfReadBuffer < mBytesReadIntoReadBuffer) mInputBytesBuffer.Enqueue(mReadBuffer[mBytesReadOutOfReadBuffer++]);
+
+            // check if this is the end of the stream
+            bool lAllBytesAvailableAreInInputBuffer = (mReadStreamToEnd && mBytesReadOutOfReadBuffer == mBytesReadIntoReadBuffer);
+
+            // transfer 
             while (true)
             {
                 mBytesToEncode.Clear();
 
+                // move bytes from the input buffer to the encoding buffer in groups of 3 or to the end
+                //
                 while (true)
                 {
-                    if (mUnencodedBytesBuffer.Count == 0) break;
-                    if (mUnencodedBytesBuffer.Count < 3 && !mReadStreamToEnd) break;
-                    mBytesToEncode.Add(mUnencodedBytesBuffer.Dequeue());
-                    mUnencodedBytesOnCurrentLine++;
-                    if (mUnencodedBytesBuffer.Count == 0) break;
-                    mBytesToEncode.Add(mUnencodedBytesBuffer.Dequeue());
-                    mUnencodedBytesOnCurrentLine++;
-                    if (mUnencodedBytesBuffer.Count == 0) break;
-                    mBytesToEncode.Add(mUnencodedBytesBuffer.Dequeue());
-                    mUnencodedBytesOnCurrentLine++;
-                    if (mUnencodedBytesOnCurrentLine == 57) break;
+                    if (mInputBytesBuffer.Count == 0) break;
+                    if (mInputBytesBuffer.Count < 3 && !lAllBytesAvailableAreInInputBuffer) break;
+                    mBytesToEncode.Add(mInputBytesBuffer.Dequeue());
+                    mInputBytesOnCurrentOutputLine++;
+                    if (mInputBytesBuffer.Count == 0) break;
+                    mBytesToEncode.Add(mInputBytesBuffer.Dequeue());
+                    mInputBytesOnCurrentOutputLine++;
+                    if (mInputBytesBuffer.Count == 0) break;
+                    mBytesToEncode.Add(mInputBytesBuffer.Dequeue());
+                    mInputBytesOnCurrentOutputLine++;
+                    if (mInputBytesOnCurrentOutputLine == 57) break;
                 }
 
-                if (mBytesToEncode.Count == 0) break;
-                var lEncodedBytes = cBase64.Encode(mBytesToEncode);
-                foreach (var lByte in lEncodedBytes) mEncodedBytesBuffer.Enqueue(lByte);
-
-                if (mUnencodedBytesOnCurrentLine == 57 || (mReadStreamToEnd && mUnencodedBytesBuffer.Count == 0))
+                if (mBytesToEncode.Count > 0)
                 {
-                    mEncodedBytesBuffer.Enqueue(cASCII.CR);
-                    mEncodedBytesBuffer.Enqueue(cASCII.LF);
-                    mUnencodedBytesOnCurrentLine = 0;
+                    var lEncodedBytes = cBase64.Encode(mBytesToEncode);
+                    foreach (var lByte in lEncodedBytes) mOutputBytesBuffer.Enqueue(lByte);
+                    lGeneratedSomeOutputBytes = true;
                 }
-            }
 
-            return lResult;
+                if (mInputBytesOnCurrentOutputLine == 57 || (lAllBytesAvailableAreInInputBuffer && mInputBytesBuffer.Count == 0 && mInputBytesOnCurrentOutputLine > 0))
+                {
+                    mOutputBytesBuffer.Enqueue(cASCII.CR);
+                    mOutputBytesBuffer.Enqueue(cASCII.LF);
+                    lGeneratedSomeOutputBytes = true;
+
+                    mInputBytesOnCurrentOutputLine = 0;
+                }
+
+                if (mBytesToEncode.Count == 0) return lGeneratedSomeOutputBytes;
+            }
         }
 
         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
@@ -187,21 +220,84 @@ namespace work.bacome.imapclient
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         internal static void _Tests(cTrace.cContext pParentContext)
         {
-            ZTest("1", "this is a test", pParentContext).Wait();
+            ZTest("1", "", pParentContext);
+            ZTest("2", "this is a test", pParentContext);
+
+            for (int i = 0; i < 1000; i++) ZRandomTest(i, pParentContext);
+
+            ZRandomTest(99999, pParentContext);
         }
 
-        private static async Task ZTest(string pTestName, string pInputString, cTrace.cContext pParentContext)
+        private static void ZTest(string pTestName, string pInputString, cTrace.cContext pParentContext) => ZZTest(pTestName, pInputString, pParentContext).Wait();
+
+
+        private static void ZRandomTest(int pSize, cTrace.cContext pParentContext)
+        {
+            Random lRandom = new Random();
+            StringBuilder lBuilder = new StringBuilder();
+
+            while (lBuilder.Length < pSize)
+            {
+                char lChar = (char)lRandom.Next(0xFFFF);
+                System.Globalization.UnicodeCategory lCat = char.GetUnicodeCategory(lChar);
+                if (lCat == System.Globalization.UnicodeCategory.ClosePunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.ConnectorPunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.CurrencySymbol ||
+                    lCat == System.Globalization.UnicodeCategory.DashPunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.DecimalDigitNumber ||
+                    lCat == System.Globalization.UnicodeCategory.FinalQuotePunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.InitialQuotePunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.LowercaseLetter ||
+                    lCat == System.Globalization.UnicodeCategory.MathSymbol ||
+                    lCat == System.Globalization.UnicodeCategory.OpenPunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.OtherLetter ||
+                    lCat == System.Globalization.UnicodeCategory.OtherNumber ||
+                    lCat == System.Globalization.UnicodeCategory.OtherPunctuation ||
+                    lCat == System.Globalization.UnicodeCategory.OtherSymbol ||
+                    lCat == System.Globalization.UnicodeCategory.SpaceSeparator ||
+                    lCat == System.Globalization.UnicodeCategory.TitlecaseLetter ||
+                    lCat == System.Globalization.UnicodeCategory.UppercaseLetter
+                    ) lBuilder.Append(lChar);
+            }
+
+            ZZTest("random", lBuilder.ToString(), pParentContext).Wait();
+        }
+
+        private static async Task ZZTest(string pTestName, string pInputString, cTrace.cContext pParentContext)
         {
             cMethodControl lMC = new cMethodControl(-1, CancellationToken.None);
-            cBatchSizer lWS = new cBatchSizer(new cBatchSizerConfiguration(10, 100, 10000, 10));
+            cBatchSizer lWS = new cBatchSizer(new cBatchSizerConfiguration(10, 10, 10000, 10));
             string lIntermediateString;
             string lFinalString;
 
             using (MemoryStream lInput = new MemoryStream(Encoding.UTF8.GetBytes(pInputString)))
             {
-                cBase64Encoder lEncoder = new cBase64Encoder(lInput);
+                cBase64Encoder lEncoder = new cBase64Encoder(lInput, new cBatchSizerConfiguration(10, 10, 10000, 10));
 
                 using (MemoryStream lIntermediate = new MemoryStream())
                 {
@@ -213,8 +309,9 @@ namespace work.bacome.imapclient
 
                     using (MemoryStream lFinal = new MemoryStream())
                     {
-                        cBase64Decoder lDecoder = new cBase64Decoder(lFinal);
-                        await lDecoder.WriteAsync(lMC, lFinal.ToArray(), 0, lWS, pParentContext);
+                        cBase64Decoder lDecoder = new cBase64Decoder(lMC, lFinal, lWS);
+                        await lDecoder.WriteAsync(lIntermediate.ToArray(), 0, pParentContext);
+                        await lDecoder.FlushAsync(pParentContext);
                         lFinalString = new string(Encoding.UTF8.GetChars(lFinal.ToArray()));
                     }
                 }
@@ -222,8 +319,19 @@ namespace work.bacome.imapclient
 
             if (lFinalString != pInputString) throw new cTestsException($"{nameof(cBase64Encoder)}({pTestName}.f)");
 
-            // check the lines are no longer than 76 chars
-            // TODO;?;
+            // check the lines are no longer than 76 chars and that they all end with crlf and there are no blank lines
+
+            int lLineStart = 0;
+
+            while (true)
+            {
+                if (lLineStart == lIntermediateString.Length) break;
+                int lLineEnd = lIntermediateString.IndexOf("\r\n", lLineStart);
+                if (lLineEnd == -1) throw new cTestsException($"{nameof(cBase64Encoder)}({pTestName}.e)");
+                int lLineLength = lLineEnd - lLineStart;
+                if (lLineLength < 1 || lLineLength > 76) throw new cTestsException($"{nameof(cBase64Encoder)}({pTestName}.ll)");
+                lLineStart = lLineEnd + 2;
+            }
         }
     }
 }

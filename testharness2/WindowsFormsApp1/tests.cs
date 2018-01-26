@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -34,7 +33,7 @@ namespace testharness2
                 ZTestByeAtStartup2(cTrace.cContext.None); // tests BYE at startup and greeting
                 ZTestByeAtStartup3(lContext); // tests BYE at startup with referral
 
-                ZTestPreauthAtStartup1(lContext); // tests capability in greeting and logout
+                if (!pQuick) ZTestPreauthAtStartup1(lContext); // tests capability in greeting and logout
                 ZTestPreauthAtStartup1_2(lContext); // tests utf8 id
                 ZTestPreauthAtStartup1_3(lContext); // tests utf8 id 2
                 ZTestPreauthAtStartup2(lContext); // tests capability command, enabling UTF8, information, warning and error messages, 
@@ -68,10 +67,10 @@ namespace testharness2
 
                 ZTestBadCharsetUIDNotSticky(lContext);
 
-                ZTestPipelineCancellation(lContext);
+                if (!pQuick) ZTestPipelineCancellation(lContext);
 
-                ZTestEarlyTermination1(lContext);
-                ZTestEarlyTermination2(lContext);
+                if (!pQuick) ZTestEarlyTermination1(lContext);
+                if (!pQuick) ZTestEarlyTermination2(lContext);
             }
             catch (Exception e) when (lContext.TraceException(e)) { }
         }

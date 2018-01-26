@@ -7,7 +7,7 @@ namespace work.bacome.imapclient
     {
         /*
         ;?; // takes one stream and converts it to quoted printable on another stream
-        public static int QuotedPrintableEncoder(Stream pSource, Stream pTarget)
+        public static int QuotedPrintableEncoder(Stream pSource, bool pEncodeCRLFs, Stream pTarget)
         {
             // returns the number of bytes 
             //  pTarget may be null

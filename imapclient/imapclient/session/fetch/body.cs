@@ -50,9 +50,9 @@ namespace work.bacome.imapclient
 
                 cDecoder lDecoder;
 
-                if (lBinary || pDecoding == eDecodingRequired.none) lDecoder = new cIdentityDecoder(pStream);
-                else if (pDecoding == eDecodingRequired.base64) lDecoder = new cBase64Decoder(pStream);
-                else if (pDecoding == eDecodingRequired.quotedprintable) lDecoder = new cQuotedPrintableDecoder(pStream);
+                if (lBinary || pDecoding == eDecodingRequired.none) lDecoder = new cIdentityDecoder(pMC, pStream, pWriteSizer);
+                else if (pDecoding == eDecodingRequired.base64) lDecoder = new cBase64Decoder(pMC, pStream, pWriteSizer);
+                else if (pDecoding == eDecodingRequired.quotedprintable) lDecoder = new cQuotedPrintableDecoder(pMC, pStream, pWriteSizer);
                 else throw new cContentTransferDecodingException("required decoding not supported", lContext);
 
                 uint lOrigin = 0;
@@ -80,7 +80,7 @@ namespace work.bacome.imapclient
                     int lOffset = (int)(lOrigin - lBodyOrigin);
 
                     // write the bytes
-                    await lDecoder.WriteAsync(pMC, lBody.Bytes, lOffset, pWriteSizer, lContext).ConfigureAwait(false);
+                    await lDecoder.WriteAsync(lBody.Bytes, lOffset, lContext).ConfigureAwait(false);
 
                     // update progress
                     mSynchroniser.InvokeActionInt(pIncrement, lBody.Bytes.Count - lOffset, lContext);
@@ -95,7 +95,7 @@ namespace work.bacome.imapclient
                     lOrigin = lBodyOrigin + (uint)lBody.Bytes.Count;
                 }
 
-                await lDecoder.FlushAsync(pMC, pWriteSizer, lContext).ConfigureAwait(false);
+                await lDecoder.FlushAsync(lContext).ConfigureAwait(false);
             }
         }
     }
