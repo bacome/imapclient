@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
     public class cHeaderFieldMIMEParameter : cHeaderFieldValuePart
     {
-        private string mAttribute;
+        private static readonly cBytes kAsteriskEquals = new cBytes("*=");
+        private static readonly cBytes kQuoteQuote = new cBytes("''");
+
+        private cBytes mAttribute;
         private string mValue;
 
         public cHeaderFieldMIMEParameter(string pAttribute, string pValue)
         {
-            mAttribute = pAttribute ?? throw new ArgumentNullException(nameof(pAttribute));
+            if (pAttribute == null) throw new ArgumentNullException(nameof(pAttribute));
             if (!cCharset.RFC2045Token.ContainsAll(pAttribute)) throw new ArgumentOutOfRangeException(nameof(pAttribute));
+            mAttribute = new cBytes(pAttribute);
             mValue = pValue ?? throw new ArgumentNullException(nameof(pValue));
 
             foreach (var lChar in pValue)
@@ -27,14 +32,14 @@ namespace work.bacome.imapclient
         internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext)
         {
             // if the value is a short token
-            if (cCharset.RFC2045Token.ContainsAll(mValue) && mAttribute.Length + mValue.Length < 76)
+            if (cCharset.RFC2045Token.ContainsAll(mValue) && mAttribute.Count + mValue.Length < 76)
             {
-                var lWordChars = new List<char>();
-                lWordChars.Add(';');
-                lWordChars.AddRange(mAttribute);
-                lWordChars.Add('=');
-                lWordChars.AddRange(mValue);
-                pBytes.AddNonEncodedWord(cHeaderFieldBytes.SingleSpace, lWordChars);
+                var lWordBytes = new List<byte>();
+                lWordBytes.Add(cASCII.SEMICOLON);
+                lWordBytes.AddRange(mAttribute);
+                lWordBytes.Add(cASCII.EQUALS);
+                lWordBytes.AddRange(new cBytes(mValue));
+                pBytes.AddNonEncodedWord(lWordBytes);
                 return;
             }
 
@@ -44,22 +49,23 @@ namespace work.bacome.imapclient
 
             if (pBytes.UTF8Allowed || !lValueContainsNonASCII)
             {
-                var lQuotedStringValue = ZQuotedString(mValue, out _);
+                var lQuotedStringValue = ZQuotedString(mValue, out var lQuotingCharCount);
 
-                if (mAttribute.Length + lQuotedStringValue.Length < 76)
+                if (mAttribute.Count + mValue.Length + lQuotingCharCount < 76)
                 {
-                    var lWordChars = new List<char>();
-                    lWordChars.Add(';');
-                    lWordChars.AddRange(mAttribute);
-                    lWordChars.Add('=');
-                    lWordChars.AddRange(lQuotedStringValue);
-                    pBytes.AddNonEncodedWord(cHeaderFieldBytes.SingleSpace, lWordChars);
+                    var lWordBytes = new List<byte>();
+                    lWordBytes.Add(cASCII.SEMICOLON);
+                    lWordBytes.AddRange(mAttribute);
+                    lWordBytes.Add(cASCII.EQUALS);
+                    lWordBytes.AddRange(lQuotedStringValue);
+                    pBytes.AddNonEncodedWord(lWordBytes);
                     return;
                 }
             }
 
             int lSectionNumber = 0;
-            string lSectionNumberString = lSectionNumber.ToString();
+            var lSectionNumberBytes = cTools.IntToBytesReverse(lSectionNumber);
+            lSectionNumberBytes.Reverse();
             int lMaxSectionLength;
 
             StringInfo lValue = new StringInfo(mValue);
@@ -68,9 +74,9 @@ namespace work.bacome.imapclient
             int lTextElementCount = 1;
 
             int lLastTextElementCount = 0;
-            string lLastSectionText = null;
+            IList<byte> lLastSectionBytes = null;
 
-            string lSectionText;
+            IList<byte> lSectionBytes;
             int lSectionLength;
 
             // if the value is long but doesn't need to be encoded
@@ -78,7 +84,7 @@ namespace work.bacome.imapclient
             {
                 // break into sections
 
-                lMaxSectionLength = 74 - mAttribute.Length - lSectionNumberString.Length;
+                lMaxSectionLength = 74 - mAttribute.Count - lSectionNumberBytes.Count;
 
                 while (lFromTextElement + lTextElementCount <= lValue.LengthInTextElements)
                 {
@@ -86,28 +92,28 @@ namespace work.bacome.imapclient
 
                     if (cCharset.RFC2045Token.ContainsAll(lString))
                     {
-                        lSectionText = lString;
-                        lSectionLength = lTextElementCount;
+                        lSectionBytes = new cBytes(lString);
+                        lSectionLength = lString.Length;
                     }
                     else
                     {
-                        lSectionText = ZQuotedString(lString, out var lQuotingCharCount);
-                        lSectionLength = lTextElementCount + lQuotingCharCount;
+                        lSectionBytes = ZQuotedString(lString, out var lQuotingCharCount);
+                        lSectionLength = lString.Length + lQuotingCharCount;
                     }
 
                     if (lTextElementCount == 1 || lSectionLength <= lMaxSectionLength)
                     {
                         lLastTextElementCount = lTextElementCount;
-                        lLastSectionText = lSectionText;
+                        lLastSectionBytes = lSectionBytes;
                     }
 
                     if (lSectionLength > lMaxSectionLength)
                     {
-                        ZAddSection(pBytes, lSectionNumberString, lLastSectionText);
+                        ZAddSection(pBytes, lSectionNumberBytes, lLastSectionBytes);
 
-                        lSectionNumber++;
-                        lSectionNumberString = lSectionNumber.ToString();
-                        lMaxSectionLength = 74 - mAttribute.Length - lSectionNumberString.Length;
+                        lSectionNumberBytes = cTools.IntToBytesReverse(++lSectionNumber);
+                        lSectionNumberBytes.Reverse();
+                        lMaxSectionLength = 74 - mAttribute.Count - lSectionNumberBytes.Count;
 
                         lFromTextElement = lFromTextElement + lLastTextElementCount;
                         lTextElementCount = 1;
@@ -115,33 +121,34 @@ namespace work.bacome.imapclient
                     else lTextElementCount++;
                 }
 
-                if (lFromTextElement < lValue.LengthInTextElements) ZAddSection(pBytes, lSectionNumberString, lLastSectionText);
+                if (lFromTextElement < lValue.LengthInTextElements) ZAddSection(pBytes, lSectionNumberBytes, lLastSectionBytes);
 
                 return;
             }
 
             // if the encoded value is short
 
-            var lPercentEncodedValue = ZPercentEncoded(pBytes.Encoding, mValue);
+            var lPercentEncodedValue = ZPercentEncoded(pBytes.Encoding.GetBytes(mValue));
 
-            if (mAttribute.Length + pBytes.Encoding.WebName.Length + lPercentEncodedValue.count < 73)
+            if (mAttribute.Count + pBytes.CharsetNameBytes.Count + lPercentEncodedValue.Count < 73)
             {
-                var lWordChars = new List<char>();
-                lWordChars.Add(';');
-                lWordChars.AddRange(mAttribute);
-                lWordChars.AddRange("*=");
-                lWordChars.AddRange(pBytes.Encoding.WebName);
-                lWordChars.AddRange("''");
-                lWordChars.AddRange(lPercentEncodedValue);
-                pBytes.AddNonEncodedWord(cHeaderFieldBytes.SingleSpace, lWordChars);
+                var lWordBytes = new List<byte>();
+                lWordBytes.Add(cASCII.SEMICOLON);
+                lWordBytes.AddRange(mAttribute);
+                lWordBytes.AddRange(kAsteriskEquals);
+                lWordBytes.AddRange(pBytes.CharsetNameBytes);
+                lWordBytes.AddRange(kQuoteQuote);
+                lWordBytes.AddRange(lPercentEncodedValue);
+                pBytes.AddNonEncodedWord(lWordBytes);
                 return;
             }
 
             // worst scenario: needs encoding and long
 
+            bool lFirstSection = true;
             bool lLastSectionPercentEncoded = true;
 
-            lMaxSectionLength = 72 - mAttribute.Length - lSectionNumberString.Length - pBytes.Encoding.WebName.Length;
+            lMaxSectionLength = 72 - mAttribute.Count - lSectionNumberBytes.Count - pBytes.CharsetNameBytes.Count;
 
             while (lFromTextElement + lTextElementCount <= lValue.LengthInTextElements)
             {
@@ -149,39 +156,41 @@ namespace work.bacome.imapclient
 
                 bool lSectionPercentEncoded;
 
-                if (lFromTextElement == 0 || ZStringContainsNonASCII(lString))
+                if (lFirstSection || ZStringContainsNonASCII(lString))
                 {
-                    lSectionText = ZPercentEncoded(pBytes.Encoding, lString);
-                    lSectionLength = lSectionText.Length + 1; // for the * in the *=
+                    lSectionBytes = ZPercentEncoded(pBytes.Encoding.GetBytes(lString));
+                    lSectionLength = lSectionBytes.Count + 1; // extra one for the * in the *=
                     lSectionPercentEncoded = true;
                 }
                 else if (cCharset.RFC2045Token.ContainsAll(lString))
                 {
-                    lSectionText = lString;
+                    lSectionBytes = new cBytes(lString);
                     lSectionLength = lString.Length;
                     lSectionPercentEncoded = false;
                 }
                 else
                 {
-                    lSectionText = ZQuotedString(lString, out _);
-                    lSectionLength = lSectionText.Length;
+                    lSectionBytes = ZQuotedString(lString, out _);
+                    lSectionLength = lSectionBytes.Count;
                     lSectionPercentEncoded = false;
                 }
 
                 if (lTextElementCount == 1 || lSectionLength <= lMaxSectionLength)
                 {
                     lLastTextElementCount = lTextElementCount;
-                    lLastSectionText = lSectionText;
+                    lLastSectionBytes = lSectionBytes;
                     lLastSectionPercentEncoded = lSectionPercentEncoded;
                 }
 
                 if (lSectionLength > lMaxSectionLength)
                 {
-                    ZAddSection(pBytes, lSectionNumberString, lSectionPercentEncoded, pBytes.Encoding.WebName, lLastSectionText);
+                    ZAddSection(pBytes, lSectionNumberBytes, lLastSectionPercentEncoded, lFirstSection, lLastSectionBytes);
 
-                    lSectionNumber++;
-                    lSectionNumberString = lSectionNumber.ToString();
-                    lMaxSectionLength = 74 - mAttribute.Length - lSectionNumberString.Length;
+                    lFirstSection = false;
+
+                    lSectionNumberBytes = cTools.IntToBytesReverse(++lSectionNumber);
+                    lSectionNumberBytes.Reverse();
+                    lMaxSectionLength = 74 - mAttribute.Count - lSectionNumberBytes.Count;
 
                     lFromTextElement = lFromTextElement + lLastTextElementCount;
                     lTextElementCount = 1;
@@ -189,9 +198,89 @@ namespace work.bacome.imapclient
                 else lTextElementCount++;
             }
 
-            if (lFromTextElement < lValue.LengthInTextElements) ZAddSection(pBytes, lSectionNumberString, lSectionPercentEncoded, pBytes.Encoding.WebName, lLastSectionText);
+            if (lFromTextElement < lValue.LengthInTextElements) ZAddSection(pBytes, lSectionNumberBytes, lLastSectionPercentEncoded, lFirstSection, lLastSectionBytes);
         }
 
+        private bool ZStringContainsNonASCII(string pString)
+        {
+            foreach (var lChar in pString) if (lChar > cASCII.DEL) return true;
+            return false;
+        }
 
+        private List<byte> ZQuotedString(string pString, out int rQuotingCharCount)
+        {
+            rQuotingCharCount = 2;
+
+            var lBytes = new List<byte>();
+
+            lBytes.Add(cASCII.DQUOTE);
+
+            foreach (var lByte in Encoding.UTF8.GetBytes(pString))
+            {
+                if (lByte == cASCII.DQUOTE || lByte == cASCII.BACKSL)
+                {
+                    lBytes.Add(cASCII.BACKSL);
+                    rQuotingCharCount++;
+                }
+
+                lBytes.Add(lByte);
+            }
+
+            lBytes.Add(cASCII.DQUOTE);
+
+            return lBytes;
+        }
+
+        private List<byte> ZPercentEncoded(byte[] pBytes)
+        {
+            var lBytes = new List<byte>();
+
+            foreach (var lByte in pBytes)
+            {
+                if (cCharset.AttributeChar.Contains(lByte)) lBytes.Add(lByte);
+                else 
+                {
+                    lBytes.Add(cASCII.PERCENT);
+                    lBytes.AddRange(cTools.ByteToHexBytes(lByte));
+                }
+            }
+
+            return lBytes;
+        }
+
+        private void ZAddSection(cHeaderFieldBytes pBytes, IList<byte> pSectionNumberBytes, IList<byte> pSectionBytes)
+        {
+            var lWordBytes = new List<byte>();
+            lWordBytes.Add(cASCII.SEMICOLON);
+            lWordBytes.AddRange(mAttribute);
+            lWordBytes.Add(cASCII.ASTERISK);
+            lWordBytes.AddRange(pSectionNumberBytes);
+            lWordBytes.Add(cASCII.EQUALS);
+            lWordBytes.AddRange(pSectionBytes);
+            pBytes.AddNonEncodedWord(lWordBytes);
+        }
+
+        private void ZAddSection(cHeaderFieldBytes pBytes, IList<byte> pSectionNumberBytes, bool pSectionPercentEncoded, bool pFirstSection, IList<byte> pSectionBytes)
+        {
+            var lWordBytes = new List<byte>();
+
+            lWordBytes.Add(cASCII.SEMICOLON);
+            lWordBytes.AddRange(mAttribute);
+            lWordBytes.Add(cASCII.ASTERISK);
+            lWordBytes.AddRange(pSectionNumberBytes);
+
+            if (pSectionPercentEncoded) lWordBytes.Add(cASCII.ASTERISK);
+            lWordBytes.Add(cASCII.EQUALS);
+
+            if (pFirstSection)
+            {
+                lWordBytes.AddRange(pBytes.CharsetNameBytes);
+                lWordBytes.AddRange(kQuoteQuote);
+            }
+
+            lWordBytes.AddRange(pSectionBytes);
+
+            pBytes.AddNonEncodedWord(lWordBytes);
+        }
     }
 }

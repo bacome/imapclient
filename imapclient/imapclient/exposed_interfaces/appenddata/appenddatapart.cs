@@ -411,6 +411,94 @@ namespace work.bacome.imapclient
 
             ZTest("long.1", lPart, "12345678901234567890123456789012345678901234567890123456789012345678901234567890:\r\n .");
 
+
+            // parameters
+
+            lPart = new cHeaderFieldAppendDataPart("content-type",
+                new cHeaderFieldValuePart[]
+                {
+                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldMIMEParameter("access-type", "URL"),
+                    new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer.tar")
+                }
+                );
+
+            //                     12345678901234567890123456789012345678901234567890123456789012345678901234567890
+            ZTestMime("1", lPart, "content-type:message/external-body ;access-type=URL\r\n ;URL=\"ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer.tar\"");
+
+            lPart = new cHeaderFieldAppendDataPart("content-type",
+                new cHeaderFieldValuePart[]
+                {
+                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldMIMEParameter("access-type", "URL"),
+                    new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mailer.tar")
+                }
+                );
+
+            //                                                                            12345678 901234567890123456789012345678901234567890123456789012345678901234567890
+            ZTestMime("2", lPart, "content-type:message/external-body ;access-type=URL\r\n ;URL*0=\"ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer/bulk-mailer/bulk-\"\r\n ;URL*1=mailer.tar");
+
+            lPart = new cHeaderFieldAppendDataPart("content-type",
+                new cHeaderFieldValuePart[]
+                {
+                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldMIMEParameter("access-type", "URL"),
+                    new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.€du/pub/moore/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mail€r.tar")
+                }
+                );
+
+            //                                                                            12345678 901234567890123456789012345678901234567890123456789012345678901234567890
+            ZTestMime("2.1", lPart, "content-type:message/external-body ;access-type=URL\r\n ;URL*0=\"ftp://cs.utk.€du/pub/moore/bulk-mailer/bulk-mailer/bulk-mailer/bulk-\"\r\n ;URL*1=\"mail€r.tar\"");
+
+            lPart = new cHeaderFieldAppendDataPart("content-type",
+                new cHeaderFieldValuePart[]
+                {
+                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldMIMEParameter("access-type", "URL"),
+                    new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.€du/pub/moore/bulk-mailer/bulk-mailer.tar")
+                }
+                );
+
+            //                     12345678901234567890123456789012345678901234567890123456789012345678901234567890
+            ZTestMime("3", lPart, "content-type:message/external-body ;access-type=URL\r\n ;URL=\"ftp://cs.utk.€du/pub/moore/bulk-mailer/bulk-mailer.tar\"");
+
+            lPart = new cHeaderFieldAppendDataPart("content-type",
+                new cHeaderFieldValuePart[]
+                {
+                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldMIMEParameter("access-type", "URL"),
+                    new cHeaderFieldMIMEParameter("URL", "moøre")
+                }
+                );
+
+            //                       12345678901234567890123456789012345678901234567890123456789012345678901234567890
+            ZTestMime("3.1", lPart, "content-type:message/external-body ;access-type=URL ;URL*=iso-8859-1''mo%F8re", "ISO-8859-1");
+
+            lPart = new cHeaderFieldAppendDataPart("content-type",
+                new cHeaderFieldValuePart[]
+                {
+                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldMIMEParameter("access-type", "URL"),
+                    new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.edu/pub/moøre/bulk-mailer/bulk-mailer.tar")
+                }
+                );
+
+            //                                                                            12345678901234567890123456789012345678901234567890123456789012345678901234567890
+            //                                                                                                            
+            ZTestMime("4", lPart, "content-type:message/external-body ;access-type=URL\r\n ;URL*0*=iso-8859-1''ftp%3A%2F%2Fcs.utk.edu%2Fpub%2Fmo%F8re%2Fbulk-mailer%2Fbu\r\n ;URL*1=lk-mailer.tar", "ISO-8859-1");
+
+            lPart = new cHeaderFieldAppendDataPart("content-type",
+                new cHeaderFieldValuePart[]
+                {
+                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldMIMEParameter("access-type", "URL"),
+                    new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.edu/pub/moøre/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mailer/bulk-maile9012345678901234567890123456789012345678901234567890123456789012345678moøre.tar")
+                }
+                );
+
+            //                                                                            12345678901234567890123456789012345678901234567890123456789012345678901234567890  12345678 901234567890123456789012345678901234567890123456789012345678901234567 8    123456789012345678901234567890123456789012345678901234567890123456789012345678
+            //                                                                                                            
+            ZTestMime("4", lPart, "content-type:message/external-body ;access-type=URL\r\n ;URL*0*=iso-8859-1''ftp%3A%2F%2Fcs.utk.edu%2Fpub%2Fmo%F8re%2Fbulk-mailer%2Fbu\r\n ;URL*1=\"lk-mailer/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mailer/bulk-maile\"\r\n ;URL*2=9012345678901234567890123456789012345678901234567890123456789012345678\r\n ;URL*3*=mo%F8re.tar", "ISO-8859-1");
         }
 
         private static void ZTestUnstructured(string pTestName, string pString, string pExpectedF = null, string pCharsetName = null, string pExpectedI = null)
@@ -466,6 +554,21 @@ namespace work.bacome.imapclient
             if (pExpectedF != null && lFString != pExpectedF) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.Unstructured({pTestName}.f : {lFString})");
         }
 
+        private static void ZTestMime(string pTestName, cHeaderFieldAppendDataPart pPart, string pExpected, string pCharsetName = null)
+        {
+            Encoding lEncoding;
+            if (pCharsetName == null) lEncoding = null;
+            else lEncoding = Encoding.GetEncoding(pCharsetName);
+
+            var lTemp = pPart.GetBytes(lEncoding);
+
+            byte[] lBytes = new byte[lTemp.Count - 2];
+            for (int i = 0; i < lTemp.Count - 2; i++) lBytes[i] = lTemp[i];
+
+            string lString = new string(Encoding.UTF8.GetChars(lBytes));
+
+            if (lString != pExpected) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.mime.{pTestName} : {lString}");
+        }
     }
 
     public class cFileAppendDataPart : cAppendDataPart

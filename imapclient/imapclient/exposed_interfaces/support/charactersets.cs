@@ -16,6 +16,7 @@ namespace work.bacome.imapclient.support
         private const string cUnreservedSome = "-._~";
         private const string cACharSome = "!$'()*+,&=";
         private const string cSubDelims = "!$&'()*+,;=";
+        private const string cTSpecials = "()<>@,;:\\\"/[]?=";
 
         private static readonly cBytes aListWildcards = new cBytes(cListWildcards);
         private static readonly cBytes aQuotedSpecials = new cBytes(cQuotedSpecials);
@@ -23,6 +24,7 @@ namespace work.bacome.imapclient.support
         private static readonly cBytes aUnreservedSome = new cBytes(cUnreservedSome);
         private static readonly cBytes aACharSome = new cBytes(cACharSome);
         private static readonly cBytes aSubDelims = new cBytes(cSubDelims);
+        private static readonly cBytes aTSpecials = new cBytes(cTSpecials);
 
         private static bool ZIsCTL(byte pByte) => pByte < cASCII.SPACE || pByte > cASCII.TILDA;
         private static bool ZIsCTL(char pChar) => pChar < ' ' || pChar > '~';
@@ -653,9 +655,6 @@ namespace work.bacome.imapclient.support
 
         private class cRFC2045Token : cCharset
         {
-            private const string cTSpecials = "()<>@,;:\\\"/[]?=";
-            private static readonly cBytes aTSpecials = new cBytes(cTSpecials);
-
             public override bool Contains(byte pByte)
             {
                 if (pByte <= cASCII.SPACE) return false;
@@ -691,6 +690,30 @@ namespace work.bacome.imapclient.support
                 if (pChar <= ' ') return false;
                 if (pChar >= cChar.DEL) return false;
                 if (ZIsOneOf(pChar, cESpecials)) return false;
+                return true;
+            }
+        }
+
+        private class cAttributeChar : cCharset
+        {
+            private const string cNotSome = "*'%";
+            private static readonly cBytes aNotSome = new cBytes(cNotSome);
+
+            public override bool Contains(byte pByte)
+            {
+                if (pByte <= cASCII.SPACE) return false;
+                if (pByte >= cASCII.DEL) return false;
+                if (ZIsOneOf(pByte, aTSpecials)) return false;
+                if (ZIsOneOf(pByte, aNotSome)) return false;
+                return true;
+            }
+
+            public override bool Contains(char pChar)
+            {
+                if (pChar <= ' ') return false;
+                if (pChar >= cChar.DEL) return false;
+                if (ZIsOneOf(pChar, cTSpecials)) return false;
+                if (ZIsOneOf(pChar, cNotSome)) return false;
                 return true;
             }
         }
@@ -761,5 +784,7 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset RFC2045Token = new cRFC2045Token();
         /**<summary>Represents the characters used in RFC 2047 'token'.</summary>*/
         public static readonly cCharset RFC2047Token = new cRFC2047Token();
+        /**<summary>Represents the characters used in RFC 2231 'attribute-char'.</summary>*/
+        public static readonly cCharset AttributeChar = new cAttributeChar();
     }
 }
