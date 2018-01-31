@@ -44,16 +44,14 @@
   <ItemGroup>
     <Compile Include="client\append.cs" />
     <Compile Include="client\decodedsizeinbytes.cs" />
-    <Compile Include="exposed_interfaces\appenddata\headerfieldvalueparts.cs" />
+    <Compile Include="exposed_interfaces\appenddata\headerfieldmimeparameter.cs" />
     <Compile Include="client\quotedprintableencoder.cs" />
+    <Compile Include="exposed_interfaces\appenddata\headerfieldvalueparts.cs" />
     <Compile Include="exposed_interfaces\appenddata\mailmessageappenddata.cs" />
-    <Compile Include="exposed_interfaces\support\appenddata.cs" />
-    <Compile Include="exposed_interfaces\appenddata\literalappenddatapart.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddata.cs" />
     <Compile Include="exposed_interfaces\configuration\appendconfiguration.cs" />
     <Compile Include="exposed_interfaces\feedback\appendfeedback.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddatapart.cs" />
-    <Compile Include="junkyard\appendnonasciitext.cs" />
     <Compile Include="exposed_interfaces\message\messagedatastream.cs" />
     <Compile Include="exposed_interfaces\other\eventsubscriptioncounts.cs" />
     <Compile Include="session\append\append.cs" />
@@ -66,8 +64,6 @@
     <Compile Include="support\append\base64encoder.cs" />
     <Compile Include="support\append\headerfieldbytes.cs" />
     <Compile Include="support\collections\appenddatalist.cs" />
-    <Compile Include="support\enums\qencodingrestriction.cs" />
-    <Compile Include="support\append\headerfieldvaluepart.cs" />
     <Compile Include="tools\apidocumentation.cs" />
     <Compile Include="client\base.cs" />
     <Compile Include="client\connect.cs" />

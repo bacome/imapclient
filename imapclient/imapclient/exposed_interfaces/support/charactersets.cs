@@ -651,6 +651,28 @@ namespace work.bacome.imapclient.support
             public override bool Contains(char pChar) => pChar >= ' ' && pChar < cChar.DEL;
         }
 
+        private class cRFC2045Token : cCharset
+        {
+            private const string cTSpecials = "()<>@,;:\\\"/[]?=";
+            private static readonly cBytes aTSpecials = new cBytes(cTSpecials);
+
+            public override bool Contains(byte pByte)
+            {
+                if (pByte <= cASCII.SPACE) return false;
+                if (pByte >= cASCII.DEL) return false;
+                if (ZIsOneOf(pByte, aTSpecials)) return false;
+                return true;
+            }
+
+            public override bool Contains(char pChar)
+            {
+                if (pChar <= ' ') return false;
+                if (pChar >= cChar.DEL) return false;
+                if (ZIsOneOf(pChar, cTSpecials)) return false;
+                return true;
+            }
+        }
+
         private class cRFC2047Token : cCharset
         {
             private const string cESpecials = "()<>@,;:\\\"/[]?.=";
@@ -735,6 +757,8 @@ namespace work.bacome.imapclient.support
         public static readonly cCharset FText = new cFText();
         /**<summary>Represents the characters used in RFC 6749 'VSCHAR'.</summary>*/
         public static readonly cCharset VSChar = new cVSChar();
+        /**<summary>Represents the characters used in RFC 2045 'token'.</summary>*/
+        public static readonly cCharset RFC2045Token = new cRFC2045Token();
         /**<summary>Represents the characters used in RFC 2047 'token'.</summary>*/
         public static readonly cCharset RFC2047Token = new cRFC2047Token();
     }

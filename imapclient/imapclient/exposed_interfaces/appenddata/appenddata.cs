@@ -95,7 +95,7 @@ namespace work.bacome.imapclient
             Bytes = new cBytes(lBytes);
         }
 
-        public override string ToString() => $"{nameof(cLiteralAppendDataPart)}({Flags},{Received},{Bytes})";
+        public override string ToString() => $"{nameof(cLiteralAppendData)}({Flags},{Received},{Bytes})";
     }
 
     public class cFileAppendData : cAppendData
