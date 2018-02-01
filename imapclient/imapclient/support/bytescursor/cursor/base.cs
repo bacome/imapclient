@@ -631,18 +631,18 @@ namespace work.bacome.imapclient
 
         private bool ZGetMonth(out int rMonth)
         {
-            if (SkipBytes(cASCIIMonth.Jan)) rMonth = 1;
-            else if (SkipBytes(cASCIIMonth.Feb)) rMonth = 2;
-            else if (SkipBytes(cASCIIMonth.Mar)) rMonth = 3;
-            else if (SkipBytes(cASCIIMonth.Apr)) rMonth = 4;
-            else if (SkipBytes(cASCIIMonth.May)) rMonth = 5;
-            else if (SkipBytes(cASCIIMonth.Jun)) rMonth = 6;
-            else if (SkipBytes(cASCIIMonth.Jul)) rMonth = 7;
-            else if (SkipBytes(cASCIIMonth.Aug)) rMonth = 8;
-            else if (SkipBytes(cASCIIMonth.Sep)) rMonth = 9;
-            else if (SkipBytes(cASCIIMonth.Oct)) rMonth = 10;
-            else if (SkipBytes(cASCIIMonth.Nov)) rMonth = 11;
-            else if (SkipBytes(cASCIIMonth.Dec)) rMonth = 12;
+            if (SkipBytes(cRFCMonth.aJan)) rMonth = 1;
+            else if (SkipBytes(cRFCMonth.aFeb)) rMonth = 2;
+            else if (SkipBytes(cRFCMonth.aMar)) rMonth = 3;
+            else if (SkipBytes(cRFCMonth.aApr)) rMonth = 4;
+            else if (SkipBytes(cRFCMonth.aMay)) rMonth = 5;
+            else if (SkipBytes(cRFCMonth.aJun)) rMonth = 6;
+            else if (SkipBytes(cRFCMonth.aJul)) rMonth = 7;
+            else if (SkipBytes(cRFCMonth.aAug)) rMonth = 8;
+            else if (SkipBytes(cRFCMonth.aSep)) rMonth = 9;
+            else if (SkipBytes(cRFCMonth.aOct)) rMonth = 10;
+            else if (SkipBytes(cRFCMonth.aNov)) rMonth = 11;
+            else if (SkipBytes(cRFCMonth.aDec)) rMonth = 12;
             else { rMonth = -1; return false; }
 
             return true;

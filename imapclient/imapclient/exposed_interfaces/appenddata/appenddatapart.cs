@@ -146,8 +146,10 @@ namespace work.bacome.imapclient
 
     public class cHeaderFieldAppendDataPart : cLiteralAppendDataPartBase
     {
+        private static readonly ReadOnlyCollection<cHeaderFieldValuePart> kEmpty = new ReadOnlyCollection<cHeaderFieldValuePart>(new cHeaderFieldValuePart[] { });
+
         private readonly string mFieldName;
-        private readonly ReadOnlyCollection<cHeaderFieldValuePart> mParts;
+        private readonly ReadOnlyCollection<cHeaderFieldValuePart> mValue;
 
         public cHeaderFieldAppendDataPart(string pFieldName)
         {
@@ -155,9 +157,7 @@ namespace work.bacome.imapclient
             if (pFieldName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pFieldName));
             if (!cCharset.FText.ContainsAll(pFieldName)) throw new ArgumentOutOfRangeException(nameof(pFieldName));
             mFieldName = pFieldName;
-
-            var lParts = new List<cHeaderFieldValuePart>();
-            mParts = new ReadOnlyCollection<cHeaderFieldValuePart>(lParts);
+            mValue = kEmpty;
         }
 
         public cHeaderFieldAppendDataPart(string pFieldName, string pText)
@@ -168,19 +168,54 @@ namespace work.bacome.imapclient
             if (!cCharset.FText.ContainsAll(pFieldName)) throw new ArgumentOutOfRangeException(nameof(pFieldName));
             mFieldName = pFieldName;
 
-            var lParts = new List<cHeaderFieldValuePart>();
-            lParts.Add(new cHeaderFieldText(pText));
-            mParts = new ReadOnlyCollection<cHeaderFieldValuePart>(lParts);
+            var lValue = new List<cHeaderFieldValuePart>();
+            lValue.Add(new cHeaderFieldText(pText));
+            mValue = new ReadOnlyCollection<cHeaderFieldValuePart>(lValue);
         }
 
-        public cHeaderFieldAppendDataPart(string pFieldName, IEnumerable<cHeaderFieldValuePart> pParts)
+        public cHeaderFieldAppendDataPart(string pFieldName, DateTime pDateTime)
         {
             if (pFieldName == null) throw new ArgumentNullException(nameof(pFieldName));
-            if (pParts == null) throw new ArgumentNullException(nameof(pParts));
             if (pFieldName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pFieldName));
             if (!cCharset.FText.ContainsAll(pFieldName)) throw new ArgumentOutOfRangeException(nameof(pFieldName));
             mFieldName = pFieldName;
-            mParts = new ReadOnlyCollection<cHeaderFieldValuePart>(new List<cHeaderFieldValuePart>(pParts));
+
+            ;?; // cf this to asdatetime: it should behave the same
+
+            DateTime lDateTime;
+            if (pDateTime.Kind == DateTimeKind.Unspecified) lDateTime = new DateTime(pDateTime.Year, pDateTime.Month, pDateTime.Day, pDateTime.Hour, pDateTime.Minute, pDateTime.Second, DateTimeKind.Local);
+            else lDateTime = pDateTime.ToLocalTime();
+
+            var lMonth = cRFCMonth.cName[lDateTime.Month];
+
+            var lOffset = TimeZoneInfo.Local.GetUtcOffset(lDateTime);
+
+            string lSign;
+
+            if (lOffset < TimeSpan.Zero)
+            {
+                lSign = "-";
+                lOffset = -lOffset;
+            }
+            else lSign = "+";
+
+            string lZone = lOffset.ToString("hhmm");
+
+            string l5322DateTime = string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", lDateTime, lMonth, lSign, lZone);
+
+            var lValue = new List<cHeaderFieldValuePart>();
+            lValue.Add(new cHeaderFieldText(l5322DateTime));
+            mValue = new ReadOnlyCollection<cHeaderFieldValuePart>(lValue);
+        }
+
+        public cHeaderFieldAppendDataPart(string pFieldName, IEnumerable<cHeaderFieldValuePart> pValue)
+        {
+            if (pFieldName == null) throw new ArgumentNullException(nameof(pFieldName));
+            if (pValue == null) throw new ArgumentNullException(nameof(pValue));
+            if (pFieldName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pFieldName));
+            if (!cCharset.FText.ContainsAll(pFieldName)) throw new ArgumentOutOfRangeException(nameof(pFieldName));
+            mFieldName = pFieldName;
+            mValue = new ReadOnlyCollection<cHeaderFieldValuePart>(new List<cHeaderFieldValuePart>(pValue));
         }
 
         internal override bool HasContent => true;
@@ -188,7 +223,7 @@ namespace work.bacome.imapclient
         internal override IList<byte> GetBytes(Encoding pEncoding)
         {
             cHeaderFieldBytes lBytes = new cHeaderFieldBytes(mFieldName, pEncoding);
-            foreach (var lPart in mParts) lPart.GetBytes(lBytes, eHeaderValuePartContext.unstructured);
+            foreach (var lPart in mValue) lPart.GetBytes(lBytes, eHeaderValuePartContext.unstructured);
             lBytes.AddNewLine();
             return lBytes.Bytes;
         }
@@ -197,7 +232,7 @@ namespace work.bacome.imapclient
         {
             cListBuilder lBuilder = new cListBuilder(nameof(cHeaderFieldAppendDataPart));
             lBuilder.Append(mFieldName);
-            foreach (var lPart in mParts) lBuilder.Append(lPart);
+            foreach (var lPart in mValue) lBuilder.Append(lPart);
             return lBuilder.ToString();
         }
 
@@ -499,6 +534,12 @@ namespace work.bacome.imapclient
             //                                                                            12345678901234567890123456789012345678901234567890123456789012345678901234567890  12345678 901234567890123456789012345678901234567890123456789012345678901234567 8    123456789012345678901234567890123456789012345678901234567890123456789012345678
             //                                                                                                            
             ZTestMime("4", lPart, "content-type:message/external-body ;access-type=URL\r\n ;URL*0*=iso-8859-1''ftp%3A%2F%2Fcs.utk.edu%2Fpub%2Fmo%F8re%2Fbulk-mailer%2Fbu\r\n ;URL*1=\"lk-mailer/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mailer/bulk-maile\"\r\n ;URL*2=9012345678901234567890123456789012345678901234567890123456789012345678\r\n ;URL*3*=mo%F8re.tar", "ISO-8859-1");
+
+
+
+
+            ;?; // test headerdatetime [need to check on a positive, negative and zero offsets]
+            ;?; // need to test on local time, unspec and utc
         }
 
         private static void ZTestUnstructured(string pTestName, string pString, string pExpectedF = null, string pCharsetName = null, string pExpectedI = null)

@@ -17,7 +17,7 @@ namespace work.bacome.imapclient
         public cHeaderFieldMIMEParameter(string pAttribute, string pValue)
         {
             if (pAttribute == null) throw new ArgumentNullException(nameof(pAttribute));
-            if (!cCharset.RFC2045Token.ContainsAll(pAttribute)) throw new ArgumentOutOfRangeException(nameof(pAttribute));
+            if (!cCharset.AttributeChar.ContainsAll(pAttribute)) throw new ArgumentOutOfRangeException(nameof(pAttribute));
             mAttribute = new cBytes(pAttribute);
             mValue = pValue ?? throw new ArgumentNullException(nameof(pValue));
 
@@ -90,7 +90,7 @@ namespace work.bacome.imapclient
                 {
                     var lString = lValue.SubstringByTextElements(lFromTextElement, lTextElementCount);
 
-                    if (cCharset.RFC2045Token.ContainsAll(lString))
+                    if (cCharset.AttributeChar.ContainsAll(lString))
                     {
                         lSectionBytes = new cBytes(lString);
                         lSectionLength = lString.Length;
@@ -162,7 +162,7 @@ namespace work.bacome.imapclient
                     lSectionLength = lSectionBytes.Count + 1; // extra one for the * in the *=
                     lSectionPercentEncoded = true;
                 }
-                else if (cCharset.RFC2045Token.ContainsAll(lString))
+                else if (cCharset.AttributeChar.ContainsAll(lString))
                 {
                     lSectionBytes = new cBytes(lString);
                     lSectionLength = lString.Length;

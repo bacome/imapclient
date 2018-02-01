@@ -243,7 +243,7 @@ namespace work.bacome.imapclient
 
             lBytes.AddRange(ZIntToBytes(pDate.Day, 0));
             lBytes.Add(cASCII.HYPEN);
-            lBytes.AddRange(cASCIIMonth.Name[pDate.Month - 1]);
+            lBytes.AddRange(cRFCMonth.aName[pDate.Month - 1]);
             lBytes.Add(cASCII.HYPEN);
             lBytes.AddRange(ZIntToBytes(pDate.Year, 4));
 
@@ -258,7 +258,7 @@ namespace work.bacome.imapclient
 
             lBytes.AddRange(ZIntToBytes(pDate.Day, 2));
             lBytes.Add(cASCII.HYPEN);
-            lBytes.AddRange(cASCIIMonth.Name[pDate.Month - 1]);
+            lBytes.AddRange(cRFCMonth.aName[pDate.Month - 1]);
             lBytes.Add(cASCII.HYPEN);
             lBytes.AddRange(ZIntToBytes(pDate.Year, 4));
 
@@ -272,8 +272,7 @@ namespace work.bacome.imapclient
 
             lBytes.Add(cASCII.SPACE);
 
-            if (pDate.Kind == DateTimeKind.Utc) lBytes.AddRange(UTC);
-            else
+            if (pDate.Kind == DateTimeKind.Local)
             {
                 var lOffset = TimeZoneInfo.Local.GetUtcOffset(pDate);
 
@@ -288,6 +287,7 @@ namespace work.bacome.imapclient
 
                 foreach (var lChar in lOffsetChars) lBytes.Add((byte)lChar);
             }
+            else lBytes.AddRange(UTC);
 
             lBytes.Add(cASCII.DQUOTE);
 

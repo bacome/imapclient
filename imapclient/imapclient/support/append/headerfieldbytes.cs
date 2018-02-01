@@ -11,7 +11,7 @@ namespace work.bacome.imapclient
     {
         public static readonly ReadOnlyCollection<char> SingleSpace = new ReadOnlyCollection<char>(new List<char>(new char[] { ' ' }));
 
-        private enum eWordType { token, encodedword, nothingspecial }
+        private enum eWordType { special, encodedword, nothingspecial }
 
         private static readonly ReadOnlyCollection<char> kEmpty = new ReadOnlyCollection<char>(new List<char>(new char[] { }));
 
@@ -30,7 +30,7 @@ namespace work.bacome.imapclient
         private int mCurrentLineCharCount;
 
         private bool mCurrentLineHasEncodedWords = false;
-        private eWordType mLastWordWas = eWordType.token; // the colon
+        private eWordType mLastWordType = eWordType.special; // the colon
 
         public cHeaderFieldBytes(string pFieldName, Encoding pEncoding)
         {
@@ -48,9 +48,9 @@ namespace work.bacome.imapclient
         }
 
         public bool UTF8Allowed => mUTF8Allowed;
-        public bool LastWordWasAnEncodedWord => mLastWordWas == eWordType.encodedword;
+        public bool LastWordWasAnEncodedWord => mLastWordType == eWordType.encodedword;
 
-        public void AddToken(byte pByte)
+        public void AddSpecial(byte pByte)
         {
             bool lFold;
 
@@ -76,23 +76,27 @@ namespace work.bacome.imapclient
             mBytes.Add(pByte);
             mCurrentLineByteCount++;
             mCurrentLineCharCount++;
-            mLastWordWas = eWordType.token;
+            mLastWordType = eWordType.special;
         }
 
         public void AddNonEncodedWord(List<byte> pWordBytes)
         {
             if (pWordBytes.Count == 0) throw new ArgumentOutOfRangeException(nameof(pWordBytes));
 
+            int lLeadingSpaces;
+            if (mLastWordType == eWordType.special) lLeadingSpaces = 0;
+            else lLeadingSpaces = 1;
+
             bool lFold;
 
             if (mCurrentLineHasEncodedWords)
             {
-                if (mCurrentLineByteCount + pWordBytes.Count > 75) lFold = true;
+                if (mCurrentLineByteCount + lLeadingSpaces + pWordBytes.Count > 76) lFold = true;
                 else lFold = false;
             }
             else
             {
-                if (mCurrentLineCharCount + pWordBytes.Count > 77) lFold = true;
+                if (mCurrentLineCharCount + lLeadingSpaces + pWordBytes.Count > 78) lFold = true;
                 else lFold = false;
             }
 
@@ -103,7 +107,7 @@ namespace work.bacome.imapclient
                 mCurrentLineCharCount = 1;
                 mCurrentLineHasEncodedWords = false;
             }
-            else
+            else if (mLastWordType != eWordType.special)
             {
                 mBytes.Add(cASCII.SPACE);
                 mCurrentLineByteCount++;
@@ -113,7 +117,7 @@ namespace work.bacome.imapclient
             mBytes.AddRange(pWordBytes);
             mCurrentLineByteCount += pWordBytes.Count;
             mCurrentLineCharCount += pWordBytes.Count;
-            mLastWordWas = eWordType.nothingspecial;
+            mLastWordType = eWordType.nothingspecial;
         }
 
         public void AddNonEncodedWord(IList<char> pLeadingWSP, List<char> pWordChars)
@@ -122,7 +126,7 @@ namespace work.bacome.imapclient
             if (pWordChars.Count == 0) throw new ArgumentOutOfRangeException(nameof(pWordChars));
 
             IList<char> lLeadingWSP;
-            if (pLeadingWSP.Count == 0 && mLastWordWas != eWordType.token) lLeadingWSP = SingleSpace;
+            if (pLeadingWSP.Count == 0 && mLastWordType != eWordType.special) lLeadingWSP = SingleSpace;
             else lLeadingWSP = pLeadingWSP;
 
             var lWordBytes = Encoding.UTF8.GetBytes(pWordChars.ToArray());
@@ -157,7 +161,7 @@ namespace work.bacome.imapclient
             mBytes.AddRange(lWordBytes);
             mCurrentLineByteCount += lWordBytes.Length;
             mCurrentLineCharCount += pWordChars.Count;
-            mLastWordWas = eWordType.nothingspecial;
+            mLastWordType = eWordType.nothingspecial;
         }
 
         public void AddEncodedWords(List<char> pLeadingWSP, List<char> pWordChars, eHeaderValuePartContext pContext)
@@ -167,7 +171,7 @@ namespace work.bacome.imapclient
             if (pWordChars.Count == 0) throw new ArgumentOutOfRangeException(nameof(pWordChars));
 
             IList<char> lLeadingWSP;
-            if (pLeadingWSP.Count == 0 && mLastWordWas != eWordType.token) lLeadingWSP = SingleSpace;
+            if (pLeadingWSP.Count == 0 && mLastWordType != eWordType.special) lLeadingWSP = SingleSpace;
             else lLeadingWSP = pLeadingWSP;
 
             StringInfo lString = new StringInfo(new string(pWordChars.ToArray()));
@@ -218,7 +222,7 @@ namespace work.bacome.imapclient
 
             if (lFromTextElement < lString.LengthInTextElements) ZAddEncodedWord(lLeadingWSP, lLastEncoding, lLastEncodedText);
 
-            mLastWordWas = eWordType.encodedword;
+            mLastWordType = eWordType.encodedword;
         }
 
         public void AddNewLine()

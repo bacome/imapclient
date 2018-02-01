@@ -542,7 +542,7 @@ namespace work.bacome.imapclient
                     if (!ZProcessBodyStructureExtensionValues(pCursor, out rExtensionValues)) { rDisposition = null; rLanguages = null; rLocation = null; rExtensionValues = null; return false; }
                     return true;
                 }
-
+                
                 private static bool ZProcessBodyStructureExtensionValues(cBytesCursor pCursor, out cBodyPartExtensionValues rExtensionValues)
                 {
                     List<cBodyPartExtensionValue> lValues = new List<cBodyPartExtensionValue>();

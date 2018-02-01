@@ -162,21 +162,35 @@ namespace work.bacome.imapclient
         public const char FF = '\u00FF';
     }
 
-    internal static class cASCIIMonth
+    internal static class cRFCMonth
     {
-        public static readonly cBytes Jan = new cBytes("JAN");
-        public static readonly cBytes Feb = new cBytes("FEB");
-        public static readonly cBytes Mar = new cBytes("MAR");
-        public static readonly cBytes Apr = new cBytes("APR");
-        public static readonly cBytes May = new cBytes("MAY");
-        public static readonly cBytes Jun = new cBytes("JUN");
-        public static readonly cBytes Jul = new cBytes("JUL");
-        public static readonly cBytes Aug = new cBytes("AUG");
-        public static readonly cBytes Sep = new cBytes("SEP");
-        public static readonly cBytes Oct = new cBytes("OCT");
-        public static readonly cBytes Nov = new cBytes("NOV");
-        public static readonly cBytes Dec = new cBytes("DEC");
+        public const string cJan = "JAN";
+        public const string cFeb = "FEB";
+        public const string cMar = "MAR";
+        public const string cApr = "APR";
+        public const string cMay = "MAY";
+        public const string cJun = "JUN";
+        public const string cJul = "JUL";
+        public const string cAug = "AUG";
+        public const string cSep = "SEP";
+        public const string cOct = "OCT";
+        public const string cNov = "NOV";
+        public const string cDec = "DEC";
 
-        public static readonly ReadOnlyCollection<cBytes> Name = Array.AsReadOnly(new cBytes[] { Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec });
+        public static readonly cBytes aJan = new cBytes(cJan);
+        public static readonly cBytes aFeb = new cBytes(cFeb);
+        public static readonly cBytes aMar = new cBytes(cMar);
+        public static readonly cBytes aApr = new cBytes(cApr);
+        public static readonly cBytes aMay = new cBytes(cMay);
+        public static readonly cBytes aJun = new cBytes(cJun);
+        public static readonly cBytes aJul = new cBytes(cJul);
+        public static readonly cBytes aAug = new cBytes(cAug);
+        public static readonly cBytes aSep = new cBytes(cSep);
+        public static readonly cBytes aOct = new cBytes(cOct);
+        public static readonly cBytes aNov = new cBytes(cNov);
+        public static readonly cBytes aDec = new cBytes(cDec);
+
+        public static readonly ReadOnlyCollection<string> cName = Array.AsReadOnly(new string[] { cJan, cFeb, cMar, cApr, cMay, cJun, cJul, cAug, cSep, cOct, cNov, cDec });
+        public static readonly ReadOnlyCollection<cBytes> aName = Array.AsReadOnly(new cBytes[] { aJan, aFeb, aMar, aApr, aMay, aJun, aJul, aAug, aSep, aOct, aNov, aDec });
     }
 }

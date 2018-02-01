@@ -46,6 +46,7 @@
     <Compile Include="client\decodedsizeinbytes.cs" />
     <Compile Include="exposed_interfaces\appenddata\headerfieldmimeparameter.cs" />
     <Compile Include="client\quotedprintableencoder.cs" />
+    <Compile Include="exposed_interfaces\appenddata\headerfieldvaluebuilder.cs" />
     <Compile Include="exposed_interfaces\appenddata\headerfieldvalueparts.cs" />
     <Compile Include="exposed_interfaces\appenddata\mailmessageappenddata.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddata.cs" />

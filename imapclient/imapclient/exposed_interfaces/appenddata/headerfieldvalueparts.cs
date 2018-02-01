@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -9,7 +10,16 @@ namespace work.bacome.imapclient
 
     public abstract class cHeaderFieldValuePart
     {
+        public static readonly cHeaderFieldValuePart Comma = new cHeaderFieldSpecial(cASCII.COMMA);
+
         internal abstract void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext);
+
+        private class cHeaderFieldSpecial : cHeaderFieldValuePart
+        {
+            private readonly byte mByte;
+            public cHeaderFieldSpecial(byte pByte) { mByte = pByte; }
+            internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext) => pBytes.AddSpecial(mByte);
+        }
     }
 
     public abstract class cHeaderFieldCommentOrText : cHeaderFieldValuePart { }
