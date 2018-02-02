@@ -29,16 +29,28 @@ namespace work.bacome.imapclient
         {
             if (pText == null) { rPart = null; return false; }
 
+            var lChars = new List<char>();
             bool lContainsNonASCII = false;
+
+            lChars.Add('"');
 
             foreach (var lChar in pText)
             {
-                if (lChar == '\t') continue;
-                if (lChar < ' ' || lChar == cChar.DEL) { rPart = null; return false; }
-                if (lChar > cChar.DEL) lContainsNonASCII = true;
+                if (lChar == '\t') lChars.Add(lChar);
+                else
+                {
+                    if (lChar < ' ' || lChar == cChar.DEL) { rPart = null; return false; }
+
+                    if (lChar == '"' || lChar == '\\') lChars.Add('\\');
+                    lChars.Add(lChar);
+
+                    if (lChar > cChar.DEL) lContainsNonASCII = true;
+                }
             }
 
-            rPart = new cHeaderFieldQuotedString(pText, lContainsNonASCII);
+            lChars.Add('"');
+
+            rPart = new cHeaderFieldQuotedString(lChars, lContainsNonASCII);
 
             return true;
         }
@@ -63,29 +75,67 @@ namespace work.bacome.imapclient
 
             internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext)
             {
-                if (mContainsNonASCII && pBytes.Encoding != null) throw new cUTF8RequiredException();
+                if (mContainsNonASCII && !pBytes.UTF8Allowed) throw new cUTF8RequiredException();
                 pBytes.AddNonEncodedWord(mText);
             }
         }
 
         private class cHeaderFieldQuotedString : cHeaderFieldValuePart
         {
-            private readonly string mText;
+            private readonly ReadOnlyCollection<char> mChars;
             private readonly bool mContainsNonASCII;
 
-            public cHeaderFieldQuotedString(string pText, bool pContainsNonASCII)
+            public cHeaderFieldQuotedString(ReadOnlyCollection<char> pChars, bool pContainsNonASCII)
             {
-                mText = pText ?? throw new ArgumentNullException(nameof(pText));
+                mChars = pChars ?? throw new ArgumentNullException(nameof(pChars));
                 mContainsNonASCII = pContainsNonASCII;
             }
 
             internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext)
             {
-                if (mContainsNonASCII && pBytes.Encoding != null) throw new cUTF8RequiredException();
+                if (mContainsNonASCII && !pBytes.UTF8Allowed) throw new cUTF8RequiredException();
 
-                ;?;
+                char lChar;
+                List<char> lLeadingWSPChars = new List<char>();
+                List<char> lWordChars = new List<char>();
+
+                int lPosition = 0;
+
+                while (lPosition < mChars.Count)
+                {
+                    // extract leading white space (if any)
+
+                    lLeadingWSPChars.Clear();
+
+                    while (lPosition < mChars.Count)
+                    {
+                        lChar = mChars[lPosition];
+
+                        if (lChar != '\t' && lChar != ' ') break;
+
+                        lLeadingWSPChars.Add(lChar);
+                        lPosition++;
+                    }
+
+                    // extract word (if there is one)
+
+                    lWordChars.Clear();
+
+                    while (lPosition < mChars.Count)
+                    {
+                        lChar = mChars[lPosition];
+
+                        if (lChar == '\t' || lChar == ' ') break;
+
+                        lWordChars.Add(lChar);
+                        lPosition++;
+                    }
+
+                    // process the white space and word
+                    //
+                    ;?;
+                }
             }
-        }
     }
 
     public abstract class cHeaderFieldCommentOrText : cHeaderFieldValuePart { }

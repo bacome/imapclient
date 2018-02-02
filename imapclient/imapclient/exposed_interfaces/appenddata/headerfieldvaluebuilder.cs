@@ -102,9 +102,9 @@ namespace work.bacome.imapclient
 
     public class cAddressListHeaderFieldValueBuilder : IEnumerable<cHeaderFieldValuePart>
     {
-        // must have one member (but that member could be an empty group
+        // must have one member (but that member could be an empty group)
 
-        //  begin group/ end group : if no end group then when enumerating it should spit the dummy => not enumerable: special sub-class
+        
     }
 
 
