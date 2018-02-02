@@ -46,7 +46,8 @@ namespace work.bacome.imapclient
                     fMessageCacheAttributes lAttributes = 0;
                     cFetchableFlags lFlags = null;
                     cEnvelope lEnvelope = null;
-                    DateTime? lReceived = null;
+                    DateTimeOffset? lReceivedDateTimeOffset = null;
+                    DateTime? lReceivedDateTime = null;
                     IList<byte> lRFC822 = null;
                     IList<byte> lRFC822Header = null;
                     IList<byte> lRFC822Text = null;
@@ -77,8 +78,13 @@ namespace work.bacome.imapclient
                         else if (pCursor.SkipBytes(kInternalDateSpace))
                         {
                             lAttribute = fMessageCacheAttributes.received;
-                            lOK = pCursor.GetDateTime(out var lDateTime);
-                            if (lOK) lReceived = lDateTime;
+                            lOK = pCursor.GetDateTime(out var lDateTimeOffset, out var lDateTime);
+
+                            if (lOK)
+                            {
+                                lReceivedDateTimeOffset = lDateTimeOffset;
+                                lReceivedDateTime = lDateTime;
+                            }
                         }
                         else if (pCursor.SkipBytes(kRFC822Space))
                         {
@@ -192,7 +198,7 @@ namespace work.bacome.imapclient
                         return true;
                     }
 
-                    rResponseData = new cResponseDataFetch(lMSN, lAttributes, lFlags, lEnvelope, lReceived, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lHeaderFields, lBinarySizes, lModSeq);
+                    rResponseData = new cResponseDataFetch(lMSN, lAttributes, lFlags, lEnvelope, lReceivedDateTimeOffset, lReceivedDateTime, lRFC822, lRFC822Header, lRFC822Text, lSize, lBody, lBodyStructure, lBodies, lUID, lHeaderFields, lBinarySizes, lModSeq);
                     return true;
                 }
 
@@ -225,15 +231,29 @@ namespace work.bacome.imapclient
 
                     if (!pCursor.SkipByte(cASCII.RPAREN)) { rEnvelope = null; return false; }
 
-                    DateTime? lSent;
+                    DateTimeOffset? lSentDateTimeOffset;
+                    DateTime? lSentDateTime;
 
-                    if (lDateBytes == null || lDateBytes.Count == 0) lSent = null;
+                    if (lDateBytes == null || lDateBytes.Count == 0)
+                    {
+                        lSentDateTimeOffset = null;
+                        lSentDateTime = null;
+                    }
                     else
                     {
                         // rfc 5256 says quite a lot about how this date should be parsed: please note that I haven't done what it says at this stage (TODO?)
                         var lCursor = new cBytesCursor(lDateBytes);
-                        if (lCursor.GetRFC822DateTime(out var lTempDate) && lCursor.Position.AtEnd) lSent = lTempDate;
-                        else lSent = null;
+
+                        if (lCursor.GetRFC822DateTime(out var lTempDateTimeOffset, out var lTempDateTime) && lCursor.Position.AtEnd)
+                        {
+                            lSentDateTimeOffset = lTempDateTimeOffset;
+                            lSentDateTime = lTempDateTime;
+                        }
+                        else
+                        {
+                            lSentDateTimeOffset = null;
+                            lSentDateTime = null;
+                        }
                     }
 
                     cCulturedString lSubject;
@@ -253,7 +273,7 @@ namespace work.bacome.imapclient
                     cHeaderFieldMsgIds.TryConstruct(kHeaderFieldName.InReplyTo, lInReplyToBytes, out var lInReplyTo);
                     cHeaderFieldMsgId.TryConstruct(kHeaderFieldName.MessageId, lMessageIdBytes, out var lMessageId);
 
-                    rEnvelope = new cEnvelope(lSent, lSubject, lBaseSubject, lFrom, lSender, lReplyTo, lTo, lCC, lBCC, lInReplyTo, lMessageId);
+                    rEnvelope = new cEnvelope(lSentDateTimeOffset, lSentDateTime, lSubject, lBaseSubject, lFrom, lSender, lReplyTo, lTo, lCC, lBCC, lInReplyTo, lMessageId);
                     return true;
                 }
 
@@ -1075,8 +1095,8 @@ namespace work.bacome.imapclient
                     if (lData == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1.1");
 
                     if (lData.Flags.Count != 1 || !lData.Flags.Contains(@"\SeEn")) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
-                    if (lData.Received != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
-                    if (lData.Envelope.Sent != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
+                    if (lData.ReceivedDateTime != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
+                    if (lData.Envelope.SentDateTime != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
                     if (lData.Envelope.Subject != "IMAP4rev1 WG mtg summary and minutes") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.5");
                     if (lData.Envelope.From.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.6.1");
                     lEmailAddress = lData.Envelope.From[0] as cEmailAddress;

@@ -121,48 +121,54 @@ namespace work.bacome.imapclient
             if (!lCursor.SkipByte(cASCII.ZERO) || !lCursor.GetNZNumber(out _, out lNumber) || lNumber != 123) throw new cTestsException("nznumber 2");
 
             lCursor = MakeCursor("04-Apr-1968\"5-APR-1968\"\"5-APR-1968x32-apr-1968014-Apr-196830-Apx-1968\"30-April-1968\"\"30-Apr-68\"\"31-Feb-1968\"");
-            DateTime lDate;
-            if (!lCursor.GetDate(out lDate) || lDate != new DateTime(1968, 4, 4, 0, 0, 0, DateTimeKind.Utc)) throw new cTestsException("date form 1");
-            if (!lCursor.GetDate(out lDate) || lDate != new DateTime(1968, 4, 5, 0, 0, 0, DateTimeKind.Utc)) throw new cTestsException("date form 2");
-            if (lCursor.GetDate(out lDate)) throw new cTestsException("date should have failed on no terminating quote");
+            DateTimeOffset lDateTimeOffset;
+            DateTime lDateTime;
+            if (!lCursor.GetDate(out lDateTime) || lDateTime != new DateTime(1968, 4, 4)) throw new cTestsException("date form 1");
+            if (!lCursor.GetDate(out lDateTime) || lDateTime != new DateTime(1968, 4, 5)) throw new cTestsException("date form 2");
+            if (lCursor.GetDate(out lDateTime)) throw new cTestsException("date should have failed on no terminating quote");
             if (!lCursor.SkipBytes(new cBytes("\"5-aPr-1968X"))) throw new cTestsException("date skip");
-            if (lCursor.GetDate(out lDate)) throw new cTestsException("date should have failed on days > 31");
+            if (lCursor.GetDate(out lDateTime)) throw new cTestsException("date should have failed on days > 31");
             if (!lCursor.SkipBytes(new cBytes("32-apr-1968"))) throw new cTestsException("date skip 2");
-            if (lCursor.GetDate(out lDate)) throw new cTestsException("date should have failed on no hypen");
+            if (lCursor.GetDate(out lDateTime)) throw new cTestsException("date should have failed on no hypen");
             if (!lCursor.SkipBytes(new cBytes("014-Apr-1968"))) throw new cTestsException("date skip 3");
-            if (lCursor.GetDate(out lDate)) throw new cTestsException("date should have failed on invalid month");
+            if (lCursor.GetDate(out lDateTime)) throw new cTestsException("date should have failed on invalid month");
             if (!lCursor.SkipBytes(new cBytes("30-Apx-1968"))) throw new cTestsException("date skip 4");
-            if (lCursor.GetDate(out lDate)) throw new cTestsException("date should have failed on no hypen (2)");
+            if (lCursor.GetDate(out lDateTime)) throw new cTestsException("date should have failed on no hypen (2)");
             if (!lCursor.SkipBytes(new cBytes("\"30-April-1968\""))) throw new cTestsException("date skip 5");
-            if (lCursor.GetDate(out lDate)) throw new cTestsException("date should have failed on 4 digit year");
+            if (lCursor.GetDate(out lDateTime)) throw new cTestsException("date should have failed on 4 digit year");
             if (!lCursor.SkipBytes(new cBytes("\"30-Apr-68\""))) throw new cTestsException("date skip 6");
-            if (lCursor.GetDate(out lDate)) throw new cTestsException("date should have failed on invalid days per month");
+            if (lCursor.GetDate(out lDateTime)) throw new cTestsException("date should have failed on invalid days per month");
             if (!lCursor.SkipBytes(new cBytes("\"31-Feb-1968\""))) throw new cTestsException("date skip 7");
 
             lCursor = MakeCursor("\" 4-apr-1968 23:59:59 +0000\"\"04-apr-1968 23:59:59 +1200\"\"28-apr-1968 23:59:59 +1130\"\"28-apr-1968 11:59:59 -1000\"");
-            if (!lCursor.GetDateTime(out lDate) || lDate != new DateTime(1968, 4, 4, 23, 59, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 1");
-            if (!lCursor.GetDateTime(out lDate) || lDate != new DateTime(1968, 4, 4, 11, 59, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 2");
-            if (!lCursor.GetDateTime(out lDate) || lDate != new DateTime(1968, 4, 28, 12, 29, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 3");
-            if (!lCursor.GetDateTime(out lDate) || lDate != new DateTime(1968, 4, 28, 21, 59, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 4");
+            if (!lCursor.GetDateTime(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(1968, 4, 4, 23, 59, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 1");
+            if (!lCursor.GetDateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 4, 11, 59, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 2");
+            if (!lCursor.GetDateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 28, 12, 29, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 3");
+            if (!lCursor.GetDateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 28, 21, 59, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 4");
+
+            // -0000
+            lCursor = MakeCursor("\" 4-apr-1968 23:59:59 -0000\"");
+            if (!lCursor.GetDateTime(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(1968, 4, 4, 23, 59, 59, DateTimeKind.Unspecified)) throw new cTestsException("datetime 5");
 
             // more to do ...
 
             lCursor = MakeCursor("1968-04-04T23:59:59Z,1968-04-04T23:59:59+12:00,1968-04-28T23:59:59+11:30,1968-04-28T11:59:59-10:00");
-            if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1968, 4, 4, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 1.1");
-            if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1968, 4, 4, 11, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 1.2");
-            if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1968, 4, 28, 12, 29, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 1.3");
-            if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1968, 4, 28, 21, 59, 59, DateTimeKind.Utc)) throw new cTestsException("timestamp 1.4");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(1968, 4, 4, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 1.1");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 4, 11, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 1.2");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 28, 12, 29, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 1.3");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 28, 21, 59, 59, DateTimeKind.Utc)) throw new cTestsException("timestamp 1.4");
 
             // examples from rfc3339
             lCursor = new cBytesCursor("1985-04-12T23:20:50.52Z,1996-12-19T16:39:57-08:00,1990-12-31T23:59:60Z,1990-12-31T15:59:60-08:00,1937-01-01T12:00:27.87+00:20");
-            if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1985, 04, 12, 23, 20, 50, 520, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.1");
-            if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1996, 12, 20, 00, 39, 57, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.2");
-            if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1990, 12, 31, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.3");
-            if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1990, 12, 31, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.4");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(1985, 04, 12, 23, 20, 50, 520, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.1");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1996, 12, 20, 00, 39, 57, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.2");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(1990, 12, 31, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.3");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1990, 12, 31, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.4");
             //if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1937, 01, 01, 12, 19, 32, 130, DateTimeKind.Utc)) throw new cTestsException("timestamp 2.5");
 
-
-
+            // -00:00
+            lCursor = new cBytesCursor("1985-04-12T23:20:50.52-00:00");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(1985, 04, 12, 23, 20, 50, 520, DateTimeKind.Unspecified)) throw new cTestsException("timestamp 3.1");
 
 
 

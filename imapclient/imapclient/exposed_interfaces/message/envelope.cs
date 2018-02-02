@@ -12,7 +12,10 @@ namespace work.bacome.imapclient
     public class cEnvelope
     {
         /** <summary>The message sent date. May be <see langword="null"/>.</summary> */
-        public readonly DateTime? Sent;
+        public readonly DateTimeOffset? SentDateTimeOffset;
+
+        /** <summary>The message sent date (in local time if there is usable time zone information). May be <see langword="null"/>.</summary> */
+        public readonly DateTime? SentDateTime;
 
         /** <summary>The message subject. May be <see langword="null"/>.</summary> */
         public readonly cCulturedString Subject;
@@ -49,9 +52,10 @@ namespace work.bacome.imapclient
         /** <summary>The normalised (delimiters, quoting, comments and white space removed) 'message-id' of the message. May be <see langword="null"/>.</summary> */
         public readonly cHeaderFieldMsgId MessageId;
 
-        internal cEnvelope(DateTime? pSent, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cHeaderFieldMsgIds pInReplyTo, cHeaderFieldMsgId pMessageId)
+        internal cEnvelope(DateTimeOffset? pSentDateTimeOffset, DateTime? pSentDateTime, cCulturedString pSubject, string pBaseSubject, cAddresses pFrom, cAddresses pSender, cAddresses pReplyTo, cAddresses pTo, cAddresses pCC, cAddresses pBCC, cHeaderFieldMsgIds pInReplyTo, cHeaderFieldMsgId pMessageId)
         {
-            Sent = pSent;
+            SentDateTimeOffset = pSentDateTimeOffset;
+            SentDateTime = pSentDateTime;
             Subject = pSubject;
             BaseSubject = pBaseSubject;
             From = pFrom;
@@ -65,6 +69,6 @@ namespace work.bacome.imapclient
         }
 
         /// <inheritdoc />
-        public override string ToString() => $"{nameof(cEnvelope)}({Sent},{Subject},{BaseSubject},{From},{Sender},{ReplyTo},{To},{CC},{BCC},{InReplyTo},{MessageId})";
+        public override string ToString() => $"{nameof(cEnvelope)}({SentDateTimeOffset},{SentDateTime},{Subject},{BaseSubject},{From},{Sender},{ReplyTo},{To},{CC},{BCC},{InReplyTo},{MessageId})";
     }
 }

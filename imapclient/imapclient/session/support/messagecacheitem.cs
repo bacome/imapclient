@@ -42,7 +42,8 @@ namespace work.bacome.imapclient
                 public cEnvelope Envelope { get; private set; } = null;
                 public cFetchableFlags Flags { get; private set; } = null;
                 public ulong? ModSeq => mModSeq;
-                public DateTime? Received { get; private set; } = null;
+                public DateTimeOffset? ReceivedDateTimeOffset { get; private set; } = null;
+                public DateTime? ReceivedDateTime { get; private set; } = null;
                 public uint? Size { get; private set; } = null;
                 public cUID UID { get; private set; } = null;
                 public cHeaderFields HeaderFields { get; private set; } = cHeaderFields.Empty;
@@ -72,7 +73,13 @@ namespace work.bacome.imapclient
                     }
 
                     if ((rAttributesSet & fMessageCacheAttributes.envelope) != 0) Envelope = lFetch.Envelope;
-                    if ((rAttributesSet & fMessageCacheAttributes.received) != 0) Received = lFetch.Received;
+
+                    if ((rAttributesSet & fMessageCacheAttributes.received) != 0)
+                    {
+                        ReceivedDateTimeOffset = lFetch.ReceivedDateTimeOffset;
+                        ReceivedDateTime = lFetch.ReceivedDateTime;
+                    }
+
                     if ((rAttributesSet & fMessageCacheAttributes.size) != 0) Size = lFetch.Size;
                     if ((rAttributesSet & fMessageCacheAttributes.body) != 0) mBody = lFetch.Body;
                     if ((rAttributesSet & fMessageCacheAttributes.bodystructure) != 0) BodyStructure = lFetch.BodyStructure;

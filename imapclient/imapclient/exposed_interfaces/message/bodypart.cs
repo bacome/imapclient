@@ -417,17 +417,32 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets the creation date. May be <see langword="null"/>.
         /// </summary>
-        public DateTime? CreationDate => Parameters?.First("creation-date")?.DateTimeValue;
+        public DateTimeOffset? CreationDateTimeOffset => Parameters?.First("creation-date")?.DateTimeOffsetValue;
+
+        /// <summary>
+        /// Gets the creation date (in local time if there is usable time zone information). May be <see langword="null"/>.
+        /// </summary>
+        public DateTime? CreationDateTime => Parameters?.First("creation-date")?.DateTimeValuex;
 
         /// <summary>
         /// Gets the modification date. May be <see langword="null"/>.
         /// </summary>
-        public DateTime? ModificationDate => Parameters?.First("modification-date")?.DateTimeValue;
+        public DateTimeOffset? ModificationDateTimeOffset => Parameters?.First("modification-date")?.DateTimeOffsetValue;
+
+        /// <summary>
+        /// Gets the modification date (in local time if there is usable time zone information). May be <see langword="null"/>.
+        /// </summary>
+        public DateTime? ModificationDateTime => Parameters?.First("modification-date")?.DateTimeValuex;
 
         /// <summary>
         /// Gets the last read date. May be <see langword="null"/>.
         /// </summary>
-        public DateTime? ReadDate => Parameters?.First("read-date")?.DateTimeValue;
+        public DateTimeOffset? ReadDateTimeOffset => Parameters?.First("read-date")?.DateTimeOffsetValue;
+
+        /// <summary>
+        /// Gets the last read date (in local time if there is usable time zone information). May be <see langword="null"/>.
+        /// </summary>
+        public DateTime? ReadDateTime => Parameters?.First("read-date")?.DateTimeValuex;
 
         /// <summary>
         /// Gets the approximate size in bytes. May be <see langword="null"/>.
@@ -664,7 +679,7 @@ namespace work.bacome.imapclient
         /// Gets the value as a <see cref="UInt32"/>. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// Will return <see langword="null"/> if the value cannot be parsed as an IMAP 'number'.
+        /// Will be <see langword="null"/> if the value cannot be parsed as an IMAP 'number'.
         /// </remarks>
         public uint? UIntValue
         {
@@ -680,14 +695,31 @@ namespace work.bacome.imapclient
         /// Gets the value as a <see cref="DateTime"/>. May be <see langword="null"/>.
         /// </summary>
         /// <remarks>
-        /// Will return <see langword="null"/> if the value cannot be parsed as an RFC 5322 date-time.
+        /// Will be <see langword="null"/> if the value cannot be parsed as an RFC 5322 date-time.
+        /// In local time if the RFC 5322 date-time includes usable time zone information.
         /// </remarks>
-        public DateTime? DateTimeValue
+        public DateTime? DateTimeValuex
         {
             get
             {
                 cBytesCursor lCursor = new cBytesCursor(RawValue);
-                if (lCursor.GetRFC822DateTime(out var lResult) && lCursor.Position.AtEnd) return lResult;
+                if (lCursor.GetRFC822DateTime(out _, out var lResult) && lCursor.Position.AtEnd) return lResult;
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the value as a <see cref="DateTimeOffset"/>. May be <see langword="null"/>.
+        /// </summary>
+        /// <remarks>
+        /// Will be <see langword="null"/> if the value cannot be parsed as an RFC 5322 date-time.
+        /// </remarks>
+        public DateTimeOffset? DateTimeOffsetValue
+        {
+            get
+            {
+                cBytesCursor lCursor = new cBytesCursor(RawValue);
+                if (lCursor.GetRFC822DateTime(out var lResult, out _) && lCursor.Position.AtEnd) return lResult;
                 return null;
             }
         }

@@ -267,7 +267,7 @@ namespace work.bacome.imapclient
                     {
                         case eSortItem.received:
 
-                            lCompareTo = ZCompareTo(pX.Received, pY.Received);
+                            lCompareTo = ZCompareTo(pX.ReceivedDateTime, pY.ReceivedDateTime);
                             break;
 
                         case eSortItem.cc:
@@ -278,7 +278,7 @@ namespace work.bacome.imapclient
                         case eSortItem.sent:
 
                             // rfc 5256 says to use the internal date if the sent date is null
-                            lCompareTo = ZCompareTo(pX.Envelope?.Sent ?? pX.Received, pY.Envelope?.Sent ?? pY.Received);
+                            lCompareTo = ZCompareTo(pX.Envelope?.SentDateTime ?? pX.ReceivedDateTime, pY.Envelope?.SentDateTime ?? pY.ReceivedDateTime);
                             break;
 
                         case eSortItem.from:

@@ -56,8 +56,11 @@ namespace work.bacome.imapclient.support
         /// </remarks>
         ulong? ModSeq { get; }
 
-        /**<summary>Gets the IMAP INTERNALDATE data, <see langword="null"/> if this data isn't cached.</summary>*/
-        DateTime? Received { get; }
+        /**<summary>Gets the IMAP INTERNALDATE, <see langword="null"/> if this data isn't cached.</summary>*/
+        DateTimeOffset? ReceivedDateTimeOffset { get; }
+        /**<summary>Gets the IMAP INTERNALDATE (in local time if there is usable time zone information), <see langword="null"/> if this data isn't cached.</summary>*/
+        DateTime? ReceivedDateTime { get; }
+
         /**<summary>Gets the IMAP RFC822.SIZE data, <see langword="null"/> if this data isn't cached.</summary>*/
         uint? Size { get; }
 

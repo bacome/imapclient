@@ -142,7 +142,7 @@ namespace work.bacome.imapclient
                                 if (lWholeMessage.Flags == null) lFlags = new cStorableFlags(lWholeMessage.MessageHandle.Flags.Except(cFetchableFlags.Recent, StringComparer.InvariantCultureIgnoreCase));
                                 else lFlags = lWholeMessage.Flags;
 
-                                if (lWholeMessage.Received == null) lReceived = lWholeMessage.MessageHandle.Received;
+                                if (lWholeMessage.Received == null) lReceived = lWholeMessage.MessageHandle.ReceivedDateTime;
                                 else lReceived = lWholeMessage.Received;
 
                                 if (lCatenate) lMessages.Add(new cCatenateAppendData(lFlags, lReceived, new cCatenateURLAppendDataPart[] { lURLPart }));
@@ -176,7 +176,7 @@ namespace work.bacome.imapclient
                                 if (lMessagePart.Flags == null) lFlags = mAppendDefaultFlags;
                                 else lFlags = lMessagePart.Flags;
 
-                                if (lMessagePart.Received == null) lReceived = lMessagePart.MessageHandle.Received;
+                                if (lMessagePart.Received == null) lReceived = lMessagePart.MessageHandle.ReceivedDateTime;
                                 else lReceived = lMessagePart.Received.Value;
 
                                 if (lCatenate) lMessages.Add(new cCatenateAppendData(lFlags, lReceived, new cCatenateURLAppendDataPart[] { lURLPart }));

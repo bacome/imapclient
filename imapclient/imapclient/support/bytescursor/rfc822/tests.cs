@@ -44,6 +44,13 @@ namespace work.bacome.imapclient
             if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1997, 11, 21, 9, 55, 06) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 5");
             if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1997, 11, 21, 15, 55, 06) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 6");
 
+            lCursor = new cBytesCursor("21 Nov 1997 09:55:06 CST  x  1 Jul 2003 10:52:37 A    x    13 Feb 1969 23:32:54 GMT    x  Thu,\r\n\t13\r\n\t  Feb\r\n\t    1969\r\n\t23:32\r\n\t\t\t-0000 (Unspecified Zone)   x");
+
+            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1997, 11, 21, 15, 55, 06) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 7");
+            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(2003, 7, 1, 10, 52, 37, ) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 2");
+            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1969, 2, 14, 3, 02, 54) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 3");
+            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1969, 2, 14, 3, 02, 00) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 4");
+
             // TODO: more tests for failure cases and alphanumeric zones
             //   Wed, 17 Jul 1996 02:23:25 -0700 (PDT)
 

@@ -9,7 +9,8 @@ namespace work.bacome.imapclient
     {
         public static readonly cCommandPartFactory Validation = new cCommandPartFactory(false, null);
 
-        private static readonly cBytes UTC = new cBytes("+0000");
+        private static readonly cBytes kUTC = new cBytes("+0000");
+        private static readonly cBytes kUnspecified = new cBytes("-0000");
 
         public readonly bool UTF8Enabled;
         public readonly Encoding Encoding;
@@ -287,7 +288,8 @@ namespace work.bacome.imapclient
 
                 foreach (var lChar in lOffsetChars) lBytes.Add((byte)lChar);
             }
-            else lBytes.AddRange(UTC);
+            else if (pDate.Kind == DateTimeKind.Utc) lBytes.AddRange(kUTC);
+            else lBytes.AddRange(kUnspecified);
 
             lBytes.Add(cASCII.DQUOTE);
 

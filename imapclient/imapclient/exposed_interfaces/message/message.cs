@@ -126,15 +126,28 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
-        /// Gets the sent date of the message from the <see cref="Envelope"/>. May be <see langword="null"/>.
+        /// Gets the sent date of the message. May be <see langword="null"/>.
         /// </summary>
         /// <inheritdoc cref="Envelope" select="remarks"/>
-        public DateTime? Sent
+        public DateTimeOffset? SentDateTimeOffset
         {
             get
             {
                 if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Envelope.Sent;
+                return MessageHandle.Envelope.SentDateTimeOffset;
+            }
+        }
+
+        /// <summary>
+        /// Gets the sent date of the message (in local time if there is usable time zone information). May be <see langword="null"/>.
+        /// </summary>
+        /// <inheritdoc cref="Envelope" select="remarks"/>
+        public DateTime? SentDateTime
+        {
+            get
+            {
+                if (!Client.Fetch(MessageHandle, kEnvelope)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.Envelope.SentDateTime;
             }
         }
 
@@ -409,12 +422,27 @@ namespace work.bacome.imapclient
         /// <remarks>
         /// If the message cache does not contain the <see cref="fMessageCacheAttributes.received"/> date of the message, it will be fetched from the server.
         /// </remarks>
-        public DateTime Received
+        public DateTimeOffset ReceivedDateTimeOffset
         {
             get
             {
                 if (!Client.Fetch(MessageHandle, kReceived)) ZThrowFailure(eOperationType.fetch);
-                return MessageHandle.Received.Value;
+                return MessageHandle.ReceivedDateTimeOffset.Value;
+            }
+        }
+
+        /// <summary>
+        /// Gets the IMAP INTERNALDATE of the message (in local time if there is useable time zone information).
+        /// </summary>
+        /// <remarks>
+        /// If the message cache does not contain the <see cref="fMessageCacheAttributes.received"/> date of the message, it will be fetched from the server.
+        /// </remarks>
+        public DateTime ReceivedDateTime
+        {
+            get
+            {
+                if (!Client.Fetch(MessageHandle, kReceived)) ZThrowFailure(eOperationType.fetch);
+                return MessageHandle.ReceivedDateTime.Value;
             }
         }
 

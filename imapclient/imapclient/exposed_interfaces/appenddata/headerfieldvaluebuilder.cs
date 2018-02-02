@@ -11,6 +11,6 @@ namespace work.bacome.imapclient
     {
         public cHeaderFieldValueBuilder() : base() { }
 
-        ;?; // helper methods here ...
+        //;?; // helper methods here ...
     }
 }

@@ -89,17 +89,32 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets the creation date of the attachment. May be <see langword="null"/>.
         /// </summary>
-        public DateTime? CreationDate => Part.Disposition?.CreationDate;
+        public DateTimeOffset? CreationDateTimeOffset => Part.Disposition?.CreationDateTimeOffset;
+
+        /// <summary>
+        /// Gets the creation date of the attachment (in local time if there is usable time zone information). May be <see langword="null"/>.
+        /// </summary>
+        public DateTime? CreationDateTime => Part.Disposition?.CreationDateTime;
 
         /// <summary>
         /// Gets the modification date of the attachment. May be <see langword="null"/>.
         /// </summary>
-        public DateTime? ModificationDate => Part.Disposition?.ModificationDate;
+        public DateTimeOffset? ModificationDateTimeOffset => Part.Disposition?.ModificationDateTimeOffset;
+
+        /// <summary>
+        /// Gets the modification date of the attachment (in local time if there is usable time zone information). May be <see langword="null"/>.
+        /// </summary>
+        public DateTime? ModificationDateTime => Part.Disposition?.ModificationDateTime;
 
         /// <summary>
         /// Gets the last read date of the attachment. May be <see langword="null"/>.
         /// </summary>
-        public DateTime? ReadDate => Part.Disposition?.ReadDate;
+        public DateTimeOffset? ReadDateTimeOffset => Part.Disposition?.ReadDateTimeOffset;
+
+        /// <summary>
+        /// Gets the last read date of the attachment (in local time if there is usable time zone information). May be <see langword="null"/>.
+        /// </summary>
+        public DateTime? ReadDateTime => Part.Disposition?.ReadDateTime;
 
         /// <summary>
         /// Gets the approximate size of the attachment in bytes. May be <see langword="null"/>.
@@ -145,9 +160,9 @@ namespace work.bacome.imapclient
                 Client.Fetch(MessageHandle, Part.Section, Part.DecodingRequired, lStream, pConfiguration);
             }
 
-            if (Part.Disposition?.CreationDate != null) File.SetCreationTime(pPath, Part.Disposition.CreationDate.Value);
-            if (Part.Disposition?.ModificationDate != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDate.Value);
-            if (Part.Disposition?.ReadDate != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDate.Value);
+            if (Part.Disposition?.CreationDateTime != null) File.SetCreationTime(pPath, Part.Disposition.CreationDateTime.Value.ToLocalTime());
+            if (Part.Disposition?.ModificationDateTime != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDateTime.Value.ToLocalTime());
+            if (Part.Disposition?.ReadDateTime != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDateTime.Value.ToLocalTime());
         }
 
         /// <summary>
@@ -163,9 +178,9 @@ namespace work.bacome.imapclient
                 await Client.FetchAsync(MessageHandle, Part.Section, Part.DecodingRequired, lStream, pConfiguration).ConfigureAwait(false);
             }
 
-            if (Part.Disposition?.CreationDate != null) File.SetCreationTime(pPath, Part.Disposition.CreationDate.Value);
-            if (Part.Disposition?.ModificationDate != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDate.Value);
-            if (Part.Disposition?.ReadDate != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDate.Value);
+            if (Part.Disposition?.CreationDateTime != null) File.SetCreationTime(pPath, Part.Disposition.CreationDateTime.Value.ToLocalTime());
+            if (Part.Disposition?.ModificationDateTime != null) File.SetLastWriteTime(pPath, Part.Disposition.ModificationDateTime.Value.ToLocalTime());
+            if (Part.Disposition?.ReadDateTime != null) File.SetLastAccessTime(pPath, Part.Disposition.ReadDateTime.Value.ToLocalTime());
         }
 
         /// <inheritdoc cref="cAPIDocumentationTemplate.Equals(object)"/>

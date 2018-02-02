@@ -11,6 +11,9 @@ namespace work.bacome.imapclient
         //  if this is not the desired behaviour then the APIs that return the byte collections should be used
         // APIs that return strings may throw if the bytes aren't valid UTF8
 
+        private static readonly cBytes kRFC3501UnspecifiedZone = new cBytes("-0000");
+        private static readonly cBytes kRFC3339UnspecifiedZone = new cBytes("-00:00");
+
         public static readonly cBytes Nil = new cBytes("NIL");
         public static readonly cBytes RBracketSpace = new cBytes("] ");
         public static readonly cBytes SpaceLParen = new cBytes(" (");
@@ -429,15 +432,19 @@ namespace work.bacome.imapclient
             return ZGetDate(out rDate);
         }
 
-        public bool GetDateTime(out DateTime rDateTime)
+        public bool GetDateTime(out DateTimeOffset rDateTimeOffset, out DateTime rDateTime)
         {
             // imap date time
 
             var lBookmark = Position;
 
+            // hack
+            rDateTimeOffset = new DateTimeOffset();
+            rDateTime = new DateTime(); // either local or unspecified
+
             // quote
 
-            if (!SkipByte(cASCII.DQUOTE)) { rDateTime = new DateTime(); return false; }
+            if (!SkipByte(cASCII.DQUOTE)) return false;
 
             // date (the day number is either space-digit or digit-digit)
 
@@ -466,81 +473,131 @@ namespace work.bacome.imapclient
 
             if (!SkipByte(cASCII.SPACE)) { Position = lBookmark; return false; }
 
-            // the time zone +/- HHMM
+            // zone
 
-            bool lMinus;
-            if (SkipByte(cASCII.PLUS)) lMinus = false;
-            else if (SkipByte(cASCII.HYPEN)) lMinus = true;
-            else { Position = lBookmark; return false; }
+            TimeSpan lOffset;
+            bool lUnspecifiedZone;
 
-            if (!GetNumber(out _, out uint lzHH, 2, 2) || lzHH > 23) { Position = lBookmark; return false; }
-            if (!GetNumber(out _, out uint lzMM, 2, 2) || lzMM > 59) { Position = lBookmark; return false; }
+            if (SkipBytes(kRFC3501UnspecifiedZone))
+            {
+                lOffset = new TimeSpan(0, 0, 0);
+                lUnspecifiedZone = true;
+            }
+            else
+            {
+                // the time zone +/- HHMM
 
-            var lZone = new TimeSpan((int)lzHH, (int)lzMM, 0);
-            if (lMinus) lZone = lZone.Negate();
+                bool lMinus;
+                if (SkipByte(cASCII.PLUS)) lMinus = false;
+                else if (SkipByte(cASCII.HYPEN)) lMinus = true;
+                else { Position = lBookmark; return false; }
+
+                if (!GetNumber(out _, out uint lzHH, 2, 2) || lzHH > 23) { Position = lBookmark; return false; }
+                if (!GetNumber(out _, out uint lzMM, 2, 2) || lzMM > 59) { Position = lBookmark; return false; }
+
+                lOffset = new TimeSpan((int)lzHH, (int)lzMM, 0);
+                if (lMinus) lOffset = lOffset.Negate();
+
+                lUnspecifiedZone = false;
+            }
 
             // quote
 
             if (!SkipByte(cASCII.DQUOTE)) { Position = lBookmark; return false; }
 
-            // calculations
+            // generate output
 
-            try { rDateTime = rDateTime + lTime - lZone; }
+            try
+            {
+                rDateTime += lTime;
+                rDateTimeOffset = new DateTimeOffset(rDateTime, lOffset);
+            }
             catch { Position = lBookmark; return false; }
 
-            // done
+            if (!lUnspecifiedZone) rDateTime = rDateTimeOffset.LocalDateTime; // kind = local
+
             return true;
         }
 
-        public bool GetTimeStamp(out DateTime rTimeStamp)
+        public bool GetTimeStamp(out DateTimeOffset rDateTimeOffset, out DateTime rDateTime)
         {
             // rfc3339 timestamp
 
             var lBookmark = Position;
 
-            if (!GetNumber(out _, out uint ldYYYY, 4, 4)) { rTimeStamp = new DateTime(); return false; }
-            if (!SkipByte(cASCII.HYPEN)) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
-            if (!GetNumber(out _, out uint ldMM, 2, 2) || ldMM < 1 || ldMM > 12) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
-            if (!SkipByte(cASCII.HYPEN)) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
-            if (!GetNumber(out _, out uint ldDD, 2, 2) || ldDD < 1 || ldDD > 31) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
-            if (!SkipByte(cASCII.T)) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
-            if (!GetNumber(out _, out uint ltHH, 2, 2) || ltHH > 23) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
-            if (!SkipByte(cASCII.COLON)) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
-            if (!GetNumber(out _, out uint ltMM, 2, 2) || ltMM > 59) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
-            if (!SkipByte(cASCII.COLON)) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
-            if (!GetNumber(out _, out uint ltSS, 2, 2) || ltSS > 60) { Position = lBookmark; rTimeStamp = new DateTime(); return false; } // note: 60 is explicitly allowed to cater for leap seconds
+            // hack
+            rDateTimeOffset = new DateTimeOffset();
+            rDateTime = new DateTime(); // either local or unspecified
+
+            // date and time
+
+            if (!GetNumber(out _, out uint ldYYYY, 4, 4)) return false;
+            if (!SkipByte(cASCII.HYPEN)) { Position = lBookmark; return false; }
+            if (!GetNumber(out _, out uint ldMM, 2, 2) || ldMM < 1 || ldMM > 12) { Position = lBookmark; return false; }
+            if (!SkipByte(cASCII.HYPEN)) { Position = lBookmark; return false; }
+            if (!GetNumber(out _, out uint ldDD, 2, 2) || ldDD < 1 || ldDD > 31) { Position = lBookmark; return false; }
+            if (!SkipByte(cASCII.T)) { Position = lBookmark; return false; }
+            if (!GetNumber(out _, out uint ltHH, 2, 2) || ltHH > 23) { Position = lBookmark; return false; }
+            if (!SkipByte(cASCII.COLON)) { Position = lBookmark; return false; }
+            if (!GetNumber(out _, out uint ltMM, 2, 2) || ltMM > 59) { Position = lBookmark; return false; }
+            if (!SkipByte(cASCII.COLON)) { Position = lBookmark; return false; }
+            if (!GetNumber(out _, out uint ltSS, 2, 2) || ltSS > 60) { Position = lBookmark; return false; } // note: 60 is explicitly allowed to cater for leap seconds
             if (ltSS == 60) ltSS = 59; // dot net doesn't handle leap seconds
+
+            // optional milliseconds
 
             int ltMS = 0;
 
             if (SkipByte(cASCII.DOT))
             {
-                if (!GetToken(cCharset.Digit, null, null, out var lBytes, 1)) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
+                if (!GetToken(cCharset.Digit, null, null, out var lBytes, 1)) { Position = lBookmark; return false; }
                 int lDigits = Math.Min(lBytes.Count, 3);
                 int lFactor = 100;
                 for (int i = 0; i < lDigits; i++, lFactor /= 10) ltMS = ltMS + (lBytes[i] - cASCII.ZERO) * lFactor;
             }
 
-            try { rTimeStamp = new DateTime((int)ldYYYY, (int)ldMM, (int)ldDD, (int)ltHH, (int)ltMM, (int)ltSS, ltMS, DateTimeKind.Utc); }
-            catch { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
+            // zone
 
-            if (!SkipByte(cASCII.Z))
+            TimeSpan lOffset;
+            bool lUnspecifiedZone;
+
+            if (SkipBytes(kRFC3339UnspecifiedZone))
             {
+                lOffset = new TimeSpan(0, 0, 0);
+                lUnspecifiedZone = true;
+            }
+            else if (SkipByte(cASCII.Z))
+            {
+                lOffset = new TimeSpan(0, 0, 0);
+                lUnspecifiedZone = false;
+            }
+            else
+            { 
                 bool lMinus;
                 if (SkipByte(cASCII.PLUS)) lMinus = false;
                 else if (SkipByte(cASCII.HYPEN)) lMinus = true;
-                else { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
+                else { Position = lBookmark; return false; }
 
-                if (!GetNumber(out _, out uint lzHH, 2, 2) || lzHH > 23) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
-                if (!SkipByte(cASCII.COLON)) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
-                if (!GetNumber(out _, out uint lzMM, 2, 2) || lzMM > 59) { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
+                if (!GetNumber(out _, out uint lzHH, 2, 2) || lzHH > 23) { Position = lBookmark; return false; }
+                if (!SkipByte(cASCII.COLON)) { Position = lBookmark; return false; }
+                if (!GetNumber(out _, out uint lzMM, 2, 2) || lzMM > 59) { Position = lBookmark; return false; }
 
-                TimeSpan lZone = new TimeSpan((int)lzHH, (int)lzMM, 0);
-                if (lMinus) lZone = lZone.Negate();
+                lOffset = new TimeSpan((int)lzHH, (int)lzMM, 0);
+                if (lMinus) lOffset = lOffset.Negate();
 
-                try { rTimeStamp = rTimeStamp - lZone; }
-                catch { Position = lBookmark; rTimeStamp = new DateTime(); return false; }
+                lUnspecifiedZone = false;
             }
+
+            // generate output
+
+            try
+            {
+                rDateTime = new DateTime((int)ldYYYY, (int)ldMM, (int)ldDD, (int)ltHH, (int)ltMM, (int)ltSS, ltMS); // kind = unspecified
+                rDateTimeOffset = new DateTimeOffset(rDateTime, lOffset);
+            }
+            catch { Position = lBookmark; return false; }
+
+            if (!lUnspecifiedZone) rDateTime = rDateTimeOffset.LocalDateTime; // kind = local
 
             return true;
         }
@@ -623,7 +680,7 @@ namespace work.bacome.imapclient
             if (!SkipByte(cASCII.HYPEN)) { Position = lBookmark; return false; }
             if (!GetNumber(out _, out uint lYear, 4, 4)) { Position = lBookmark; return false; }
 
-            try { rDate = new DateTime((int)lYear, lMonth, (int)lDay, 0, 0, 0, DateTimeKind.Utc); }
+            try { rDate = new DateTime((int)lYear, lMonth, (int)lDay); }
             catch { Position = lBookmark; return false; }
 
             return true;

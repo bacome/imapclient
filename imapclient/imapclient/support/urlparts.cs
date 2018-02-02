@@ -54,7 +54,8 @@ namespace work.bacome.imapclient
         private string _Section = null;
         private uint? _PartialOffset = null;
         private uint? _PartialLength = null;
-        private DateTime? _Expire = null;
+        private DateTimeOffset? _ExpireDateTimeOffset = null;
+        private DateTime? _ExpireDateTime = null;
         private string _Application = null;
         private string _AccessUserId = null;
         private string _Token = null;
@@ -182,15 +183,21 @@ namespace work.bacome.imapclient
             }
         }
 
-        public DateTime? Expire
+        public DateTimeOffset? ExpireDateTimeOffset
         {
-            get => _Expire;
+            get => _ExpireDateTimeOffset;
+        }
 
-            private set
-            {
-                _Expire = value;
-                mParts |= fParts.expire;
-            }
+        public DateTime? ExpireDateTime
+        {
+            get => _ExpireDateTime;
+        }
+
+        private void ZSetExpire(DateTimeOffset pDateTimeOffset, DateTime pDateTime)
+        {
+            _ExpireDateTimeOffset = pDateTimeOffset;
+            _ExpireDateTime = pDateTime;
+            mParts |= fParts.expire;
         }
 
         public string Application
@@ -297,7 +304,8 @@ namespace work.bacome.imapclient
                 if (_Section != null) lHash = lHash * 23 + _Section.GetHashCode();
                 if (_PartialOffset != null) lHash = lHash * 23 + _PartialOffset.GetHashCode();
                 if (_PartialLength != null) lHash = lHash * 23 + _PartialLength.GetHashCode();
-                if (_Expire != null) lHash = lHash * 23 + _Expire.GetHashCode();
+                if (_ExpireDateTimeOffset != null) lHash = lHash * 23 + _ExpireDateTimeOffset.GetHashCode();
+                if (_ExpireDateTime != null) lHash = lHash * 23 + _ExpireDateTime.GetHashCode();
                 if (_Application != null) lHash = lHash * 23 + _Application.GetHashCode();
                 if (_AccessUserId != null) lHash = lHash * 23 + _AccessUserId.GetHashCode();
                 if (TokenMechanism != null) lHash = lHash * 23 + TokenMechanism.GetHashCode();
@@ -322,7 +330,8 @@ namespace work.bacome.imapclient
             if (_Section != null) lBuilder.Append(nameof(Section), _Section);
             if (_PartialOffset != null) lBuilder.Append(nameof(PartialOffset), _PartialOffset);
             if (_PartialLength != null) lBuilder.Append(nameof(PartialLength), _PartialLength);
-            if (_Expire != null) lBuilder.Append(nameof(Expire), _Expire);
+            if (_ExpireDateTimeOffset != null) lBuilder.Append(nameof(ExpireDateTimeOffset), _ExpireDateTimeOffset);
+            if (_ExpireDateTime != null) lBuilder.Append(nameof(ExpireDateTime), _ExpireDateTime);
             if (_Application != null) lBuilder.Append(nameof(Application), _Application);
             if (_AccessUserId != null) lBuilder.Append(nameof(AccessUserId), _AccessUserId);
             if (TokenMechanism != null) lBuilder.Append(nameof(TokenMechanism), TokenMechanism);
@@ -350,7 +359,8 @@ namespace work.bacome.imapclient
                 pA._Section == pB._Section &&
                 pA._PartialOffset == pB._PartialOffset &&
                 pA._PartialLength == pB._PartialLength &&
-                pA._Expire == pB._Expire &&
+                pA._ExpireDateTimeOffset == pB._ExpireDateTimeOffset &&
+                pA._ExpireDateTime == pB._ExpireDateTime &&
                 pA._Application == pB._Application &&
                 pA._AccessUserId == pB._AccessUserId &&
                 pA.TokenMechanism == pB.TokenMechanism &&
@@ -722,11 +732,17 @@ namespace work.bacome.imapclient
             // expire - only valid if ;URLAUTH= follows
 
             lBookmark1 = pCursor.Position;
-            DateTime? lExpire = null;
+
+            DateTimeOffset? lExpireDateTimeOffset = null;
+            DateTime? lExpireDateTime = null;
 
             if (pCursor.SkipBytes(kSemicolonExpireEquals))
             {
-                if (pCursor.GetTimeStamp(out var lTimeStamp)) lExpire = lTimeStamp;
+                if (pCursor.GetTimeStamp(out var lTempDateTimeOffset, out var lTempDateTime))
+                {
+                    lExpireDateTimeOffset = lTempDateTimeOffset;
+                    lExpireDateTime = lTempDateTime;
+                }
                 else
                 {
                     pCursor.Position = lBookmark1;
@@ -739,7 +755,7 @@ namespace work.bacome.imapclient
             if (!pCursor.SkipBytes(kSemicolonURLAuthEquals))
             {
                 pCursor.Position = lBookmark1;
-                if (lExpire != null) lContext.TraceWarning("likely malformed urlauth section (expire but no urlauth)");
+                if (lExpireDateTime != null) lContext.TraceWarning("likely malformed urlauth section (expire but no urlauth)");
                 rParts = lParts;
                 return true;
             }
@@ -758,10 +774,10 @@ namespace work.bacome.imapclient
             lContext.TraceVerbose("application: {0}", lApplication);
 
             // expire can now be set
-            if (lExpire != null)
+            if (lExpireDateTimeOffset != null)
             {
-                lParts.Expire = lExpire;
-                lContext.TraceVerbose("expire: {0}", lExpire);
+                lParts.ZSetExpire(lExpireDateTimeOffset.Value, lExpireDateTime.Value);
+                lContext.TraceVerbose("expire: {0} {1}", lExpireDateTimeOffset, lExpireDateTime);
             }
 
             // urlauth user

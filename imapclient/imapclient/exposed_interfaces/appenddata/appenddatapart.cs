@@ -180,28 +180,36 @@ namespace work.bacome.imapclient
             if (!cCharset.FText.ContainsAll(pFieldName)) throw new ArgumentOutOfRangeException(nameof(pFieldName));
             mFieldName = pFieldName;
 
-            ;?; // cf this to asdatetime: it should behave the same
-
-            DateTime lDateTime;
-            if (pDateTime.Kind == DateTimeKind.Unspecified) lDateTime = new DateTime(pDateTime.Year, pDateTime.Month, pDateTime.Day, pDateTime.Hour, pDateTime.Minute, pDateTime.Second, DateTimeKind.Local);
-            else lDateTime = pDateTime.ToLocalTime();
-
-            var lMonth = cRFCMonth.cName[lDateTime.Month];
-
-            var lOffset = TimeZoneInfo.Local.GetUtcOffset(lDateTime);
-
             string lSign;
+            string lZone;
 
-            if (lOffset < TimeSpan.Zero)
+            if (pDateTime.Kind == DateTimeKind.Local)
+            {
+                var lOffset = TimeZoneInfo.Local.GetUtcOffset(pDateTime);
+
+                if (lOffset < TimeSpan.Zero)
+                {
+                    lSign = "-";
+                    lOffset = -lOffset;
+                }
+                else lSign = "+";
+
+                lZone = lOffset.ToString("hhmm");
+            }
+            else if (pDateTime.Kind == DateTimeKind.Utc)
+            {
+                lSign = "+";
+                lZone = "0000";
+            }
+            else
             {
                 lSign = "-";
-                lOffset = -lOffset;
+                lZone = "0000";
             }
-            else lSign = "+";
 
-            string lZone = lOffset.ToString("hhmm");
+            var lMonth = cRFCMonth.cName[pDateTime.Month];
 
-            string l5322DateTime = string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", lDateTime, lMonth, lSign, lZone);
+            string l5322DateTime = string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTime, lMonth, lSign, lZone);
 
             var lValue = new List<cHeaderFieldValuePart>();
             lValue.Add(new cHeaderFieldText(l5322DateTime));

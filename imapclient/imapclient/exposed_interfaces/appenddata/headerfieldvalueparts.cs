@@ -289,9 +289,9 @@ namespace work.bacome.imapclient
 
         internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext)
         {
-            pBytes.AddToken(cASCII.LPAREN);
+            pBytes.AddSpecial(cASCII.LPAREN);
             foreach (var lPart in mParts) lPart.GetBytes(pBytes, eHeaderValuePartContext.comment);
-            pBytes.AddToken(cASCII.RPAREN);
+            pBytes.AddSpecial(cASCII.RPAREN);
         }
     }
 }
