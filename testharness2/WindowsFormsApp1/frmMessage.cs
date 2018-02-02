@@ -247,7 +247,7 @@ namespace testharness2
                     {
                         mOtherDisplayed = true;
 
-                        lBuilder.AppendLine("Received: " + mMessage.Received);
+                        lBuilder.AppendLine("Received: " + mMessage.ReceivedDateTime);
                         lBuilder.AppendLine("UID: " + mMessage.UID);
                         lBuilder.AppendLine("References: " + mMessage.References);
                         lBuilder.AppendLine("Importance: " + mMessage.Importance);
@@ -414,7 +414,7 @@ namespace testharness2
 
                 lBuilder.AppendLine($"Section: {lTag.BodyPart.Section}");
 
-                if (lTag.BodyPart.Disposition != null) lBuilder.AppendLine($"Disposition: {lTag.BodyPart.Disposition.Type} {lTag.BodyPart.Disposition.FileName} {lTag.BodyPart.Disposition.Size} {lTag.BodyPart.Disposition.CreationDate}");
+                if (lTag.BodyPart.Disposition != null) lBuilder.AppendLine($"Disposition: {lTag.BodyPart.Disposition.Type} {lTag.BodyPart.Disposition.FileName} {lTag.BodyPart.Disposition.Size} {lTag.BodyPart.Disposition.CreationDateTime}");
                 if (lTag.BodyPart.Languages != null) lBuilder.AppendLine($"Languages: {lTag.BodyPart.Languages}");
                 if (lTag.BodyPart.Location != null) lBuilder.AppendLine($"Location: {lTag.BodyPart.Location}");
 
@@ -729,7 +729,7 @@ namespace testharness2
 
         private void ZAppendEnvelope(StringBuilder pBuilder, cEnvelope pEnvelope)
         {
-            pBuilder.AppendLine("Sent: " + pEnvelope.Sent);
+            pBuilder.AppendLine("Sent: " + pEnvelope.SentDateTime);
             pBuilder.AppendLine("Subject: " + pEnvelope.Subject);
             pBuilder.AppendLine("Base Subject: " + pEnvelope.BaseSubject);
             ZAppendAddresses(pBuilder, "From: ", pEnvelope.From);

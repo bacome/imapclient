@@ -538,6 +538,11 @@ namespace work.bacome.imapclient
         internal cStreamRanOutOfDataException() { }
     }
 
+    public class cUTF8RequiredException : cIMAPException
+    {
+        internal cUTF8RequiredException() { }
+    }
+
     internal class cTestsException : Exception
     {
         internal cTestsException() { }

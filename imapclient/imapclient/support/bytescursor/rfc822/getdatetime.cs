@@ -97,7 +97,7 @@ namespace work.bacome.imapclient
 
             if (SkipBytes(kRFC2822UnspecifiedZone))
             {
-                lOffset = new TimeSpan(0, 0, 0);
+                lOffset = TimeSpan.Zero;
                 lUnspecifiedZone = true;
             }
             else if (SkipByte(cASCII.PLUS))
@@ -118,7 +118,7 @@ namespace work.bacome.imapclient
 
                 if (cASCII.Compare(lAlphaZone, kUT, false) || cASCII.Compare(lAlphaZone, kGMT, false))
                 {
-                    lOffset = new TimeSpan(0, 0, 0);
+                    lOffset = TimeSpan.Zero;
                     lUnspecifiedZone = false;
                 }
                 else if (cASCII.Compare(lAlphaZone, kEDT, false))
@@ -148,7 +148,7 @@ namespace work.bacome.imapclient
                 }
                 else
                 {
-                    lOffset = new TimeSpan(0, 0, 0);
+                    lOffset = TimeSpan.Zero;
                     lUnspecifiedZone = true;
                 }
             }

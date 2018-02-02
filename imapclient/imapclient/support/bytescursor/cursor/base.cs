@@ -480,7 +480,7 @@ namespace work.bacome.imapclient
 
             if (SkipBytes(kRFC3501UnspecifiedZone))
             {
-                lOffset = new TimeSpan(0, 0, 0);
+                lOffset = TimeSpan.Zero;
                 lUnspecifiedZone = true;
             }
             else
@@ -563,12 +563,12 @@ namespace work.bacome.imapclient
 
             if (SkipBytes(kRFC3339UnspecifiedZone))
             {
-                lOffset = new TimeSpan(0, 0, 0);
+                lOffset = TimeSpan.Zero;
                 lUnspecifiedZone = true;
             }
             else if (SkipByte(cASCII.Z))
             {
-                lOffset = new TimeSpan(0, 0, 0);
+                lOffset = TimeSpan.Zero;
                 lUnspecifiedZone = false;
             }
             else

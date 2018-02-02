@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
+using System.Linq;
 using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
@@ -14,11 +14,77 @@ namespace work.bacome.imapclient
 
         internal abstract void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext);
 
+        public bool TryAsDotAtom(string pText, out cHeaderFieldValuePart rPart)
+        {
+            if (pText == null) { rPart = null; return false; }
+            if (string.IsNullOrWhiteSpace(pText)) { rPart = null; return false; }
+            var lAtoms = pText.Split('.');
+            foreach (var lAtom in lAtoms) if (lAtom.Length == 0 || !cCharset.AText.ContainsAll(lAtom)) { rPart = null; return false; }
+            bool lContainsNonASCII = pText.Any((lChar) => lChar > cChar.DEL);
+            rPart = new cHeaderFieldDotAtom(pText, lContainsNonASCII);
+            return true;
+        }
+
+        public bool TryAsQuotedString(string pText, out cHeaderFieldValuePart rPart)
+        {
+            if (pText == null) { rPart = null; return false; }
+
+            bool lContainsNonASCII = false;
+
+            foreach (var lChar in pText)
+            {
+                if (lChar == '\t') continue;
+                if (lChar < ' ' || lChar == cChar.DEL) { rPart = null; return false; }
+                if (lChar > cChar.DEL) lContainsNonASCII = true;
+            }
+
+            rPart = new cHeaderFieldQuotedString(pText, lContainsNonASCII);
+
+            return true;
+        }
+
         private class cHeaderFieldSpecial : cHeaderFieldValuePart
         {
             private readonly byte mByte;
             public cHeaderFieldSpecial(byte pByte) { mByte = pByte; }
             internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext) => pBytes.AddSpecial(mByte);
+        }
+
+        private class cHeaderFieldDotAtom : cHeaderFieldValuePart
+        {
+            private readonly string mText;
+            private readonly bool mContainsNonASCII;
+
+            public cHeaderFieldDotAtom(string pText, bool pContainsNonASCII)
+            {
+                mText = pText ?? throw new ArgumentNullException(nameof(pText));
+                mContainsNonASCII = pContainsNonASCII;
+            }
+
+            internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext)
+            {
+                if (mContainsNonASCII && pBytes.Encoding != null) throw new cUTF8RequiredException();
+                pBytes.AddNonEncodedWord(mText);
+            }
+        }
+
+        private class cHeaderFieldQuotedString : cHeaderFieldValuePart
+        {
+            private readonly string mText;
+            private readonly bool mContainsNonASCII;
+
+            public cHeaderFieldQuotedString(string pText, bool pContainsNonASCII)
+            {
+                mText = pText ?? throw new ArgumentNullException(nameof(pText));
+                mContainsNonASCII = pContainsNonASCII;
+            }
+
+            internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext)
+            {
+                if (mContainsNonASCII && pBytes.Encoding != null) throw new cUTF8RequiredException();
+
+                ;?;
+            }
         }
     }
 

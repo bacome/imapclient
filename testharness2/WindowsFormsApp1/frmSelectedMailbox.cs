@@ -760,7 +760,7 @@ namespace testharness2
             {
                 get
                 {
-                    try { return Message.Received; }
+                    try { return Message.ReceivedDateTime; }
                     catch { return null; }
                 }
             }

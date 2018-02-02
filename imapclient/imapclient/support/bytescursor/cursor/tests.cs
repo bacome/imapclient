@@ -141,7 +141,7 @@ namespace work.bacome.imapclient
             if (!lCursor.SkipBytes(new cBytes("\"31-Feb-1968\""))) throw new cTestsException("date skip 7");
 
             lCursor = MakeCursor("\" 4-apr-1968 23:59:59 +0000\"\"04-apr-1968 23:59:59 +1200\"\"28-apr-1968 23:59:59 +1130\"\"28-apr-1968 11:59:59 -1000\"");
-            if (!lCursor.GetDateTime(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(1968, 4, 4, 23, 59, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 1");
+            if (!lCursor.GetDateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 4, 23, 59, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 1");
             if (!lCursor.GetDateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 4, 11, 59, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 2");
             if (!lCursor.GetDateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 28, 12, 29, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 3");
             if (!lCursor.GetDateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 28, 21, 59, 59, DateTimeKind.Utc)) throw new cTestsException("datetime 4");
@@ -153,16 +153,16 @@ namespace work.bacome.imapclient
             // more to do ...
 
             lCursor = MakeCursor("1968-04-04T23:59:59Z,1968-04-04T23:59:59+12:00,1968-04-28T23:59:59+11:30,1968-04-28T11:59:59-10:00");
-            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(1968, 4, 4, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 1.1");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 4, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 1.1");
             if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 4, 11, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 1.2");
             if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 28, 12, 29, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 1.3");
             if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1968, 4, 28, 21, 59, 59, DateTimeKind.Utc)) throw new cTestsException("timestamp 1.4");
 
             // examples from rfc3339
             lCursor = new cBytesCursor("1985-04-12T23:20:50.52Z,1996-12-19T16:39:57-08:00,1990-12-31T23:59:60Z,1990-12-31T15:59:60-08:00,1937-01-01T12:00:27.87+00:20");
-            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(1985, 04, 12, 23, 20, 50, 520, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.1");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1985, 04, 12, 23, 20, 50, 520, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.1");
             if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1996, 12, 20, 00, 39, 57, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.2");
-            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(1990, 12, 31, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.3");
+            if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1990, 12, 31, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.3");
             if (!lCursor.GetTimeStamp(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1990, 12, 31, 23, 59, 59, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.COMMA)) throw new cTestsException("timestamp 2.4");
             //if (!lCursor.GetTimeStamp(out lDate) || lDate != new DateTime(1937, 01, 01, 12, 19, 32, 130, DateTimeKind.Utc)) throw new cTestsException("timestamp 2.5");
 

@@ -120,6 +120,49 @@ namespace work.bacome.imapclient
             mLastWordType = eWordType.nothingspecial;
         }
 
+        public void AddNonEncodedWord(string pWord)
+        {
+            if (pWord.Length == 0) throw new ArgumentOutOfRangeException(nameof(pWord));
+
+            int lLeadingSpaces;
+            if (mLastWordType == eWordType.special) lLeadingSpaces = 0;
+            else lLeadingSpaces = 1;
+
+            var lWordBytes = Encoding.UTF8.GetBytes(pWord);
+
+            bool lFold;
+
+            if (mCurrentLineHasEncodedWords)
+            {
+                if (mCurrentLineByteCount + lLeadingSpaces + lWordBytes.Length > 76) lFold = true;
+                else lFold = false;
+            }
+            else
+            {
+                if (mCurrentLineCharCount + lLeadingSpaces + pWord.Length > 78) lFold = true;
+                else lFold = false;
+            }
+
+            if (lFold)
+            {
+                mBytes.AddRange(kCRLFSPACE);
+                mCurrentLineByteCount = 1;
+                mCurrentLineCharCount = 1;
+                mCurrentLineHasEncodedWords = false;
+            }
+            else if (mLastWordType != eWordType.special)
+            {
+                mBytes.Add(cASCII.SPACE);
+                mCurrentLineByteCount++;
+                mCurrentLineCharCount++;
+            }
+
+            mBytes.AddRange(lWordBytes);
+            mCurrentLineByteCount += lWordBytes.Length;
+            mCurrentLineCharCount += pWord.Length;
+            mLastWordType = eWordType.nothingspecial;
+        }
+
         public void AddNonEncodedWord(IList<char> pLeadingWSP, List<char> pWordChars)
         {
             if (pLeadingWSP == null) throw new ArgumentNullException(nameof(pLeadingWSP));
@@ -162,6 +205,13 @@ namespace work.bacome.imapclient
             mCurrentLineByteCount += lWordBytes.Length;
             mCurrentLineCharCount += pWordChars.Count;
             mLastWordType = eWordType.nothingspecial;
+        }
+
+        public void AddFoldable(List<char> pLeadingWSP, List<char> pWordChars)
+        {
+            // may insert crlf in the leading wsp, but the wsp must be retained (for quoted strings with embedded wsp)
+
+            ;?;
         }
 
         public void AddEncodedWords(List<char> pLeadingWSP, List<char> pWordChars, eHeaderValuePartContext pContext)

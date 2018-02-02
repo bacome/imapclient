@@ -1709,7 +1709,7 @@ namespace testharness2
                 lMessage = lMessageList[0];
 
                 if (lMessage.Expunged || lMessage.MessageHandle.Attributes != (fMessageCacheAttributes.received | fMessageCacheAttributes.modseq)) throw new cTestsException("ZTestSearch4.4");
-                if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch4.5");
+                if (lMessage.ReceivedDateTime.ToUniversalTime() != new DateTime(2017, 6, 8, 20, 09, 15, DateTimeKind.Utc)) throw new cTestsException("ZTestSearch4.5");
 
 
 
@@ -1963,7 +1963,7 @@ namespace testharness2
                 lMessage = lMessageList[0];
 
                 if (lMessage.Expunged || lMessage.MessageHandle.Attributes != (fMessageCacheAttributes.received | fMessageCacheAttributes.modseq)) throw new cTestsException("ZTestSearch2_4.4");
-                if (lMessage.Received != new DateTime(2017, 6, 8, 20, 09, 15)) throw new cTestsException("ZTestSearch2_4.5");
+                if (lMessage.ReceivedDateTime.ToUniversalTime() != new DateTime(2017, 6, 8, 20, 09, 15, DateTimeKind.Utc)) throw new cTestsException("ZTestSearch2_4.5");
 
 
 

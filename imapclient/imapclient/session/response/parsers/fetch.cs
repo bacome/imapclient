@@ -1095,8 +1095,8 @@ namespace work.bacome.imapclient
                     if (lData == null) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.1.1");
 
                     if (lData.Flags.Count != 1 || !lData.Flags.Contains(@"\SeEn")) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.2");
-                    if (lData.ReceivedDateTime != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
-                    if (lData.Envelope.SentDateTime != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
+                    if (lData.ReceivedDateTime.Value.ToUniversalTime() != new DateTime(1996, 7, 17, 9, 44, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.3");
+                    if (lData.Envelope.SentDateTime.Value.ToUniversalTime() != new DateTime(1996, 7, 17, 9, 23, 25, DateTimeKind.Utc)) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.4");
                     if (lData.Envelope.Subject != "IMAP4rev1 WG mtg summary and minutes") throw new cTestsException($"{nameof(cResponseDataFetch)}.1.5");
                     if (lData.Envelope.From.Count != 1) throw new cTestsException($"{nameof(cResponseDataFetch)}.1.6.1");
                     lEmailAddress = lData.Envelope.From[0] as cEmailAddress;

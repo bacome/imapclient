@@ -207,7 +207,7 @@ namespace work.bacome.imapclient
                 lZone = "0000";
             }
 
-            var lMonth = cRFCMonth.cName[pDateTime.Month];
+            var lMonth = cRFCMonth.cName[pDateTime.Month - 1];
 
             string l5322DateTime = string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTime, lMonth, lSign, lZone);
 
@@ -545,9 +545,36 @@ namespace work.bacome.imapclient
 
 
 
+            ZTestDateTime("local", new DateTime(2018, 02, 03, 15, 16, 17, DateTimeKind.Local));
+            ZTestDateTime("unspecified", new DateTime(2018, 02, 03, 15, 16, 17, DateTimeKind.Unspecified));
+            ZTestDateTime("utc", new DateTime(2018, 02, 03, 15, 16, 17, DateTimeKind.Utc));
+        }
 
-            ;?; // test headerdatetime [need to check on a positive, negative and zero offsets]
-            ;?; // need to test on local time, unspec and utc
+        private static void ZTestDateTime(string pTestName, DateTime pDateTime)
+        {
+            var lPart = new cHeaderFieldAppendDataPart("x", pDateTime);
+            var lBytes = lPart.GetBytes(null);
+            var lCursor = new cBytesCursor(lBytes);
+
+            if (!lCursor.SkipByte(cASCII.x) || !lCursor.SkipByte(cASCII.COLON) || !lCursor.GetRFC822DateTime(out var lDateTimeOffset, out var lDateTime) || !lCursor.SkipByte(cASCII.CR) || !lCursor.SkipByte(cASCII.LF) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.DateTime({pTestName}.i)");
+
+            if (pDateTime.Kind == DateTimeKind.Utc)
+            {
+                if (lDateTime.ToUniversalTime() != pDateTime) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.DateTime({pTestName}.r1)");
+            }
+            else
+            {
+                if (lDateTime != pDateTime) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.DateTime({pTestName}.r2)");
+            }
+
+            if (pDateTime.Kind == DateTimeKind.Local)
+            {
+                int i = 7 + 4;
+            }
+            else
+            {
+                if (lDateTimeOffset.Offset.CompareTo(TimeSpan.Zero) != 0) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.DateTime({pTestName}.o)");
+            }
         }
 
         private static void ZTestUnstructured(string pTestName, string pString, string pExpectedF = null, string pCharsetName = null, string pExpectedI = null)

@@ -11,7 +11,8 @@ namespace work.bacome.imapclient
         {
             cBytesCursor lCursor;
             string lString;
-            DateTime lDate;
+            DateTimeOffset lDateTimeOffset;
+            DateTime lDateTime;
             cByteList lByteList;
 
 
@@ -37,19 +38,19 @@ namespace work.bacome.imapclient
 
             lCursor = new cBytesCursor("Fri, 21 Nov 1997 09:55:06 -0600  x  Tue, 1 Jul 2003 10:52:37 +0200    x    Thu, 13 Feb 1969 23:32:54 -0330    x  Thu,\r\n\t13\r\n\t  Feb\r\n\t    1969\r\n\t23:32\r\n\t\t\t-0330 (Newfoundland Time)   x   21 Nov 97 09:55:06 GMT    x     Fri, 21 Nov 1997 09(comment):   55  :  06 -0600    x");
 
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1997, 11, 21, 15, 55, 06) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 1");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(2003, 7, 1, 8, 52, 37) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 2");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1969, 2, 14, 3, 02, 54) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 3");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1969, 2, 14, 3, 02, 00) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 4");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1997, 11, 21, 9, 55, 06) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 5");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1997, 11, 21, 15, 55, 06) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 6");
+            if (!lCursor.GetRFC822DateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1997, 11, 21, 15, 55, 06, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 1");
+            if (!lCursor.GetRFC822DateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(2003, 7, 1, 8, 52, 37, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 2");
+            if (!lCursor.GetRFC822DateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1969, 2, 14, 3, 02, 54, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 3");
+            if (!lCursor.GetRFC822DateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1969, 2, 14, 3, 02, 00, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 4");
+            if (!lCursor.GetRFC822DateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1997, 11, 21, 9, 55, 06, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 5");
+            if (!lCursor.GetRFC822DateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1997, 11, 21, 15, 55, 06, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 6");
 
             lCursor = new cBytesCursor("21 Nov 1997 09:55:06 CST  x  1 Jul 2003 10:52:37 A    x    13 Feb 1969 23:32:54 GMT    x  Thu,\r\n\t13\r\n\t  Feb\r\n\t    1969\r\n\t23:32\r\n\t\t\t-0000 (Unspecified Zone)   x");
 
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1997, 11, 21, 15, 55, 06) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 7");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(2003, 7, 1, 10, 52, 37, ) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 2");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1969, 2, 14, 3, 02, 54) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 3");
-            if (!lCursor.GetRFC822DateTime(out lDate) || lDate != new DateTime(1969, 2, 14, 3, 02, 00) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 4");
+            if (!lCursor.GetRFC822DateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1997, 11, 21, 15, 55, 06, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 7");
+            if (!lCursor.GetRFC822DateTime(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(2003, 7, 1, 10, 52, 37, DateTimeKind.Unspecified) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 8");
+            if (!lCursor.GetRFC822DateTime(out lDateTimeOffset, out lDateTime) || lDateTime.ToUniversalTime() != new DateTime(1969, 2, 13, 23, 32, 54, DateTimeKind.Utc) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 9");
+            if (!lCursor.GetRFC822DateTime(out lDateTimeOffset, out lDateTime) || lDateTime != new DateTime(1969, 2, 13, 23, 32, 00, DateTimeKind.Unspecified) || !lCursor.SkipByte(cASCII.x)) throw new cTestsException("imf date 10");
 
             // TODO: more tests for failure cases and alphanumeric zones
             //   Wed, 17 Jul 1996 02:23:25 -0700 (PDT)

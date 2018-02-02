@@ -422,7 +422,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets the creation date (in local time if there is usable time zone information). May be <see langword="null"/>.
         /// </summary>
-        public DateTime? CreationDateTime => Parameters?.First("creation-date")?.DateTimeValuex;
+        public DateTime? CreationDateTime => Parameters?.First("creation-date")?.DateTimeValue;
 
         /// <summary>
         /// Gets the modification date. May be <see langword="null"/>.
@@ -432,7 +432,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets the modification date (in local time if there is usable time zone information). May be <see langword="null"/>.
         /// </summary>
-        public DateTime? ModificationDateTime => Parameters?.First("modification-date")?.DateTimeValuex;
+        public DateTime? ModificationDateTime => Parameters?.First("modification-date")?.DateTimeValue;
 
         /// <summary>
         /// Gets the last read date. May be <see langword="null"/>.
@@ -442,7 +442,7 @@ namespace work.bacome.imapclient
         /// <summary>
         /// Gets the last read date (in local time if there is usable time zone information). May be <see langword="null"/>.
         /// </summary>
-        public DateTime? ReadDateTime => Parameters?.First("read-date")?.DateTimeValuex;
+        public DateTime? ReadDateTime => Parameters?.First("read-date")?.DateTimeValue;
 
         /// <summary>
         /// Gets the approximate size in bytes. May be <see langword="null"/>.
@@ -698,7 +698,7 @@ namespace work.bacome.imapclient
         /// Will be <see langword="null"/> if the value cannot be parsed as an RFC 5322 date-time.
         /// In local time if the RFC 5322 date-time includes usable time zone information.
         /// </remarks>
-        public DateTime? DateTimeValuex
+        public DateTime? DateTimeValue
         {
             get
             {
