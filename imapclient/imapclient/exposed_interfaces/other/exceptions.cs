@@ -509,10 +509,10 @@ namespace work.bacome.imapclient
     }
 
     /// <summary>
-    /// Thrown when an <see cref="cAppendData"/> instance is larger than <see cref="uint.MaxValue"/>.
+    /// Thrown when an <see cref="cAppendData"/> instance is larger than <see cref="uint.MaxValue"/> bytes.
     /// </summary>
     /// <remarks>
-    /// The maximum size of an IMAP message is <see cref="uint.MaxValue"/>.
+    /// The maximum size of an IMAP message is <see cref="uint.MaxValue"/> bytes.
     /// </remarks>
     public class cAppendDataSizeException : cIMAPException
     {

@@ -50,7 +50,7 @@ namespace work.bacome.imapclient
 
             lChars.Add('"');
 
-            rPart = new cHeaderFieldQuotedString(lChars, lContainsNonASCII);
+            rPart = new cHeaderFieldQuotedString(lChars.AsReadOnly(), lContainsNonASCII);
 
             return true;
         }
@@ -96,16 +96,16 @@ namespace work.bacome.imapclient
                 if (mContainsNonASCII && !pBytes.UTF8Allowed) throw new cUTF8RequiredException();
 
                 char lChar;
-                List<char> lLeadingWSPChars = new List<char>();
+                List<char> lLeadingWSP = new List<char>();
                 List<char> lWordChars = new List<char>();
 
                 int lPosition = 0;
 
                 while (lPosition < mChars.Count)
                 {
-                    // extract leading white space (if any)
+                    // extract leading white space
 
-                    lLeadingWSPChars.Clear();
+                    lLeadingWSP.Clear();
 
                     while (lPosition < mChars.Count)
                     {
@@ -113,11 +113,11 @@ namespace work.bacome.imapclient
 
                         if (lChar != '\t' && lChar != ' ') break;
 
-                        lLeadingWSPChars.Add(lChar);
+                        lLeadingWSP.Add(lChar);
                         lPosition++;
                     }
 
-                    // extract word (if there is one)
+                    // extract word
 
                     lWordChars.Clear();
 
@@ -131,11 +131,11 @@ namespace work.bacome.imapclient
                         lPosition++;
                     }
 
-                    // process the white space and word
-                    //
-                    ;?;
+                    // add the wsp and word
+                    pBytes.AddNonEncodedWord(lLeadingWSP, lWordChars);
                 }
             }
+        }
     }
 
     public abstract class cHeaderFieldCommentOrText : cHeaderFieldValuePart { }
@@ -188,9 +188,9 @@ namespace work.bacome.imapclient
         internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext)
         {
             char lChar;
-            List<char> lLeadingWSPChars = new List<char>();
+            List<char> lLeadingWSP = new List<char>();
             List<char> lWordChars = new List<char>();
-            List<char> lEncodedWordLeadingWSPChars = new List<char>();
+            List<char> lEncodedWordLeadingWSP = new List<char>();
             List<char> lEncodedWordWordChars = new List<char>();
 
             // loop through the lines
@@ -215,7 +215,7 @@ namespace work.bacome.imapclient
                 {
                     // extract leading white space (if any)
 
-                    lLeadingWSPChars.Clear();
+                    lLeadingWSP.Clear();
 
                     while (lPosition < lInput.Length)
                     {
@@ -223,7 +223,7 @@ namespace work.bacome.imapclient
 
                         if (lChar != '\t' && lChar != ' ') break;
 
-                        lLeadingWSPChars.Add(lChar);
+                        lLeadingWSP.Add(lChar);
                         lPosition++;
                     }
 
@@ -248,7 +248,7 @@ namespace work.bacome.imapclient
                     //
                     if (ZLooksLikeAnEncodedWord(lWordChars) || (!pBytes.UTF8Allowed && ZWordContainsNonASCII(lWordChars)))
                     {
-                        if (lEncodedWordWordChars.Count == 0) lEncodedWordLeadingWSPChars.AddRange(lLeadingWSPChars);
+                        if (lEncodedWordWordChars.Count == 0) lEncodedWordLeadingWSP.AddRange(lLeadingWSP);
                         if (lEncodedWordWordChars.Count > 0 || pBytes.LastWordWasAnEncodedWord) lEncodedWordWordChars.Add(' ');
                         lEncodedWordWordChars.AddRange(lWordChars);
                     }
@@ -256,8 +256,8 @@ namespace work.bacome.imapclient
                     {
                         if (lEncodedWordWordChars.Count > 0)
                         {
-                            pBytes.AddEncodedWords(lEncodedWordLeadingWSPChars, lEncodedWordWordChars, pContext);
-                            lEncodedWordLeadingWSPChars.Clear();
+                            pBytes.AddEncodedWords(lEncodedWordLeadingWSP, lEncodedWordWordChars, pContext);
+                            lEncodedWordLeadingWSP.Clear();
                             lEncodedWordWordChars.Clear();
                         }
 
@@ -307,7 +307,7 @@ namespace work.bacome.imapclient
                                 throw new cInternalErrorException();
                         }
 
-                        pBytes.AddNonEncodedWord(lLeadingWSPChars, lNonEncodedWordChars);
+                        pBytes.AddNonEncodedWord(lLeadingWSP, lNonEncodedWordChars);
                     }
                 }
 
@@ -315,8 +315,8 @@ namespace work.bacome.imapclient
                 //
                 if (lEncodedWordWordChars.Count > 0)
                 {
-                    pBytes.AddEncodedWords(lEncodedWordLeadingWSPChars, lEncodedWordWordChars, pContext);
-                    lEncodedWordLeadingWSPChars.Clear();
+                    pBytes.AddEncodedWords(lEncodedWordLeadingWSP, lEncodedWordWordChars, pContext);
+                    lEncodedWordLeadingWSP.Clear();
                     lEncodedWordWordChars.Clear();
                 }
 

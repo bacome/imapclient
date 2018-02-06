@@ -79,9 +79,10 @@ namespace work.bacome.imapclient
             mLastWordType = eWordType.special;
         }
 
-        public void AddNonEncodedWord(List<byte> pWordBytes)
+        public void AddNonEncodedWord(List<byte> pWordBytes, int pWordCharCount)
         {
             if (pWordBytes.Count == 0) throw new ArgumentOutOfRangeException(nameof(pWordBytes));
+            if (pWordCharCount <= 0) throw new ArgumentOutOfRangeException(nameof(pWordCharCount));
 
             int lLeadingSpaces;
             if (mLastWordType == eWordType.special) lLeadingSpaces = 0;
@@ -96,7 +97,7 @@ namespace work.bacome.imapclient
             }
             else
             {
-                if (mCurrentLineCharCount + lLeadingSpaces + pWordBytes.Count > 78) lFold = true;
+                if (mCurrentLineCharCount + lLeadingSpaces + pWordCharCount > 78) lFold = true;
                 else lFold = false;
             }
 
@@ -116,7 +117,7 @@ namespace work.bacome.imapclient
 
             mBytes.AddRange(pWordBytes);
             mCurrentLineByteCount += pWordBytes.Count;
-            mCurrentLineCharCount += pWordBytes.Count;
+            mCurrentLineCharCount += pWordCharCount;
             mLastWordType = eWordType.nothingspecial;
         }
 
@@ -189,29 +190,21 @@ namespace work.bacome.imapclient
 
             if (lFold)
             {
-                mBytes.AddRange(kCRLFSPACE);
-                mCurrentLineByteCount = 1;
-                mCurrentLineCharCount = 1;
+                mBytes.AddRange(kCRLF);
+                mCurrentLineByteCount = 0;
+                mCurrentLineCharCount = 0;
                 mCurrentLineHasEncodedWords = false;
+                if (lLeadingWSP.Count == 0) lLeadingWSP = SingleSpace;
             }
-            else
-            {
-                foreach (char lChar in lLeadingWSP) mBytes.Add((byte)lChar);
-                mCurrentLineByteCount += lLeadingWSP.Count;
-                mCurrentLineCharCount += lLeadingWSP.Count;
-            }
+
+            foreach (char lChar in lLeadingWSP) mBytes.Add((byte)lChar);
+            mCurrentLineByteCount += lLeadingWSP.Count;
+            mCurrentLineCharCount += lLeadingWSP.Count;
 
             mBytes.AddRange(lWordBytes);
             mCurrentLineByteCount += lWordBytes.Length;
             mCurrentLineCharCount += pWordChars.Count;
             mLastWordType = eWordType.nothingspecial;
-        }
-
-        public void AddFoldable(List<char> pLeadingWSP, List<char> pWordChars)
-        {
-            // may insert crlf in the leading wsp, but the wsp must be retained (for quoted strings with embedded wsp)
-
-            ;?;
         }
 
         public void AddEncodedWords(List<char> pLeadingWSP, List<char> pWordChars, eHeaderValuePartContext pContext)
