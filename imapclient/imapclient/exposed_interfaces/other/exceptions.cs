@@ -36,6 +36,8 @@ namespace work.bacome.imapclient
         public const string ContainsNulls = "contains nulls";
         public const string ContainsMixedMessageCaches = "contains mixed message caches";
         public const string ContainsMixedUIDValidities = "contains mixed uidvalidities";
+
+        public const string CantConvert = "can't convert: ";
     }
 
     /// <summary>

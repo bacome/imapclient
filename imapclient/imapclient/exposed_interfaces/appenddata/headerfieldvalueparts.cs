@@ -141,6 +141,7 @@ namespace work.bacome.imapclient
             lParts.Add(lLocalPart);
             lParts.Add(At);
 
+            // TODO: punycode
             if (TryAsDotAtom(pDomain, out var lDomainPart))
             {
                 lParts.Add(lDomainPart);
@@ -191,40 +192,6 @@ namespace work.bacome.imapclient
 
             rPart = null;
             return false;
-        }
-
-        public static bool TryAsList(IEnumerable<cHeaderFieldValuePart> pParts, out cHeaderFieldValuePart rPart)
-        {
-            if (pParts == null) { rPart = null; return false; }
-
-            List<cHeaderFieldValuePart> lParts = new List<cHeaderFieldValuePart>();
-
-            bool lFirst = true;
-
-            foreach (var lPart in pParts)
-            {
-                if (lFirst) lFirst = false;
-                else lParts.Add(COMMA);
-                if (lPart == null) { rPart = null; return false; }
-                lParts.Add(lPart);
-            }
-
-            if (lFirst) { rPart = null; return false; }
-
-            rPart = new cHeaderFieldValueParts(lParts);
-            return true;
-        }
-
-        public static bool TryAsGroup(string pDisplayName, cHeaderFieldValuePart pMailboxList, out cHeaderFieldValuePart rPart)
-        {
-            if (string.IsNullOrWhiteSpace(pDisplayName) || !cHeaderFieldTextValuePart.TryConstruct(pDisplayName, out var lDisplayName)) { rPart = null; return false; }
-            List<cHeaderFieldValuePart> lParts = new List<cHeaderFieldValuePart>();
-            lParts.Add(new cHeaderFieldPhraseValuePart(new cHeaderFieldCommentOrTextValuePart[] { lDisplayName }));
-            lParts.Add(COLON);
-            if (pMailboxList != null) lParts.Add(pMailboxList);
-            lParts.Add(SEMICOLON);
-            rPart = new cHeaderFieldValueParts(lParts);
-            return true;
         }
 
         public static bool TryAsMsgId(string pIdLeft, string pIdRight, out cHeaderFieldValuePart rPart)
@@ -360,11 +327,10 @@ namespace work.bacome.imapclient
         {
             private ReadOnlyCollection<cHeaderFieldValuePart> mParts;
 
-            public cHeaderFieldValueParts(IList<cHeaderFieldValuePart> pParts)
+            public cHeaderFieldValueParts(List<cHeaderFieldValuePart> pParts)
             {
                 if (pParts == null) throw new ArgumentNullException(nameof(pParts));
-                if (pParts.Count == 0) throw new ArgumentOutOfRangeException(nameof(pParts));
-                mParts = new ReadOnlyCollection<cHeaderFieldValuePart>(pParts);
+                mParts = pParts.AsReadOnly();
             }
 
             internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderFieldValuePartContext pContext)
@@ -401,6 +367,21 @@ namespace work.bacome.imapclient
             ZTestNameAddr("2", "", "non.existant", "bacome.work", "x:<non.existant@bacome.work>");
             ZTestNameAddr("3", " ", "non.existant", "bacome.work", "x:<non.existant@bacome.work>");
             ZTestNameAddr("4", "Keld Jørn Simonsen", "non.existant", "bacome.work", "x:Keld =?utf-8?b?SsO4cm4=?= Simonsen<non.existant@bacome.work>");
+
+            TryAsMsgId("left", "right", out var lPart);
+            cHeaderFieldBytes lBytes = new cHeaderFieldBytes("x", null);
+
+            for (int i = 0; i < 6; i++)
+            {
+                if (i != 0) COMMA.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
+                lPart.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
+            }
+
+            string lString = cTools.ASCIIBytesToString(lBytes.Bytes);
+            if (lString != "x:<left@right>,<left@right>,<left@right>,<left@right>,<left@right>,\r\n <left@right>") throw new cTestsException("msgid");
+
+            //  12345678901234567890123456789012345678901234567890123456789012345678901234567890
+            // "x:<left@right>,<left@right>,<left@right>,<left@right>,<left@right>,<left@right>"
         }
 
         private static void ZTestAddrSpec(string pTestName, string pLocalPart, string pDomain, string pExpected)

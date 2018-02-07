@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Net.Mail;
 using System.Text;
 using work.bacome.imapclient.support;
 
@@ -197,6 +198,65 @@ namespace work.bacome.imapclient
             mValueParts = lValueParts.AsReadOnly();
         }
 
+        public cHeaderFieldAppendDataPart(string pName, MailAddress pAddress)
+        {
+            // encoding in pAddress is ignored
+
+            if (pName == null) throw new ArgumentNullException(nameof(pName));
+            if (pName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cCharset.FText.ContainsAll(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            mName = pName;
+
+            if (pAddress == null) throw new ArgumentNullException(nameof(pAddress));
+
+            bool lOK;
+            cHeaderFieldValuePart lMailbox;
+
+            if (string.IsNullOrWhiteSpace(pAddress.DisplayName)) lOK = cHeaderFieldValuePart.TryAsAddrSpec(ZRemoveQuotes(pAddress.User), pAddress.Host, out lMailbox);
+            else lOK = cHeaderFieldValuePart.TryAsNameAddr(pAddress.DisplayName, ZRemoveQuotes(pAddress.User), pAddress.Host, out lMailbox);
+
+            if (!lOK) throw new ArgumentOutOfRangeException(nameof(pAddress));
+
+            var lValueParts = new List<cHeaderFieldValuePart>();
+            lValueParts.Add(lMailbox);
+            mValueParts = lValueParts.AsReadOnly();
+        }
+
+        public cHeaderFieldAppendDataPart(string pName, IEnumerable<MailAddress> pAddresses)
+        {
+            // encoding in pAddress is ignored
+
+            if (pName == null) throw new ArgumentNullException(nameof(pName));
+            if (pName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cCharset.FText.ContainsAll(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            mName = pName;
+
+            if (pAddresses == null) throw new ArgumentNullException(nameof(pAddresses));
+
+            bool lFirst = true;
+            var lMailboxList = new List<cHeaderFieldValuePart>();
+
+            foreach (var lAddress in pAddresses)
+            {
+                if (lFirst) lFirst = false;
+                else lMailboxList.Add(cHeaderFieldValuePart.COMMA);
+
+                if (lAddress == null) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.ContainsNulls);
+
+                bool lOK;
+                cHeaderFieldValuePart lMailbox;
+
+                if (string.IsNullOrWhiteSpace(lAddress.DisplayName)) lOK = cHeaderFieldValuePart.TryAsAddrSpec(ZRemoveQuotes(lAddress.User), lAddress.Host, out lMailbox);
+                else lOK = cHeaderFieldValuePart.TryAsNameAddr(lAddress.DisplayName, ZRemoveQuotes(lAddress.User), lAddress.Host, out lMailbox);
+
+                if (!lOK) throw new ArgumentOutOfRangeException(nameof(pAddresses), kArgumentOutOfRangeExceptionMessage.CantConvert + lAddress.ToString());
+
+                lMailboxList.Add(lMailbox);
+            }
+
+            mValueParts = lMailboxList.AsReadOnly();
+        }
+
         public cHeaderFieldAppendDataPart(string pName, IEnumerable<cHeaderFieldValuePart> pValueParts)
         {
             if (pName == null) throw new ArgumentNullException(nameof(pName));
@@ -225,7 +285,13 @@ namespace work.bacome.imapclient
             return lBuilder.ToString();
         }
 
-
+        private string ZRemoveQuotes(string pPossiblyQuotedString)
+        {
+            if (pPossiblyQuotedString == null) return null;
+            if (pPossiblyQuotedString.Length < 2) return pPossiblyQuotedString;
+            if (pPossiblyQuotedString[0] != '"' || pPossiblyQuotedString[pPossiblyQuotedString.Length - 1] != '"') return pPossiblyQuotedString;
+            return pPossiblyQuotedString.Substring(1, pPossiblyQuotedString.Length - 2);
+        }
 
 
 
@@ -533,6 +599,43 @@ namespace work.bacome.imapclient
             ZTestDateTimeOffset("-3", new DateTimeOffset(2018, 02, 07, 01, 02, 03, new TimeSpan(-3, 0, 0)), "x:07 FEB 2018 01:02:03 -0300\r\n");
             ZTestDateTimeOffset("0", new DateTimeOffset(2018, 02, 07, 01, 02, 03, new TimeSpan(0, 0, 0)), "x:07 FEB 2018 01:02:03 +0000\r\n");
             ZTestDateTimeOffset("3", new DateTimeOffset(2018, 02, 07, 01, 02, 03, new TimeSpan(3, 0, 0)), "x:07 FEB 2018 01:02:03 +0300\r\n");
+
+
+            ZTestAddress("1", new MailAddress("user@host"), "x:user@host\r\n");
+            ZTestAddress("2", new MailAddress("\"display name\" <user@host>"), "x:display name<user@host>\r\n");
+            ZTestAddress("3", new MailAddress("\"display name\" user@host"), "x:display name<user@host>\r\n");
+            ZTestAddress("4", new MailAddress("display name <user@host>"), "x:display name<user@host>\r\n");
+            ZTestAddress("5", new MailAddress("fr€d <user@host>"), "x:=?utf-8?b?ZnLigqxk?=<user@host>\r\n");
+            ZTestAddress("6", new MailAddress("\"user name\"@host"), "x:\"user name\"@host\r\n");
+            ZTestAddress("7", new MailAddress("user...name..@host"), "x:\"user...name..\"@host\r\n");
+            ZTestAddress("8", new MailAddress("<user@[my domain]>"), null); // illegal according to rfc 5322 (dtext does not include space)
+            ZTestAddress("9", new MailAddress("(comment)\"display name\"(comment)<(comment)user(comment)@(comment)domain(comment)>(comment)"), "x:display name<user@domain>\r\n");
+            ZTestAddress("10", new MailAddress("<user@[my_domain]>"), "x:user@[my_domain]\r\n");
+
+            //                                                                       123456789012345678901234567890123456789012345678901234567890123456789012345678
+            ZTestAddresses(
+                "1", 
+                new MailAddress[]
+                {
+                    new MailAddress("user@host"), new MailAddress("user@host"), new MailAddress("user@host"), new MailAddress("user@host"),
+                    new MailAddress("user@host"), new MailAddress("user@host"), new MailAddress("user@host"), new MailAddress("user@host")
+                },
+                "x:user@host,user@host,user@host,user@host,user@host,user@host,user@host,user@\r\n host\r\n");
+
+            ZTestAddresses(
+                "2",
+                new MailAddress[]
+                {
+                },
+                "x:\r\n");
+
+            ZTestAddresses(
+                "3",
+                new MailAddress[]
+                {
+                    new MailAddress("user@host")
+                },
+                "x:user@host\r\n");
         }
 
         private static void ZTestDateTime(string pTestName, DateTime pDateTime)
@@ -636,6 +739,40 @@ namespace work.bacome.imapclient
             string lString = new string(Encoding.UTF8.GetChars(lBytes));
 
             if (lString != pExpected) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.mime.{pTestName} : {lString}");
+        }
+
+        private static void ZTestAddress(string pTestName, MailAddress pAddress, string pExpected)
+        {
+            cHeaderFieldAppendDataPart lPart;
+
+            try { lPart = new cHeaderFieldAppendDataPart("x", pAddress); }
+            catch { lPart = null; }
+
+            if (lPart == null)
+            {
+                if (pExpected == null) return;
+                throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.Address({pTestName}.f)");
+            }
+
+            var lString = cTools.ASCIIBytesToString(lPart.GetBytes(Encoding.UTF8));
+            if (lString != pExpected) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.Address({pTestName}: {lString})");
+        }
+
+        private static void ZTestAddresses(string pTestName, IEnumerable<MailAddress> pAddresses, string pExpected)
+        {
+            cHeaderFieldAppendDataPart lPart;
+
+            try { lPart = new cHeaderFieldAppendDataPart("x", pAddresses); }
+            catch { lPart = null; }
+
+            if (lPart == null)
+            {
+                if (pExpected == null) return;
+                throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.Addresses({pTestName}.f)");
+            }
+
+            var lString = cTools.ASCIIBytesToString(lPart.GetBytes(Encoding.UTF8));
+            if (lString != pExpected) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.Addresses({pTestName}: {lString})");
         }
     }
 
