@@ -9,11 +9,10 @@ namespace work.bacome.imapclient
 {
     internal class cHeaderFieldBytes
     {
-        public static readonly ReadOnlyCollection<char> SingleSpace = new ReadOnlyCollection<char>(new List<char>(new char[] { ' ' }));
+        public static readonly ReadOnlyCollection<char> NoWSP = new ReadOnlyCollection<char>(new List<char>(new char[] { }));
+        public static readonly ReadOnlyCollection<char> SingleWSP = new ReadOnlyCollection<char>(new List<char>(new char[] { ' ' }));
 
         private enum eWordType { special, encodedword, nothingspecial }
-
-        private static readonly ReadOnlyCollection<char> kEmpty = new ReadOnlyCollection<char>(new List<char>(new char[] { }));
 
         private static readonly cBytes kEQUALSQUESTIONMARK = new cBytes("=?");
         private static readonly cBytes kQUESTIONMARKEQUALS = new cBytes("?=");
@@ -79,41 +78,41 @@ namespace work.bacome.imapclient
             mLastWordType = eWordType.special;
         }
 
-        public void AddNonEncodedWord(List<byte> pWordBytes, int pWordCharCount)
+        public void AddNonEncodedWord(IList<char> pLeadingWSP, IList<byte> pWordBytes, int pWordCharCount)
         {
+            if (pLeadingWSP == null) throw new ArgumentNullException(nameof(pLeadingWSP));
             if (pWordBytes.Count == 0) throw new ArgumentOutOfRangeException(nameof(pWordBytes));
             if (pWordCharCount <= 0) throw new ArgumentOutOfRangeException(nameof(pWordCharCount));
 
-            int lLeadingSpaces;
-            if (mLastWordType == eWordType.special) lLeadingSpaces = 0;
-            else lLeadingSpaces = 1;
+            IList<char> lLeadingWSP;
+            if (pLeadingWSP.Count == 0 && mLastWordType != eWordType.special) lLeadingWSP = SingleWSP;
+            else lLeadingWSP = pLeadingWSP;
 
             bool lFold;
 
             if (mCurrentLineHasEncodedWords)
             {
-                if (mCurrentLineByteCount + lLeadingSpaces + pWordBytes.Count > 76) lFold = true;
+                if (mCurrentLineByteCount + lLeadingWSP.Count + pWordBytes.Count > 76) lFold = true;
                 else lFold = false;
             }
             else
             {
-                if (mCurrentLineCharCount + lLeadingSpaces + pWordCharCount > 78) lFold = true;
+                if (mCurrentLineCharCount + lLeadingWSP.Count + pWordCharCount > 78) lFold = true;
                 else lFold = false;
             }
 
             if (lFold)
             {
-                mBytes.AddRange(kCRLFSPACE);
-                mCurrentLineByteCount = 1;
-                mCurrentLineCharCount = 1;
+                mBytes.AddRange(kCRLF);
+                mCurrentLineByteCount = 0;
+                mCurrentLineCharCount = 0;
                 mCurrentLineHasEncodedWords = false;
+                if (lLeadingWSP.Count == 0) lLeadingWSP = SingleWSP;
             }
-            else if (mLastWordType != eWordType.special)
-            {
-                mBytes.Add(cASCII.SPACE);
-                mCurrentLineByteCount++;
-                mCurrentLineCharCount++;
-            }
+
+            foreach (char lChar in lLeadingWSP) mBytes.Add((byte)lChar);
+            mCurrentLineByteCount += lLeadingWSP.Count;
+            mCurrentLineCharCount += lLeadingWSP.Count;
 
             mBytes.AddRange(pWordBytes);
             mCurrentLineByteCount += pWordBytes.Count;
@@ -121,6 +120,7 @@ namespace work.bacome.imapclient
             mLastWordType = eWordType.nothingspecial;
         }
 
+        /*
         public void AddNonEncodedWord(string pWord)
         {
             if (pWord.Length == 0) throw new ArgumentOutOfRangeException(nameof(pWord));
@@ -206,15 +206,16 @@ namespace work.bacome.imapclient
             mCurrentLineCharCount += pWordChars.Count;
             mLastWordType = eWordType.nothingspecial;
         }
+        */
 
-        public void AddEncodedWords(List<char> pLeadingWSP, List<char> pWordChars, eHeaderValuePartContext pContext)
+        public void AddEncodedWords(List<char> pLeadingWSP, List<char> pWordChars, eHeaderFieldValuePartContext pContext)
         {
             if (pLeadingWSP == null) throw new ArgumentNullException(nameof(pLeadingWSP));
             if (pWordChars == null) throw new ArgumentNullException(nameof(pWordChars));
             if (pWordChars.Count == 0) throw new ArgumentOutOfRangeException(nameof(pWordChars));
 
             IList<char> lLeadingWSP;
-            if (pLeadingWSP.Count == 0 && mLastWordType != eWordType.special) lLeadingWSP = SingleSpace;
+            if (pLeadingWSP.Count == 0 && mLastWordType != eWordType.special) lLeadingWSP = SingleWSP;
             else lLeadingWSP = pLeadingWSP;
 
             StringInfo lString = new StringInfo(new string(pWordChars.ToArray()));
@@ -258,7 +259,7 @@ namespace work.bacome.imapclient
                     ZAddEncodedWord(lLeadingWSP, lLastEncoding, lLastEncodedText);
                     lFromTextElement = lFromTextElement + lLastTextElementCount;
                     lTextElementCount = 1;
-                    lLeadingWSP = kEmpty;
+                    lLeadingWSP = NoWSP;
                 }
                 else lTextElementCount++;
             }
@@ -281,7 +282,7 @@ namespace work.bacome.imapclient
 
         public IList<byte> Bytes => mBytes;
 
-        private List<byte> ZQEncode(byte[] pBytes, eHeaderValuePartContext pContext)
+        private List<byte> ZQEncode(byte[] pBytes, eHeaderFieldValuePartContext pContext)
         {
             List<byte> lResult = new List<byte>();
 
@@ -290,8 +291,8 @@ namespace work.bacome.imapclient
                 bool lEncode;
 
                 if (lByte <= cASCII.SPACE || lByte == cASCII.EQUALS || lByte == cASCII.QUESTIONMARK || lByte == cASCII.UNDERSCORE || lByte >= cASCII.DEL) lEncode = true;
-                else if (pContext == eHeaderValuePartContext.comment) lEncode = lByte == cASCII.LPAREN || lByte == cASCII.RPAREN || lByte == cASCII.BACKSL;
-                else if (pContext == eHeaderValuePartContext.phrase)
+                else if (pContext == eHeaderFieldValuePartContext.comment) lEncode = lByte == cASCII.LPAREN || lByte == cASCII.RPAREN || lByte == cASCII.BACKSL;
+                else if (pContext == eHeaderFieldValuePartContext.phrase)
                 {
                     if (lByte == cASCII.EXCLAMATION || lByte == cASCII.ASTERISK || lByte == cASCII.PLUS || lByte == cASCII.HYPEN || lByte == cASCII.SLASH) lEncode = false;
                     else if (lByte < cASCII.ZERO) lEncode = true;

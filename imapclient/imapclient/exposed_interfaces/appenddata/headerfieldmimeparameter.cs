@@ -29,7 +29,7 @@ namespace work.bacome.imapclient
             }
         }
 
-        internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderValuePartContext pContext)
+        internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderFieldValuePartContext pContext)
         {
             // if the value is a short token
             if (cCharset.RFC2045Token.ContainsAll(mValue) && 1 + mAttribute.Count + 1 + mValue.Length < 78)
@@ -39,7 +39,7 @@ namespace work.bacome.imapclient
                 lWordBytes.AddRange(mAttribute);
                 lWordBytes.Add(cASCII.EQUALS);
                 lWordBytes.AddRange(new cBytes(mValue));
-                pBytes.AddNonEncodedWord(lWordBytes, lWordBytes.Count);
+                pBytes.AddNonEncodedWord(cHeaderFieldBytes.NoWSP, lWordBytes, lWordBytes.Count);
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace work.bacome.imapclient
                     lWordBytes.AddRange(mAttribute);
                     lWordBytes.Add(cASCII.EQUALS);
                     lWordBytes.AddRange(lQuotedStringValue);
-                    pBytes.AddNonEncodedWord(lWordBytes, 2 + mAttribute.Count + mValue.Length + lQuotingCharCount);
+                    pBytes.AddNonEncodedWord(cHeaderFieldBytes.NoWSP, lWordBytes, 2 + mAttribute.Count + mValue.Length + lQuotingCharCount);
                     return;
                 }
             }
@@ -97,7 +97,7 @@ namespace work.bacome.imapclient
 
                     if (lSection.CharCount > 77)
                     {
-                        pBytes.AddNonEncodedWord(lLastSection.Bytes, lLastSection.CharCount);
+                        pBytes.AddNonEncodedWord(cHeaderFieldBytes.NoWSP, lLastSection.Bytes, lLastSection.CharCount);
 
                         lSectionNumberBytes = cTools.IntToBytesReverse(++lSectionNumber);
                         lSectionNumberBytes.Reverse();
@@ -108,7 +108,7 @@ namespace work.bacome.imapclient
                     else lTextElementCount++;
                 }
 
-                if (lFromTextElement < lValue.LengthInTextElements) pBytes.AddNonEncodedWord(lLastSection.Bytes, lLastSection.CharCount);
+                if (lFromTextElement < lValue.LengthInTextElements) pBytes.AddNonEncodedWord(cHeaderFieldBytes.NoWSP, lLastSection.Bytes, lLastSection.CharCount);
 
                 return;
             }
@@ -126,7 +126,7 @@ namespace work.bacome.imapclient
                 lWordBytes.AddRange(pBytes.CharsetNameBytes);
                 lWordBytes.AddRange(kQuoteQuote);
                 lWordBytes.AddRange(lPercentEncodedValue);
-                pBytes.AddNonEncodedWord(lWordBytes, lWordBytes.Count);
+                pBytes.AddNonEncodedWord(cHeaderFieldBytes.NoWSP, lWordBytes, lWordBytes.Count);
                 return;
             }
 
@@ -153,7 +153,7 @@ namespace work.bacome.imapclient
 
                     if (lSection.Count > 77)
                     {
-                        pBytes.AddNonEncodedWord(lLastSection, lLastSection.Count);
+                        pBytes.AddNonEncodedWord(cHeaderFieldBytes.NoWSP, lLastSection, lLastSection.Count);
 
                         lFirstSection = false;
 
@@ -166,7 +166,7 @@ namespace work.bacome.imapclient
                     else lTextElementCount++;
                 }
 
-                if (lFromTextElement < lValue.LengthInTextElements) pBytes.AddNonEncodedWord(lLastSection, lLastSection.Count);
+                if (lFromTextElement < lValue.LengthInTextElements) pBytes.AddNonEncodedWord(cHeaderFieldBytes.NoWSP, lLastSection, lLastSection.Count);
             }
         }
 
@@ -266,5 +266,7 @@ namespace work.bacome.imapclient
                 CharCount = pCharCount;
             }
         }
+
+        public override string ToString() => $"{nameof(cHeaderFieldMIMEParameter)}({mAttribute},{mValue})";
     }
 }

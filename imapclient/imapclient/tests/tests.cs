@@ -33,6 +33,7 @@ namespace work.bacome.imapclient
             cHeaderFieldAppendDataPart._Tests(lContext);
             cQuotedPrintableDecoder._Tests(lContext);
             cBase64Encoder._Tests(lContext);
+            cHeaderFieldValuePart._Tests(lContext);
         }
 
         private partial class cSession

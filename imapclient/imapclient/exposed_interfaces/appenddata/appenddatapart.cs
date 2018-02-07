@@ -146,92 +146,73 @@ namespace work.bacome.imapclient
 
     public class cHeaderFieldAppendDataPart : cLiteralAppendDataPartBase
     {
-        private static readonly ReadOnlyCollection<cHeaderFieldValuePart> kEmpty = new ReadOnlyCollection<cHeaderFieldValuePart>(new cHeaderFieldValuePart[] { });
+        private static readonly ReadOnlyCollection<cHeaderFieldValuePart> kNoValue = new ReadOnlyCollection<cHeaderFieldValuePart>(new cHeaderFieldValuePart[] { });
 
-        private readonly string mFieldName;
-        private readonly ReadOnlyCollection<cHeaderFieldValuePart> mValue;
+        private readonly string mName;
+        private readonly ReadOnlyCollection<cHeaderFieldValuePart> mValueParts;
 
-        public cHeaderFieldAppendDataPart(string pFieldName)
+        public cHeaderFieldAppendDataPart(string pName)
         {
-            if (pFieldName == null) throw new ArgumentNullException(nameof(pFieldName));
-            if (pFieldName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pFieldName));
-            if (!cCharset.FText.ContainsAll(pFieldName)) throw new ArgumentOutOfRangeException(nameof(pFieldName));
-            mFieldName = pFieldName;
-            mValue = kEmpty;
+            if (pName == null) throw new ArgumentNullException(nameof(pName));
+            if (pName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cCharset.FText.ContainsAll(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            mName = pName;
+            mValueParts = kNoValue;
         }
 
-        public cHeaderFieldAppendDataPart(string pFieldName, string pText)
+        public cHeaderFieldAppendDataPart(string pName, string pText)
         {
-            if (pFieldName == null) throw new ArgumentNullException(nameof(pFieldName));
+            if (pName == null) throw new ArgumentNullException(nameof(pName));
             if (pText == null) throw new ArgumentNullException(nameof(pText));
-            if (pFieldName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pFieldName));
-            if (!cCharset.FText.ContainsAll(pFieldName)) throw new ArgumentOutOfRangeException(nameof(pFieldName));
-            mFieldName = pFieldName;
+            if (pName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cCharset.FText.ContainsAll(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            mName = pName;
 
-            var lValue = new List<cHeaderFieldValuePart>();
-            lValue.Add(new cHeaderFieldText(pText));
-            mValue = new ReadOnlyCollection<cHeaderFieldValuePart>(lValue);
+            var lValueParts = new List<cHeaderFieldValuePart>();
+            lValueParts.Add(new cHeaderFieldTextValuePart(pText));
+            mValueParts = lValueParts.AsReadOnly();
         }
 
-        public cHeaderFieldAppendDataPart(string pFieldName, DateTime pDateTime)
+        public cHeaderFieldAppendDataPart(string pName, DateTime pDateTime)
         {
-            if (pFieldName == null) throw new ArgumentNullException(nameof(pFieldName));
-            if (pFieldName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pFieldName));
-            if (!cCharset.FText.ContainsAll(pFieldName)) throw new ArgumentOutOfRangeException(nameof(pFieldName));
-            mFieldName = pFieldName;
+            if (pName == null) throw new ArgumentNullException(nameof(pName));
+            if (pName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cCharset.FText.ContainsAll(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            mName = pName;
 
-            string lSign;
-            string lZone;
-
-            if (pDateTime.Kind == DateTimeKind.Local)
-            {
-                var lOffset = TimeZoneInfo.Local.GetUtcOffset(pDateTime);
-
-                if (lOffset < TimeSpan.Zero)
-                {
-                    lSign = "-";
-                    lOffset = -lOffset;
-                }
-                else lSign = "+";
-
-                lZone = lOffset.ToString("hhmm");
-            }
-            else if (pDateTime.Kind == DateTimeKind.Utc)
-            {
-                lSign = "+";
-                lZone = "0000";
-            }
-            else
-            {
-                lSign = "-";
-                lZone = "0000";
-            }
-
-            var lMonth = cRFCMonth.cName[pDateTime.Month - 1];
-
-            string l5322DateTime = string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTime, lMonth, lSign, lZone);
-
-            var lValue = new List<cHeaderFieldValuePart>();
-            lValue.Add(new cHeaderFieldText(l5322DateTime));
-            mValue = new ReadOnlyCollection<cHeaderFieldValuePart>(lValue);
+            var lValueParts = new List<cHeaderFieldValuePart>();
+            lValueParts.Add(cHeaderFieldValuePart.AsDateTime(pDateTime));
+            mValueParts = lValueParts.AsReadOnly();
         }
 
-        public cHeaderFieldAppendDataPart(string pFieldName, IEnumerable<cHeaderFieldValuePart> pValue)
+        public cHeaderFieldAppendDataPart(string pName, DateTimeOffset pDateTimeOffset)
         {
-            if (pFieldName == null) throw new ArgumentNullException(nameof(pFieldName));
-            if (pValue == null) throw new ArgumentNullException(nameof(pValue));
-            if (pFieldName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pFieldName));
-            if (!cCharset.FText.ContainsAll(pFieldName)) throw new ArgumentOutOfRangeException(nameof(pFieldName));
-            mFieldName = pFieldName;
-            mValue = new ReadOnlyCollection<cHeaderFieldValuePart>(new List<cHeaderFieldValuePart>(pValue));
+            if (pName == null) throw new ArgumentNullException(nameof(pName));
+            if (pName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cCharset.FText.ContainsAll(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            mName = pName;
+
+            var lValueParts = new List<cHeaderFieldValuePart>();
+            lValueParts.Add(cHeaderFieldValuePart.AsDateTime(pDateTimeOffset));
+            mValueParts = lValueParts.AsReadOnly();
+        }
+
+        public cHeaderFieldAppendDataPart(string pName, IEnumerable<cHeaderFieldValuePart> pValueParts)
+        {
+            if (pName == null) throw new ArgumentNullException(nameof(pName));
+            if (pValueParts == null) throw new ArgumentNullException(nameof(pValueParts));
+            if (pName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pName));
+            if (!cCharset.FText.ContainsAll(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
+            mName = pName;
+            mValueParts = new List<cHeaderFieldValuePart>(pValueParts).AsReadOnly();
         }
 
         internal override bool HasContent => true;
 
         internal override IList<byte> GetBytes(Encoding pEncoding)
         {
-            cHeaderFieldBytes lBytes = new cHeaderFieldBytes(mFieldName, pEncoding);
-            foreach (var lPart in mValue) lPart.GetBytes(lBytes, eHeaderValuePartContext.unstructured);
+            cHeaderFieldBytes lBytes = new cHeaderFieldBytes(mName, pEncoding);
+            foreach (var lPart in mValueParts) lPart.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
             lBytes.AddNewLine();
             return lBytes.Bytes;
         }
@@ -239,8 +220,8 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             cListBuilder lBuilder = new cListBuilder(nameof(cHeaderFieldAppendDataPart));
-            lBuilder.Append(mFieldName);
-            foreach (var lPart in mValue) lBuilder.Append(lPart);
+            lBuilder.Append(mName);
+            foreach (var lPart in mValueParts) lBuilder.Append(lPart);
             return lBuilder.ToString();
         }
 
@@ -339,10 +320,10 @@ namespace work.bacome.imapclient
             //                                                                                                                                                                       fred: 7890123456789012345678901234567890123456789012345678901234567890123456
             //                                                                                                                                                                                                                          1234567890123456789012345678901234567890123456789012345678901234567890123456
             //                                                                                                                                                                                                                                          
-            ZTestUnstructured("joins.1", "    A𠈓C A𠈓C fred fr€d fr€d fred  fr€d    fr€d    fred    fred ", "    A𠈓C A𠈓C fred\r\n fr€d fr€d fred  fr€d fr€d\r\n fred    fred", "utf-8", "    =?utf-8?b?QfCgiJNDIEHwoIiTQw==?= fred\r\n =?utf-8?b?ZnLigqxkIGZy4oKsZA==?= fred  =?utf-8?b?ZnLigqxkIGZy4oKsZA==?=\r\n fred    fred");
+            ZTestUnstructured("joins.1", "    A𠈓C A𠈓C fred fr€d fr€d fred  fr€d    fr€d    fred    fred ", "    A𠈓C A𠈓C fred\r\n fr€d fr€d fred  fr€d fr€d\r\n    fred    fred", "utf-8", "    =?utf-8?b?QfCgiJNDIEHwoIiTQw==?= fred\r\n =?utf-8?b?ZnLigqxkIGZy4oKsZA==?= fred  =?utf-8?b?ZnLigqxkIGZy4oKsZA==?=\r\n    fred    fred");
 
             // if a line ends with an encoded word and the next line begins with an encoded word, a space is added to the beginning of the second encoded word to prevent them being joined on decoding
-            ZTestUnstructured("spaces.1", "    A𠈓C\r\n A𠈓C\r\n fred\r\n fr€d fr€d fred  fr€d fr€d    fred \r\n   fred ", "    A𠈓C A𠈓C\r\n fred\r\n fr€d fr€d fred  fr€d fr€d\r\n fred\r\n   fred", "utf-8");
+            ZTestUnstructured("spaces.1", "    A𠈓C\r\n A𠈓C\r\n fred\r\n fr€d fr€d fred  fr€d fr€d    fred \r\n   fred ", "    A𠈓C A𠈓C\r\n fred\r\n fr€d fr€d fred  fr€d fr€d\r\n    fred\r\n   fred", "utf-8");
 
             // check that adjacent encoded words are in fact joined
             ZTestUnstructured("long.1",
@@ -361,13 +342,13 @@ namespace work.bacome.imapclient
 
             // comment
 
-            lPart = new cHeaderFieldAppendDataPart("x", new cHeaderFieldValuePart[] { new cHeaderFieldComment("Keld J\"#$%&'(),.:;<>@[\\]^`{|}~ørn Simonsen") });
+            lPart = new cHeaderFieldAppendDataPart("x", new cHeaderFieldValuePart[] { new cHeaderFieldCommentValuePart("Keld J\"#$%&'(),.:;<>@[\\]^`{|}~ørn Simonsen") });
             ZTest("q.2", lPart, null, "ISO-8859-1", "x:(Keld =?iso-8859-1?q?J\"#$%&'=28=29,.:;<>@[=5C]^`{|}~=F8rn?= Simonsen)");
 
             // phrase
             lPart = new cHeaderFieldAppendDataPart("x",
                 new cHeaderFieldValuePart[] {
-                    new cHeaderFieldPhrase("Keld J\"#$%&'(),.:;<>@[\\]^`{|}~orn J\"#$%&ørn4567890123456789012345678901234567890 J'(),.ørn4567890123456789012345678901234567 J:;<>@ørn4567890123456789012345678901234567 J[\\]^`ørn4567890123456789012345678901234567 J{|}~ørn4567890123456789012345678901234567 Simonsen")
+                    new cHeaderFieldPhraseValuePart("Keld J\"#$%&'(),.:;<>@[\\]^`{|}~orn J\"#$%&ørn4567890123456789012345678901234567890 J'(),.ørn4567890123456789012345678901234567 J:;<>@ørn4567890123456789012345678901234567 J[\\]^`ørn4567890123456789012345678901234567 J{|}~ørn4567890123456789012345678901234567 Simonsen")
                 }
                 );
 
@@ -392,24 +373,24 @@ namespace work.bacome.imapclient
             lPart = new cHeaderFieldAppendDataPart("x",
                 new cHeaderFieldValuePart[]
                 {
-                    new cHeaderFieldPhrase(
-                        new cHeaderFieldCommentOrText[]
+                    new cHeaderFieldPhraseValuePart(
+                        new cHeaderFieldCommentOrTextValuePart[]
                         {
-                            new cHeaderFieldText("phrase is only "),
-                            new cHeaderFieldComment(
-                                new cHeaderFieldCommentOrText[]
+                            new cHeaderFieldTextValuePart("phrase is only "),
+                            new cHeaderFieldCommentValuePart(
+                                new cHeaderFieldCommentOrTextValuePart[]
                                 {
-                                    new cHeaderFieldText("not really"),
-                                    new cHeaderFieldComment("sorry")
+                                    new cHeaderFieldTextValuePart("not really"),
+                                    new cHeaderFieldCommentValuePart("sorry")
                                 }),
-                            new cHeaderFieldText("used in display name")
+                            new cHeaderFieldTextValuePart("used in display name")
                         }
                         ),
-                    new cHeaderFieldText("<Muhammed."),
-                    new cHeaderFieldComment("I am the greatest"),
-                    new cHeaderFieldText(" Ali @"),
-                    new cHeaderFieldComment("the"),
-                    new cHeaderFieldText("Vegas.WBA>")
+                    new cHeaderFieldTextValuePart("<Muhammed."),
+                    new cHeaderFieldCommentValuePart("I am the greatest"),
+                    new cHeaderFieldTextValuePart(" Ali @"),
+                    new cHeaderFieldCommentValuePart("the"),
+                    new cHeaderFieldTextValuePart("Vegas.WBA>")
                 }
                 );
 
@@ -418,14 +399,14 @@ namespace work.bacome.imapclient
 
 
 
-            lPart = new cHeaderFieldAppendDataPart("x", new cHeaderFieldValuePart[] { new cHeaderFieldComment("ts is a really long comment with one utf8 wørd in it (the word is the only one that should be \"treated\" differently if utf8 is on or off)") });
+            lPart = new cHeaderFieldAppendDataPart("x", new cHeaderFieldValuePart[] { new cHeaderFieldCommentValuePart("ts is a really long comment with one utf8 wørd in it (the word is the only one that should be \"treated\" differently if utf8 is on or off)") });
             //                                                                                                                                                                                     12345678901234567890123456789012345678901234567890123456 7890123456789012345678    12345678901234567890 12345678 90123456789012345678901234567890123456789012345678
             ZTest("cc.1", lPart, "x:(ts is a really long comment with one utf8 wørd in it \\(the word is the only\r\n one that should be \"treated\" differently if utf8 is on or off\\))", null, "x:(ts is a really long comment with one utf8 wørd in it \\(the word is the only\r\n one that should be \"treated\" differently if utf8 is on or off\\))");
             ZTest("cc.2", lPart, "x:(ts is a really long comment with one utf8 wørd in it\r\n \\(the word is the only one that should be \"treated\" differently if utf8 is on\r\n or off\\))", "utf-8",
             //   1234567890123456789012345678901234567890123456789012345678901234567890123451 234567890123456789012345678901234567890123 45678901 234567890123456789012345678
                 "x:(ts is a really long comment with one utf8 =?utf-8?b?d8O4cmQ=?= in it\r\n \\(the word is the only one that should be \"treated\" differently if utf8 is on\r\n or off\\))");
 
-            lPart = new cHeaderFieldAppendDataPart("x", new cHeaderFieldValuePart[] { new cHeaderFieldComment("tis is a really long comment with one utf8 wørd in it (the word is the only one that should be \"treated\" differently if utf8 is on or off)") });
+            lPart = new cHeaderFieldAppendDataPart("x", new cHeaderFieldValuePart[] { new cHeaderFieldCommentValuePart("tis is a really long comment with one utf8 wørd in it (the word is the only one that should be \"treated\" differently if utf8 is on or off)") });
             //                                                                                                                                                                                      12345678901234567890123456789012345678901234567890123456 789012345678901234    1234567890123456789012345 67890123 456789012345678901234567890123456789012345678
             ZTest("cc.3", lPart, "x:(tis is a really long comment with one utf8 wørd in it \\(the word is the\r\n only one that should be \"treated\" differently if utf8 is on or off\\))", null, "x:(tis is a really long comment with one utf8 wørd in it \\(the word is the\r\n only one that should be \"treated\" differently if utf8 is on or off\\))");
 
@@ -439,11 +420,11 @@ namespace work.bacome.imapclient
             lPart = new cHeaderFieldAppendDataPart("x",
                 new cHeaderFieldValuePart[]
                 {
-                    new cHeaderFieldText("here is"),
-                    new cHeaderFieldText("a test"),
-                    new cHeaderFieldComment("this is a comment"),
-                    new cHeaderFieldText("followed by text"),
-                    new cHeaderFieldPhrase("an.d a ph.rase")
+                    new cHeaderFieldTextValuePart("here is"),
+                    new cHeaderFieldTextValuePart("a test"),
+                    new cHeaderFieldCommentValuePart("this is a comment"),
+                    new cHeaderFieldTextValuePart("followed by text"),
+                    new cHeaderFieldPhraseValuePart("an.d a ph.rase")
                 }
                 );
 
@@ -460,7 +441,7 @@ namespace work.bacome.imapclient
             lPart = new cHeaderFieldAppendDataPart("content-type",
                 new cHeaderFieldValuePart[]
                 {
-                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldTextValuePart("message/external-body"),
                     new cHeaderFieldMIMEParameter("access-type", "URL"),
                     new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer.tar")
                 }
@@ -472,7 +453,7 @@ namespace work.bacome.imapclient
             lPart = new cHeaderFieldAppendDataPart("content-type",
                 new cHeaderFieldValuePart[]
                 {
-                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldTextValuePart("message/external-body"),
                     new cHeaderFieldMIMEParameter("access-type", "URL"),
                     new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mailer.tar")
                 }
@@ -484,7 +465,7 @@ namespace work.bacome.imapclient
             lPart = new cHeaderFieldAppendDataPart("content-type",
                 new cHeaderFieldValuePart[]
                 {
-                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldTextValuePart("message/external-body"),
                     new cHeaderFieldMIMEParameter("access-type", "URL"),
                     new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.€du/pub/moore/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mail€r.tar")
                 }
@@ -496,7 +477,7 @@ namespace work.bacome.imapclient
             lPart = new cHeaderFieldAppendDataPart("content-type",
                 new cHeaderFieldValuePart[]
                 {
-                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldTextValuePart("message/external-body"),
                     new cHeaderFieldMIMEParameter("access-type", "URL"),
                     new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.€du/pub/moore/bulk-mailer/bulk-mailer.tar")
                 }
@@ -508,7 +489,7 @@ namespace work.bacome.imapclient
             lPart = new cHeaderFieldAppendDataPart("content-type",
                 new cHeaderFieldValuePart[]
                 {
-                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldTextValuePart("message/external-body"),
                     new cHeaderFieldMIMEParameter("access-type", "URL"),
                     new cHeaderFieldMIMEParameter("URL", "moøre")
                 }
@@ -520,7 +501,7 @@ namespace work.bacome.imapclient
             lPart = new cHeaderFieldAppendDataPart("content-type",
                 new cHeaderFieldValuePart[]
                 {
-                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldTextValuePart("message/external-body"),
                     new cHeaderFieldMIMEParameter("access-type", "URL"),
                     new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.edu/pub/moøre/bulk-mailer/bulk-mailer.tar")
                 }
@@ -533,7 +514,7 @@ namespace work.bacome.imapclient
             lPart = new cHeaderFieldAppendDataPart("content-type",
                 new cHeaderFieldValuePart[]
                 {
-                    new cHeaderFieldText("message/external-body"),
+                    new cHeaderFieldTextValuePart("message/external-body"),
                     new cHeaderFieldMIMEParameter("access-type", "URL"),
                     new cHeaderFieldMIMEParameter("URL", "ftp://cs.utk.edu/pub/moøre/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mailer/bulk-mailer/bulk-maile9012345678901234567890123456789012345678901234567890123456789012345678moøre.tar")
                 }
@@ -548,6 +529,10 @@ namespace work.bacome.imapclient
             ZTestDateTime("local", new DateTime(2018, 02, 03, 15, 16, 17, DateTimeKind.Local));
             ZTestDateTime("unspecified", new DateTime(2018, 02, 03, 15, 16, 17, DateTimeKind.Unspecified));
             ZTestDateTime("utc", new DateTime(2018, 02, 03, 15, 16, 17, DateTimeKind.Utc));
+
+            ZTestDateTimeOffset("-3", new DateTimeOffset(2018, 02, 07, 01, 02, 03, new TimeSpan(-3, 0, 0)), "x:07 FEB 2018 01:02:03 -0300\r\n");
+            ZTestDateTimeOffset("0", new DateTimeOffset(2018, 02, 07, 01, 02, 03, new TimeSpan(0, 0, 0)), "x:07 FEB 2018 01:02:03 +0000\r\n");
+            ZTestDateTimeOffset("3", new DateTimeOffset(2018, 02, 07, 01, 02, 03, new TimeSpan(3, 0, 0)), "x:07 FEB 2018 01:02:03 +0300\r\n");
         }
 
         private static void ZTestDateTime(string pTestName, DateTime pDateTime)
@@ -567,14 +552,21 @@ namespace work.bacome.imapclient
                 if (lDateTime != pDateTime) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.DateTime({pTestName}.r2)");
             }
 
-            if (pDateTime.Kind == DateTimeKind.Local)
-            {
-                int i = 7 + 4;
-            }
-            else
-            {
-                if (lDateTimeOffset.Offset.CompareTo(TimeSpan.Zero) != 0) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.DateTime({pTestName}.o)");
-            }
+            if (pDateTime.Kind != DateTimeKind.Local) if (lDateTimeOffset.Offset.CompareTo(TimeSpan.Zero) != 0) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.DateTime({pTestName}.o)");
+        }
+
+        private static void ZTestDateTimeOffset(string pTestName, DateTimeOffset pDateTimeOffset, string pExpected)
+        {
+            var lPart = new cHeaderFieldAppendDataPart("x", pDateTimeOffset);
+            var lBytes = lPart.GetBytes(null);
+
+            var lCursor = new cBytesCursor(lBytes);
+
+            if (!lCursor.SkipByte(cASCII.x) || !lCursor.SkipByte(cASCII.COLON) || !lCursor.GetRFC822DateTime(out var lDateTimeOffset, out var lDateTime) || !lCursor.SkipByte(cASCII.CR) || !lCursor.SkipByte(cASCII.LF) || !lCursor.Position.AtEnd) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.DateTime({pTestName}.i)");
+
+            if (lDateTimeOffset != pDateTimeOffset) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.DateTimeOffset({pTestName}.r)");
+            string lString = cTools.ASCIIBytesToString(lBytes);
+            if (lString != pExpected) throw new cTestsException($"{nameof(cHeaderFieldAppendDataPart)}.DateTimeOffset({pTestName}.e,{lString})");
         }
 
         private static void ZTestUnstructured(string pTestName, string pString, string pExpectedF = null, string pCharsetName = null, string pExpectedI = null)
@@ -595,7 +587,7 @@ namespace work.bacome.imapclient
 
         private static void ZTestPhrase(string pTestName, string pString, bool pUTF8, string pExpectedF, string pExpectedI = null)
         {
-            cHeaderFieldAppendDataPart lPart = new cHeaderFieldAppendDataPart("x", new cHeaderFieldValuePart[] { new cHeaderFieldPhrase(pString) });
+            cHeaderFieldAppendDataPart lPart = new cHeaderFieldAppendDataPart("x", new cHeaderFieldValuePart[] { new cHeaderFieldPhraseValuePart(pString) });
 
             string lExpectedI;
             if (pExpectedI == null) lExpectedI = null;
