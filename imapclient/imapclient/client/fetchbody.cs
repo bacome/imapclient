@@ -49,7 +49,7 @@ namespace work.bacome.imapclient
             else
             {
                 var lMC = new cMethodControl(pConfiguration.Timeout, pConfiguration.CancellationToken);
-                var lWriteSizer = new cBatchSizer(pConfiguration.Write ?? mFetchBodyWriteConfiguration);
+                var lWriteSizer = new cBatchSizer(pConfiguration.WriteConfiguration ?? mFetchBodyWriteConfiguration);
                 await lSession.FetchBodyAsync(lMC, pMessageHandle, pSection, pDecoding, pStream, pConfiguration.Increment, lWriteSizer, lContext).ConfigureAwait(false);
             }
         }

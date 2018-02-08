@@ -137,6 +137,8 @@ namespace work.bacome.imapclient
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
         private cClientIdUTF8 mClientIdUTF8 = null;
         private ReadOnlyCollection<cSASLAuthentication> mFailedSASLAuthentications = null;
+        private cBatchSizerConfiguration mQuotedPrintableReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mQuotedPrintableWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
 
         /// <summary>
         /// Initialises a new instance.

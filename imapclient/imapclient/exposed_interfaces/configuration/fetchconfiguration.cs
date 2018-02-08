@@ -73,20 +73,20 @@ namespace work.bacome.imapclient
         /// <summary>
         /// The output-stream-write batch-size configuration. If <see langword="null"/> then <see cref="cIMAPClient.FetchBodyWriteConfiguration"/> will be used.
         /// </summary>
-        public readonly cBatchSizerConfiguration Write;
+        public readonly cBatchSizerConfiguration WriteConfiguration;
 
         /// <summary>
         /// Initialises a new instance with the specified timeout and optional output-stream-write batch-size configuration. Intended for use with synchronous APIs.
         /// </summary>
         /// <param name="pTimeout">May be <see cref="Timeout.Infinite"/>.</param>
         /// <param name="pWrite">If <see langword="null"/> then <see cref="cIMAPClient.FetchBodyWriteConfiguration"/> will be used.</param>
-        public cBodyFetchConfiguration(int pTimeout, cBatchSizerConfiguration pWrite = null)
+        public cBodyFetchConfiguration(int pTimeout, cBatchSizerConfiguration pWriteConfiguration = null)
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             Timeout = pTimeout;
             CancellationToken = CancellationToken.None;
             Increment = null;
-            Write = pWrite;
+            WriteConfiguration = pWriteConfiguration;
         }
 
         /// <summary>
@@ -95,12 +95,12 @@ namespace work.bacome.imapclient
         /// <param name="pCancellationToken">May be <see cref="CancellationToken.None"/>.</param>
         /// <param name="pIncrement">May be <see langword="null"/>.</param>
         /// <param name="pWrite">If <see langword="null"/> then <see cref="cIMAPClient.FetchBodyWriteConfiguration"/> will be used.</param>
-        public cBodyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement, cBatchSizerConfiguration pWrite = null)
+        public cBodyFetchConfiguration(CancellationToken pCancellationToken, Action<int> pIncrement, cBatchSizerConfiguration pWriteConfiguration = null)
         {
             Timeout = -1;
             CancellationToken = pCancellationToken;
             Increment = pIncrement;
-            Write = pWrite;
+            WriteConfiguration = pWriteConfiguration;
         }
     }
 
