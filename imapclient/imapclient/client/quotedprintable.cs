@@ -130,7 +130,7 @@ namespace work.bacome.imapclient
 
                             if (lByte == cASCII.LF)
                             {
-                                lOutput.terminateline(2);
+                                lOutput.AddHardLineBreak(2);
                                 continue;
                             }
 
@@ -147,7 +147,7 @@ namespace work.bacome.imapclient
                     {
                         if (lByte == cASCII.LF)
                         {
-                            lOutput.terminateline(1);
+                            lOutput.AddHardLineBreak(1);
                             continue;
                         }
                     }
@@ -170,17 +170,26 @@ namespace work.bacome.imapclient
         private class cQuotedPrintableOutput
         {
             private static readonly cBytes kEBCDICNotSome = new cBytes("!\"#$@[\\]^`{|}~");
+            private static readonly cBytes kEQUALSCRLF = new cBytes("=\r\n");
+            private static readonly cBytes kCRLF = new cBytes("\r\n");
 
             private readonly eQuotedPrintableQuotingRule mQuotingRule;
             private readonly Stream mTarget;
             private readonly Action<int> mIncrement;
             private readonly cBatchSizer mWriteSizer;
 
-            private readonly List<cLine> mPendingLines = new List<cLine>();
+            private readonly Queue<cLine> mPendingLines = new Queue<cLine>();
 
-            private List<byte> mCurrentLine = new List<byte>();
-            private int mCurrentLineInputBytes = 0;
+            private List<byte> mPendingBytes = new List<byte>();
+            private int mPendingBytesInputByteCount = 0;
             private readonly List<byte> mPendingWSP = new List<byte>();
+            private readonly List<byte> mPendingNonWSP = new List<byte>();
+
+            private readonly List<byte> mCarriedWSP = new List<byte>();
+
+            private int mBytesWritten = 0;
+
+
 
             public cQuotedPrintableOutput(eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, Action<int> pIncrement, cBatchSizer pWriteSizer)
             {
@@ -211,37 +220,182 @@ namespace work.bacome.imapclient
                 if (lNeedsQuoting) lCount = 3;
                 else lCount = 1;
 
-                if (mCurrentLine.Count + mPendingWSP.Count + lCount > 76) ZSoftLineBreak();
+                if (mPendingBytes.Count + mPendingWSP.Count + mPendingNonWSP.Count + lCount > 76) ZSoftLineBreak();
 
-                if (pByte == cASCII.TAB || pByte == cASCII.SPACE) mPendingWSP.Add(pByte);
-                else
+                if (mPendingNonWSP.Count != 0) throw new cInternalErrorException();
+
+                if (pByte == cASCII.TAB || pByte == cASCII.SPACE)
                 {
-                    mCurrentLineInputBytes += mPendingWSP.Count + 1;
+                    mPendingWSP.Add(pByte);
+                    return;
+                }
 
-                    mCurrentLine.AddRange(mPendingWSP);
-                    mPendingWSP.Clear();
-
+                if (mPendingBytes.Count + mPendingWSP.Count + lCount == 76)
+                {
                     if (lNeedsQuoting)
                     {
-                        mCurrentLine.Add(cASCII.EQUALS);
-                        mCurrentLine.AddRange(cTools.ByteToHexBytes(pByte));
+                        mPendingNonWSP.Add(cASCII.EQUALS);
+                        mPendingNonWSP.AddRange(cTools.ByteToHexBytes(pByte));
                     }
-                    else mCurrentLine.Add(pByte);
+                    else mPendingNonWSP.Add(pByte);
+
+                    return;
+                }
+
+                mPendingBytes.AddRange(mPendingWSP);
+                mPendingBytesInputByteCount += mPendingWSP.Count;
+                mPendingWSP.Clear();
+
+                if (lNeedsQuoting)
+                {
+                    mPendingBytes.Add(cASCII.EQUALS);
+                    mPendingBytes.AddRange(cTools.ByteToHexBytes(pByte));
+                }
+                else mPendingBytes.Add(pByte);
+
+                mPendingBytesInputByteCount++;
+            }
+
+            public void AddHardLineBreak(int pInputBytes)
+            {
+                if (mPendingNonWSP.Count > 0)
+                {
+                    mPendingBytes.AddRange(mPendingWSP);
+                    mPendingBytesInputByteCount += mPendingWSP.Count;
+                    mPendingWSP.Clear();
+
+                    mPendingBytes.AddRange(mPendingNonWSP);
+                    mPendingBytesInputByteCount++;
+                    mPendingNonWSP.Clear();
+                }
+                else if (mPendingWSP.Count > 0)
+                {
+                    int lWSPToAdd = Math.Max(74 - mPendingBytes.Count, mPendingWSP.Count);
+
+                    if (lWSPToAdd > 0)
+                    {
+                        for (int i = 0; i < lWSPToAdd - 1; i++) mPendingBytes.Add(mPendingWSP[i]);
+                        mPendingBytes.Add(cASCII.EQUALS);
+                        mPendingBytes.AddRange(cTools.ByteToHexBytes(mPendingWSP[lWSPToAdd - 1]));
+                        mPendingBytesInputByteCount += lWSPToAdd;
+
+                        mCarriedWSP.Clear();
+                        for (int i = lWSPToAdd; i < mPendingWSP.Count; i++) mCarriedWSP.Add(mPendingWSP[i]);
+                        mPendingWSP.Clear();
+                        mPendingWSP.AddRange(mCarriedWSP);
+                    }
+                }
+
+                mPendingBytes.AddRange(kCRLF);
+                mPendingBytesInputByteCount += pInputBytes;
+
+                mPendingLines.Enqueue(new cLine(mPendingBytes.ToArray(), mPendingBytesInputByteCount));
+
+                mPendingBytes.Clear();
+                mPendingBytesInputByteCount = 0;
+            }
+
+            public async Task WriteAsync(cMethodControl pMC)
+            {
+                // if there are no pending lines, return
+                // if the current output buffer is empty, find the current size and possibly expand the output buffer. Note that the output buffer has to be 78 bytes bigger than the batch sizer because we will only output whole lines
+                // while there are lines
+                //  add the bytes of the line to the buffer
+                //  if buffer is over current, write async, increment bytes wrtiien, give feedback (incrent), re-get current, possibly re-size buffer
+
+
+                // 
+
+
+                // find the current size
+                //  
+
+                while (true)
+                {
+                    if ()
                 }
             }
 
+            private void ZSoftLineBreak()
+            {
+                // note that flush may have to call this 0, 1, or 2 times.
 
-            // private 
+                if (mPendingBytes.Count + mPendingWSP.Count + 1 > 76)
+                {
+                    if (mPendingWSP.Count == 0) throw new cInternalErrorException();
+
+                    if (mPendingWSP.Count > 1)
+                    {
+                        for (int i = 0; i < mPendingWSP.Count - 1; i++) mPendingBytes.Add(mPendingWSP[i]);
+                        mPendingBytesInputByteCount += mPendingWSP.Count - 1;
+                        byte lCarriedWSP = mPendingWSP[mPendingWSP.Count - 1];
+                        mPendingWSP.Clear();
+                        mPendingWSP.Add(lCarriedWSP);
+                    }
+                }
+                else
+                {
+                    mPendingBytes.AddRange(mPendingWSP);
+                    mPendingBytesInputByteCount += mPendingWSP.Count;
+                    mPendingWSP.Clear();
+                }
+
+                mPendingBytes.AddRange(kEQUALSCRLF);
+
+                mPendingLines.Enqueue(new cLine(mPendingBytes.ToArray(), mPendingBytesInputByteCount));
+
+                mPendingBytes.Clear();
+                mPendingBytesInputByteCount = 0;
+
+                if (mPendingNonWSP.Count > 0)
+                {
+                    mPendingBytes.AddRange(mPendingWSP);
+                    mPendingBytesInputByteCount += mPendingWSP.Count;
+                    mPendingWSP.Clear();
+
+                    mPendingBytes.AddRange(mPendingNonWSP);
+                    mPendingBytesInputByteCount++;
+                    mPendingNonWSP.Clear();
+                }
+            }
 
             private class cLine
             {
+                private readonly byte[] mBytes;
                 private int mInputByteCount = 0;
-                private readonly List<byte> mBytes = new List<byte>();
 
-                public cLine() { }
-
-
+                public cLine(byte[] pBytes, int pInputByteCount)
+                {
+                    mBytes = pBytes;
+                    mInputByteCount = pInputByteCount;
+                }
             }
+        }
+
+        private static void _TestQuotedPrintable()
+        {
+            // test lf, crlf and binary
+            //  test lines ending exactly at 75, 76 and 77 chars on;
+            //   a non-wsp that doesn't need to be encoded
+            //   a non-wsp that does need to be encoded
+            //   a space
+            //   a tab
+
+            // test that the increment bytes adds up ok
+            // test that the output bytes is accurate
+
+            // test that no output lines are > 76 chars
+
+            // test a stream that ends with a CRLF and one that doesn't
+
+            // test naked CR and naked LF in a CRLF stream.
+            //  test naked CR at end of stream
+
+            // test the two differnt quoting rules
+
+            // test that the trailing WSP is output in the order it is on input
+
+            // roundtrip testing
         }
     }
 }

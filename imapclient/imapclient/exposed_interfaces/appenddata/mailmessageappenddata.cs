@@ -34,7 +34,9 @@ namespace work.bacome.imapclient
 
             ZAdd(pMessage.Headers, lParts);
 
-            ;?;
+            // add the MIME headers here ...
+
+            // MORE TO DO ... ;?;
 
 
 
