@@ -17,10 +17,10 @@ namespace work.bacome.imapclient
     /// <seealso cref="cSinglePartBody.Description"/>
     public class cCulturedString
     {
-        private static byte[] kSpace = new byte[] { cASCII.SPACE };
-        private static byte[] kCRLFSPACE = new byte[] { cASCII.CR, cASCII.LF, cASCII.SPACE };
-        private static byte[] kTab = new byte[] { cASCII.TAB };
-        private static byte[] kCRLFTAB = new byte[] { cASCII.CR, cASCII.LF, cASCII.TAB };
+        private static readonly cBytes kSpace = new cBytes(" ");
+        private static readonly cBytes kCRLFSPACE = new cBytes("\r\n ");
+        private static readonly cBytes kTab = new cBytes("\t");
+        private static readonly cBytes kCRLFTAB = new cBytes("\r\n\t");
 
         /// <summary>
         /// The parts of the string. May be <see langword="null"/>.
@@ -41,7 +41,7 @@ namespace work.bacome.imapclient
 
             List<cCulturedStringPart> lParts = new List<cCulturedStringPart>();
             cByteList lBytes = new cByteList();
-            byte[] lPendingWSP = null;
+            cBytes lPendingWSP = null;
 
             while (!lCursor.Position.AtEnd)
             {

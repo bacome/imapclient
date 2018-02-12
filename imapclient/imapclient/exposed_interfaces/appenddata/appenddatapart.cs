@@ -151,6 +151,7 @@ namespace work.bacome.imapclient
 
         private readonly string mName;
         private readonly ReadOnlyCollection<cHeaderFieldValuePart> mValueParts;
+        private readonly ReadOnlyCollection<cHeaderFieldValuePart> mUTF8ValueParts;
 
         public cHeaderFieldAppendDataPart(string pName)
         {
@@ -159,9 +160,10 @@ namespace work.bacome.imapclient
             if (!cCharset.FText.ContainsAll(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
             mName = pName;
             mValueParts = kNoValue;
+            mUTF8ValueParts = null;
         }
 
-        public cHeaderFieldAppendDataPart(string pName, string pText)
+        public cHeaderFieldAppendDataPart(string pName, string pText, string pUTF8Text = null)
         {
             if (pName == null) throw new ArgumentNullException(nameof(pName));
             if (pText == null) throw new ArgumentNullException(nameof(pText));
@@ -172,6 +174,14 @@ namespace work.bacome.imapclient
             var lValueParts = new List<cHeaderFieldValuePart>();
             lValueParts.Add(new cHeaderFieldTextValuePart(pText));
             mValueParts = lValueParts.AsReadOnly();
+
+            if (pUTF8Text == null) mUTF8ValueParts = null;
+            else
+            {
+                var lUTF8ValueParts = new List<cHeaderFieldValuePart>();
+                lUTF8ValueParts.Add(new cHeaderFieldTextValuePart(pUTF8Text));
+                mUTF8ValueParts = lUTF8ValueParts.AsReadOnly();
+            }
         }
 
         public cHeaderFieldAppendDataPart(string pName, DateTime pDateTime)
@@ -184,6 +194,8 @@ namespace work.bacome.imapclient
             var lValueParts = new List<cHeaderFieldValuePart>();
             lValueParts.Add(cHeaderFieldValuePart.AsDateTime(pDateTime));
             mValueParts = lValueParts.AsReadOnly();
+
+            mUTF8ValueParts = null;
         }
 
         public cHeaderFieldAppendDataPart(string pName, DateTimeOffset pDateTimeOffset)
@@ -196,6 +208,8 @@ namespace work.bacome.imapclient
             var lValueParts = new List<cHeaderFieldValuePart>();
             lValueParts.Add(cHeaderFieldValuePart.AsDateTime(pDateTimeOffset));
             mValueParts = lValueParts.AsReadOnly();
+
+            mUTF8ValueParts = null;
         }
 
         public cHeaderFieldAppendDataPart(string pName, MailAddress pAddress)
@@ -220,6 +234,8 @@ namespace work.bacome.imapclient
             var lValueParts = new List<cHeaderFieldValuePart>();
             lValueParts.Add(lMailbox);
             mValueParts = lValueParts.AsReadOnly();
+
+            mUTF8ValueParts = null;
         }
 
         public cHeaderFieldAppendDataPart(string pName, IEnumerable<MailAddress> pAddresses)
@@ -255,16 +271,22 @@ namespace work.bacome.imapclient
             }
 
             mValueParts = lMailboxList.AsReadOnly();
+
+            mUTF8ValueParts = null;
         }
 
-        public cHeaderFieldAppendDataPart(string pName, IEnumerable<cHeaderFieldValuePart> pValueParts)
+        public cHeaderFieldAppendDataPart(string pName, IEnumerable<cHeaderFieldValuePart> pValueParts, IEnumerable<cHeaderFieldValuePart> pUTF8ValueParts = null)
         {
             if (pName == null) throw new ArgumentNullException(nameof(pName));
             if (pValueParts == null) throw new ArgumentNullException(nameof(pValueParts));
             if (pName.Length == 0) throw new ArgumentOutOfRangeException(nameof(pName));
             if (!cCharset.FText.ContainsAll(pName)) throw new ArgumentOutOfRangeException(nameof(pName));
             mName = pName;
+
             mValueParts = new List<cHeaderFieldValuePart>(pValueParts).AsReadOnly();
+
+            if (pUTF8ValueParts == null) mUTF8ValueParts = null;
+            else mUTF8ValueParts = new List<cHeaderFieldValuePart>(pUTF8ValueParts).AsReadOnly();
         }
 
         internal override bool HasContent => true;
@@ -272,7 +294,13 @@ namespace work.bacome.imapclient
         internal override IList<byte> GetBytes(Encoding pEncoding)
         {
             cHeaderFieldBytes lBytes = new cHeaderFieldBytes(mName, pEncoding);
-            foreach (var lPart in mValueParts) lPart.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
+
+            ReadOnlyCollection<cHeaderFieldValuePart> lValueParts;
+            if (lBytes.UTF8Allowed && mUTF8ValueParts != null) lValueParts = mUTF8ValueParts;
+            else lValueParts = mValueParts;
+
+            foreach (var lPart in lValueParts) lPart.GetBytes(lBytes, eHeaderFieldValuePartContext.unstructured);
+
             lBytes.AddNewLine();
             return lBytes.Bytes;
         }
@@ -280,8 +308,20 @@ namespace work.bacome.imapclient
         public override string ToString()
         {
             cListBuilder lBuilder = new cListBuilder(nameof(cHeaderFieldAppendDataPart));
+
             lBuilder.Append(mName);
-            foreach (var lPart in mValueParts) lBuilder.Append(lPart);
+
+            cListBuilder lVP = new cListBuilder(nameof(mValueParts));
+            foreach (var lPart in mValueParts) lVP.Append(lPart);
+            lBuilder.Append(lVP.ToString());
+
+            if (mUTF8ValueParts != null)
+            {
+                cListBuilder lUTF8VP = new cListBuilder(nameof(mUTF8ValueParts));
+                foreach (var lPart in mUTF8ValueParts) lUTF8VP.Append(lPart);
+                lBuilder.Append(lUTF8VP.ToString());
+            }
+
             return lBuilder.ToString();
         }
 
@@ -636,6 +676,12 @@ namespace work.bacome.imapclient
                     new MailAddress("user@host")
                 },
                 "x:user@host\r\n");
+
+
+            lPart = new cHeaderFieldAppendDataPart("content-transfer-encoding", "7bit", "8bit");
+
+            ZTest("utf8.1", lPart, "content-transfer-encoding:7bit", "utf-8");
+            ZTest("utf8.1", lPart, "content-transfer-encoding:8bit");
         }
 
         private static void ZTestDateTime(string pTestName, DateTime pDateTime)

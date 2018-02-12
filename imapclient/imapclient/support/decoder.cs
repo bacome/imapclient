@@ -131,6 +131,8 @@ namespace work.bacome.imapclient
 
     internal class cQuotedPrintableDecoder : cLineDecoder
     {
+        private static readonly cBytes kNewLine = new cBytes(Environment.NewLine);
+
         private readonly List<byte> mBytes = new List<byte>();
 
         public cQuotedPrintableDecoder(cMethodControl pMC, Stream pStream, cBatchSizer pWriteSizer) : base(pMC, pStream, pWriteSizer) { }
@@ -186,11 +188,7 @@ namespace work.bacome.imapclient
                 mBytes.Add(lByte);
             }
 
-            if (!lSoftLineBreak)
-            {
-                mBytes.Add(cASCII.CR);
-                mBytes.Add(cASCII.LF);
-            }
+            if (!lSoftLineBreak) mBytes.AddRange(kNewLine);
 
             await YWriteAsync(mBytes, 0, pContext).ConfigureAwait(false);
         }

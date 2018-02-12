@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
@@ -76,7 +77,7 @@ namespace work.bacome.imapclient
                 if (pAsyncTask.IsFaulted)
                 {
                     lContext.TraceException(TraceEventType.Verbose, "task completed with exception", pAsyncTask.Exception);
-                    throw cTools.Flatten(pAsyncTask.Exception);
+                    ExceptionDispatchInfo.Capture(cTools.Flatten(pAsyncTask.Exception)).Throw();
                 }
 
                 if (pAsyncTask.IsCanceled)

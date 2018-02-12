@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using work.bacome.imapclient.support;
@@ -50,9 +51,25 @@ namespace work.bacome.imapclient
 
     public partial class cIMAPClient
     {
+        private static readonly eQuotedPrintableSourceType kDefaultQuotedPrintableSourceType = Environment.NewLine == "\n" ? eQuotedPrintableSourceType.LFTerminatedLines : eQuotedPrintableSourceType.CRLFTerminatedLines;
+
+        public int ConvertToQuotedPrintable(Stream pSource, Stream pTarget = null, cConvertToQuotedPrintableConfiguration pConfiguration = null)
+        {
+            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(ConvertToQuotedPrintable), 1);
+            var lTask = ZConvertToQuotedPrintableAsync(pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableQuotingRule.EBCDIC, pTarget, pConfiguration, lContext);
+            mSynchroniser.Wait(lTask, lContext);
+            return lTask.Result;
+        }
+
+        public Task<int> ConvertToQuotedPrintableAsync(Stream pSource, Stream pTarget = null, cConvertToQuotedPrintableConfiguration pConfiguration = null)
+        {
+            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(ConvertToQuotedPrintableAsync), 1);
+            return ZConvertToQuotedPrintableAsync(pSource, kDefaultQuotedPrintableSourceType, eQuotedPrintableQuotingRule.EBCDIC, pTarget, pConfiguration, lContext);
+        }
+
         public int ConvertToQuotedPrintable(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget = null, cConvertToQuotedPrintableConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConvertToQuotedPrintable));
+            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(ConvertToQuotedPrintable), 2);
             var lTask = ZConvertToQuotedPrintableAsync(pSource, pSourceType, pQuotingRule, pTarget, pConfiguration, lContext);
             mSynchroniser.Wait(lTask, lContext);
             return lTask.Result;
@@ -60,7 +77,7 @@ namespace work.bacome.imapclient
 
         public Task<int> ConvertToQuotedPrintableAsync(Stream pSource, eQuotedPrintableSourceType pSourceType, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget = null, cConvertToQuotedPrintableConfiguration pConfiguration = null)
         {
-            var lContext = mRootContext.NewMethod(nameof(cIMAPClient), nameof(ConvertToQuotedPrintableAsync));
+            var lContext = mRootContext.NewMethodV(nameof(cIMAPClient), nameof(ConvertToQuotedPrintableAsync), 2);
             return ZConvertToQuotedPrintableAsync(pSource, pSourceType, pQuotingRule, pTarget, pConfiguration, lContext);
         }
 
@@ -100,7 +117,7 @@ namespace work.bacome.imapclient
             Stopwatch lStopwatch = new Stopwatch();
 
             bool lPendingCR = false;
-            cQuotedPrintableOutput lOutput = new cQuotedPrintableOutput(pQuotingRule, pTarget, pIncrement, pWriteSizer);
+            cQuotedPrintableOutput lOutput = new cQuotedPrintableOutput(pMC, pQuotingRule, pTarget, mSynchroniser, pIncrement, pWriteSizer, lContext);
 
             while (true)
             {
@@ -130,11 +147,11 @@ namespace work.bacome.imapclient
 
                             if (lByte == cASCII.LF)
                             {
-                                lOutput.AddHardLineBreak(2);
+                                await lOutput.AddHardLineBreakAsync(2).ConfigureAwait(false);
                                 continue;
                             }
 
-                            lOutput.Add(cASCII.CR);
+                            await lOutput.AddAsync(cASCII.CR).ConfigureAwait(false);
                         }
 
                         if (lByte == cASCII.CR)
@@ -147,62 +164,67 @@ namespace work.bacome.imapclient
                     {
                         if (lByte == cASCII.LF)
                         {
-                            lOutput.AddHardLineBreak(1);
+                            await lOutput.AddHardLineBreakAsync(1).ConfigureAwait(false);
                             continue;
                         }
                     }
 
-                    lOutput.Add(lByte);
+                    await lOutput.AddAsync(lByte).ConfigureAwait(false);
                 }
-
-                // write the data out in chunks determined by the write sizer
-                await lOutput.writeasync(pMC).configureawait(false);
             }
 
             // flush any cached output data
-            if (lPendingCR) lOutput.Add(cASCII.CR);
-            await lOutput.flushasync(pMC).configureawait(false);
+            if (lPendingCR) await lOutput.AddAsync(cASCII.CR).ConfigureAwait(false);
+            await lOutput.FlushAsync().ConfigureAwait(false);
 
             // done
-            return lOutput.byteswritten;
+            return lOutput.BytesWritten;
         }
 
         private class cQuotedPrintableOutput
         {
             private static readonly cBytes kEBCDICNotSome = new cBytes("!\"#$@[\\]^`{|}~");
-            private static readonly cBytes kEQUALSCRLF = new cBytes("=\r\n");
-            private static readonly cBytes kCRLF = new cBytes("\r\n");
 
+            private readonly cMethodControl mMCForWrite;
             private readonly eQuotedPrintableQuotingRule mQuotingRule;
             private readonly Stream mTarget;
+            private readonly cCallbackSynchroniser mSynchroniser;
             private readonly Action<int> mIncrement;
-            private readonly cBatchSizer mWriteSizer;
-
-            private readonly Queue<cLine> mPendingLines = new Queue<cLine>();
 
             private List<byte> mPendingBytes = new List<byte>();
             private int mPendingBytesInputByteCount = 0;
             private readonly List<byte> mPendingWSP = new List<byte>();
             private readonly List<byte> mPendingNonWSP = new List<byte>();
 
-            private readonly List<byte> mCarriedWSP = new List<byte>();
+            private readonly cBatchSizer mWriteSizer;
+            private byte[] mWriteBuffer = null;
+            private int mBytesInWriteBuffer = 0;
+            private readonly Stopwatch mStopwatch = new Stopwatch();
+            private int mWriteBufferInputByteCount = 0;
+
+            private readonly cTrace.cContext mContextForIncrement;
 
             private int mBytesWritten = 0;
 
-
-
-            public cQuotedPrintableOutput(eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, Action<int> pIncrement, cBatchSizer pWriteSizer)
+            public cQuotedPrintableOutput(cMethodControl pMCForWrite, eQuotedPrintableQuotingRule pQuotingRule, Stream pTarget, cCallbackSynchroniser pSynchroniser, Action<int> pIncrement, cBatchSizer pWriteSizer, cTrace.cContext pParentContext)
             {
+                var lContext = pParentContext.NewObject(nameof(cQuotedPrintableOutput), pMCForWrite, pQuotingRule);
+
+                mMCForWrite = pMCForWrite;
                 mQuotingRule = pQuotingRule;
 
                 if (pTarget == null) mTarget = Stream.Null;
                 else mTarget = pTarget;
 
+                mSynchroniser = pSynchroniser;
+
                 mIncrement = pIncrement;
+
                 mWriteSizer = pWriteSizer ?? throw new ArgumentNullException(nameof(pWriteSizer));
+                mContextForIncrement = lContext.NewMethod(nameof(cQuotedPrintableOutput), nameof(ZWriteBufferAsync));
             }
 
-            public void Add(byte pByte)
+            public async Task AddAsync(byte pByte)
             {
                 bool lNeedsQuoting;
 
@@ -220,7 +242,7 @@ namespace work.bacome.imapclient
                 if (lNeedsQuoting) lCount = 3;
                 else lCount = 1;
 
-                if (mPendingBytes.Count + mPendingWSP.Count + mPendingNonWSP.Count + lCount > 76) ZSoftLineBreak();
+                if (mPendingBytes.Count + mPendingWSP.Count + mPendingNonWSP.Count + lCount > 76) await ZSoftLineBreakAsync().ConfigureAwait(false);
 
                 if (mPendingNonWSP.Count != 0) throw new cInternalErrorException();
 
@@ -256,7 +278,7 @@ namespace work.bacome.imapclient
                 mPendingBytesInputByteCount++;
             }
 
-            public void AddHardLineBreak(int pInputBytes)
+            public async Task AddHardLineBreakAsync(int pInputBytes)
             {
                 if (mPendingNonWSP.Count > 0)
                 {
@@ -270,56 +292,39 @@ namespace work.bacome.imapclient
                 }
                 else if (mPendingWSP.Count > 0)
                 {
-                    int lWSPToAdd = Math.Max(74 - mPendingBytes.Count, mPendingWSP.Count);
+                    int lWSPThatWillFit = 74 - mPendingBytes.Count;
 
-                    if (lWSPToAdd > 0)
+                    if (lWSPThatWillFit < mPendingWSP.Count) await ZSoftLineBreakAsync().ConfigureAwait(false);
+
+                    if (mPendingWSP.Count > 0)
                     {
-                        for (int i = 0; i < lWSPToAdd - 1; i++) mPendingBytes.Add(mPendingWSP[i]);
+                        for (int i = 0; i < mPendingWSP.Count - 1; i++) mPendingBytes.Add(mPendingWSP[i]);
                         mPendingBytes.Add(cASCII.EQUALS);
-                        mPendingBytes.AddRange(cTools.ByteToHexBytes(mPendingWSP[lWSPToAdd - 1]));
-                        mPendingBytesInputByteCount += lWSPToAdd;
+                        mPendingBytes.AddRange(cTools.ByteToHexBytes(mPendingWSP[mPendingWSP.Count - 1]));
+                        mPendingBytesInputByteCount += mPendingWSP.Count;
 
-                        mCarriedWSP.Clear();
-                        for (int i = lWSPToAdd; i < mPendingWSP.Count; i++) mCarriedWSP.Add(mPendingWSP[i]);
                         mPendingWSP.Clear();
-                        mPendingWSP.AddRange(mCarriedWSP);
                     }
                 }
 
-                mPendingBytes.AddRange(kCRLF);
                 mPendingBytesInputByteCount += pInputBytes;
 
-                mPendingLines.Enqueue(new cLine(mPendingBytes.ToArray(), mPendingBytesInputByteCount));
-
+                await ZWriteLineAsync().ConfigureAwait(false);
                 mPendingBytes.Clear();
                 mPendingBytesInputByteCount = 0;
             }
 
-            public async Task WriteAsync(cMethodControl pMC)
+            public async Task FlushAsync()
             {
-                // if there are no pending lines, return
-                // if the current output buffer is empty, find the current size and possibly expand the output buffer. Note that the output buffer has to be 78 bytes bigger than the batch sizer because we will only output whole lines
-                // while there are lines
-                //  add the bytes of the line to the buffer
-                //  if buffer is over current, write async, increment bytes wrtiien, give feedback (incrent), re-get current, possibly re-size buffer
-
-
-                // 
-
-
-                // find the current size
-                //  
-
-                while (true)
-                {
-                    if ()
-                }
+                if (mPendingBytes.Count != 0 || mPendingWSP.Count != 0) await ZSoftLineBreakAsync().ConfigureAwait(false);
+                if (mPendingBytes.Count != 0 || mPendingWSP.Count != 0) await ZSoftLineBreakAsync().ConfigureAwait(false);
+                if (mBytesInWriteBuffer > 0) await ZWriteBufferAsync().ConfigureAwait(false);
             }
 
-            private void ZSoftLineBreak()
-            {
-                // note that flush may have to call this 0, 1, or 2 times.
+            public int BytesWritten => mBytesWritten;
 
+            private async Task ZSoftLineBreakAsync()
+            {
                 if (mPendingBytes.Count + mPendingWSP.Count + 1 > 76)
                 {
                     if (mPendingWSP.Count == 0) throw new cInternalErrorException();
@@ -340,10 +345,9 @@ namespace work.bacome.imapclient
                     mPendingWSP.Clear();
                 }
 
-                mPendingBytes.AddRange(kEQUALSCRLF);
+                mPendingBytes.Add(cASCII.EQUALS);
 
-                mPendingLines.Enqueue(new cLine(mPendingBytes.ToArray(), mPendingBytesInputByteCount));
-
+                await ZWriteLineAsync().ConfigureAwait(false);
                 mPendingBytes.Clear();
                 mPendingBytesInputByteCount = 0;
 
@@ -359,43 +363,217 @@ namespace work.bacome.imapclient
                 }
             }
 
-            private class cLine
+            private async Task ZWriteLineAsync()
             {
-                private readonly byte[] mBytes;
-                private int mInputByteCount = 0;
-
-                public cLine(byte[] pBytes, int pInputByteCount)
+                if (mBytesInWriteBuffer == 0)
                 {
-                    mBytes = pBytes;
-                    mInputByteCount = pInputByteCount;
+                    int lCurrent = Math.Max(mWriteSizer.Current, 78);
+                    if (mWriteBuffer == null || lCurrent > mWriteBuffer.Length) mWriteBuffer = new byte[lCurrent];
                 }
+                else if (mBytesInWriteBuffer + mPendingBytes.Count + 2 > mWriteBuffer.Length)
+                {
+                    await ZWriteBufferAsync().ConfigureAwait(false);
+                    mBytesInWriteBuffer = 0;
+                    mWriteBufferInputByteCount = 0;
+                }
+
+                foreach (var lByte in mPendingBytes) mWriteBuffer[mBytesInWriteBuffer++] = lByte;
+                mWriteBuffer[mBytesInWriteBuffer++] = cASCII.CR;
+                mWriteBuffer[mBytesInWriteBuffer++] = cASCII.LF;
+
+                mWriteBufferInputByteCount += mPendingBytesInputByteCount;
+            }
+
+            private async Task ZWriteBufferAsync()
+            {
+                // write 
+                mStopwatch.Restart();
+                if (mTarget.CanTimeout) mTarget.WriteTimeout = mMCForWrite.Timeout;
+                await mTarget.WriteAsync(mWriteBuffer, 0, mBytesInWriteBuffer, mMCForWrite.CancellationToken).ConfigureAwait(false);
+                mStopwatch.Stop();
+                mWriteSizer.AddSample(mBytesInWriteBuffer, mStopwatch.ElapsedMilliseconds);
+
+                // keep track of the number of bytes written
+                mBytesWritten += mBytesInWriteBuffer;
+
+                // feedback
+                mSynchroniser.InvokeActionInt(mIncrement, mWriteBufferInputByteCount, mContextForIncrement);
             }
         }
 
-        private static void _TestQuotedPrintable()
+        private static void _TestQuotedPrintable(cTrace.cContext pParentContext)
         {
-            // test lf, crlf and binary
-            //  test lines ending exactly at 75, 76 and 77 chars on;
-            //   a non-wsp that doesn't need to be encoded
-            //   a non-wsp that does need to be encoded
-            //   a space
-            //   a tab
+            _TestQuotedPrintable(
+                "1",
+                new string[] 
+                {
+                    //        1         2         3         4         5          6         7
+                    // 345678901234567890123456789012345678901234567890123 4567890123456789012345
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrstu",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrstuv",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrstuvw",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrs=",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrst=",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrstu=",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqr ",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrs ",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrst ",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrstu ",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrstuv ",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqr\t",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrs\t",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrst\t",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrstu\t",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrstuv\t",
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \t@bcdefghijklmnopqrstu "
+                    //        1         2         3         4         5          6         7
+                    // 345678901234567890123456789012345678901234567890123 45678901234567890123456
+                },
+                pParentContext);
 
-            // test that the increment bytes adds up ok
-            // test that the output bytes is accurate
 
-            // test that no output lines are > 76 chars
-
-            // test a stream that ends with a CRLF and one that doesn't
 
             // test naked CR and naked LF in a CRLF stream.
             //  test naked CR at end of stream
 
-            // test the two differnt quoting rules
-
             // test that the trailing WSP is output in the order it is on input
 
-            // roundtrip testing
+            // test stream.null
+
+            ;?;
+        }
+
+
+        private static void _TestQuotedPrintable(string pTestName, string[] pLines, cTrace.cContext pParentContext)
+        {
+            var lLFFalseMinimal = _TestQuotedPrintable(pTestName + ".lf.false.Mininal", pLines, eQuotedPrintableSourceType.LFTerminatedLines, false, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+            var lLFTrueMinimal = _TestQuotedPrintable(pTestName + ".lf.true.Mininal", pLines, eQuotedPrintableSourceType.LFTerminatedLines, true, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+
+            if (lLFFalseMinimal >= lLFTrueMinimal) throw new cTestsException(pTestName + ".compare.1");
+
+            var lCRLFFalseMinimal = _TestQuotedPrintable(pTestName + ".crlf.false.Mininal", pLines, eQuotedPrintableSourceType.CRLFTerminatedLines, false, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+
+            if (lLFFalseMinimal != lCRLFFalseMinimal) throw new cTestsException(pTestName + ".compare.2");
+
+            var lCRLFTrueMinimal = _TestQuotedPrintable(pTestName + ".crlf.true.Mininal", pLines, eQuotedPrintableSourceType.CRLFTerminatedLines, true, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+
+            if (lCRLFFalseMinimal >= lCRLFTrueMinimal) throw new cTestsException(pTestName + ".compare.3");
+
+            var lBinaryFalseMinimal = _TestQuotedPrintable(pTestName + ".binary.false.Mininal", pLines, eQuotedPrintableSourceType.Binary, false, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+
+            if (lCRLFFalseMinimal >= lBinaryFalseMinimal) throw new cTestsException(pTestName + ".compare.4");
+
+            var lBinaryTrueMinimal = _TestQuotedPrintable(pTestName + ".binary.true.Mininal", pLines, eQuotedPrintableSourceType.Binary, true, eQuotedPrintableQuotingRule.Minimal, pParentContext);
+
+            if (lBinaryFalseMinimal >= lBinaryTrueMinimal) throw new cTestsException(pTestName + ".compare.5");
+
+            var lLFFalseEBCDIC = _TestQuotedPrintable(pTestName + ".lf.false.EBCDIC", pLines, eQuotedPrintableSourceType.LFTerminatedLines, false, eQuotedPrintableQuotingRule.EBCDIC, pParentContext);
+
+            if (lLFFalseMinimal >= lLFFalseEBCDIC) throw new cTestsException(pTestName + ".compare.6");
+        }
+
+        private static int _TestQuotedPrintable(string pTestName, string[] pLines, eQuotedPrintableSourceType pSourceType, bool pTerminateLastLine, eQuotedPrintableQuotingRule pQuotingRule, cTrace.cContext pParentContext)
+        {
+            int lBytesWritten;
+
+            StringBuilder lBuilder = new StringBuilder();
+
+            for (int i = 0; i < pLines.Length; i++)
+            {
+                lBuilder.Append(pLines[i]);
+
+                if (i < pLines.Length - 1 || pTerminateLastLine)
+                {
+                    if (pSourceType == eQuotedPrintableSourceType.LFTerminatedLines) lBuilder.Append('\n');
+                    else lBuilder.Append("\r\n");
+                }
+            }
+
+            using (var lClient = new cIMAPClient())
+            using (var lInput = new MemoryStream(Encoding.UTF8.GetBytes(lBuilder.ToString())))
+            using (var lEncoded = new MemoryStream())
+            {
+                var lIncrement = new _TestActionInt();
+                var lConfig = new cConvertToQuotedPrintableConfiguration(CancellationToken.None, lIncrement.ActionInt, null, new cBatchSizerConfiguration(1, 1, 1, 1));
+
+                lBytesWritten = lClient.ConvertToQuotedPrintable(lInput, pSourceType, pQuotingRule, lEncoded, lConfig);
+
+                // for debugging
+                string lEncodedString = new string(Encoding.UTF8.GetChars(lEncoded.GetBuffer(), 0, (int)lEncoded.Length));
+
+                // check the length outputs
+                if (lBytesWritten != lEncoded.Length) throw new cTestsException($"TestQuotedPrintable.{pTestName}.l.1");
+                if (lIncrement.Total != lInput.Length) throw new cTestsException($"TestQuotedPrintable.{pTestName}.l.2");
+
+                // round trip test
+
+                lEncoded.Position = 0;
+
+                var lMC = new cMethodControl(-1, CancellationToken.None);
+                var lWriteSizer = new cBatchSizer(new cBatchSizerConfiguration(1, 10, 1000, 1));
+
+                using (var lDecoded = new MemoryStream())
+                {
+                    cDecoder lDecoder = new cQuotedPrintableDecoder(lMC, lDecoded, lWriteSizer);
+
+                    var lReadBuffer = new byte[10];
+
+                    while (true)
+                    {
+                        int lBytesRead = lEncoded.Read(lReadBuffer, 0, lReadBuffer.Length);
+                        if (lBytesRead == 0) break;
+                        var lWriteBuffer = new byte[lBytesRead];
+                        Array.Copy(lReadBuffer, lWriteBuffer, lBytesRead);
+                        lDecoder.WriteAsync(lWriteBuffer, 0, pParentContext).Wait();
+                    }
+
+                    lDecoder.FlushAsync(pParentContext).Wait();
+
+                    int lLineNumber = 0;
+
+                    using (var lReader = new StreamReader(lDecoded))
+                    {
+                        while (!lReader.EndOfStream)
+                        {
+                            var lLine = lReader.ReadLine();
+                            if (lLine != pLines[lLineNumber++]) throw new cTestsException($"TestQuotedPrintable.{pTestName}.r");
+                        }
+                    }
+                }
+
+                // check lines are no longer than 76 chars
+                //  every line in a binary file should end with an =
+                //  the number of lines not ending with = should be the same as the number of input lines
+
+                lEncoded.Position = 0;
+
+                int lLinesNotEndingWithEquals = 0;
+
+                using (var lReader = new StreamReader(lEncoded))
+                {
+                    while (!lReader.EndOfStream)
+                    {
+                        var lLine = lReader.ReadLine();
+                        if (lLine.Length > 76) throw new cTestsException($"TestQuotedPrintable.{pTestName}.l.4");
+                        if (lLine.Length == 0 || lLine[lLine.Length - 1] != '=') lLinesNotEndingWithEquals++;
+                    }
+                }
+
+                if (pSourceType == eQuotedPrintableSourceType.Binary)
+                {
+                    if (lLinesNotEndingWithEquals != 0) throw new cTestsException($"TestQuotedPrintable.{pTestName}.i.1");
+                }
+                else if (pTerminateLastLine)
+                {
+                    if (lLinesNotEndingWithEquals != pLines.Length) throw new cTestsException($"TestQuotedPrintable.{pTestName}.i.2");
+                }
+                else
+                {
+                    if (lLinesNotEndingWithEquals != pLines.Length - 1) throw new cTestsException($"TestQuotedPrintable.{pTestName}.i.3");
+                }
+            }
+
+            return lBytesWritten;
         }
     }
 }
