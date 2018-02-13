@@ -192,7 +192,7 @@ namespace work.bacome.imapclient
             mName = pName;
 
             var lValueParts = new List<cHeaderFieldValuePart>();
-            lValueParts.Add(cHeaderFieldValuePart.AsDateTime(pDateTime));
+            lValueParts.Add(pDateTime);
             mValueParts = lValueParts.AsReadOnly();
 
             mUTF8ValueParts = null;
@@ -206,7 +206,7 @@ namespace work.bacome.imapclient
             mName = pName;
 
             var lValueParts = new List<cHeaderFieldValuePart>();
-            lValueParts.Add(cHeaderFieldValuePart.AsDateTime(pDateTimeOffset));
+            lValueParts.Add(pDateTimeOffset);
             mValueParts = lValueParts.AsReadOnly();
 
             mUTF8ValueParts = null;

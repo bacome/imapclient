@@ -14,7 +14,8 @@ namespace work.bacome.imapclient
         private readonly cBatchSizer mWriteSizer;
         private readonly Stopwatch mStopwatch = new Stopwatch();
         private byte[] mBuffer = null;
-        private int mCount = 0;
+        private int mBufferSize = 0;
+        private int mBytesInBuffer = 0;
 
         public cDecoder(cMethodControl pMC, Stream pStream, cBatchSizer pWriteSizer)
         {
@@ -29,10 +30,14 @@ namespace work.bacome.imapclient
 
             while (pOffset < pBytes.Count)
             {
-                if (mCount == 0) mBuffer = new byte[mWriteSizer.Current];
+                if (mBytesInBuffer == 0)
+                {
+                    mBufferSize = mWriteSizer.Current;
+                    if (mBuffer == null || mBufferSize > mBuffer.Length) mBuffer = new byte[mBufferSize];
+                }
 
-                while (mCount < mBuffer.Length && pOffset < pBytes.Count) mBuffer[mCount++] = pBytes[pOffset++];
-                if (mCount < mBuffer.Length) return;
+                while (mBytesInBuffer < mBufferSize && pOffset < pBytes.Count) mBuffer[mBytesInBuffer++] = pBytes[pOffset++];
+                if (mBytesInBuffer < mBufferSize) return;
 
                 await YFlushAsync(pContext).ConfigureAwait(false);
             }
@@ -40,18 +45,18 @@ namespace work.bacome.imapclient
 
         protected async Task YFlushAsync(cTrace.cContext pContext)
         {
-            if (mCount == 0) return;
+            if (mBytesInBuffer == 0) return;
 
-            pContext.TraceVerbose("writing {0} bytes to stream", mCount);
+            pContext.TraceVerbose("writing {0} bytes to stream", mBytesInBuffer);
 
             mStopwatch.Restart();
-            await mStream.WriteAsync(mBuffer, 0, mCount, mMC.CancellationToken).ConfigureAwait(false);
+            await mStream.WriteAsync(mBuffer, 0, mBytesInBuffer, mMC.CancellationToken).ConfigureAwait(false);
             mStopwatch.Stop();
 
             // store the time taken so the next write is a better size
-            mWriteSizer.AddSample(mCount, mStopwatch.ElapsedMilliseconds);
+            mWriteSizer.AddSample(mBytesInBuffer, mStopwatch.ElapsedMilliseconds);
 
-            mCount = 0;
+            mBytesInBuffer = 0;
         }
 
         public abstract Task WriteAsync(IList<byte> pBytes, int pOffset, cTrace.cContext pContext);
@@ -84,7 +89,7 @@ namespace work.bacome.imapclient
 
                     if (lByte == cASCII.LF)
                     {
-                        await YWriteLineAsync(mLine, pContext).ConfigureAwait(false);
+                        await YWriteLineAsync(mLine, true, pContext).ConfigureAwait(false);
                         mLine.Clear();
                         continue;
                     }
@@ -100,11 +105,11 @@ namespace work.bacome.imapclient
         public async sealed override Task FlushAsync(cTrace.cContext pContext)
         {
             if (mBufferedCR) mLine.Add(cASCII.CR);
-            await YWriteLineAsync(mLine, pContext).ConfigureAwait(false);
+            await YWriteLineAsync(mLine, false, pContext).ConfigureAwait(false);
             await YFlushAsync(pContext).ConfigureAwait(false);
         }
 
-        protected abstract Task YWriteLineAsync(List<byte> pLine, cTrace.cContext pContext);
+        protected abstract Task YWriteLineAsync(List<byte> pLine, bool pCRLF, cTrace.cContext pContext);
     }
 
     internal class cBase64Decoder : cLineDecoder
@@ -113,7 +118,7 @@ namespace work.bacome.imapclient
 
         public cBase64Decoder(cMethodControl pMC, Stream pStream, cBatchSizer pWriteSizer) : base(pMC, pStream, pWriteSizer) { }
 
-        protected async override Task YWriteLineAsync(List<byte> pLine, cTrace.cContext pContext)
+        protected async override Task YWriteLineAsync(List<byte> pLine, bool pCRLF, cTrace.cContext pContext)
         {
             // build the buffer to decode
             mBytes.Clear();
@@ -137,32 +142,29 @@ namespace work.bacome.imapclient
 
         public cQuotedPrintableDecoder(cMethodControl pMC, Stream pStream, cBatchSizer pWriteSizer) : base(pMC, pStream, pWriteSizer) { }
 
-        protected async override Task YWriteLineAsync(List<byte> pLine, cTrace.cContext pContext)
+        protected async override Task YWriteLineAsync(List<byte> pLine, bool pCRLF, cTrace.cContext pContext)
         {
             byte lByte;
-
-            // special case
-            if (pLine.Count == 0) return;
 
             // strip trailing space
 
             int lEOL = pLine.Count;
 
-            while (true)
+            while (lEOL != 0)
             {
                 lByte = pLine[lEOL - 1];
                 if (lByte != cASCII.SPACE && lByte != cASCII.TAB) break;
-                if (--lEOL == 0) return;
+                lEOL--;
             }
 
             // strip trailing =
 
             bool lSoftLineBreak;
 
-            if (pLine[lEOL - 1] == cASCII.EQUALS)
+            if (lEOL != 0 && pLine[lEOL - 1] == cASCII.EQUALS)
             {
-                if (--lEOL == 0) return;
                 lSoftLineBreak = true;
+                lEOL--;
             }
             else lSoftLineBreak = false;
 
@@ -188,7 +190,8 @@ namespace work.bacome.imapclient
                 mBytes.Add(lByte);
             }
 
-            if (!lSoftLineBreak) mBytes.AddRange(kNewLine);
+            // potentially add a line break 
+            if (pCRLF && !lSoftLineBreak) mBytes.AddRange(kNewLine);
 
             await YWriteAsync(mBytes, 0, pContext).ConfigureAwait(false);
         }
@@ -216,6 +219,7 @@ namespace work.bacome.imapclient
             var lContext = pParentContext.NewMethod(nameof(cQuotedPrintableDecoder), nameof(_Tests));
 
             if (LTest("testNow's the time =    \r\n", "for all folk to come=\t \t \r\n", " to the aid of their country.   \t\r\n") != "Now's the time for all folk to come to the aid of their country.\r\n") throw new cTestsException($"{nameof(cQuotedPrintableDecoder)}.1");
+            if (LTest("testNow's the time =    \r\n", "for all folk to come=\t \t \r\n", " to the aid of their country.   \t") != "Now's the time for all folk to come to the aid of their country.") throw new cTestsException($"{nameof(cQuotedPrintableDecoder)}.2");
 
 
 

@@ -296,24 +296,21 @@ namespace work.bacome.imapclient
             string lFinalString;
 
             using (MemoryStream lInput = new MemoryStream(Encoding.UTF8.GetBytes(pInputString)))
+            using (cBase64Encoder lEncoder = new cBase64Encoder(lInput, new cBatchSizerConfiguration(10, 10, 10000, 10)))
+            using (MemoryStream lIntermediate = new MemoryStream())
             {
-                cBase64Encoder lEncoder = new cBase64Encoder(lInput, new cBatchSizerConfiguration(10, 10, 10000, 10));
+                lEncoder.CopyTo(lIntermediate);
 
-                using (MemoryStream lIntermediate = new MemoryStream())
+                if (lIntermediate.Length != EncodedLength(lInput.Length)) throw new cTestsException($"{nameof(cBase64Encoder)}({pTestName}.l)");
+
+                lIntermediateString = new string(Encoding.UTF8.GetChars(lIntermediate.ToArray()));
+
+                using (MemoryStream lFinal = new MemoryStream())
                 {
-                    lEncoder.CopyTo(lIntermediate);
-
-                    if (lIntermediate.Length != EncodedLength(lInput.Length)) throw new cTestsException($"{nameof(cBase64Encoder)}({pTestName}.l)");
-
-                    lIntermediateString = new string(Encoding.UTF8.GetChars(lIntermediate.ToArray()));
-
-                    using (MemoryStream lFinal = new MemoryStream())
-                    {
-                        cBase64Decoder lDecoder = new cBase64Decoder(lMC, lFinal, lWS);
-                        await lDecoder.WriteAsync(lIntermediate.ToArray(), 0, pParentContext);
-                        await lDecoder.FlushAsync(pParentContext);
-                        lFinalString = new string(Encoding.UTF8.GetChars(lFinal.ToArray()));
-                    }
+                    cBase64Decoder lDecoder = new cBase64Decoder(lMC, lFinal, lWS);
+                    await lDecoder.WriteAsync(lIntermediate.ToArray(), 0, pParentContext);
+                    await lDecoder.FlushAsync(pParentContext);
+                    lFinalString = new string(Encoding.UTF8.GetChars(lFinal.ToArray()));
                 }
             }
 

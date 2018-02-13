@@ -129,16 +129,16 @@ namespace work.bacome.imapclient
         private cIdleConfiguration mIdleConfiguration = new cIdleConfiguration();
         private cBatchSizerConfiguration mFetchCacheItemsConfiguration = new cBatchSizerConfiguration(1, 1000, 10000, 1);
         private cBatchSizerConfiguration mFetchBodyReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
-        private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mFetchBodyWriteConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
         private cBatchSizerConfiguration mAppendBatchConfiguration = new cBatchSizerConfiguration(1000, int.MaxValue, 10000, 1000);
         private int mAppendTargetBufferSize = cMessageDataStream.DefaultTargetBufferSize;
-        private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mAppendStreamReadConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
         private Encoding mEncoding = Encoding.UTF8;
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
         private cClientIdUTF8 mClientIdUTF8 = null;
         private ReadOnlyCollection<cSASLAuthentication> mFailedSASLAuthentications = null;
-        private cBatchSizerConfiguration mQuotedPrintableReadConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
-        private cBatchSizerConfiguration mQuotedPrintableWriteConfiguration = new cBatchSizerConfiguration(1000, 1000000, 10000, 1000);
+        private cBatchSizerConfiguration mConvertToQuotedPrintableReadConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
+        private cBatchSizerConfiguration mConvertToQuotedPrintableWriteConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
 
         /// <summary>
         /// Initialises a new instance.
@@ -683,8 +683,8 @@ namespace work.bacome.imapclient
         /// Gets and sets the fetch-body-write batch-size configuration. You might want to limit this to increase the speed with which you can cancel the fetch.
         /// </summary>
         /// <remarks>
-        /// Limits the size of the buffer when writing to the client-side stream (e.g. when writing to the local disk). Measured in bytes.
-        /// The default value is min=1000b, max=1000000b, maxtime=10s, initial=1000b.
+        /// Limits the size of the buffer used when writing to the client-side stream (e.g. when writing to the local disk). Measured in bytes.
+        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
         /// </remarks>
         /// <seealso cref="cMessage.Fetch(cSection)"/>
         /// <seealso cref="cMessage.Fetch(cSection, eDecodingRequired, System.IO.Stream, cBodyFetchConfiguration)"/>
@@ -742,8 +742,8 @@ namespace work.bacome.imapclient
         /// Gets and sets the default append-stream-read batch-size configuration. You might want to limit this to increase the speed with which you can terminate the instance.
         /// </summary>
         /// <remarks>
-        /// Limits the size of the buffer when reading from the client-side stream (e.g. when reading an attachment from local disk). Measured in bytes.
-        /// The default value is min=1000b, max=1000000b, maxtime=10s, initial=1000b.
+        /// Limits the size of the buffer used when reading from the client-side stream (e.g. when reading an attachment from local disk). Measured in bytes.
+        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
         /// </remarks>
         public cBatchSizerConfiguration AppendStreamReadConfiguration
         {
@@ -759,13 +759,53 @@ namespace work.bacome.imapclient
         }
 
         /// <summary>
+        /// Gets and sets the default convert-to-quoted-printable stream-read batch-size configuration. You might want to limit this to increase the speed with which you can terminate the conversion.
+        /// </summary>
+        /// <remarks>
+        /// Limits the size of the buffer used when reading from the stream to be converted. Measured in bytes.
+        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
+        /// </remarks>
+        /// <seealso cref="ConvertToQuotedPrintable(System.IO.Stream, System.IO.Stream, cConvertToQuotedPrintableConfiguration)"/>
+        /// <seealso cref="ConvertToQuotedPrintable(System.IO.Stream, eQuotedPrintableSourceType, eQuotedPrintableQuotingRule, System.IO.Stream, cConvertToQuotedPrintableConfiguration)"/>
+        public cBatchSizerConfiguration ConvertToQuotedPrintableReadConfiguration
+        {
+            get => mConvertToQuotedPrintableReadConfiguration;
+
+            set
+            {
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(ConvertToQuotedPrintableReadConfiguration), value);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                mConvertToQuotedPrintableReadConfiguration = value ?? throw new ArgumentNullException();
+            }
+        }
+
+        /// <summary>
+        /// Gets and sets the default convert-to-quoted-printable stream-write batch-size configuration. You might want to limit this to increase the speed with which you can terminate the conversion.
+        /// </summary>
+        /// <remarks>
+        /// Limits the size of the buffer used when writing the converted data. Measured in bytes.
+        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
+        /// </remarks>
+        public cBatchSizerConfiguration ConvertToQuotedPrintableWriteConfiguration
+        {
+            get => mConvertToQuotedPrintableWriteConfiguration;
+
+            set
+            {
+                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(ConvertToQuotedPrintableWriteConfiguration), value);
+                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
+                mConvertToQuotedPrintableWriteConfiguration = value ?? throw new ArgumentNullException();
+            }
+        }
+
+        /// <summary>
         /// Gets and sets the encoding to use when <see cref="fEnableableExtensions.utf8"/> is not enabled.
         /// </summary>
         /// <remarks>
         /// The default value is <see cref="Encoding.UTF8"/>.
         /// Used when filtering by message content and when appending message data.
         /// When filtering, if the connected server does not support the encoding it will reject filters that use it and the library will throw <see cref="cUnsuccessfulCompletionException"/> with <see cref="eResponseTextCode.badcharset"/>.
-        /// When appending, if an encoding is not specified for string append data and <see cref="fEnableableExtensions.utf8"/> is not enabled, then this encoding is used.
+        /// When appending, if an encoding is not specified for the append data and one is required for RFC 2047 encoded words or RFC 2231 MIME parameters, then this encoding is used.
         /// </remarks>
         /// <seealso cref="cFilterPart"/>
         /// <seealso cref="cFilter.HeaderFieldContains(string, string)"/>
@@ -773,8 +813,8 @@ namespace work.bacome.imapclient
         /// <seealso cref="cUnsuccessfulCompletionException.ResponseText"/>
         /// <seealso cref="cResponseText.Code"/>
         /// <seealso cref="cResponseText.Arguments"/>
-        /// <seealso cref="cStringAppendData"/>
-        /// <seealso cref="cStringAppendDataPart"/>
+        /// <seealso cref="cMultiPartAppendData"/>
+        /// <seealso cref="cMailMessageAppendData"/>
         public Encoding Encoding
         {
             get => mEncoding;

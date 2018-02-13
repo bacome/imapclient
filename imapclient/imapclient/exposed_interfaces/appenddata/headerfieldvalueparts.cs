@@ -22,73 +22,13 @@ namespace work.bacome.imapclient
 
         internal abstract void GetBytes(cHeaderFieldBytes pBytes, eHeaderFieldValuePartContext pContext);
 
-        public static cHeaderFieldValuePart AsDateTime(DateTime pDateTime)
-        {
-            string lSign;
-            string lZone;
-
-            if (pDateTime.Kind == DateTimeKind.Local)
-            {
-                var lOffset = TimeZoneInfo.Local.GetUtcOffset(pDateTime);
-
-                if (lOffset < TimeSpan.Zero)
-                {
-                    lSign = "-";
-                    lOffset = -lOffset;
-                }
-                else lSign = "+";
-
-                lZone = lOffset.ToString("hhmm");
-            }
-            else if (pDateTime.Kind == DateTimeKind.Utc)
-            {
-                lSign = "+";
-                lZone = "0000";
-            }
-            else
-            {
-                lSign = "-";
-                lZone = "0000";
-            }
-
-            var lMonth = cRFCMonth.cName[pDateTime.Month - 1];
-
-            string lDateTime = string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTime, lMonth, lSign, lZone);
-
-            return new cHeaderFieldTextValuePart(lDateTime);
-        }
-
-        public static cHeaderFieldValuePart AsDateTime(DateTimeOffset pDateTimeOffset)
-        {
-            string lSign;
-            string lZone;
-
-            var lOffset = pDateTimeOffset.Offset;
-
-            if (lOffset < TimeSpan.Zero)
-            {
-                lSign = "-";
-                lOffset = -lOffset;
-            }
-            else lSign = "+";
-
-            lZone = lOffset.ToString("hhmm");
-
-            var lMonth = cRFCMonth.cName[pDateTimeOffset.Month - 1];
-
-            string lDateTime = string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTimeOffset, lMonth, lSign, lZone);
-
-            return new cHeaderFieldTextValuePart(lDateTime);
-        }
-
         public static bool TryAsDotAtom(string pText, out cHeaderFieldValuePart rPart)
         {
             if (pText == null) { rPart = null; return false; }
             if (string.IsNullOrWhiteSpace(pText)) { rPart = null; return false; }
             var lAtoms = pText.Split('.');
             foreach (var lAtom in lAtoms) if (lAtom.Length == 0 || !cCharset.AText.ContainsAll(lAtom)) { rPart = null; return false; }
-            bool lContainsNonASCII = pText.Any((lChar) => lChar > cChar.DEL);
-            rPart = new cHeaderFieldWordValuePart(pText, lContainsNonASCII);
+            rPart = new cHeaderFieldWordValuePart(pText);
             return true;
         }
 
@@ -97,7 +37,6 @@ namespace work.bacome.imapclient
             if (pText == null) { rPart = null; return false; }
 
             var lChars = new List<char>();
-            bool lContainsNonASCII = false;
 
             lChars.Add('"');
 
@@ -110,14 +49,12 @@ namespace work.bacome.imapclient
 
                     if (lChar == '"' || lChar == '\\') lChars.Add('\\');
                     lChars.Add(lChar);
-
-                    if (lChar > cChar.DEL) lContainsNonASCII = true;
                 }
             }
 
             lChars.Add('"');
 
-            rPart = new cHeaderFieldQuotedStringValuePart(lChars, lContainsNonASCII);
+            rPart = new cHeaderFieldQuotedStringValuePart(lChars);
 
             return true;
         }
@@ -149,10 +86,10 @@ namespace work.bacome.imapclient
                 return true;
             }
 
-            if (ZIsNoFoldLiteral(pDomain, out var lDText, out var lContainsNonASCII))
+            if (ZIsNoFoldLiteral(pDomain, out var lDText))
             {
                 lParts.Add(LBRACKET);
-                lParts.Add(new cHeaderFieldWordValuePart(lDText, lContainsNonASCII));
+                lParts.Add(new cHeaderFieldWordValuePart(lDText));
                 lParts.Add(RBRACKET);
                 rPart = new cHeaderFieldValueParts(lParts);
                 return true;
@@ -196,11 +133,9 @@ namespace work.bacome.imapclient
 
         public static bool TryAsMsgId(string pIdLeft, string pIdRight, out cHeaderFieldValuePart rPart)
         {
-            bool lContainsNonASCII = false;
-
-            if (TryAsDotAtom(pIdLeft, out _) && (TryAsDotAtom(pIdRight, out _) || ZIsNoFoldLiteral(pIdRight, out _, out lContainsNonASCII)))
+            if (TryAsDotAtom(pIdLeft, out _) && (TryAsDotAtom(pIdRight, out _) || ZIsNoFoldLiteral(pIdRight, out _)))
             {
-                rPart = new cHeaderFieldWordValuePart("<" + pIdLeft + "@" + pIdRight + ">", lContainsNonASCII);
+                rPart = new cHeaderFieldWordValuePart("<" + pIdLeft + "@" + pIdRight + ">");
                 return true;
             }
             else
@@ -210,24 +145,16 @@ namespace work.bacome.imapclient
             }
         }
 
-        private static bool ZIsNoFoldLiteral(string pNoFoldLiteral, out string rDText, out bool rContainsNonASCII)
+        private static bool ZIsNoFoldLiteral(string pNoFoldLiteral, out string rDText)
         {
             if (pNoFoldLiteral == null || pNoFoldLiteral.Length < 3 || pNoFoldLiteral[0] != '[' || pNoFoldLiteral[pNoFoldLiteral.Length - 1] != ']')
             {
                 rDText = null;
-                rContainsNonASCII = false;
                 return false;
             }
 
             rDText = pNoFoldLiteral.Substring(1, pNoFoldLiteral.Length - 2);
-            rContainsNonASCII = false;
-
-            foreach (var lChar in rDText)
-            {
-                if (lChar <= ' ' || lChar == '[' || lChar == '\\' || lChar == ']' || lChar == cChar.DEL) return false;
-                if (lChar > cChar.DEL) rContainsNonASCII = true;
-            }
-
+            foreach (var lChar in rDText) if (lChar <= ' ' || lChar == '[' || lChar == '\\' || lChar == ']' || lChar == cChar.DEL) return false;
             return true;
         }
 
@@ -243,19 +170,16 @@ namespace work.bacome.imapclient
         {
             private readonly cBytes mWordBytes;
             private readonly int mWordCharCount;
-            private readonly bool mContainsNonASCII;
 
-            public cHeaderFieldWordValuePart(string pWord, bool pContainsNonASCII)
+            public cHeaderFieldWordValuePart(string pWord)
             {
                 if (pWord == null) throw new ArgumentNullException(nameof(pWord));
                 mWordBytes = new cBytes(Encoding.UTF8.GetBytes(pWord));
                 mWordCharCount = pWord.Length;
-                mContainsNonASCII = pContainsNonASCII;
             }
 
             internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderFieldValuePartContext pContext)
             {
-                if (mContainsNonASCII && !pBytes.UTF8Allowed) throw new cUTF8RequiredException();
                 pBytes.AddNonEncodedWord(cHeaderFieldBytes.NoWSP, mWordBytes, mWordCharCount);
             }
 
@@ -265,20 +189,16 @@ namespace work.bacome.imapclient
         private class cHeaderFieldQuotedStringValuePart : cHeaderFieldValuePart
         {
             private readonly ReadOnlyCollection<char> mChars;
-            private readonly bool mContainsNonASCII;
 
-            public cHeaderFieldQuotedStringValuePart(IList<char> pChars, bool pContainsNonASCII)
+            public cHeaderFieldQuotedStringValuePart(IList<char> pChars)
             {
                 if (pChars == null) throw new ArgumentNullException(nameof(pChars));
                 if (pChars.Count < 3) throw new ArgumentOutOfRangeException(nameof(pChars)); // must have at least ""
                 mChars = new ReadOnlyCollection<char>(pChars);
-                mContainsNonASCII = pContainsNonASCII;
             }
 
             internal override void GetBytes(cHeaderFieldBytes pBytes, eHeaderFieldValuePartContext pContext)
             {
-                if (mContainsNonASCII && !pBytes.UTF8Allowed) throw new cUTF8RequiredException();
-
                 char lChar;
                 List<char> lLeadingWSP = new List<char>();
                 List<char> lWordChars = new List<char>();
@@ -346,6 +266,66 @@ namespace work.bacome.imapclient
             }
         }
 
+        public static implicit operator cHeaderFieldValuePart(string pString) => new cHeaderFieldTextValuePart(pString);
+
+        public static implicit operator cHeaderFieldValuePart(DateTime pDateTime)
+        {
+            string lSign;
+            string lZone;
+
+            if (pDateTime.Kind == DateTimeKind.Local)
+            {
+                var lOffset = TimeZoneInfo.Local.GetUtcOffset(pDateTime);
+
+                if (lOffset < TimeSpan.Zero)
+                {
+                    lSign = "-";
+                    lOffset = -lOffset;
+                }
+                else lSign = "+";
+
+                lZone = lOffset.ToString("hhmm");
+            }
+            else if (pDateTime.Kind == DateTimeKind.Utc)
+            {
+                lSign = "+";
+                lZone = "0000";
+            }
+            else
+            {
+                lSign = "-";
+                lZone = "0000";
+            }
+
+            var lMonth = cRFCMonth.cName[pDateTime.Month - 1];
+
+            string lDateTime = string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTime, lMonth, lSign, lZone);
+
+            return new cHeaderFieldTextValuePart(lDateTime);
+        }
+
+        public static implicit operator cHeaderFieldValuePart(DateTimeOffset pDateTimeOffset)
+        {
+            string lSign;
+            string lZone;
+
+            var lOffset = pDateTimeOffset.Offset;
+
+            if (lOffset < TimeSpan.Zero)
+            {
+                lSign = "-";
+                lOffset = -lOffset;
+            }
+            else lSign = "+";
+
+            lZone = lOffset.ToString("hhmm");
+
+            var lMonth = cRFCMonth.cName[pDateTimeOffset.Month - 1];
+
+            string lDateTime = string.Format("{0:dd} {1} {0:yyyy} {0:HH}:{0:mm}:{0:ss} {2}{3}", pDateTimeOffset, lMonth, lSign, lZone);
+
+            return new cHeaderFieldTextValuePart(lDateTime);
+        }
 
 
 
@@ -450,7 +430,7 @@ namespace work.bacome.imapclient
 
             while (true)
             {
-                int lIndex = mText.IndexOf("\r\n", lStartIndex);
+                int lIndex = mText.IndexOf("\r\n", lStartIndex, StringComparison.Ordinal);
 
                 string lInput;
 

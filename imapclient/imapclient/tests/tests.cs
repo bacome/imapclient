@@ -34,7 +34,12 @@ namespace work.bacome.imapclient
             cQuotedPrintableDecoder._Tests(lContext);
             cBase64Encoder._Tests(lContext);
             cHeaderFieldValuePart._Tests(lContext);
-            _TestQuotedPrintable(lContext);
+            cTests.TestQuotedPrintable(lContext);
+        }
+
+        private static partial class cTests
+        {
+            // just here to remind me that this technique is available for testing
         }
 
         private partial class cSession
@@ -63,6 +68,5 @@ namespace work.bacome.imapclient
             public void ActionInt(int pValue) { mTotal += pValue; }
             public int Total => mTotal;
         }
-
     }
 }

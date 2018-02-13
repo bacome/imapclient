@@ -54,6 +54,8 @@ namespace work.bacome.imapclient
 
             if (pTrace.IndexOf('@') == -1) return pTrace.Length < 256;
 
+            // TODO: replace this with local-part @ domain type checking
+
             try
             {
                 var lAddress = new MailAddress(pTrace);

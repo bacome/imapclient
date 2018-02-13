@@ -10,12 +10,15 @@ namespace work.bacome.imapclient
 {
     public sealed class cMailMessageAppendData : cMultiPartAppendDataBase, IDisposable
     {
+        private readonly string mBoundaryBase;
         private readonly ReadOnlyCollection<cAppendDataPart> mParts;
         private readonly TempFileCollection mTempFileCollection = new TempFileCollection(); // the conversion may require the use of temporary files for quoted-printable encoding and for streams that can't seek 
 
         public cMailMessageAppendData(MailMessage pMessage, cStorableFlags pFlags = null, DateTime? pReceived = null, Encoding pEncoding = null) : base(pFlags, pReceived, pEncoding)
         {
             if (pMessage == null) throw new ArgumentNullException(nameof(pMessage));
+
+            mBoundaryBase = Guid.NewGuid().ToString();
 
             List<cAppendDataPart> lParts = new List<cAppendDataPart>();
 
@@ -29,12 +32,34 @@ namespace work.bacome.imapclient
             if (pMessage.To.Count != 0) lParts.Add(new cHeaderFieldAppendDataPart("to", pMessage.To));
 
             var lDate = pMessage.Headers["date"];
-            if (lDate == null) lParts.Add(new cHeaderFieldAppendDataPart("date", DateTime.Now));
-            else lParts.Add(new cHeaderFieldAppendDataPart("date", lDate));
+            if (lDate != null) lParts.Add(new cHeaderFieldAppendDataPart("date", lDate));
 
             ZAdd(pMessage.Headers, lParts);
 
-            // add the MIME headers here ...
+            // mime headers
+
+            lParts.Add(new cHeaderFieldAppendDataPart("mime-version", "1.0"));
+
+            string lBoundary0 = ZBoundary(0);
+
+            lParts.Add(
+                new cHeaderFieldAppendDataPart(
+                    "content-type",
+                    new cHeaderFieldValuePart[] 
+                    {
+                        "multipart/mixed",
+                        new cHeaderFieldMIMEParameter("boundary", lBoundary0)
+                    }));
+
+            lParts.Add(new cHeaderFieldAppendDataPart("content-transfer-encoding", "7bit", "8bit"));
+
+            // blank line
+
+            lParts.Add("\r\nThis is a multi-part message in MIME format.\r\n");
+
+            // text part
+            //
+
 
             // MORE TO DO ... ;?;
 
@@ -70,28 +95,33 @@ namespace work.bacome.imapclient
                 var lName = pHeaders.GetKey(i);
                 var lValues = pHeaders.GetValues(i);
 
-                // add more as we go
-                if (!lName.Equals("bcc", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("cc", StringComparison.InvariantCultureIgnoreCase) &&
+                // this is the list from mailmessage.headers documentation
+                if (!lName.Equals("bcc", StringComparison.InvariantCultureIgnoreCase) && // k
+                    !lName.Equals("cc", StringComparison.InvariantCultureIgnoreCase) && // k
                     !lName.Equals("content-id", StringComparison.InvariantCultureIgnoreCase) &&
                     !lName.Equals("content-location", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("content-transfer-encoding", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("content-type", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("date", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("from", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("importance", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("mime-version", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("priority", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("reply-to", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("sender", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("subject", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("to", StringComparison.InvariantCultureIgnoreCase) &&
-                    !lName.Equals("x-priority", StringComparison.InvariantCultureIgnoreCase)
+                    !lName.Equals("content-transfer-encoding", StringComparison.InvariantCultureIgnoreCase) && // k
+                    !lName.Equals("content-type", StringComparison.InvariantCultureIgnoreCase) && // k
+                    !lName.Equals("date", StringComparison.InvariantCultureIgnoreCase) && // k
+                    !lName.Equals("from", StringComparison.InvariantCultureIgnoreCase) && // k
+                    !lName.Equals("importance", StringComparison.InvariantCultureIgnoreCase) && // k
+                    !lName.Equals("mime-version", StringComparison.InvariantCultureIgnoreCase) && // k
+                    !lName.Equals("priority", StringComparison.InvariantCultureIgnoreCase) && // -
+                    !lName.Equals("reply-to", StringComparison.InvariantCultureIgnoreCase) && // k
+                    !lName.Equals("sender", StringComparison.InvariantCultureIgnoreCase) && // k
+                    !lName.Equals("subject", StringComparison.InvariantCultureIgnoreCase) && // k
+                    !lName.Equals("to", StringComparison.InvariantCultureIgnoreCase) && // k
+                    !lName.Equals("x-priority", StringComparison.InvariantCultureIgnoreCase) // -
                     )
                 {
                     foreach (var lValue in lValues) pParts.Add(new cHeaderFieldAppendDataPart(lName, lValue));
                 }
             }
+        }
+
+        private string ZBoundary()
+        {
+            ;?;
         }
 
         public override ReadOnlyCollection<cAppendDataPart> Parts => mParts;
