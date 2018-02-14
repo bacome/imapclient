@@ -9,15 +9,13 @@ using work.bacome.imapclient.support;
 
 namespace work.bacome.imapclient
 {
-    public enum eQuotedPrintableSourceType { Binary, CRLFTerminatedLines, LFTerminatedLines }
-    public enum eQuotedPrintableQuotingRule { Minimal, EBCDIC }
-
+    /*
     public class cConvertToQuotedPrintableConfiguration
     {
-        /**<summary>The timeout for the operation. May be <see cref="Timeout.Infinite"/>.</summary>*/
+        /**<summary>The timeout for the operation. May be <see cref="Timeout.Infinite"/>.</summary>
         public readonly int Timeout;
 
-        /**<summary>The cancellation token for the operation. May be <see cref="CancellationToken.None"/>.</summary>*/
+        /**<summary>The cancellation token for the operation. May be <see cref="CancellationToken.None"/>.</summary>
         public readonly CancellationToken CancellationToken;
 
         /// <summary>
@@ -48,10 +46,9 @@ namespace work.bacome.imapclient
             WriteConfiguration = pWriteConfiguration;
         }
     }
-
+    
     public partial class cIMAPClient
     {
-        private static readonly eQuotedPrintableSourceType kDefaultQuotedPrintableSourceType = Environment.NewLine == "\n" ? eQuotedPrintableSourceType.LFTerminatedLines : eQuotedPrintableSourceType.CRLFTerminatedLines;
 
         public int ConvertToQuotedPrintable(Stream pSource, Stream pTarget = null, cConvertToQuotedPrintableConfiguration pConfiguration = null)
         {
@@ -751,5 +748,5 @@ namespace work.bacome.imapclient
                 return lBytesWritten;
             }
         }
-    }
+    } */
 }

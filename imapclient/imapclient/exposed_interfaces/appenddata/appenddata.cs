@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Net.Mail;
 using System.Text;
 using work.bacome.imapclient.support;
 
@@ -22,6 +23,7 @@ namespace work.bacome.imapclient
         public static implicit operator cAppendData(string pString) => new cLiteralAppendData(pString);
         public static implicit operator cAppendData(Stream pStream) => new cStreamAppendData(pStream);
         public static implicit operator cAppendData(List<cAppendDataPart> pParts) => new cMultiPartAppendData(pParts);
+        public static implicit operator cAppendData(MailMessage pMessage) => new cMailMessageAppendData(pMessage);
     }
 
     public class cMessageAppendData : cAppendData

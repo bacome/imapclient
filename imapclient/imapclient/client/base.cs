@@ -137,8 +137,6 @@ namespace work.bacome.imapclient
         private cClientId mClientId = new cClientId(new cIdDictionary(true));
         private cClientIdUTF8 mClientIdUTF8 = null;
         private ReadOnlyCollection<cSASLAuthentication> mFailedSASLAuthentications = null;
-        private cBatchSizerConfiguration mConvertToQuotedPrintableReadConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
-        private cBatchSizerConfiguration mConvertToQuotedPrintableWriteConfiguration = new cBatchSizerConfiguration(1000, 100000, 1000, 1000);
 
         /// <summary>
         /// Initialises a new instance.
@@ -755,46 +753,6 @@ namespace work.bacome.imapclient
                 if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
                 mAppendStreamReadConfiguration = value ?? throw new ArgumentNullException();
                 mSession?.SetAppendStreamReadConfiguration(value, lContext);
-            }
-        }
-
-        /// <summary>
-        /// Gets and sets the default convert-to-quoted-printable stream-read batch-size configuration. You might want to limit this to increase the speed with which you can terminate the conversion.
-        /// </summary>
-        /// <remarks>
-        /// Limits the size of the buffer used when reading from the stream to be converted. Measured in bytes.
-        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
-        /// </remarks>
-        /// <seealso cref="ConvertToQuotedPrintable(System.IO.Stream, System.IO.Stream, cConvertToQuotedPrintableConfiguration)"/>
-        /// <seealso cref="ConvertToQuotedPrintable(System.IO.Stream, eQuotedPrintableSourceType, eQuotedPrintableQuotingRule, System.IO.Stream, cConvertToQuotedPrintableConfiguration)"/>
-        public cBatchSizerConfiguration ConvertToQuotedPrintableReadConfiguration
-        {
-            get => mConvertToQuotedPrintableReadConfiguration;
-
-            set
-            {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(ConvertToQuotedPrintableReadConfiguration), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mConvertToQuotedPrintableReadConfiguration = value ?? throw new ArgumentNullException();
-            }
-        }
-
-        /// <summary>
-        /// Gets and sets the default convert-to-quoted-printable stream-write batch-size configuration. You might want to limit this to increase the speed with which you can terminate the conversion.
-        /// </summary>
-        /// <remarks>
-        /// Limits the size of the buffer used when writing the converted data. Measured in bytes.
-        /// The default value is min=1000b, max=100000b, maxtime=1s, initial=1000b.
-        /// </remarks>
-        public cBatchSizerConfiguration ConvertToQuotedPrintableWriteConfiguration
-        {
-            get => mConvertToQuotedPrintableWriteConfiguration;
-
-            set
-            {
-                var lContext = mRootContext.NewSetProp(nameof(cIMAPClient), nameof(ConvertToQuotedPrintableWriteConfiguration), value);
-                if (mDisposed) throw new ObjectDisposedException(nameof(cIMAPClient));
-                mConvertToQuotedPrintableWriteConfiguration = value ?? throw new ArgumentNullException();
             }
         }
 

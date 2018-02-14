@@ -64,6 +64,8 @@
             this.gbxOther = new System.Windows.Forms.GroupBox();
             this.chkMailboxReferrals = new System.Windows.Forms.CheckBox();
             this.gbxCapabilities = new System.Windows.Forms.GroupBox();
+            this.chkIgnoreCatenate = new System.Windows.Forms.CheckBox();
+            this.chkIgnoreMultiAppend = new System.Windows.Forms.CheckBox();
             this.chkIgnoreEnable = new System.Windows.Forms.CheckBox();
             this.chkIgnoreStartTLS = new System.Windows.Forms.CheckBox();
             this.chkIgnoreCondStore = new System.Windows.Forms.CheckBox();
@@ -270,8 +272,6 @@
             this.txtASMax = new System.Windows.Forms.TextBox();
             this.txtASMin = new System.Windows.Forms.TextBox();
             this.cmdPoll = new System.Windows.Forms.Button();
-            this.chkIgnoreMultiAppend = new System.Windows.Forms.CheckBox();
-            this.chkIgnoreCatenate = new System.Windows.Forms.CheckBox();
             this.gbxServer.SuspendLayout();
             this.gbxCredentials.SuspendLayout();
             this.gbxTLSRequirement.SuspendLayout();
@@ -709,6 +709,26 @@
             this.gbxCapabilities.TabIndex = 2;
             this.gbxCapabilities.TabStop = false;
             this.gbxCapabilities.Text = "Ignore Capabilities";
+            // 
+            // chkIgnoreCatenate
+            // 
+            this.chkIgnoreCatenate.AutoSize = true;
+            this.chkIgnoreCatenate.Location = new System.Drawing.Point(159, 272);
+            this.chkIgnoreCatenate.Name = "chkIgnoreCatenate";
+            this.chkIgnoreCatenate.Size = new System.Drawing.Size(69, 17);
+            this.chkIgnoreCatenate.TabIndex = 22;
+            this.chkIgnoreCatenate.Text = "Catenate";
+            this.chkIgnoreCatenate.UseVisualStyleBackColor = true;
+            // 
+            // chkIgnoreMultiAppend
+            // 
+            this.chkIgnoreMultiAppend.AutoSize = true;
+            this.chkIgnoreMultiAppend.Location = new System.Drawing.Point(159, 249);
+            this.chkIgnoreMultiAppend.Name = "chkIgnoreMultiAppend";
+            this.chkIgnoreMultiAppend.Size = new System.Drawing.Size(84, 17);
+            this.chkIgnoreMultiAppend.TabIndex = 21;
+            this.chkIgnoreMultiAppend.Text = "Multiappend";
+            this.chkIgnoreMultiAppend.UseVisualStyleBackColor = true;
             // 
             // chkIgnoreEnable
             // 
@@ -2960,26 +2980,6 @@
             this.cmdPoll.Text = "Poll";
             this.cmdPoll.UseVisualStyleBackColor = true;
             this.cmdPoll.Click += new System.EventHandler(this.cmdPoll_Click);
-            // 
-            // chkIgnoreMultiAppend
-            // 
-            this.chkIgnoreMultiAppend.AutoSize = true;
-            this.chkIgnoreMultiAppend.Location = new System.Drawing.Point(159, 249);
-            this.chkIgnoreMultiAppend.Name = "chkIgnoreMultiAppend";
-            this.chkIgnoreMultiAppend.Size = new System.Drawing.Size(84, 17);
-            this.chkIgnoreMultiAppend.TabIndex = 21;
-            this.chkIgnoreMultiAppend.Text = "Multiappend";
-            this.chkIgnoreMultiAppend.UseVisualStyleBackColor = true;
-            // 
-            // chkIgnoreCatenate
-            // 
-            this.chkIgnoreCatenate.AutoSize = true;
-            this.chkIgnoreCatenate.Location = new System.Drawing.Point(159, 272);
-            this.chkIgnoreCatenate.Name = "chkIgnoreCatenate";
-            this.chkIgnoreCatenate.Size = new System.Drawing.Size(69, 17);
-            this.chkIgnoreCatenate.TabIndex = 22;
-            this.chkIgnoreCatenate.Text = "Catenate";
-            this.chkIgnoreCatenate.UseVisualStyleBackColor = true;
             // 
             // frmClient
             // 

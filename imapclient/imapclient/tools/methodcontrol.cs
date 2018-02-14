@@ -14,7 +14,7 @@ namespace work.bacome.imapclient
         {
             if (pTimeout < -1) throw new ArgumentOutOfRangeException(nameof(pTimeout));
             mTimeout = pTimeout;
-            if (mTimeout == -1) mStopwatch = null;
+            if (pTimeout == -1) mStopwatch = null;
             else mStopwatch = Stopwatch.StartNew();
             CancellationToken = pCancellationToken;
         }

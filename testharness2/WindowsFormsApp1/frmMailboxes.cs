@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -384,6 +385,19 @@ namespace testharness2
             catch (Exception ex)
             {
                 if (!IsDisposed) MessageBox.Show(this, $"an error occurred while deleting: {ex}");
+            }
+        }
+
+        private async void cmdAppendTests_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show(this, "warning: this will add messages to the mailbox", "add messages?", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK) return;
+
+            MailMessage lMessage = new MailMessage("imaptest1@dovecot.bacome.work", "imaptest2@dovecot.bacome.work", "a simple test message", "i want something here that shows it has been encoded so an '=' should do the trick.");
+
+            try { await mSubscribedMailbox.AppendAsync(lMessage); }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) MessageBox.Show(this, $"an error occurred while appending: {ex}");
             }
         }
 

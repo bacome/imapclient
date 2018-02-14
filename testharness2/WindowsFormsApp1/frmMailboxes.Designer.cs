@@ -49,6 +49,7 @@
             this.chkCreate = new System.Windows.Forms.CheckBox();
             this.txtCreate = new System.Windows.Forms.TextBox();
             this.rtx = new System.Windows.Forms.RichTextBox();
+            this.cmdAppendTests = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -108,6 +109,7 @@
             // 
             this.gbxMailbox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbxMailbox.Controls.Add(this.cmdAppendTests);
             this.gbxMailbox.Controls.Add(this.cmdRefresh);
             this.gbxMailbox.Controls.Add(this.cmdUID);
             this.gbxMailbox.Controls.Add(this.chkOpenOnSelect);
@@ -305,6 +307,16 @@
             this.rtx.TabIndex = 0;
             this.rtx.Text = "";
             // 
+            // cmdAppendTests
+            // 
+            this.cmdAppendTests.Location = new System.Drawing.Point(236, 82);
+            this.cmdAppendTests.Name = "cmdAppendTests";
+            this.cmdAppendTests.Size = new System.Drawing.Size(100, 25);
+            this.cmdAppendTests.TabIndex = 8;
+            this.cmdAppendTests.Text = "Append Tests ...";
+            this.cmdAppendTests.UseVisualStyleBackColor = true;
+            this.cmdAppendTests.Click += new System.EventHandler(this.cmdAppendTests_Click);
+            // 
             // frmMailboxes
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -353,5 +365,6 @@
         private System.Windows.Forms.CheckBox chkOpenOnSelect;
         private System.Windows.Forms.Button cmdRenameTo;
         private System.Windows.Forms.Button cmdRefresh;
+        private System.Windows.Forms.Button cmdAppendTests;
     }
 }

@@ -49,6 +49,7 @@
     <Compile Include="exposed_interfaces\appenddata\headerfieldvalueparts.cs" />
     <Compile Include="exposed_interfaces\appenddata\mailmessageappenddata.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddata.cs" />
+    <Compile Include="exposed_interfaces\appenddata\quotedprintableencoder.cs" />
     <Compile Include="exposed_interfaces\configuration\appendconfiguration.cs" />
     <Compile Include="exposed_interfaces\feedback\appendfeedback.cs" />
     <Compile Include="exposed_interfaces\appenddata\appenddatapart.cs" />

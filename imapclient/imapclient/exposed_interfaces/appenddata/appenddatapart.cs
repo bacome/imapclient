@@ -10,6 +10,8 @@ namespace work.bacome.imapclient
 {
     public abstract class cAppendDataPart
     {
+        public static readonly cAppendDataPart CRLF = new cLiteralAppendDataPart("\r\n");
+
         internal cAppendDataPart() { }
         internal abstract bool HasContent { get; }
         public static implicit operator cAppendDataPart(cMessage pMessage) => new cMessageAppendDataPart(pMessage);
@@ -125,6 +127,11 @@ namespace work.bacome.imapclient
     public class cLiteralAppendDataPart : cLiteralAppendDataPartBase
     {
         private cBytes mBytes;
+
+        internal cLiteralAppendDataPart(cBytes pBytes)
+        {
+            mBytes = pBytes ?? throw new ArgumentNullException(nameof(pBytes));
+        }
 
         public cLiteralAppendDataPart(IEnumerable<byte> pBytes)
         {
